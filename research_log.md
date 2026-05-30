@@ -446,3 +446,17 @@ Honest eval = NON-OVERLAPPING selective accuracy (no two bets within 60s) so OOS
   TEST 0.764/OOS 0.929. compress+breakout(|ret30| high) 0.5%: TEST 0.748(n226)/OOS 0.846. micro/imb-align weaker.
   **First setup whose OOS CI lower bound (0.76) clears 0.75 with both halves agreeing.** Mechanism = the directional
   RELEASE of a quiet period (compression→expansion), not being quiet. OOS n small (41) → V6 consolidate with more n.
+
+### MIN1-V6 — release-SPECIALIST (specialist underperforms global again)
+- `min1_v6.py`: ensemble trained only on compression-release bars. AUC 0.50. Best cell release(comp&rel>p80)@5%
+  TEST 0.667/OOS 0.750(n68). **Worse than v5's GLOBAL model on the same release gate (TEST 0.711/OOS 0.854).**
+  Confirms: don't train specialists at this horizon; the GLOBAL ensemble + release gate is the strategy. → V7
+  applies the clean rel_ratio=bbw300/bbw1800 release gate to the global v3 probs and sweeps for max-n >=75% cell.
+
+### MIN1-V7 — global ensemble + rel_ratio release-gate sweep (the honest frontier)
+- `min1_v7.py` (global v3 probs, no retrain): gate = compression(bbw1800<=Q) AND rel_ratio(bbw300/bbw1800)>=P.
+- **comp33 & rel>p90 (deep compression + strong release):** @20% TEST 0.632/**OOS 0.768**(n95)[.68,.85] H1 0.94/H2 0.73;
+  @10% TEST 0.668/**OOS 0.872**(n47)[.77,.96]; @5% TEST 0.714/OOS 0.897(n29). OOS 2026 IS >=0.75 in the release
+  regime. **BUT TEST (2024-25, large n) caps ~0.63-0.71** — 2026 ran hot; high-OOS cells have small n; CIs dip
+  below 0.75. Picking the setup by TEST (comp50&rel>p90@5% TEST 0.716) gives OOS only 0.646. Honest large-sample
+  level ~0.71, OOS 2026 ~0.77-0.90. Need to lift TEST to make it robust. → V8 directional confirmation.
