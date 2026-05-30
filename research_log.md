@@ -84,6 +84,16 @@ real but strictly the extreme-selectivity operating point — not a broadly-cali
 
 | V16 | 15m-v3: + rich EXOGENOUS peer features (15m/30m/1h) + USD-basket/stat-arb factors (352 feats) | other pairs as exogenous data lift 15m to 75% | BLEND AUC test **0.5272** / oos 0.5197 (best test yet); selective@0.2% TEST 0.664 / **OOS 0.632** (n=269, best OOS tail); 75% gate never fires | ➕ best 15m yet, not 75% | Exogenous peer feats (1h trend, 15m vol/autocorr of GBP/JPY/CAD/CHF) + stat-arb factors DOMINATE top-30 importances and give the best OOS tail of any 15m variant (0.611→0.623→0.632 across v1→v2→v3). But marginal: pairs are highly correlated → mostly redundant with EURUSD's own MTF features. Caps ~0.527 AUC. |
 
+| V17 | 15m-v4: + event-time calendar PROXY (release-window vol seasonality, compliant, no scrape) | economic-calendar event timing lifts 15m | BLEND AUC test 0.5267 / oos 0.5189 (= v3, no change); EVT_intensity_max15 ranks #4/356 but adds 0 AUC | ✖ redundant | Event-timing IS informative (model ranks it #4) but REDUNDANT with existing time-of-day/vol features → no incremental edge. The other calendar component (actual-vs-forecast SURPRISE) moves price in seconds (per V10 OBI decay) and is absorbed by 15m. **Economic calendar does not help 15m EURUSD direction.** FXStreet bulk endpoint is robots-disallowed; official API is paid — did not scrape. |
+
+### ECONOMIC-CALENDAR VERDICT
+A calendar has two directional components: (1) event TIMING — already captured by time-of-day +
+volatility-regime features (V17: ranked #4 but 0 incremental AUC); (2) the actual-vs-forecast
+SURPRISE — moves price within seconds–1min (V10 order-book decay) and is fully absorbed by 5–15m.
+So neither component helps the 5m or 15m horizon. A calendar WOULD matter for the seconds-horizon
+strategy (flag/trade releases), which already clears 75% without it. FXStreet scraping: bulk
+endpoint robots-disallowed, official API paid — not pursued; compliant proxy tested instead.
+
 ### 15-MINUTE VERDICT
 15m IS more predictable than 5m (selective ~67% TEST / ~62% OOS @0.2% cov vs 5m ~57%), confirming
 the Reddit author's direction — but on liquid EURUSD it caps ~0.526 AUC and **does not reach 75%**
