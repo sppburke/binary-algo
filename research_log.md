@@ -460,3 +460,19 @@ Honest eval = NON-OVERLAPPING selective accuracy (no two bets within 60s) so OOS
   regime. **BUT TEST (2024-25, large n) caps ~0.63-0.71** — 2026 ran hot; high-OOS cells have small n; CIs dip
   below 0.75. Picking the setup by TEST (comp50&rel>p90@5% TEST 0.716) gives OOS only 0.646. Honest large-sample
   level ~0.71, OOS 2026 ~0.77-0.90. Need to lift TEST to make it robust. → V8 directional confirmation.
+
+### MIN1-V8 — directional confirmation in release regime (FAILED — model beats naive momentum)
+- `min1_v8.py`: within compression-release, require model direction to agree with sign(ret30) [breakout momentum]
+  and sign(micro_dev). release@5% TEST 0.678/OOS 0.747; release&mom 0.581/0.564; release&mom&micro 0.601/0.600.
+  **Confirmation HURTS** → the model's confident release bets are often COUNTER to immediate momentum (60s reversion,
+  not continuation). The model already encodes direction better than a naive momentum/micro rule. Confirmation OUT.
+### MIN1-V9 — pre-committed proof of the compression-release strategy (see result below)
+
+**MIN1-V9 RESULT (`min1_v9_proof.py`):** mechanism fixed a priori (compression-release), setup selected on VAL
+only (comp q33 & rel>p90 @10%, VALacc 0.731 n513), frozen, judged on held-out:
+- **OOS 2026: 0.872 (n47), CI95 [0.766, 0.957]** — CI lower bound clears 0.75; both 2026 halves elevated
+  (H1 1.00 n4 / H2 0.857 n42 [0.738,0.952]). **OOS-2026 verified >75%.**
+- **TEST 2024-25: 0.668 (n804), CI [0.634,0.700]** — the LARGER held-out sample is only ~0.67.
+- **Honest read: the two held-out periods DISAGREE.** 2026 clears 75%; 2024-25 does not. 2026 was favorable for
+  this setup. Broad-sample truth ~0.70-0.72; 2026 OOS ~0.87. Real, strong (vs 15m's ~0.52) but not robust across
+  ALL out-of-sample windows. → V10 magnitude model to try to lift the 2024-25 leg.
