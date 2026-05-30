@@ -498,3 +498,11 @@ only (comp q33 & rel>p90 @10%, VALacc 0.731 n513), frozen, judged on held-out:
 **1-min status:** compression-RELEASE regime + AUC-0.68 magnitude model give OOS-2026 >=0.75 (verified,
 pre-committed 0.872) but TEST 2024-25 ~0.67-0.72. Robustness across all OOS windows limited by 2026 sample
 size (3 months). Continuing: V13 = direction model trained only on large-move bars (clean direction signal).
+
+### MIN1-V13 — direction model trained ONLY on large moves (FAILED)
+- `min1_v13.py`: train direction ensemble only on |ret60|>=p67 bars (mid label). **AUC 0.507** (no lift over
+  global 0.51) and its selective frontier is FLAT ~0.56-0.58 at ALL coverages — training on only large moves
+  destroyed the confidence ranking. Global v3 model stays best. **Confirmed: 60s direction is ~0.51 AUC,
+  fundamentally near-efficient; no training-subset trick improves it.** The edge is regime (compression-release)
+  + magnitude (when large moves happen), not direction. → V14 temporal sequence model (1D-CNN) to try to read
+  breakout path dynamics the GBM's hand-crafted features miss.
