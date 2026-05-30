@@ -15,9 +15,18 @@ EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy v
 
 | Horizon / data | Best generalizing selective accuracy (2026 OOS) | 75%? |
 |---|---|---|
-| **3 seconds** — tick order-book microstructure (ensemble) | **TEST 0.756 / OOS 0.809** @0.05% coverage | ✅ |
-| 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.63–0.66 selective | open / not yet |
-| 5 minutes — OHLCV + everything | ~0.55–0.60 selective | open / not yet |
+| **3 seconds** — tick order-book microstructure (ensemble) | **TEST 0.756 / OOS 0.809–0.814** @0.05% coverage | ✅ |
+| **5 seconds** — same | **TEST 0.760 / OOS 0.814** @0.02% coverage | ✅ |
+| 8 seconds — same | OOS 0.753 / TEST 0.702 | borderline |
+| 15–30 seconds — same | OOS ~0.70–0.76 / TEST ~0.62–0.65 @0.05% | ✖ not both-sides |
+| 1–5 minutes — OHLCV + everything | ~0.55–0.60 selective | ✖ |
+| 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.52 global; **EURUSD compress×NY ≈ 0.60–0.64** (4-window-stable) | ✖ |
+
+> **Horizon-frontier sweep (`tick_horizon_sweep.py`):** the longest horizon clearing ≥75% on **both** TEST and
+> 2026 OOS (n≥100) is **5 seconds**. The directional edge is an order-book-imbalance microstructure phenomenon
+> that decays to coin-flip by ~30–60 s. A >75% binary-direction edge on liquid FX majors is a **seconds-scale**
+> effect; it does not reach a binary-tradeable expiry. The best *tradeable-horizon* book is the validated
+> EURUSD 15m compression×NY-session selective pocket at ~0.60–0.64 OOS (profitable vs an 0.80 payout, but <75%).
 
 1. **5-minute (and 15-minute) 75% is still open on liquid EURUSD** — explored across 11+ model/
    signal families and *mechanistically explained*: the lag-1 autocorrelation of 5-min returns is

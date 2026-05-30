@@ -342,3 +342,31 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   to reject. **FINAL frontier (this data/horizon): EURUSD 15m binary ≈ 0.60-0.64 OOS selective — real, 4-window-stable,
   profitable vs an 0.80 payout (breakeven 0.556), but not 75%.** Reaching a verified ≥75% requires a scope change:
   shorten horizon (already ≥75% at 3s, V13), true LOB/order-flow data, or a less-efficient instrument (deferred).
+
+### V25 — HORIZON-FRONTIER SWEEP: where does ≥75% actually live? (DEFINITIVE) (2026-05-30)
+- **Method.** Script `tick_horizon_sweep.py`: microstructure features are horizon-independent, so build X once on the
+  1s tick bars (train 13.8M / val 1.31M / test 7.18M / oos 2.36M) and only relabel `y=sign(mid.shift(-H))` per
+  horizon; one fast LGBM each; threshold frozen on VAL; find the LARGEST horizon clearing ≥75% on BOTH TEST and
+  2026 OOS at usable coverage (n≥100 each). Horizons 3-300 s.
+- **Frontier (best both-sides ≥75% coverage):**
+  - **H=3s ✅** TEST 0.755(n1908) / OOS 0.814(n349) @0.05% cov
+  - **H=5s ✅** TEST 0.760(n1000) / OOS 0.814(n226) @0.02% cov
+  - H=8s ✖ OOS 0.753 but TEST 0.702 (@0.05%) — borderline, fails TEST
+  - H=13s ✖ 0.647/0.760 · H=21s ✖ 0.625/0.703 · H=34-55s ✖ ~0.59 · H≥89s ✖ AUC→0.50 (signal gone, stumps)
+- **LONGEST horizon clearing ≥75% both splits (n≥100): 5 seconds.** The directional edge is an order-book-imbalance
+  microstructure phenomenon that decays to coin-flip by ~30-60s; it does **not** reach any binary-tradeable expiry
+  (≥30-60s), let alone 5m/15m. AUC vs horizon: 0.548(3s)→0.510(8s)→0.504(34s)→~0.500(≥89s) — monotone decay to EMH.
+- **FINAL, COMPLETE FRONTIER for EURUSD binary direction (all OOS-verified):**
+  | horizon | OOS selective accuracy | ≥75%? |
+  |---|---|---|
+  | 3-5 s | 0.81 @0.02-0.05% cov | ✅ (latency-critical, ~handful of bets/day) |
+  | 8 s | 0.75 OOS / 0.70 TEST | borderline |
+  | 15-30 s | ~0.70-0.76 OOS @0.05% (TEST ~0.62-0.65) | ✖ not both-sides |
+  | 1-5 min | ~0.55-0.60 | ✖ |
+  | 15 min | ~0.52 global / ~0.60-0.64 EURUSD compress×NY | ✖ |
+- **CONCLUSION:** A >75% directional binary edge on liquid FX majors **exists only at the ≤5-8 second microstructure
+  scale** (verified TEST+OOS, V13 + this sweep). It is real but: extreme selectivity (~1 bet/2000-5000s), latency-
+  critical, and **not offered as a binary-option expiry on FX majors** (shortest FX binaries ~1-5min). At every
+  tradeable binary expiry the edge is <75%; the best 15m book is the validated EURUSD compress×NY ≈0.60-0.64.
+  **The 15-minute 75% target is not reachable on liquid majors; 75% is a seconds-scale phenomenon.** Routes to a
+  *tradeable* ≥75%: true LOB/order-flow data (deeper signal at 10-60s) or a less-efficient instrument (deferred).
