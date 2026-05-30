@@ -401,3 +401,23 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   cleared 67% (0.691); 2025 & 2026 ≈ 0.59. The earlier 0.70-0.77 cells were year/small-n luck not reproducible
   under pre-commitment. **What IS proven: a real, reproducible ~0.64 15m EURUSD selective edge** (3 years held out,
   n2788, CI[.624,.659], > 0.556 binary breakeven). Honest 15m ceiling = ~0.64, not 67%.
+
+---
+
+## 1-MINUTE (60s) horizon — new goal: >75% OOS-verified (2026-05-30)
+
+Tick data splits (EURUSD 1s microstructure): TRAIN 2021-2023 · VAL 2024-H1 · TEST 2024.09-2025.11 · OOS 2026.
+Honest eval = NON-OVERLAPPING selective accuracy (no two bets within 60s) so OOS n is independent/tradeable.
+
+### MIN1-V1 — fuse microstructure + multi-TF regime, mid-direction label (PROMISING)
+- `min1_v1.py`: 53 features (OBI/microprice/flow + multi-TF returns/RV/EMA-dist/stretch/rangepos/compression on the
+  1s mid grid), single LGBM, label sign(mid(t+60)-mid(t)). AUC val 0.508 / oos 0.508 (near-0.50 all-bars).
+- **Non-overlapping selective frontier: TEST/OOS** — 0.5% 0.656/0.692(n953) · 0.2% 0.684/**0.725**(n258) · 0.1%
+  0.704/**0.731**(n93). OOS > TEST, climbing toward 75%. Top features = rv900/rv1800/rv300 (vol regime),
+  ret3600/ret1800 (HTF momentum), emadist3600 (trend), bbw1800 (compression). **At 60s the signal is HTF-regime
+  driven, not raw OBI** — confirms the regime thesis. ~0.70-0.73 OOS, need ~+3-5pts; TEST (big n) ~0.70 is the bar.
+### MIN1-V2 — microprice-denoised label + magnitude-filtered training (FAILED, do not retry)
+- `min1_v2.py`: trained on sign(micro(t+60)-micro(t)) + dropped noisiest 40% by |micro move| + ensemble.
+- **AUC collapsed to ~0.50** (early-stop iter 4); selective frontier flat ~0.51-0.55. Training to predict MICRO
+  direction destroyed the signal that predicts MID direction; magnitude filter compounded it. **Lesson: keep the
+  mid-direction label on all valid bars (v1 recipe). Microprice-label and aggressive magnitude filtering are OUT.**
