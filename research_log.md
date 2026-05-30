@@ -216,4 +216,6 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   expose materially more predictable signal — idio AUC ≈ raw AUC ≈ 0.51, rank hit-rate ~0.53. This
   *reproduces the known weak residual edge* (cf. V7 stat-arb residual ~0.535) but does not unlock 75%; the
   small AUD/NZD idio lift is the only faint positive. Decision routing: F2=no → proceed to **F3
-  (touch-before-touch ±k target)**.
+  (volatility-compression regime gate on the binary endpoint-direction target)**. *(Note 2026-05-30: the
+  earlier "touch-before-touch ±k" framing was dropped — touch/barrier is a different option product; we
+  optimize the up/down BINARY only, i.e. the sign of the 15m return.)*

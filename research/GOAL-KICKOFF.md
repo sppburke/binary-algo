@@ -17,6 +17,12 @@ below is a **decision gate**, not a model to ship — ~1 day each, all on data i
 - Verified 3s edge exists: `models/probs_tickens_H3.npz` (TEST 0.756 / OOS 0.809 @0.05% cov).
 - Best 15m so far: ~0.632 OOS @0.2% coverage (selective). AUC current best level ~0.527.
 
+## Product scope (non-negotiable)
+**We optimize exactly one instrument: the up/down BINARY option** — does spot finish above (call) or below
+(put) the current strike at the 15m expiry. The target is therefore the **sign of the 15m return**, scored as
+selective accuracy@coverage. We do **not** model or optimize any other contract type (no touch/no-touch,
+barrier, range/over-under, ladder, digits, knock-in/out). Path-based reframes are out of scope.
+
 ## Validation contract (every experiment, non-negotiable)
 1. Causal features only; purged + embargoed CV, embargo ≥ the label span at fold boundaries.
 2. Pick threshold on **VAL only**, freeze, report TEST **and** 2026 OOS at that same threshold.
@@ -43,12 +49,15 @@ per-pair sign? **Method.** Re-target the existing 239-feature stack to a learnin
 top-minus-bottom spread; same OOS contract. **Gate.** Residual rank AUC materially > 0.527 → factor removal
 is the lever. *Source:* arXiv:2105.10019.
 
-## F3 — Touch-before-touch (±k) target vs end-sign
-**Question.** Is "will price touch +k before −k within 15m" (the actual binary-option question) more
-predictable than the sign of the 15m return? It rewards path/vol-asymmetry, not just drift. **Method.**
-Relabel with a symmetric double-barrier (k in vol units from our tick spread); train the existing stack;
-compare accuracy@coverage to end-sign. **Gate.** Touch target clears a higher accuracy at usable coverage →
-switch the primary label.
+## F3 — Volatility-compression regime gate on binary endpoint direction
+**Question.** Does conditioning *when* we bet on a volatility-compression→expansion state (the one orthogonal
+idea surfaced by the Sofien corpus) lift selective binary accuracy? Same up/down endpoint target — we only
+change *which* bars are eligible to bet. **Method.** Build an explicit compression boolean (Bollinger-band
+width inside Keltner-channel width = "squeeze ON"; and NR7 / inside-bar range compression) on 15m bars; restrict
+the existing 239-feature stack's selective book to bars at/just after a squeeze release, direction from the
+model's endpoint-sign probability; compare accuracy@coverage on the gated subset vs the ungated book. **Gate.**
+Gated subset clears materially higher accuracy at usable coverage → the regime gate is a real lever.
+*Source:* Sofien corpus (Squeeze/TTM, NR7 inside-bar) — concept only, un-backtested; treat as a gate, not a predictor.
 
 ## F4 — Exotic pair (less-efficient instrument, within FX)  **[DEFERRED — majors-only scope, 2026-05-30]**
 *Deferred to a later probe; not part of the active falsifier set (F1–F3). Relies on exotic/EM pairs
@@ -71,6 +80,7 @@ level, consider the crypto pivot (E16) **[DEFERRED — majors-only scope, 2026-0
 ## Decision routing after the falsifiers
 *Active falsifier set: F1–F3 (majors-only). F4 and the crypto pivot are **[DEFERRED — majors-only scope, 2026-05-30]** and routed only as later probes.*
 - F1 yes → pursue fast-edge aggregation as primary (new mini-backlog).
-- F2 / F3 yes → re-target the pipeline (rank or touch) and re-run the directional overlays (E1/E2/E4) on it.
+- F2 yes → re-target the pipeline (rank) and re-run the directional overlays (E1/E2/E4) on it.
+- F3 yes → keep the binary endpoint target but ship the volatility-regime gate as the selective filter.
 - F1–F3 all no → the honest deliverable is the conformal-hardened thin conditional book at break-even (E3); 75% remains the open target.
 - *Later (deferred, majors-only):* F4 yes → port the stack to the exotic; F4 no + F1 no → crypto pivot (E16) **[DEFERRED — majors-only scope, 2026-05-30]**.

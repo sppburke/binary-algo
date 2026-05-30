@@ -24,11 +24,8 @@
   walk). A CSPRNG-driven GBM has **independent, zero-drift increments → direction is a martingale →
   unpredictable in principle.** Do not spend modeling effort trying to predict V10/V25/V75 up/down.
   ([Deriv: Do brokers manipulate synthetic indices](https://experts.deriv.com/insights/do-brokers-manipulate-synthetic-indices))
-- **BUT synthetic indices have one genuinely exploitable property: the *volatility is known and constant*,
-  and Crash/Boom indices have a *known Poisson-like spike intensity*.** This makes **volatility-structured
-  binaries (touch / no-touch / range / over-under)** analytically priceable. If Deriv mis-prices a
-  vol-contingent contract relative to its own generator's σ, that is a real, *non-directional* edge —
-  orthogonal to everything we've tried.
+- *(Out of scope: only the up/down BINARY is in scope. Volatility-contingent contracts on synthetics — and
+  any non-directional/path products — are a different instrument and are not pursued here.)*
 - **[DEFERRED — majors-only scope, 2026-05-30]** **A credible, peer-reviewed orthogonal direction documented in the literature is CRYPTO, not synthetics.** Multiple journals
   (ScienceDirect, Springer, Nature Sci. Reports) document Bitcoin/altcoins **deviating from the random-walk
   hypothesis at 15/30/60-min intraday intervals**, with **intraday momentum + reversal** effects and
@@ -107,20 +104,10 @@ and microstructure create exploitable autocorrelation. **Conclusion: any "I pred
 claim is either curve-fit noise or a backtest that won't replicate.** Our own next-tick decay finding
 (55.3% → ~0.50) is a *real-market* effect; on synthetics even that does not exist.
 
-**The exploitable corner — volatility, not direction:**
-- Because **σ is published and constant**, the fair price of any **volatility-contingent binary** (touch /
-  no-touch / stays-in-range / over-under / digits) is **computable in closed form** (barrier-hitting
-  probabilities for GBM). If Deriv's quoted contract price deviates from the generator-implied probability,
-  that mispricing is a pure, *non-directional* statistical edge. ([Touch/No-Touch mechanics](https://www.binaryoptiontrading.com/guides/touch-no-touch/);
-  [Deriv synthetic indices](https://deriv.com/markets/derived-indices/synthetic-indices))
-- **Crash/Boom indices** add a **Poisson-like spike process**: e.g. "Boom 900" spikes on average every 900
-  ticks, so ~144 spikes per 86,400-tick day
-  ([Deriv Crash/Boom](https://deriv.com/markets/derived-indices/crash-boom);
-  [traders-academy Crash/Boom 150](https://traders-academy.deriv.com/trading-guides/crash-boom-150-derived-indices)).
-  Between spikes the drift is *gently adverse* (slow bleed) and spikes are *one-directional*. This is a
-  **known hazard-rate process**, so the EV of "no-spike before tick N" contracts is analytically derivable.
-  This is the one place a *direction-ish* edge exists on synthetics — but it comes from the **known spike
-  asymmetry**, not from predicting the random component.
+*(The volatility-contingent / barrier / spike-process contracts on synthetics are a different instrument
+and are **out of scope**. This project optimizes only the up/down BINARY — sign of the 15m return — on the
+liquid USD majors. The synthetics material is retained below only as the DO-NOT rationale: the random
+component of a CSPRNG-driven generator is unpredictable in direction, so do not spend modeling effort there.)*
 
 ### 3. Crypto as the credible "less-efficient instrument" — **[DEFERRED — majors-only scope, 2026-05-30]**
 
@@ -185,15 +172,8 @@ scope, 2026-05-30]**: retained as analysis, not a current target.
    - Test the **intraday-momentum + intraday-reversal** decomposition explicitly (first-bar-of-session return
      as a predictor), per the crypto-predictability literature.
 
-2. **Vol-structured binaries on Deriv synthetics (direction-free edge).**
-   - Pull the live tick feed via the **Deriv WebSocket API** (free, real-time, documented) for V10/V25/V75
-     and Crash/Boom. Estimate the *realized* σ and *empirical* spike hazard, and compare to the published
-     constant-vol/spike parameters.
-   - Price **touch / no-touch / stays-in / over-under** contracts with the GBM barrier-hitting formulas,
-     then compare to Deriv's quoted contract prices. **Trade only the gap** (mispricing of a vol-contingent
-     contract), never up/down. This is a clean, *measurable* EV strategy with a known generator.
-   - For Crash/Boom: model the inter-spike interval as Poisson/renewal, derive EV of "no spike in next N
-     ticks" vs quoted price; the slow adverse bleed between spikes must be netted against spike payoff.
+2. *(Removed — vol-structured / touch / no-touch / over-under contracts on synthetics are a different
+   instrument and out of scope. Only the up/down binary on liquid USD majors is pursued.)*
 
 3. **Calibrate the 75% target to the real cost stack.** Before any new model, encode the
    `EV = w·b_eff − (1−w)` constraint where `b_eff = quoted_payout − round_trip_spread_in_payout_terms`.
@@ -255,8 +235,7 @@ delisted alts, exchange clock skew, and using *settlement* prices that aren't tr
 | Crypto 1m/15m OHLCV (BTC/ETH/alts) | Binance/Bybit/OKX REST + Kaggle dumps | Free | High; years of history; multi-venue |
 | Crypto trades + L2 order book (real flow) | Exchange WebSocket; Tardis.dev for historical L2 | Free live / Paid history | **Real** order flow & book imbalance (vs our 10s proxy) |
 | Perp funding rate, open interest, liquidations | Exchange APIs; Coinglass | Free/freemium | The *orthogonal* crypto-only features |
-| Deriv synthetic tick feed (V10–V100, Crash/Boom) | **Deriv WebSocket API** (`ws.derivws.com`) | Free | Real-time + historical ticks; the generator we'd price against |
-| Deriv contract quotes (touch/no-touch/over-under) | Deriv API `proposal` calls | Free (demo account) | Lets us measure quoted-vs-fair mispricing |
+| Up/down binary payout terms (the only in-scope contract) | Venue quote / `proposal` calls | Free (demo) | Sets `b_eff` for the break-even/Kelly gate on the 15m sign target |
 | Kalshi event contracts + order book | Kalshi API | Free (account) | Regulated CLOB; threshold-contract reframe |
 | Binary break-even/Kelly references | (math, no data) | — | Derive in-repo |
 
@@ -271,11 +250,8 @@ delisted alts, exchange clock skew, and using *settlement* prices that aren't tr
   threshold venue-correct, and reframes whether 0.632 OOS is already commercially useful at some payout.
 
 **Med**
-- **Deriv vol-structured (non-directional) binaries.** Real, measurable edge *only* on volatility-contingent
-  contracts where the generator's σ/spike intensity is known. Orthogonal to all 17 FX variants. Requires a
-  different model class (barrier/hazard pricing, not direction classification) — new work, but well-posed and
-  with a *known* data-generating process (rare luxury). Crash/Boom spike-asymmetry is the most direction-like
-  sub-case.
+- *(Removed — vol-structured / barrier / hazard contracts are a different instrument and out of scope. Only
+  the up/down binary on liquid USD majors is in scope.)*
 - **Kalshi threshold-contract reframe.** Real regulated venue, transparent fees, exploitable favorite-longshot
   bias — but it's a *different horizon/target* (event/threshold), so it's a pivot, not an extension.
 

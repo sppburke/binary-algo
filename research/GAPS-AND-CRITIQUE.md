@@ -75,12 +75,13 @@ but no report tests **alternative directional *targets*** as the primary object.
 ones: (a) **signed path-dependence** — a model-free test/predictor where the *sign of cumulative innovations
 over a lookback* predicts the *sign of cumulative innovations over the forecast horizon* ("A Non-parametric
 Test and Predictive Model for Signed Path Dependence," Comp. Economics 2020) — reported significant after costs
-in equities, never tested on your FX; (b) **"will price touch +k before −k"** (a barrier-touch probability),
-which is the *actual* binary-option-relevant question and is often more predictable than end-point sign because
-it rewards path/volatility-asymmetry, not just drift.
-**Why it matters:** your label ("sign of 15m return") is the least informative target and the one most
-contaminated by the ~0.50 drift. A touch/area target can be 55–60% predictable when end-sign is 51%,
-and it is the economically correct target for binaries. Pure target-engineering, free.
+in equities, never tested on your FX; (b) **conditioning the bet on a volatility-compression→expansion regime**
+(squeeze release / NR7) — same up/down endpoint target, but only betting when a compression state precedes the
+window, which can sharpen selective accuracy. *(The barrier-touch "+k before −k" reframe was removed — touch is
+a different option product; this project optimizes only the up/down BINARY = sign of the 15m return.)*
+**Why it matters:** the endpoint-sign label is contaminated by ~0.50 drift, so the leverage is in *signed
+path-dependence as a feature* and in *regime-gated selectivity*, not in switching to a non-binary product.
+Pure target/feature-engineering and gating, free.
 *Starting source:* https://link.springer.com/article/10.1007/s10614-019-09934-7
 
 ### 5. Wrong instrument: EM/exotic USD pairs as the less-efficient FX target (report 12 only did this for crypto)  **[DEFERRED — majors-only scope, 2026-05-30]**
@@ -200,10 +201,12 @@ Ordered to maximize information per unit effort, and chosen to *falsify cheaply*
 
 2. **Run the cheap target/instrument falsifiers in parallel (one afternoon each, existing or free data):**
    (a) **Cross-sectional rank target** across the 7 pairs (top-minus-bottom 15m spread) — does removing the USD
-   factor raise residual predictability? (b) **Touch-before-touch (±k) target** instead of end-sign — is it
-   more predictable? (c) **Exotic pair** (USDMXN/USDZAR via free Dukascopy) — does the same stack beat 0.52
-   there? **[DEFERRED — majors-only scope, 2026-05-30]** Each is a clean yes/no that could redirect the entire project; none requires new modeling.
+   factor raise residual predictability? (b) **Volatility-compression regime gate** on the binary endpoint
+   target — does betting only at squeeze-release / NR7 compression states lift selective accuracy? (c) **Exotic
+   pair** (USDMXN/USDZAR via free Dukascopy) — does the same stack beat 0.52 there? **[DEFERRED — majors-only
+   scope, 2026-05-30]** Each is a clean yes/no that could redirect the entire project; none requires new modeling.
    Under the current majors-only scope, run (a) and (b) now; (c) is deferred to a later probe.
+   *(The target is always the up/down BINARY — sign of the 15m return; touch/barrier products are out of scope.)*
 
 3. **Re-validate the 0.632 result under CPCV + DSR + adversarial validation** *before* building anything on top
    of it. Treat it as the load-bearing number it has become. If it deflates to ~0.50, the "extend the selective
