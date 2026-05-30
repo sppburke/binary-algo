@@ -51,6 +51,14 @@
 | V4 | Ensemble LGBM+XGB+CatBoost + blend (Reddit author's method) | model diversity squeezes more | lgb 0.5186/0.5208, xgb 0.5188/0.5207, cat 0.5190/0.5204, **blend 0.5191/0.5207** | ✖ no lift | 3 independent model families + blend agree to 3rd decimal. VAL top-1% acc only 0.598. **The limit is the data, not the algorithm.** |
 | V5 | Extreme-event specialist (train only on top-decile moves) + selective | a model (not hand-rule) finds generalizing high-precision fade pocket | EVENT AUC ~0.51/0.51; OOS selective ~0.52–0.56; 75/70/65% all unreachable on VAL-events | ❌ | Confirms eda3 collapse was the SIGNAL's limit, not just hand-rule overfit. Even in the strongest-reversion regime the ceiling holds. |
 | AP | Per-pair models (base+cross+OF), all 7 pairs | some pair more predictable | AUC 0.517–0.526; top-1% selective OOS 0.56–0.59 (USDCHF/NZDUSD best) | ❌ | Wall is universal across pairs; none reaches 75% generalizing. |
+| V6 | TabNet (attentive deep tabular; user's 4th cited model) | deep net captures nonlinear path patterns GBM misses | AUC val 0.518 / test 0.513 / oos 0.519 | ✖ no lift | Confirms wall with a different model class. ALL 4 cited models (XGB/LGBM/CatBoost/TabNet) + ensemble land at ~0.52. **Limit is information content of OHLCV, not model capacity.** |
+
+### FINAL VERDICT
+**75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
+~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
+cause = 5-min return autocorrelation ρ₁≈−0.03 (mathematical cap ~0.51 linear, ~0.55 conditional).
+Paths to higher accuracy require leaving the constraints: 15m horizon (AUC~0.57), true LOB/order-flow
+data (the documented >0.75 route), Deriv synthetic indices, or news-event conditioning. See FINDINGS.md.
 
 ---
 

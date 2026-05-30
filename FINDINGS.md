@@ -20,7 +20,8 @@ of evidence converges on a hard ceiling:
 | + order-flow proxy (V3-C) | 0.519 | 0.520 | 0.51 |
 | + peer order-flow, 425 feats (V3-D) | 0.520 | 0.521 | 0.51 |
 | 3-model ensemble LGBM+XGB+CatBoost blend (V4) | 0.519 | 0.521 | 0.51 |
-| Extreme-event specialist (V5, top-decile moves only) | 0.519 | 0.513 | 0.51 |
+| Extreme-event specialist (V5, top-decile moves only) | 0.519 | 0.513 |
+| TabNet attentive deep tabular net (V6) | 0.513 | 0.519 | 0.51 |
 
 Three independent model families (LightGBM, XGBoost, CatBoost) agree to the **third decimal** —
 proof the limit is the *data*, not the algorithm.
