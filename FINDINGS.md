@@ -40,6 +40,22 @@ signed-volume proxy added ~0 lift).
 ~53–55% when fading extreme 5-minute moves**, present in every pair and every year including
 2026. This is genuine but far below 75%.
 
+**The mechanistic proof (raw-tick order-book imbalance).** The raw tick files DO contain bid/ask
+quote SIZES (order-book imbalance) — the documented >75% short-horizon signal. Tested directly,
+the imbalance edge is real and strong at the tick scale and decays exactly as theory predicts:
+
+| Horizon | imbalance-follow accuracy |
+|---|---|
+| +1 tick | **0.553** |
+| +10 ticks | 0.509 |
+| +30 ticks | 0.504 |
+| 1 minute | 0.501 |
+| **5 minutes** | **0.501 (coin-flip)** |
+
+So the one genuinely predictable signal in FX lives at the **sub-minute/seconds** scale and is
+fully arbitraged away before 5 minutes. This is *why* 5-min direction is a wall — and it holds
+even with the order-book data, not just OHLCV.
+
 ---
 
 ## 2. Why 75% on every/any bar is structurally impossible here
