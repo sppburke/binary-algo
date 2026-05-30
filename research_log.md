@@ -370,3 +370,20 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   tradeable binary expiry the edge is <75%; the best 15m book is the validated EURUSD compress×NY ≈0.60-0.64.
   **The 15-minute 75% target is not reachable on liquid majors; 75% is a seconds-scale phenomenon.** Routes to a
   *tradeable* ≥75%: true LOB/order-flow data (deeper signal at 10-60s) or a less-efficient instrument (deferred).
+
+### V26 — How high can 15m EURUSD go? Accuracy-coverage curve to the limit (2026-05-30)
+- **Q:** the achievable 15m ceiling, honestly. Script `exp_15m_v12_max.py`: EURUSD LGBM, map accuracy vs coverage on
+  stacked validated pockets, threshold frozen on VAL, report VAL/TEST(24+25)/OOS + bootstrap CI + BOTH 2026 halves.
+- **compress×NY:** 10% 0.573[.55,.60] n1426 · 5% 0.597[.56,.63] n715 · **2% VAL0.635/TEST0.629/OOS0.636** (halves
+  .635/.639, CI[.57,.70], n217) · 1% 0.630 n100 · 0.5% 0.755 n49 (noise, H2=1.0).
+- **compress×NY×lowvol:** 5% OOS **0.696**[.64,.75] n270 (VAL/TEST .63; halves .734/.624) · 2% 0.742[.64,.85] n66.
+- **tightcompress(q20)×NY:** 5% 0.656[.61,.70] n355 · **2% OOS 0.768**[.69,.84] n112 (halves .736/.880; VAL .621/
+  TEST .630) · 1% 0.736 n53 · 0.5% 0.833 n24 (noise).
+- **Honest reading:** reliable ceiling where VAL≈TEST≈OOS agree = **~0.63** (compress×NY @2%). Deep-compression
+  stacking drives 2026 OOS to **~0.70** (CI lower-bound .64-.69) but VAL/TEST only support ~0.62-0.66 → the 0.70-0.77
+  OOS prints are the held-out year being favorable at n=66-112, NOT a level the setup data predicts. Sub-0.5%-cov
+  cells (0.755-0.833) are n=24-49 noise. **Deployable expectation ~0.63-0.66; upside ~0.70.** 75% is small-n luck.
+- **Signal:** deeper volatility compression monotonically lifts the held-out year (0.63→0.70+) with both 2026 halves
+  moving together — the direction with the most genuine headroom. Consolidating a *stable* ≥0.68 needs more EURUSD
+  compression-regime history (binding constraint is bets-at-accuracy, not the idea). 15m ceiling: ~0.63 reliable /
+  ~0.70 optimistic, OOS-verified.
