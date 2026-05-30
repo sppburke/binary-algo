@@ -57,6 +57,8 @@
 
 | V8 | Horizon sweep 5/10/15/30/60m (Reddit author's "start with 15m") | longer horizon → tradeable AUC (his 5m 0.51→15m 0.57) | **OOS AUC: 5m 0.519, 10m 0.522, 15m 0.521, 30m 0.518, 60m 0.525** | ➖ no OOS gain | TEST AUC rises with horizon (0.519→0.528@30m) but **2026 OOS stays ~0.52 at ALL horizons** — the longer-horizon lift is in-sample drift that does NOT generalize. Best generalizing selective ~60-61% (n>>0). 75% unreachable at every horizon. (Data fix: 2022-24 stored datetime64[us] vs [ns] — made time math resolution-proof; did not affect V1-V7 which used cached validity.) |
 
+| V9 | GRU recurrent net on raw normalized price path (60-step sequences) | sequence model captures nonlinear path patterns GBM/TabNet miss | val AUC 0.518 (epoch 0–1, stable; stopped early on CPU) | ✖ no lift | Last untested model CLASS. Recurrent net on raw return sequence also caps ~0.519 → the entire model space (linear, tree-ensemble, attentive-tabular, recurrent-sequence) agrees. Confirms the limit is information content, not architecture. |
+
 ### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
