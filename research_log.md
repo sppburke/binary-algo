@@ -219,3 +219,40 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   (volatility-compression regime gate on the binary endpoint-direction target)**. *(Note 2026-05-30: the
   earlier "touch-before-touch ±k" framing was dropped — touch/barrier is a different option product; we
   optimize the up/down BINARY only, i.e. the sign of the 15m return.)*
+
+### V18 — Conditional-pocket selective analysis on the binary endpoint (2026-05-30)
+- **Reframed F3 (binary-only).** Question: is there a *regime / time GATE* under which the selective book on
+  the up/down 15m binary generalizes to ≥75% OOS at usable coverage? Script `exp_15m_v5_gates.py`: one LGBM on
+  the 239-feature base stack (AUC val 0.528 / test 0.523 / **oos 0.518**), then per gate freeze the confidence
+  threshold on the gated VAL subset and read TEST + 2026-OOS selective accuracy. Also measures *model-free*
+  P(up|gate) (exogenous-flow / fixing-drift test). Sofien-corpus mining motivated the vol-compression gate
+  (its one orthogonal idea); corpus otherwise had **no quantified 15m FX edge**.
+- **Baseline (ALL) selective:** OOS 0.522@50% → 0.528@10% → **0.540@5%** (n7181). AUC-level efficiency.
+- **Volatility-compression gate (bottom-tertile 15m bb_width) — BEST, robust:** selective **TEST 0.579 /
+  OOS 0.598 @5%cov** (n1414), 0.561 OOS@10%. OOS *exceeds* TEST → not overfit. "Bet only in low-vol regimes"
+  is a real, generalizing lever (+0.058 OOS over baseline@5%).
+- **London-fix window (15–16 UTC):** strongest TEST drift — model-free P(up) te=0.525, selective **TEST 0.657
+  @5%** — but **OOS 0.576** only (n469). Real on TEST, partial OOS. NY session similar (TEST 0.597 / OOS 0.550).
+- **Month-end (last ~2 bus. days):** OOS 0.603@5% (n557) but TEST only 0.562 — faint, asymmetric, low-conf.
+- **EDA confluence-extreme** (all-TF bb_pctb<0 fade=up): OOS ~0.50 — did NOT generalize (in-sample 0.645 was
+  overfit/tiny-n). all-OB pocket is too rare to test (te n=52).
+- **Verdict: no gate clears 75% OOS**, but vol-compression gating lifts the OOS selective frontier to ~0.60@5%
+  (from 0.54). Real, modest, generalizing. **75% remains the open target.** Decision routing: → V19 train a
+  *regime-specialist* on compression-only rows + stack gates (compress×session) + map coverage to 1%.
+
+### V19 — Regime-specialist + gate-stacking, frontier to 1% coverage (2026-05-30)
+- **Built on V18.** Script `exp_15m_v6_specialist.py`: compression threshold = TRAIN q33 of `15m_bb_width`
+  (fixed/causal); trained a SPECIALIST LGBM on compression-only TRAIN vs the GLOBAL model; mapped the selective
+  frontier down to 1% coverage inside compression and compression×session stacks. Threshold frozen on the
+  matching VAL subset; TEST 2024-25 + 2026 OOS reported.
+- **Specialist does NOT beat global within-regime:** AUC oos@compression spec 0.533 vs global 0.536. → the lever
+  is *gating + selectivity*, not a regime-conditional model. (Negative sub-result, useful: don't build specialists.)
+- **Frontier climbs with stacking + selectivity, and OOS ≥ TEST (genuine, not overfit):**
+  - ungated@1%: TEST 0.591 / OOS 0.585 (o1288)
+  - **compress@1%: TEST 0.619 / OOS 0.650** (o183); compress@2% 0.619/0.634 (o424)
+  - **compress×NY@1%: TEST 0.650 / OOS 0.674** (o175); compress×NY@2% 0.643/0.659 (o355)  ← best generalizing
+  - compress×londonfix@2%: TEST 0.676 / OOS 0.562 (o48) — strong TEST, weak/few OOS
+- **Verdict:** stacking vol-compression × NY session × low coverage lifts the OOS selective frontier from
+  ~0.54 to **~0.67** (point est., n~175–355 — distinguishable from 0.50, still noisy at the tail). No 75% yet.
+  Trajectory is monotone upward with selectivity. **75% remains the open target.** Routing → V20 meta-labeling
+  (learn *where* the primary is trustworthy) to sharpen selection beyond a flat |p−0.5| threshold.
