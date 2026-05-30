@@ -62,6 +62,15 @@ open to explore.
 | V12 | optimized 5s model | TEST ~0.72 / OOS ~0.78 | ★ near-75% |
 | **V13** | **3s ensemble, 13.8M bars** | **TEST 0.756 / OOS 0.809 @0.05%** | ★★★ **≥75% ✓** |
 | V14–V17 | 15m: ensemble, daily context, exogenous peers, calendar | 0.527 / 0.520; sel ~0.63 | ➕ best 0.632 OOS, 75% open |
+| F1 | compound the 3s edge → 15m (Gârleanu–Pedersen) | decays to ~0.50 by 15m | ➖ closed |
+| F2 | dollar-neutral cross-sectional rank (7 majors) | idio AUC 0.51 ≈ raw | ➖ closed |
+| V18–V19 | 15m conditional pockets + regime gating | vol-compression best gate | ★ found compress×NY |
+| V20 | meta-labeling (predict primary correctness) | meta-AUC OOS 0.502 | ➖ closed |
+| V21–V22 | honest deflation + pooled 7-major power test | corr(VAL,OOS)=−0.54 | ★ killed multiple-testing illusion |
+| V23 | EURUSD reconciliation (4-window stability) | OOS 0.58–0.66, no CI thru 0.50 | ★ edge is real, EURUSD-specific |
+| V24–V26 | in-pocket stacking + accuracy-coverage curve | ~0.63 reliable / ~0.70 spike | ★ frontier mapped |
+| V25 | **horizon-frontier sweep 3–300 s** | **longest ≥75% = 5 s** | ★ 75% is a seconds effect |
+| **V27** | **pre-committed 15m pipeline (frozen 2012–23)** | **0.642 held-out 2024–26** (CI [.624,.659]) | ★★ **reproducible ~64%** |
 
 Each row's hypothesis, config, full result, and lesson are recorded in `research_log.md`.
 
@@ -97,18 +106,59 @@ strategy, what would raise accuracy), `README.md` (this file).
 
 ---
 
+## The 15-minute strategy — reproducible ~64% (`exp_15m_v13_proof.py`)
+
+The honest, **pre-committed** 15-minute up/down binary result: **64.2% accuracy on fully held-out
+2024–2026** (n=2788, 95% CI [0.624, 0.659]) — comfortably above the ~0.556 break-even of an 0.80
+binary payout. Nothing is tuned on the evaluation years; the gate, coverage, and threshold are all
+chosen on VAL (2022–23) and then frozen. This is **not** ≥75% — that lives only at the seconds
+horizon (see the headline). It *is* a real, reproducible, profitable-looking 15m selective edge.
+
+**Per-year held-out (frozen pipeline):** 2024 **0.691** (n1421) · 2025 **0.590** (n1041) · 2026
+**0.592** (n326) · **combined 0.642** (n2788). The >67% prints in any single year/cell are *not*
+reproducible under pre-commitment — that is the whole point of V21–V27.
+
+### Methodology (exactly what produces the 64%)
+1. **Target.** Up/down binary = sign of the 15-minute return: `y = 1[close(t+15m) > close(t)]`,
+   exact ties (`ret==0`) dropped. EURUSD, 1-minute bars (built from 10s OHLCV by `pipeline.py`).
+   Only bars where the full 15-minute forward window is contiguous (no session gap) are labelled.
+2. **Features.** The 239 causal multi-timeframe features from `pipeline.py` (RSI / MA / Bollinger
+   %b & width / ATR / return-autocorrelation / realized-vol / MACD / range-position / EMA-distance
+   across 1m·5m·15m·30m·1h·4h, plus hour sin/cos, day-of-week, session flags). No lookahead.
+3. **Splits.** TRAIN 2012–2021 (stride 3 to decorrelate overlapping labels) · VAL 2022–2023 ·
+   held-out 2024 / 2025 / 2026 (never consulted in any selection step).
+4. **Model.** Equal-weight ensemble of LGBM + XGBoost + CatBoost (binary objective, ~2–3k trees,
+   `num_leaves/depth` 255/8, `lr` 0.02, `reg_lambda` 10, early-stopping on VAL AUC). Trained on
+   TRAIN only. Ensemble VAL AUC ≈ 0.528 (single pair, all bars — the edge is in *selectivity*).
+5. **Regime gate (the lever).** Bet only when **(a) volatility compression** — `15m_bb_width` ≤ the
+   chosen TRAIN percentile (q33 was selected on VAL; q10/q20/q33 are candidates) **AND (b) NY
+   session** (`sess_ny`). Low-vol NY-session bars are where the 15m direction is most predictable.
+6. **Selection, on VAL only.** Over candidates (compression depth × coverage ∈ {10%,5%,2%}), pick the
+   `(depth, coverage)` and confidence threshold `thr = quantile(|p−0.5|, 1−coverage)` that **maximize
+   VAL accuracy** inside the gate, subject to VAL n ≥ 150. (VAL selected **q33 × 2% coverage**,
+   VALacc 0.649.) Freeze `thr`.
+7. **Decision rule.** On any new bar: predict only if `gate(bar)` AND `|p−0.5| ≥ thr`; direction =
+   `1[p > 0.5]`. Otherwise abstain. Coverage is ~2% of NY-session compression bars.
+8. **Evaluation.** Apply the frozen rule to 2024 / 2025 / 2026 untouched; report accuracy + 5000×
+   bootstrap CI per year and combined. Result: **0.642 combined, CI [0.624, 0.659]**.
+
+> Why not higher: deeper compression (q10/q20) printed 0.70–0.77 in 2026 specifically, but VAL did
+> not support those configs (so honest selection rejects them) and the 2025 leg sits at ~0.59. The
+> binding constraint is *number of high-accuracy bets EURUSD history provides*, not the idea — see
+> V26/V27 in `research_log.md`. Consolidating a stable ≥0.68 needs more compression-regime history.
+
 ## Reproduce
 
 ```bash
 # Environment (uv-managed venv: numpy/pandas/polars/sklearn/xgboost/lightgbm/catboost/torch)
 PY=~/binary-algo-venv/bin/python
 
-$PY pipeline.py EURUSD GBPUSD AUDUSD NZDUSD USDCAD USDCHF USDJPY   # base features (per-year cache)
-$PY orderflow.py EURUSD ...                                        # order-flow proxy cache
-$PY exp_v3.py                                                      # 5m baseline + ablations
-$PY tick1s_cache.py && $PY tick_ensemble.py                        # 3s ensemble (the ≥75% result)
-$PY exp_15m_v3.py                                                  # 15m with exogenous pairs
-$PY verify.py models/probs_tickens_H3.npz                          # verify the 3s result on 2026 OOS
+$PY pipeline.py EURUSD GBPUSD AUDUSD NZDUSD USDCAD USDCHF USDJPY   # base 239 features (per-year cache)
+$PY exp_15m_v13_proof.py                                          # ★ the ~64% 15m pipeline (frozen, held-out)
+$PY exp_15m_v12_max.py                                            # 15m accuracy-vs-coverage curve (ceiling map)
+$PY tick1s_cache.py && $PY tick_ensemble.py                       # 3s ensemble (the ≥75% seconds result)
+$PY tick_horizon_sweep.py                                         # horizon frontier: longest ≥75% horizon (=5s)
+$PY verify.py models/probs_tickens_H3.npz                         # verify the 3s result on 2026 OOS
 ```
 
 ## What would raise accuracy further
