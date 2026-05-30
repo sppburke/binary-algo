@@ -77,6 +77,9 @@ So the model is somewhat over-confident: only the very tip of the confidence dis
 (~1 bet/2000 s) generalizes to ≥75%; broaden coverage and it falls to ~70%. The ≥75% claim is
 real but strictly the extreme-selectivity operating point — not a broadly-calibrated 75%.
 
+### 15-MINUTE target (user switched 2026-05-30)
+| V14 | 15m ensemble (LGBM+XGB+CatBoost), base MTF + cross-pair, selective | longer horizon (author: 15m 0.57 vs 5m 0.51) reaches tradeable/75% | BLEND AUC test 0.526 / oos 0.519; selective@0.2%cov TEST 0.636 / OOS 0.611 (n=216); 75/70/65% targets unreachable on VAL | ➕ better than 5m, not 75% | 15m IS more predictable than 5m (selective ~64%/61% vs ~57%) — confirms author's direction — but EURUSD OHLCV caps ~0.526 AUC. Author's 0.57 was BTC (less efficient). Next: add daily/weekly context + seasonality (matter more at 15m). |
+
 ### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
