@@ -82,6 +82,8 @@ real but strictly the extreme-selectivity operating point — not a broadly-cali
 
 | V15 | 15m-v2: + daily/weekly context (324 feats) + ensemble | longer-horizon context lifts 15m to 75% | BLEND AUC test 0.526 / oos 0.520 (≈v1); selective@0.2%cov TEST 0.675 / OOS 0.623 (n=212); 75% gate never fires | ➕ tail helped, not 75% | Daily feats (vol regime, overnight gap, daily range pos, daily returns) rank high but AUC flat. 15m EURUSD caps ~0.526 AUC / ~62–67% selective. Better than 5m (~57%), worse than 3s tick (~75–80%). |
 
+| V16 | 15m-v3: + rich EXOGENOUS peer features (15m/30m/1h) + USD-basket/stat-arb factors (352 feats) | other pairs as exogenous data lift 15m to 75% | BLEND AUC test **0.5272** / oos 0.5197 (best test yet); selective@0.2% TEST 0.664 / **OOS 0.632** (n=269, best OOS tail); 75% gate never fires | ➕ best 15m yet, not 75% | Exogenous peer feats (1h trend, 15m vol/autocorr of GBP/JPY/CAD/CHF) + stat-arb factors DOMINATE top-30 importances and give the best OOS tail of any 15m variant (0.611→0.623→0.632 across v1→v2→v3). But marginal: pairs are highly correlated → mostly redundant with EURUSD's own MTF features. Caps ~0.527 AUC. |
+
 ### 15-MINUTE VERDICT
 15m IS more predictable than 5m (selective ~67% TEST / ~62% OOS @0.2% cov vs 5m ~57%), confirming
 the Reddit author's direction — but on liquid EURUSD it caps ~0.526 AUC and **does not reach 75%**
