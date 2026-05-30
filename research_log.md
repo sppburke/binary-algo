@@ -506,3 +506,10 @@ size (3 months). Continuing: V13 = direction model trained only on large-move ba
   fundamentally near-efficient; no training-subset trick improves it.** The edge is regime (compression-release)
   + magnitude (when large moves happen), not direction. → V14 temporal sequence model (1D-CNN) to try to read
   breakout path dynamics the GBM's hand-crafted features miss.
+
+### MIN1-V14 — temporal 1D-CNN on raw 1s path (FAILED — direction near-efficient for sequence models too)
+- `min1_v14_cnn.py`: 1D-CNN (3 conv) on last-60s windows of [1s mid-returns, imbalance, microprice dev], 565k
+  subsampled training windows, predict 60s direction. **Loss stuck at 0.693 (=ln2), val-AUC 0.49** epochs 0-1 —
+  learns nothing. Stopped early. **Confirms 60s EURUSD direction is near-efficient across EVERY model class:
+  linear, GBM ensemble, large-move-trained GBM, AND temporal CNN — all ~0.50 AUC.** Direction is not the lever;
+  the edge is regime (compression-release) + magnitude, exploited via SELECTIVE betting. No further direction work.
