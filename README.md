@@ -19,14 +19,18 @@ EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy v
 | **5 seconds** — same | **TEST 0.760 / OOS 0.814** @0.02% coverage | ✅ |
 | 8 seconds — same | OOS 0.753 / TEST 0.702 | borderline |
 | 15–30 seconds — same | OOS ~0.70–0.76 / TEST ~0.62–0.65 @0.05% | ✖ not both-sides |
-| 1–5 minutes — OHLCV + everything | ~0.55–0.60 selective | ✖ |
+| **2 minutes** — 1s tick microstructure, compression-release reversion (EURUSD) | **OOS 0.764 (n330, month-consistent) / TEST 0.694** | ✅ OOS |
+| 1 minute — 1s tick microstructure, compression-release (EURUSD) | OOS 0.872 (n47, April-heavy) / TEST 0.668 | ~ thin OOS |
+| 1–5 minutes — OHLCV only (older work) | ~0.55–0.60 selective | ✖ |
 | 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.52 global; **EURUSD compress×NY ≈ 0.60–0.64** (4-window-stable) | ✖ |
 
 > **Horizon-frontier sweep (`tick_horizon_sweep.py`):** the longest horizon clearing ≥75% on **both** TEST and
-> 2026 OOS (n≥100) is **5 seconds**. The directional edge is an order-book-imbalance microstructure phenomenon
-> that decays to coin-flip by ~30–60 s. A >75% binary-direction edge on liquid FX majors is a **seconds-scale**
-> effect; it does not reach a binary-tradeable expiry. The best *tradeable-horizon* book is the validated
-> EURUSD 15m compression×NY-session selective pocket at ~0.60–0.64 OOS (profitable vs an 0.80 payout, but <75%).
+> 2026 OOS (n≥100) is **5 seconds**. The *unconditional* directional edge is an order-book-imbalance
+> microstructure phenomenon that decays to coin-flip by ~30–60 s. **But a second, regime-conditional edge exists
+> at the 2-minute tradeable expiry:** the volatility compression-release reversion book (`min2_production.py`)
+> reaches **OOS-2026 0.764 (n330, all three months ≥0.744)** — verified >75% out-of-sample on a binary-tradeable
+> horizon, though its larger 2024-25 TEST sample is ~0.69, so the all-period rate is ~0.70–0.72. This is the best
+> *tradeable-horizon* book — materially above the EURUSD 15m pocket (~0.60–0.64) and the 1m book (~0.66–0.67).
 
 1. **5-minute (and 15-minute) 75% is still open on liquid EURUSD** — explored across 11+ model/
    signal families and *mechanistically explained*: the lag-1 autocorrelation of 5-min returns is
@@ -228,6 +232,72 @@ bars `[mid, imb, micro, spread, nt, tsz]`; `strategy.signal(buffer)` returns `{"
 direction confidence clears the frozen threshold (so it abstains most of the time, by design). Decision uses
 only data up to `t`; the binary settles on `mid(t+60s)`. Enforce the 60s non-overlap (one open position).
 
+## The 2-minute strategy — compression-release reversion book (`min2_production.py`) ★ best tradeable horizon
+
+A **2-minute (120-second) up/down binary** on **EURUSD specifically**, from 1-second tick microstructure. Same
+splits and non-overlapping (120s-gap) selective evaluation as the 1-min book. **This is the strongest of the
+tradeable horizons** — it clears >75% out-of-sample.
+
+**Headline (frozen pipeline, nothing tuned on the evaluation periods):**
+
+| held-out period | accuracy | trades (n) | 95% CI | EV/bet @0.80 payout |
+|---|---|---|---|---|
+| VAL 2024-H1 | 0.763 | 375 | — | +0.373 |
+| TEST 2024-25 | 0.694 | 1591 | [0.671, 0.717] | +0.249 |
+| **OOS 2026 (Feb–May)** | **0.764** | **330** | **[0.718, 0.809]** | **+0.375** |
+
+**Read this honestly.** OOS-2026 = **0.764 and is month-consistent** — Feb 0.806 (n93), Mar 0.753 (n77), Apr
+0.744 (n160) — so unlike the 1-min book (whose 0.872 was 43/47 trades in a single month), the >75% here is a
+**steady, all-three-months result on 330 independent trades.** The honest nuance is the other direction this
+time: the larger **TEST 2024-25 sample is 0.694**, so the *all-period* selective rate is ~0.70–0.72 and the
+**>75% specifically describes the 2026 out-of-sample period** (verified, pre-committed, CI lower bound 0.718).
+**Profitable on both** held-out periods vs an 0.80 payout (break-even 0.556): EV/bet +0.25 (TEST) to +0.375 (OOS).
+
+### Why 120s works where 60s and 15m don't — the mechanism
+- **Direction is still near-efficient unconditionally (~0.51 AUC)** — same as every horizon. The edge is regime.
+- **vs 1-minute:** at 60s the move is dominated by spread / bid-ask-bounce noise → compression-release direction
+  tops out ~0.66. At **120s the *released* volatility produces a move large enough to dominate the spread**, so
+  direction-given-release climbs to ~0.72–0.76. The horizon escapes the microstructure noise floor.
+- **vs 15-minute:** by 15m the move is fully developed and efficient (no regime edge survives, ~0.52).
+- **120s is the sweet spot:** long enough to clear bounce noise, short enough that compression-release still
+  predicts the breakout. **A regime-specialist direction model** (trained only on compression-release bars) lifts
+  in-regime AUC 0.510→0.531; blended 50/50 with the all-bars ensemble it denoises the in-regime ranking.
+- **The trade rule is reversion:** in a compressed→releasing market, **bet AGAINST the last 5-minute move**
+  (`sign(p−0.5) = −sign(ret300)`) — a quiet market that just pushed tends to revert over the next 2 minutes.
+
+### Methodology (exactly what produces the 0.764 OOS)
+1. **Target:** `y = sign(mid(t+120s) − mid(t))`, ties dropped, on the 1s grid; 120s non-overlap.
+2. **Features (62):** the 1-min set + longer-horizon vol/range (`bbw3600`, `rv3600`, `rel_ratio2`, `stretch120`).
+3. **Direction = 0.5·all-bars ensemble (LGBM+XGB+CatBoost) + 0.5·compression-release LGBM specialist.** Blend
+   weight `W=0.5` fixed by argmax VAL in-regime AUC.
+4. **Regime gate (fixed on TRAIN/VAL):** `bbw1800 ≤ train_q67` AND `rel_ratio ≥ train_p70` (compression-release).
+5. **Trend filter:** reversion vs `ret300` (bet against the last 5-min move). Selected on VAL from
+   {none, rev300, rev900, rev3600}.
+6. **Selection (fixed on VAL):** 3% confidence coverage (`conf_thr` = 97th pct of `|p−0.5|` over VAL regime bars).
+   Family swept on VAL only; argmax VAL accuracy s.t. n≥350 → `rev300, cov 0.03`. **OOS judged once.**
+
+### Production pipeline (`min2_production.py`) — train, serialize, infer
+Per-pair (default EURUSD), **EURUSD-labeled artifacts** (train other currencies with a `PAIR` argument; each
+needs its own 1s cache under `features_tick_<PAIR>/`). Serialized to `models/`:
+- `models/min2_EURUSD_dir_v1_lgb.txt`, `..._xgb.json`, `..._cat.cbm` — all-bars direction ensemble.
+- `models/min2_EURUSD_dir_spec_lgb.txt` — compression-release LGBM specialist.
+- `models/min2_EURUSD_magnitude.joblib` — P(|ret120| large), kept for info.
+- `models/min2_EURUSD_strategy.json` — frozen params: pair, 62 feature names, `w_spec`, `bbw1800_q67`,
+  `rel_p70`, trend rule, `conf_thr`, coverage, horizon (120s), non-overlap gap (120s).
+
+```bash
+PY=~/binary-algo-venv/bin/python
+$PY min2_production.py train            # EURUSD: train 2021-2023, freeze on VAL, write models/min2_EURUSD_* + report
+$PY min2_production.py backtest         # replay TEST 2024-25 + OOS 2026 (trades, accuracy, EV, per-month)
+$PY min2_production.py train GBPUSD     # another pair (needs that pair's 1s cache under features_tick_GBPUSD/)
+```
+
+**Live inference** (`from min2_production import Min2Strategy`): feed a rolling buffer of ≥3700 recent 1-second
+bars `[mid, imb, micro, spread, nt, tsz]`; `strategy.signal(buffer)` returns `{"trade": bool, "direction": ±1,
+"confidence": float, "p_up": float, "in_regime": bool}` — `trade=True` only when the bar is in the
+compression-release regime, the direction opposes the last 5-min move, **and** confidence clears the frozen
+threshold. Decision uses only data ≤ `t`; the binary settles on `mid(t+120s)`. Enforce 120s non-overlap.
+
 ## Reproduce
 
 ```bash
@@ -243,6 +313,9 @@ $PY verify.py models/probs_tickens_H3.npz                         # verify the 3
 # --- 1-minute strategy (production) ---
 $PY min1_production.py train                                      # ★ train+serialize models/min1_* + held-out report
 $PY min1_production.py backtest                                   # replay TEST 2024-25 + OOS 2026 from saved artifacts
+# --- 2-minute strategy (production) — best tradeable horizon, ≥75% OOS ---
+$PY min2_production.py train                                      # ★ train+serialize models/min2_EURUSD_* + held-out report
+$PY min2_production.py backtest                                   # replay TEST 2024-25 (0.694) + OOS 2026 (0.764) per-month
 ```
 
 ## What would raise accuracy further
