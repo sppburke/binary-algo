@@ -155,16 +155,24 @@ A **1-minute (60-second) up/down binary** on EURUSD, predicted from 1-second tic
 
 **Headline (frozen pipeline, nothing tuned on the evaluation periods):**
 
-| held-out period | accuracy | n | 95% CI | EV/bet @0.80 payout |
+| held-out period | accuracy | trades (n) | 95% CI | EV/bet @0.80 payout |
 |---|---|---|---|---|
-| **OOS 2026** | **0.872** | 47 | **[0.766, 0.957]** | **+0.570** |
-| OOS 2026 (2nd half) | 0.857 | 42 | [0.738, 0.952] | — |
-| TEST 2024-25 | 0.668 | 804 | [0.634, 0.700] | +0.202 |
+| TEST 2024 (Sep–Dec) | 0.672 | 606 | — | +0.210 |
+| TEST 2025 (full) | 0.657 | 198 | — | +0.183 |
+| **TEST 2024-25 combined** | **0.668** | **804** | [0.634, 0.700] | +0.202 |
+| OOS 2026 (Feb–May) | 0.872 | 47 | [0.766, 0.957] | +0.570 |
 
-**OOS 2026 is verified >75%** (CI lower bound 0.766). *Honest caveat:* the larger held-out sample (TEST
-2024-25) is 0.668 — the two held-out periods disagree, so accuracy is **not uniform ≥75%** across all windows;
-2026 ran favorable. **Both periods are profitable** vs a typical binary break-even (~0.556 @0.80): EV/bet
-+0.20 (TEST) to +0.57 (OOS). Broad-sample (n-weighted) accuracy ≈ 0.68-0.70.
+**Read this honestly.** The **reproducible, large-sample prediction rate is ~0.66–0.67** (2024: 606 trades,
+2025: 198 trades — both ~0.66). OOS 2026 *prints* 0.872, but on only **47 trades, of which 43 fell in a single
+month (April 2026)** — in March 2026 the model saw 1,313 regime setups yet was never confident enough to trade
+(0 trades), and February gave 4. So the >75% figure is **one confident month, not a steady ≥75%.** What is
+robust: a **selective ~0.66 book that is profitable** at typical binary payouts (break-even ~0.556 @0.80;
+EV/bet +0.18 to +0.21 in 2024/2025) — materially better than the 15m result, but **not a dependable >75%.**
+The confidence margins are razor-thin (`|p-0.5|` ≈ 0.005–0.022, i.e. model probabilities ~50.5–52%).
+
+**Trade frequency:** highly intermittent and clustered — the compression-release regime fires in bursts
+(≈20 trades/month in 2025; the model abstains entire months when not confident). This is a low-frequency,
+opportunistic book, not an always-on signal.
 
 ### What works at 60s (and what doesn't) — the mechanism
 - **Direction is near-efficient (~0.50-0.51 AUC).** Confirmed across a GBM ensemble, a large-move-trained GBM,
@@ -186,8 +194,28 @@ A **1-minute (60-second) up/down binary** on EURUSD, predicted from 1-second tic
 5. **Selection (fixed on VAL):** within the gate, bet the top-10%-confidence (`|p-0.5|`) bars, threshold frozen
    on VAL, with a 60s non-overlap constraint.
 6. **Evaluate** frozen on TEST 2024-25 and OOS 2026 (+halves) with bootstrap CIs.
-7. *(Optional)* a magnitude model (`models/probs_min1_mag.npz`, AUC 0.68) raises TEST accuracy to ~0.76 but
-   thins the 3-month OOS too much to verify simultaneously — the OOS sample size is the binding constraint.
+7. *(Optional)* a magnitude model (`models/probs_min1_magnitude.joblib`, AUC 0.68) raises TEST accuracy to ~0.76
+   but thins the 3-month OOS too much to verify simultaneously — the OOS sample size is the binding constraint.
+
+### Production pipeline (`min1_production.py`) — train, serialize, infer
+One script reproduces and **serializes the deployable artifacts** to `models/` (same place as the other models,
+labeled `min1_*`):
+- `models/min1_direction_lgb.txt`, `min1_direction_xgb.json`, `min1_direction_cat.cbm` — the 3 direction boosters.
+- `models/min1_magnitude.joblib` — the magnitude model (P(|ret60| large)).
+- `models/min1_strategy.json` — frozen params: the 53 feature names, compression threshold `bbw1800_q33`,
+  release threshold `rel_ratio_p90`, confidence threshold `conf_thr`, horizon (60s), and non-overlap gap (60s).
+
+```bash
+PY=~/binary-algo-venv/bin/python
+$PY min1_production.py train       # trains on 2021-2023, freezes params on VAL, writes models/min1_* + prints held-out report
+$PY min1_production.py backtest    # loads artifacts, replays TEST 2024-25 + OOS 2026 (trade list, accuracy, EV)
+```
+
+**Live inference** (`from min1_production import Min1Strategy`): feed a rolling buffer of ≥3600 recent 1-second
+bars `[mid, imb, micro, spread, nt, tsz]`; `strategy.signal(buffer)` returns `{"trade": bool, "direction":
+±1, "confidence": float}` — `trade=True` only when the bar is in the compression-release regime **and** the
+direction confidence clears the frozen threshold (so it abstains most of the time, by design). Decision uses
+only data up to `t`; the binary settles on `mid(t+60s)`. Enforce the 60s non-overlap (one open position).
 
 ## Reproduce
 
@@ -201,10 +229,9 @@ $PY exp_15m_v12_max.py                                            # 15m accuracy
 $PY tick1s_cache.py && $PY tick_ensemble.py                       # 3s ensemble (the ≥75% seconds result)
 $PY tick_horizon_sweep.py                                         # horizon frontier: longest ≥75% horizon (=5s)
 $PY verify.py models/probs_tickens_H3.npz                         # verify the 3s result on 2026 OOS
-# --- 1-minute strategy ---
-$PY min1_v3.py                                                    # direction ensemble -> models/probs_min1_v3.npz
-$PY min1_v11.py                                                   # magnitude model    -> models/probs_min1_mag.npz
-$PY min1_strategy.py                                              # ★ compression-release 1-min book (OOS 2026 0.872)
+# --- 1-minute strategy (production) ---
+$PY min1_production.py train                                      # ★ train+serialize models/min1_* + held-out report
+$PY min1_production.py backtest                                   # replay TEST 2024-25 + OOS 2026 from saved artifacts
 ```
 
 ## What would raise accuracy further
