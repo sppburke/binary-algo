@@ -198,17 +198,28 @@ opportunistic book, not an always-on signal.
    but thins the 3-month OOS too much to verify simultaneously — the OOS sample size is the binding constraint.
 
 ### Production pipeline (`min1_production.py`) — train, serialize, infer
-One script reproduces and **serializes the deployable artifacts** to `models/` (same place as the other models,
-labeled `min1_*`):
-- `models/min1_direction_lgb.txt`, `min1_direction_xgb.json`, `min1_direction_cat.cbm` — the 3 direction boosters.
-- `models/min1_magnitude.joblib` — the magnitude model (P(|ret60| large)).
-- `models/min1_strategy.json` — frozen params: the 53 feature names, compression threshold `bbw1800_q33`,
-  release threshold `rel_ratio_p90`, confidence threshold `conf_thr`, horizon (60s), and non-overlap gap (60s).
+**Per-pair model (default EURUSD).** All artifacts are **labeled with the pair** so other currencies sit
+alongside; each pair is trained separately (the edge is EURUSD-concentrated — see V22 — so do *not* share one
+model across pairs). Serialized to `models/`:
+- `models/min1_EURUSD_direction_lgb.txt`, `..._xgb.json`, `..._cat.cbm` — the 3 direction boosters.
+- `models/min1_EURUSD_magnitude.joblib` — the magnitude model (P(|ret60| large)).
+- `models/min1_EURUSD_strategy.json` — frozen params: pair, 53 feature names, compression `bbw1800_q33`,
+  release `rel_ratio_p90`, confidence `conf_thr`, horizon (60s), non-overlap gap (60s).
 
 ```bash
 PY=~/binary-algo-venv/bin/python
-$PY min1_production.py train       # trains on 2021-2023, freezes params on VAL, writes models/min1_* + prints held-out report
-$PY min1_production.py backtest    # loads artifacts, replays TEST 2024-25 + OOS 2026 (trade list, accuracy, EV)
+$PY min1_production.py train            # EURUSD: train 2021-2023, freeze on VAL, write models/min1_EURUSD_* + report
+$PY min1_production.py backtest         # replay TEST 2024-25 + OOS 2026 (trades, accuracy, EV)
+$PY min1_production.py train GBPUSD     # another pair (needs that pair's 1s cache under features_tick_GBPUSD/)
+```
+
+### Production pipeline (`m15_production.py`) — the 15-minute model, same treatment
+Per-pair (default EURUSD); 239-feature parquets already exist for all 7 majors, so other pairs need only the
+argument. Serializes `models/m15_EURUSD_direction_{lgb.txt,xgb.json,cat.cbm}` + `m15_EURUSD_strategy.json`
+(pair, feature names, selected compression depth `comp_q`, `bb_width_thr`, coverage, `conf_thr`).
+```bash
+$PY m15_production.py train             # EURUSD: train 2012-2021, freeze on VAL, write models/m15_EURUSD_* + per-year backtest (~0.64)
+$PY m15_production.py train GBPUSD      # another major (parquets already cached by pipeline.py)
 ```
 
 **Live inference** (`from min1_production import Min1Strategy`): feed a rolling buffer of ≥3600 recent 1-second

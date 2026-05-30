@@ -5,17 +5,20 @@ features (pipeline.py), bet ONLY in the volatility-compression x NY-session regi
 Honest result: pre-committed pipeline = 0.642 on held-out 2024-2026 (CI [0.624,0.659]); profitable vs an
 0.80 binary payout (breakeven 0.556) but NOT >=75% — the 15m frontier is ~0.64.
 
-Usage:
-  python m15_production.py train      # train on 2012-2021, freeze (depth,coverage,threshold) on VAL, save models/m15_*, report
-  python m15_production.py backtest   # load artifacts, replay 2024 / 2025 / 2026 (trades/acc/EV per year)
+This model is PER-PAIR (default EURUSD). Artifacts are labeled with the pair; the 239-feature parquets
+already exist for all 7 majors (pipeline.py), so other currencies train with just a PAIR argument.
 
-Live: from m15_production import Min15Strategy ; s=Min15Strategy() ; s.signal(feature_row)
+Usage (PAIR optional, defaults EURUSD):
+  python m15_production.py train [PAIR]      # train 2012-2021, freeze (depth,coverage,thr) on VAL, save models/m15_<PAIR>_*, report
+  python m15_production.py backtest [PAIR]   # load artifacts, replay 2024 / 2025 / 2026 (trades/acc/EV per year)
+
+Live: from m15_production import Min15Strategy ; s=Min15Strategy(pair="EURUSD") ; s.signal(feature_row)
   feature_row = a pandas Series/1-row DataFrame of the 239 pipeline.py features for the current 15m decision bar
   (compute with pipeline.py). Returns {"trade":bool,"direction":+/-1,"confidence":float,"in_regime":bool}.
 
-Artifacts (models/, labeled m15_*):
-  m15_direction_lgb.txt · m15_direction_xgb.json · m15_direction_cat.cbm   (direction ensemble)
-  m15_strategy.json   (feature_names, comp_q (selected), bb_width_thr, coverage, conf_thr, horizon=15 bars)
+Artifacts (models/, PAIR-labeled, e.g. EURUSD):
+  m15_EURUSD_direction_lgb.txt · m15_EURUSD_direction_xgb.json · m15_EURUSD_direction_cat.cbm  (direction)
+  m15_EURUSD_strategy.json   (pair, feature_names, comp_q, bb_width_thr, coverage, conf_thr, horizon=15 bars)
 """
 import sys, os, json, time, numpy as np, pandas as pd
 import lightgbm as lgb, xgboost as xgb
@@ -25,12 +28,17 @@ import harness as H
 
 MODELS = "/media/sean/CORSAIR/binary-algo/models"
 HOR = 15; STRIDE = 3
-base = list(H.feature_cols("EURUSD"))
+PAIR = "EURUSD"                   # set via CLI: `python m15_production.py train GBPUSD`
+base = list(H.feature_cols("EURUSD"))   # 239 feature names (identical across majors)
+
+def set_pair(pair):
+    global PAIR; PAIR=pair; return PAIR
+def art(name): return f"{MODELS}/m15_{PAIR}_{name}"     # PAIR-labeled artifact path
 
 def load(years, stride=1):
     parts=[]
     for y in years:
-        p=f"{H.FEAT_DIR}/EURUSD_{y}.parquet"
+        p=f"{H.FEAT_DIR}/{PAIR}_{y}.parquet"
         if not os.path.exists(p): continue
         df=pd.read_parquet(p, columns=base+H.META_COLS); df=df[~df.index.duplicated(keep="last")]
         idx=df.index; c=df["close"].values; n=len(c)
@@ -56,15 +64,15 @@ def train():
     print(f"[train] load {time.time()-t0:.0f}s; train={len(TR):,} val={len(VA):,}",flush=True)
     L=mk_lgb(); L.fit(TR[base].astype("float32"),ytr,eval_set=[(VA[base].astype("float32"),yva)],
         eval_metric="auc",callbacks=[lgb.early_stopping(150),lgb.log_evaluation(0)])
-    L.booster_.save_model(f"{MODELS}/m15_direction_lgb.txt"); print(f"[train] lgb done {time.time()-t0:.0f}s",flush=True)
+    L.booster_.save_model(art("direction_lgb.txt")); print(f"[train] lgb done {time.time()-t0:.0f}s",flush=True)
     G=xgb.XGBClassifier(n_estimators=2000,learning_rate=0.02,max_depth=8,subsample=0.8,colsample_bytree=0.5,
         reg_lambda=10,tree_method="hist",n_jobs=20,eval_metric="auc",early_stopping_rounds=150)
     G.fit(TR[base].astype("float32"),ytr,eval_set=[(VA[base].astype("float32"),yva)],verbose=False)
-    G.save_model(f"{MODELS}/m15_direction_xgb.json"); print(f"[train] xgb done {time.time()-t0:.0f}s",flush=True)
+    G.save_model(art("direction_xgb.json")); print(f"[train] xgb done {time.time()-t0:.0f}s",flush=True)
     C=CatBoostClassifier(iterations=2000,learning_rate=0.02,depth=8,l2_leaf_reg=10,eval_metric="AUC",
         thread_count=20,verbose=False,early_stopping_rounds=150)
     C.fit(TR[base].fillna(-999),ytr,eval_set=(VA[base].fillna(-999),yva))
-    C.save_model(f"{MODELS}/m15_direction_cat.cbm"); print(f"[train] cat done {time.time()-t0:.0f}s",flush=True)
+    C.save_model(art("direction_cat.cbm")); print(f"[train] cat done {time.time()-t0:.0f}s",flush=True)
     def prob(D):
         X=D[base].astype("float32"); return (L.predict_proba(X)[:,1]+G.predict_proba(X)[:,1]+C.predict_proba(D[base].fillna(-999))[:,1])/3.0
     pva=prob(VA)
@@ -81,17 +89,17 @@ def train():
             if best is None or acc>best[0]: best=(acc,q,cov,thr,int(m.sum()))
     accV,Q_SEL,COV_SEL,THR,nV=best
     params={"feature_names":base,"comp_q":Q_SEL,"bb_width_thr":Q[Q_SEL],"coverage":COV_SEL,"conf_thr":THR,
-            "horizon_bars":HOR,"gate":"15m_bb_width<=q AND sess_ny>0.5","val_acc":float(accV),"val_n":nV,
+            "horizon_bars":HOR,"pair":PAIR,"gate":"15m_bb_width<=q AND sess_ny>0.5","val_acc":float(accV),"val_n":nV,
             "splits":{"train":"2012-2021","val":"2022-2023","test":"2024-2025","oos":"2026"},"val_auc":float(roc_auc_score(yva,pva))}
-    json.dump(params,open(f"{MODELS}/m15_strategy.json","w"),indent=2)
+    json.dump(params,open(art("strategy.json"),"w"),indent=2)
     print(f"[train] saved models/m15_* | SELECTED comp(q{Q_SEL})xNY @cov{COV_SEL:.0%} bb<={Q[Q_SEL]:.2e} conf_thr={THR:.4f} VALacc={accV:.3f} valAUC={params['val_auc']:.4f}",flush=True)
     print(f"[train] DONE {time.time()-t0:.0f}s\n"); backtest()
 
 def _load():
-    p=json.load(open(f"{MODELS}/m15_strategy.json"))
-    L=lgb.Booster(model_file=f"{MODELS}/m15_direction_lgb.txt")
-    G=xgb.XGBClassifier(); G.load_model(f"{MODELS}/m15_direction_xgb.json")
-    C=CatBoostClassifier(); C.load_model(f"{MODELS}/m15_direction_cat.cbm")
+    p=json.load(open(art("strategy.json")))
+    L=lgb.Booster(model_file=art("direction_lgb.txt"))
+    G=xgb.XGBClassifier(); G.load_model(art("direction_xgb.json"))
+    C=CatBoostClassifier(); C.load_model(art("direction_cat.cbm"))
     return p,L,G,C
 
 def _dirproba(p,L,G,C,X):
@@ -114,8 +122,8 @@ def backtest():
     print(f"=== 2024-2026 COMBINED === trades={alln} accuracy={acc:.3f} EV/bet@0.80={acc*0.8-(1-acc):+.3f}  (V27 held-out: ~0.642)",flush=True)
 
 class Min15Strategy:
-    def __init__(self, models_dir=MODELS):
-        global MODELS; MODELS=models_dir
+    def __init__(self, pair="EURUSD", models_dir=MODELS):
+        global MODELS; MODELS=models_dir; set_pair(pair)
         self.p,self.L,self.G,self.C=_load()
     def signal(self, feature_row):
         """feature_row: 1-row DataFrame (or Series) of the 239 pipeline.py features for the current 15m bar."""
@@ -128,4 +136,6 @@ class Min15Strategy:
 
 if __name__=="__main__":
     mode=sys.argv[1] if len(sys.argv)>1 else "backtest"
+    if len(sys.argv)>2: set_pair(sys.argv[2])
+    print(f"[pair={PAIR}] features={H.FEAT_DIR}/{PAIR}_*  artifacts=models/m15_{PAIR}_*",flush=True)
     {"train":train,"backtest":backtest}.get(mode, backtest)()

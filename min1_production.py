@@ -4,19 +4,22 @@ Strategy = compression-release selective book on the 60s up/down binary (see REA
 Honest expectation: a selective ~0.66 book (large-sample 2024/2025), profitable vs typical binary payouts,
 that abstains most of the time and fires in bursts. The OOS-2026 0.872 is a thin, April-concentrated sample.
 
-Usage:
-  python min1_production.py train      # train on 2021-23, freeze params on VAL, serialize models/min1_*, report
-  python min1_production.py backtest   # load artifacts, replay TEST 2024-25 + OOS 2026 (trades/acc/EV by period)
+This model is PER-PAIR (default EURUSD). The artifacts are labeled with the pair; train other currencies
+separately (each needs its own 1-second microstructure cache under features_tick_<PAIR>/).
+
+Usage (PAIR optional, defaults EURUSD):
+  python min1_production.py train [PAIR]      # train, freeze params on VAL, serialize models/min1_<PAIR>_*, report
+  python min1_production.py backtest [PAIR]   # load artifacts, replay TEST 2024-25 + OOS 2026 (trades/acc/EV)
 
 Live: from min1_production import Min1Strategy
-      s = Min1Strategy()                       # loads models/min1_*
+      s = Min1Strategy(pair="EURUSD")          # loads models/min1_EURUSD_*
       out = s.signal(buffer_df)                # buffer = >=3700 recent 1s bars [mid,imb,micro,spread,nt,tsz]
       # out = {"trade": bool, "direction": +1/-1, "confidence": float, "in_regime": bool}
 
-Artifacts written to models/:
-  min1_direction_lgb.txt · min1_direction_xgb.json · min1_direction_cat.cbm   (direction ensemble)
-  min1_magnitude.joblib                                                       (P(|ret60| large), AUC ~0.68)
-  min1_strategy.json   (feature_names, bbw1800_q33, rel_ratio_p90, conf_thr, horizon_s, gap_s, train info)
+Artifacts written to models/ (PAIR-labeled, e.g. EURUSD):
+  min1_EURUSD_direction_lgb.txt · min1_EURUSD_direction_xgb.json · min1_EURUSD_direction_cat.cbm  (direction)
+  min1_EURUSD_magnitude.joblib                                          (P(|ret60| large), AUC ~0.68)
+  min1_EURUSD_strategy.json   (pair, feature_names, bbw1800_q33, rel_ratio_p90, conf_thr, horizon_s, gap_s)
 """
 import sys, os, json, time, numpy as np, pandas as pd
 import lightgbm as lgb, xgboost as xgb
@@ -24,12 +27,21 @@ from catboost import CatBoostClassifier
 import joblib
 from sklearn.metrics import roc_auc_score
 
-TICK = "/media/sean/CORSAIR/binary-algo/features_tick"
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+ROOT = "/media/sean/CORSAIR/binary-algo"
+MODELS = f"{ROOT}/models"
+PAIR = "EURUSD"                   # set via CLI: `python min1_production.py train GBPUSD` (needs that pair's 1s cache)
 HS, GAP = 60, 60                 # 60s horizon, 60s non-overlap
 COMP_PC, REL_PC, COV = 33, 90, 0.10
 TRSTRIDE = 5
 SPLIT_YEARS = {"train": "2021-2023", "val": "2024-H1", "test": "2024.09-2025.11", "oos": "2026"}
+
+def set_pair(pair):
+    """Set the active pair (affects the 1s-cache dir and the models/min1_<PAIR>_* artifact names)."""
+    global PAIR, TICK; PAIR=pair
+    TICK = f"{ROOT}/features_tick" if pair=="EURUSD" else f"{ROOT}/features_tick_{pair}"
+    return TICK
+def art(name): return f"{MODELS}/min1_{PAIR}_{name}"     # EURUSD-labeled artifact path
+set_pair("EURUSD")
 
 # ----------------------------- features (53, causal) -----------------------------
 def feats(b):
@@ -100,20 +112,20 @@ def train():
     print(f"[train] features+prep {time.time()-t0:.0f}s; dir-train n={len(ytr):,} val n={len(yva):,}",flush=True)
     # direction ensemble
     L=mk_lgb(); L.fit(Xtr,ytr,eval_set=[(Xva,yva)],eval_metric="auc",callbacks=[lgb.early_stopping(120),lgb.log_evaluation(0)])
-    L.booster_.save_model(f"{MODELS}/min1_direction_lgb.txt"); print(f"[train] lgb done {time.time()-t0:.0f}s",flush=True)
+    L.booster_.save_model(art("direction_lgb.txt")); print(f"[train] lgb done {time.time()-t0:.0f}s",flush=True)
     G=xgb.XGBClassifier(n_estimators=2500,learning_rate=0.02,max_depth=9,subsample=0.8,colsample_bytree=0.6,
         reg_lambda=8,tree_method="hist",n_jobs=20,eval_metric="auc",early_stopping_rounds=120)
-    G.fit(Xtr,ytr,eval_set=[(Xva,yva)],verbose=False); G.save_model(f"{MODELS}/min1_direction_xgb.json")
+    G.fit(Xtr,ytr,eval_set=[(Xva,yva)],verbose=False); G.save_model(art("direction_xgb.json"))
     print(f"[train] xgb done {time.time()-t0:.0f}s",flush=True)
     C=CatBoostClassifier(iterations=2500,learning_rate=0.02,depth=9,l2_leaf_reg=8,eval_metric="AUC",
         thread_count=20,verbose=False,early_stopping_rounds=120)
-    C.fit(Xtr.fillna(-999),ytr,eval_set=(Xva.fillna(-999),yva)); C.save_model(f"{MODELS}/min1_direction_cat.cbm")
+    C.fit(Xtr.fillna(-999),ytr,eval_set=(Xva.fillna(-999),yva)); C.save_model(art("direction_cat.cbm"))
     print(f"[train] cat done {time.time()-t0:.0f}s",flush=True)
     # magnitude model (|ret60| top-tercile)
     magthr=np.nanpercentile(mtr_[itr],67); ymag=(mtr_[itr]>=magthr).astype(int)
     M=mk_lgb(2500); M.fit(Xtr,ymag,eval_set=[(Xva,(mva_[iva]>=magthr).astype(int))],eval_metric="auc",
         callbacks=[lgb.early_stopping(100),lgb.log_evaluation(0)])
-    joblib.dump(M,f"{MODELS}/min1_magnitude.joblib"); print(f"[train] magnitude done {time.time()-t0:.0f}s",flush=True)
+    joblib.dump(M,art("magnitude.joblib")); print(f"[train] magnitude done {time.time()-t0:.0f}s",flush=True)
     # direction val probs -> freeze regime + confidence thresholds
     pv=(L.predict_proba(Xva)[:,1]+G.predict_proba(Xva)[:,1]+C.predict_proba(Xva.fillna(-999))[:,1])/3.0
     bbw=Xva["bbw1800"].values; rel=Xva["rel_ratio"].values
@@ -121,18 +133,18 @@ def train():
     gate=(bbw<=qb)&(rel>=rq); thr=float(np.quantile(np.abs(pv[gate]-0.5),1-COV))
     params={"feature_names":feat_names,"bbw1800_q33":qb,"rel_ratio_p90":rq,"conf_thr":thr,
             "horizon_s":HS,"gap_s":GAP,"comp_pc":COMP_PC,"rel_pc":REL_PC,"cov":COV,
-            "mag_top_tercile_thr":float(magthr),"splits":SPLIT_YEARS,"val_auc":float(roc_auc_score(yva,pv))}
-    json.dump(params,open(f"{MODELS}/min1_strategy.json","w"),indent=2)
+            "pair":PAIR,"mag_top_tercile_thr":float(magthr),"splits":SPLIT_YEARS,"val_auc":float(roc_auc_score(yva,pv))}
+    json.dump(params,open(art("strategy.json"),"w"),indent=2)
     print(f"[train] saved models/min1_* | gate bbw1800<={qb:.2e} rel>={rq:.3f} conf_thr={thr:.4f} valAUC={params['val_auc']:.4f}",flush=True)
     print(f"[train] DONE {time.time()-t0:.0f}s\n"); backtest()
 
 # ----------------------------- load + backtest -----------------------------
 def _load():
-    p=json.load(open(f"{MODELS}/min1_strategy.json"))
-    L=lgb.Booster(model_file=f"{MODELS}/min1_direction_lgb.txt")
-    G=xgb.XGBClassifier(); G.load_model(f"{MODELS}/min1_direction_xgb.json")
-    C=CatBoostClassifier(); C.load_model(f"{MODELS}/min1_direction_cat.cbm")
-    M=joblib.load(f"{MODELS}/min1_magnitude.joblib")
+    p=json.load(open(art("strategy.json")))
+    L=lgb.Booster(model_file=art("direction_lgb.txt"))
+    G=xgb.XGBClassifier(); G.load_model(art("direction_xgb.json"))
+    C=CatBoostClassifier(); C.load_model(art("direction_cat.cbm"))
+    M=joblib.load(art("magnitude.joblib"))
     return p,L,G,C,M
 
 def _dirproba(p,L,G,C,X):
@@ -152,17 +164,17 @@ def backtest():
         correct=((pr[tr]>0.5).astype(int)==y[tr])
         acc=correct.mean() if len(tr) else float("nan")
         print(f"\n=== {label} ({SPLIT_YEARS[sp]}) === trades={len(tr)} accuracy={acc:.3f}")
-        mo=idx[tr].to_period("M").astype(str)
-        for m in sorted(set(mo)):
-            k=mo==m; print(f"    {m}: trades={int(k.sum()):>4}  acc={correct[k.values].mean():.3f}")
+        mo=np.asarray(idx[tr].to_period("M").astype(str))
+        for m in sorted(set(mo.tolist())):
+            k=mo==m; print(f"    {m}: trades={int(k.sum()):>4}  acc={correct[k].mean():.3f}")
         for payout in (0.80,):
             be=1/(1+payout); ev=acc*payout-(1-acc) if len(tr) else float("nan")
             print(f"    payout {payout:.2f}: breakeven={be:.3f}  EV/bet={ev:+.3f}")
 
 # ----------------------------- live inference -----------------------------
 class Min1Strategy:
-    def __init__(self, models_dir=MODELS):
-        global MODELS; MODELS=models_dir
+    def __init__(self, pair="EURUSD", models_dir=MODELS):
+        global MODELS; MODELS=models_dir; set_pair(pair)
         self.p,self.L,self.G,self.C,self.M=_load()
     def signal(self, buffer_df):
         """buffer_df: >=3700 consecutive 1s bars with cols [mid,imb,micro,spread,nt,tsz], tz-aware index.
@@ -177,4 +189,6 @@ class Min1Strategy:
 
 if __name__=="__main__":
     mode=sys.argv[1] if len(sys.argv)>1 else "backtest"
+    if len(sys.argv)>2: set_pair(sys.argv[2])     # e.g. `python min1_production.py train GBPUSD`
+    print(f"[pair={PAIR}] tick-cache={TICK}  artifacts=models/min1_{PAIR}_*",flush=True)
     {"train":train,"backtest":backtest}.get(mode, backtest)()
