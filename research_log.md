@@ -432,3 +432,17 @@ Honest eval = NON-OVERLAPPING selective accuracy (no two bets within 60s) so OOS
   (compression/low-vol) regimes (clean momentum follow-through; matches research finding #1).
 - TEST (large n) plateaus ~0.71 in compression; OOS 0.78-0.83 (small n). Honest level ~0.71-0.75; routing → V4
   compression-SPECIALIST + depth sweep to lift the large-sample TEST past 0.75.
+
+### MIN1-V4 — compression-SPECIALIST (specialist does NOT help; quiet bars low-signal)
+- `min1_v4.py`: ensemble trained only on compression(q33) bars. AUC 0.513 (early-stop iter 2 — quiet bars have
+  little to learn). Within-compression clean coverage: compress(q33)@0.5% TEST 0.680/OOS 0.715(n536); q20@0.5%
+  TEST 0.709/OOS 0.688; compress&lowvol HURT (OOS 0.49-0.63). **Specialist is OUT; global ensemble (v3) is better.**
+  Plain in-compression caps TEST ~0.71. (Also: v3's small-n "0.826" was 0.5% of ALL bars; clean within-compression n is larger.)
+
+### MIN1-V5 — compression-RELEASE / breakout trigger (KEY UNLOCK)
+- `min1_v5.py` (reuses v3 global probs, no retrain): test setups = compression + a breakout/alignment trigger.
+- **compress + RELEASE (bbw1800 low AND bbw300 expanding = squeeze breakout) is the winner:** @5% within-setup
+  TEST **0.711**(n370) / **OOS 0.854**(n41) CI **[0.76,0.95]**, both 2026 halves **0.86/0.85** (consistent!). @2%
+  TEST 0.764/OOS 0.929. compress+breakout(|ret30| high) 0.5%: TEST 0.748(n226)/OOS 0.846. micro/imb-align weaker.
+  **First setup whose OOS CI lower bound (0.76) clears 0.75 with both halves agreeing.** Mechanism = the directional
+  RELEASE of a quiet period (compression→expansion), not being quiet. OOS n small (41) → V6 consolidate with more n.
