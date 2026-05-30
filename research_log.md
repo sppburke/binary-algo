@@ -256,3 +256,33 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   ~0.54 to **~0.67** (point est., n~175–355 — distinguishable from 0.50, still noisy at the tail). No 75% yet.
   Trajectory is monotone upward with selectivity. **75% remains the open target.** Routing → V20 meta-labeling
   (learn *where* the primary is trustworthy) to sharpen selection beyond a flat |p−0.5| threshold.
+
+### V20 — Meta-labeling (López de Prado) on the binary endpoint (2026-05-30)
+- **Built on V18-V19.** Script `exp_15m_v7_meta.py`: primary LGBM (TRAIN) → side=sign(p1−0.5); META LGBM trained
+  on VAL to predict primary *correctness* using the 239 feats + p1 + |edge| + regime cols (bb_width, rv, session,
+  hour, vol_z). Select bets by META prob vs by flat |p1−0.5|. Leakage-safe: meta trained on VAL, threshold frozen
+  on a VAL-cal holdout, TEST/OOS judged once.
+- **META correctness-AUC: cal 0.518 / test 0.512 / oos 0.502** — i.e. *random* OOS. The meta-model cannot learn
+  where the primary generalizes.
+- **Selection comparison (OOS):** flat |edge| @1% 0.585 vs META @1% 0.546; @2% 0.559 vs 0.537; @5% 0.530 vs 0.509.
+  META is **worse at every coverage**. **Verdict: ❌ meta-labeling adds nothing** — the trustworthiness signal
+  doesn't generalize; flat |p−0.5| within the compression gate stays best. Routing → V21 honest validation/deflation
+  of the compress×NY pocket before pushing coverage lower.
+
+### V21 — Honest validation / multiple-testing deflation of the gated pockets (2026-05-30)
+- **The antidote to V18-V19 OUTLIER-PICKING.** V18-V19 read the best OOS number across ~49 (gate×coverage)
+  pockets — a soft OOS leak. Script `exp_15m_v8_validate.py`: (1) pick the single best pocket by **VAL accuracy
+  only** (OOS never consulted, VAL-n floor 300); (2) confirm TEST; (3) judge 2026 OOS **once** + 5000× bootstrap
+  CI; (4) deflation context; (5) transfer diagnostic = corr(VALacc, OOSacc) across the top-8 VAL pockets.
+- **VAL-selected pocket collapses OOS:** best-on-VAL = `compress&londonfix@cov10`, **VALacc 0.724** (n463) →
+  **TEST 0.596 → OOS 0.535** (n271), 95% CI **[0.472, 0.594]**, z=1.15 — *not distinguishable from a coin flip*.
+- **Transfer diagnostic — the key result: corr(VALacc, OOSacc) = −0.54** across the top-8 VAL pockets. The VAL
+  ranking has **no (slightly inverse) OOS validity** — the London-fix window that topped VAL (0.70-0.72) **decayed**
+  by 2026 (OOS 0.535-0.585). So an honest VAL-only selection rule *cannot find* the good pocket; the V18-V19
+  "0.67" was multiple-testing/selection bias.
+- **BUT one pocket is genuinely stable across all three splits:** `compress&NY` — VAL 0.635-0.649 / TEST 0.629-0.630
+  / **OOS 0.630-0.636** @1-2% cov (nOOS 100-217). Consistent VAL≈TEST≈OOS ≈ **0.63** is a *real* generalizing
+  selective edge (unlike the fix mirage), though it ranks only #6-8 on VAL so naive selection misses it.
+- **Verdict:** no pocket clears 75% OOS under honest selection; the gating frontier's true OOS level is ~0.53-0.55
+  for VAL-selected, with a real but modest ~0.63 island at compress&NY low-coverage. **75% remains the open
+  target.** Routing → V22 pooled 7-major high-power confirmation of compress&NY (7× bets → tight CI).
