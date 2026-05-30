@@ -421,3 +421,14 @@ Honest eval = NON-OVERLAPPING selective accuracy (no two bets within 60s) so OOS
 - **AUC collapsed to ~0.50** (early-stop iter 4); selective frontier flat ~0.51-0.55. Training to predict MICRO
   direction destroyed the signal that predicts MID direction; magnitude filter compounded it. **Lesson: keep the
   mid-direction label on all valid bars (v1 recipe). Microprice-label and aggressive magnitude filtering are OUT.**
+
+### MIN1-V3 — ensemble + REGIME GATES (BREAKTHROUGH: compression is the lever)
+- `min1_v3.py`: v1 features + persistence + LGBM+XGB+CatBoost ensemble, mid label, 6 regime gates on the
+  non-overlapping selective frontier (VAL-frozen threshold).
+- **Ensemble lifted the whole frontier vs v1.** ALL gate: 1% TEST 0.604/OOS 0.639 · 0.5% 0.642/0.678 · 0.2% 0.666/0.689.
+- **Compression (bbw1800<q33) is decisively the best regime:** 1% TEST 0.670/**OOS 0.779**(n86)[.69,.86] · 0.5% TEST
+  0.710/**OOS 0.826**(n46)[.72,.93]. Low-vol (rv<q33) similar (0.5%: 0.691/0.759). Hi-vol weaker (~0.61-0.70).
+  **London-NY overlap is BAD (~0.55)** — counterintuitive, too noisy. → 60s direction is most predictable in QUIET
+  (compression/low-vol) regimes (clean momentum follow-through; matches research finding #1).
+- TEST (large n) plateaus ~0.71 in compression; OOS 0.78-0.83 (small n). Honest level ~0.71-0.75; routing → V4
+  compression-SPECIALIST + depth sweep to lift the large-sample TEST past 0.75.
