@@ -196,3 +196,24 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   expression (earning the spread with resting orders) is a different business (not directional prediction)
   and is out of scope here. Decision routing: F1=no → proceed to **F2 (cross-sectional rank target)**;
   the "F1 no + F4 no → crypto pivot" branch stays DEFERRED (majors-only).
+
+### F2 — Cross-sectional rank / dollar-neutral target across the 7 USD majors (2026-05-30)
+- **Goal-phase falsifier #2.** Thesis (arXiv:2105.10019, GAPS #3): EURUSD is ~97% USD-factor, so removing
+  the common dollar factor cross-sectionally should expose a more predictable *idiosyncratic* (foreign-leg)
+  signal than per-pair sign; a dollar-neutral long-short of the 7 majors is the natural target. Script
+  `f2_rank.py`: align all 7 pairs on common 1-min bars (TRAIN 3.20M / VAL 0.66M / TEST 0.64M / OOS 0.11M
+  aligned 15m bars), express each return in foreign-ccy-vs-USD convention, common = cross-sectional mean
+  (the dollar factor), idio = return − common. Per pair, one LightGBM each for RAW (own sign) and IDIO
+  (dollar-neutral), same 239-feature stack, threshold frozen on VAL; plus a top-2/bottom-2 long-short.
+- **AUC (RAW vs IDIO, OOS):** mean RAW **0.5141** vs mean IDIO **0.5115** → **idio is not better (Δ −0.0026)**.
+  Per-pair OOS Δ mixed and small: AUDUSD +0.0075, NZDUSD +0.0031, EURUSD +0.0005 (faint help) vs
+  GBP −0.0044, USDCAD −0.0091, USDCHF −0.0068, USDJPY −0.0092. IDIO meanAUC 0.5115 ≪ 0.527 gate.
+- **Dollar-neutral long-short (top2−bottom2):** spread hit-rate **TEST 0.533 / OOS 0.529** (per-pick idio
+  acc 0.510–0.512). Directionally positive and stable TEST→OOS but **≪ 0.571 break-even**. (Reported
+  ann.Sharpe ~6 is GROSS and inflated by ~15× overlap of 15m labels at 1-min sampling + zero cost; the
+  honest metric is the 0.529 hit-rate, which trading all 7 legs every bar would not survive net of spread.)
+- **Verdict: ❌ F2 FAILS the gate on both criteria, TEST and OOS.** Removing the dollar factor does **not**
+  expose materially more predictable signal — idio AUC ≈ raw AUC ≈ 0.51, rank hit-rate ~0.53. This
+  *reproduces the known weak residual edge* (cf. V7 stat-arb residual ~0.535) but does not unlock 75%; the
+  small AUD/NZD idio lift is the only faint positive. Decision routing: F2=no → proceed to **F3
+  (touch-before-touch ±k target)**.
