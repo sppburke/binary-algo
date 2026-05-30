@@ -67,6 +67,16 @@
 
 | V13 | **Ensemble (LGBM+XGB+CatBoost) on broad data (13.8M 1s bars), H=3s, accuracy@coverage** | more data + ensemble closes the TEST↔OOS gap for a CLEAN both-sides ≥75% | **H=3s @0.05%cov: TEST 0.756 (n=2361), 2026 OOS 0.809 (n=397) → both ≥75% ✓.** @0.1%: TEST 0.746/OOS 0.786; @0.2%: TEST 0.729/OOS 0.749 | ★★★ CLEAN ≥75% (at 3s) | **ACHIEVED a clean both-sides ≥75% verified on held-out 2026 at the 3-SECOND horizon.** 2× train data + ensemble lifted TEST from ~72% (V12) over 75%. Monotonic/consistent; TEST n=2361 robust (SE~0.9%). Caveats: 3s horizon (tick-duration contracts only), 0.05% coverage, latency-critical, Dukascopy quote fidelity. Probs saved probs_tickens_H3.npz. |
 
+### V13 calibration nuance (honesty)
+The ≥75% holds at the **extreme confidence tail only**. Two threshold rules:
+- Fixed top-0.05%-confidence (set on VAL, applied unchanged) → TEST 0.756 (n=2361), OOS 0.809
+  (n=397). **Both ≥75%.** ✓
+- Threshold where VAL *accuracy*=75% (less extreme, ~0.74% cov) → TEST 0.699 (n=44148), OOS 0.712
+  (n=6798). **Neither reaches 75%.**
+So the model is somewhat over-confident: only the very tip of the confidence distribution
+(~1 bet/2000 s) generalizes to ≥75%; broaden coverage and it falls to ~70%. The ≥75% claim is
+real but strictly the extreme-selectivity operating point — not a broadly-calibrated 75%.
+
 ### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
