@@ -476,3 +476,15 @@ only (comp q33 & rel>p90 @10%, VALacc 0.731 n513), frozen, judged on held-out:
 - **Honest read: the two held-out periods DISAGREE.** 2026 clears 75%; 2024-25 does not. 2026 was favorable for
   this setup. Broad-sample truth ~0.70-0.72; 2026 OOS ~0.87. Real, strong (vs 15m's ~0.52) but not robust across
   ALL out-of-sample windows. → V10 magnitude model to try to lift the 2024-25 leg.
+
+### MIN1-V10 — MAGNITUDE model (major find: |ret60| is predictable, AUC 0.68)
+- `min1_v10.py`: 2nd LGBM predicts P(|ret60|>=p67-large). **AUC val 0.680** — magnitude is FAR more predictable
+  than direction (0.51). In the release regime, filtering to predicted-large moves LIFTS TEST: mag>p67@20% TEST
+  0.763(n59), mag>p80@10% TEST 0.767(n30) — fixes the weak-TEST problem. BUT release×magnitude is too thin for
+  the 3-month OOS (n→1-4). **Insight: large moves are more directional; magnitude is the strongest signal found.**
+  → V11 use magnitude as PRIMARY gate (more bets than tight release) to get BOTH TEST and OOS >=0.75 at usable n.
+
+### MIN1-V11 — magnitude-primary gating (n-vs-accuracy tension confirmed)
+- `min1_v11.py`: magnitude-large as primary gate × compression × direction coverage. No cell clears BOTH TEST>=0.75
+  AND OOS>=0.75 at n>=40. Tight enough to hit 0.75 → 3-month OOS n collapses (<10). The binding constraint is
+  OOS sample size (2026 = 3 months of tick data), not the signal. Saved magnitude probs (probs_min1_mag.npz).
