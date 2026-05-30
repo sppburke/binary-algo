@@ -306,3 +306,22 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   **not profitable** either. Consistent with the entire V1-V17 ledger (~0.52 AUC) and the near-EMH FX-LOB
   literature (Petrova-Vilhelmsson-Nordén 2026). **The one verified ≥75% in this project remains the 3-second
   microstructure horizon (V13: 75.6% TEST / 80.9% OOS), which F1 showed cannot be stretched to 15m net of cost.**
+
+### V23 — Reconciliation: EURUSD ~0.60 is REAL; pooled 0.54 was dilution (correction to V22) (2026-05-30)
+- **Why.** V19/V21 showed EURUSD `compress×NY` ~0.63 OOS (n~100-355); V22 pooled showed ~0.54. The discrepancy is
+  EURUSD-specific vs 7-major-pooled — pooling could *dilute* a genuine EURUSD edge with weaker pairs rather than
+  prove it noise. Script `exp_15m_v10_eurchk.py`: EURUSD only, threshold frozen on VAL `compress×NY`, evaluated on
+  **four independent windows that cannot share luck** (TEST 2024, TEST 2025, OOS-2026 H1, OOS-2026 H2) + bootstrap CIs.
+- **Result — stable, real edge:**
+  - @5% cov: TEST24 0.622[.606,.638] · TEST25 0.579[.558,.600] · OOS H1 0.612[.571,.656] · OOS H2 0.565[.500,.626]
+  - @2% cov: TEST24 0.659[.635,.682] · TEST25 0.581[.548,.612] · OOS H1 0.635[.558,.712] · OOS H2 0.639[.508,.754]
+  - All four windows land **0.57-0.66; no CI includes 0.50.** EURUSD compress×NY is a **genuine ~0.60 selective edge**
+    (≈0.64 at 2% cov), stable across years and sub-periods.
+- **CORRECTION to V22's framing:** the pooled 0.52-0.54 is a *dilution* artifact (edge is EURUSD-concentrated), NOT a
+  refutation of the EURUSD result. Honest frontier for **EURUSD 15m binary = ~0.60 OOS selective** (not ~0.52). At 2%
+  cov ~0.636 it clears a 0.80-payout binary break-even (~0.556) → plausibly profitable, though sub-75%.
+- **What stands from V21/V22:** the *London-fix* pockets (0.70-0.75 VAL) still do NOT generalize (decay to ~0.54),
+  and naive best-of-grid VAL selection is still misleading. The robust, generalizing signal is specifically
+  **EURUSD + vol-compression + NY session ≈ 0.60**. **75% at 15m still open; the real frontier is ~0.60, not 0.52.**
+  Routing → V24: push *this* validated pocket toward 0.75 with orthogonal in-pocket conditions, gating every gain
+  on the 4-window stability test (must hold in TEST24, TEST25, OOS-H1, OOS-H2).
