@@ -563,6 +563,30 @@ size (3 months). Continuing: V13 = direction model trained only on large-move ba
   num_leaves512, reg_lambda20, stride2 → 1.37M regime bars) + the all-bars ensemble, blended. **VAL in-regime AUC
   peaks at W=0.5 (0.531)** (pre-commit W by VAL only). Blend denoises direction within the regime.
 
+### MIN2 — methodology lessons (failure modes that shaped the final pipeline)
+- **Thin-pocket selection degeneracy (the binding methodological constraint).** `min2_select.py` with a low
+  trade floor: argmax-VAL picks `comp25_rel80 cov0.02` (VAL 0.844) → **OOS n=1** (useless). With only a 3-month
+  OOS (Feb-May 2026), the tightest VAL pockets collapse to untradeable OOS samples. Fix: require `nVA>=350` AND
+  drop the NY session sub-filter (NY halves the data → thin, non-generalizing OOS, e.g. W=0.5 argmax was an NY
+  pocket with OOS n=26). The selection family must bet broadly enough that 3 OOS months yield n>=300.
+- **Continuation filters FAIL; only reversion generalizes.** Tested both `cont{300,900,3600}` and
+  `rev{300,900,3600}` trend filters. Continuation (bet WITH the last move) never reached the top configs;
+  **reversion** (bet AGAINST it) wins, `rev300` best. At 120s a compressed market that just pushed mean-reverts —
+  it does not continue. (This is the opposite sign to a momentum/breakout read.)
+- **rel-only is not enough — compression genuinely matters.** `relonly80/90` (short-term vol expanding, NO
+  compression floor) gave OOS ~0.68-0.70, clearly below compression-release ~0.73-0.75. Both conditions are
+  needed: quiet base (`bbw1800` low-ish) AND `rel` high. (But the compression floor is q67, not the 1m q33 —
+  moderate, not extreme, quiet.)
+- **Blend weight W is robust, not fragile.** VAL in-regime AUC: W 0.2→0.528, 0.3→0.530, 0.4→0.531, 0.5→0.531,
+  0.6→0.531 (plateaus 0.4-0.6); OOS held 0.755 (W=0.4) → 0.764 (W=0.5). The 50/50 blend is the VAL-argmax but the
+  result is stable across weights — the specialist adds a small consistent lift regardless of exact weight.
+- **OOS>TEST in a tight pocket = partial luck, not signal.** Several tight cells (`c67_r80 cov0.03`: OOS 0.799 /
+  TEST 0.677) print high OOS but low TEST — the OOS>TEST gap flags a lucky split, not a real edge. The
+  trustworthy configs are the ones where VAL≈TEST≈OOS on large n (the chosen pipeline: 0.763/0.694/0.764).
+- **Not re-run at 120s (already settled at 1m):** temporal 1D-CNN / sequence models (1m val-AUC 0.49, near-
+  efficient across every model class) and the microprice-label variant (collapsed direction signal at 1m). The
+  120s direction signal is the same near-efficient ~0.51; the edge is regime + selectivity, not a better net.
+
 ### MIN2-FINAL — pre-committed proof (`min2_proof.py`) + production (`min2_production.py`)
 Pre-committed pipeline (every choice frozen on VAL; OOS judged once):
 - Direction = 0.5*all-bars ensemble + 0.5*compression-release LGBM specialist.
