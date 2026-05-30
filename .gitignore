@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Binary-algo research artifacts (large/regenerable)
+features/
+features_of/
+models/
+*.parquet
+*.npz
+*.joblib
+catboost_info/
+.claude/
