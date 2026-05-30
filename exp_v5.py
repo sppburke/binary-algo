@@ -38,7 +38,7 @@ for cov in (0.2,0.1,0.05,0.02,0.01):
           f" | OOS n={ro['n']} cov={ro['coverage']:.3%} acc={ro['accuracy']:.4f}")
 for tgt in (0.75,0.70,0.65,0.60):
     bv=H.threshold_for_target(yv,pv,target=tgt,min_n=100)
-    if bv is None: print(f"target {tgt:.0%}: unreachable on VAL-events"); continue
+    if bv is None: print(f"target {tgt:.0%}: not hit on VAL-events"); continue
     rt=H.apply_threshold(yt,pt,bv['conf_thr']); ro=H.apply_threshold(yo,po,bv['conf_thr'])
     print(f"target {tgt:.0%}: VAL cov={bv['coverage']:.2%} -> TEST acc={rt['accuracy']:.3f} n={rt['n']}"
           f" | OOS acc={ro['accuracy']:.3f} n={ro['n']}")

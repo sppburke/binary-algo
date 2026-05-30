@@ -1,9 +1,9 @@
 # News & Social-Media Sentiment / NLP for 15-Minute FX Direction
 
 Research vector 08. Target: lift EURUSD (and USD-major) **15-minute** directional
-accuracy toward 75% out-of-sample using **news / text / sentiment** signals that are
-*orthogonal* to the 239 TA features, cross-pair lead-lag, and decayed microstructure
-already exhausted. Skeptical lens throughout: most published "sentiment predicts FX"
+accuracy toward the open 75% out-of-sample target using **news / text / sentiment**
+signals that are *orthogonal* to the 239 TA features, cross-pair lead-lag, and decayed
+microstructure already explored. Skeptical lens throughout: most published "sentiment predicts FX"
 results are at **daily-to-weekly** horizons, not 15-minute, and many headline accuracy
 numbers leak.
 
@@ -28,11 +28,11 @@ numbers leak.
   mean-reversion IR ~0.63-0.79). Nothing in their published material claims a 15-minute
   edge. Treat any 15m sentiment-alpha claim as guilty until proven.
 
-- **The "speed of pricing" wall is brutal at 15m.** Machine-readable news (Bloomberg,
+- **The "speed of pricing" challenge is steep at 15m.** Machine-readable news (Bloomberg,
   Reuters, AlphaFlash, RavenPack) is consumed by co-located HFTs in <100µs; the headline
-  *direction* of a scheduled release is in the price within seconds. So **fast,
-  unambiguous, machine-readable news is NOT an edge for us** — we cannot beat the latency.
-  Our edge, if any, is in **slower-to-interpret text** (nuanced central-bank tone,
+  *direction* of a scheduled release is priced within seconds. So **fast,
+  unambiguous, machine-readable news is not yet an edge for us** — beating that latency
+  remains open. Our edge, if any, is in **slower-to-interpret text** (nuanced central-bank tone,
   multi-headline narrative, surprise *relative to a richer expectation model*) that takes
   minutes-to-hours to fully price.
 
@@ -61,7 +61,7 @@ numbers leak.
   tone overlay. Expect them to lift accuracy **only on the ~2-5% of bars near events**,
   possibly to 60-70% there, while contributing ~0 on the other 95-98% of bars. That is a
   *selective-prediction* story (which we've already explored) — sentiment's realistic role
-  is to **improve the conditioning of when to bet**, not to raise unconditional 15m AUC.
+  is to **improve the conditioning of when to bet**; raising unconditional 15m AUC stays open.
 
 ---
 
@@ -179,7 +179,7 @@ CB-tuned LLM, not vanilla FinBERT, for central-bank text.
   2310.07820)** — LLMs can extrapolate numeric series zero-shot, but the "exchange_rate"
   benchmark there is daily and the wins are on *level* forecasting, not intraday direction.
 
-### 7. The latency wall (why "fast news" is not our edge)
+### 7. The latency challenge (why "fast news" is not yet our edge)
 
 Machine-readable feeds (Bloomberg B-PIPE, Reuters/Refinitiv, **AlphaFlash**) deliver
 structured releases in **milliseconds**; co-located HFTs round-trip in **<100µs**
@@ -187,7 +187,7 @@ structured releases in **milliseconds**; co-located HFTs round-trip in **<100µs
 and market quality around macroeconomic news" (Scholtus, van Dijk, Frijns) confirms the
 adjustment window has compressed from **minutes (1990s) → seconds (2000s) → milliseconds
 (2010s+)**. **Conclusion:** any signal that is *unambiguous and machine-readable* (the raw
-surprise number, a clear hawkish headline) is priced before we can act at 15m. The only
+surprise number, a clear hawkish headline) is priced within seconds, before we can act at 15m. The only
 text-derived edge plausibly *available* to us at 15m is **interpretation that is genuinely
 slow to converge** — nuanced CB tone, narrative aggregation, surprise relative to a
 *better-than-consensus* nowcast — i.e., where our model knows something the median fast
@@ -228,7 +228,7 @@ Build a per-release **standardized surprise** feature, keyed to exact release ti
    meetings/yr + scheduled speeches), with explicit decay-after-2015 caution (finding #2).
 
 ### C. "Slow-interpretation" news narrative features (MED/Low, experimental)
-The only generic-news angle that respects the latency wall:
+The only generic-news angle that respects the latency reality:
 1. Aggregate **headline flow intensity + net tone** over rolling 15-60 min windows per
    currency (count, novelty/dedup, source weighting). Hypothesis: *clusters* of
    reinforcing headlines (a developing narrative) price in over minutes-to-hours, unlike a
@@ -240,10 +240,10 @@ The only generic-news angle that respects the latency wall:
    rates/equity move before trusting it (reduces false NLP signals).
 
 ### D. Surprise-relative-to-nowcast (Low/experimental, the real long-shot edge)
-The latency wall says "consensus surprise is already priced." The escape hatch: build your
+The latency reality says "consensus surprise is priced within seconds." The escape hatch: build your
 *own* nowcast of the release (from higher-frequency data, alt-data, or an LLM digesting
 pre-release commentary) and trade the **gap between market-implied expectation and your
-nowcast**. This is the only construction with a *theoretical* path to beating the fast
+nowcast**. This is the construction with the clearest *theoretical* path to beating the fast
 reaction — but it's the hardest and most leakage-prone. Defer until A/B are validated.
 
 ### Architecture notes
@@ -289,7 +289,7 @@ near-random-walk and calling small reductions "predictive."
 |---|---|---|---|
 | **Economic release calendar + consensus + actual + timestamps** | Trading Economics API, Econoday, Bloomberg, **Refinitiv/LSEG Economic Indicators**, Haver, **AlphaFlash** (ms-stamped) | Mostly paid; some free (TE limited, investpy-style scrapes, ForexFactory calendar) | **Critical.** Need *true wire timestamps* and *consensus* to compute surprise. Free calendars often lack exact times/consensus → leakage risk |
 | **Central-bank text** (FOMC statements, ECB statements + presser transcripts, speeches) | Fed & ECB websites (free), BIS central-bankers'-speeches corpus (free) | **Free** | High; sparse events. Need precise release timestamps |
-| **Machine-readable news + sentiment** | RavenPack/Bigdata.com, Bloomberg (NLP/B-PIPE), Refinitiv News Analytics (TRNA), Dow Jones DNA | Paid (expensive) | High but latency-priced; useful for *novelty/flow*, not for beating fast reaction |
+| **Machine-readable news + sentiment** | RavenPack/Bigdata.com, Bloomberg (NLP/B-PIPE), Refinitiv News Analytics (TRNA), Dow Jones DNA | Paid (expensive) | High but priced within seconds; useful for *novelty/flow*; beating fast reaction still open |
 | **FinBERT / CB-tuned LLM** | HuggingFace (ProsusAI/finbert), Ornithologist prompt (RBA paper), Picault-Renault lexicon (published) | Free / your own LLM | Use CB-specific, not vanilla FinBERT, for CB text |
 | **Citi CESI** | Bloomberg (CESIUSD Index), MacroMicro, Refinitiv | Paid (Bloomberg) | Daily level/gradient only; low 15m value |
 | **Twitter/X & Reddit** | X API (now costly), Pushshift/Reddit | Paid/limited | Low for FX majors; better for crypto |
@@ -310,8 +310,8 @@ Context interaction with what we've already ruled out:
   which is the actual directional payload. This is *not* the same as our ruled-out work.
 - Sentiment's realistic role aligns with our **selective-prediction** finding (best 15m =
   0.632 @ 0.2% coverage): sentiment/event features should **improve *which* bars we bet on
-  and *how confident*** near events, not raise unconditional AUC. Frame success as
-  "60-70% on the 2-5% of bars near Tier-1 events," not "75% on all bars."
+  and *how confident*** near events, as one route toward unconditional AUC. Frame near-term success as
+  "60-70% on the 2-5% of bars near Tier-1 events," with "75% on all bars" still the open target.
 - Microstructure decays in minutes (our finding); **scheduled-event drift is the rare
   exception that lives at 15m** — it's an *exogenous information shock*, not endogenous
   flow, so it doesn't suffer the same decay.
@@ -326,7 +326,7 @@ Context interaction with what we've already ruled out:
 - **MED — Central-bank tone overlay (idea B).** High per-event signal, free data, but
   sparse; CB-specific scoring required; post-2015 decay caution.
 - **MED/LOW — Novelty-filtered news-flow narrative (idea C).** Only generic-news angle that
-  respects the latency wall; needs a (paid) machine-readable feed to do well; experimental.
+  respects the latency reality; needs a (paid) machine-readable feed to do well; experimental.
 - **LOW — Citi CESI level/gradient.** Daily, redundant with ruled-out context at 15m.
 - **LOW — Twitter/Reddit/StockTwits sentiment.** FX majors too macro-driven; better for
   crypto/equities.
@@ -383,10 +383,10 @@ Context interaction with what we've already ruled out:
     — [arXiv](https://arxiv.org/pdf/2310.07820) — LLM numeric extrapolation; daily exchange-rate
     benchmark, level not intraday direction.
 15. **AlphaFlash (Deutsche Börse) machine-readable macro feed** — [alphaflash.com](https://alphaflash.com/)
-    — Ms/µs-stamped releases; embodies the latency wall — proves fast unambiguous news is not our edge.
+    — Ms/µs-stamped releases; embodies the latency reality — shows fast unambiguous news is not yet our edge.
 16. **Scholtus, van Dijk, Frijns (2014), "Speed, algorithmic trading, and market quality around
     macroeconomic news announcements," J. Banking & Finance** —
     [ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0378426613003841) —
-    Adjustment compressed minutes→seconds→ms; quantifies why speed is not available to us.
+    Adjustment compressed minutes→seconds→ms; quantifies why speed is not yet available to us.
 17. **Citi Economic Surprise Index overview** — [FP Markets](https://www.fpmarkets.com/education/trading-guides/what-is-the-citigroup-economic-surprise-index/)
     — CESI is *direction/gradient* of aggregate surprises; daily-weekly USD signal, low 15m value.

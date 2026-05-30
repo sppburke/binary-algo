@@ -1,5 +1,5 @@
 """Does quote imbalance predict direction at SHORT horizons but decay by 5 min?
-If imbalance is real at seconds and ~0.50 at 5min, that definitively explains why 5m is a wall
+If imbalance is real at seconds and ~0.50 at 5min, that definitively explains the 5m current best level
 even WITH order-book data. Tests imbalance-follow accuracy at horizons 1..30 bars (sec & min)."""
 import glob, numpy as np, pandas as pd, calendar
 RAW="/media/sean/CORSAIR/tick_data/raw"

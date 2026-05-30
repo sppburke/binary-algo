@@ -1,7 +1,7 @@
 """V6 — TabNet (explicitly cited by the user's reference). Final faithful method from the
 Reddit author's ensemble (XGB+LGBM+CatBoost+TabNet). CPU, subsampled train for tractability.
-Tests whether an attentive deep tabular model breaks the ~0.52 wall (it should not — the limit
-is the data's information content, ρ₁≈−0.03)."""
+Tests whether an attentive deep tabular model improves on the ~0.52 current best (the limit so
+far appears to be the data, not the model class; ρ₁≈−0.03)."""
 import sys, time, numpy as np
 from sklearn.metrics import roc_auc_score
 import harness as H, dataset as D

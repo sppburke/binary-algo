@@ -2,7 +2,7 @@
 
 *Research vector 16 — practical, actionable catalog of where to get the orthogonal data our
 239-feature TA + cross-pair + 10s-OFI stack does not contain. Goal context: predict EURUSD (and other
-USD majors) direction at a 15-minute horizon, >75% OOS. We have 10s OHLCV + raw sub-second top-of-book
+USD majors) direction at a 15-minute horizon, the open >75% OOS target. We have 10s OHLCV + raw sub-second top-of-book
 ticks (bid/ask + quote sizes) for 7 USD pairs, train 2012-21 / val 2022-23 / test 2024-25 / 2026 held out.*
 
 ---
@@ -14,7 +14,7 @@ ticks (bid/ask + quote sizes) for 7 USD pairs, train 2012-21 / val 2022-23 / tes
   PCAP (FX Matching CLOB, full L1/L2/L3, nanosecond)** and is the gold standard, but it is enterprise-priced.
   **Databento does NOT yet sell EBS/spot-FX order book** — "EBS FX data" sits in the *Considering* bucket of
   their public roadmap, not shipping. So depth-FX is a *paid pilot* decision, not a free download. ([Databento roadmap](https://roadmap.databento.com/roadmap/ebs-fx-data), [LSEG Tick History PCAP](https://www.lseg.com/en/insights/fx/revolutionising-fx-price-transparency-with-tick-history-pcap))
-- **The cheapest credible path to a genuine deep-LOB + imbalance signal is a crypto testbed, not FX.**
+- **The cheapest credible path to a genuine deep-LOB + imbalance signal is a crypto testbed, not FX. [DEFERRED — majors-only scope, 2026-05-30]**
   Binance/Coinbase give free real-time L2 websockets; **Tardis.dev gives the first day of every month free**
   (full historical L2 incremental + snapshots) and academic plans from ~$300. Use crypto (less efficient,
   deeper public book) to *validate the methodology* of multi-level imbalance at minute horizons before
@@ -88,7 +88,7 @@ Because deep FX LOB is paywalled, crypto is the rational place to *prove the met
 - **Reality check that mirrors our own finding**: crypto research repeatedly shows *"the price impact of the
   imbalance measure is short-lived and quickly deteriorates with the time horizon"*
   ([TDS](https://towardsdatascience.com/price-impact-of-order-book-imbalance-in-cryptocurrency-markets-bf39695246f6/)).
-  This is the same decay we documented (55.3% next-tick → coin-flip by 1 min). So depth-LOB imbalance alone is
+  This is the same decay we documented (55.3% next-tick → ~0.50 by 1 min). So depth-LOB imbalance alone is
   unlikely to survive to 15m even in crypto; the testbed's value is validating *engineered* multi-level
   features (queue dynamics, depth-slope, cancel/replace intensity) that we cannot compute from top-of-book.
 
@@ -166,7 +166,7 @@ We already ruled out an *event-timing* proxy as redundant with time-of-day. But 
    queue-depletion rate. Causally align to spot EURUSD at 15m. This is the only *buyable, real multi-level
    EUR/USD book*. Test whether 5-level imbalance survives longer than the top-of-book imbalance we already
    showed dies by 5 min.
-2. **Crypto pre-validation harness (free first-of-month Tardis data).** Before paying for FX depth, replicate
+2. **Crypto pre-validation harness (free first-of-month Tardis data). [DEFERRED — majors-only scope, 2026-05-30]** Before paying for FX depth, replicate
    the deep-LOB feature set on BTC/ETH-USDT, fit the same LightGBM/GRU stack at 1m/5m/15m, and measure how
    feature importance decays with horizon. If multi-level features add nothing over top-of-book even in the
    *less efficient* crypto book, do **not** spend on FX depth — strong negative-result filter.
@@ -234,14 +234,12 @@ gated behind institutional data access, and the freely-accessible versions decay
 Interaction with what we've already ruled out is the key filter. We've exhausted price-derived TA,
 cross-pair lead-lag, **interdealer 10s OFI (≈0 lift)**, ensembles (~0.52-0.527 AUC), stat-arb, daily/weekly
 context, exogenous peer features, and an **event-*timing* proxy (redundant with time-of-day)**. The durable
-microstructure signal we found only lives at **3 seconds**. So the only data worth buying is data that is
+microstructure signal we found so far lives at **3 seconds**. So the data worth buying is data that is
 *orthogonal to price* and *plausibly persists to minutes-hours*.
 
 **HIGH priority**
 - **CME 6E (Databento) deep-LOB features** — the only *buyable real multi-level EUR/USD book*. Directly tests
-  whether depth (vs top-of-book) buys persistence beyond our 5-min decay wall. Concrete, leakage-safe, modest cost.
-- **Crypto free-tier deep-LOB methodology testbed (Tardis)** — near-zero cost; decides whether deep-LOB is
-  worth buying for FX at all. A strong *negative-result gate* before spending.
+  whether depth (vs top-of-book) buys persistence beyond our 5-min decay (the current best level). Concrete, leakage-safe, modest cost.
 - **Calendar surprise gating + post-release drift** — strictly richer than the time-of-day proxy we discarded;
   the *surprise magnitude* is genuinely new information, and event-window exclusion likely lifts hit-rate.
 
@@ -254,15 +252,20 @@ microstructure signal we found only lives at **3 seconds**. So the only data wor
 **LOW priority**
 - **CFTC COT** — weekly/lagged, redundant with existing weekly context. Cheap ablation only.
 - **LSEG/EBS/Integral enterprise spot-FX depth** — gold standard but enterprise cost; only justify *after* the
-  6E + crypto tests show multi-level depth actually buys 15m persistence.
+  6E test shows multi-level depth actually buys 15m persistence.
 - **RavenPack** — expensive; only if GDELT shows a real news signal worth upgrading.
+
+**[DEFERRED — majors-only scope, 2026-05-30]**
+- **Crypto free-tier deep-LOB methodology testbed (Tardis)** — near-zero cost; decides whether deep-LOB is
+  worth buying for FX at all. A strong *negative-result gate* before spending. Documented and available, but
+  out of the current majors-only scope, so not positioned in the priority ladder above.
 
 **The honest strategic read:** the academic evidence (Evans-Lyons customer flow) says the signal that works is
 *customer* order flow — which we structurally cannot buy — and our null result on interdealer OFI is consistent
-with that, not a refutation of the method. The realistic orthogonal bets are therefore (1) **deeper book** (6E,
-gated by the crypto test), (2) **forward-looking options skew**, and (3) **event-surprise**, each as a
+with that, not a refutation of the method. The realistic orthogonal bets are therefore (1) **deeper book** (6E;
+the crypto pre-validation step is **[DEFERRED — majors-only scope, 2026-05-30]**), (2) **forward-looking options skew**, and (3) **event-surprise**, each as a
 *conditioning* layer on the existing selective-prediction engine rather than a standalone 15m oracle. Treat any
-external ">75%/Sharpe>3" FX claim as overfit until reproduced under our 2024-25 OOS / 2026-held-out protocol.
+external ">75%/Sharpe>3" FX claim as unverified until reproduced under our 2024-25 OOS / 2026-held-out protocol.
 
 ---
 

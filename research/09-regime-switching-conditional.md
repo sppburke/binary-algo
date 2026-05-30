@@ -1,12 +1,12 @@
 # Regime-Switching, HMM & Conditional Predictability: When Is 15m FX Direction Predictable?
 
-Research vector 09 for binary-algo. Goal: lift 15-minute EURUSD directional accuracy toward 75% OOS, with emphasis on **orthogonal, regime-conditional** signals and methods not yet exhausted. The central thesis of this vector: **FX directional predictability is not a constant — it is conditional and concentrated in identifiable states.** Our flat ~0.52 AUC is an *average over regimes*; the right move is to find the minority of bars where edge is real and abstain on the rest. This dovetails directly with our existing best result (0.632 OOS @ 0.2% coverage via selective prediction) — regime conditioning is the principled way to *grow that coverage* without collapsing accuracy.
+Research vector 09 for binary-algo. Goal: lift 15-minute EURUSD directional accuracy toward the open 75% target OOS, with emphasis on **orthogonal, regime-conditional** signals and methods not yet exhausted. The central thesis of this vector: **FX directional predictability is not a constant — it is conditional and concentrated in identifiable states.** Our flat ~0.52 AUC is an *average over regimes*; the right move is to find the minority of bars where edge is real and abstain on the rest. This dovetails directly with our existing best result (0.632 OOS @ 0.2% coverage via selective prediction) — regime conditioning is the principled way to *grow that coverage* without collapsing accuracy.
 
 ---
 
 ## TL;DR (most actionable for our 15m FX goal)
 
-- **Reframe the target as conditional, not unconditional.** Decades of FX literature (Engel-Hamilton, Sarno-Valente, Marcucci) converge on one robust fact: a single model cannot beat a random walk on average, but *regime-conditional* models predict the **direction** (sign) materially better than the mean. The literature explicitly notes Markov-switching helps **direction-of-change** even when it fails on MSE. This is exactly the metric we care about. **[High]**
+- **Reframe the target as conditional, not unconditional.** Decades of FX literature (Engel-Hamilton, Sarno-Valente, Marcucci) converge on one robust fact: a single model has not yet beaten a random walk on average, but *regime-conditional* models predict the **direction** (sign) materially better than the mean. The literature explicitly notes Markov-switching helps **direction-of-change** even when it fails on MSE. This is exactly the metric we care about. **[High]**
 
 - **The single most credible orthogonal edge in this vector is the pre-FOMC / pre-scheduled-announcement drift.** It is large, persistent, OOS-robust, *directional*, and predictable from ex-ante volatility/uncertainty. NY Fed staff report: pre-FOMC drift = >80% of the entire equity premium over ~17 years; it produces a positive EUR/USD futures return (USD depreciation) into the announcement. It is a *time-deterministic regime* you can flag with zero lookahead. We tried a generic "event-window vol seasonality" proxy and found it redundant with time-of-day — but **the drift is a directional sign signal, not a vol signal**, which is a different thing we have NOT exploited. **[High]**
 
@@ -28,7 +28,7 @@ Research vector 09 for binary-algo. Goal: lift 15-minute EURUSD directional accu
 
 ### 1. The canonical result: regime-switching helps DIRECTION even when it fails on MSE
 
-The foundational FX regime-switching literature (Engel & Hamilton 1990; Engel 1994 "Can the Markov switching model forecast exchange rates?", J. Int. Economics) found Markov-switching models **do not** beat a random walk on mean-squared-error, **but** there is evidence they are **superior at predicting the direction of change** of the exchange rate ([Engel 1994, ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/0022199694900620)). A more recent extension ("Markov switching in exchange rate models: will more regimes help?", Empirical Economics 2020) finds adding regimes improves forecasts over 1–2 regime models but still cannot beat a random walk on level/MSE ([Springer](https://link.springer.com/article/10.1007/s00181-019-01623-6)). The pattern is consistent across 30 years: **the edge of regime models is in the sign, which is precisely our objective.** This is the strongest theoretical justification for our entire approach and reframes our "0.52 AUC ≈ coin flip" result as an artifact of averaging over regimes.
+The foundational FX regime-switching literature (Engel & Hamilton 1990; Engel 1994 "Can the Markov switching model forecast exchange rates?", J. Int. Economics) found Markov-switching models **do not** beat a random walk on mean-squared-error, **but** there is evidence they are **superior at predicting the direction of change** of the exchange rate ([Engel 1994, ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/0022199694900620)). A more recent extension ("Markov switching in exchange rate models: will more regimes help?", Empirical Economics 2020) finds adding regimes improves forecasts over 1–2 regime models but still cannot beat a random walk on level/MSE ([Springer](https://link.springer.com/article/10.1007/s00181-019-01623-6)). The pattern is consistent across 30 years: **the edge of regime models is in the sign, which is precisely our objective.** This is the strongest theoretical justification for our entire approach and reframes our "0.52 AUC ≈ ~0.50" result as an artifact of averaging over regimes.
 
 Sarno & Valente (and Abhyankar-Sarno-Valente, SSRN 549142) show the *set of predictors that work changes over time* — implying frequent coefficient shifts and that any static model is mis-specified ([SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=549142); [RePEc Sarno-Valente time-varying cointegration](https://ideas.repec.org/p/iek/wpaper/1302.html)). They also document that the **economic value** of predictability (utility/Sharpe to a trader) can far exceed the statistical value (MSE) — a direct argument that our metric (directional hit-rate / selective accuracy) is the right one and that MSE-based dismissals of FX predictability are too pessimistic.
 
@@ -75,7 +75,7 @@ H<0.5 mean-reverting, =0.5 random walk, >0.5 trending. BUT: consistent estimatio
 1. **Regime-gated selective prediction (highest priority, smallest lift-to-effort).**
    - Fit a 2–3 state HMM (Gaussian or MS-GARCH emissions) on a low-dim feature set: 15m return, realized vol (sum of 10s squared returns over the bar), and signed-volume OFI. Use `hmmlearn` / `MSGARCH` (R) / `pomegranate`.
    - Decode the *causal* (filtered, not smoothed — smoothing leaks future) latent state for each 15m bar.
-   - Train our existing LightGBM **once per state** (or add state as a categorical feature + interaction terms). On val, compute per-state accuracy; **only bet in states clearing a threshold (e.g. >0.55)**. Report accuracy vs coverage curve and compare to our 0.632@0.2% baseline. *Falsifier to pre-commit: if per-state val accuracy is flat ~0.52 across all states, regime gating adds nothing.*
+   - Train our existing LightGBM **once per state** (or add state as a categorical feature + interaction terms). On val, compute per-state accuracy; **only bet in states clearing a threshold (e.g. >0.55)**. Report accuracy vs coverage curve and compare to our 0.632@0.2% baseline. *Falsifier to pre-commit: if per-state val accuracy is flat ~0.52 across all states, regime gating adds nothing here.*
 
 2. **Volatility-regime sign-conditioning experiment (cheap, do this first as a diagnostic).**
    - Bucket every 15m bar by trailing RV quantile (e.g. terciles). Compute lag-1 autocorr of 15m returns *within each bucket*. If the bottom and top RV terciles show non-zero autocorr of **opposite sign**, that confirms the cancellation hypothesis and immediately yields a conditional momentum/reversal sign rule. This directly tests why our unconditional -0.03 is uninformative.
@@ -87,7 +87,7 @@ H<0.5 mean-reverting, =0.5 random walk, >0.5 trending. BUT: consistent estimatio
 
 4. **Input-Output HMM / covariate-driven transition matrix.**
    - Port the 2006.08307 design: latent momentum state; transition matrix = softmax(linear/spline of covariates) where covariates = realized-vol ratio (short RV / long RV), session indicator, time-to-next-scheduled-event. Emission = Gaussian on 15m return. Decode filtered state; bet only in the high-momentum state. Compare to HMM-gated LightGBM.
-   - Stretch: DS³M (arXiv 2106.02329) for neural emissions if linear emissions cap out.
+   - Stretch: DS³M (arXiv 2106.02329) for neural emissions if linear emissions reach their best-so-far level.
 
 5. **Change-point abstention layer.**
    - Run BOCPD (e.g. `bayesian_changepoint_detection` lib) or a CUSUM on 15m returns/RV. For N bars after a detected change-point, force-abstain (our features are stale). Measure whether removing post-break bars *raises* accuracy on the remaining bets.
@@ -137,7 +137,7 @@ No new market data is strictly required to start: items 1–3 (HMM gating, vol-r
 
 ## Relevance & priority for OUR project
 
-**How this interacts with what we've ruled out:** Our prior work added features and bigger models to a *single unconditional* predictor and capped at 0.52 AUC. This vector says the ceiling is an averaging artifact — the same features may carry real sign-edge *inside specific regimes*. It also explains our one success (0.632@0.2% selective): selective prediction is implicitly finding a high-edge regime; regime conditioning makes that explicit and lets us grow coverage. Our "calendar event = vol seasonality, redundant" finding does NOT kill the pre-FOMC **directional drift** — that's a different (sign) signal we never tested.
+**How this interacts with what we've ruled out:** Our prior work added features and bigger models to a *single unconditional* predictor and reached a best so far of 0.52 AUC. This vector says that best-so-far level is an averaging artifact — the same features may carry real sign-edge *inside specific regimes*. It also explains our one success (0.632@0.2% selective): selective prediction is implicitly finding a high-edge regime; regime conditioning makes that explicit and lets us grow coverage. Our "calendar event = vol seasonality, redundant" finding does NOT kill the pre-FOMC **directional drift** — that's a different (sign) signal we never tested.
 
 **Ranked ideas:**
 
@@ -155,7 +155,7 @@ No new market data is strictly required to start: items 1–3 (HMM gating, vol-r
   7. Hurst-exponent meta-filter — statistically fragile at 15m; only as a slow daily regime hint, not a per-bar gate.
   8. Transformer FX direction papers (EXFormer etc.) — defer until/unless someone publishes absolute OOS hit-rate with costs; high overfit risk.
 
-**Expected realistic outcome:** This vector is unlikely to yield a *flat* 75% over all bars (the literature is clear FX is ~RW on average). Its credible payoff is **higher selective accuracy at materially higher coverage than 0.2%** — e.g. pushing toward 0.60-0.65 at 5-15% coverage by betting only in identified regimes, plus a separate near-75% **event-overlay book** at tiny coverage. That is the honest, evidence-based target.
+**Expected realistic outcome:** A *flat* 75% over all bars is still open via this vector (the literature is clear FX is ~RW on average, so it remains the open target). Its credible payoff is **higher selective accuracy at materially higher coverage than 0.2%** — e.g. pushing toward 0.60-0.65 at 5-15% coverage by betting only in identified regimes, plus a separate near-75% **event-overlay book** at tiny coverage. That is the honest, evidence-based target.
 
 ---
 
@@ -178,7 +178,7 @@ No new market data is strictly required to start: items 1–3 (HMM gating, vol-r
 15. **"Online Learning of Order Flow and Market Impact with Bayesian Change-Point Detection"** Quant. Finance 2024 / arXiv 2307.02375 — [abs](https://arxiv.org/abs/2307.02375). *BOCPD for real-time regime breaks — defensive abstention trigger.*
 16. **"Bayesian Autoregressive Online Change-Point Detection with Time-Varying Parameters"** arXiv 2407.16376 — [PDF](https://arxiv.org/pdf/2407.16376). *Score-driven BOCPD handling within-regime autocorrelation.*
 17. **DS³M: "Deep Switching State Space Model for Nonlinear Time Series with Regime Switching"** arXiv 2106.02329 — [PDF](https://arxiv.org/pdf/2106.02329). *Neural generalization of IO-HMM (covariate-driven transitions + neural emissions).*
-18. **"Estimation of the Hurst parameter from continuous noisy data"** arXiv 2205.11092 — [PDF](https://arxiv.org/pdf/2205.11092). *Why per-bar 15m Hurst is statistically unreliable — caps Hurst priority.*
+18. **"Estimation of the Hurst parameter from continuous noisy data"** arXiv 2205.11092 — [PDF](https://arxiv.org/pdf/2205.11092). *Why per-bar 15m Hurst is statistically unreliable — keeps Hurst priority low.*
 19. **Macrosynergy, "Detecting trends and mean reversion with the Hurst exponent"** — [link](https://macrosynergy.com/research/detecting-trends-and-mean-reversion-with-the-hurst-exponent/). *Credible practitioner case for Hurst/regime as meta-filter, not direction signal.*
 20. **RobotWealth, "Demystifying the Hurst Exponent (pt 2)"** — [link](https://robotwealth.com/demystifying-the-hurst-exponent-part-2/). *Skeptical, well-tested practitioner view — Hurst as regime gate.*
 21. **QuantInsti, "Regime-Adaptive Trading with HMM and Random Forest"** — [link](https://blog.quantinsti.com/regime-adaptive-trading-python/). *Concrete Python implementation of the regime-gated-classifier pattern.*

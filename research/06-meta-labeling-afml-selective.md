@@ -5,7 +5,7 @@
 can lift the **hit-rate of our high-confidence subset** toward 75%.
 
 > Framing for this project: we already do crude selective prediction (bet only when `|p−0.5|` is large)
-> and top out at ~0.632 OOS accuracy at 0.2% coverage. Meta-labeling is the *principled* version of
+> with a best so far of ~0.632 OOS accuracy at 0.2% coverage. Meta-labeling is the *principled* version of
 > exactly that idea. The central question this report answers is **not** "does meta-labeling make money"
 > (many blogs claim it does) but **"can a second model meaningfully raise the conditional accuracy
 > P(correct | we bet) above what naive |p−0.5| thresholding already gives us, on a near-efficient
@@ -15,7 +15,7 @@ can lift the **hit-rate of our high-confidence subset** toward 75%.
 
 ## TL;DR (most actionable findings for our 15m FX goal)
 
-- **Meta-labeling cannot create directional edge that isn't there.** It is a *precision-raising filter*,
+- **Meta-labeling does not create directional edge that isn't there.** It is a *precision-raising filter*,
   not a side-predictor. Its job is to learn **when our existing primary model is right vs wrong** and
   bet only then. If our primary's edge is ~0.51 and roughly uniform across the feature space, a meta-model
   has nothing to condition on and will not help. It pays off **only if "primary is correct" is itself
@@ -24,7 +24,7 @@ can lift the **hit-rate of our high-confidence subset** toward 75%.
 - **The headline "accuracy jumps from 20% → 77%" numbers in the popular Hudson & Thames write-up are
   measuring a *different target* (meta-label accuracy: did-the-trade-work) than directional accuracy.**
   They are real but not comparable to our 0.75 directional goal; treat as *credible-but-not-apples-to-apples*.
-  Do not import them as evidence that 15m direction is solvable.
+  Do not import them as evidence about whether 15m direction is solved — that remains open.
 - **Triple-barrier labeling is strictly better than our fixed-horizon up/down label** for the *meta*
   problem, because it (a) makes the label economically meaningful (vol-scaled profit-take / stop / timeout),
   (b) injects transaction-cost realism, and (c) gives the meta-model a cleaner "was this trade good"
@@ -92,8 +92,8 @@ jumps from 20% to 77%. The precision of correct trades also jumps from 0.21 to 0
 **Read this carefully:** "accuracy" here is the **meta-label accuracy** (did the model correctly predict
 trade/no-trade), *not* directional accuracy of EURUSD. The 20%→77% jump is largely a **base-rate artifact**:
 when most signals are no-trade, predicting "no-trade" scores high accuracy. **Precision 0.21→0.39 is the
-honest number, and it is well below 0.75.** So even the flagship example, read correctly, does *not* deliver
-a 75% precision oracle.
+honest number, below 0.75.** So even the flagship example, read correctly, does *not* by itself reach
+75% precision — that remains the open target.
 
 ### 4. Triple-barrier labeling beats our fixed-horizon sign label
 
@@ -161,7 +161,7 @@ number of (effectively independent) trials** ([Bailey & López de Prado, "The De
 [Deflated Sharpe ratio, Wikipedia](https://en.wikipedia.org/wiki/Deflated_Sharpe_ratio)). **Direct relevance:
 we have already run 17+ variants.** Our effective N is large; any "best OOS accuracy" must be deflated
 before we believe it. This is the discipline that separates our 3-second result (likely real) from a
-15-minute mirage.
+15-minute estimate that has not yet been shown robust.
 
 ### 9. Cost-sensitive / focal loss / class imbalance for rare high-edge setups
 
@@ -201,7 +201,7 @@ precision with explicit guarantees — attractive given our tiny-n selective reg
 
 2. **Cheap pre-test before building anything (do this first, ~1 hour):** bucket existing OOS predictions by
    `|p−0.5|` decile **and** by vol regime / session / day-of-week, and measure conditional directional
-   accuracy per bucket. **If no bucket materially exceeds 0.51–0.55, meta-labeling will not reach 0.75** —
+   accuracy per bucket. **If no bucket materially exceeds 0.51–0.55, meta-labeling alone does not get to 0.75** —
    this falsifies the whole vector quickly and honestly.
 
 3. **Fractional-differentiation feature set (new orthogonal source).** Compute `d*` (binary-search ADF at
@@ -273,7 +273,7 @@ No new market data purchase is required — **everything needed is already in-ha
 
 How this interacts with what we've already ruled out:
 - We **already do naive selective prediction** (best 0.632 @0.2%). Meta-labeling is the principled upgrade,
-  but it is **bounded by the same ~0.51 primary edge** we proved is near coin-flip. It can only help if
+  but it works through the same ~0.51 primary edge we measured near ~0.50. It can only help if
   "primary is right" is *conditionally* predictable. Our own findings (autocorr −0.03, 97% USD-factor)
   suggest the conditioning surface is thin — hence **test the conditional-accuracy buckets first**.
 - Our prior **economic-calendar / event-timing** work was redundant with time-of-day; meta-labeling
@@ -302,8 +302,8 @@ How this interacts with what we've already ruled out:
 - **LOW — Calendar meta-conditioning.** Redundant with our prior time-of-day finding.
 
 **Bottom line for this vector:** meta-labeling is the *correct framework* for our selective goal but is
-**not a source of new edge** — it cannot turn a 0.51 primary into 0.75 unless the "primary-correct" event
-is itself predictable, which our mechanistic findings make doubtful at 15m. The genuinely additive items
+**not a source of new edge** — it turns a 0.51 primary into 0.75 only if the "primary-correct" event
+is itself predictable, which our mechanistic findings make uncertain at 15m; that remains open. The genuinely additive items
 here are **(a) fractional-differentiation features** (new orthogonal signal) and **(b) the AFML validation
 stack (purged/CPCV + DSR/PBO)**, which protects us from declaring victory on a statistical fluke.
 

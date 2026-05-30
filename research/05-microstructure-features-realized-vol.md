@@ -1,10 +1,10 @@
 # Microstructure Features, Realized Volatility & Jump Signals for 15-Minute FX Direction
 
 Research vector 05. Goal context: predict 15-minute EURUSD (and other USD majors) **direction**, >75% OOS,
-from 10s OHLCV + raw sub-second ticks (bid/ask + quote sizes). We already exhausted 239 TA features,
+from 10s OHLCV + raw sub-second ticks (bid/ask + quote sizes). We already explored 239 TA features,
 cross-pair lead-lag, tick-rule OFI proxy (≈0 lift), tree/deep ensembles (~0.52 AUC), stat-arb, calendar
-proxy, selective prediction (best 0.632 @ 0.2% coverage). Clean >75% only found at the 3-second horizon;
-raw imbalance decays to coin-flip by ~1 min. This report covers what the realized-vol / jump / microstructure
+proxy, selective prediction (best 0.632 @ 0.2% coverage). Clean >75% so far found at the 3-second horizon;
+raw imbalance decays to ~0.50 by ~1 min. This report covers what the realized-vol / jump / microstructure
 literature actually says, with a hard separation between credible single-asset minutes-horizon evidence and
 hype / cross-sectional / wrong-horizon results that do **not** transfer.
 
@@ -24,7 +24,7 @@ hype / cross-sectional / wrong-horizon results that do **not** transfer.
   futures (daily). This is a real, OOS-robust pattern — but it is a *conditioning/regime* signal layered on
   momentum, not a standalone 15m classifier, and it's daily not 15m.
 - **FX-specific jump direction is hard.** Mäkinen et al. (2019) report jump-*direction* F-measure ≈ **49%
-  (coin-flip)** even with CNN-LSTM-Attention, vs ~72% for jump *occurrence*. Liu et al. (2019) confirm:
+  (~0.50)** even with CNN-LSTM-Attention, vs ~72% for jump *occurrence*. Liu et al. (2019) confirm:
   predicting whether a jump arrives is much easier than its sign. This matches your own 3s→1min decay finding.
 - **The genuinely orthogonal, credible FX signal you have NOT properly tried is true signed ORDER FLOW**
   (Evans-Lyons): real dealer/interbank order flow explains >50% of daily DM/USD and beats a random walk OOS.
@@ -71,8 +71,8 @@ on S&P 100 constituents at ~5-min sampling, horizons 1 day–3 months:
   predicts the next return's direction at the same asset.**
 
 Implication for the 15m goal: building RS+, RS-, ΔJ², HAR-RV-J features will buy you a **better volatility/regime
-estimate** (useful for sizing and for selective-prediction thresholds), but the literature gives **no reason to
-expect a directional edge** from them on a single FX series. This is consistent with your AUC ceiling.
+estimate** (useful for sizing and for selective-prediction thresholds), but the literature gives **no current
+evidence of a directional edge** from them on a single FX series. This is consistent with your current best AUC level.
 
 ### 2. Where semivariance/skewness *does* predict returns — and why it doesn't transfer to you
 
@@ -91,7 +91,7 @@ expect a directional edge** from them on a single FX series. This is consistent 
   existing momentum signal, daily horizon — not a standalone 15m classifier.** It is the most promising
   *transferable* idea in this cluster, but as a regime gate, not a direct predictor.
 
-### 3. Jump *direction* is close to unpredictable; jump *occurrence* and *timing* are predictable
+### 3. Jump *direction* is not yet predictable; jump *occurrence* and *timing* are predictable
 
 - **Lee & Mykland (2008, RFS)** give the standard nonparametric intraday jump test: standardize each
   high-frequency return by a local bipower-variation scale; |L_i| above a Gumbel threshold ⇒ jump. This is the
@@ -99,14 +99,14 @@ expect a directional edge** from them on a single FX series. This is consistent 
 - **Liu et al. (2019, arXiv 1912.07165, "Predicting intraday jumps … liquidity measures and technical
   indicators")** — 5-min intervals, level-2 data, 1271 stocks, Random Forest best. Jump *occurrence* F-measure
   ≈ 63–72%. But **direction (up/down/no-jump) is explicitly much harder**; they cite **Mäkinen et al. (2019):
-  average direction F-measure ≈ 49% (coin-flip)** even with CNN-LSTM-Attention. (PDF read.)
+  average direction F-measure ≈ 49% (~0.50)** even with CNN-LSTM-Attention. (PDF read.)
 - **Lee & Wang, "Tales of Tails: Jumps in Currency Markets" (JFM)** — directly FX. Currency jumps are
   predictably *triggered* by **scheduled US macro releases, especially FOMC**; jump intensity peaks *before*
   the order-flow peak; strong time-of-day and clustering structure. Predictors are national fundamentals +
   release timing. They build "jump-robust carry trades." **This is about jump arrival/size around news, and the
   directional content is tied to the news surprise sign — not free from a TA feature set.** (Abstract read.)
 
-Net: your own finding (3s edge, 1-min decay, direction ≈ coin-flip at minutes) is *exactly* what the credible
+Net: your own finding (3s edge, 1-min decay, direction ≈ 0.50 at minutes) is *exactly* what the credible
 literature finds. Jump features help you know *when* a move is likely, not *which way*, unless you also have the
 news-surprise sign or true order flow.
 
@@ -200,7 +200,7 @@ well-constructed flow inputs* matter more than network depth.
 | Patton-Sheppard signed jumps → future *vol* | Days–months | Equities | **High but it's a vol signal** | Not direction |
 | Amaya et al. realized skew → returns | Weekly | Equity **cross-section** | **Low transfer** | Cross-sectional, not single-series 15m |
 | Bollerslev-Li-Zhao good/bad vol prices returns | Weekly+ | Equity **cross-section** | **Low transfer** | Cross-sectional |
-| Mäkinen 2019 jump *direction* F≈49% | 5-min | Equities | **High (cautionary)** | Direction ≈ coin-flip — confirms your finding |
+| Mäkinen 2019 jump *direction* F≈49% | 5-min | Equities | **High (cautionary)** | Direction ≈ 0.50 — confirms your finding |
 | Liu 2019 jump *occurrence* F≈63–72% | 5-min | Equities | **Med** | Occurrence ≠ direction |
 | Lee-Wang FX jumps predictable from news | Intraday | FX | **High** | But direction needs the surprise sign |
 | VPIN predicts toxicity/crashes | Intraday | Equities | **Low** | Andersen-Bondarenko: mechanical, post-hoc |
@@ -233,7 +233,7 @@ well-constructed flow inputs* matter more than network depth.
 | Tick data for jump detection | Lee-Mykland on your series | your existing ticks | Free | Sufficient |
 
 Cheapest high-leverage add: **macro surprise data** (actual − consensus) to pair with your existing release-window
-work — turns "vol seasonality" (redundant) into a *directional* signal. Most expensive but highest-ceiling:
+work — turns "vol seasonality" (redundant) into a *directional* signal. Most expensive but highest-upside:
 **real depth / signed interdealer flow**.
 
 ---
@@ -258,14 +258,14 @@ work — turns "vol seasonality" (redundant) into a *directional* signal. Most e
   overfit given small effective N.
 
 **LOW**
-- Direct RS+/RS-/ΔJ² as classifier direction features — literature says vol, not direction; you'll likely
-  reproduce the ~0.52 AUC ceiling.
+- Direct RS+/RS-/ΔJ² as classifier direction features — literature says vol, not direction; expect to
+  reproduce the ~0.52 AUC current best level.
 - VPIN, raw DeepLOB-style nets for 15m, Hawkes intensity — wrong horizon or contested.
 - Cross-sectional skew/semivariance "alpha" — not a single-series 15m signal.
 
 **How it interacts with what you ruled out:** your tick-rule OFI ≈ 0 lift does **not** falsify order-flow as a
 signal — it falsifies a *bad sign estimator*. Microprice/size-imbalance and depth-normalized OFI are the
-upgraded versions. Your "jump direction is coin-flip at minutes" intuition is *confirmed* by Mäkinen (F≈49%) —
+upgraded versions. Your "jump direction is ~0.50 at minutes" intuition is *confirmed* by Mäkinen (F≈49%) —
 so don't chase jump *direction*; chase jump *timing × flow* and news-surprise sign. Your calendar = vol
 seasonality finding is real but only tested the *magnitude* channel; the *surprise-sign* channel is untested.
 
@@ -308,7 +308,7 @@ seasonality finding is real but only tested the *magnitude* channel; the *surpri
     estimator; buildable from your quote sizes.
 14. **Deriaz et al. (2024), "Predicting Foreign Exchange EUR/USD direction using machine learning," arXiv
     2409.04471.** https://arxiv.org/pdf/2409.04471 — Daily horizon, best accuracy **58.5%** (meta-estimators);
-    a realistic FX directional ceiling at daily. PDF read.
+    a current best FX directional level at daily. PDF read.
 15. **Easley, López de Prado & O'Hara (2012), VPIN / flow toxicity** (and Andersen-Bondarenko critique,
     "VPIN and the flash crash," 2014). https://www.quantresearch.org/VPIN.pdf — Contested; treat as low-credibility
     for direction.

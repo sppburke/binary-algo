@@ -1,8 +1,8 @@
 # Options-Implied & Volatility-Derived Directional Information for Intraday FX
 
-Research vector 15 of the binary-algo direction-prediction project. Goal frame: lift **15-minute EURUSD directional accuracy toward 75% OOS** using NEW orthogonal signals. This vector evaluates FX options–implied data: 25-delta risk reversals (skew), butterflies, IV term structure, implied-vs-realized vol spread, dealer gamma exposure ("gamma walls"/pinning), variance risk premium, and option expiry magnets.
+Research vector 15 of the binary-algo direction-prediction project. Goal frame: lift **15-minute EURUSD directional accuracy toward the open 75% target OOS** using NEW orthogonal signals. This vector evaluates FX options–implied data: 25-delta risk reversals (skew), butterflies, IV term structure, implied-vs-realized vol spread, dealer gamma exposure ("gamma walls"/pinning), variance risk premium, and option expiry magnets.
 
-**Bottom line up front:** Almost all *credible* options-implied directional predictability in FX lives at **daily-to-monthly horizons**, not 15 minutes. The two mechanisms that *are* genuinely intraday and mechanistic — (a) dealer gamma hedging feedback and (b) option-expiry/strike "magnets" — are well-documented but the peer-reviewed evidence says they move **realized volatility and pinning, not signed direction**, and the one paper that tests intraday *directional* momentum from gamma hedging finds the effect **statistically insignificant specifically in currencies** (significant in equities/bonds/commodities). So this is a Medium-priority vector: one or two narrow, mechanistically-grounded micro-edges (expiry magnet, gamma-regime vol gating) are worth building, but the headline "risk reversals predict EURUSD direction" claim does not survive scrutiny at 15m.
+**Bottom line up front:** Almost all *credible* options-implied directional predictability in FX lives at **daily-to-monthly horizons**, not 15 minutes. The two mechanisms that *are* genuinely intraday and mechanistic — (a) dealer gamma hedging feedback and (b) option-expiry/strike "magnets" — are well-documented but the peer-reviewed evidence says they move **realized volatility and pinning, not signed direction**, and the one paper that tests intraday *directional* momentum from gamma hedging finds the effect **statistically insignificant specifically in currencies** (significant in equities/bonds/commodities). So this is a Medium-priority vector: one or two narrow, mechanistically-grounded micro-edges (expiry magnet, gamma-regime vol gating) are worth building, but the headline "risk reversals predict EURUSD direction" claim is not yet supported at 15m.
 
 ---
 
@@ -11,11 +11,11 @@ Research vector 15 of the binary-algo direction-prediction project. Goal frame: 
 - **Risk reversals are a POSITIONING/sentiment gauge, not a 15m directional predictor.** Credible academic work finds RR predicts currency returns/carry-crash risk only at **weekly–monthly** horizons, and even daily next-day regressions show "negative association but limited explanatory power" (mixed/weak). Do **not** expect RR to give a clean 15m edge; treat it as a slow-moving *regime/state* feature, not a trigger. (Della Corte et al.; Jurek; redalyc EM RR study)
 - **Dealer gamma in FX drives VOLATILITY, not signed direction** — this is the single most important finding. Ulmann–Sornette (JIMF 2022), using reconstructed DTCC dealer positioning for EURUSD/USDJPY, show OMMs are **persistently short gamma**, and net short gamma *raises realized vol* (≈ +0.7% in EURUSD per −$1000bn gamma) but does **not** predict the *sign* of the next move. Use gamma as a **volatility-regime gate / target-scaler**, not a direction signal.
 - **The "gamma → intraday momentum" trade fails in currencies.** Baltussen, Da, Lammers & Martens (JFE 2021) find strong last-30-min intraday momentum in equity/bond/commodity futures (OOS R² up to 2.88%) but in **currency futures the coefficients are "positive but insignificant"** and the U-shaped volume pattern (the mechanism's prerequisite) is weakest in FX. This is a direct negative result for applying the most-cited gamma-momentum idea to EURUSD.
-- **Option-expiry "magnets" (10am NY cut) are the most plausibly-exploitable INTRADAY mechanism**, but the edge is conditional (large notional ≥ $0.5–1bn at a strike, spot within ~30–50 pips, quiet tape) and is fundamentally a **mean-reversion-toward-strike** effect, not a free 75% directional call. Worth building as a feature; capacity and reliability are limited.
+- **Option-expiry "magnets" (10am NY cut) are the most plausibly-exploitable INTRADAY mechanism**, but the edge is conditional (large notional ≥ $0.5–1bn at a strike, spot within ~30–50 pips, quiet tape) and is fundamentally a **mean-reversion-toward-strike** effect, not a free 75% directional call (75% remains the open target). Worth building as a feature; capacity and reliability are limited.
 - **Implied-minus-realized vol spread (variance risk premium) is a vol-timing and weak return signal at ≥1-month**, with no credible 15m directional content. Useful only as a slow risk-on/off context feature, redundant with vol-regime features you already have.
 - **Free/cheap data exists** to build crude dealer-gamma and expiry-magnet features: **CME QuikStrike** FX options open-interest-by-strike (free, daily, EUR/USD weekly+monthly), **DTCC public price dissemination** (free, real-time FX-option trade tape, but messy), and the daily ForexLive/Investing "10am NY cut" expiry lists. Clean historical IV surfaces (RR/BF/ATM by tenor and delta) require **Bloomberg BVOL / OVDV or LSEG/Refinitiv** (paid).
 - **Leakage/credibility caveat:** most online "RR predicts FX" and "GEX 75% win-rate" claims are practitioner blogs (StrikeWatch, SpotGamma) extrapolating from *equity* index structure, where skew is structurally negative and dealers are differently positioned. FX skew is a U-shaped smile and dealer positioning is different; do not import equity-GEX intuition wholesale.
-- **Net recommendation:** treat options-implied data as **state/gating features** (vol regime, gamma sign, distance-to-expiry-strike) layered onto your existing model, plus **one targeted expiry-magnet conditional model**. Do not expect it to be the orthogonal signal that breaks 75% on its own.
+- **Net recommendation:** treat options-implied data as **state/gating features** (vol regime, gamma sign, distance-to-expiry-strike) layered onto your existing model, plus **one targeted expiry-magnet conditional model**. On its own it is not yet the orthogonal signal that reaches 75% — that target stays open.
 
 ---
 
@@ -63,7 +63,7 @@ Research vector 15 of the binary-algo direction-prediction project. Goal frame: 
 
 ## Concrete techniques / features / architectures to try
 
-Ranked by expected value for the 15m goal. All designed as **causal, point-in-time** features to bolt onto your existing model — not standalone 75% predictors.
+Ranked by expected value for the 15m goal. All designed as **causal, point-in-time** features to bolt onto your existing model — not standalone 75% predictors on their own.
 
 ### A. Expiry-magnet conditional model (HIGH within this vector)
 1. Ingest daily large-expiry strike lists (ForexLive/Investing "10am NY cut", or reconstruct from CME QuikStrike OI-by-strike, or DTCC tape).
@@ -135,7 +135,7 @@ Priority ranking:
 - **MEDIUM:** (C) RR/skew as slow state feature with pre-registered drop criterion; (E) barrier-proximity continuation feature.
 - **LOW:** (D) IV term-structure context (redundant with vol-regime); any standalone RR/VRP *directional* predictor; anything imported from equity-GEX 75%-winrate blogs.
 
-Honest expectation: this vector yields **gating/regime/selective-bucket improvements and possibly a small high-precision expiry-magnet edge**, not the orthogonal signal that lifts *all-bar* 15m accuracy to 75%. The strongest, most-cited directional gamma effect is *proven absent in currencies*; the strongest FX gamma effect is *volatility, not direction*.
+Honest expectation: this vector yields **gating/regime/selective-bucket improvements and possibly a small high-precision expiry-magnet edge**; lifting *all-bar* 15m accuracy to 75% remains the open target for other vectors. The strongest, most-cited directional gamma effect is *not yet found in currencies*; the strongest FX gamma effect is *volatility, not direction*.
 
 ---
 

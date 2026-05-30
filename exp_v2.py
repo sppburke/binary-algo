@@ -1,6 +1,6 @@
 """V2 — add cross-pair lead-lag features (6 USD peers) to the EURUSD reversion model.
 Hypothesis: peer moves carry orthogonal short-horizon directional info that lifts AUC
-above the single-pair 0.52 wall and enriches the high-precision fade pocket."""
+above the single-pair 0.52 current best and enriches the high-precision fade pocket."""
 import sys, time
 import numpy as np, pandas as pd, lightgbm as lgb
 import harness as H, crosspair as CP

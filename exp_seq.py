@@ -82,7 +82,7 @@ print(f"GRU AUC val={va:.4f} test={te:.4f} oos={oo:.4f}")
 H.report("TEST",yte,pte); H.report("OOS ",yoo,poo)
 for tgt in (0.75,0.70,0.65,0.60):
     bv=H.threshold_for_target(yva,pva,target=tgt,min_n=200)
-    if bv is None: print(f"target {tgt:.0%}: unreachable on VAL"); continue
+    if bv is None: print(f"target {tgt:.0%}: not hit on VAL"); continue
     rt=H.apply_threshold(yte,pte,bv['conf_thr']); ro=H.apply_threshold(yoo,poo,bv['conf_thr'])
     print(f"target {tgt:.0%}: TEST acc={rt['accuracy']:.3f} n={rt['n']} | OOS acc={ro['accuracy']:.3f} n={ro['n']}")
 print("GRU DONE")

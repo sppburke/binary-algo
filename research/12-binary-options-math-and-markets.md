@@ -1,8 +1,8 @@
 # Binary-Option Economics, Required Hit-Rate, and Less-Efficient Instruments (Deriv, Nadex, Prediction Markets)
 
 > Research vector for the binary-algo project. Goal context: predict EURUSD/major-FX **direction** at a
-> **15-minute** horizon with **>75% out-of-sample** accuracy. We have already hit a wall on liquid FX at
-> 5m/15m (~0.52 AUC, ~0.63 selective) and only reached ≥75% at the **3-second** microstructure horizon.
+> **15-minute** horizon with **>75% out-of-sample** accuracy. We have reached a current best level on liquid FX at
+> 5m/15m (~0.52 AUC, ~0.63 selective) and so far reached ≥75% only at the **3-second** microstructure horizon.
 > This report asks: *what does 75% actually buy you economically, and is there a structurally
 > less-efficient instrument where a longer-horizon directional edge is more reachable?*
 
@@ -18,7 +18,7 @@
   derived below.)
 - **At 75% accuracy and an 80% payout, full-Kelly stake is ~44% of bankroll and EV is +$0.35 per $1 risked**
   — enormous, *if real*. The danger is not sizing; it is that any claimed 75% at 15m on liquid FX is almost
-  certainly leaked/overfit (our own work shows the linear ceiling is ~0.51).
+  certainly leaked/overfit (our own work shows the linear best-so-far is ~0.51).
 - **Deriv synthetic indices are a dead end for *directional* prediction by construction.** Deriv's Head of
   Quants states prices come from a **central CSPRNG broadcast** (geometric-Brownian-style constant-vol random
   walk). A CSPRNG-driven GBM has **independent, zero-drift increments → direction is a martingale →
@@ -29,22 +29,23 @@
   binaries (touch / no-touch / range / over-under)** analytically priceable. If Deriv mis-prices a
   vol-contingent contract relative to its own generator's σ, that is a real, *non-directional* edge —
   orthogonal to everything we've tried.
-- **The credible, peer-reviewed orthogonal direction is CRYPTO, not synthetics.** Multiple journals
+- **[DEFERRED — majors-only scope, 2026-05-30]** **A credible, peer-reviewed orthogonal direction documented in the literature is CRYPTO, not synthetics.** Multiple journals
   (ScienceDirect, Springer, Nature Sci. Reports) document Bitcoin/altcoins **deviating from the random-walk
   hypothesis at 15/30/60-min intraday intervals**, with **intraday momentum + reversal** effects and
   **altcoins markedly less efficient** than majors. This is the strongest "less-efficient instrument"
-  signal in the literature and is directly testable with free data.
+  signal in the literature and is directly testable with free data. *(Retained as analysis; not a current target under the majors-only scope decision of 2026-05-30.)*
 - **Avoid unregulated binary brokers (Pocket Option et al.) entirely as a data/edge source.** SEC/CFTC and
   multiple reviews document **OTC price-feed manipulation and adverse-selection algorithms** ("learn your
   strategy, trade against you"). Any backtest edge there is unrealizable; the counterparty controls the tape.
 - **Nadex (the only US-regulated binary venue) shut binary trading on 2025-12-20** — no longer an option.
   Where an edge existed, it was eaten by spread + fee. Regulated *prediction markets* (Kalshi) are the live
   successor but are event-driven, not 15m FX tick markets.
-- **Net recommendation for the project:** treat "75% at 15m on liquid FX" as **proven-unreachable** and
-  redirect the *same pipeline* to (1) **crypto majors/alts at 15m** (less-efficient, real-data, real-edge),
+- **Net recommendation for the project:** treat "75% at 15m on liquid FX" as **not yet achieved (open target)**.
+  The previously-suggested redirects — **[DEFERRED — majors-only scope, 2026-05-30]** (1) **crypto majors/alts at 15m** (less-efficient, real-data, real-edge),
   and (2) **vol-structured (not directional) binaries on Deriv synthetics** where the generator's known σ is
-  the edge. Rank: **crypto intraday = High**, **synthetic vol-binaries = Med**, **synthetic direction /
-  unregulated brokers = Do-not-pursue.**
+  the edge — are retained as documented analysis but are **not current targets** under the majors-only scope
+  decision of 2026-05-30. (Earlier ranking, for the record: crypto intraday = High, synthetic vol-binaries = Med,
+  synthetic direction / unregulated brokers = Do-not-pursue.)
 
 ---
 
@@ -100,11 +101,11 @@ volatility** (V10/V25/V50/V75/V100 = constant 10–100% annualized vol; one tick
 
 **Mechanistic consequence (Tier-1 derivation):** a CSPRNG-driven geometric Brownian motion has i.i.d.
 log-return increments with **zero (or fixed) drift and constant σ**. The conditional expectation of the next
-move given all history is the current price → it is a **martingale** → **directional up/down is a coin-flip
+move given all history is the current price → it is a **martingale** → **directional up/down is ~0.50
 no matter how much past data you feed a model.** This is the *opposite* of real FX, where (weak) order-flow
 and microstructure create exploitable autocorrelation. **Conclusion: any "I predict V75 direction with X%"
 claim is either curve-fit noise or a backtest that won't replicate.** Our own next-tick decay finding
-(55.3% → coin-flip) is a *real-market* effect; on synthetics even that does not exist.
+(55.3% → ~0.50) is a *real-market* effect; on synthetics even that does not exist.
 
 **The exploitable corner — volatility, not direction:**
 - Because **σ is published and constant**, the fair price of any **volatility-contingent binary** (touch /
@@ -121,7 +122,7 @@ claim is either curve-fit noise or a backtest that won't replicate.** Our own ne
   This is the one place a *direction-ish* edge exists on synthetics — but it comes from the **known spike
   asymmetry**, not from predicting the random component.
 
-### 3. Crypto as the credible "less-efficient instrument" (the real opportunity)
+### 3. Crypto as the credible "less-efficient instrument" — **[DEFERRED — majors-only scope, 2026-05-30]**
 
 Peer-reviewed evidence that crypto is *less efficient than FX* at exactly our horizon:
 
@@ -141,11 +142,11 @@ Peer-reviewed evidence that crypto is *less efficient than FX* at exactly our ho
   microstructure is less arbitraged
   ([BTC→altcoin price transmission](https://link.springer.com/article/10.1007/s10690-026-09589-z)).
 
-**Why this matters vs. what we ruled out:** our FX wall is *because EURUSD is ~97% USD-factor and ~efficient*.
+**Why this matters vs. what we ruled out:** our FX current best level is *because EURUSD is ~97% USD-factor and ~efficient*.
 Crypto breaks both: weaker informational efficiency at 15m, real (not proxy) order-flow available free from
 exchange APIs, and a dominant lead asset (BTC) whose moves propagate with a lag. The same 239-feature +
-cross-asset + order-flow pipeline should be *re-pointed* at BTC/ETH/large-alt 15m bars before any new
-architecture work.
+cross-asset + order-flow pipeline *could* be re-pointed at BTC/ETH/large-alt 15m bars — **[DEFERRED — majors-only
+scope, 2026-05-30]**: retained as analysis, not a current target.
 
 ### 4. Nadex, prediction markets, and unregulated brokers
 
@@ -173,7 +174,7 @@ architecture work.
 
 ## Concrete techniques / features / architectures to try
 
-1. **Re-point the existing 15m pipeline at crypto (highest leverage, lowest new code).**
+1. **Re-point the existing 15m pipeline at crypto. [DEFERRED — majors-only scope, 2026-05-30]** *(Documented for later; not a current target. Earlier framing: highest leverage, lowest new code.)*
    - Ingest free 1m/OHLCV + order-book/trade tick data for BTCUSDT, ETHUSDT, and 5–10 liquid alts from
      Binance/Bybit/OKX public APIs (or Kaggle dumps). Build 15m direction labels identically to the FX setup.
    - Reuse `pipeline.py` (239 TA features), `crosspair.py` (now **BTC-as-leader** lead-lag into alts),
@@ -205,7 +206,7 @@ architecture work.
    This converts any verified >break-even edge into a growth-optimal but drawdown-bounded strategy and makes
    the economic value of a given accuracy explicit.
 
-5. **(Optional) Kalshi/threshold reframe.** If 15m tick direction stays unreachable, reframe to
+5. **(Optional) Kalshi/threshold reframe.** If 15m tick direction stays open, reframe to
    *threshold-at-fixed-time* contracts ("EURUSD ≥ K at 16:00 ET"). These are priceable from our existing vol
    models, trade on a regulated CLOB with transparent ~0.6–1.75% fees, and have a documented
    favorite-longshot bias to fade. Different horizon, but a *real* venue with a *real* edge.
@@ -266,11 +267,6 @@ delisted alts, exchange clock skew, and using *settlement* prices that aren't tr
 ## Relevance & priority for OUR project
 
 **High**
-- **Crypto majors/alts at 15m via the existing pipeline.** This is the single best fit for "longer-lived
-  orthogonal signal at minutes-to-hours." It directly attacks our root cause (EURUSD is ~efficient,
-  ~97% USD-factor): crypto is *documented* less efficient at 15/30/60m, has *real* order flow, and a *lead
-  asset (BTC)*. Reuses `pipeline.py`/`crosspair.py`/`orderflow.py` with stronger inputs. Adds genuinely new
-  features (funding/OI/liquidations/cross-venue) with no FX analog. **Start here.**
 - **Encoding the true break-even/`b_eff`/Kelly economics into the harness.** Cheap, makes the selective
   threshold venue-correct, and reframes whether 0.632 OOS is already commercially useful at some payout.
 
@@ -282,6 +278,14 @@ delisted alts, exchange clock skew, and using *settlement* prices that aren't tr
   sub-case.
 - **Kalshi threshold-contract reframe.** Real regulated venue, transparent fees, exploitable favorite-longshot
   bias — but it's a *different horizon/target* (event/threshold), so it's a pivot, not an extension.
+
+**Deferred — majors-only scope (2026-05-30)**
+- **Crypto majors/alts at 15m via the existing pipeline. [DEFERRED — majors-only scope, 2026-05-30]** Retained
+  as documented analysis, not a current target. (Earlier assessment: best fit for "longer-lived
+  orthogonal signal at minutes-to-hours"; directly attacks our root cause — EURUSD is ~efficient,
+  ~97% USD-factor — because crypto is *documented* less efficient at 15/30/60m, has *real* order flow, and a
+  *lead asset (BTC)*. Reuses `pipeline.py`/`crosspair.py`/`orderflow.py` with stronger inputs, and adds
+  genuinely new features (funding/OI/liquidations/cross-venue) with no FX analog.)
 
 **Low / Do-not-pursue**
 - **Predicting synthetic-index *direction* (V10–V100).** Provably a martingale; any apparent edge is noise.

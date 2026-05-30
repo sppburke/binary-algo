@@ -4,8 +4,8 @@
 `research_log.md` (V1–V17 ledger), `FINDINGS.md`. **Do not** re-run anything on the backlog's
 "do-not-repeat" list.
 
-**Why this scope.** Five literatures + our own 0.527 wall say always-on 75% at 15m on EURUSD does not
-exist. The remaining probability mass is in three questions the feature-hunting never asked: *how to use
+**Why this scope.** Five literatures + our own 0.527 current best level put always-on 75% at 15m on EURUSD
+still open. The remaining probability mass is in three questions the feature-hunting never asked: *how to use
 the fast edge we already have, what target to predict, and what instrument to predict.* Each falsifier
 below is a **decision gate**, not a model to ship — ~1 day each, all on data in hand or free. Run them
 **before** funding E1/E2/E3/E4. Any one can redirect the whole project.
@@ -15,7 +15,7 @@ below is a **decision gate**, not a model to ship — ~1 day each, all on data i
   7 USD pairs, 2012-01-02 → 2026-05-08. venv: `~/binary-algo-venv/bin/python`.
 - Splits: TRAIN 2012–21 · VAL 2022–23 · TEST 2024–25 · **OOS 2026 locked**.
 - Verified 3s edge exists: `models/probs_tickens_H3.npz` (TEST 0.756 / OOS 0.809 @0.05% cov).
-- Best 15m so far: ~0.632 OOS @0.2% coverage (selective). AUC wall ~0.527.
+- Best 15m so far: ~0.632 OOS @0.2% coverage (selective). AUC current best level ~0.527.
 
 ## Validation contract (every experiment, non-negotiable)
 1. Causal features only; purged + embargoed CV, embargo ≥ the label span at fold boundaries.
@@ -28,7 +28,7 @@ below is a **decision gate**, not a model to ship — ~1 day each, all on data i
 ## F1 — Is the verified 3s edge compoundable to 15m?  *(highest EV — do first)*
 **Question.** Can the real, fast-decaying 3s directional signal be optimally held into a 15m position whose
 *sign over the window* inherits the edge, net of cost? If yes, **that is the project** and most feature ideas
-are moot. If no, we have a rigorous reason 15m-from-microstructure is unreachable.
+are moot. If no, we have a rigorous reason 15m-from-microstructure is still open.
 **Method.** Model the 3s signal (`probs_tickens_H3.npz`) as a noisy predictor with its measured decay + our
 own per-trade tick cost; apply a Gârleanu–Pedersen "aim-in-front" aim-portfolio / Kalman-stack forward;
 compute SNR and hit-rate of `sign(cost-aware position held 15m)`. Start as a back-of-envelope, then a sim.
@@ -50,12 +50,15 @@ Relabel with a symmetric double-barrier (k in vol units from our tick spread); t
 compare accuracy@coverage to end-sign. **Gate.** Touch target clears a higher accuracy at usable coverage →
 switch the primary label.
 
-## F4 — Exotic pair (less-efficient instrument, within FX)
-**Question.** Does the *same* 239-feature stack that caps at ~0.52 on EURUSD reach materially higher on a
+## F4 — Exotic pair (less-efficient instrument, within FX)  **[DEFERRED — majors-only scope, 2026-05-30]**
+*Deferred to a later probe; not part of the active falsifier set (F1–F3). Relies on exotic/EM pairs
+(USDMXN/USDZAR) outside the current majors-only scope.*
+**Question.** Does the *same* 239-feature stack that holds at best ~0.52 on EURUSD reach materially higher on a
 less-efficient liquid pair (USDMXN / USDZAR)? Cheapest "new instrument" test before any crypto pivot.
 **Method.** Pull free Dukascopy history for the exotic; run `pipeline.py` + the baseline model; same OOS
-contract. **Gate.** AUC materially > 0.52 → exotics are the FX path; if not → efficiency is the wall, consider
-the crypto pivot (E16). *Source:* CME EM-FX; arXiv:0712.1624 (efficiency–predictability).
+contract. **Gate.** AUC materially > 0.52 → exotics are the FX path; if not → efficiency is the current best
+level, consider the crypto pivot (E16) **[DEFERRED — majors-only scope, 2026-05-30]**.
+*Source:* CME EM-FX; arXiv:0712.1624 (efficiency–predictability).
 
 ---
 
@@ -66,7 +69,8 @@ the crypto pivot (E16). *Source:* CME EM-FX; arXiv:0712.1624 (efficiency–predi
   last-look/jitter) — misalignment both fakes backtest edge and destroys live edge. (Critique item 7.)
 
 ## Decision routing after the falsifiers
+*Active falsifier set: F1–F3 (majors-only). F4 and the crypto pivot are **[DEFERRED — majors-only scope, 2026-05-30]** and routed only as later probes.*
 - F1 yes → pursue fast-edge aggregation as primary (new mini-backlog).
 - F2 / F3 yes → re-target the pipeline (rank or touch) and re-run the directional overlays (E1/E2/E4) on it.
-- F4 yes → port the stack to the exotic; F4 no + F1 no → crypto pivot (E16).
-- All no → the honest deliverable is the conformal-hardened thin conditional book at break-even (E3), not 75%.
+- F1–F3 all no → the honest deliverable is the conformal-hardened thin conditional book at break-even (E3); 75% remains the open target.
+- *Later (deferred, majors-only):* F4 yes → port the stack to the exotic; F4 no + F1 no → crypto pivot (E16) **[DEFERRED — majors-only scope, 2026-05-30]**.

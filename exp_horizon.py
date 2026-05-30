@@ -55,7 +55,7 @@ def main():
     print(f"\n--- selective (VAL thr) H={HOR}m ---")
     for tgt in (0.75,0.70,0.65,0.60):
         bv=H.threshold_for_target(yva,pv,target=tgt,min_n=300)
-        if bv is None: print(f"target {tgt:.0%}: unreachable on VAL"); continue
+        if bv is None: print(f"target {tgt:.0%}: not hit on VAL"); continue
         rt=H.apply_threshold(yte,pt,bv['conf_thr']); ro=H.apply_threshold(yoo,po,bv['conf_thr'])
         print(f"target {tgt:.0%}: VAL cov={bv['coverage']:.3%} -> TEST cov={rt['coverage']:.3%} acc={rt['accuracy']:.3f} n={rt['n']}"
               f" | OOS cov={ro['coverage']:.3%} acc={ro['accuracy']:.3f} n={ro['n']}")

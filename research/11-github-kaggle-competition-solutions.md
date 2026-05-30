@@ -27,7 +27,7 @@ plus de Prado methodology and a representative academic FX-direction paper.
 - **GBDTs (LightGBM) repeatedly beat or matched deep nets on tabular market data, with near-default hyperparameters.**
   G-Research crypto 2nd/3rd place: plain LightGBM, squared loss, *no regularization/feature-neutralization/ensembling*
   beyond GBDT itself; tuning only n_estimators/num_leaves/lr. This matches our finding that our trees cap ~0.527 AUC —
-  the ceiling is the *signal*, not the model. Stop spending effort on architectures; spend it on targets/CV/online-update.
+  the current best level is set by the *signal*, not the model. Stop spending effort on architectures; spend it on targets/CV/online-update.
 
 - **Imbalance ratios are the workhorse feature family for auction/order-book data.** "Doublet" `(x−y)/(x+y)` over all
   price/size pairs, and "triplet" `(max−mid)/(mid−min)` over price/size triples, plus "market urgency"
@@ -212,7 +212,7 @@ Wikipedia "Purged cross-validation".)
    train and val/test boundaries inside every fold. Even our clean year-split should embargo around the boundary.
 
 9. **Stop tuning architectures; treat the model as roughly fixed.** Across every comp, LightGBM≈GRU and beat
-   Transformers/attention on this data. Our ~0.527 AUC ceiling is a signal ceiling. Reallocate effort to items 1-7.
+   Transformers/attention on this data. Our ~0.527 AUC current best is set by the signal, not the model. Reallocate effort to items 1-7.
 
 ---
 
@@ -227,7 +227,7 @@ Wikipedia "Purged cross-validation".)
 | G-Research Crypto 2nd/3rd | top-tier weighted-Pearson | **High** — plain LightGBM, disciplined gapped walk-forward CV | Low; teams candid that signal is weak and tuning minimal. |
 | Ubiquant 1st | 1st place | Medium — method described, anonymized data limits transfer | Low leakage; relevance limited. |
 | GitHub FX-LSTM repos ("58% profitability", "55-60%") | 55–60% direction | **Low-Medium** — mostly small, weak/absent OOS protocol, MinMaxScaler-before-split leakage common | High overfit/leakage risk; treat as folklore, not evidence. |
-| Guyard & Deriaz 2024 (arXiv 2409.04471, MLMI conf) | **58.52%** 1-day EURUSD, 32.48% 2022 return | Medium-High — venue-reviewed, stacking+PCA, daily horizon | Single-year return figure is fragile; accuracy figure plausible as a *daily* ceiling. |
+| Guyard & Deriaz 2024 (arXiv 2409.04471, MLMI conf) | **58.52%** 1-day EURUSD, 32.48% 2022 return | Medium-High — venue-reviewed, stacking+PCA, daily horizon | Single-year return figure is fragile; accuracy figure plausible as a *daily* best-so-far. |
 
 **Overarching credibility rule learned:** in financial-prediction competitions, the spectacular headline numbers almost
 always come from (a) recovering a hidden ordering/index the host accidentally left exploitable (Optiver RV), or
@@ -284,7 +284,7 @@ Ranking against what we've already exhausted (239 TA features, cross-pair lead-l
   already exhausted or shown across these comps to *not* beat LightGBM/GRU on this data type.
 - Chasing the Optiver-RV "nearest-neighbor" trick or GitHub "58%/90%" repos — leakage/overfit, not transferable.
 
-**Hard truth from the evidence:** every credible competition confirms our ceiling is the *signal*, not the model.
+**Read from the evidence:** every credible competition indicates our current best level is set by the *signal*, not the model.
 The realistic, honest path to anything near 75% is selective prediction (meta-labeling at low coverage) and online
 adaptation — not another feature family. A flat-out >75% *unconditional* 15m direction rate has no credible precedent
 in any of these solutions.
@@ -332,7 +332,7 @@ in any of these solutions.
     purging + embargo for time-dependent labels; directly applicable to our 15m-horizon CV.*
 15. **Guyard & Deriaz — "Predicting Foreign Exchange EUR/USD direction using machine learning"** (arXiv 2409.04471,
     MLMI 2024) — https://arxiv.org/abs/2409.04471 — *Venue-reviewed EURUSD direction: 58.52% one-day-ahead via
-    stacking+PCA; a realistic credible ceiling for daily FX direction.*
+    stacking+PCA; a realistic credible current-best level for daily FX direction.*
 16. **shenrunzhang/forex & assorted FX-LSTM GitHub repos** — https://github.com/shenrunzhang/forex — *Representative of
     the "55–60% direction" GitHub genre; small, weak OOS protocol, common pre-split scaling leakage → folklore, not
     evidence.*

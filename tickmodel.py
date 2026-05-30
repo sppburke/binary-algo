@@ -1,7 +1,7 @@
 """Tick-microstructure model: establish the TRUE achievable-accuracy frontier across horizons
 using the rich raw-tick quote data (bid/ask + sizes). 1-second bars, microstructure features,
 LightGBM, predict direction at H seconds. Proper TRAIN/VAL/TEST + 2026 OOS. Sampled months for
-tractability. Reports selective accuracy@coverage at each horizon — the real ceiling + where it lives."""
+tractability. Reports selective accuracy@coverage at each horizon — the real current-best level + where it lives."""
 import glob, sys, time, numpy as np, pandas as pd, calendar
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
@@ -90,6 +90,6 @@ for Hs in HORIZONS:
     thr=np.quantile(np.abs(pv-0.5),0.99)
     rt=H.apply_threshold(yt,pt,thr); ro=H.apply_threshold(yo,po,thr)
     bv=H.threshold_for_target(yv,pv,0.75,min_n=200)
-    b75="VAL75 thr->" + (f"TEST {H.apply_threshold(yt,pt,bv['conf_thr'])['accuracy']:.3f}/OOS {H.apply_threshold(yo,po,bv['conf_thr'])['accuracy']:.3f}" if bv else "unreachable")
+    b75="VAL75 thr->" + (f"TEST {H.apply_threshold(yt,pt,bv['conf_thr'])['accuracy']:.3f}/OOS {H.apply_threshold(yo,po,bv['conf_thr'])['accuracy']:.3f}" if bv else "not hit")
     print(f"{Hs:>5} {av_:>7.4f} {at_:>7.4f} {ao_:>7.4f} {rt['accuracy']:>9.4f} {ro['accuracy']:>9.4f} {b75:>30}",flush=True)
 print("TICKMODEL DONE")

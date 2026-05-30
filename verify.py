@@ -27,7 +27,7 @@ print(f"{'target':>7} {'VAL cov/acc':>16} {'TEST cov/acc':>18} {'OOS cov/acc':>1
 for tgt in (0.75,0.70,0.65,0.60,0.58,0.56):
     bv=H.threshold_for_target(yva, pv, target=tgt, min_n=300)
     if bv is None:
-        print(f"{tgt:>7.0%} {'unreachable on VAL':>16}"); continue
+        print(f"{tgt:>7.0%} {'not hit on VAL':>16}"); continue
     rt=H.apply_threshold(yte,pt,bv['conf_thr']); ro=H.apply_threshold(yoo,po,bv['conf_thr'])
     print(f"{tgt:>7.0%} {bv['coverage']:>7.3%}/{bv['accuracy']:.3f} "
           f"{rt['coverage']:>9.3%}/{rt['accuracy']:.3f} n={rt['n']:>5} "

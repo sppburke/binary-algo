@@ -45,7 +45,7 @@ for cov in (0.5,0.2,0.1,0.05,0.02,0.01,0.005,0.002,0.001):
 print("\nVAL-target thresholds:")
 for tgt in (0.75,0.70,0.65,0.60):
     bv=H.threshold_for_target(yva,pv,target=tgt,min_n=300)
-    if bv is None: print(f"  target {tgt:.0%}: unreachable on VAL"); continue
+    if bv is None: print(f"  target {tgt:.0%}: not hit on VAL"); continue
     rt=H.apply_threshold(yte,pt,bv['conf_thr']); ro=H.apply_threshold(yoo,po,bv['conf_thr'])
     print(f"  target {tgt:.0%}: VAL cov={bv['coverage']:.2%} -> TEST {rt['accuracy']:.3f} (n={rt['n']}) | OOS {ro['accuracy']:.3f} (n={ro['n']})")
 os.makedirs("models",exist_ok=True)

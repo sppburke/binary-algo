@@ -32,10 +32,10 @@ fixed in the corpus** (C3). The 3 spine citations were pre-verified separately (
 | C11 | Learning-to-rank across currencies (arXiv:2105.10019) | ✅ CONFIRMED | Poh, Lim, Zohren, Roberts — context-aware LTR |
 | C12 | Signed-path-dependence predictive model | ✅ CONFIRMED | Dias & Peters, *Computational Economics* 2020 |
 | C13 | DLinear beats Transformers incl. Exchange-Rate | ✅ CONFIRMED | Zeng et al., AAAI 2023 (arXiv:2205.13504) |
-| C14 | Zero-shot TSFMs ≈ coin-flip for return direction | ⚠️ PARTIAL | True for off-the-shelf Chronos/TimesFM on **daily equity**; not FX-specific; pretrain-from-scratch differs |
+| C14 | Zero-shot TSFMs ≈ ~0.50 for return direction | ⚠️ PARTIAL | True for off-the-shelf Chronos/TimesFM on **daily equity**; not FX-specific; pretrain-from-scratch differs |
 | C15 | Monotone calibration can't improve risk-coverage | ⚠️ PARTIAL | Holds; refinement: isotonic is *weakly* monotone (ties only degrade ranking) |
 | C16 | ACI / DtACI hold coverage under distribution shift | ✅ CONFIRMED | Gibbs & Candès, NeurIPS 2021 + DtACI 2022 |
-| C17 | Honest daily FX ceiling ~58.5% | ✅ CONFIRMED | Guyard & Deriaz, arXiv:2409.04471 — EUR/USD daily ML direction |
+| C17 | Honest daily FX best-so-far ~58.5% | ✅ CONFIRMED | Guyard & Deriaz, arXiv:2409.04471 — EUR/USD daily ML direction |
 | C18 | Microprice predicts short-horizon future mid | ✅ CONFIRMED | Stoikov, *Quant. Finance* 2018 |
 
 ## The 5 PARTIAL corrections (what to change in your thinking)
@@ -69,4 +69,4 @@ touching the selective ordering. The push toward **conformal/DtACI + feature-awa
 ## Net
 The backlog's prioritization is sound: every "do-NOT" survives (with C5/C14 scoped more precisely), every new-
 direction driver (C1/C3/C6/C7/C8/C11/C12) is primary-source-backed, and the skepticism calls (C9 pre-FOMC decay,
-C17 ceiling) are confirmed. The only corpus error was the C3 author attribution, now fixed.
+C17 daily best-so-far) are confirmed. The only corpus error was the C3 author attribution, now fixed.

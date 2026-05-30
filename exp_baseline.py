@@ -1,6 +1,6 @@
 """
 Variant V1 — Baseline LightGBM on full 239-feature multi-timeframe set.
-Establishes the wall and the accuracy@coverage curve (selective prediction).
+Establishes the current-best level and the accuracy@coverage curve (selective prediction).
 """
 import sys, time, json
 import numpy as np

@@ -2,7 +2,7 @@
 
 Research vector for the binary-algo 15-minute EURUSD direction problem. Focus: do real-money customer/dealer order flow, futures positioning (COT), and retail sentiment/order-book data provide an *orthogonal, lagged, out-of-sample* directional edge at minutes-to-hours horizons that we have not already captured with TA + tick microstructure?
 
-Bottom line up front: the order-flow literature is the single most robust source of FX *predictability* known to academia — but almost all of it is (a) **contemporaneous** explanatory power, not lagged forecasting, and (b) at **daily-to-monthly** horizons, not 15 minutes. The genuinely 15m-relevant, accessible, orthogonal datasets are **retail broker positioning/order-book data** (OANDA Order/Position Book, FXSSI/Myfxbook/IG aggregates) and, if budget allows, **CLS settlement flow**. None is a documented path to 75%, but retail order-book data is cheap, truly orthogonal to our TA/microstructure stack, and worth a rigorous test.
+Bottom line up front: the order-flow literature is the single most robust source of FX *predictability* known to academia — but almost all of it is (a) **contemporaneous** explanatory power, not lagged forecasting, and (b) at **daily-to-monthly** horizons, not 15 minutes. The genuinely 15m-relevant, accessible, orthogonal datasets are **retail broker positioning/order-book data** (OANDA Order/Position Book, FXSSI/Myfxbook/IG aggregates) and, if budget allows, **CLS settlement flow**. None is a documented path to 75% yet, but retail order-book data is cheap, truly orthogonal to our TA/microstructure stack, and worth a rigorous test.
 
 ## TL;DR
 
@@ -96,7 +96,7 @@ Leveraged-funds net positioning extreme (z-score vs trailing 1-3y) from the TFF 
 ### E. Modeling architecture
 - These are **slowly-varying, level-based** features — feed them to your existing LightGBM/CatBoost as extra columns with explicit *change* and *interaction* terms; do not expect a sequence net to extract more.
 - **Critical OOS hygiene:** retail book/sentiment snapshots are timestamped; align strictly to *decision time* and lag by the publication cadence (15 min for free OANDA). Any "use the 15-min book to predict the bar it was measured during" is look-ahead leakage.
-- Evaluate as **selective prediction**: the realistic win is "when retail positioning is at an extreme AND a stop cluster sits within N pips, classify the next 15m better than baseline" — i.e. higher accuracy at low coverage, consistent with your current 0.632@0.2% frontier. Target lifting that coverage curve, not unconditional 75%.
+- Evaluate as **selective prediction**: the realistic win is "when retail positioning is at an extreme AND a stop cluster sits within N pips, classify the next 15m better than baseline" — i.e. higher accuracy at low coverage, consistent with your current 0.632@0.2% frontier. Target lifting that coverage curve; unconditional 75% remains the open target.
 
 ## Reported results & CREDIBILITY assessment
 
@@ -134,7 +134,7 @@ Start with the **free OANDA book** — it is the only one that is simultaneously
 ## Relevance & priority for OUR project
 
 How it interacts with what you've already ruled out:
-- Your signed-10s-volume OFI proxy captured *executed interbank* imbalance and added ~0 lift, and you proved book imbalance decays to coin-flip by 1-5 min. **Retail order/position book is a different object**: it is *pending* orders and *resting* positions of an uninformed, slow, contrarian crowd — a liquidity/levels map, not a fast execution-imbalance signal. It is not the thing you already tested.
+- Your signed-10s-volume OFI proxy captured *executed interbank* imbalance and added ~0 lift, and you proved book imbalance decays to ~0.50 by 1-5 min. **Retail order/position book is a different object**: it is *pending* orders and *resting* positions of an uninformed, slow, contrarian crowd — a liquidity/levels map, not a fast execution-imbalance signal. It is not the thing you already tested.
 - Your existing features have *no* representation of "where retail stops are clustered relative to spot," which is the one genuinely new, mechanistically-motivated, intraday feature this vector offers.
 - Aggregate sentiment ratio and COT/institutional indices are largely **redundant** with your existing slow trend/vol-regime/seasonality features and are partly just lagged returns — low expected marginal lift.
 
@@ -144,7 +144,7 @@ Ranking:
 - **MED (budget-gated) — CLS segmented financial-vs-corporate net flow as slow drift conditioner (C).** Only if institutional data budget exists; expect regime-level, not 15m-classifier, value.
 - **LOW — COT weekly positioning flag (D)** and **institutional flow indices.** Almost certainly redundant; include only for completeness/robustness.
 
-Honest expectation: this vector is unlikely to *single-handedly* reach 75% unconditional 15m accuracy. Its realistic contribution is to **improve the selective-prediction frontier** (push your 0.632@0.2% curve up/right) in the specific regime where retail is crowded and a stop pool sits nearby — a genuinely new, orthogonal conditioner you have not yet tried.
+Honest expectation: this vector has not *single-handedly* reached 75% unconditional 15m accuracy — that stays open. Its realistic contribution is to **improve the selective-prediction frontier** (push your 0.632@0.2% curve up/right) in the specific regime where retail is crowded and a stop pool sits nearby — a genuinely new, orthogonal conditioner you have not yet tried.
 
 ## Sources
 

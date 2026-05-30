@@ -1,4 +1,4 @@
-# EXPERIMENT BACKLOG — Beating the 15-Minute FX Direction Wall
+# EXPERIMENT BACKLOG — Beating the 15-Minute FX Direction Current Best Level
 
 Synthesized from research vectors 01–16 (`research/01-*.md` … `research/16-*.md`) and the V1–V17
 ledger / headline result in `README.md`. Goal: lift 15-minute EURUSD (and USD-major) directional
@@ -6,15 +6,16 @@ accuracy toward 75%, strictly OOS (TRAIN 2012–21 · VAL 2022–23 · TEST 2024
 
 ## How to read this backlog
 
-**The single most important meta-finding across all 16 vectors:** *no credible, reproducible source
-shows an always-on 75% at 15m on a liquid FX major.* The most rigorous FX-LOB study (Petrova–
-Vilhelmsson–Nordén 2026) ran almost exactly our experiment with better data and found near-EMH.
-Credible honest ceilings: ~58.5% daily, lower intraday. Our own ~0.52 AUC is the regime, not a bug.
+**The single most important meta-finding across all 16 vectors:** *an always-on 75% at 15m on a liquid
+FX major is still open — not yet achieved in a credible, reproducible source.* The most rigorous FX-LOB
+study (Petrova–Vilhelmsson–Nordén 2026) ran almost exactly our experiment with better data and reported
+results near the efficient-markets baseline. Credible honest results so far: ~58.5% daily, lower intraday.
+Our own ~0.52 AUC is the current best level on all-bars, the regime we are working to lift.
 
-**Therefore the realistic prize is reframed as: high accuracy at low-but-usable coverage, inside
-mechanistically-special states.** Every P0 below is either (a) a genuinely orthogonal *directional*
-signal we have not built, or (b) machinery that makes our existing selective edge *generalize* OOS.
-A bet that only "moves AUC 0.002" is explicitly de-prioritized.
+**Therefore the realistic near-term prize is reframed as: high accuracy at low-but-usable coverage, inside
+mechanistically-special states** — while the always-on 75% target stays open. Every P0 below is either (a)
+a genuinely orthogonal *directional* signal we have not built, or (b) machinery that makes our existing
+selective edge *generalize* OOS. A bet that only "moves AUC 0.002" is explicitly de-prioritized.
 
 **Validation contract for EVERY experiment (non-negotiable):**
 - Causal features only; purged + embargoed CV with embargo ≥ the 15m label span at every fold boundary.
@@ -144,8 +145,8 @@ Effort: S = <1 day · M = 1–3 days · L = >3 days. Priority: P0 (do first) · 
   our selective prediction was a naive confidence gate, not a learned second model.
 - **Expected lift (honest).** Online learning is the single highest-EV *untried, no-new-data* lever.
   **Pre-test first (~1 hr, P0 gate): bucket existing OOS preds by |p−0.5| × vol-regime × session and
-  measure conditional accuracy. If no bucket materially exceeds ~0.55, meta-labeling cannot reach 0.75**
-  — this cheaply falsifies the meta vector before building it.
+  measure conditional accuracy. If no bucket materially exceeds ~0.55, meta-labeling is unlikely to reach
+  0.75 from here** — this cheaply falsifies the meta vector before building it.
 - **Effort M · Priority P0.**
 
 ---
@@ -258,7 +259,7 @@ Effort: S = <1 day · M = 1–3 days · L = >3 days. Priority: P0 (do first) · 
   ticks → linear probe; if it can't beat LightGBM, the DL vector is dead (learned cheaply).
 - **Differs from prior work.** Raw size dynamics, not hand OFI; multi-task heads; SSL pretraining — untried.
 - **Note.** Do NOT re-implement DeepLOB hoping for 15m (microstructure dead by 5 min — our finding +
-  Lucchese 2024 + TLOB all agree); do NOT use zero-shot Chronos/TimesFM (coin-flip on returns). **Effort L · P2.**
+  Lucchese 2024 + TLOB all agree); do NOT use zero-shot Chronos/TimesFM (~0.50 on returns). **Effort L · P2.**
 
 ## E14 — Fractional-differentiation features (memory without non-stationarity)
 - **Hypothesis.** Our 239 features + the −0.03 autocorr are all built on returns (d=1, memoryless).
@@ -280,8 +281,8 @@ Effort: S = <1 day · M = 1–3 days · L = >3 days. Priority: P0 (do first) · 
   to* that cross-sectional mean (extend stat-arb basket from price to flow/imbalance).
 - **Expected lift.** Overlaps some ruled-out work → modest, but near-zero cost on existing ticks. **Effort S · P2.**
 
-## E16 — FALLBACK: change the instrument — re-point the pipeline at crypto 15m
-- **Hypothesis.** Our FX wall is *because EURUSD is ~97% USD-factor and near-efficient*. Crypto is
+## E16 — FALLBACK: change the instrument — re-point the pipeline at crypto 15m **[DEFERRED — majors-only scope, 2026-05-30]**
+- **Hypothesis.** Our FX current best level is *because EURUSD is ~97% USD-factor and near-efficient*. Crypto is
   peer-reviewed *less efficient at 15/30/60m* (intraday momentum + reversal coexist; alts less efficient
   than BTC), has **real** (not proxy) order flow free from exchange APIs, a dominant lead asset (BTC), and
   orthogonal axes with no FX analog (funding rate, open-interest deltas, liquidation cascades, cross-venue
@@ -307,11 +308,11 @@ Effort: S = <1 day · M = 1–3 days · L = >3 days. Priority: P0 (do first) · 
 
 # Explicitly DE-PRIORITIZED / do-not-repeat (with reason)
 - More TA feature families, deeper/fancier architectures, plain Informer/Autoformer/FEDformer, zero-shot
-  TSFMs — signal-ceiling not model-ceiling; beaten by linear/LightGBM on FX.
+  TSFMs — bottleneck is current best signal level, not the model; beaten by linear/LightGBM on FX.
 - Anonymous tick-rule OFI refinements (value is in counterparty *identity*, unbuyable).
 - Calibration (Platt/isotonic/temperature) to *raise* selective accuracy — provably order-preserving, cannot.
 - COT / CESI / generic social-Twitter sentiment / RR as a 15m *trigger* — wrong cadence/horizon; at most slow conditioners.
-- Predicting Deriv synthetic-index *direction* (CSPRNG martingale), unregulated OTC binary brokers (manipulated tape).
+- Predicting Deriv synthetic-index *direction* (CSPRNG martingale, ~0.50), unregulated OTC binary brokers (manipulated tape).
 - Entropy/Hurst/VPIN/RQA/wavelet-energy as *direction* features — sign-blind by construction (use only as vol/regime gates).
 - Buying enterprise spot-FX depth (LSEG/EBS) before the free CME-6E + crypto tests show depth buys 15m persistence.
 - Triangular-arb profit, oil→CAD/gold→AUD commodity leads for EURUSD — mirage / ambiguous intraday causality.

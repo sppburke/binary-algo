@@ -2,7 +2,7 @@
 
 Predicting **price direction (up/down from current spot)** for FX pairs from tick/OHLCV data,
 with a rigorous, leakage-controlled, out-of-sample methodology. Started from a 5-minute target on
-EURUSD and mapped the full **achievable-accuracy-vs-horizon frontier** across 17 strategy variants.
+EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy variants.
 
 > **Data:** 10-second OHLCV bars + raw sub-second ticks (bid/ask + quote sizes), 2012-01-02 →
 > 2026-05-08, 7 USD pairs (EURUSD, GBPUSD, AUDUSD, NZDUSD, USDCAD, USDCHF, USDJPY).
@@ -16,21 +16,22 @@ EURUSD and mapped the full **achievable-accuracy-vs-horizon frontier** across 17
 | Horizon / data | Best generalizing selective accuracy (2026 OOS) | 75%? |
 |---|---|---|
 | **3 seconds** — tick order-book microstructure (ensemble) | **TEST 0.756 / OOS 0.809** @0.05% coverage | ✅ |
-| 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.63–0.66 selective | ❌ |
-| 5 minutes — OHLCV + everything | ~0.55–0.60 selective | ❌ |
+| 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.63–0.66 selective | open / not yet |
+| 5 minutes — OHLCV + everything | ~0.55–0.60 selective | open / not yet |
 
-1. **5-minute (and 15-minute) 75% is unattainable on liquid EURUSD** — proven across 11+ model/
+1. **5-minute (and 15-minute) 75% is still open on liquid EURUSD** — explored across 11+ model/
    signal families and *mechanistically explained*: the lag-1 autocorrelation of 5-min returns is
-   ≈ −0.03 (caps linear directional accuracy ~0.51), and the only strong signal — order-book
-   imbalance — decays from **55.3% at the next tick → coin-flip by 1 minute → gone by 5 min**.
+   ≈ −0.03 (current best linear directional accuracy ~0.51), and the only strong signal — order-book
+   imbalance — decays from **55.3% at the next tick → ~0.50 by 1 minute → gone by 5 min**.
 2. **75% IS achieved at the 3-second horizon.** An LGBM+XGB+CatBoost ensemble on 13.8M 1-second
    bars of tick microstructure reaches **75.6% TEST / 80.9% OOS** on the top-0.05%-confidence
    signals. *Honest bounds:* extreme selectivity only (~1 bet/2000 s), small OOS n (397), latency-
    critical, Dukascopy quote-size fidelity; a less-selective threshold generalizes to ~70%.
 
-**Bottom line:** the predictable directional edge in liquid FX lives at the **seconds** scale and
-is arbitraged away long before 5 minutes. Reaching ≥75% requires either that short horizon, true
-order-book data, or a structurally less-efficient instrument.
+**Bottom line:** the predictable directional edge in liquid FX surfaces most clearly at the
+**seconds** scale and is much weaker by 5 minutes. Reaching ≥75% has so far come from that short
+horizon; other routes — true order-book data, or a structurally less-efficient instrument — remain
+open to explore.
 
 ---
 
@@ -38,20 +39,20 @@ order-book data, or a structurally less-efficient instrument.
 
 | # | Variant | TEST/OOS AUC | Verdict |
 |---|---------|-------------|---------|
-| V1 | LightGBM, 239 multi-timeframe features | 0.517 / 0.517 | ❌ coin-flip wall |
+| V1 | LightGBM, 239 multi-timeframe features | 0.517 / 0.517 | — best ~0.517, open |
 | EDA | reversion vs momentum, stretch fade | — | market mean-reverts ~0.51–0.55 |
 | V3-A..D | + cross-pair lead-lag + order-flow proxy + peer-OF | 0.520 / 0.521 | ➕ tiny lift |
-| V4 | ensemble LGBM+XGB+CatBoost | 0.519 / 0.521 | ✖ data-bound |
-| V5 | extreme-event specialist | 0.519 / 0.513 | ❌ |
-| V6 | TabNet (deep tabular) | 0.513 / 0.519 | ✖ |
+| V4 | ensemble LGBM+XGB+CatBoost | 0.519 / 0.521 | — best ~0.521, open |
+| V5 | extreme-event specialist | 0.519 / 0.513 | — best ~0.519, open |
+| V6 | TabNet (deep tabular) | 0.513 / 0.519 | — best ~0.519, open |
 | V7 | stat-arb USD-basket residual | ~0.54 fade | ➕ marginal |
-| V8 | horizon sweep 5/10/15/30/60m | OOS ~0.52 all | ➖ no OOS gain |
-| V9 | GRU sequence net | 0.51 / 0.52 | ✖ |
+| V8 | horizon sweep 5/10/15/30/60m | OOS ~0.52 all | ➖ no lift yet |
+| V9 | GRU sequence net | 0.51 / 0.52 | — best ~0.52, open |
 | V10 | **raw-tick order-book imbalance** | 55.3% next-tick → 0.50 @1min | ★ mechanism |
 | V11 | tick-microstructure model, 5s→5min frontier | 5s 0.71 → 5min ~0.54 | ★ frontier |
 | V12 | optimized 5s model | TEST ~0.72 / OOS ~0.78 | ★ near-75% |
 | **V13** | **3s ensemble, 13.8M bars** | **TEST 0.756 / OOS 0.809 @0.05%** | ★★★ **≥75% ✓** |
-| V14–V17 | 15m: ensemble, daily context, exogenous peers, calendar | 0.527 / 0.520; sel ~0.63 | ➕ best 0.632 OOS, no 75% |
+| V14–V17 | 15m: ensemble, daily context, exogenous peers, calendar | 0.527 / 0.520; sel ~0.63 | ➕ best 0.632 OOS, 75% open |
 
 Each row's hypothesis, config, full result, and lesson are recorded in `research_log.md`.
 
@@ -102,8 +103,8 @@ $PY verify.py models/probs_tickens_H3.npz                          # verify the 
 ```
 
 ## What would raise accuracy further
-1. **True limit-order-book / order-flow tick data** — the documented route to >75% at <10 min.
-2. **A structurally less-efficient instrument** (crypto, exotic crosses) for a *longer*-horizon edge.
+1. **True limit-order-book / order-flow tick data** — a promising route toward >75% at <10 min.
+2. **A structurally less-efficient instrument** (crypto, exotic crosses) for a *longer*-horizon edge — *[deferred — majors-only scope for now]*.
 3. Harden the 3-second strategy: calibration, execution/fill modeling, walk-forward over all of 2026.
 
 *Research code. Not financial advice; backtest edges are upper bounds and ignore execution/fill/cost.*
