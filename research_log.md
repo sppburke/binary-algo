@@ -286,3 +286,23 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
 - **Verdict:** no pocket clears 75% OOS under honest selection; the gating frontier's true OOS level is ~0.53-0.55
   for VAL-selected, with a real but modest ~0.63 island at compress&NY low-coverage. **75% remains the open
   target.** Routing → V22 pooled 7-major high-power confirmation of compress&NY (7× bets → tight CI).
+
+### V22 — POOLED 7-major high-power confirmation (DEFINITIVE) (2026-05-30)
+- **The power test.** Script `exp_15m_v9_pooled.py`: one LGBM trained on all 7 majors pooled (3.23M TRAIN rows,
+  stride 8), per-pair compression threshold (TRAIN q33 of 15m_bb_width), streamed per-pair eval (memory-frugal),
+  threshold frozen on pooled VAL, pooled 2026 OOS judged once with 3000× bootstrap CI. 7× the bets → tight CIs
+  that can actually resolve whether the gated selective edge is real.
+- **Pooled AUC:** val 0.528 / test 0.524 / **oos 0.515**.
+- **Compression book (VAL/TEST/OOS, nOOS, CI):** c5 0.625/0.602/**0.525**(n15372)[.518,.533] · c2 0.680/0.634/
+  **0.538**(n7678)[.527,.549] · c1 0.714/0.655/**0.542**(n4241)[.527,.557].
+- **Compression×NY book:** c5 0.669/0.623/**0.533**(n9390) · c2 0.714/0.653/**0.543**(n4389)[.529,.559] · c1
+  **0.747**/0.678/**0.538**(n2140)[.518,.560].
+- **Signature of overfit confidence ranking:** VAL climbs to 0.71-0.75 and TEST to 0.66-0.68 with selectivity,
+  but **OOS stays pinned at ~0.52-0.54** with tight CIs that *exclude* 0.60 (let alone 0.75). At power the
+  V21 "compress&NY ~0.63 island" **dissolves** — it was n=100-217 small-sample luck.
+- **DEFINITIVE VERDICT:** there is **no generalizing selective edge at 15m on liquid USD majors beyond ~0.52-0.54
+  OOS.** The model's high-confidence 15m bets are NOT more accurate out-of-sample in 2026. This holds at full
+  statistical power across 7 pairs. Net of a typical binary payout (breakeven ~0.556 @0.80) the gated book is
+  **not profitable** either. Consistent with the entire V1-V17 ledger (~0.52 AUC) and the near-EMH FX-LOB
+  literature (Petrova-Vilhelmsson-Nordén 2026). **The one verified ≥75% in this project remains the 3-second
+  microstructure horizon (V13: 75.6% TEST / 80.9% OOS), which F1 showed cannot be stretched to 15m net of cost.**
