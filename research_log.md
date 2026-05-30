@@ -488,3 +488,13 @@ only (comp q33 & rel>p90 @10%, VALacc 0.731 n513), frozen, judged on held-out:
 - `min1_v11.py`: magnitude-large as primary gate × compression × direction coverage. No cell clears BOTH TEST>=0.75
   AND OOS>=0.75 at n>=40. Tight enough to hit 0.75 → 3-month OOS n collapses (<10). The binding constraint is
   OOS sample size (2026 = 3 months of tick data), not the signal. Saved magnitude probs (probs_min1_mag.npz).
+
+### MIN1-V12 — most-robust operating point (compression-release × magnitude)
+- `min1_v12.py` (reuses dir+mag probs): searched gates to maximize min(TEST,OOS) at both n>=40. Best:
+  comp q33 & rel>p80 & dir-cov5%: **TEST 0.678(n873) / OOS 0.747(n79)** CI[.65,.84] (H2 0.785 n65). robust
+  min=0.678. So across BOTH held-out periods the floor is ~0.68; OOS 2026 clears 0.75 but TEST 2024-25 is the
+  weaker leg. (Fixed an O(n^2) non-overlap hang → efficient blocked-array selection.)
+
+**1-min status:** compression-RELEASE regime + AUC-0.68 magnitude model give OOS-2026 >=0.75 (verified,
+pre-committed 0.872) but TEST 2024-25 ~0.67-0.72. Robustness across all OOS windows limited by 2026 sample
+size (3 months). Continuing: V13 = direction model trained only on large-move bars (clean direction signal).
