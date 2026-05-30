@@ -56,6 +56,23 @@ So the one genuinely predictable signal in FX lives at the **sub-minute/seconds*
 fully arbitraged away before 5 minutes. This is *why* 5-min direction is a wall — and it holds
 even with the order-book data, not just OHLCV.
 
+**The achievability frontier (tick-microstructure LightGBM, 11.5M 1-sec bars, 2026 OOS).**
+Selective accuracy (confidence threshold chosen on VAL to target 75%, read off 2026 OOS):
+
+| Horizon | 2026 OOS selective accuracy |
+|---|---|
+| **5 seconds** | **0.712** (real, tradeable edge) |
+| 10 seconds | 0.696 |
+| 30 seconds | 0.663 |
+| 60 seconds | 0.603 |
+| **5 minutes** | **75% unreachable; selective ~0.54** |
+
+**Conclusion with the full picture:** a genuinely high, verified directional edge (~71% on the
+confident subset) EXISTS — but at the **5-second** horizon, not 5 minutes. Binary contracts do
+exist at tick/sub-minute durations (e.g., Deriv), so this is a *real tradeable strategy at the
+right horizon*. The 5-minute target specifically is a coin-flip and cannot reach 75% — proven
+across V1–V11 and mechanistically explained by the order-book-imbalance decay curve.
+
 ---
 
 ## 2. Why 75% on every/any bar is structurally impossible here

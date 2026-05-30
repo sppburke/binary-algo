@@ -61,6 +61,8 @@
 
 | V10 | **Raw-tick order-book imbalance + microprice** (bid/ask SIZES from raw ticks — the data I'd missed) | true order-book imbalance is the documented >75% short-horizon signal | next-TICK 0.553; +10 ticks 0.509; 1min 0.501; **5min 0.501 (coinflip)** | ★ decisive | The microstructure edge is REAL (55.3% next-tick, validating data+method) but **decays to 0.50 within ~1 minute** — fully gone by 5 min. This is the textbook OBI decay curve and the MECHANISTIC PROOF of the 5-min wall: the only genuinely predictable signal in FX lives at the sub-minute scale and is arbitraged away long before 5 min. Even the bid/ask/size data ("everything you need") confirms 5m is unpredictable. |
 
+| V11 | **Tick-microstructure model** (LightGBM, 20 quote features, 1s bars, 11.5M train) across horizons 5s→5min | map the TRUE achievable accuracy vs horizon from richest data | selective(VAL-75 thr)→OOS: 5s **0.712**, 10s 0.696, 30s 0.663, 60s 0.603, **300s(5min) unreachable (~0.54)** | ★ frontier | THE achievability curve. A real verified ~71% selective edge exists at 5-SECOND horizon and decays monotonically to the wall by 5 min. Confirms 5-min unreachable even with full tick microstructure; pinpoints the edge at the seconds scale. |
+
 ### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
