@@ -11,17 +11,18 @@
 **Two-part result:**
 1. **75% at the 5-MINUTE horizon is NOT attainable** from this data — proven across 11 model/
    signal families (V1–V11) and mechanistically explained by the order-book-imbalance decay curve.
-2. **75% IS attainable and VERIFIED at the SECONDS horizon.** An optimized tick-microstructure
-   model (quote imbalance + microprice + momentum) reaches **74–79% accuracy on held-out 2026
-   data at the 5-second horizon** (selective, 0.05–0.2% coverage; n=183–785). The directional edge
-   in FX is real but lives at the **seconds** scale and decays to a coin-flip by 5 minutes. Binary
-   contracts exist at tick/sub-minute durations, so this is a real (if hard-to-execute) strategy at
-   the horizon the market permits — just not at 5 minutes.
+2. **A large directional edge exists at the SECONDS horizon — near 75%.** An optimized
+   tick-microstructure model (quote imbalance + microprice + momentum) at the **5-second** horizon
+   reaches, at top-0.05–0.2% confidence: **TEST (2024-25) ~70–72%, 2026 OOS ~74–79%**.
+   Honest scorecard against the strict "both TEST *and* OOS ≥75%" bar: **OOS clears 75%, TEST tops
+   out ~72%** → it is *near*-75%, not a clean both-sides pass. Still a real, large edge vs the
+   5-minute coin-flip. The FX directional signal lives at the **seconds** scale and decays to ~0.50
+   by 5 minutes.
 
 Caveats on the 5s result: very low coverage (~1 trade per 500–2000 seconds), small OOS sample
 (confidence interval ±~4–6%), requires ultra-low-latency execution (fill-rate risk the Reddit
 author flagged), and depends on Dukascopy quote-size quality. It is a genuine statistical edge,
-honestly bounded.
+honestly bounded — and short of a clean verified 75% on the TEST split.
 
 For the 5-minute target specifically, every independent line of evidence converges on a hard ceiling:
 
