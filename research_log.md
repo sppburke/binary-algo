@@ -80,6 +80,15 @@ real but strictly the extreme-selectivity operating point — not a broadly-cali
 ### 15-MINUTE target (user switched 2026-05-30)
 | V14 | 15m ensemble (LGBM+XGB+CatBoost), base MTF + cross-pair, selective | longer horizon (author: 15m 0.57 vs 5m 0.51) reaches tradeable/75% | BLEND AUC test 0.526 / oos 0.519; selective@0.2%cov TEST 0.636 / OOS 0.611 (n=216); 75/70/65% targets unreachable on VAL | ➕ better than 5m, not 75% | 15m IS more predictable than 5m (selective ~64%/61% vs ~57%) — confirms author's direction — but EURUSD OHLCV caps ~0.526 AUC. Author's 0.57 was BTC (less efficient). Next: add daily/weekly context + seasonality (matter more at 15m). |
 
+| V15 | 15m-v2: + daily/weekly context (324 feats) + ensemble | longer-horizon context lifts 15m to 75% | BLEND AUC test 0.526 / oos 0.520 (≈v1); selective@0.2%cov TEST 0.675 / OOS 0.623 (n=212); 75% gate never fires | ➕ tail helped, not 75% | Daily feats (vol regime, overnight gap, daily range pos, daily returns) rank high but AUC flat. 15m EURUSD caps ~0.526 AUC / ~62–67% selective. Better than 5m (~57%), worse than 3s tick (~75–80%). |
+
+### 15-MINUTE VERDICT
+15m IS more predictable than 5m (selective ~67% TEST / ~62% OOS @0.2% cov vs 5m ~57%), confirming
+the Reddit author's direction — but on liquid EURUSD it caps ~0.526 AUC and **does not reach 75%**
+even with MTF + cross-pair + daily/weekly context + a 3-model ensemble. The author's 0.57 AUC was
+on BTC (far less efficient). The ONLY ≥75% in this data is at the **seconds** horizon (tick
+microstructure, V13). Ranking by achievable selective edge: 3s (~78%) > 15m (~65%) > 5m (~57%).
+
 ### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
