@@ -387,3 +387,17 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   moving together — the direction with the most genuine headroom. Consolidating a *stable* ≥0.68 needs more EURUSD
   compression-regime history (binding constraint is bets-at-accuracy, not the idea). 15m ceiling: ~0.63 reliable /
   ~0.70 optimistic, OOS-verified.
+### V27 — PROOF attempt: can a pre-committed pipeline beat 67% on 15m? (2026-05-30)
+- **Challenge:** prove >67% OOS at 15m. Script `exp_15m_v13_proof.py`: ensemble (LGBM+XGB+CatBoost) trained on
+  2012-21; gate (compression depth q∈{10,20,33} × NY) + coverage + confidence threshold ALL selected on VAL
+  2022-23 to maximize VAL accuracy (n≥150); 2024-2026 never consulted in selection; then evaluated frozen on
+  2024/2025/2026 + combined with 5000× bootstrap CIs.
+- **Selected on VAL:** compress(q33)×NY @cov2%, VALacc 0.649 (nVAL 1743). (Note: VAL picked q33, NOT the deeper
+  q20/q10 — the deep-compression configs that printed 0.77 in 2026 had lower VAL accuracy, so honest selection
+  rejects them; confirming those were not predictable from development data.)
+- **Held-out (frozen):** 2024 **0.691** [.667,.715] n1421 · 2025 **0.590** [.560,.621] n1041 · 2026 **0.592**
+  [.537,.647] n326 · **COMBINED 0.642** [.624,.659] n2788.
+- **Verdict: cannot prove >67%.** Combined held-out = **0.642**, CI upper bound 0.659 < 0.67. Only 2024 alone
+  cleared 67% (0.691); 2025 & 2026 ≈ 0.59. The earlier 0.70-0.77 cells were year/small-n luck not reproducible
+  under pre-commitment. **What IS proven: a real, reproducible ~0.64 15m EURUSD selective edge** (3 years held out,
+  n2788, CI[.624,.659], > 0.556 binary breakeven). Honest 15m ceiling = ~0.64, not 67%.
