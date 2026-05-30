@@ -13,20 +13,25 @@ SPLIT_DATES={
  "test":  mo(2024,[9,10,11])+mo(2025,[2,3,4,9,10,11]),
  "oos":   mo(2026,[2,3,4]),
 }
-def load_1s(dates):
-    parts=[]
-    for d in dates:
-        for f in sorted(glob.glob(f"{RAW}/{PAIR}/{PAIR}_{d}_*.parquet")):
-            parts.append(pd.read_parquet(f,columns=["ask","bid","ask-vol","bid-vol","timestamp_utc"]))
-    if not parts: return None
+def _day_1s(files):
+    """Resample ONE day's hourly tick files to 1s bars (bounded memory)."""
+    parts=[pd.read_parquet(f,columns=["ask","bid","ask-vol","bid-vol","timestamp_utc"]) for f in files]
     t=pd.concat(parts,ignore_index=True); t["ts"]=pd.to_datetime(t["timestamp_utc"],unit="s",utc=True)
     t=t.sort_values("ts"); bid,ask=t["bid"].values,t["ask"].values
     bv,av=t["bid-vol"].values.astype(float),t["ask-vol"].values.astype(float)
     t["mid"]=(bid+ask)/2; t["imb"]=(bv-av)/(bv+av+1e-9); t["micro"]=(bid*av+ask*bv)/(av+bv+1e-9)
     t["spread"]=(ask-bid)/t["mid"]; t["tsz"]=bv+av; t=t.set_index("ts"); g=t.resample("1s")
-    b=pd.DataFrame({"mid":g["mid"].last(),"imb":g["imb"].mean(),"micro":g["micro"].last(),
-        "spread":g["spread"].mean(),"nt":g["mid"].count(),"tsz":g["tsz"].mean()}).dropna(subset=["mid"])
-    return b.astype("float32")
+    return pd.DataFrame({"mid":g["mid"].last(),"imb":g["imb"].mean(),"micro":g["micro"].last(),
+        "spread":g["spread"].mean(),"nt":g["mid"].count(),"tsz":g["tsz"].mean()}).dropna(subset=["mid"]).astype("float32")
+
+def load_1s(dates):
+    """Memory-safe: resample per-day, accumulate only the (small) 1s bars."""
+    days=[]
+    for d in dates:
+        files=sorted(glob.glob(f"{RAW}/{PAIR}/{PAIR}_{d}_*.parquet"))
+        if files: days.append(_day_1s(files))
+    if not days: return None
+    return pd.concat(days)
 if __name__=="__main__":
     for sp,dates in SPLIT_DATES.items():
         p=f"{OUT}/{sp}_1s.parquet"

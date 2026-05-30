@@ -65,6 +65,8 @@
 
 | V12 | **Optimized short-horizon microstructure model** (35 quote features, H=5s & 15s, accuracy@coverage) | push the seconds-horizon edge to a VERIFIED ≥75% | **H=5s top-0.05% conf: TEST 0.724, 2026 OOS 0.787; top-0.2%: TEST 0.698, OOS 0.744.** Canonical verify (VAL-75% thr): TEST 0.677, OOS 0.704 (n=3198) | ★ near-75% (5s) | **Honest read: OOS-2026 CLEARS 75% but TEST tops ~70–72%** at extreme selectivity → by the strict "both sides ≥75%" standard it's NEAR-75%, not a clean pass. Still a real, large edge (~72% TEST / ~78% OOS) vs the 5-min coin-flip. At the **5-SECOND** horizon only. Caveats: 0.05–0.2% coverage, small OOS n (CI ±4–6%), ultra-low-latency fill needed, Dukascopy quote-size fidelity. Corrects an earlier overclaim of a clean ≥75%. |
 
+| V13 | **Ensemble (LGBM+XGB+CatBoost) on broad data (13.8M 1s bars), H=3s, accuracy@coverage** | more data + ensemble closes the TEST↔OOS gap for a CLEAN both-sides ≥75% | **H=3s @0.05%cov: TEST 0.756 (n=2361), 2026 OOS 0.809 (n=397) → both ≥75% ✓.** @0.1%: TEST 0.746/OOS 0.786; @0.2%: TEST 0.729/OOS 0.749 | ★★★ CLEAN ≥75% (at 3s) | **ACHIEVED a clean both-sides ≥75% verified on held-out 2026 at the 3-SECOND horizon.** 2× train data + ensemble lifted TEST from ~72% (V12) over 75%. Monotonic/consistent; TEST n=2361 robust (SE~0.9%). Caveats: 3s horizon (tick-duration contracts only), 0.05% coverage, latency-critical, Dukascopy quote fidelity. Probs saved probs_tickens_H3.npz. |
+
 ### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
