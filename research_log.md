@@ -53,7 +53,11 @@
 | AP | Per-pair models (base+cross+OF), all 7 pairs | some pair more predictable | AUC 0.517–0.526; top-1% selective OOS 0.56–0.59 (USDCHF/NZDUSD best) | ❌ | Wall is universal across pairs; none reaches 75% generalizing. |
 | V6 | TabNet (attentive deep tabular; user's 4th cited model) | deep net captures nonlinear path patterns GBM misses | AUC val 0.518 / test 0.513 / oos 0.519 | ✖ no lift | Confirms wall with a different model class. ALL 4 cited models (XGB/LGBM/CatBoost/TabNet) + ensemble land at ~0.52. **Limit is information content of OHLCV, not model capacity.** |
 
-### FINAL VERDICT
+| V7 | Stat-arb basket residual (NEW: USD-factor decomposition, fade idiosyncratic residual) | idiosyncratic residual reverts more strongly than raw price | fade resid_z q0.9 ≈ 0.535 (vs raw ~0.525); EURUSD β=0.97 on USD basket | ➕ marginal | Residual IS a cleaner reversion signal (~53.5%) but EURUSD is 97% USD-factor → tiny idiosyncratic part; caps ~0.54. Confirms wall with a principled stat-arb method. |
+
+| V8 | Horizon sweep 5/10/15/30/60m (Reddit author's "start with 15m") | longer horizon → tradeable AUC (his 5m 0.51→15m 0.57) | **OOS AUC: 5m 0.519, 10m 0.522, 15m 0.521, 30m 0.518, 60m 0.525** | ➖ no OOS gain | TEST AUC rises with horizon (0.519→0.528@30m) but **2026 OOS stays ~0.52 at ALL horizons** — the longer-horizon lift is in-sample drift that does NOT generalize. Best generalizing selective ~60-61% (n>>0). 75% unreachable at every horizon. (Data fix: 2022-24 stored datetime64[us] vs [ns] — made time math resolution-proof; did not affect V1-V7 which used cached validity.) |
+
+### FINAL VERDICT (5-minute horizon)
 **75% directional accuracy on 5-min liquid-FX from OHLCV is unattainable.** Verified ceiling:
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
 cause = 5-min return autocorrelation ρ₁≈−0.03 (mathematical cap ~0.51 linear, ~0.55 conditional).

@@ -105,8 +105,11 @@ too capacity-limited to be a reliable money-maker on majors after costs.
 
 ## 4. What would actually move the needle toward higher accuracy
 
-1. **Longer horizon.** The same builder/Reddit author gets **15m AUC ≈ 0.57** vs 5m 0.51. If the
-   product can tolerate 15m, predictability roughly doubles in excess-over-coinflip terms.
+1. **Longer horizon — tested here, did NOT generalize.** I swept 5/10/15/30/60-min labels on the
+   same features. TEST AUC rises (5m 0.519 → 30m 0.528) but **2026 OOS AUC stays ~0.52 at every
+   horizon** (5m 0.519, 15m 0.521, 60m 0.525). The author's 15m>5m gain is real in-sample but the
+   longer-horizon edge here is regime drift that does not hold out-of-sample on this FX data.
+   (On his BTC data the story may differ — crypto is less efficient than EURUSD.)
 2. **True order-flow / limit-order-book data** (bid/ask sizes, trade signs, depth) — the only
    documented path to >75% at sub-10-minute horizons.
 3. **Less-efficient instruments.** Deriv synthetic indices (R_10…R_100, volatility indices) and
