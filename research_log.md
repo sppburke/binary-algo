@@ -168,3 +168,31 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
 - **Honest prior:** price-only single-pair best so far ~0.52 AUC / ~0.53-0.56 selective. 75% is only
   plausible at very low coverage IF orthogonal signals stack. Will measure exactly how far it goes
   on TEST + 2026 OOS and report the true frontier.
+
+### F1 — Is the verified 3s edge compoundable into a 15m directional bet, net of cost? (2026-05-30)
+- **Goal-phase falsifier #1** (highest-EV gate). Question: can the real, fast-decaying 3-second
+  directional signal be held/compounded into a 15-minute bet whose sign clears binary break-even
+  (~57% @0.75 payout)? Script `f1_compound.py` on the saved 3s ensemble probs (`probs_tickens_H3.npz`,
+  EURUSD 1s bars) aligned to mid+spread. Three tests, run on TEST 2024-25 and 2026 OOS. No retraining.
+- **T1 — single-call decay** (acc of `sign(p−0.5)` vs h-seconds-ahead direction):
+  OOS 0.5206@3s → 0.5065@30s → 0.5045@60s → 0.5024@300s → **0.5019@900s(15m)**;
+  TEST 0.5282@3s → … → **0.5005@900s**. The fast call decays to ~0.50 by 15m (textbook OBI decay).
+- **T2 — aggregate→15m endpoint** (`sign(trailing-mean(p−0.5) over W)` vs 15m-endpoint sign):
+  OOS acc15m 0.5019–0.5061 across W∈{3..900}s vs **base rate 0.5055** (always up/down); TEST 0.496–0.500
+  vs base 0.5054. Aggregating fast signals does **not** beat the trivial base rate at the 15m endpoint.
+  And the ≥75% confident signals are too sparse to compound: at 0.05% coverage only **~0.13 (OOS) /
+  ~0.075 (TEST) signals per 15m window** — typically *fewer than one* high-confidence call per window.
+- **T3 — continuous harvest** (position from signal; cost = |Δpos|·half-spread; GP partial-adjustment
+  to cut turnover): **gross P&L is positive** (OOS 3.74/yr full-sign, TEST 2.13/yr) — confirming the
+  edge is *real* — but **net of spread it is strongly negative at every smoothing rate** (OOS −86.7…−1.06/yr;
+  TEST −65.5…−0.87/yr), with `win15m%` (fraction of 15m windows with net P&L>0) **0.000–0.16 ≪ 0.571**.
+  Root cause: median half-spread ≈ 1.1–1.5e-5 ≈ **0.45× the 1-second return std** — the ~0.5–1% directional
+  edge on a ~0.27-pip move cannot overcome a ~0.26-pip round-trip spread, even at Dukascopy's tight indicative
+  quotes. Turnover required is 135–19,800 units/day.
+- **Verdict: ❌ F1 FAILS the gate, cleanly on both TEST and OOS.** The 3s edge is genuine (positive gross,
+  0.52–0.53 next-bar) but (1) decays to ~0.50 by 15m so it does not predict the 15m endpoint; (2) the
+  75%-accurate tail is too rare (<0.15/15m) to compound within a window; (3) continuous harvesting is
+  destroyed by the spread. **Microstructure→15m via signal-compounding is closed.** Caveat: a *market-making*
+  expression (earning the spread with resting orders) is a different business (not directional prediction)
+  and is out of scope here. Decision routing: F1=no → proceed to **F2 (cross-sectional rank target)**;
+  the "F1 no + F4 no → crypto pivot" branch stays DEFERRED (majors-only).
