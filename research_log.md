@@ -325,3 +325,20 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
   **EURUSD + vol-compression + NY session ≈ 0.60**. **75% at 15m still open; the real frontier is ~0.60, not 0.52.**
   Routing → V24: push *this* validated pocket toward 0.75 with orthogonal in-pocket conditions, gating every gain
   on the 4-window stability test (must hold in TEST24, TEST25, OOS-H1, OOS-H2).
+
+### V24 — In-pocket stacking toward 0.75 under 4-window discipline (2026-05-30)
+- **Goal:** push the validated EURUSD `compress×NY` (~0.60) higher by ANDing one orthogonal condition, keeping
+  only gains that hold in ALL four independent windows (TEST24/TEST25/OOS-H1/OOS-H2). Script `exp_15m_v11_stack.py`,
+  enhancers: tighter compression (q20/q10), NY-morning, MTF-align, stretch OB/OS, low-vol_z, RSI-extreme; confidence
+  threshold frozen on VAL within each enhanced pocket; coverages 50/10/5%.
+- **At 50% within-pocket cov the edge is weak (~0.53)** — confirming the ~0.60 lives only in the top few % of model
+  confidence (the confidence tail), not in the pocket base rate.
+- **At 5% cov:** base 0.622/0.579/0.612/0.565. Best enhancer = **+low-vol_z** 0.633/0.616/**0.734**/0.624 and
+  **+tightcompress(q20)** 0.626/0.590/0.612/**0.779** — but the 0.73-0.78 cells are single small-n windows (n=95-177)
+  while their other windows sit 0.59-0.62. **No enhancer holds ≥0.70 in all four windows** (zero `**` flags at any cov).
+- **Verdict:** in-pocket stacking does NOT produce a stable ≥0.70; the edge strengthens coherently with *deeper
+  volatility compression* + *tighter confidence* (low-vol regimes are more predictable) but caps at a **verifiable
+  ~0.60-0.64 OOS** for EURUSD. The lone 0.73-0.78 cells are the small-n fluctuations the 4-window test is designed
+  to reject. **FINAL frontier (this data/horizon): EURUSD 15m binary ≈ 0.60-0.64 OOS selective — real, 4-window-stable,
+  profitable vs an 0.80 payout (breakeven 0.556), but not 75%.** Reaching a verified ≥75% requires a scope change:
+  shorten horizon (already ≥75% at 3s, V13), true LOB/order-flow data, or a less-efficient instrument (deferred).
