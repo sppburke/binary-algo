@@ -147,6 +147,48 @@ reproducible under pre-commitment — that is the whole point of V21–V27.
 > binding constraint is *number of high-accuracy bets EURUSD history provides*, not the idea — see
 > V26/V27 in `research_log.md`. Consolidating a stable ≥0.68 needs more compression-regime history.
 
+## The 1-minute strategy — compression-release selective book (`min1_strategy.py`)
+
+A **1-minute (60-second) up/down binary** on EURUSD, predicted from 1-second tick microstructure. Splits
+(tick data): TRAIN 2021-2023 · VAL 2024-H1 · TEST 2024.09-2025.11 · **OOS 2026**. Honest evaluation uses a
+**non-overlapping (60s-gap)** selective book so every reported bet is independent/tradeable.
+
+**Headline (frozen pipeline, nothing tuned on the evaluation periods):**
+
+| held-out period | accuracy | n | 95% CI | EV/bet @0.80 payout |
+|---|---|---|---|---|
+| **OOS 2026** | **0.872** | 47 | **[0.766, 0.957]** | **+0.570** |
+| OOS 2026 (2nd half) | 0.857 | 42 | [0.738, 0.952] | — |
+| TEST 2024-25 | 0.668 | 804 | [0.634, 0.700] | +0.202 |
+
+**OOS 2026 is verified >75%** (CI lower bound 0.766). *Honest caveat:* the larger held-out sample (TEST
+2024-25) is 0.668 — the two held-out periods disagree, so accuracy is **not uniform ≥75%** across all windows;
+2026 ran favorable. **Both periods are profitable** vs a typical binary break-even (~0.556 @0.80): EV/bet
++0.20 (TEST) to +0.57 (OOS). Broad-sample (n-weighted) accuracy ≈ 0.68-0.70.
+
+### What works at 60s (and what doesn't) — the mechanism
+- **Direction is near-efficient (~0.50-0.51 AUC).** Confirmed across a GBM ensemble, a large-move-trained GBM,
+  and a temporal 1D-CNN on the raw 1s path — all land ~0.50. You cannot predict *every* 60s bar's direction.
+- **Magnitude IS predictable (AUC 0.68).** A model for "is the next 60s move large?" works well; large moves are
+  more directional (small moves are spread/bounce noise).
+- **The lever is the volatility COMPRESSION-RELEASE regime:** bet only when the last ~30 min were quiet
+  (`bbw1800` bottom tercile) AND short-term vol is now expanding (`rel_ratio = bbw300/bbw1800` high) — a
+  directional squeeze-breakout. London-NY overlap is *bad* (too noisy); quiet→release is where 60s direction
+  is most predictable. The model is used only to *rank confidence* within this regime, then bet selectively.
+
+### Methodology (exactly what produces it)
+1. **Target:** `y = sign(mid(t+60s) - mid(t))`, ties dropped, on the 1s grid.
+2. **Features (53):** order-book imbalance (+EMAs/accel/persistence), microprice deviation, spread, trade
+   count/size, multi-timeframe returns (5s-3600s), realized vol (30s-1800s), EMA-distance, stretch z-scores,
+   range-position, and compression (`bbw`) — all causal, computed from the 1s mid/imbalance/microprice.
+3. **Direction model:** LGBM+XGB+CatBoost ensemble on TRAIN (`models/probs_min1_v3.npz`).
+4. **Regime gate (fixed on VAL):** `bbw1800 ≤ q33` AND `rel_ratio ≥ p90` (compression-release).
+5. **Selection (fixed on VAL):** within the gate, bet the top-10%-confidence (`|p-0.5|`) bars, threshold frozen
+   on VAL, with a 60s non-overlap constraint.
+6. **Evaluate** frozen on TEST 2024-25 and OOS 2026 (+halves) with bootstrap CIs.
+7. *(Optional)* a magnitude model (`models/probs_min1_mag.npz`, AUC 0.68) raises TEST accuracy to ~0.76 but
+   thins the 3-month OOS too much to verify simultaneously — the OOS sample size is the binding constraint.
+
 ## Reproduce
 
 ```bash
@@ -159,6 +201,10 @@ $PY exp_15m_v12_max.py                                            # 15m accuracy
 $PY tick1s_cache.py && $PY tick_ensemble.py                       # 3s ensemble (the ≥75% seconds result)
 $PY tick_horizon_sweep.py                                         # horizon frontier: longest ≥75% horizon (=5s)
 $PY verify.py models/probs_tickens_H3.npz                         # verify the 3s result on 2026 OOS
+# --- 1-minute strategy ---
+$PY min1_v3.py                                                    # direction ensemble -> models/probs_min1_v3.npz
+$PY min1_v11.py                                                   # magnitude model    -> models/probs_min1_mag.npz
+$PY min1_strategy.py                                              # ★ compression-release 1-min book (OOS 2026 0.872)
 ```
 
 ## What would raise accuracy further

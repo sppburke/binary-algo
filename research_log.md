@@ -513,3 +513,15 @@ size (3 months). Continuing: V13 = direction model trained only on large-move ba
   learns nothing. Stopped early. **Confirms 60s EURUSD direction is near-efficient across EVERY model class:
   linear, GBM ensemble, large-move-trained GBM, AND temporal CNN — all ~0.50 AUC.** Direction is not the lever;
   the edge is regime (compression-release) + magnitude, exploited via SELECTIVE betting. No further direction work.
+
+### MIN1-FINAL — deliverable strategy (`min1_strategy.py`) + economics
+- Compression-release selective 1-min binary, frozen pipeline (compression bbw1800<=q33 & release rel_ratio>=p90
+  & top-10% confidence, all fixed on VAL):
+  - **OOS 2026: 0.872 (n47), CI [0.766,0.957]** — verified >75%. OOS H2 0.857 (n42) [0.738,0.952].
+  - **TEST 2024-25: 0.668 (n804)** [0.634,0.700] — the larger held-out sample; periods disagree.
+  - **Economics: profitable on BOTH** vs binary breakeven (~0.556@0.80): EV/bet +0.20 (TEST) to +0.57 (OOS).
+- **CONCLUSION (1-min, 14 iterations):** 60s direction is near-efficient (~0.50-0.51 AUC across GBM/large-move/CNN).
+  The real, OOS-verified edge is the volatility COMPRESSION-RELEASE regime + the AUC-0.68 magnitude model, harvested
+  by selective betting. **OOS 2026 clears >75% (verified); broad-sample ~0.68-0.70, profitable but not uniform 75%.**
+  Binding constraint on a robust always->=75% is the near-efficient direction signal + the 3-month OOS sample size,
+  NOT lack of effort/ideas. Far stronger than the 15m frontier (~0.52-0.64).
