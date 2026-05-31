@@ -213,4 +213,16 @@ same null independently.
 `m5_sofien_confluence.py`.
 5m (session 2 — macro news): `fetch_calendar.py` (FXStreet API → `macro_calendar.parquet`) `event_signs.py` (event→EURUSD
 direction map) `m5_news.py` (rule tests) `m5_news_model.py` (model-based conditioning).
-Refs: `sofien_rules.json` (79 mined rules) · `ENVIRONMENT_libs.txt`. Companion logs: `m5_research_log.md` (iter 1–19), `IDEAS_LOG.md`.
+10m: `m10_production.py` `m10_stack.py` `m10_gate_sweep.py` `m10_walkforward.py` `m10_xstack_probe.py` `m10_freeze_honest.py`
+`m10_xasset_probe.py` `m10_magdir.py`.
+1m (session 4 — lesson-transfer + new model classes): `min1_stack.py` (cross-horizon) `min1_hurst.py` (variance-ratio switch)
+`min1_hmm.py` (Gaussian HMM, causal filtered) `min1_online.py` (river concept-drift) `min1_news60.py` (macro impulse)
+`min1_updown.py`/`min1_upspec.py` (up/down asymmetry) `min1_kalman.py` (Kalman filter) `min1_kernel.py` (RBF kernel-SVM)
+`min1_best.py` (lever-combination) · adversarial red-team: `_redteam_magdir60.py` `_redteam_trigger60.py` `_redteam_trigpop.py`
+`_adj_perside_flow.py` · audit: `_verify_*.py` `_thr_sweep_audit.py`.
+Refs: `sofien_rules.json` (79 mined rules) · `ENVIRONMENT_libs.txt`. Companion logs: `m5_research_log.md` (iter 1–19),
+`m10_research_log.md`, `min1_research_log.md`, `IDEAS_LOG.md`.
+
+**→ For applying any of these at a NEW horizon, start with [`METHODS_CATALOG.md`](METHODS_CATALOG.md)** — the timeframe-agnostic
+catalog: how to retarget each method, the method×horizon results matrix (with the untested cells as a ready backlog), and the
+leakage traps that recur at every horizon.
