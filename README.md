@@ -46,6 +46,7 @@ indices**, not forex. So the 1 m / 2 m books **cannot be placed on deriv EUR/USD
 | `min1_production.py` | 60 s | ❌ below 15 m floor | 0.539 (n1017) | 0.550 (n349, CI[.499,.602]) | ~breakeven — no edge |
 | `min2_production.py` | 120 s | ❌ below 15 m floor | 0.528 (n2528) | 0.539 (n710, CI[.503,.576]) | ~coin-flip — no edge |
 | **`m15_production.py`** | **15 min** | ✅ **at the floor** | 2024 0.689 / 2025 0.582 | **0.663** (n89, CI[.562,.753]) | **Combined 0.647 (n677, CI[.612,.684]) — the real deriv edge** |
+| `m10_production.py` (+ `m10_freeze_honest.py`) | 10 min | ✅ above floor | 2024 0.614 / 2025 0.579 | 0.594 (n165) | Combined 0.602 (n2399, CI[.582,.621]) — honest book; >0.65 NOT reachable (8 levers, see `m10_research_log.md`) |
 | `m30_production.py` | 30 min | ✅ above floor | 2024 0.623 / 2025 0.589 | 0.546 (n183, CI[.475,.617]) | Combined 0.591 (n807, CI[.556,.625]) — real & profitable, ~0.59 (not 0.75) |
 
 deriv payout-deduction EV (R ≈ 1.85, breakeven 0.541): **m15 combined +0.197** (profitable); **m30 combined +0.093**

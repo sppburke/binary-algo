@@ -12,6 +12,7 @@ windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_re
 |---|---|---|
 | 1–5 seconds | **~0.65–0.66** (tick microstructure ensemble) | only on a tick/seconds-expiry broker; latency-critical |
 | 15 minutes | **~0.64** (compression × NY-session selective ensemble) | ✅ deriv (at the forex floor) |
+| 10 minutes | **~0.60** (native-10 ensemble × 5m_bb_width-NY; honest deliverable, 2026-05-31c) | ✅ deriv |
 | 30 minutes | **~0.59** (compression-1h × NY selective) | ✅ deriv |
 | 5 minutes | **0.613 verifiable / 0.648 thin-cov** (cross-horizon stack: 15m edge × 5m cross-pair meta; 2026-05-31b) | needs a ≤5m-expiry broker |
 
@@ -30,6 +31,38 @@ This is backed by a sign-invariance **theorem** (arXiv:2512.15720, Dec 2025): or
 invariant under sign permutation, so complexity/entropy measures detect the *presence/size* of informed moves
 (magnitude), **not the sign**. That is *why* every complexity/regime/gate approach was null for direction — they gate
 volatility, not direction. Magnitude is tradeable on **Touch/No-Touch, Range/Boundary, straddle** products (not up/down).
+
+## Session-3 (2026-05-31c) — 10-MIN battery: native ensemble, gate sweep, cross-horizon stack, walk-forward
+
+Goal set to **10-min >65% OOS**. Ran 6 independent Tier-1 methods (full journal: `m10_research_log.md`; a 4-agent
+research workflow independently ranked the same combinations and pre-warned the verdict). **Honest 10-min direction
+ceiling ≈ 0.60–0.61; >0.65 OOS-verified is NOT achievable** — every method is capped by the **test25 (2025) regime**:
+
+| Method | Honest combined | test25 floor | Note |
+|---|---|---|---|
+| native-10, VAL-acc-max gate | **0.667** (n543) | 0.591 | artifact — buoyed by 2024+2026 (~0.70); 2025 CI dips to breakeven |
+| native-10, HONEST gate sweep (200 cfg) | 0.576 (ORACLE 0.603) | ≤0.60 even with hindsight | corr(VAL,OOS)=−0.54 → can't select the good gate |
+| cross-horizon stack dir15/dir10/agree + meta | ~0.59 | ≤0.56 | meta narrows coverage, can't create edge in 2025 |
+| cross-pair USD-residual + order-flow | 0.599 (n2171) | 0.556 | the 5m sign-stable XP lift is weaker/absent at 10m |
+| walk-forward (1yr-gap adaptive retrain) | 0.609 (n2381) | 0.573 | +0.017 on 2025 only — regime genuinely unpredictable |
+| **HONEST DELIVERABLE** (native-10 × 5m_bb_width-NY cov10%) | **0.602** CI[.582,.621] (n2399) | **0.579** | all windows ≥0.579, EV **+0.113@0.85**, profitable; NOT >0.65 |
+
+- **Native-10 raw AUC ≈ 0.525** (val, unconditional) — same noise floor as 5m/15m/30m. The compression×NY gate concentrates
+  it into a ~0.60 selective book, exactly interpolating the horizon map (5min 0.583 < **10min ~0.60** < 15min 0.642).
+- **The 0.667 "win" is the discipline trap made concrete:** picking the gate by VAL accuracy (corr(VAL,OOS)=−0.54) produced
+  a combined number >0.65, but the binding 2025 window was only 0.591 and the honest sweep proves no gate gets all three
+  windows above ~0.60 *even cheating with hindsight*. Combined-average >0.65 ≠ robust >0.65.
+- **A better-aligned gate for 10m exists:** `5m_atr_pct`/`5m_bb_width` × London/overlap session gives a higher, more stable
+  floor than the 15m-winner's `15m_bb_width × NY` — a genuine (small) refinement, but it does not break 0.65.
+- **Walk-forward is the cleanest regime test and it closes the door:** adapting through 2024 to predict 2025 lifts the
+  binding window only +0.017. The 2025 EURUSD 10-min regime is near-efficient for direction; gap-reduction isn't the lever.
+- **EXTERNAL cross-asset (ES S&P500 e-mini minute futures, the only untried directional lever) — null, and it reveals the
+  mechanism:** the ES→EURUSD *lead-lag* corr is tiny (|corr|<0.055) AND **sign-flips from +0.02 in 2024 to −0.05 in 2025**;
+  contemporaneous corr is real (+0.16..+0.22) but untradeable. The normal risk-on→USD-weakness link **decoheres/inverts in
+  2025** — *that is why every method's test25 floor collapses*. External equity data can't fix a regime where the macro
+  relationships themselves invert. (NQ ≈0.95-corr with ES → redundant; XAUUSD/DE30EUR CFDs have ~no coverage on disk.)
+- Deliverables: `m10_production.py`, `m10_freeze_honest.py` (→ `models/m10_EURUSD_strategy_honest.json`), `m10_stack.py`,
+  `m10_gate_sweep.py`, `m10_walkforward.py`, `m10_xstack_probe.py`, `m10_xasset_probe.py`. Models: `models/m10_EURUSD_*`.
 
 ## Session-2 (2026-05-31b) — fresh 5-min battery: cross-pair + order-flow + meta-labeler
 
