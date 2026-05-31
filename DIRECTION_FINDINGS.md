@@ -11,6 +11,7 @@ windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_re
 | Horizon | DIRECTION (sign) — best honest OOS | Tradeable? |
 |---|---|---|
 | 1–5 seconds | **~0.65–0.66** (tick microstructure ensemble) | only on a tick/seconds-expiry broker; latency-critical |
+| 1 minute (60 s) | **~0.55–0.60** (reversion × compression-release; best refinement = HMM vol-state gate, floor 0.60 thin-cov; 2026-05-31d) | synthetic-index only (deriv forex floor = 15 m) |
 | 15 minutes | **~0.64** (compression × NY-session selective ensemble) | ✅ deriv (at the forex floor) |
 | 10 minutes | **~0.60** (native-10 ensemble × 5m_bb_width-NY; honest deliverable, 2026-05-31c) | ✅ deriv |
 | 30 minutes | **~0.59** (compression-1h × NY selective) | ✅ deriv |
@@ -31,6 +32,34 @@ This is backed by a sign-invariance **theorem** (arXiv:2512.15720, Dec 2025): or
 invariant under sign permutation, so complexity/entropy measures detect the *presence/size* of informed moves
 (magnitude), **not the sign**. That is *why* every complexity/regime/gate approach was null for direction — they gate
 volatility, not direction. Magnitude is tradeable on **Touch/No-Touch, Range/Boundary, straddle** products (not up/down).
+
+## Session-4 (2026-05-31d) — 1-MIN re-push: lesson-transfer + Hidden Markov + online concept-drift
+
+Goal re-set to **1-min >0.65 OOS**. Applied the methods discovered AFTER `min1_production.py` was frozen — none had ever
+touched the 60s horizon (grep `m5/m15/m10_EURUSD` in `min1_*`/`min2_*` = 0 hits). Full journal: `min1_research_log.md`; two
+multi-agent research workflows (prior-art/infra/sofien; and an HMM literature/feasibility pass). **>0.65 is NOT achievable —
+five independent model families all pinned by the 2025 regime:**
+
+| Method (file) | Honest selective | test25 | Note |
+|---|---|---|---|
+| cross-horizon STACK — 5m/15m parent direction front-loaded into 60s, meta-gated (`min1_stack.py`) | ~0.586–0.594 worst-half; **0.53–0.55 at verifiable cov (oos n≥100)** | 0.56→0.53 | standalone parent front-loads at only ~0.51 at 60s (vs 0.597 @5m) — 60s is too small a slice of the parent move |
+| cross-pair USD-residual direct, MX_HOR=1 xpof (`m5_xpair.py`) | AUC **0.516**; combined 0.560 | 0.534 (CI[.518,.550]) | sign-stable but sub-0.56; the 5m lift doesn't survive to 60s |
+| Hurst / variance-ratio persistence switch (`min1_hurst.py`) | worst-half FLOOR 0.513; **ORACLE max-floor 0.555** | 0.548 | persistence gates magnitude, not sign (sign-invariance) |
+| **Hidden Markov regime** K=3, causal filtered posteriors (`min1_hmm.py`) | U1 gate 0.565 / **U2 engine-switch 0.600** (OOS CI[.519,.708]) / U3 meta 0.487 | 0.569 / 0.605 / 0.508 | states carry NO direction (train P(up)≈0.50 in all 3); best refinement = trade reversion only in vol-state 0 → ~0.60 floor, thin-cov, CI spans breakeven |
+| **Online concept-drift** river ARF+ADWIN, prequential (`min1_online.py`) | AUC **0.503–0.505** every window; selective 0.49–0.51 | 0.503 | continuous adaptation recovers NO edge → the 2025 wall is GENUINE efficiency, not stale-model drift |
+
+- **"Would HMMs help?" — No, empirically + literature.** A Gaussian HMM's latent states are volatility/size regimes (train
+  P(up)=0.497–0.499 in all 3; momentum loses in every state → all map to the reversion engine), confirming sign-invariance
+  (arXiv:2512.15720) at 60s. The academic record agrees: Markov-switching cannot beat a random walk OOS for FX direction
+  (Empirical Economics 2019), the classic FX-HMM switches the variance not the sign (Dueker-Neely), jump-model/HMM benefit is
+  risk reduction (arXiv:2402.05272), the one intraday momentum-HMM is equity futures with no cost-net sign edge (arXiv:2006.08307).
+- **The online drift learner is the decisive control:** the only way the wall could be a fixable artifact is if it were stale-model
+  drift; an adaptive forest that re-fits to recent bars sits at 0.503–0.505 AUC in 2024, 2025 AND 2026 — so 60s direction is
+  genuinely efficient and no amount of regime cleverness recovers it.
+- **Best honest 1-min book ~0.55–0.60** (HMM vol-state-gated reversion, floor 0.60 thin-cov; profitable-on-point-estimate vs
+  breakeven 0.541 but OOS CI not clear of it, NOT >0.65). Tooling installed for completeness: hmmlearn, statsmodels (Markov-switching),
+  arch, ruptures, pomegranate, river, nolds, filterpy/pykalman, stumpy, tsfresh/tslearn/sktime/darts. **Venue:** deriv EUR/USD
+  forex Rise/Fall floor = 15 min, so a 60s book is synthetic-index-only.
 
 ## Session-3 (2026-05-31c) — 10-MIN battery: native ensemble, gate sweep, cross-horizon stack, walk-forward
 
