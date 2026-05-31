@@ -46,9 +46,48 @@ indices**, not forex. So the 1 m / 2 m books **cannot be placed on deriv EUR/USD
 | `min1_production.py` | 60 s | ❌ below 15 m floor | 0.539 (n1017) | 0.550 (n349, CI[.499,.602]) | ~breakeven — no edge |
 | `min2_production.py` | 120 s | ❌ below 15 m floor | 0.528 (n2528) | 0.539 (n710, CI[.503,.576]) | ~coin-flip — no edge |
 | **`m15_production.py`** | **15 min** | ✅ **at the floor** | 2024 0.689 / 2025 0.582 | **0.663** (n89, CI[.562,.753]) | **Combined 0.647 (n677, CI[.612,.684]) — the real deriv edge** |
+| `m30_production.py` | 30 min | ✅ above floor | 2024 0.623 / 2025 0.589 | 0.546 (n183, CI[.475,.617]) | Combined 0.591 (n807, CI[.556,.625]) — real & profitable, ~0.59 (not 0.75) |
 
-deriv payout-deduction EV (R ≈ 1.85, breakeven 0.541): **m15 combined +0.197** (profitable); min1 OOS +0.018,
-min2 OOS −0.002 (marginal/negative — and untradeable anyway).
+deriv payout-deduction EV (R ≈ 1.85, breakeven 0.541): **m15 combined +0.197** (profitable); **m30 combined +0.093**
+(profitable); min1 OOS +0.018, min2 OOS −0.002 (marginal/negative — and untradeable anyway).
+
+### Direction-prediction investigation (2026-05-30/31) — master summary in [`DIRECTION_FINDINGS.md`](DIRECTION_FINDINGS.md)
+
+> **Headline:** across 1s→30m, multiple data sources, model types (GBM/CNN/GRU), Sofien's full 79-rule corpus, volume/
+> dollar bars, and outside-finance math (signatures, Hawkes, transfer entropy, permutation entropy), **a >75% — or even
+> >65% — 30-minute *directional* edge does not exist on EUR/USD** (sign ~0.515, EMH). The one genuine, OOS-verified
+> discovery is that **MAGNITUDE/volatility IS forecastable** (30m large-move AUC **0.73–0.78**, `m30_magnitude.py`) —
+> backed by a sign-invariance theorem (arXiv:2512.15720): complexity measures gate move *size*, not *direction*.
+> Full record + lessons: **[`DIRECTION_FINDINGS.md`](DIRECTION_FINDINGS.md)**, `m5_research_log.md`, `IDEAS_LOG.md`.
+
+#### 30-minute deep-dive (2026-05-30) — full record in [`m30_research_log.md`](m30_research_log.md)
+
+A dedicated, relentless search for a **>75% 30-minute** EUR/USD edge across **9 independent attacks** (lab in
+`m30_*.py`): ML confidence-selection × 12 regime gates; 16 pre-committed structural reversion/continuation rules;
+USD-basket cross-pair; **FX fixing-window reversal** (Krohn-Mueller-Whelan *JoF* 2024); lgb+xgb+cat ensemble +
+agreement + two-factor overlay; **sub-second tick microstructure** (order-flow imbalance, microprice, realized-vol
+regime); and the **external CME ES / NQ equity-index futures lead-lag** (E1 — real LEAN data through 2026-05,
+UTC-aligned) — plus a fresh scholarly review and this repo's own 16-report `research/` corpus. **All nine converge:**
+
+| Attack | Best honest OOS | Verdict |
+|---|---|---|
+| Raw 30 m direction (OHLCV, AUC) | 0.515 | noise floor |
+| ML selective × regime gates | ~0.62 peak, doesn't transfer | small-n mirage at tail |
+| Structural regimes (16 rules) | 0.50–0.55, sign-unstable | no stable pocket |
+| Cross-pair / USD-basket | AUC 0.518 | +0 |
+| FX fixing reversal (16:00 UTC) | TRAIN 0.566, **OOS flips 0.43** | post-2013 reform |
+| Ensemble + agreement + 2-factor | **~0.59–0.64** | the honest frontier |
+| Tick microstructure | AUC **0.50** | pure noise at 30 m |
+| **External ES/NQ lead-lag (E1)** | 30 m lead corr ≈ **0**, sign-unstable | co-moves but doesn't lead |
+
+30 m direction carries **~0.52 AUC**; no regime/data source holds a stable >0.55 conditional bias OOS; every
+single-window ≥0.75 was a small-n (n=12–50) mirage that TEST-2025 refuted. The honest, deriv-faithful,
+leakage-clean deliverable is the **compression-1h × NY selective ensemble at ~0.59** (`m30_production.py`,
+profitable vs the 0.541 breakeven). A robust OOS-verified **75% does not exist at 30 m on EUR/USD** — consistent
+with the peer-reviewed consensus (Petrova-Vilhelmsson-Nordén, *Int. J. Forecasting* 2026; Meese-Rogoff; Rossi
+*JEL* 2013) and this repo's own prior conclusion. The remaining theoretical levers require data that **does not
+exist in any accessible form** (minute-resolution US–DE Treasury-rate futures; proprietary bank/CLS customer
+order flow) and the literature flags them as small, release-window-only lifts — not a path to 75%.
 
 **Bottom line:** the only genuine, deriv-tradeable, out-of-sample-verified EUR/USD up/down edge is the
 **15-minute** volatility-compression × NY Rise/Fall book at **~0.64–0.66** — comfortably profitable against

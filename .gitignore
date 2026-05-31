@@ -226,3 +226,5 @@ models/
 *.joblib
 catboost_info/
 .claude/
+ohlc_cache/
+vbar_cache/

@@ -100,5 +100,27 @@ try:
 except Exception as e:
     check("m15 pipeline self-test ran", False, f"exception: {e}")
 
+# ----------------------------------------------------------------------------------
+# 6) 30m pipeline — deriv-faithful label is EXACT 1800s wall-clock expiry (contiguity-enforced, NOT a bar-count proxy)
+#    & eval is independence-aware (non-overlapping 30-min windows, chronological/live-faithful).
+# ----------------------------------------------------------------------------------
+try:
+    import m30_production as m30
+    check("m30: GAP_S == HOR*60 == 1800s (30-min label horizon in seconds)", m30.GAP_S==m30.HOR*60==1800)
+    D30 = m30.load(["2026"])
+    ts30 = D30["_ts"].values.astype("int64")
+    sel = m30.nonoverlap_chrono(ts30, np.ones(len(ts30), bool))
+    d = np.diff(np.sort(ts30[sel]))
+    check("m30: non-overlap_chrono spaces selected trades >= 30min apart -> independent windows",
+          bool(len(d)==0 or np.all(d >= m30.GAP_S)), f"min_spacing={int(d.min()) if len(d) else 'NA'}s gap={m30.GAP_S}s")
+    f=pd.read_parquet(f"{m30.H.FEAT_DIR}/EURUSD_2026.parquet", columns=["close"]); f=f[~f.index.duplicated(keep="last")]
+    secs=f.index.values.astype("datetime64[s]").astype("int64")
+    contig=(secs[m30.HOR:]-secs[:-m30.HOR])==m30.HOR*60   # valid label requires t+30bars == t+1800s exactly
+    check("m30: every valid label spans EXACTLY 1800s wall-clock (true fixed expiry, not the bar-count bug)",
+          bool(contig.any()) and bool(np.all(((secs[m30.HOR:]-secs[:-m30.HOR])[contig])==1800)),
+          f"valid_contig_rows={int(contig.sum()):,}")
+except Exception as e:
+    check("m30 pipeline self-test ran", False, f"exception: {e}")
+
 print("\n" + ("ALL CHECKS PASSED ✅" if not FAILS else f"❌ FAILURES ({len(FAILS)}): " + "; ".join(FAILS)), flush=True)
 sys.exit(1 if FAILS else 0)

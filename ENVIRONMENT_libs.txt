@@ -1,0 +1,12 @@
+# Seconds-scale / 5m model stack — venv: ~/binary-algo-venv (documented per user request 2026-05-31)
+lightgbm==4.6.0
+xgboost==3.2.0
+catboost==1.2.10
+torch==2.12.0+cpu
+pytorch-tabnet==4.1.0
+scikit-learn==1.8.0
+numpy==2.4.6
+pandas==3.0.3
+pyarrow==24.0.0
+# No NEW installs were required for the seconds-scale work; all model types (GBM ensemble, 1D-CNN, GRU, TabNet) use the above.
+iisignature (path signatures, rough-path theory) — added 2026-05-31 for orthogonal-math signature features
