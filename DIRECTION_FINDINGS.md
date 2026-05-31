@@ -12,7 +12,7 @@ windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_re
 |---|---|---|
 | 1–5 seconds | **~0.65–0.66** (tick microstructure ensemble) | only on a tick/seconds-expiry broker; latency-critical |
 | 1 minute (60 s) | **~0.55–0.60** (reversion × compression-release; best refinement = HMM vol-state gate, floor 0.60 thin-cov; 2026-05-31d) | synthetic-index only (deriv forex floor = 15 m) |
-| 15 minutes | **~0.64** (compression × NY-session selective ensemble) | ✅ deriv (at the forex floor) |
+| 15 minutes | **0.647 on the chronological split, but CPCV-deflates to ~0.545** (28 purged paths, p10 0.531 < breakeven; the 0.647 was split-lucky — see `cpcv_certify.py`). Genuine 15m direction edge = raw AUC ~0.52 (real, marginal) | ✅ deriv but marginal |
 | 10 minutes | **~0.60** (native-10 ensemble × 5m_bb_width-NY; honest deliverable, 2026-05-31c) | ✅ deriv |
 | 30 minutes | **~0.59** (compression-1h × NY selective) | ✅ deriv |
 | 5 minutes | **0.613 verifiable / 0.648 thin-cov** (cross-horizon stack: 15m edge × 5m cross-pair meta; 2026-05-31b) | needs a ≤5m-expiry broker |

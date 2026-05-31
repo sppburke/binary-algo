@@ -232,3 +232,6 @@ vbar_cache/
 # Downloaded reference papers (external, not project output)
 *.pdf
 flow_cache/
+
+# transient experiment stdout logs
+*_run.log

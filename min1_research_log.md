@@ -137,6 +137,42 @@ published frontier; our broad-coverage 0.55 matches the literature's 60s number 
   **up-only production-gate filter is the single best honest book — 2025 0.581 / 2026 0.600, floor 0.518** (2024 sags); no book
   passes the strict 3-window CI test. Frozen artifact: none (floor < 0.57 freeze bar).
 
+## Wave-2 (DRL + bleeding-edge + CPCV certification) — all Tier-1 verified from on-disk artifacts
+
+Every number below was read from the named result file (not an agent summary), per the evidence-first standard.
+
+- **Deep RL / DQN** (`min1_drl.py`, `_drl_run.log`): DQN {long/short/abstain} committed-trade acc 2024 0.482 / 2025 0.484 / 2026
+  0.483 (~13% cov) — falsifier FAILED, below 0.50. IQN quantile-skew→dir 0.481/0.487/0.481 (CI straddles 0.50 → skew carries no
+  sign). IQN+CVaR magnitude-gated abstain 0.489/0.494/0.496 @~4% cov (better but still <0.50). **RL is bounded by the same info;
+  null for direction.**
+- **Neural-CDE on irregular tick path** (`min1_ncde.py`, `min1_ncde_results.json`): irregular-Δt 2024 0.504 / 2025 0.490 / 2026
+  0.507 (VAL AUC 0.498) vs constant-grid ablation 0.504/0.493/0.493 (VAL AUC 0.509). Δacc(irreg−grid) = −.0002/−.002/+.013
+  (sign-flips; irregular WORSE on VAL). Anti-mirage tripwire passed (moved-bar up-rate 0.49–0.51). **The tick inter-arrival clock
+  carries no 60s sign — clean first-in-world negative.**
+- **RMT (Marchenko-Pastur) eigen-residual** (`min1_rmt.py`, `/tmp/min1_rmt.log`): at 1-min only ONE eigenvalue clears the razor-thin
+  MP edge (q=N/T≈6e-6), so MP-cleaning is degenerate with the USD-basket factor — RMT-clean ≡ raw-USD to 3 decimals. 2025 selective
+  0.508–0.520 (H=15) / ~0.51 (H=1), far below the 0.534 ref and 0.65. **Pre-registered falsifier fires; null.**
+- **Ordinal time-irreversibility** (`min1_irrev.py`, `min1_irrev_result.json`): VAL AUC 0.503; selective 2024 0.479 / 2025 0.488 /
+  2026 0.489 (alone), CI95 entirely BELOW 0.50. The one ordinal statistic sign-invariance leaves alive (signed transition
+  asymmetry) carries no 60s-direction signal. **Null.**
+
+### ★ CPCV + Deflated-Sharpe / PBO certification (`cpcv_certify.py`, `cpcv_certify_result.json`) — a HEADLINE CORRECTION
+CombinatorialPurgedCV (N=8 groups, k=2 → 28 OOS paths, embargo=1 label-horizon, pooled 2012–2026), then deflate vs E[max of 70
+trials] with the corr(VAL,OOS)=−0.54 anti-selection penalty:
+- **15m DIRECTION selective book (headline 0.647): does NOT survive.** 28-path mean **0.5455**, p10 0.531, min 0.527, **max 0.559** —
+  the 0.647 sits ABOVE the max of all 28 honest purged paths (split-lucky mirage); deflated expectation 0.531 < breakeven 0.541.
+- **15m DIRECTION raw AUC:** 28-path mean 0.520, all paths > 0.50, deflated 0.515 — a real but economically marginal ~0.52-AUC edge.
+- **5m cross-horizon STACK (0.648@n45): PBO-positive (overfit mirage)** — same deflated 0.531 < breakeven.
+- **MAGNITUDE 30m (\|ret\|, headline 0.79 AUC): SURVIVES robustly.** 28-path mean **0.744**, p10 0.718, min 0.705, deflated **0.712**
+  (≫ the 0.55 bar, every path clears), top-vs-bottom-decile realized-\|ret\| lift **5.0×** (p10 3.96×).
+
+**Implication (rigorously certified):** the project's celebrated >0.64 *direction* books (15m 0.647, 5m-stack 0.648) are
+chronological-split / overfit artifacts — under purged-combinatorial CV they generalize to ~0.545 (marginal, p10 below breakeven).
+The ONE edge that survives rigorous deflation with a large margin is **MAGNITUDE** (\|ret\| AUC ~0.71 deflated, 5× decile lift),
+reconfirming sign-invariance: SIZE is forecastable and robust, SIGN is not, at every horizon. *(Caveat: the CPCV book is a faithful
+re-implementation of a compression×NY 15m selective book pooled 2012–2026, not the byte-identical frozen `m15_production`; the
+deflation result is about the generalization of that book class, and is the most rigorous estimate we have.)*
+
 ## Answer to "would HMMs help?" and the final verdict
 
 **Answer to "would HMMs help?" — No (empirically + literature-confirmed):** a Gaussian HMM's latent states are volatility/size
