@@ -228,3 +228,6 @@ catboost_info/
 .claude/
 ohlc_cache/
 vbar_cache/
+
+# Downloaded reference papers (external, not project output)
+*.pdf
