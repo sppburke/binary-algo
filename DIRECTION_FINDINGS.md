@@ -57,6 +57,13 @@ six independent levers all pinned by the 2025 regime / market efficiency:**
 - **The online drift learner is the decisive control:** the only way the wall could be a fixable artifact is if it were stale-model
   drift; an adaptive forest that re-fits to recent bars sits at 0.503–0.505 AUC in 2024, 2025 AND 2026 — so 60s direction is
   genuinely efficient and no amount of regime cleverness recovers it.
+- **Up/down asymmetry (user idea):** the book's edge lives entirely on the UP (dip-buy) side — up-predictions 2025 0.584 / 2026
+  0.613 vs down-predictions ~0.52 (dead). An up-only FILTER on the symmetric model is the best honest directional book of the
+  session, but a separately-TRAINED up-specialist is WORSE (0.50/0.54/0.52 — subset-training kills the ranking, à la v4/v6/v13), and
+  the asymmetry vanishes in 2024 (regime-dependent); does not clear 0.65. **Scholarly deep search (3-agent + adjudicator):
+  `beats_our_060 = False` — best published EUR/USD direction is 0.585 DAILY (Castillo 2024); honest 60s sign ceiling ~0.52–0.55 net
+  of costs (Petrova-Vilhelmsson-Nordén IJF 2025); DeepLOB/OFI headlines are equities+depth-10+leakage+magnitude; >0.65 at 60s is
+  unsupported anywhere.** Our ~0.60 is at/above the published frontier.
 - **Best honest 1-min book ~0.55–0.60** (HMM vol-state-gated reversion, floor 0.60 thin-cov; profitable-on-point-estimate vs
   breakeven 0.541 but OOS CI not clear of it, NOT >0.65). Tooling installed for completeness: hmmlearn, statsmodels (Markov-switching),
   arch, ruptures, pomegranate, river, nolds, filterpy/pykalman, stumpy, tsfresh/tslearn/sktime/darts. **Venue:** deriv EUR/USD

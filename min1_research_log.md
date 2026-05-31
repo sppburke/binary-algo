@@ -97,6 +97,32 @@ Tier-1 experiments (scripts: `_redteam_magdir60.py`, `_redteam_trigger60.py`, `_
   leaky target (naive lagged-target predictor scores 64.8%); strip the leak → 0.50 ("supporting EMH"); the 67.5% is VOLATILITY.
   VPIN/order-flow toxicity = magnitude not sign; options risk-reversal = daily + no minute feed; news-NLP wins are daily horizon.
 
+## Up-vs-down asymmetry (user idea) + scholarly-literature ceiling
+
+**Up/down asymmetry (`min1_updown.py`, `min1_upspec.py`):** the symmetric book's edge lives ENTIRELY on the UP (dip-buy) side.
+Splitting the frozen book's independent trades by predicted direction: UP-predictions 2024 0.520 / 2025 **0.584** / 2026 **0.613**;
+DOWN-predictions 0.522 / 0.522 / 0.516 (dead noise every year). Mechanism: the reversion lever buys dips / sells rallies, and
+dip-buying worked while rally-selling didn't over the EUR-up 2025-26 regime — but the asymmetry VANISHES in 2024 (up 0.520 vs down
+0.522, a wash), so it's regime-dependent. Two refinements tested:
+- **Up-only FILTER on the symmetric model: a genuine improvement** (2025 0.584 / 2026 0.613 vs symmetric 0.548 / 0.550), floor 0.520
+  (the 2024 wash), CI95 does not clear 0.65 on any window. Best honest 1-min directional book of the session.
+- **Dedicated up-SPECIALIST (separately trained only on dip-buy setups): WORSE — 0.498 / 0.537 / 0.519.** Subset-training destroys
+  the confidence ranking; reproduces the v4/v6/v13 lesson exactly. The down-specialist control = 0.472 / 0.521 / 0.481 (dead).
+  Setup base rates are ~coin-flip (dip-bounce 0.507, rally-down 0.514), so there is little for a specialist to sharpen.
+Takeaway: treat the sides asymmetrically as a trade FILTER on the symmetric ensemble, never as separately-trained models; it lifts
+the favorable-regime windows to ~0.58-0.61 but does not break 0.65 and is regime-dependent (2024 wash).
+
+**Scholarly-literature deep search (3-agent workflow + adjudicator — answers "is ~0.60 the best you can do?"): YES.** Verdict
+`beats_our_060 = False`, `LITERATURE_CONFIRMS_CEILING`. The best DEFENSIBLE published EUR/USD DIRECTION is **0.585 at the DAILY
+horizon only** (Castillo 2024, arXiv:2409.04471 — not cost-netted, rides 2022 trend-luck); the honest **sub-5-minute / 60s sign
+ceiling is ~0.52-0.55 net of costs** (Petrova-Vilhelmsson-Nordén, Int. J. Forecasting 2025 — FX LOB features show low predictability
+"supporting EMH"; order-flow impact vanishes by 15-30 min). The famous high numbers don't apply: DeepLOB 83% F1 / OFI R² 87% are
+EQUITIES + depth-10 volumes we lack + event-horizons + smoothed overlapping labels (leakage) + magnitude-not-sign; the one real
+1-5s queue-imbalance SIGN signal moves WITHIN the spread (not executable after FX cost + binary tie-loss); fancy DL (TFT/xLSTM/
+N-HiTS) gives no short-horizon sign edge (the daily 73% F1 was a wavelet-denoising lookahead leak); even the seconds-scale MKL study
+(Fletcher 2010, EBS EUR/USD) shows 3-class accuracy peaking ~0.50 at 20s and decaying. Our ~0.60 selective book is at/above the
+published frontier; our broad-coverage 0.55 matches the literature's 60s number exactly. **>0.65 at 60s is unsupported anywhere.**
+
 ## Answer to "would HMMs help?" and the final verdict
 
 **Answer to "would HMMs help?" — No (empirically + literature-confirmed):** a Gaussian HMM's latent states are volatility/size
