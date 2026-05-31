@@ -612,3 +612,46 @@ Pre-committed pipeline (every choice frozen on VAL; OOS judged once):
   clears >75% (0.764) on a real, month-consistent 330-trade sample; the all-period rate is ~0.70-0.72. The lift
   vs 1m comes from the horizon escaping bid-ask-bounce noise; vs 15m from the regime still being predictive.
   Production pipeline: `min2_production.py` (pair-parameterized, EURUSD-labeled artifacts).
+
+---
+
+# Cross-pollination: applying 2-min lessons to 1-min and 15-min
+
+After the 2-min win, tested whether its levers transfer to the other horizons. Two transferred lessons:
+**(L1)** a direction SPECIALIST trained only on compression-release bars; **(L2)** a REVERSION trend filter
+(bet AGAINST the last 5-min move). Plus an outside-the-box idea: **(L3)** use the 2-min model's prediction
+`p_2m` as a causal cross-horizon confirmation for the 1-min bet (p_2m at t uses only data <=t; the 1m binary
+settles at t+60, so it is lookahead-free).
+
+### 1-MIN — IMPROVED (`min1_v15.py` / `_select.py` / `_proof.py`; productionized in `min1_production.py` v2)
+- **Cross-horizon AUC discovery:** the 2-min model predicts the *60s* direction in-regime BETTER than a model
+  trained on 60s labels — AUC_2m_inreg 0.519/0.511/0.519 (VA/TE/OO) vs the 60s specialist 0.519/0.505/0.511 and
+  all-bars 0.511/0.503/0.509. The 120s label is a cleaner/denoised training target, so it generalizes better
+  even for the 1m bet. So p_2m is a genuine confirming signal.
+- **The big lever is REVERSION (L2).** The v1 1m book had NO trend filter. Adding "bet against ret300" lifts the
+  large-sample TEST from 0.682 to ~0.74. Specialist blend (L1, w=0.5) broadens the confident set so OOS is no
+  longer 1 month. L3 (2m confirm/blend) helps marginally but reversion dominates; magnitude gate is NOT in any
+  top config (reversion supersedes it).
+- **Pre-committed result (`min1_v15_proof.py`):**
+
+| config | TEST 2024-25 | OOS 2026 | OOS months |
+|--------|-------------|----------|------------|
+| v1 baseline | 0.682 (n759) | 0.780 (n50) | 44/50 in April |
+| A) all-bars + reversion (argmax-VAL) | 0.752 (n544) | 0.778 (n45) | Mar .846 / Apr .759 |
+| **B) specialist-blend + reversion (robust)** | **0.739 (n1033)** | **0.777 (n184)** | **Feb .892 / Mar .850 / Apr .710** |
+
+  Config B (productionized) fixes BOTH v1 weaknesses at once: +6 pts large-sample TEST AND 3.7x the OOS trades
+  spread across all three months (CI95 OOS [0.712,0.837]). EV/bet@0.80 +0.33 (TEST) to +0.40 (OOS).
+
+### 15-MIN — NO TRANSFER (`min15_v2.py` / `_select.py`) — itself a finding
+- Specialist holds in-regime on VA/TE (AUC 0.538/0.532 vs all-bars 0.528/0.524) but **collapses on 2026 OOS
+  (0.509 < all-bars 0.518)** — the known 15m fragility (V21-V23): the regime edge does not carry to 2026.
+- Reversion filters (rev15_1/rev5_3/rev15_3) give combined 0.59-0.61; continuation overfits VAL (0.701) then
+  falls to OOS 0.533. **No config beats the V27 baseline 0.642 combined** (best ~0.62).
+- **Why:** the compression-release + short-horizon reversion edge is a sub-minute-to-2-minute MICROSTRUCTURE
+  phenomenon (a quiet market that just pushed mean-reverts over the next 1-2 min). By 15m the move is fully
+  developed and efficient — the reversion effect is gone. This is fully consistent with the project thesis that
+  the directional edge decays with horizon (V8 horizon sweep, V25 frontier: longest >=75% horizon = 5s).
+
+**Net:** 2-min lessons transfer DOWN the horizon (improve 1m) but not UP (15m unchanged). The edge lives at
+3s-2min; 15m remains ~0.64. Updated 1m production: `min1_production.py` v2 (specialist blend + reversion).

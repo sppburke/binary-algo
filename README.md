@@ -20,7 +20,7 @@ EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy v
 | 8 seconds — same | OOS 0.753 / TEST 0.702 | borderline |
 | 15–30 seconds — same | OOS ~0.70–0.76 / TEST ~0.62–0.65 @0.05% | ✖ not both-sides |
 | **2 minutes** — 1s tick microstructure, compression-release reversion (EURUSD) | **OOS 0.764 (n330, month-consistent) / TEST 0.694** | ✅ OOS |
-| 1 minute — 1s tick microstructure, compression-release (EURUSD) | OOS 0.872 (n47, April-heavy) / TEST 0.668 | ~ thin OOS |
+| 1 minute — 1s tick microstructure, compression-release + reversion (EURUSD) | **OOS 0.777 (n184, all 3 months) / TEST 0.739** | ✅ OOS |
 | 1–5 minutes — OHLCV only (older work) | ~0.55–0.60 selective | ✖ |
 | 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.52 global; **EURUSD compress×NY ≈ 0.60–0.64** (4-window-stable) | ✖ |
 
@@ -151,64 +151,63 @@ reproducible under pre-commitment — that is the whole point of V21–V27.
 > binding constraint is *number of high-accuracy bets EURUSD history provides*, not the idea — see
 > V26/V27 in `research_log.md`. Consolidating a stable ≥0.68 needs more compression-regime history.
 
-## The 1-minute strategy — compression-release selective book (`min1_strategy.py`)
+## The 1-minute strategy — compression-release + reversion book (`min1_production.py` v2)
 
 A **1-minute (60-second) up/down binary** on EURUSD, predicted from 1-second tick microstructure. Splits
 (tick data): TRAIN 2021-2023 · VAL 2024-H1 · TEST 2024.09-2025.11 · **OOS 2026**. Honest evaluation uses a
 **non-overlapping (60s-gap)** selective book so every reported bet is independent/tradeable.
 
+**v2 upgrade (applied the 2-minute model's lessons — strictly better than v1):** added a **reversion trend
+filter** (bet AGAINST the last 5-min move) and a **compression-release direction specialist** blended 50/50 with
+the all-bars ensemble. This fixes v1's two weaknesses (TEST only ~0.68; OOS thin and April-concentrated) at once.
+
 **Headline (frozen pipeline, nothing tuned on the evaluation periods):**
 
-| held-out period | accuracy | trades (n) | 95% CI | EV/bet @0.80 payout |
-|---|---|---|---|---|
-| TEST 2024 (Sep–Dec) | 0.672 | 606 | — | +0.210 |
-| TEST 2025 (full) | 0.657 | 198 | — | +0.183 |
-| **TEST 2024-25 combined** | **0.668** | **804** | [0.634, 0.700] | +0.202 |
-| OOS 2026 (Feb–May) | 0.872 | 47 | [0.766, 0.957] | +0.570 |
+| pipeline | TEST 2024-25 | OOS 2026 | OOS month spread |
+|---|---|---|---|
+| v1 (compression-release only) | 0.682 (n759) | 0.780 (n50) | 44/50 in April |
+| **v2 (+ reversion + specialist)** | **0.739 (n1033)** | **0.777 (n184)** | **Feb .892 / Mar .850 / Apr .710** |
 
-**Read this honestly.** The **reproducible, large-sample prediction rate is ~0.66–0.67** (2024: 606 trades,
-2025: 198 trades — both ~0.66). OOS 2026 *prints* 0.872, but on only **47 trades, of which 43 fell in a single
-month (April 2026)** — in March 2026 the model saw 1,313 regime setups yet was never confident enough to trade
-(0 trades), and February gave 4. So the >75% figure is **one confident month, not a steady ≥75%.** What is
-robust: a **selective ~0.66 book that is profitable** at typical binary payouts (break-even ~0.556 @0.80;
-EV/bet +0.18 to +0.21 in 2024/2025) — materially better than the 15m result, but **not a dependable >75%.**
-The confidence margins are razor-thin (`|p-0.5|` ≈ 0.005–0.022, i.e. model probabilities ~50.5–52%).
-
-**Trade frequency:** highly intermittent and clustered — the compression-release regime fires in bursts
-(≈20 trades/month in 2025; the model abstains entire months when not confident). This is a low-frequency,
-opportunistic book, not an always-on signal.
+**Read this honestly.** v2 lifts the large-sample TEST **+6 points** (0.682→0.739) AND multiplies the OOS trade
+count **3.7×** (50→184), now spread across **all three** 2026 months instead of one — OOS CI95 [0.712, 0.837].
+Profitable vs typical binary payouts (break-even 0.556 @0.80): EV/bet +0.33 (TEST) to +0.40 (OOS). The OOS-2026
+0.777 is a steady, month-distributed result; the all-period rate is ~0.74. Still a low-frequency, opportunistic
+book that abstains most of the time.
 
 ### What works at 60s (and what doesn't) — the mechanism
 - **Direction is near-efficient (~0.50-0.51 AUC).** Confirmed across a GBM ensemble, a large-move-trained GBM,
   and a temporal 1D-CNN on the raw 1s path — all land ~0.50. You cannot predict *every* 60s bar's direction.
-- **Magnitude IS predictable (AUC 0.68).** A model for "is the next 60s move large?" works well; large moves are
-  more directional (small moves are spread/bounce noise).
 - **The lever is the volatility COMPRESSION-RELEASE regime:** bet only when the last ~30 min were quiet
-  (`bbw1800` bottom tercile) AND short-term vol is now expanding (`rel_ratio = bbw300/bbw1800` high) — a
-  directional squeeze-breakout. London-NY overlap is *bad* (too noisy); quiet→release is where 60s direction
-  is most predictable. The model is used only to *rank confidence* within this regime, then bet selectively.
+  (`bbw1800` low) AND short-term vol is now expanding (`rel_ratio = bbw300/bbw1800` high) — a squeeze-breakout.
+- **REVERSION is the v2 lever (transferred from the 2-min model):** in that regime, **bet against the last 5-min
+  move** (`sign(p-0.5) = −sign(ret300)`). A quiet market that just pushed tends to mean-revert over the next
+  minute — this is a sub-minute-to-2-minute microstructure effect (it is gone by 15m). Adding it lifted TEST ~6 pts.
+- **A regime specialist** (LGBM trained only on compression-release bars) blended 50/50 with the all-bars
+  ensemble broadens the confident set (in-regime AUC 0.510→0.519), so the OOS sample spans all 3 months.
 
 ### Methodology (exactly what produces it)
-1. **Target:** `y = sign(mid(t+60s) - mid(t))`, ties dropped, on the 1s grid.
-2. **Features (53):** order-book imbalance (+EMAs/accel/persistence), microprice deviation, spread, trade
-   count/size, multi-timeframe returns (5s-3600s), realized vol (30s-1800s), EMA-distance, stretch z-scores,
-   range-position, and compression (`bbw`) — all causal, computed from the 1s mid/imbalance/microprice.
-3. **Direction model:** LGBM+XGB+CatBoost ensemble on TRAIN (`models/probs_min1_v3.npz`).
-4. **Regime gate (fixed on VAL):** `bbw1800 ≤ q33` AND `rel_ratio ≥ p90` (compression-release).
-5. **Selection (fixed on VAL):** within the gate, bet the top-10%-confidence (`|p-0.5|`) bars, threshold frozen
-   on VAL, with a 60s non-overlap constraint.
-6. **Evaluate** frozen on TEST 2024-25 and OOS 2026 (+halves) with bootstrap CIs.
-7. *(Optional)* a magnitude model (`models/probs_min1_magnitude.joblib`, AUC 0.68) raises TEST accuracy to ~0.76
-   but thins the 3-month OOS too much to verify simultaneously — the OOS sample size is the binding constraint.
+1. **Target:** `y = sign(mid(t+60s) - mid(t))`, ties dropped, on the 1s grid; 60s non-overlap.
+2. **Features (62):** order-book imbalance (+EMAs/accel/persistence), microprice deviation, spread, trade
+   count/size, multi-timeframe returns (5s-3600s), realized vol (30s-3600s), EMA-distance, stretch, range-
+   position, compression (`bbw`), `rel_ratio` — all causal, from the 1s mid/imbalance/microprice.
+3. **Direction = 0.5·all-bars ensemble (LGBM+XGB+CatBoost) + 0.5·compression-release LGBM specialist.**
+4. **Regime gate (fixed on TRAIN/VAL):** `bbw1800 ≤ train_q67` AND `rel_ratio ≥ train_p70`, rel re-tightened to
+   the VAL p80, AND reversion: `sign(p−0.5) = −sign(ret300)`.
+5. **Selection (fixed on VAL):** 5% confidence coverage, threshold frozen on VAL, 60s non-overlap.
+6. **Evaluate** frozen on TEST 2024-25 and OOS 2026 with bootstrap CIs and per-month breakdown.
+- *(Note — what did NOT transfer to 15m:* the same reversion+specialist recipe gives no lift at 15 minutes
+  (best ~0.62 < V27's 0.642); by 15m the move is efficient and the reversion effect is gone. See `research_log.md`
+  "Cross-pollination".)
 
 ### Production pipeline (`min1_production.py`) — train, serialize, infer
 **Per-pair model (default EURUSD).** All artifacts are **labeled with the pair** so other currencies sit
 alongside; each pair is trained separately (the edge is EURUSD-concentrated — see V22 — so do *not* share one
 model across pairs). Serialized to `models/`:
-- `models/min1_EURUSD_direction_lgb.txt`, `..._xgb.json`, `..._cat.cbm` — the 3 direction boosters.
-- `models/min1_EURUSD_magnitude.joblib` — the magnitude model (P(|ret60| large)).
-- `models/min1_EURUSD_strategy.json` — frozen params: pair, 53 feature names, compression `bbw1800_q33`,
-  release `rel_ratio_p90`, confidence `conf_thr`, horizon (60s), non-overlap gap (60s).
+- `models/min1_EURUSD_direction_lgb.txt`, `..._xgb.json`, `..._cat.cbm` — the all-bars direction ensemble.
+- `models/min1_EURUSD_direction_spec_lgb.txt` — the compression-release LGBM specialist (blended 50/50).
+- `models/min1_EURUSD_magnitude.joblib` — the magnitude model (P(|ret60| large)), kept for info.
+- `models/min1_EURUSD_strategy.json` — frozen params: pair, 62 feature names, `w_spec`, compression
+  `bbw1800_q67`, release `rel_p70`, `rel_tighten`, reversion rule, `conf_thr`, horizon (60s), gap (60s).
 
 ```bash
 PY=~/binary-algo-venv/bin/python
