@@ -176,3 +176,17 @@ untested upside but its data does not exist on this machine). 10-min EURUSD dire
 >0.65 is NOT achievable on any data available here. Deliverable = the honest ~0.602 native-10 book
 (models/m10_EURUSD_strategy_honest.json). The ONLY untested-with-upside path requires acquiring intraday US/DE rate-futures
 data; the genuine >0.65 in-data targets are MAGNITUDE (touch/straddle) and the seconds-scale tick edge (different broker).**
+
+## Iteration 9 — direction CONDITIONED on predicted magnitude (m10_magdir.py): the last untested combination — NULL
+Creative combine of the two pillars: magnitude IS forecastable (~0.73), direction isn't (~0.52). Test: does direction
+become predictable on bars where a 10-min magnitude model predicts a BIG move? (sign-invariance theorem predicts null, but
+it had never been RUN at 10m.) Trained a 10-min magnitude LGB (|fwd10|≥Q75) on 2012-21; bucketed held-out NY bars by
+predicted magnitude; measured native-10 direction accuracy per bucket.
+**Result (Tier-1):**
+- **Magnitude model is STRONG: AUC 0.813(t24) / 0.741(t25) / 0.706(oos)** — forecastable & stable across all 3 held-out years.
+- **Direction acc is FLAT ~0.51-0.53 across ALL magnitude quartiles** (Q4-HIGH = 0.516/0.515/0.518 — no better than Q1-low).
+  HIGH-mag × dir-conf-top30% selective: combined **0.537, FLOOR 0.519** (WORSE than the compression gate 0.602).
+**Conclusion:** clean empirical confirmation of sign-invariance — magnitude ⟂ sign; the bars with the biggest moves are
+NOT more directionally predictable. The last creative in-data direction combination is null. **But the same run shows the
+10-min MAGNITUDE model already clears the >0.65-equivalent bar (AUC 0.71-0.81)** — the ready-made genuine edge, tradeable on
+touch/straddle/volatility products (NOT Rise/Fall up/down). 9 levers now; direction verdict is airtight.
