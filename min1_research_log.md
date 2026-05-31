@@ -43,6 +43,7 @@ Pre-commit ONE config per method. Tick book split: train 2021-23 / val 2024-H1 /
 | 3 | **Hurst / variance-ratio persistence switch** — momentum-vs-reversion engine switched by VR(q,W); orthogonal to compression (`min1_hurst.py`) | HONEST worst-VAL-half: 2024 0.518 / 2025 0.548 / 2026 0.513, FLOOR 0.513; **ORACLE max-floor (hindsight) only 0.555** | 0.548 honest | ❌ |
 | 4 | **Hidden Markov regime model** (K=3 Gaussian HMM, CAUSAL filtered forward posteriors, no look-ahead) — U1 gate / U2 engine-switch / U3 soft-posterior meta (`min1_hmm.py`) | states carry NO direction (train P(up)≈0.497–0.499 in all 3, momentum loses in every state); **U1** floor 0.565 (2024 .581/2025 .569/2026 .565, OOS CI[.492,.638]); **U2** floor 0.600 (2024 .600/2025 .605/2026 .613, OOS CI[.519,.708] spans breakeven, n≈106–162); **U3** anti-transferred to floor 0.487 (2025 0.508, gamma posteriors got top importance but replayed the corr(VAL,OOS)=−0.54 trap) | U1 0.569 / U2 0.605 / U3 0.508 | ❌ |
 | 5 | **Online / concept-drift adaptive model** (river Adaptive Random Forest + ADWIN, PREQUENTIAL test-then-train, warm 2022-23) — tests whether the 2025 wall is stale-model drift vs genuine efficiency (`min1_online.py`) | **NOISE FLOOR everywhere**: AUC 2024 0.504–0.506 / 2025 0.503–0.508 / 2026 0.505–0.508; selective acc 0.49–0.51 at every confidence cut, all windows. **Robust across capacity** — both a depth-capped 5-tree forest AND a full uncapped 10-tree forest give the identical null. Continuous adaptation recovers NO direction edge → the 2025 wall is genuine efficiency, NOT stale-model drift | 0.503–0.508 | ❌ |
+| 6 | **Macro-release 60s directional impulse** — pre-committed prediction = sign(eurusd_signal) from the surprise (actual−consensus mapped via event_signs), traded in the 60s window after USD/EUR releases; the 5m news null was retested at the IMPULSE timescale (`min1_news60.py`, `macro_calendar.parquet` 7650 signed events, 24.6M ticks) | **NULL / sign-unstable OOS**: HIGH-vol 2024 0.373 / 2025 0.526 / 2026 0.517; HIGH-vol & \|surp_z\|≥1 → 0.167 / 0.364 / **0.000** (the bigger the surprise, the MORE wrong the surprise-sign rule is OOS). EURUSD frequently moves AGAINST the surprise sign at 60s (fade / overshoot-revert / priced <60s). No window clears n≥25 & CI95-lower>0.65 | 0.526 | ❌ |
 
 ### Key mechanistic confirmations
 - **HMM states are pure volatility/size regimes:** all 3 states have train P(up) = 0.497–0.499, and momentum loses in every state
@@ -52,9 +53,12 @@ Pre-commit ONE config per method. Tick book split: train 2021-23 / val 2024-H1 /
   ADWIN, prequential, continuously re-fitting to recent bars) sits at AUC 0.503–0.505 in EVERY window, including 2025 — it cannot
   recover an edge by adapting, because there is no stable 60s direction signal to adapt to. This rules out the one hypothesis under
   which a smarter model could break the wall.
-- **Five independent model classes converge:** cross-horizon, cross-pair, persistence-switch, HMM, and online-adaptive all drive
-  2024 & 2026 to ~0.55–0.61 selective but the binding 2025 window stays ~0.50–0.61, with the floor's OOS CI95 touching breakeven;
-  even the ORACLE (hindsight) gate floor is ~0.555–0.60, never 0.65.
+- **Six independent levers converge:** cross-horizon, cross-pair, persistence-switch, HMM, online-adaptive, and macro-release
+  impulse all drive 2024 & 2026 to ~0.45–0.61 but the binding 2025 window stays ~0.50–0.61, with the floor's OOS CI95 touching
+  breakeven; even the ORACLE (hindsight) gate floor is ~0.555–0.60, never 0.65.
+- **Even information shocks don't give a 60s sign edge:** the macro-release impulse — the one moment when directional information
+  demonstrably exists — is null/negative OOS (surprise-sign accuracy 0.17–0.53, worse for larger surprises), because FX prices the
+  surprise in <60s and frequently overshoots-and-reverts. This closes the last "but surely *X* carries direction" objection.
 - **The best-transferring config is the HMM vol-state-gated reversion book (U2): floor ~0.60 across all three years** — a modest
   refinement of `min1_production`'s 0.55, but at thin coverage (n≈106–162/window), OOS CI95 spanning breakeven, and NOT >0.65.
 
@@ -63,7 +67,8 @@ Pre-commit ONE config per method. Tick book split: train 2021-23 / val 2024-H1 /
 efficient-market part (~0.50–0.51 AUC across every model class — LGBM, ensemble, large-move GBM, 1D-CNN, HMM, AND an
 online drift-adaptive forest); the only real edges are MAGNITUDE (~0.68 AUC, a touch/straddle target, not up/down) and the
 compression-release × reversion REGIME harvested selectively to ~0.55–0.60 at thin coverage. The 2025 wall is GENUINE efficiency
-(the online learner can't beat it by adapting), not a fixable modeling artifact. Honest best deliverable: the HMM-vol-state-gated
+(the online learner can't beat it by adapting; even macro-release information shocks give no 60s sign edge — surprise-sign
+accuracy 0.17–0.53 OOS, worse for larger surprises), not a fixable modeling artifact. Honest best deliverable: the HMM-vol-state-gated
 reversion book at ~0.60 floor (documented; ~breakeven-significant, NOT >0.65, synthetic-index-only venue since deriv forex
 Rise/Fall floor = 15 min). The existing frozen `min1_production.py` (0.539/0.550) remains the reference book.
 

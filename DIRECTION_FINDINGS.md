@@ -38,7 +38,7 @@ volatility, not direction. Magnitude is tradeable on **Touch/No-Touch, Range/Bou
 Goal re-set to **1-min >0.65 OOS**. Applied the methods discovered AFTER `min1_production.py` was frozen — none had ever
 touched the 60s horizon (grep `m5/m15/m10_EURUSD` in `min1_*`/`min2_*` = 0 hits). Full journal: `min1_research_log.md`; two
 multi-agent research workflows (prior-art/infra/sofien; and an HMM literature/feasibility pass). **>0.65 is NOT achievable —
-five independent model families all pinned by the 2025 regime:**
+six independent levers all pinned by the 2025 regime / market efficiency:**
 
 | Method (file) | Honest selective | test25 | Note |
 |---|---|---|---|
@@ -47,6 +47,7 @@ five independent model families all pinned by the 2025 regime:**
 | Hurst / variance-ratio persistence switch (`min1_hurst.py`) | worst-half FLOOR 0.513; **ORACLE max-floor 0.555** | 0.548 | persistence gates magnitude, not sign (sign-invariance) |
 | **Hidden Markov regime** K=3, causal filtered posteriors (`min1_hmm.py`) | U1 gate 0.565 / **U2 engine-switch 0.600** (OOS CI[.519,.708]) / U3 meta 0.487 | 0.569 / 0.605 / 0.508 | states carry NO direction (train P(up)≈0.50 in all 3); best refinement = trade reversion only in vol-state 0 → ~0.60 floor, thin-cov, CI spans breakeven |
 | **Online concept-drift** river ARF+ADWIN, prequential (`min1_online.py`) | AUC **0.503–0.505** every window; selective 0.49–0.51 | 0.503 | continuous adaptation recovers NO edge → the 2025 wall is GENUINE efficiency, not stale-model drift |
+| **Macro-release 60s impulse** — sign(surprise) in the post-release window (`min1_news60.py`) | HIGH-vol 0.373/0.526/0.517; \|surp_z\|≥1 → 0.167/0.364/**0.000** | 0.526 | NULL/negative — FX prices the surprise in <60s and overshoots-reverts; larger surprises are MORE wrong OOS. Extends the 5m news null to the impulse timescale |
 
 - **"Would HMMs help?" — No, empirically + literature.** A Gaussian HMM's latent states are volatility/size regimes (train
   P(up)=0.497–0.499 in all 3; momentum loses in every state → all map to the reversion engine), confirming sign-invariance
