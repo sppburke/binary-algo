@@ -72,6 +72,33 @@ accuracy 0.17–0.53 OOS, worse for larger surprises), not a fixable modeling ar
 reversion book at ~0.60 floor (documented; ~breakeven-significant, NOT >0.65, synthetic-index-only venue since deriv forex
 Rise/Fall floor = 15 min). The existing frozen `min1_production.py` (0.539/0.550) remains the reference book.
 
+## Adversarial red-team (3-agent workflow + adjudicator) — independent corroboration + 4 NEW experiments
+
+After the 6 levers, a 3-agent red-team was explicitly tasked to BREAK the "exhausted" verdict (literature/web, codebase+data,
+creative reframing) + an adjudicator. All four converged on **EXHAUSTED**, and — instead of only arguing — ran four genuinely-new
+Tier-1 experiments (scripts: `_redteam_magdir60.py`, `_redteam_trigger60.py`, `_redteam_trigpop.py`, `_adj_perside_flow.py`):
+
+- **PILLAR 1 — the informational ceiling (the definitive proof).** The 2025 60s directional conditional-accuracy ceiling is
+  **0.512 at 10% coverage rising only to 0.517 at 0.5% coverage (n=11,283), CI95 upper ~0.53.** Going from 10%→0.5% coverage moves
+  2025 by 0.5pt — so the ~13-point gap to 0.65 is **informational, not a coverage problem.** No meta / gate / selective subset over
+  these features can reach 0.65 on the inversion year. (60s dirAUC 0.510 vs magAUC 0.787 — sign-invariance, same data.)
+- **PILLAR 3 — the last untried on-disk axis is dead.** The raw per-side **bid-vol/ask-vol order flow** from `tick_data/raw/`
+  (7 majors, 2012-2026, verified real & asymmetric — never used before; only top-of-book `imb` proxy existed) was built from scratch
+  (net/tick-rule-signed/imbalance over 5/15/30/60s), clean EURUSD-only (no ffill artifact), tested on **moved bars** (|fwd|>0.5pip):
+  VAL dirAUC **0.5086**; 2025 selective 0.498–0.506, CI95 upper never >~0.52, NEGATIVE at deep selectivity. Null.
+- **Trigger-carry & subpopulation:** the 5s tick ensemble (which clears ~0.65 at 5s) carried to the 60s outcome = VAL AUC **0.5089**;
+  2025 collapses to 0.48–0.53. The seconds-scale edge is bounce/reversion microstructure that does NOT propagate to 60s.
+- **A caught FALSE POSITIVE (discipline working).** A 7-pair lagged-return LGBM superficially showed AUC 0.728 / selective CI95-lo>0.65
+  *every year* — unmasked as a label artifact: the 7-pair timestamp-intersection+ffill manufactured ~50% fake flat windows
+  (train up-rate 0.338 vs real EURUSD-1s up-rate 0.492; real flat only 1.4%). On moved-bars-only it collapses to 0.49–0.51. This is
+  exactly the leakage a naive run would have reported as "GOAL ACHIEVED" — and the discipline killed it.
+- **Literature:** no peer-reviewed/practitioner method clears >0.65 OOS sub-5-minute major-FX DIRECTION after costs. The one >0.65
+  claim (Lee 2024, arXiv:2409.14157) is EQUITIES + full Nasdaq depth-10 volume imbalance (not on disk) + the authors' OWN documented
+  leaky target (naive lagged-target predictor scores 64.8%); strip the leak → 0.50 ("supporting EMH"); the 67.5% is VOLATILITY.
+  VPIN/order-flow toxicity = magnitude not sign; options risk-reversal = daily + no minute feed; news-NLP wins are daily horizon.
+
+## Answer to "would HMMs help?" and the final verdict
+
 **Answer to "would HMMs help?" — No (empirically + literature-confirmed):** a Gaussian HMM's latent states are volatility/size
 regimes (train P(up)≈0.50 in all states), not direction states; gating/switching/meta on them lands ~0.49–0.60, never >0.65,
 matching the academic record (Markov-switching cannot beat a random walk OOS for FX direction; the FX-HMM literature switches the
