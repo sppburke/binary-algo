@@ -1,5 +1,13 @@
 # 5-Minute Binary Option Direction Prediction — Findings & Strategy
 
+> ⚠️ **SUPERSEDED IN PART — read the 2026-05-30 bias audit first** (`research_log.md` "BIAS AUDIT" and
+> `README.md` "Methodology audit"). The seconds/minute accuracies in this file (3 s 0.81, etc.) were
+> **inflated** by a bar-count horizon, greedy de-overlap, and best-of-search, and the sub-15-minute books
+> are **not tradeable on deriv EUR/USD** (forex Rise/Fall minimum = 15 minutes). Deriv-faithful, OOS-verified:
+> 1-min 0.55 / 2-min 0.54 (≈ breakeven, untradeable on deriv) — the only real, deriv-tradeable EUR/USD edge is
+> the **15-minute** book at **~0.65** (`m15_production.py`). The mechanism findings below remain valid; the
+> headline ≥75% claims do not.
+
 **Scope:** Predict whether spot will be **up or down 5 minutes ahead** for 7 FX pairs
 (EURUSD first), targeting a ≥75% correct-prediction rate, verified on held-out data with
 **2026 kept fully out-of-sample**. Data: 10-second OHLCV bars, 2012-01-02 → 2026-05-08.

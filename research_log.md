@@ -655,3 +655,77 @@ settles at t+60, so it is lookahead-free).
 
 **Net:** 2-min lessons transfer DOWN the horizon (improve 1m) but not UP (15m unchanged). The edge lives at
 3s-2min; 15m remains ~0.64. Updated 1m production: `min1_production.py` v2 (specialist blend + reversion).
+
+# ============================================================================
+# BIAS AUDIT & DERIV-FAITHFUL RE-VERIFICATION (2026-05-30)
+# ============================================================================
+
+A full bias audit of the backtest/OOS methodology (multi-agent review + independent Tier-1
+re-runs) found the headline tick-model numbers (1m OOS 0.777, 2m OOS 0.764, 3s OOS 0.809) were
+inflated by several methodology errors AND that the 1m/2m horizons are not even tradeable on
+deriv EUR/USD. All production pipelines were fixed, a leakage self-test (`audit_leakage.py`) was
+added, and all three production models were retrained + re-verified out-of-sample under the
+corrected, deriv-faithful methodology (sequentially, proper TRAIN/VAL/TEST/OOS separation).
+
+## What was wrong (and the fix)
+
+1. HORIZON MISLABEL (biggest). 1s bars drop empty seconds (tick1s_cache.py), so the old label
+   `mid.shift(-HS)` shifted HS *bars*, not HS *seconds*. Measured: a 60-bar "1-minute" horizon
+   spanned a MEDIAN 111 wall-clock seconds (p90 233s); "2-minute" = median 225s. The models
+   predicted a variable, ~2x-longer-than-advertised horizon matching no fixed binary expiry, and
+   it broke trade independence (non-overlap gap 60s << 111s outcome window). FIX: `wc_ret()` — a
+   TRUE wall-clock fixed-expiry label; self-test confirms median horizon now exactly 60s/120s.
+
+2. TRADE-INDEPENDENCE / look-ahead de-overlap. Reported "independent" trades were de-overlapped
+   GREEDILY by confidence, which peeks ahead within each overlap cluster to keep the most-confident
+   bar (a live trader cannot). FIX: chronological first-come de-overlap (`nonoverlap_chrono`);
+   greedy kept only as a labeled optimistic upper bound. Effect: -3 to -9 acc points. Bootstrap
+   CIs are now over genuinely independent trades.
+
+3. DERIV SETTLEMENT (was generic/wrong). First modeled a dealer SPREAD penalty -- WRONG for deriv.
+   Verified vs deriv T&C (2.2.1.3 / 2.2.3.1 / 2.3.1) + tick API schemas + live asset_index/
+   contracts_for calls: deriv Rise/Fall settles MID-to-MID, tick-to-tick, NO spread; the edge is a
+   payout deduction (~15% -> payout R~1.85, breakeven 0.541). ENTRY = the NEXT tick after the order
+   (not the decision tick); EXIT = the last tick at/before expiry; ties LOSE. FIX: `wc_ret` models
+   entry=next tick / exit=last-before / strict win (ties lose), ENTRY_LAG_S=1; the backtest reports
+   the payout-deduction EV table. Spread-aware rows removed.
+
+4. MULTIPLE-TESTING / best-of-search. The headline OOS numbers were the max over a large,
+   OOS-guided search across 30+ versioned scripts; no deflation/PBO applied. The repo's own
+   diagnostic corr(VALacc, OOSacc) = -0.54 (V21) shows VAL-selection is an unreliable OOS predictor.
+   FIX: each production model is a single pre-committed config (regime from TRAIN, threshold from
+   VAL), judged once on TEST + OOS; no re-search.
+
+## DERIV TRADEABILITY CONSTRAINT (decisive, live-API verified)
+
+deriv asset_index / contracts_for for frxEURUSD: forex EUR/USD Rise/Fall MIN duration = 15 MINUTES
+(max 365d), TIME units only, NO ticks/seconds. Sub-15m up/down exists only on SYNTHETIC indices,
+not forex. => the 1-minute and 2-minute books are NOT tradeable on deriv EUR/USD; only 15-minute
+(and longer: 30m/1h/...) Rise/Fall is placeable. Higher/Lower min = 1 day.
+
+## CORRECTED, DERIV-FAITHFUL OUT-OF-SAMPLE RESULTS (retrained 2026-05-30, sequential)
+
+  model  horizon  deriv-tradeable   TEST 2024-25        OOS 2026             verdict
+  -----------------------------------------------------------------------------------------------
+  min1   60s      NO (<15m floor)   0.539 (n1017)       0.550 (n349,         ~breakeven; OOS CI
+                                    CI[.508,.570])      CI[.499,.602])       includes 0.50 -> no edge
+  min2   120s     NO (<15m floor)   0.528 (n2528)       0.539 (n710,         ~coin-flip; no edge
+                                    CI[.508,.547])      CI[.503,.576])
+  m15    15min    YES (at floor)    2024 0.689/2025     2026 0.663 (n89,     COMBINED 0.647 (n677,
+                                    0.582               CI[.562,.753])       CI[.612,.684]) <- the
+                                                                             real deriv edge
+  deriv payout-deduction EV (R=1.85, breakeven 0.541): min1 OOS +0.018, min2 OOS -0.002,
+  m15 combined +0.197.  Reference (1m): greedy look-ahead would have shown ~0.63 (the old
+  inflation); same-tick entry (not achievable on deriv) ~0.57; honest deriv next-tick 0.539/0.550.
+
+## BOTTOM LINE
+
+- The 1m/2m ">=75%" headlines do NOT survive honest, deriv-faithful methodology AND are not
+  tradeable on deriv EUR/USD (15m forex floor). The sub-minute microstructure edge is real but
+  decays within a tick or two of entry latency -- uncapturable at a 15m-floor forex venue. They
+  remain of interest only for synthetic indices (which allow ticks/seconds) or another broker.
+- The 15-MINUTE Rise/Fall book is the genuine, deriv-tradeable, OOS-verified edge: ~0.647 combined
+  / 0.663 OOS-2026, profitable vs deriv's payout deduction; next-tick entry is negligible at 15m so
+  it is not eroded by latency.
+- All production pipelines (min1/min2/m15_production.py) are deriv-faithful and guarded by
+  `audit_leakage.py` (run before any deploy).

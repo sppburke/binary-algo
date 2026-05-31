@@ -2,8 +2,11 @@
 
 Best 15m strategy (research_log V27): EURUSD up/down 15m binary, ensemble on the 239 multi-timeframe
 features (pipeline.py), bet ONLY in the volatility-compression x NY-session regime, selective by confidence.
-Honest result: pre-committed pipeline = 0.642 on held-out 2024-2026 (CI [0.624,0.659]); profitable vs an
-0.80 binary payout (breakeven 0.556) but NOT >=75% — the 15m frontier is ~0.64.
+Honest result: pre-committed pipeline ~0.64-0.65 on held-out 2024-2026; profitable vs deriv's payout deduction
+(breakeven ~0.54 at a ~15% deduction) but NOT >=75% — the 15m frontier is ~0.64. Settlement is deriv Rise/Fall
+mid-to-mid tick-to-tick (NO spread); a next-tick entry is negligible against a 15-minute horizon, so unlike the
+1m/2m books this one is NOT eroded by entry latency — it is the most deriv-tradeable of the three. Re-verify with
+`python m15_production.py backtest` (independent non-overlapping trades, CI95; see research_log BIAS AUDIT).
 
 This model is PER-PAIR (default EURUSD). Artifacts are labeled with the pair; the 239-feature parquets
 already exist for all 7 majors (pipeline.py), so other currencies train with just a PAIR argument.
@@ -53,6 +56,34 @@ def load(years, stride=1):
 
 def gate_mask(D, bbw_thr):
     return (D["15m_bb_width"].values.astype(float)<=bbw_thr)&(D["sess_ny"].values.astype(float)>0.5)
+
+GAP_S = HOR*60   # 15-min label horizon in seconds; block this window so selected trades are INDEPENDENT
+def nonoverlap(ts, conf, thr, gap=GAP_S):
+    """Greedy highest-confidence selection with a +/-gap-second block, so reported trades do not share
+    overlapping [t, t+15min] outcome windows (the raw 1-min decision grid is ~15x overlapping)."""
+    sel=np.where(conf>=thr)[0]
+    if len(sel)==0: return np.array([],dtype=int)
+    order=sel[np.argsort(-conf[sel])]
+    tmin=int(ts[order].min()); span=int(ts[order].max()-tmin)+gap+2
+    blk=np.zeros(span,bool); take=[]
+    for i in order:
+        t=int(ts[i]-tmin)
+        if blk[t]: continue
+        take.append(i); blk[max(0,t-gap+1):t+gap]=True
+    return np.sort(np.array(take))
+def nonoverlap_chrono(ts, mask, gap=GAP_S):
+    """Live-faithful first-come de-overlap (no look-ahead) — the honest tradeable policy."""
+    take=[]; block_until=-1
+    for i in np.where(mask)[0]:
+        if ts[i] < block_until: continue
+        take.append(i); block_until=int(ts[i])+gap
+    return np.array(take,dtype=int)
+def boot(corr, nb=5000, seed=7):
+    corr=np.asarray(corr,dtype=float)
+    if len(corr)<5: return (float("nan"),float("nan"))
+    rng=np.random.default_rng(seed); n=len(corr)
+    a=np.array([corr[rng.integers(0,n,n)].mean() for _ in range(nb)])
+    return float(np.percentile(a,2.5)),float(np.percentile(a,97.5))
 
 def mk_lgb(): return lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=255,
     min_child_samples=200,subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=10,n_estimators=3000,n_jobs=20,verbosity=-1)
@@ -108,18 +139,25 @@ def _dirproba(p,L,G,C,X):
 
 def backtest():
     p,L,G,C=_load()
+    print(f"[backtest] deriv Rise/Fall {HOR}m | mid-to-mid tick-to-tick, NO spread, edge=payout deduction; next-tick entry is negligible at {HOR}m | INDEPENDENT (non-overlap {GAP_S}s) accuracy, CI95 bootstrap",flush=True)
     allc=[]; alln=0
     for yrs,label in (([("2024")],"2024"),([("2025")],"2025"),([("2026")],"2026")):
         D=load(yrs)
         if len(D)==0: continue
         pr=_dirproba(p,L,G,C,D); y=D["_y"].astype(int).values
+        ts=D.index.values.astype("datetime64[s]").astype("int64")
         g=gate_mask(D,p["bb_width_thr"]); m=g&(np.abs(pr-0.5)>=p["conf_thr"])
-        corr=((pr[m]>0.5).astype(int)==y[m]); acc=corr.mean() if m.sum() else float("nan")
-        ev=acc*0.80-(1-acc) if m.sum() else float("nan")
-        print(f"=== {label} === trades(selective,overlapping)={int(m.sum())} accuracy={acc:.3f} EV/bet@0.80={ev:+.3f}",flush=True)
-        allc.append(corr); alln+=int(m.sum())
-    C_=np.concatenate(allc); acc=C_.mean()
-    print(f"=== 2024-2026 COMBINED === trades={alln} accuracy={acc:.3f} EV/bet@0.80={acc*0.8-(1-acc):+.3f}  (V27 held-out: ~0.642)",flush=True)
+        # independent trades: non-overlapping 15-min windows, chronological/live-faithful (the 1-min grid is ~15x overlapping)
+        conf=np.abs(pr-0.5); tr=nonoverlap_chrono(ts,m)
+        corr=((pr[tr]>0.5).astype(int)==y[tr]).astype(float); acc=corr.mean() if len(tr) else float("nan")
+        lo,hi=boot(corr); ev=acc*0.80-(1-acc) if len(tr) else float("nan")
+        ov=int(m.sum()); ovacc=(((pr[m]>0.5).astype(int)==y[m]).mean()) if ov else float("nan")
+        print(f"=== {label} === indep_trades={len(tr)} accuracy={acc:.3f} CI95=[{lo:.3f},{hi:.3f}] EV/bet@0.80={ev:+.3f}   (raw overlapping: n={ov} acc={ovacc:.3f})",flush=True)
+        allc.append(corr); alln+=len(tr)
+    C_=np.concatenate(allc); acc=C_.mean(); lo,hi=boot(C_)
+    print(f"=== 2024-2026 COMBINED === indep_trades={alln} accuracy={acc:.3f} CI95=[{lo:.3f},{hi:.3f}]  (V27 held-out: ~0.642)",flush=True)
+    print(f"    deriv payout-deduction EV (0.85 ≈ ~15% deduction; breakeven p*=1/(1+payout)): "
+          + "  ".join(f"{po:.2f}->be{1/(1+po):.3f}:EV{acc*po-(1-acc):+.3f}" for po in (0.80,0.85,0.90)),flush=True)
 
 class Min15Strategy:
     def __init__(self, pair="EURUSD", models_dir=MODELS):

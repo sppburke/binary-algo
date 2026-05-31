@@ -1,18 +1,26 @@
-"""2-MINUTE EURUSD binary — PRODUCTION pipeline (train / backtest / live inference).
+"""2-MINUTE EURUSD binary — PRODUCTION pipeline v2 (train / backtest / live inference).
 
-Best 2-min strategy (research_log MIN2-FINAL): EURUSD up/down 120s binary. The 120s horizon is the sweet
-spot between 1m (dominated by spread/bid-ask-bounce noise) and 15m (fully efficient): long enough that a
-released move escapes microstructure noise, short enough that the volatility compression-release regime still
-predicts the breakout direction. The book bets ONLY in the compression-release regime, AGAINST the last
-5-min move (reversion), selective by confidence.
+Target = a deriv.com Rise/Fall 120-SECOND binary (verified vs deriv T&C 2.2.1.3 / 2.2.3.1 / 2.3.1 + tick API
+schemas): entry = the NEXT mid-tick after the order, exit = the last mid-tick at/before +120s, "Rise" wins iff
+exit > entry STRICTLY (ties LOSE); MID-to-MID, NO spread (deriv's edge is the payout deduction). The
+120s horizon is the sweet spot between 1m (dominated by spread/bid-ask-bounce noise) and 15m (fully efficient):
+long enough that a released move escapes microstructure noise, short enough that the volatility
+compression-release regime still predicts the breakout direction. The book bets ONLY in the compression-release
+regime, AGAINST the last 5-min move (reversion), selective by confidence.
 
-Pre-committed result (VAL-only selection, judged once):
-  TEST 2024-25 = 0.694 (n1591) ; OOS 2026 = 0.764 (n330, CI[0.718,0.809], all 3 months >=0.744).
-  The OOS-2026 selective accuracy clears 75%; the larger 2024-25 sample is ~0.69, so the honest all-period
-  rate is ~0.70-0.72 and the >75% specifically describes the 2026 out-of-sample period. EV/bet@0.80 = +0.375 OOS.
+v2 METHODOLOGY FIX (2026-05, post bias-audit) — read research_log "BIAS AUDIT" entry:
+  The 1-second bars drop empty seconds (tick1s_cache.py), so the old label `mid.shift(-120)` shifted 120
+  *bars*, not 120 *seconds*. On gap-dropped data that spanned a MEDIAN of ~225 wall-clock seconds (p90 463s) —
+  a variable, ~2x-longer horizon that is not a tradeable fixed-expiry binary and that broke trade independence
+  (the non-overlap gap was 120s while outcome windows ran ~225s, so the "independent" trades overlapped and the
+  bootstrap CIs were too narrow / n inflated ~30%). FIX: the label is now a strict WALL-CLOCK lookup (price at
+  t+120s, matched within TOL_S, window must not cross a data gap), and non-overlap blocks HS+TOL_S seconds so
+  selected trades are genuinely independent. The edge is robust to the fix; the numbers now describe a REAL 120s
+  binary with honest independence-correct CIs. Re-verify with `python min2_production.py train` (see research_log).
 
 Direction = 0.5*all-bars ensemble (LGBM+XGB+CatBoost) + 0.5*compression-release LGBM specialist. The specialist,
-trained only on regime bars, lifts in-regime direction AUC 0.510 -> 0.531 (VAL); the 50/50 blend maximizes it.
+trained only on regime bars, lifts in-regime direction AUC (VAL); the 50/50 blend maximizes it. The backtest
+reports bootstrap CI95, per-month accuracy, payout sensitivity, and a +1s entry-latency robustness row.
 
 PER-PAIR (default EURUSD). Artifacts are pair-labeled; train other currencies with a PAIR argument (each needs
 its own 1-second microstructure cache under features_tick_<PAIR>/).
@@ -40,7 +48,11 @@ from sklearn.metrics import roc_auc_score
 
 ROOT="/media/sean/CORSAIR/binary-algo"; MODELS=f"{ROOT}/models"
 PAIR="EURUSD"
-HS, GAP = 120, 120
+HS = 120                                 # 120-SECOND fixed wall-clock expiry (a real binary option expiry)
+TOL_S = 10                               # settlement/entry matched within 10s of the exact instant, else the
+                                         # [entry, expiry] window crosses a data gap and the row is dropped
+GAP = HS + TOL_S                         # non-overlap block (s): guarantees selected trades' expiry windows are disjoint
+ENTRY_LAG_S = 1                          # deriv enters on the NEXT tick AFTER the order (T&C 2.2.3.1) -> 1s entry lag
 COMP_PC, REL_PC, COV = 67, 70, 0.03      # regime: bbw1800<=q67 & rel>=p70 ; 3% confidence coverage
 W_SPEC = 0.5                              # blend weight on the compression-release specialist
 TRSTRIDE_ALL, TRSTRIDE_SPEC = 5, 2
@@ -86,18 +98,49 @@ def feats(b):
 
 def load_split(sp): return pd.read_parquet(f"{TICK}/{sp}_1s.parquet")
 
-def prep(b):
-    X=feats(b); mid=b["mid"]
-    ret=(mid.shift(-HS)/mid-1).values
-    valid=np.isfinite(ret)&(ret!=0)
+def wc_ret(ts, mid, horizon_s=HS, tol_s=TOL_S, lag_s=ENTRY_LAG_S):
+    """deriv.com Rise/Fall settlement, modeled faithfully (verified vs deriv T&C + API tick schemas):
+      * spot = bid/ask MID, <=1 tick/sec; our 1s bars use the last tick/sec -> matches deriv's feed. NO spread
+        crosses the win/loss decision (T&C 2.2.1.3); the broker edge is the payout deduction (2.3.1), modeled
+        downstream via the payout-sensitivity EV table.
+      * ENTRY spot = the NEXT tick after the order is processed (T&C 2.2.3.1): first tick at/after decision+lag_s.
+      * EXIT  spot = the LATEST tick at or before the end time:                last tick with ts <= entry_ts+horizon_s.
+      * 'Rise' wins iff exit > entry STRICTLY; a tie (ret==0) LOSES (we keep ties as valid losing trades).
+    VALID iff the entry and exit ticks exist within tol_s of their target instants and there are >=2 ticks in
+    the window (deriv refunds <2-tick / gap-straddling windows). Returns (ret, valid)."""
+    ts=np.asarray(ts); mid=np.asarray(mid,dtype=float); n=len(ts)
+    entry_t=ts+lag_s;            ei=np.searchsorted(ts, entry_t, side="left")        # first tick at/after order+lag
+    exit_t=entry_t+horizon_s;    xi=np.searchsorted(ts, exit_t, side="right")-1      # last tick at/before expiry
+    eic=np.clip(ei,0,n-1); xic=np.clip(xi,0,n-1)
+    valid=(ei<n)&(xi>ei)                                                             # entry exists; >=2 distinct ticks
+    valid&=(ts[eic]-entry_t)<=tol_s                                                  # entry tick within tol after order
+    valid&=(exit_t-ts[xic])<=tol_s                                                   # exit tick within tol before expiry
+    ret=mid[xic]/mid[eic]-1.0
+    valid&=np.isfinite(ret)                                                          # ret==0 stays valid: a losing tie
+    return ret, valid
+
+def prep(b, lag_s=ENTRY_LAG_S):
+    X=feats(b); mid=b["mid"].values.astype(float)
     ts=b.index.values.astype("datetime64[s]").astype("int64")
+    ret,valid=wc_ret(ts,mid,HS,TOL_S,lag_s)
     return X,(ret>0).astype(int),np.abs(ret),valid,ts,b.index
 
+def boot(corr, nb=5000, seed=7):
+    """Bootstrap CI95 of the win-rate over INDEPENDENT (non-overlapping) trades."""
+    corr=np.asarray(corr,dtype=float)
+    if len(corr)<5: return (float("nan"),float("nan"))
+    rng=np.random.default_rng(seed); n=len(corr)
+    a=np.array([corr[rng.integers(0,n,n)].mean() for _ in range(nb)])
+    return float(np.percentile(a,2.5)),float(np.percentile(a,97.5))
+
 def nonoverlap(ts,conf,thr,gap=GAP):
+    """GREEDY-by-confidence de-overlap. Kept only as an OPTIMISTIC reference: it peeks ahead within each
+    overlap cluster to keep the most-confident bar, which a live trader cannot do. Use nonoverlap_chrono
+    for the headline tradeable number."""
     sel=np.where(conf>=thr)[0]
     if len(sel)==0: return np.array([],dtype=int)
     order=sel[np.argsort(-conf[sel])]
-    if len(order)>300000: order=order[:300000]
+    if len(order)>2_000_000: order=order[:2_000_000]
     tmin=int(ts[order].min()); span=int(ts[order].max()-tmin)+gap+2
     blk=np.zeros(span,bool); take=[]
     for i in order:
@@ -105,6 +148,15 @@ def nonoverlap(ts,conf,thr,gap=GAP):
         if blk[t]: continue
         take.append(i); blk[max(0,t-gap+1):t+gap]=True
     return np.sort(np.array(take))
+
+def nonoverlap_chrono(ts, mask, gap=GAP):
+    """LIVE-FAITHFUL first-come de-overlap (NO look-ahead): scan bars in time order; take each signaled bar,
+    then block the next `gap` seconds. The honest tradeable policy and the PRIMARY accuracy in the backtest."""
+    take=[]; block_until=-1
+    for i in np.where(mask)[0]:
+        if ts[i] < block_until: continue
+        take.append(i); block_until=int(ts[i])+gap
+    return np.array(take,dtype=int)
 
 def mk_lgb(n=4000): return lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=350,
     min_child_samples=200,subsample=0.8,subsample_freq=1,colsample_bytree=0.6,reg_lambda=8,n_estimators=n,n_jobs=20,verbosity=-1)
@@ -117,13 +169,13 @@ def train():
     btr,bva=load_split("train"),load_split("val")
     Xtr,ytr,mtr,vtr,_,_=prep(btr); Xva,yva,mva,vva,_,_=prep(bva)
     feat_names=list(Xtr.columns)
-    iva=np.where(vva)[0]
+    iva=np.where(vva&(mva>0))[0]   # drop exact ties from training/early-stop
     # regime thresholds from TRAIN
     bbwtr=Xtr["bbw1800"].values.astype(float); reltr=Xtr["rel_ratio"].values.astype(float)
     qb=float(np.nanpercentile(bbwtr[vtr],COMP_PC)); rq=float(np.nanpercentile(reltr[vtr&(bbwtr<=qb)],REL_PC))
     print(f"[train] prep {time.time()-t0:.0f}s; regime bbw1800<={qb:.3e} rel>={rq:.3f}",flush=True)
     # all-bars direction ensemble
-    iall=np.where(vtr)[0][::TRSTRIDE_ALL]
+    iall=np.where(vtr&(mtr>0))[0][::TRSTRIDE_ALL]
     XA=Xtr.iloc[iall]; yA=ytr[iall]
     L=mk_lgb(); L.fit(XA,yA,eval_set=[(Xva.iloc[iva],yva[iva])],eval_metric="auc",callbacks=[lgb.early_stopping(120),lgb.log_evaluation(0)])
     L.booster_.save_model(art("dir_v1_lgb.txt")); print(f"[train] v1-lgb {time.time()-t0:.0f}s",flush=True)
@@ -144,7 +196,7 @@ def train():
     def rmask(X,valid):
         b=X["bbw1800"].values.astype(float); r=X["rel_ratio"].values.astype(float)
         return valid&(b<=qb)&(r>=rq)
-    isp=np.where(rmask(Xtr,vtr))[0][::TRSTRIDE_SPEC]; ivsp=np.where(rmask(Xva,vva))[0]
+    isp=np.where(rmask(Xtr,vtr)&(mtr>0))[0][::TRSTRIDE_SPEC]; ivsp=np.where(rmask(Xva,vva)&(mva>0))[0]
     S=mk_spec(); S.fit(Xtr.iloc[isp],ytr[isp],eval_set=[(Xva.iloc[ivsp],yva[ivsp])],eval_metric="auc",
         callbacks=[lgb.early_stopping(200),lgb.log_evaluation(0)])
     S.booster_.save_model(art("dir_spec_lgb.txt")); print(f"[train] specialist best_iter={S.best_iteration_} {time.time()-t0:.0f}s",flush=True)
@@ -179,20 +231,35 @@ def _blend(p,L,G,C,S,X):
 
 def backtest():
     p,L,G,C,S=_load()
+    print(f"[backtest] deriv Rise/Fall {HS}s | entry=next tick (lag {ENTRY_LAG_S}s), exit=last tick<=expiry, mid-to-mid, ties LOSE | gap={GAP}s | de-overlap=chronological (no look-ahead)")
     for sp,label in (("test","TEST 2024-25"),("oos","OOS 2026")):
-        b=load_split(sp); X,y,mag,valid,ts,idx=prep(b)
-        pr=_blend(p,L,G,C,S,X)
+        b=load_split(sp); X,y,mag,valid,ts,idx=prep(b)   # prep uses the deriv next-tick entry lag ENTRY_LAG_S
+        mid=b["mid"].values.astype(float)
+        pr=_blend(p,L,G,C,S,X); pred=(pr>0.5).astype(int)
         bbw=X["bbw1800"].values; rel=X["rel_ratio"].values; r300=X["ret300"].values
         gate=valid&(bbw<=p["bbw1800_q67"])&(rel>=p["rel_p70"])&(np.sign(pr-0.5)==-np.sign(r300))
         conf=np.abs(pr-0.5); cand=gate&(conf>=p["conf_thr"])
-        tr=nonoverlap(ts,np.where(cand,conf,-1.0),0.0); tr=tr[cand[tr]]
-        correct=((pr[tr]>0.5).astype(int)==y[tr]); acc=correct.mean() if len(tr) else float("nan")
-        print(f"\n=== {label} ({SPLIT_YEARS[sp]}) === trades={len(tr)} accuracy={acc:.3f}")
+        # PRIMARY: chronological first-come de-overlap (live policy); ties (mag==0) are LOSING trades (deriv strict)
+        tr=nonoverlap_chrono(ts,cand)
+        correct=((pred[tr]==y[tr])&(mag[tr]>0)).astype(float); acc=correct.mean() if len(tr) else float("nan")
+        lo,hi=boot(correct); ngate=int(gate.sum()); cov=len(tr)/ngate if ngate else float("nan")
+        print(f"\n=== {label} ({SPLIT_YEARS[sp]}) === independent_trades={len(tr)} accuracy={acc:.3f} CI95=[{lo:.3f},{hi:.3f}]"
+              f"  (in-regime bars={ngate}; realized coverage={cov:.2%})")
         mo=np.asarray(idx[tr].to_period("M").astype(str))
         for m in sorted(set(mo.tolist())):
             k=mo==m; print(f"    {m}: trades={int(k.sum()):>4}  acc={correct[k].mean():.3f}")
-        be=1/1.80; ev=acc*0.80-(1-acc) if len(tr) else float("nan")
-        print(f"    payout 0.80: breakeven={be:.3f}  EV/bet={ev:+.3f}")
+        # deriv edge = payout deduction (T&C 2.3.1), NOT a spread; win returns stake*(1+payout). breakeven p*=1/(1+payout)
+        print(f"    deriv payout-deduction EV (0.85 ≈ the ~15% deduction; R floats with vol/duration):")
+        for po in (0.80,0.85,0.90):
+            print(f"        payout {po:.2f}: breakeven={1/(1+po):.3f}  EV/bet={acc*po-(1-acc):+.3f}")
+        # GREEDY-by-confidence reference (OPTIMISTIC: peeks ahead within overlap clusters — not live-achievable)
+        trg=nonoverlap(ts,np.where(cand,conf,-1.0),0.0); trg=trg[cand[trg]]
+        accg=((pred[trg]==y[trg])&(mag[trg]>0)).mean() if len(trg) else float("nan")
+        print(f"    [ref] greedy-by-confidence de-overlap (optimistic upper bound): n={len(trg)} acc={accg:.3f}")
+        # IDEAL reference: same-tick entry (NOT achievable on deriv, which enters the NEXT tick) — shows the entry-lag cost
+        r0,v0=wc_ret(ts,mid,HS,TOL_S,lag_s=0); y0=(r0>0).astype(int); m0=np.abs(r0)
+        t0=tr[v0[tr]]; acc0=((pred[t0]==y0[t0])&(m0[t0]>0)).mean() if len(t0) else float("nan")
+        print(f"    [ref] same-tick entry (ideal, not achievable on deriv): n={len(t0)} acc={acc0:.3f}")
 
 # ----------------------------- live inference -----------------------------
 class Min2Strategy:

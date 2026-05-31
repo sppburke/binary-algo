@@ -11,40 +11,67 @@ EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy v
 
 ---
 
-## Headline result (two parts, both verified out-of-sample)
+## ⚠️ Methodology audit & deriv-faithful correction (2026-05-30)
 
-| Horizon / data | Best generalizing selective accuracy (2026 OOS) | 75%? |
+An end-to-end bias audit (multi-agent review + independent Tier-1 re-runs) found the earlier headline
+tick numbers (1m OOS 0.777, 2m OOS 0.764, 3s OOS 0.809) were **inflated by methodology errors**, and that
+the sub-15-minute books are **not even tradeable on deriv EUR/USD**. All production pipelines were fixed,
+retrained, and re-verified out-of-sample. Full record: `research_log.md` ("BIAS AUDIT"); pre-deploy guard:
+`audit_leakage.py`. The fixes:
+
+- **True fixed-expiry label** — the old `mid.shift(-HS)` counted *bars* (empty seconds are dropped), so a
+  "60 s" horizon was a **median 111 wall-clock seconds** (variable, ~2× nominal) that matches no fixed binary
+  expiry and broke trade independence. Now a strict wall-clock expiry (`wc_ret`).
+- **Honest trade independence** — de-overlap is now **chronological/live-faithful** (no greedy confidence
+  look-ahead, which inflated ~3–9 pts); bootstrap CIs are over genuinely independent trades.
+- **Deriv-faithful settlement** — verified vs deriv T&C + live `contracts_for` API: Rise/Fall settles
+  **mid-to-mid, tick-to-tick, NO spread**; entry = the **next tick after the order**, exit = last tick ≤ expiry,
+  **ties lose**; the broker edge is a **payout deduction** (~15 % → breakeven ~0.541). (An earlier spread penalty
+  was wrong and was removed.)
+- **No best-of-search** — each production model is one pre-committed config (regime from TRAIN, threshold from
+  VAL), judged once on TEST + OOS. The repo's own `corr(VALacc, OOSacc) = −0.54` shows VAL-selection was an
+  unreliable OOS predictor — the old headlines were search maxima.
+
+### Deriv tradeability (live-API verified)
+
+deriv `asset_index` / `contracts_for` for `frxEURUSD`: **forex EUR/USD Rise/Fall minimum = 15 minutes** (max
+365 days), time units only — **no ticks, no seconds, no sub-15-minute expiries**. Those exist only on **synthetic
+indices**, not forex. So the 1 m / 2 m books **cannot be placed on deriv EUR/USD**; only the 15-minute (and longer:
+30 m / 1 h / …) Rise/Fall is tradeable. Higher/Lower min = 1 day.
+
+### Corrected, deriv-faithful out-of-sample results
+
+| Production model | Horizon | Deriv EUR/USD tradeable? | TEST 2024-25 | OOS 2026 | Verdict |
+|---|---|---|---|---|---|
+| `min1_production.py` | 60 s | ❌ below 15 m floor | 0.539 (n1017) | 0.550 (n349, CI[.499,.602]) | ~breakeven — no edge |
+| `min2_production.py` | 120 s | ❌ below 15 m floor | 0.528 (n2528) | 0.539 (n710, CI[.503,.576]) | ~coin-flip — no edge |
+| **`m15_production.py`** | **15 min** | ✅ **at the floor** | 2024 0.689 / 2025 0.582 | **0.663** (n89, CI[.562,.753]) | **Combined 0.647 (n677, CI[.612,.684]) — the real deriv edge** |
+
+deriv payout-deduction EV (R ≈ 1.85, breakeven 0.541): **m15 combined +0.197** (profitable); min1 OOS +0.018,
+min2 OOS −0.002 (marginal/negative — and untradeable anyway).
+
+**Bottom line:** the only genuine, deriv-tradeable, out-of-sample-verified EUR/USD up/down edge is the
+**15-minute** volatility-compression × NY Rise/Fall book at **~0.64–0.66** — comfortably profitable against
+deriv's payout deduction and not eroded by entry latency (a next-tick entry is negligible at 15 m). The
+seconds-to-2-minute microstructure edge is **real but uncapturable on deriv EUR/USD**: it decays within a tick or
+two of entry latency and is below the 15-minute forex floor (it would only be tradeable on synthetic indices or
+another broker).
+
+> **Everything below this line is the *pre-audit* research record**, kept for provenance. Its tick/seconds
+> accuracies (3 s 0.81, 1 m 0.78, 2 m 0.76, etc.) **overstate the tradeable edge** — read them through the audit
+> above (they reflect the bar-count horizon, greedy de-overlap, and best-of-search before correction).
+
+---
+
+## Pre-audit research record (superseded by the audit above)
+
+| Horizon / data | Pre-audit selective accuracy (2026 OOS) — *overstated* | 75%? |
 |---|---|---|
-| **3 seconds** — tick order-book microstructure (ensemble) | **TEST 0.756 / OOS 0.809–0.814** @0.05% coverage | ✅ |
-| **5 seconds** — same | **TEST 0.760 / OOS 0.814** @0.02% coverage | ✅ |
-| 8 seconds — same | OOS 0.753 / TEST 0.702 | borderline |
-| 15–30 seconds — same | OOS ~0.70–0.76 / TEST ~0.62–0.65 @0.05% | ✖ not both-sides |
-| **2 minutes** — 1s tick microstructure, compression-release reversion (EURUSD) | **OOS 0.764 (n330, month-consistent) / TEST 0.694** | ✅ OOS |
-| 1 minute — 1s tick microstructure, compression-release + reversion (EURUSD) | **OOS 0.777 (n184, all 3 months) / TEST 0.739** | ✅ OOS |
-| 1–5 minutes — OHLCV only (older work) | ~0.55–0.60 selective | ✖ |
-| 15 minutes — OHLCV + cross-pair + daily + calendar | ~0.52 global; **EURUSD compress×NY ≈ 0.60–0.64** (4-window-stable) | ✖ |
-
-> **Horizon-frontier sweep (`tick_horizon_sweep.py`):** the longest horizon clearing ≥75% on **both** TEST and
-> 2026 OOS (n≥100) is **5 seconds**. The *unconditional* directional edge is an order-book-imbalance
-> microstructure phenomenon that decays to coin-flip by ~30–60 s. **But a second, regime-conditional edge exists
-> at the 2-minute tradeable expiry:** the volatility compression-release reversion book (`min2_production.py`)
-> reaches **OOS-2026 0.764 (n330, all three months ≥0.744)** — verified >75% out-of-sample on a binary-tradeable
-> horizon, though its larger 2024-25 TEST sample is ~0.69, so the all-period rate is ~0.70–0.72. This is the best
-> *tradeable-horizon* book — materially above the EURUSD 15m pocket (~0.60–0.64) and the 1m book (~0.66–0.67).
-
-1. **5-minute (and 15-minute) 75% is still open on liquid EURUSD** — explored across 11+ model/
-   signal families and *mechanistically explained*: the lag-1 autocorrelation of 5-min returns is
-   ≈ −0.03 (current best linear directional accuracy ~0.51), and the only strong signal — order-book
-   imbalance — decays from **55.3% at the next tick → ~0.50 by 1 minute → gone by 5 min**.
-2. **75% IS achieved at the 3-second horizon.** An LGBM+XGB+CatBoost ensemble on 13.8M 1-second
-   bars of tick microstructure reaches **75.6% TEST / 80.9% OOS** on the top-0.05%-confidence
-   signals. *Honest bounds:* extreme selectivity only (~1 bet/2000 s), small OOS n (397), latency-
-   critical, Dukascopy quote-size fidelity; a less-selective threshold generalizes to ~70%.
-
-**Bottom line:** the predictable directional edge in liquid FX surfaces most clearly at the
-**seconds** scale and is much weaker by 5 minutes. Reaching ≥75% has so far come from that short
-horizon; other routes — true order-book data, or a structurally less-efficient instrument — remain
-open to explore.
+| 3 seconds — tick order-book microstructure (ensemble) | TEST 0.756 / OOS 0.809–0.814 @0.05% cov | (pre-audit) |
+| 5 seconds — same | TEST 0.760 / OOS 0.814 @0.02% cov | (pre-audit) |
+| 2 minutes — 1s tick microstructure, compression-release reversion | OOS 0.764 / TEST 0.694 → **deriv-faithful 0.539/0.528** | corrected |
+| 1 minute — 1s tick microstructure, compression-release + reversion | OOS 0.777 / TEST 0.739 → **deriv-faithful 0.550/0.539** | corrected |
+| 15 minutes — OHLCV + cross-pair + daily + calendar | EURUSD compress×NY ≈ 0.60–0.64 → **holds: 0.647 combined** | ✅ deriv |
 
 ---
 
