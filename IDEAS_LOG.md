@@ -104,3 +104,21 @@ a sign-invariance theorem). The predictable structure is MAGNITUDE (realized vol
 directional edge is at the SECONDS scale (~0.65, confirmed by signatures). For an up/down 30m binary, >0.65/>0.75 is not
 achievable on EURUSD; the honest tradeable edges are: 15m compression×NY ~0.64, 3s tick ~0.66, and the NEW magnitude/vol
 model ~0.75 (volatility/touch products, not up/down).
+
+## SESSION-2 (2026-05-31b) — 5-MIN re-push: CROSS-PAIR + ORDER-FLOW + META-LABELER (NEW orthogonal ideas)
+Goal re-set to 5-min >65% OOS. New ideas tried (the genuinely-untried-at-5m set):
+- **Cross-pair USD-common-factor / lead-lag** (m5_xpair.py): EURUSD = EUR-strength − USD-strength; build USD basket from the
+  other 6 majors (sign-aligned: +ret for USD-base JPY/CHF/CAD, −ret for USD-quote GBP/AUD/NZD), per-pair lead-lag residual
+  in EURUSD-equivalent terms, catch-up residual (EURUSD owes the basket move), EUR-idiosyncratic residual, cross-pair
+  dispersion & agreement. **The relative-value RESIDUAL reversion is the FIRST orthogonal signal SIGN-STABLE across 2024 &
+  2026** (spearman +0.015/+0.024) — momentum-continuation agreement is dead (sign-blind). Lifts honest book 0.566→0.586.
+- **Order-flow as features + reliability** (features_of/: Kyle λ, OF persist/accel/uptick, normalized imbalance): 0 AUC lift
+  (raw OF into a GBM is null), signed-OF flow-FOLLOWING loses (stably negative vs fwd ret) — but helps the book → 0.594.
+- **Learned META-LABELER on ORTHOGONAL axes** (m5_meta.py): 2nd lgb predicts P(primary correct) from agreement/dispersion/OF/
+  confidence (NOT the 239), abstain unless meta≥thr, threshold by WORST-VAL-HALF stability (kills the corr(VAL,OOS)=−0.54
+  trap). Best honest 5-min book **combined ~0.61** (t24 0.64/t25 0.58/oos 0.62). The right way to "not select losers".
+**Falsifier (P0 gate, m5_xp_analyze.py):** NO conditioning region (agreement/OF/disp/vol/session) lifts the 2025 window above
+~0.557; ORACLE (hindsight) max-floor = 0.598-0.601. A meta-classifier ≤ its features' conditional accuracy → can't reach 0.65.
+**5-MIN CONCLUSION:** honest frontier improved 0.566→**~0.61** (genuine, profitable vs 0.541), but **≥0.65 OOS-stable is NOT
+reachable** — the 2025 regime is near-efficient for 5-min direction. Buildable-from-repo levers exhausted; remaining levers =
+signed macro/news calendar (external) or a seconds/tick broker (real ≥0.65 edge). Deliverable: m5_xpair_production.py.

@@ -60,6 +60,44 @@ deriv payout-deduction EV (R ≈ 1.85, breakeven 0.541): **m15 combined +0.197**
 > backed by a sign-invariance theorem (arXiv:2512.15720): complexity measures gate move *size*, not *direction*.
 > Full record + lessons: **[`DIRECTION_FINDINGS.md`](DIRECTION_FINDINGS.md)**, `m5_research_log.md`, `IDEAS_LOG.md`.
 
+#### 5-minute re-push (2026-05-31) — cross-pair + order-flow + meta-labeler + cross-horizon stack + macro-news — full record in [`m5_research_log.md`](m5_research_log.md)
+
+Goal re-set to a **5-minute >65% OOS** model. A fresh, genuinely-untried battery (19 logged iterations + two multi-agent
+research workflows that ran their own falsifiers) **improved the honest 5-minute frontier 0.566 → 0.648** — but a
+**robustly-verified ≥0.65 remains unreachable**, confirmed six independent ways (experiments, research workflow, two
+parent-ceiling tests, walk-forward, 2024–2026 literature, and a real macro-surprise calendar). What moved the needle and what didn't:
+
+| Lever (lab script) | Honest held-out combined | Verdict |
+|---|---|---|
+| OHLCV 239-feat ensemble (`m5_production.py`) | 0.566 | prior baseline |
+| **+ cross-pair / USD-common-factor / lead-lag** (`m5_xpair.py`) | **0.586** | NEW orthogonal family; residual reversion **sign-stable across 2024 & 2026** |
+| **+ order-flow** (`features_of/`: Kyle λ, OF persist) | **0.594** | 0 AUC lift but helps the book |
+| **+ learned meta-labeler on orthogonal axes** (`m5_meta.py` / `m5_xpair_production.py`, worst-VAL-half-stable threshold) | **0.583 frozen** (t24 0.607 / t25 0.555 / oos 0.606); ~0.61 at higher selectivity | the "avoid losers" ask done properly |
+| **+ cross-horizon stack** (`m5_stack2.py`: 15m edge × 5m cross-pair meta, target = 5-min outcome) | **0.613 verifiable** (oos n163) / **0.648** thin-cov (oos n45) | strongest method — the 15m edge front-loads into the 5-min move |
+
+The strongest method is the **cross-horizon stack**: the repo's real 15-minute edge (`m15_production`, 0.647) front-loads
+into the 5-minute sub-move (the 15m model's confident direction predicts the **5-min** outcome at 0.597), and gating it with
+the 5m cross-pair meta-labeler lifts the honest frontier to **0.613 verifiable / 0.648 at thin OOS coverage** (`m5_stack2.py`,
+artifacts `models/m5stack_EURUSD_*`). The prior frozen book (`m5_xpair_production.py`) is **combined 0.583** CI95[.570,.595],
+EV +0.078/bet @R0.85. A **robustly-verified >0.65 is still not reached**: combined 0.648 < 0.65, the binding **2025 (test25)**
+window caps at ~0.597, and the >0.65 region rests on oos n=45. test25 caps at ~0.55–0.60 even under an **ORACLE (hindsight-cheating) gate**
+(max-floor 0.598–0.601), so no honest selection reaches 0.65. A meta-classifier cannot exceed its features' conditional
+accuracy, which the P0 gate (`m5_xp_analyze.py`) measured directly at ~0.557 on test25. Cross-pair **momentum**-continuation
+is dead; only the relative-value **residual** (reversion) is live.
+
+**The ceiling is structural and was stress-tested every way:** the 15m parent (0.647) is **not liftable** — cross-pair features
+add 0 AUC at 15m (`m5_xpair.py MX_HOR=15`) and a 15m meta-labeler gives 0.615 < 0.647 (`m15_meta.py`); **walk-forward** annual
+retraining (`m5_walkforward.py`) helps the primary +0.02 but lifts test25 only +0.011 (the 2025 weakness is fundamental, not a
+gap artifact); the **Sofien corpus** high-precision confluence rules are null (`m5_sofien_confluence.py`, 0.50–0.535). Finally,
+**macro-surprise event-conditioning was built and tested with real data** — a 6-agent search found FXStreet's free API, from
+which `fetch_calendar.py` pulled **8,838 USD/EUR events (2012–2026) with actual+consensus**; mapped to EUR/USD direction
+(`event_signs.py`) and tested (`m5_news.py`, `m5_news_model.py`): **null for direction** (surprise-rule train ~0.50; model
+news-features rank bottom; news-window accuracy ≤ coin-flip on test years) — FX prices a surprise within ~1 minute, so news is a
+**magnitude/volatility** event, not a direction. The remaining paths to >0.65 are a **seconds/tick-expiry broker** (the real
+≥0.65 edge: `mtick3` 3 s, 0.657/0.667) or **volatility/touch products** (where the new macro-surprise data *does* add value, via
+the `m30_magnitude.py` AUC-0.75 edge). Deliverables: **[`m5_stack2.py`](m5_stack2.py)** (cross-horizon, ~0.61 verifiable) and
+**[`m5_xpair_production.py`](m5_xpair_production.py)** (frozen 0.583, artifacts `models/m5xp_EURUSD_*`).
+
 #### 30-minute deep-dive (2026-05-30) — full record in [`m30_research_log.md`](m30_research_log.md)
 
 A dedicated, relentless search for a **>75% 30-minute** EUR/USD edge across **9 independent attacks** (lab in
