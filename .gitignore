@@ -231,3 +231,4 @@ vbar_cache/
 
 # Downloaded reference papers (external, not project output)
 *.pdf
+flow_cache/

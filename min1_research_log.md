@@ -123,6 +123,20 @@ N-HiTS) gives no short-horizon sign edge (the daily 73% F1 was a wavelet-denoisi
 (Fletcher 2010, EBS EUR/USD) shows 3-class accuracy peaking ~0.50 at 20s and decaying. Our ~0.60 selective book is at/above the
 published frontier; our broad-coverage 0.55 matches the literature's 60s number exactly. **>0.65 at 60s is unsupported anywhere.**
 
+## More model classes (Kalman, kernel-SVM, lever-combination) — all null; up-only remains best
+
+- **Kalman filters (`min1_kalman.py`, causal FILTER only — the smoother leaks the future):** channel-reversion FLOOR 0.499,
+  velocity-trend 0.492 (below 0.50 — smoothed momentum is the dead side), time-varying cross-pair β-residual reversion 0.504.
+  The Kalman channel is just an adaptive version of our compression×reversion lever and gates magnitude, not sign.
+- **Kernel / SVM model class (`min1_kernel.py`, Fletcher 2010: RBF via Nyström+SGD on microstructure + genuine signed per-side
+  order flow):** VAL dir-AUC **0.5022**, train in-sample AUC 0.529 (cannot even memorize a signal), selective accuracy 0.46–0.50
+  at H=15/30/60s (ties-LOSE drags a 0.50-AUC model under breakeven). A different model class adds nothing — confirms efficiency.
+- **Best-model combination (`min1_best.py`):** under the disciplined production gate the **HMM vol-state gate gives ZERO lift**
+  (worst-VAL-half selection admits all 3 states → identical to the symmetric book; the earlier "engine state-0 floor 0.600" was a
+  thin-cohort artifact under a per-state reversion bet, and collapses to 0.503 under child-direction on the gate cohort). The
+  **up-only production-gate filter is the single best honest book — 2025 0.581 / 2026 0.600, floor 0.518** (2024 sags); no book
+  passes the strict 3-window CI test. Frozen artifact: none (floor < 0.57 freeze bar).
+
 ## Answer to "would HMMs help?" and the final verdict
 
 **Answer to "would HMMs help?" — No (empirically + literature-confirmed):** a Gaussian HMM's latent states are volatility/size
