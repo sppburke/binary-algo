@@ -21,7 +21,7 @@ done/killed → update leaderboard → commit. Run DISCOVERY (skill §8.6) perio
 | A1a | A | 3-model GBM ensemble retune | nl{255,350}, nest{2000,4000} | min2_production.py train | D | med | pending | | | | | |
 | A2a | A | compression × session × coverage sweep | comp_q{10,20,33}, cov{5,10%}, sess{NY,all} | min2_production.py | G+D | med | pending | | | | | |
 | A3a | A | reversion-vs-ret{60,300,900} × specialist w_spec{0,0.5} | levers | min2_production.py | D | med | pending | | | | | |
-| A5a | A | cross-horizon stack: 5m/15m parent → 2m | parent∈{m5,m10,m15}, soft, q-gate | (new, adapt m5_stack2) | D | med-high | pending | | | | | |
+| A5a | A | cross-horizon stack: 15m parent → 2m (AGREE filter) | parent=m15, agreement | min2_stack.py | D | med-high | killed | .526/.522/.544 | .524/.544/.550 | .529/.492/.536 | KILLED — 15m agreement REDUCES every cell vs baseline (UP26 .555→.550) + sheds coverage; parent adds no info to the 2m reversion bet. | min2_stack_result.json |
 | A6a | A | cross-pair USD-residual + OF, MX_HOR≈2 | mode{xp,xpof} | m5_xpair.py (HS=120) | D | med | pending | | | | | |
 | A8a | A | up/down FILTER vs SPECIALIST at 120s | side×{filter,specialist} | min2_updown.py / upspec | U/Dn | filter med | pending | | | | | |
 | B1a | B | tick microstructure ensemble @120s | HS=120, OBI/microprice/flow | m_tick_prod.py | D | low (decays by 60s) | pending | | | | | |
