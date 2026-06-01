@@ -1,0 +1,40 @@
+{
+ "row": "N8 signed-semivariance-skew sign-conditioning on magnitude bars",
+ "horizon_s": 120,
+ "W_sec": 300,
+ "mag_gate_decile": 0.9,
+ "per_year_skew_bin": {
+  "2024_skew+": {
+   "n": 225356,
+   "up_rate": 0.4829
+  },
+  "2024_skew-": {
+   "n": 237466,
+   "up_rate": 0.4867
+  },
+  "2025_skew+": {
+   "n": 667695,
+   "up_rate": 0.5069
+  },
+  "2025_skew-": {
+   "n": 676572,
+   "up_rate": 0.5073
+  },
+  "2026_skew+": {
+   "n": 166324,
+   "up_rate": 0.4881
+  },
+  "2026_skew-": {
+   "n": 157293,
+   "up_rate": 0.5183
+  }
+ },
+ "edge_skew+_minus_skew-": {
+  "2024": -0.0038000000000000256,
+  "2026": -0.030200000000000005
+ },
+ "falsifier": {
+  "KILLED": true,
+  "verdict": "KILLED: sign(RS+ - RS-) does not split next-2m up-rate with a stable same-sign edge in 2024 & 2026 on big-move bars (direction stays ~0.50 -> sign-invariance holds even under signed-semivariance conditioning)"
+ }
+}

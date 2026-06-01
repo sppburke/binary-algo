@@ -71,6 +71,6 @@ UP/DOWN strategy (track in MAGNITUDE_FINDINGS.md).
 | GATE | N | cross-leg sign-lead → EURUSD next-2m sign (covers N3/N5/N6/N9) | 6 legs × {1,2,5}min, USD-aligned | min2_legsign.py | D | 6-12% | killed | | | | KILLED — no leg's sign predicts EURUSD next-2m sign (best USDCAD .5025); pre-kills N3/N5/N6/N9 (cross-leg-sign null at 2m). | min2_legsign_result.json |
 | N4 | N | Market-Intraday-Momentum term-structure | since-open/last{30,60,120}min × {mom,rev} | min2_mim.py | D | 10% | killed | | | | KILLED — best last30-reversion .506 flat all years; no stable intraday-momentum edge at 2m. | min2_mim_result.json |
 | N7 | N | asymmetric up/down-tick Hawkes intensity imbalance | EURUSD mid-tick events | (deferred) | D | 9% | deferred | | | | cheap proxy ≈ tick-imbalance (known null, decays to .50 by 1min); full kernel-fit heavy/low-prior | |
-| N8 | N | signed-semivariance-skew sign-conditioning on magnitude bars | RS⁺−RS⁻ on mag-flagged bars | (deferred) | D | 5% | deferred | | | | §8.2 already flat across mag quartiles (sign-invariance); low prior | |
+| N8 | N | signed-semivariance-skew sign-conditioning on magnitude bars | RS⁺−RS⁻, W300s, mag-decile gate | min2_rsskew.py | D | 5% | killed | | | | KILLED — up-rate ~0.48-0.52 across skew bins; edge -.004(24)/-.030(26), not stable. Sign-invariance holds even under signed conditioner. | min2_rsskew_result.json |
 
 Discovery seeds remaining: see SWEEP_MATRIX Tier-N (N3-N9, sub-agent-sourced 2026-06-01). Run order: N6 gate → N7 Hawkes → N3 quantilogram → N4 MIM → rest.
