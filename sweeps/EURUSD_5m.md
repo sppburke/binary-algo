@@ -180,6 +180,11 @@ DOWN got the SAME pipeline as UP and the verdict is nuanced — not "dead", but 
   standalone signed channel works. Pre-killed N10/N11/N14/N15/N16/N17.
 - **Executed-null at 5m:** B3a CKS-OFI (.5006), B4a-basis & B5a per-side raw flow (.508), F3a ES→EUR lead-lag (sign-flip
   +.025→−.022, dir-hit<0.50), N12/N13 irreversibility/odd-moment (.51), N2a triangular / N4a MIM / N7a Hawkes (2m-killed).
+- **DEEP LEARNING on the CROSS-PAIR features (D-MLP, `m5_deep.py`):** an MLP (BN→256→128→64, dropout) on the SAME features
+  m5xp uses → VAL AUC **0.5218** (= GBM 0.523) but UP-at-gate **.539/.529/.533** (WORSE than GBM .605/.577/.615) and test
+  AUC ~0.509 every year. Same overall AUC, weaker high-confidence tail → GBMs dominate this tabular regime; deep is
+  information-bound here too (prior deep nulls were single-pair; this closes the cross-pair gap). `m5_deep_result.json`.
+  (A literature-grounded multi-agent review of DL architectures/tuning is in progress to confirm nothing better is missed.)
 - **Soundly subsumed (24 rows, audit-verified Tier-1 rationale):** A1a/A2a/A3a/A5b/A6a/A8c (single-pair TA or dominated
   modes, independently null ~0.51), C1a/C2a/C4a (sign-invariant magnitude gates), D1a/D4a (single-pair sequence/RL),
   E1a/E2a (magnitude=sign-invariant, out of scope), F1a/F2a/F4a (news/price-action/residual-target null).

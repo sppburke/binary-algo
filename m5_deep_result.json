@@ -1,0 +1,29 @@
+{
+ "row": "D-MLP: deep MLP on cross-pair features @5m",
+ "val_auc_MLP": 0.5218,
+ "gbm_baseline_val_auc": 0.523,
+ "gbm_up_gate": {
+  "2024": 0.605,
+  "2025": 0.577,
+  "2026": 0.615
+ },
+ "MLP_up_gate": {
+  "2024": {
+   "n": 4291,
+   "up_acc": 0.5386
+  },
+  "2025": {
+   "n": 3618,
+   "up_acc": 0.5287
+  },
+  "2026": {
+   "n": 1264,
+   "up_acc": 0.5332
+  }
+ },
+ "gate_conf_thr": 0.1456,
+ "falsifier": {
+  "DEEP_BEATS_GBM": false,
+  "verdict": "KILLED: MLP VAL AUC 0.5218 (GBM 0.523); UP-at-gate {2024:0.5386, 2025:0.5287, 2026:0.5332} does NOT beat the GBM .605/.577/.615 -> deep on cross-pair features does NOT help 5m direction (information-bound; GBMs dominate this tabular regime)."
+ }
+}
