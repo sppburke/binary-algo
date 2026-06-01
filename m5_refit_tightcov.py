@@ -4,13 +4,16 @@ evaluates UP-selective accuracy at MULTIPLE covers {0.30,0.15,0.10,0.05} in ONE 
 book's actual operating point survives refit or also deflates (15m precedent: tight-cov selacc MAX was only
 0.559 across 28 paths -> tighter cover never rescued it). CERTIFY a cov iff path_p10>=0.541 AND >=80% paths clear.
 Reuses m5_cpcv_refit.build_frugal/mk_lgb (no re-implementation)."""
-import json, time, itertools, numpy as np
+import os, json, time, itertools, numpy as np
 from sklearn.metrics import roc_auc_score
 import m5_cpcv_refit as RF
 import m5_xpair_production as XP
 
 COVS = [0.30, 0.15, 0.10, 0.05]
 N_GROUPS, K_TEST = 8, 2
+SIDE = os.environ.get("M5_SIDE", "UP").upper()   # UP: pred>.5 win y==1 | DOWN: pred<.5 win y==0
+UPSIDE = SIDE == "UP"
+WINVAL = 1 if UPSIDE else 0
 
 
 def main():
@@ -33,16 +36,16 @@ def main():
         if len(tr) > RF.SUBSAMPLE: tr = np.sort(rng.choice(tr, RF.SUBSAMPLE, replace=False))
         m = RF.mk_lgb(); m.fit(X[tr], y[tr]); pr = m.predict_proba(X[te])[:, 1]; yte = y[te]
         aucs.append(roc_auc_score(yte, pr))
-        gate = ny[te] & (pr > 0.5); conf = np.abs(pr - 0.5)
+        gate = ny[te] & ((pr > 0.5) if UPSIDE else (pr < 0.5)); conf = np.abs(pr - 0.5)
         for c in COVS:
             if gate.sum() >= 40:
                 cthr = np.quantile(conf[gate], 1 - c); sel = gate & (conf >= cthr)
                 if sel.sum() >= 20:
-                    acc[c].append(float((yte[sel] == 1).mean())); nsel[c].append(int(sel.sum())); continue
+                    acc[c].append(float((yte[sel] == WINVAL).mean())); nsel[c].append(int(sel.sum())); continue
             acc[c].append(np.nan); nsel[c].append(0)
         del m, pr
         if ci % 7 == 0: print(f"  [tightcov] path {ci+1}/28 AUC={aucs[-1]:.4f} up@.10={acc[0.10][-1]} ({time.time()-t0:.0f}s)", flush=True)
-    out = {"test": "(5m,UP) full-refit CPCV at multiple covers", "breakeven": 0.541, "stride": RF.STRIDE,
+    out = {"test": f"(5m,{SIDE}) full-refit CPCV at multiple covers", "breakeven": 0.541, "stride": RF.STRIDE,
            "auc_mean": round(float(np.mean(aucs)), 4), "per_cov": {}}
     for c in COVS:
         a = np.array(acc[c], float); ns = np.array(nsel[c]); valid = a[np.isfinite(a) & (ns >= 20)]
@@ -54,10 +57,9 @@ def main():
                                   "frac_clear_0.541": round(frac, 3), "med_n": int(np.median(ns[ns >= 20])),
                                   "CERTIFIED": bool(p10 >= 0.541 and frac >= 0.80)}
     any_cert = any(v.get("CERTIFIED") for v in out["per_cov"].values())
-    out["verdict"] = ("CERTIFIED at >=1 cover under refit" if any_cert else
-                      "NOT CERTIFIED at ANY cover under per-fold refit -> (5m,UP) deflates like 15m; regime-dependent, "
-                      "positive only on the forward split, not robust across arbitrary folds.")
-    json.dump(out, open("m5_refit_tightcov_result.json", "w"), indent=1)
+    out["verdict"] = (f"(5m,{SIDE}) CERTIFIED at >=1 cover under refit" if any_cert else
+                      f"(5m,{SIDE}) NOT CERTIFIED at ANY cover under per-fold refit -> dead/regime-bound.")
+    json.dump(out, open(f"m5_refit_tightcov_{SIDE.lower()}_result.json", "w"), indent=1)
     for c, v in out["per_cov"].items():
         print(f"  cov {c}: {v}", flush=True)
     print(f"[tightcov] VERDICT: {out['verdict']}", flush=True)

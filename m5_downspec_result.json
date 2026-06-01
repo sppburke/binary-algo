@@ -1,0 +1,37 @@
+{
+ "row": "A8c DOWN specialist (down-specific meta-labeler)",
+ "breakeven": 0.541,
+ "val_thr": 0.6301,
+ "val_q": 0.95,
+ "val_worsthalf_down": 0.7494,
+ "per_year_down": {
+  "2024": {
+   "n": 1541,
+   "acc": 0.5711,
+   "ci": [
+    0.547,
+    0.5964
+   ]
+  },
+  "2025": {
+   "n": 1809,
+   "acc": 0.5091,
+   "ci": [
+    0.4854,
+    0.5312
+   ]
+  },
+  "2026": {
+   "n": 571,
+   "acc": 0.5114,
+   "ci": [
+    0.4711,
+    0.5534
+   ]
+  }
+ },
+ "falsifier": {
+  "DOWN_SPECIALIST_WORKS": false,
+  "verdict": "A8c KILLED: down-specialist 2025 DOWN=0.5091 n1809 CI-lo<0.541 -> a purpose-built DOWN meta cannot crack the 2025 wall either; (5m,DOWN) dead."
+ }
+}
