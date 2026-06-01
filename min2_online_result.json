@@ -1,0 +1,7 @@
+{
+ "row": "C5a online concept-drift ARF+ADWIN control @120s (2-min-ahead, prequential, warm 2022-23)",
+ "horizon_s": 120, "keystone": "efficiency control (adaptation vs stale-model-drift)",
+ "auc_per_year": {"2024": 0.501, "2025": 0.505, "2026": 0.507},
+ "selective_acc_range": "0.495-0.530 at every confidence cut, all years",
+ "falsifier": {"KILLED": true, "verdict": "KILLED: an online drift-adaptive forest sits at ~0.50 AUC EVERY year incl 2026 -> 2m direction is GENUINE EFFICIENCY (not stale-model drift); no adaptive model can beat the ~0.55 wall. Matches the 60s keystone (0.503-0.508)."}
+}
