@@ -1,6 +1,7 @@
 {
   "schema": "book-manifest/v1",
   "id": "EURUSD.m15.v1",
+  "content_id": "67370590c2293e0d",
   "currency": "EURUSD",
   "timeframe": "15m",
   "side": "combined",
@@ -21,7 +22,7 @@
   },
   "source": {
     "script": "m15_production.py",
-    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
     "git_dirty": true
   },
   "hyperparams": {

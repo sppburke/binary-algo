@@ -79,9 +79,13 @@ def build(book_id, *, timeframe, side, role, script, summary, metrics, artifacts
     """Assemble a manifest dict. `artifacts` = list of on-disk paths to the trained-model files (hashed here)."""
     arts = [{"file": os.path.basename(a), "bytes": os.path.getsize(a), "sha256": file_sha256(a)}
             for a in artifacts]
+    # content_id = byte-unique fingerprint of the model (hash of the sorted artifact hashes). The semantic
+    # `id` is the handle you cite; `content_id` is the proof two references are the same model bytes.
+    content_id = hashlib.sha256("".join(sorted(a["sha256"] for a in arts)).encode()).hexdigest()[:16]
     return {
         "schema": "book-manifest/v1",
         "id": book_id,
+        "content_id": content_id,
         "currency": "EURUSD",
         "timeframe": timeframe,        # "1-5s" | "60s" | "5m" | "10m" | "15m" | "30m" | "120s"
         "side": side,                  # "up" | "down" | "combined"

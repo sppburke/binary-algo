@@ -1,20 +1,22 @@
 {
   "schema": "book-manifest/v1",
   "id": "EURUSD.m5stack.v1",
+  "content_id": "cf20bf9f16bf0f64",
   "currency": "EURUSD",
   "timeframe": "5m",
   "side": "combined",
   "role": "stack-meta",
   "summary": "5m BEST: cross-horizon soft stack \u2014 front-load the 15m-parent ensemble's direction into the 5m outcome, meta-gated.",
   "metrics": {
+    "oos_2026": 0.571,
     "combined_verifiable": 0.613,
-    "oos_2026_frozen_q0.98": 0.571,
     "thin_q0.99": 0.648,
-    "breakeven": 0.541
+    "breakeven": 0.541,
+    "note": "higher COMBINED (0.613) but lower single-year OOS(2026)=0.571 than m5xp (0.606)"
   },
   "source": {
     "script": "m5_stack2.py",
-    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
     "git_dirty": true
   },
   "hyperparams": {

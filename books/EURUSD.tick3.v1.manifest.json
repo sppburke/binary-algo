@@ -1,6 +1,7 @@
 {
   "schema": "book-manifest/v1",
   "id": "EURUSD.tick3.v1",
+  "content_id": "e6bbc74604746959",
   "currency": "EURUSD",
   "timeframe": "1-5s",
   "side": "combined",
@@ -13,7 +14,7 @@
   },
   "source": {
     "script": "m_tick_prod.py",
-    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
     "git_dirty": true
   },
   "hyperparams": {

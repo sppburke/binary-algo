@@ -1,6 +1,7 @@
 {
   "schema": "book-manifest/v1",
   "id": "EURUSD.m10.v1",
+  "content_id": "05fd0a85e07b50fb",
   "currency": "EURUSD",
   "timeframe": "10m",
   "side": "combined",
@@ -19,7 +20,7 @@
   },
   "source": {
     "script": "m10_freeze_honest.py",
-    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
     "git_dirty": true
   },
   "hyperparams": {
