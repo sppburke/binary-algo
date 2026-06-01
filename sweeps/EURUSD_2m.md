@@ -23,7 +23,7 @@ done/killed → update leaderboard → commit. Run DISCOVERY (skill §8.6) perio
 | A3a | A | reversion-vs-ret{60,300,900} × specialist w_spec{0,0.5} | levers | min2_production.py | D | med | pending | | | | | |
 | A5a | A | cross-horizon stack: 15m parent → 2m (AGREE filter) | parent=m15, agreement | min2_stack.py | D | med-high | killed | .526/.522/.544 | .524/.544/.550 | .529/.492/.536 | KILLED — 15m agreement REDUCES every cell vs baseline (UP26 .555→.550) + sheds coverage; parent adds no info to the 2m reversion bet. | min2_stack_result.json |
 | A6a | A | cross-pair USD-residual + OF, MX_HOR≈2 | mode{xp,xpof} | m5_xpair.py (HS=120) | D | med | pending | | | | | |
-| A8a | A | up/down FILTER vs SPECIALIST at 120s | side×{filter,specialist} | min2_updown.py / upspec | U/Dn | filter med | pending | | | | | |
+| A8a | A | up-only FILTER refinement (conf-tighten, worst-VAL-half) | keep top-25% conf | min2_upfilter.py | U | filter med | killed | | .62/.534/**.697** | — | KILLED — tempting OOS26 .697 (n76) but 2025 .534 FAILS breakeven; fragile/thin (corr(VAL,OOS) trap). Baseline UP .555 (floor .546) more robust. | min2_upfilter_result.json |
 | B1a | B | tick microstructure ensemble @120s | HS=120, OBI/microprice/flow | m_tick_prod.py | D | low (decays by 60s) | pending | | | | | |
 | B3a | B | CKS event-OFI @120s | window{30,60,120}s | min1_cksofi.py (HS=120) | D | ~null | pending | | | | | |
 | C1a | C | HMM regime (K3) gate/switch @120s | K{2,3}, U1/U2 | min1_hmm.py (HS=120) | G+D | ~null | pending | | | | | |

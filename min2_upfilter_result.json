@@ -1,0 +1,46 @@
+{
+ "row": "A8a up-only filter refinement",
+ "book": "EURUSD.min2.v1",
+ "horizon_s": 120,
+ "breakeven": 0.541,
+ "keep_fraction": 0.25,
+ "conf_thr": 0.007661660462708664,
+ "worst_val_half_up_acc": 0.6857142857142857,
+ "per_year_UP": {
+  "2024": {
+   "acc": 0.62,
+   "ci": [
+    0.48,
+    0.76
+   ],
+   "n_moved": 50
+  },
+  "2025": {
+   "acc": 0.5335968379446641,
+   "ci": [
+    0.47035573122529645,
+    0.5928853754940712
+   ],
+   "n_moved": 253
+  },
+  "2026": {
+   "acc": 0.6973684210526315,
+   "ci": [
+    0.5921052631578947,
+    0.7894736842105263
+   ],
+   "n_moved": 76
+  }
+ },
+ "falsifier": {
+  "BASE_UP_2026": 0.555,
+  "filtered_UP_2026": 0.6973684210526315,
+  "UP_allyears": [
+   0.62,
+   0.5335968379446641,
+   0.6973684210526315
+  ],
+  "KILLED": true,
+  "verdict": "KILLED: filtered UP did not beat 0.555 OOS while clearing breakeven all 3 yrs (n>=50)"
+ }
+}
