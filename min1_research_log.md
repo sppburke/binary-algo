@@ -189,9 +189,11 @@ settled by a faithful CPCV of the actual ensemble.
   (coin-flip; moved-bars AUC 0.499–0.501 across 2024/25/26, n~9M); swapping it in for the tick-rule OFI did not lift the binding
   2025 window (0.5069 vs 0.5085). **KILLED.** (Cached at `features_tick_cks/` if ever wanted for the 15m/magnitude books.)
 - **FAITHFUL 15m CPCV** (`min15_cpcv.py`, `min15_cpcv_result.json`) — the real 3-model ensemble + q-tuned gate, 15 purged-
-  combinatorial paths: per-path accuracy **~0.56–0.60 across all-era folds** (path mean filled in on completion), FAR above the
-  unfaithful single-LGBM proxy's 0.545. **Confirms the m15 0.647 is real and regime-dependent (~0.56–0.60 floor across eras), NOT a
-  mirage** — settling the contradiction; the earlier "deflated to 0.545" was the weaker-reimplementation artifact (now corrected).
+  combinatorial paths: **mean 0.5787, CI95 [0.567, 0.591], p10 0.557, min 0.538, max 0.633 (14/15 paths > breakeven 0.541)**, FAR
+  above the unfaithful single-LGBM proxy's 0.545. **Settles the contradiction: the m15 0.647 (recent 2024-26 split) is real and
+  reproduced but is the favorable-regime end; the book's honest all-era generalization is ~0.58 — solidly profitable, NOT a mirage.**
+  The earlier "deflated to 0.545" was the weaker-reimplementation artifact (corrected). The 15m edge is regime-dependent (weakest
+  2025 0.582) — a walk-forward / multi-quantile-gate robustness pass is the natural improvement on the one real direction edge.
 
 ## Answer to "would HMMs help?" and the final verdict
 
