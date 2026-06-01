@@ -193,7 +193,7 @@ settled by a faithful CPCV of the actual ensemble.
   above the unfaithful single-LGBM proxy's 0.545. **Settles the contradiction: the m15 0.647 (recent 2024-26 split) is real and
   reproduced but is the favorable-regime end; the book's honest all-era generalization is ~0.58 — solidly profitable, NOT a mirage.**
   The earlier "deflated to 0.545" was the weaker-reimplementation artifact (corrected). The 15m edge is regime-dependent (weakest
-  2025 0.582) — a walk-forward / multi-quantile-gate robustness pass is the natural improvement on the one real direction edge.
+  2025 0.582). **WALK-FORWARD TESTED (`m15_walkforward.py`, `m15_walkforward_result.json`): it makes the book WORSE** (2024 0.543 / 2025 0.536 / 2026 0.604, all below frozen) — per-year gate-tuning anti-transfers (corr(VAL,OOS)=−0.54), so the FROZEN m15 (gate tuned on 2022-23) is the optimal version; the 2025 weakness is not fixable by adaptation.
 
 ## Answer to "would HMMs help?" and the final verdict
 
