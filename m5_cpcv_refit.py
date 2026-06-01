@@ -17,7 +17,8 @@ import m5_xpair as MX
 import m5_xpair_production as XP
 
 N_GROUPS, K_TEST = 8, 2
-COV = 0.30                       # top-confidence cover among UP candidates (looser than book's ~0.05 for n)
+import os as _os
+COV = float(_os.environ.get("M5_COV", "0.30"))   # top-confidence cover among UP candidates; book gate is tight ~0.05-0.10
 SUBSAMPLE = 100_000
 STRIDE = int(os.environ.get("M5_STRIDE", "6"))
 ALL_YEARS = [str(y) for y in range(2012, 2027)]

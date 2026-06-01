@@ -1,0 +1,27 @@
+{
+ "row": "F3a ES->EURUSD cross-asset lead-lag @5m",
+ "horizon_s": 300,
+ "breakeven": 0.541,
+ "lagged_corr_es_to_eurfwd5m": {
+  "2023": 0.0197,
+  "2024": 0.0252,
+  "2025": -0.0221,
+  "2026": -0.0019
+ },
+ "dir_hit_es1m": {
+  "2023": 0.3923,
+  "2024": 0.3996,
+  "2025": 0.4252,
+  "2026": 0.4395
+ },
+ "contemp_corr_NY": {
+  "2023": 0.195,
+  "2024": 0.163,
+  "2025": 0.216,
+  "2026": -0.002
+ },
+ "falsifier": {
+  "KILLED": true,
+  "verdict": "KILLED: lagged ES->EUR fwd5m dir-hit 0.39-0.48 (below coin-flip) every year, and lagged corr SIGN-FLIPS 2024(+0.025)->2025(-0.022) [10m precedent +0.02->-0.05]. Contemp corr decoheres to -0.002 in 2026. Null + sign-unstable -> cannot bind UP nor solve DOWN; the mechanistic key to the 2025 wall."
+ }
+}
