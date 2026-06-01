@@ -20,6 +20,8 @@ One row per key = **best OOS % | model id · content_id | description**. `OOS = 
 | EURUSD · **1–5s** · DOWN | **~0.657** | `EURUSD.tick3.v1` · `e6bbc74604746959` | Tick microstructure 3s GBM ensemble (lgb+xgb+cat) | untested (combined) |
 | EURUSD · **60s** · UP | **0.613** ✅ | `EURUSD.min1.v1` · `d8b2c32c63ada163` (up-filter) | Up-only filter on 3-model ensemble + compression-release specialist, reversion-gated | **MEASURED** |
 | EURUSD · **60s** · DOWN | **0.516** ❌ | `EURUSD.min1.v1` · `d8b2c32c63ada163` (down-preds) | Same 3-model ensemble, down-side predictions (dead) | **MEASURED** |
+| EURUSD · **2m** · UP | **0.555** ✅ | `EURUSD.min2.v1` · `ace4d5c6befbda45` (up-preds) | 3-model ensemble + compression-release specialist, reversion-gated; up-side predictions | **MEASURED** |
+| EURUSD · **2m** · DOWN | **0.540** ~ | `EURUSD.min2.v1` · `ace4d5c6befbda45` (down-preds) | Same ensemble, down-side predictions (marginal — 2025 0.512 < breakeven) | **MEASURED** |
 | EURUSD · **5m** · UP | **0.606** | `EURUSD.m5xp.v1` · `39e4fedbb43e1d24` | Cross-pair USD-residual + order-flow, primary lgb + meta-labeler | untested (combined) |
 | EURUSD · **5m** · DOWN | **0.606** | `EURUSD.m5xp.v1` · `39e4fedbb43e1d24` | Cross-pair USD-residual + order-flow, primary lgb + meta-labeler | untested (combined) |
 | EURUSD · **10m** · UP | **0.594** | `EURUSD.m10.v1` · `05fd0a85e07b50fb` | Native-10 3-model ensemble × 5m_bb_width-NY gate | untested (combined) |
