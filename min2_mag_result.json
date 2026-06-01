@@ -1,0 +1,11 @@
+{
+ "row": "E1a magnitude |ret120|>=Q (SIZE, sign-invariant)",
+ "horizon_s": 120,
+ "magthr_top_tercile": 0.00017057512023992423,
+ "magnitude_auc_per_year": {
+  "2024": 0.7751,
+  "2025": 0.7392,
+  "2026": 0.7048
+ },
+ "note": "SIZE edge (not up/down); confirms the certified family at 2m. Tradeable on Touch/Range/Straddle, NOT Rise/Fall."
+}
