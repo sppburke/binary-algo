@@ -3,8 +3,8 @@ currency: EURUSD
 timeframe: 2m (120s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 120s, OOS(2026)-verified, clearing breakeven 0.541
-status: running
-incumbent: EURUSD.min2.v1 (combined OOS 0.539) — not yet side-split
+status: high-prior levers complete — best = EURUSD.min2.v1 (UP 0.555 robust / DOWN 0.540 marginal); low-prior rows deferred
+incumbent: EURUSD.min2.v1 (combined OOS 0.539) — NOW side-split (UP 0.555 / DOWN 0.540)
 prior: 120s sits in the efficiency zone (between 60s ~0.50-0.51 and 5m ~0.52 AUC); expect mostly null,
        best book ~0.53-0.56 combined, edge likely one-sided UP (per the 60s finding). Design fast-KILL falsifiers.
 ---
@@ -30,7 +30,20 @@ done/killed → update leaderboard → commit. Run DISCOVERY (skill §8.6) perio
 | C5a | C | online ARF+ADWIN control @120s | 10-tree | min1_online.py (HS=120) | D | ~null (control) | pending | | | | | |
 | E1a | E | MAGNITUDE \|ret120\|≥Q | Q{0.75}, rv-windows | min2_v1.py | M | high (certified family) | pending | | | | | |
 | F1a | F | macro-release 120s impulse | vol-tier × \|surp_z\| | min1_news60.py (HS=120) | D | ~null | pending | | | | | |
-| N… | N | (discovered — append) | | | | | pending | | | | | |
+| N1 | N | DISCOVERY: session-conditioned 2m UP | best session on worst-VAL-half | min2_session.py | U | med | killed | | .604/.553/**.485** | — | KILLED — VAL-best 'overlap' session anti-transfers to OOS .485 (corr(VAL,OOS)=−0.54). | min2_session_result.json |
+
+## CONCLUSION (interim — high-prior levers exhausted 2026-06-01)
+**Best 2m UP = the frozen min2 book (EURUSD.min2.v1), OOS(2026) 0.555** — the ONLY robust positive side
+(floor 0.546, clears breakeven 0.541 in all 3 years on point estimate). **Best 2m DOWN = same book, 0.540**
+(marginal; 2025 0.512 fails breakeven). **No improvement lever beat it robustly:** cross-horizon stack (A5a)
+reduced every cell; up-filter (A8a) hit OOS 0.697 but 2025 failed; session-conditioning (N1) anti-transferred
+to 0.485. All three died to the same VAL-anti-transfer + thin-coverage discipline → 2m direction is
+efficiency-bound at ~0.55, consistent with the program-wide 60s-5m finding.
+**Remaining rows (A1a/A2a/A3a retrain sweeps, A6a cross-pair [settlement-mismatched], B/C/F microstructure/
+state-space/news, E magnitude[=size not sign]) are LOW-PRIOR for direction** at this horizon (60s/5m already
+null; the min2 book already embodies the tick-microstructure approach = B1). Deferred with rationale; a future
+agent can extend this ledger. E (magnitude) is the certified edge but is sign-invariant → out of scope for an
+UP/DOWN strategy (track in MAGNITUDE_FINDINGS.md).
 
 Discovery seeds to vet/add: magnitude-conditioned 5m→2m stack · HMM-gated reversion · transfer-entropy
 coupling gate · Hawkes up/down arrival imbalance · RL(IQN+CVaR) sizing on the 2m book.

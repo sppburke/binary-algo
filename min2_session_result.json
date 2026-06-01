@@ -1,0 +1,66 @@
+{
+ "row": "discovery: session-conditioned 2m UP",
+ "book": "EURUSD.min2.v1",
+ "horizon_s": 120,
+ "breakeven": 0.541,
+ "selected_session": "overlap",
+ "val_scan": {
+  "all": {
+   "acc": 0.5354330708661418,
+   "n_moved": 127
+  },
+  "london": {
+   "acc": 0.5504587155963303,
+   "n_moved": 109
+  },
+  "ny": {
+   "acc": 0.5544554455445545,
+   "n_moved": 101
+  },
+  "overlap": {
+   "acc": 0.5625,
+   "n_moved": 96
+  },
+  "asia": {
+   "acc": 0.46153846153846156,
+   "n_moved": 13
+  }
+ },
+ "per_year_UP": {
+  "2024": {
+   "acc": 0.6043956043956044,
+   "ci": [
+    0.5054945054945055,
+    0.7032967032967034
+   ],
+   "n_moved": 91
+  },
+  "2025": {
+   "acc": 0.5531914893617021,
+   "ci": [
+    0.5014437689969605,
+    0.6048632218844985
+   ],
+   "n_moved": 329
+  },
+  "2026": {
+   "acc": 0.48484848484848486,
+   "ci": [
+    0.3939393939393939,
+    0.5858585858585859
+   ],
+   "n_moved": 99
+  }
+ },
+ "falsifier": {
+  "BASE_UP_2026": 0.555,
+  "sess_UP_2026": 0.48484848484848486,
+  "UP_allyears": [
+   0.6043956043956044,
+   0.5531914893617021,
+   0.48484848484848486
+  ],
+  "KILLED": true,
+  "verdict": "KILLED: session-conditioned UP did not robustly beat 0.555 OOS"
+ }
+}
