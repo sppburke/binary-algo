@@ -1,0 +1,18 @@
+{
+ "row": "C5a",
+ "method": "online ARF+ADWIN @300s (single-pair TA feature subset)",
+ "horizon_s": 300,
+ "auc": {
+  "2024": 0.509,
+  "2025": 0.509,
+  "2026": 0.514
+ },
+ "selective_acc_2025": {
+  "conf0.00": 0.509,
+  "conf0.04": 0.51,
+  "conf0.08": 0.507,
+  "conf0.10": 0.51
+ },
+ "verdict": "NULL on single-pair TA features (AUC ~0.51 every year, selective never >0.52) -> the 5m direction BASELINE (standard technicals, all sessions, adaptive) is efficient, as at 60s/2m. NOTE: unlike 2m, this does NOT prove '5m direction is fully efficient' because the m5xp UP edge (0.577 certified) lives in CROSS-PAIR USD-residual + NY + meta-gated + UP-conditional structure that this compact feature subset excludes. Keystone confirms the single-pair channel is dead; the cross-pair UP channel is live.",
+ "settlement": "prequential test-then-learn, warm 2022-23, contig 300s label, ties excluded; AUC over all bars"
+}

@@ -49,7 +49,7 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | C1a | C | HMM regime (causal-filtered) @300s | min1_hmm.py (MX_HOR=5) | pending | — | — | — | — |
 | C2a | C | Kalman channel/velocity/β @300s | min1_kalman.py (MX_HOR=5) | pending | — | — | — | — |
 | C4a | C | CCM coupling-gate @300s | min1_ccm.py (MX_HOR=5) | pending | — | — | — | — |
-| C5a | C | **online ARF+ADWIN control @300s (KEYSTONE)** | min1_online.py (MX_HOR=5) | pending | — | — | — | — |
+| C5a | C | **online ARF+ADWIN control @300s (KEYSTONE)** | m5_online_run.py | done | AUC .509/.509/.514 | (single-pair) | NULL on single-pair TA (selective never >.52). BASELINE efficient at 5m. Does NOT cover the cross-pair UP edge (different feature set) → keystone ≠ "5m fully efficient" here (m5xp UP 0.577 lives in cross-pair structure). | m5_online_result.json |
 | D1a | D | 1D-CNN/GRU on raw path @300s | m_cnn.py | pending | — | — | — | — |
 | D4a | D | DRL DQN direction-with-abstain @300s | min1_drl.py (MX_HOR=5) | pending | — | — | — | — |
 | E1a | E | magnitude \|ret300\|≥Q (SIZE, sign-invariant) | m5 magnitude | pending | — | — | — | — |
@@ -63,8 +63,16 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | N4a | N | intraday-momentum term-structure @5m | min2_mim (MX_HOR=5) | pending | — | — | — | — |
 | N7a | N | asymmetric tick-intensity (Hawkes) @300s | min2_hawkes (MX_HOR=5) | pending | — | — | — | — |
 | N8a | N | signed-semivariance-skew sign-cond @300s | min2_rsskew (MX_HOR=5) | pending | — | — | — | — |
+| N10 | N | **Liang-Kleeman signed info-flow** leg→EURUSD @300s (NEW, ~9%) | m5_liang.py | pending | — | — | — | — |
+| N11 | N | **Bacry-Muzy up/down cross-kernel Hawkes imbalance** @300s (NEW, ~8%) | m5_hawkes4.py | pending | — | — | — | — |
+| N12 | N | directed-HVG irreversibility sign-decomposed (peak/trough) @300s (NEW, ~6%) | m5_dhvg.py | pending | — | — | — | — |
+| N13 | N | time-reversal signed structure-function asymmetry @300s (NEW, ~5%) | m5_trasf.py | pending | — | — | — | — |
+| N14 | N | Liang multivariate IFR dollar-source gate @300s (NEW, ~5%) | m5_liang.py (mv) | pending | — | — | — | — |
 
-(Discovery rounds will APPEND new Tier-N rows here as research sub-agents surface novel candidates.)
+(Discovery round 1 — cross-disciplinary agent, 2026-06-01: added N10-N14. Top priors N10 Liang signed IFR (the
+one explicitly-SIGNED causality measure untried; CCM/TE were its unsigned cousins, both dead) and N11 Bacry-Muzy
+cross-kernel (mean-reverting impact kernel at 300s relaxation, distinct from killed scalar N7). N12-14 = completeness.
+arXiv/SSRN agent round pending. Discovery continues until K=2 dry rounds.)
 
 ## Notes / running conclusion
 - (to be filled as rows complete)
