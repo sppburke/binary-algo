@@ -1,0 +1,90 @@
+{
+ "row": "D3 USD-strength-conditioned DOWN @300s",
+ "breakeven": 0.541,
+ "bask_cols": [
+  "usdbask1",
+  "usdbask3",
+  "usdbask5",
+  "usdbask10",
+  "usdbask15",
+  "usdbask30"
+ ],
+ "per_year_side": {
+  "2024_USDstrong": {
+   "n": 633,
+   "down_acc": 0.6256,
+   "ci": [
+    0.5877,
+    0.6651
+   ]
+  },
+  "2024_USDweak": {
+   "n": 616,
+   "down_acc": 0.5925,
+   "ci": [
+    0.5536,
+    0.6315
+   ]
+  },
+  "2024_ALL": {
+   "n": 1249,
+   "down_acc": 0.6093,
+   "ci": [
+    0.5828,
+    0.6365
+   ]
+  },
+  "2025_USDstrong": {
+   "n": 502,
+   "down_acc": 0.5259,
+   "ci": [
+    0.4821,
+    0.5697
+   ]
+  },
+  "2025_USDweak": {
+   "n": 828,
+   "down_acc": 0.5374,
+   "ci": [
+    0.5036,
+    0.5737
+   ]
+  },
+  "2025_ALL": {
+   "n": 1330,
+   "down_acc": 0.5331,
+   "ci": [
+    0.506,
+    0.5594
+   ]
+  },
+  "2026_USDstrong": {
+   "n": 29,
+   "down_acc": 0.6552,
+   "ci": [
+    0.4828,
+    0.8276
+   ]
+  },
+  "2026_USDweak": {
+   "n": 150,
+   "down_acc": 0.58,
+   "ci": [
+    0.5,
+    0.66
+   ]
+  },
+  "2026_ALL": {
+   "n": 179,
+   "down_acc": 0.5922,
+   "ci": [
+    0.5196,
+    0.6648
+   ]
+  }
+ },
+ "falsifier": {
+  "D3_HAS_DOWN_EDGE": false,
+  "verdict": "D3 KILLED: USD-strong 2025 DOWN=0.5259 (n502) does NOT clear 0.541 CI-lo -> EURUSD 5m DOWN is genuinely efficient even when USD-gated; rally-selling dead."
+ }
+}

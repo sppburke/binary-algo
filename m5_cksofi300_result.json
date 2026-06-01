@@ -1,0 +1,14 @@
+{
+ "row": "B3a CKS event-OFI standalone @300s",
+ "horizon_s": 300,
+ "breakeven": 0.541,
+ "val_auc_worsthalf": 0.5005679314957763,
+ "val_auc_full": 0.4988405207661149,
+ "per_year_moved_auc": {},
+ "falsifier": {
+  "KILL_if_val_auc<=": 0.515,
+  "val_auc": 0.5005679314957763,
+  "KILLED": true,
+  "verdict": "KILLED: VAL dirAUC<=0.515, no 300s direction signal in CKS-OFI (null, as at 60s/120s)"
+ }
+}

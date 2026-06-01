@@ -1,0 +1,39 @@
+{
+ "frozen_meta_thr": 0.5738433064019417,
+ "trades": 3155,
+ "overall_win": 0.5949,
+ "stake_pct": 1.074,
+ "kelly_fraction": 0.125,
+ "R": 0.85,
+ "p_belief": 0.58,
+ "killswitch": {
+  "window": 150,
+  "kill_lo": 0.52,
+  "resume_hi": 0.55
+ },
+ "per_year_win": {
+  "2024": 0.6049,
+  "2025": 0.5812,
+  "2026": 0.6142
+ },
+ "forward": {
+  "no_ks": {
+   "end_x": 25.947,
+   "maxdd_pct": 22.0,
+   "max_loss_streak": 8
+  },
+  "ks": {
+   "end_x": 19.369,
+   "maxdd_pct": 21.9,
+   "flat_pct": 6.8,
+   "kills": 4
+  }
+ },
+ "stress_regime_death": {
+  "no_ks_end_x": 18.952,
+  "no_ks_maxdd_pct": 35.8,
+  "ks_end_x": 14.871,
+  "ks_maxdd_pct": 28.4,
+  "ks_kills": 6
+ }
+}

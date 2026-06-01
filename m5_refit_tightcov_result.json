@@ -1,0 +1,49 @@
+{
+ "test": "(5m,UP) full-refit CPCV at multiple covers",
+ "breakeven": 0.541,
+ "stride": 6,
+ "auc_mean": 0.5199,
+ "per_cov": {
+  "0.3": {
+   "n_valid_paths": 28,
+   "mean": 0.5423,
+   "p10": 0.5343,
+   "min": 0.527,
+   "max": 0.5596,
+   "frac_clear_0.541": 0.536,
+   "med_n": 12755,
+   "CERTIFIED": false
+  },
+  "0.15": {
+   "n_valid_paths": 28,
+   "mean": 0.5501,
+   "p10": 0.5412,
+   "min": 0.5337,
+   "max": 0.5656,
+   "frac_clear_0.541": 0.893,
+   "med_n": 6378,
+   "CERTIFIED": true
+  },
+  "0.1": {
+   "n_valid_paths": 28,
+   "mean": 0.5552,
+   "p10": 0.5435,
+   "min": 0.5352,
+   "max": 0.5782,
+   "frac_clear_0.541": 0.893,
+   "med_n": 4252,
+   "CERTIFIED": true
+  },
+  "0.05": {
+   "n_valid_paths": 28,
+   "mean": 0.5662,
+   "p10": 0.5531,
+   "min": 0.535,
+   "max": 0.5947,
+   "frac_clear_0.541": 0.964,
+   "med_n": 2126,
+   "CERTIFIED": true
+  }
+ },
+ "verdict": "CERTIFIED at >=1 cover under refit"
+}

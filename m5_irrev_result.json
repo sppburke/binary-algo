@@ -1,0 +1,24 @@
+{
+ "row": "N12 (sign-decomposed irreversibility) + N13 (signed structure-function) @300s",
+ "n_candidates": 24,
+ "val_selected": {
+  "feat": "N12_irrev_W60:rev",
+  "val_worsthalf": 0.5097,
+  "2024": 0.505,
+  "2025": 0.5079,
+  "2026": 0.5058,
+  "n26": 128664
+ },
+ "best_by_2026_hindsight": {
+  "feat": "N12_irrev_W30:rev",
+  "val_worsthalf": 0.5081,
+  "2024": 0.5085,
+  "2025": 0.5099,
+  "2026": 0.5094,
+  "n26": 128664
+ },
+ "falsifier": {
+  "KILLED": true,
+  "verdict": "KILLED: no signed-irreversibility / odd-moment feature holds a stable >=0.52 same-side edge in 2024 AND 2026 -> time-irreversibility carries no exploitable 5m SIGN (the scalar I_W was already 0.503; the signed variants are no better)."
+ }
+}

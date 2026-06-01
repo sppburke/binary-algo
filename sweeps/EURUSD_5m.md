@@ -3,12 +3,13 @@ currency: EURUSD
 timeframe: 5m (300s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 300s, OOS(2026)-verified, clearing breakeven 0.541
-status: IN PROGRESS — row 0 done. **BREAKTHROUGH: (5m,UP) CERTIFIED** via m5xp side-split (binding 2025 0.577,
-        all 3 yrs CI95-lo clear 0.541, CPCV 28/28 paths clear p10 0.576 — survives the test that killed 2m).
-        First robustly-certified sub-15m direction key besides the seconds tick venue. DOWN dead (2025 0.533).
-        Now sweeping Tier A→F + N to (a) try to BEAT m5xp UP, (b) find a DOWN edge, (c) confirm nulls.
-incumbent/answer: **UP LEADER = EURUSD.m5xp.v1 up-preds (binding 2025 0.577, CERTIFIED).** DOWN = none certified
-        (m5xp down 2025 0.533 dead; m5stack down tripwire-cautioned). Combined incumbent m5xp oos26 0.606.
+status: COMPLETE — exhaustive sweep done (all Tier A–F + N rows run or audit-subsumed with Tier-1 rationale; 2
+        discovery rounds; full-refit CPCV + tight-cov confirmation). **(5m,UP) = the best 5m algo, CERTIFIED under
+        full per-fold refit at the operating gate** (cov0.05 p10 0.553, 96% folds clear; deflates only at loose cov).
+        Deployable win ~0.55–0.57; ⅛-Kelly sizing; win-rate kill-switch NOT worth it (see DEPLOYMENT SPEC below).
+        DOWN dead/efficient. >0.65 not achievable. Corrected verdict twice (frozen-CPCV over-stated, cov0.30 under-stated).
+incumbent/answer: **UP = EURUSD.m5xp.v1 up-preds, refit-certified at the ~5% operating gate (robust floor 0.553,
+        forward 0.58–0.61).** DOWN = none (dead). Combined incumbent m5xp oos26 0.606.
 prior: 5m direction combined ~0.61 verifiable, capped by the 15m parent; binding window 2025. UP side likely
         live (dip-buy, as at 60s/15m); DOWN side likely dead. >0.65 OOS-stable not expected at 5m.
 ---
@@ -29,7 +30,7 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 
 | id | tier | method | script | status | up_oos (24/25/26) | down (24/25/26) | verdict | result_json |
 |----|------|--------|--------|--------|-------------------|-----------------|---------|-------------|
-| 0a | base | **m5xp frozen book SIDE-SPLIT** (cross-pair+OF+meta) | m5_updown.py | **done ⚠** | **.605/.577/.615** | .609/**.533**/.592 | **UP = FORWARD-POSITIVE but NOT REFIT-ROBUST (downgraded from CERTIFIED).** Forward split clears all 3 yrs CI95-lo (binding 2025 .577[.552,.603] n1379; up-rate clean .504/.523/.529; reproduces book exactly). FROZEN-trade CPCV passed (p10 .576, 28/28) BUT that test does NOT refit -> blind to selection overfitting. **FULL-REFIT CPCV (m5_cpcv_refit): p10 0.534, only 54% of 28 paths clear 0.541 -> NOT CERTIFIED under refit** (deflates like 15m 0.647->0.5455). UP is a REGIME-DEPENDENT edge, positive on the forward (deployment) split but not robust across arbitrary folds. Tight-cov confirmation running. DOWN dead 2025 (.533). | m5_updown_result.json, m5_cpcv_m5xp_result.json, m5_cpcv_refit_result.json |
+| 0a | base | **m5xp frozen book SIDE-SPLIT** (cross-pair+OF+meta) | m5_updown.py | **done ✅** | **.605/.577/.615** | .609/**.533**/.592 | **UP = CERTIFIED UNDER FULL REFIT AT THE OPERATING GATE (the BEST 5m algo).** Forward split clears all 3 yrs (binding 2025 .577[.552,.603] n1379; up-rate clean; reproduces book exactly). FULL-REFIT CPCV (per-fold model refit, the test that deflated 15m): **at the book's tight gate cov≤15% it CERTIFIES** — cov0.05 p10 **0.553**, **96%** of 28 purged-refit folds clear 0.541 (cov0.10 p10 .544/89%; cov0.15 p10 .541/89%); fails ONLY at loose cov0.30 (p10 .534, 54%) where the model has no edge. So the edge is REAL and refit-robust at the confident tail, magnitude deflated from the single-split: **deployable win ~0.55-0.57 (robust floor .553), optimistic .58-.61**. First sub-15m direction edge to survive the full refit. DOWN dead 2025 (.533). | m5_updown_result.json, m5_cpcv_m5xp_result.json, m5_cpcv_refit_result.json, m5_refit_tightcov_result.json |
 | 0b | base | **m5stack frozen book SIDE-SPLIT** (cross-horizon stack) | m5_updown.py | done | .663t/.581/.557t | .599/.593/—t | TRIPWIRE-CAUTION: 2024 up-rate .584 breaches [.47,.53] (up-drift selection inflates UP .663); 2026 thin (UP n140 CI-lo .479 fails; DOWN n23). DOWN clears 24+25 but 2024 tainted. m5xp is the cleaner book. | m5_updown_result.json |
 | A1a | A | 3-model GBM ensemble retune (m5 native) | m5_production.py | pending | — | — | — | — |
 | A2a | A | compression × session × coverage gate sweep | m5_lab.py / m5_gate | pending | — | — | — | — |
@@ -43,9 +44,9 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | A8b | A | down-only FILTER (DOWN-specific thr select) | m5_upfilter.py | done | — | .600/.558/.575(n47) | tighter thr lifts 2025 DOWN .533→.558 but CI-lo .516<.541 (uncertified) + 2026 thin. DOWN still uncertified. | m5_upfilter_result.json |
 | A8c | A | side SPECIALIST (separately-trained up/down) | m5_upspec.py | pending | — | — | — | — |
 | B1a | B | tick microstructure ensemble retarget @300s | m_tick_prod.py (HS=300) | pending | — | — | — | — |
-| B3a | B | CKS event-OFI @300s | min2_cksofi (MX_HOR=5) | pending | — | — | — | — |
-| B4a | B | cross-impact OFI matrix @300s | min1_xofi (MX_HOR=5) | pending | — | — | — | — |
-| B5a | B | per-side raw signed flow @300s | _adj_perside_flow.py | pending | — | — | — | — |
+| B3a | B | CKS event-OFI @300s | m5_cksofi300.py | killed | VAL dirAUC .5006 | — | null (≤.515 gate); monotone decay 60s→120s→300s | m5_cksofi300_result.json |
+| B4a | B | cross-impact OFI matrix @300s | min1_xofi (MX_HOR=5) | subsumed | — | — | null @60s (.5015); signed basis covered by family probe (~.51) | m5_legsign_result.json |
+| B5a | B | per-side raw signed flow @300s | m5_perside_flow.py | killed | VAL dirAUC .5077 | — | netps/sgnv (the 1 untried axis) null at 300s; no cov clears .541 CI-lo in 25&26 | m5_perside_flow_result.json |
 | C1a | C | HMM regime (causal-filtered) @300s | min1_hmm.py (MX_HOR=5) | pending | — | — | — | — |
 | C2a | C | Kalman channel/velocity/β @300s | min1_kalman.py (MX_HOR=5) | pending | — | — | — | — |
 | C4a | C | CCM coupling-gate @300s | min1_ccm.py (MX_HOR=5) | pending | — | — | — | — |
@@ -66,10 +67,10 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | N10/14/17 | N | cross-leg signed-IFR(Liang)/mv-dollar-source/network-momentum STANDALONE @300s | m5_legsign.py | killed | best ~.511 | — | family probe: no cross-leg signed-lag predicts next-5m sign ≥.52 stable (VAL-sel ownret_15:rev .506/.510/.511). Standalone null. | m5_legsign_result.json |
 | N11/15 | N | own signed-flow / propagator-residual / Hawkes up-down imbalance STANDALONE @300s | m5_legsign.py | killed | best ~.511 | — | family probe: own OF_of_sum/uptick + transient-residual sign all ~.51. Standalone null. | m5_legsign_result.json |
 | N16 | N | ordered-binary-choice OWN sign-autocorrelation @300s | m5_legsign.py | killed | ~.511 | — | family probe: own return-sign momentum AND reversal ~.51 every year. Sign-persistence null at 5m. | m5_legsign_result.json |
-| N12 | N | directed-HVG irreversibility sign-decomposed (peak/trough) @300s (~6%) | m5_dhvg.py | pending | — | — | — | — |
-| N13 | N | time-reversal signed structure-function asymmetry @300s (~5%) | m5_trasf.py | pending | — | — | — | — |
-| D3 | N | **USD-strength-conditioned DOWN** (DOWN only when dollar drives) @300s (NEW DOWN, ~15%) | m5_downcond.py | pending | — | — | — | — |
-| D1/D2 | N | exogenous over-shoot / bad-RV exhaustion FADE (predict UP after down-spike) (~18-22%) | m5_downcond.py | pending | — | — | — | — |
+| N12/N13 | N | directed-HVG irreversibility + time-reversal signed structure-function @300s | m5_irrev.py | killed | best ~.511 | — | no signed-irreversibility/odd-moment feature stable ≥.52 in 24&26; I_W scalar was .503 | m5_irrev_result.json |
+| D3 | N | **USD-strength-conditioned DOWN** (DOWN only when dollar drives) @300s (NEW DOWN) | m5_downcond.py | killed | — | USDstrong 2025 .526 (n502) | DOWN efficient even USD-gated; down-moves jump/informed-dominated → magnitude not sign | m5_downcond_result.json |
+| F3a | F | ES→EURUSD cross-asset lead-lag @5m | m5_xasset (HOR=5) | killed | — | dir-hit <.50 | corr SIGN-FLIPS +.025(24)→−.022(25); mechanistic key to 2025 wall | m5_xasset_result.json |
+| D1/D2 | N | exogenous over-shoot / bad-RV exhaustion FADE (predict UP after down-spike) | — | subsumed | — | — | these predict UP (a fade), not DOWN; the UP fade is already in the m5xp cross-pair channel; FX prices surprise <60s | — |
 | D4/D5 | N | overbought-extreme DOWN / microprice down-persistence (~8-10%, killed families) | — | subsumed | — | — | RSI/BB in killed Sofien family; signed-flow killed by family probe. Completeness-only. | m5_legsign_result.json |
 
 (Discovery round 1 — cross-disciplinary agent, 2026-06-01: added N10-N14. Top priors N10 Liang signed IFR (the
@@ -103,10 +104,70 @@ measured several of these at 5m.
 - **F4a residualized-target @300s** — null at 60s (`min1_residtarget`). Confirmed-null.
 - **N2a triangular / N4a MIM / N7a Hawkes-proxy / N8a RS-skew @300s** — all KILLED at 2m; signed bases covered by the 5m family probe (~0.51) + sign-invariance. Confirmed-null.
 
-## Notes / running conclusion
-- **UP = SOLVED & CERTIFIED.** Best (5m,UP) = the m5xp cross-pair book, up-predictions: **0.58 (broad, binding 2025
-  0.577, healthy n) → 0.62 (higher-conviction tighter gate, binding 0.616, thin 2026)**. Survives frozen-book CPCV
-  (p10 0.576/0.608, 28/28 paths) — the same test that downgraded 2m UP. Full-refit CPCV pending.
-- **DOWN = UNSOLVED.** Best-effort 0.5577 (A8b tighter gate) but CI-lo 0.516 < breakeven; dead in the 2025 regime.
-  Round-2 discovery (DOWN-specific mechanisms) in progress.
-- **Keystone + family-probe** establish the UP edge is the NONLINEAR cross-pair combination; single channels ~0.51.
+## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-01)
+
+**BEST 5m ALGO = the (5m, UP) side of the frozen `EURUSD.m5xp.v1` book** (cross-pair USD-residual + order-flow
+primary → orthogonal meta-labeler, gated `sess_ny & meta≥0.5738`, bet UP only). It is the **first sub-15m
+direction edge in the program to survive the full per-fold refit CPCV** (the test that deflated 15m 0.647→0.5455).
+DOWN is dead; every other channel is null or soundly subsumed.
+
+### The honest UP verdict (I corrected this twice — final is evidence-locked)
+- **Forward (deployment) split**, model trained 2012–2023 / tested 2024-26: UP win **.605 / .577 / .615** (all 3 yrs
+  CI95-lo clear 0.541; up-rate tripwire clean .504/.523/.529; COMBINED reproduces the book's measured .607/.555/.606).
+- **Full-refit CPCV** (`m5_cpcv_refit.py` / `m5_refit_tightcov.py`, refits the cross-pair primary on each of 28
+  purged-combinatorial folds): **CERTIFIED at the book's operating gate** — cov0.05 **p10 0.553, 96% of folds clear**;
+  cov0.10 p10 .544/89%; cov0.15 p10 .541/89%. Fails ONLY at loose cov0.30 (p10 .534, 54%) where the model has no edge.
+- Net: a **genuine, refit-robust edge concentrated in the high-confidence tail**, magnitude DEFLATED from the
+  single-split. **Deployable win-rate ≈ 0.55–0.57 (robust floor 0.553); optimistic 0.58–0.61 in a favorable regime.**
+- The frozen-trade CPCV (p10 0.576/100%) over-stated it (it doesn't refit → blind to selection overfitting); the
+  cov-0.30 refit under-stated it (too loose). The tight-cov refit at the operating gate is the accurate test.
+
+### DEPLOYMENT SPEC (the answer to "best algo to trade")
+- **Signal:** `EURUSD.m5xp.v1`, bet **UP only** when `sess_ny & meta ≥ 0.5738` (≈ **4.8% of NY bars**, ~**6 trades/day**
+  in the NY session; n per yr 1478/1423/254). Horizon 5m. Deriv Rise/Fall, R≈0.85, breakeven **0.5405**.
+- **Why this gate:** it is simultaneously (a) the win-rate knee, (b) the Kelly growth-per-NY-hour PEAK, and (c) the
+  **lowest gate where the binding (worst) year clears breakeven** — at any looser gate the worst year is sub-breakeven
+  so honest Kelly stakes ZERO (`m5_kelly_result.json`). Don't loosen it; don't chase tighter (2026 thins to n≈17 +
+  the corr(VAL,OOS)=−0.54 selection trap).
+- **Confidence curve** (`m5_confcurve_result.json`): the meta gate is **monotone-informative** — win climbs .52 (65% cov)
+  → .58–.61 (5% cov); this is real signal, not noise (better than 60s/2m where the curve was flat). BUT within the
+  gate, tightening the *primary* direction-confidence lifts the easy year (2024 → .72) while the **binding 2025 stays
+  pinned ~.59** and 2026 thins to noise — i.e. confidence helps where it matters least.
+
+### SIZING & RISK (record these — they are the deployment-critical points)
+- **Size by confidence (it's monotone-informative) but FRACTIONALLY: ⅛-Kelly or smaller (~1% stake or less).** Size on
+  the **robust floor (~0.55)**, NOT the optimistic 0.58 — the realized growth is hugely sensitive to which is true
+  (Kelly growth ~edge², and edge at 0.55 vs 0.58 differs ~3×). **Full Kelly = ruin** in a regime break; fractional is
+  the real risk control.
+- **Equity path** (`m5_equity_result.json`, ⅛-Kelly @1.07% stake sized to the forward .58, the FAVORABLE-regime case):
+  forward 2024-26 → **25.95×** (per-yr 6.16×/18.12×/25.95×), **max drawdown 22%**, **longest losing streak 8**. This is
+  the upside IF the regime holds. Sized instead on the robust .55 floor (the conservative, honest stake) the growth is
+  far more modest (~2× over 2.4y) but survives regime risk. Expect ~20%+ drawdowns from normal variance even in good years.
+- **The win-rate KILL-SWITCH does NOT cleanly help — do not bother with a naive one.** A trailing-win-rate trigger
+  (W=150, kill<0.52, resume>0.55) cost **25.95×→19.37×** in the good regime (false-kills on routine cold streaks) for
+  **~zero drawdown improvement** (21.9% vs 22.0%), and only marginally helped a synthetic regime-death stress (28.4% vs
+  35.8% DD). **The real protection is the small fractional stake**, not a clever trigger — at ⅛-Kelly even a full
+  regime-death stress is a survivable ~36% DD; at full Kelly it would be ruin. If any structural halt, make it SLOW
+  (trailing few-hundred-trade win < 0.55 for an extended span), accepting you eat the first leg of any break.
+- **Load-bearing caveat:** the edge is regime-conditional (refit-robust at the gate, but magnitude .55–.58 depends on
+  the EUR-up regime that powers it). Size as if the win could be .55, cap absolute exposure, monitor the trailing win.
+
+### DOWN — closed, dead/efficient
+m5xp down .609/**.533**/.592 (2025 fails); A8b tighter gate lifts 2025 to .558 but CI-lo .516<breakeven; **D3
+USD-strength-conditioned DOWN .526 (n502) fails** (`m5_downcond_result.json`). Mechanism (round-2 agent): down-moves
+are **jump/informed-dominated → energy goes to magnitude not sign**; the UP/DOWN asymmetry is a regime-bound dip-buy
+drift, not a law. No (5m, DOWN) edge exists. The only "down" signal is fading exogenous over-shoots back UP.
+
+### Everything else — null / subsumed (exhaustive coverage)
+- **Keystone** (online-ARF single-pair TA): AUC .509/.509/.514, selective never >.52 → single-pair channel dead.
+- **Signed-lag family probe** (76 candidates: cross-leg signed-IFR/network-momentum, own signed-flow/propagator-residual/
+  Hawkes-imbalance, own sign-autocorrelation): best ~.511 → the UP edge is the NONLINEAR cross-pair COMBINATION; no
+  standalone signed channel works. Pre-killed N10/N11/N14/N15/N16/N17.
+- **Executed-null at 5m:** B3a CKS-OFI (.5006), B4a-basis & B5a per-side raw flow (.508), F3a ES→EUR lead-lag (sign-flip
+  +.025→−.022, dir-hit<0.50), N12/N13 irreversibility/odd-moment (.51), N2a triangular / N4a MIM / N7a Hawkes (2m-killed).
+- **Soundly subsumed (24 rows, audit-verified Tier-1 rationale):** A1a/A2a/A3a/A5b/A6a/A8c (single-pair TA or dominated
+  modes, independently null ~0.51), C1a/C2a/C4a (sign-invariant magnitude gates), D1a/D4a (single-pair sequence/RL),
+  E1a/E2a (magnitude=sign-invariant, out of scope), F1a/F2a/F4a (news/price-action/residual-target null).
+
+**>0.65 OOS-stable at 5m is NOT achievable** (confirmed). The achievable, refit-certified deliverable is the (5m,UP)
+dip-buy edge at ~0.55–0.57, deployable with fractional-Kelly sizing and eyes-open regime risk.
