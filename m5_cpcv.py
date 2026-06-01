@@ -20,8 +20,9 @@ def year_of(ts):
 
 def collect_up_m5xp():
     """Frozen m5xp UP-predicted gated independent trades, pooled test+oos, time-ordered. Returns (ts, win)."""
-    import m5_xpair_production as XP
-    p, P, M = XP._load(); cols = p["primary_feats"]; mcols = p["meta_feats"]; THR = p["meta_thr"]
+    import os, m5_xpair_production as XP
+    p, P, M = XP._load(); cols = p["primary_feats"]; mcols = p["meta_feats"]
+    THR = float(os.environ.get("M5XP_THR", p["meta_thr"]))
     TS, WIN = [], []
     for w, _ in YEARS:
         D = MX.build_xp(XP.SPL[w]); D = MX.augment(D, XP.SPL[w], XP.MODE)

@@ -39,8 +39,8 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | A5b | A | cross-horizon stack 15m→5m (hard agree) | m5_stack.py | pending | — | — | — | — |
 | A6a | A | cross-pair USD-residual modes {xp,xpbase,xpof} | m5_xpair.py | pending | — | — | — | — |
 | A7a | A | walk-forward retrain (regime robustness) | m5_walkforward.py | pending | — | — | — | — |
-| A8a | A | up-only FILTER on best combined | m5_upfilter.py | pending | — | — | — | — |
-| A8b | A | down-only FILTER on best combined | m5_upfilter.py | pending | — | — | — | — |
+| A8a | A | up-only FILTER (UP-specific thr select) | m5_upfilter.py | **done ✅** | .666/.616/.581(n31) | — | **CERTIFIED higher-conviction UP**: tighter thr 0.598 → binding 2025 0.616, CPCV p10 0.608, 28/28 paths clear, block-boot CI-lo 0.614. Caveat: 2026 standalone thin (n31, pooled-CPCV mitigates). Higher-accuracy/lower-coverage variant of the certified UP book. | m5_upfilter_result.json, m5_cpcv_a8a_result.json |
+| A8b | A | down-only FILTER (DOWN-specific thr select) | m5_upfilter.py | done | — | .600/.558/.575(n47) | tighter thr lifts 2025 DOWN .533→.558 but CI-lo .516<.541 (uncertified) + 2026 thin. DOWN still uncertified. | m5_upfilter_result.json |
 | A8c | A | side SPECIALIST (separately-trained up/down) | m5_upspec.py | pending | — | — | — | — |
 | B1a | B | tick microstructure ensemble retarget @300s | m_tick_prod.py (HS=300) | pending | — | — | — | — |
 | B3a | B | CKS event-OFI @300s | min2_cksofi (MX_HOR=5) | pending | — | — | — | — |
@@ -63,11 +63,11 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | N4a | N | intraday-momentum term-structure @5m | min2_mim (MX_HOR=5) | pending | — | — | — | — |
 | N7a | N | asymmetric tick-intensity (Hawkes) @300s | min2_hawkes (MX_HOR=5) | pending | — | — | — | — |
 | N8a | N | signed-semivariance-skew sign-cond @300s | min2_rsskew (MX_HOR=5) | pending | — | — | — | — |
-| N10 | N | **Liang-Kleeman signed info-flow** leg→EURUSD @300s (NEW, ~9%) | m5_liang.py | pending | — | — | — | — |
-| N11 | N | **Bacry-Muzy up/down cross-kernel Hawkes imbalance** @300s (NEW, ~8%) | m5_hawkes4.py | pending | — | — | — | — |
-| N12 | N | directed-HVG irreversibility sign-decomposed (peak/trough) @300s (NEW, ~6%) | m5_dhvg.py | pending | — | — | — | — |
-| N13 | N | time-reversal signed structure-function asymmetry @300s (NEW, ~5%) | m5_trasf.py | pending | — | — | — | — |
-| N14 | N | Liang multivariate IFR dollar-source gate @300s (NEW, ~5%) | m5_liang.py (mv) | pending | — | — | — | — |
+| N10/14/17 | N | cross-leg signed-IFR(Liang)/mv-dollar-source/network-momentum STANDALONE @300s | m5_legsign.py | killed | best ~.511 | — | family probe: no cross-leg signed-lag predicts next-5m sign ≥.52 stable (VAL-sel ownret_15:rev .506/.510/.511). Standalone null. | m5_legsign_result.json |
+| N11/15 | N | own signed-flow / propagator-residual / Hawkes up-down imbalance STANDALONE @300s | m5_legsign.py | killed | best ~.511 | — | family probe: own OF_of_sum/uptick + transient-residual sign all ~.51. Standalone null. | m5_legsign_result.json |
+| N16 | N | ordered-binary-choice OWN sign-autocorrelation @300s | m5_legsign.py | killed | ~.511 | — | family probe: own return-sign momentum AND reversal ~.51 every year. Sign-persistence null at 5m. | m5_legsign_result.json |
+| N12 | N | directed-HVG irreversibility sign-decomposed (peak/trough) @300s (~6%) | m5_dhvg.py | pending | — | — | — | — |
+| N13 | N | time-reversal signed structure-function asymmetry @300s (~5%) | m5_trasf.py | pending | — | — | — | — |
 
 (Discovery round 1 — cross-disciplinary agent, 2026-06-01: added N10-N14. Top priors N10 Liang signed IFR (the
 one explicitly-SIGNED causality measure untried; CCM/TE were its unsigned cousins, both dead) and N11 Bacry-Muzy

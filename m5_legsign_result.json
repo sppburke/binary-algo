@@ -1,0 +1,27 @@
+{
+ "row": "N10/N11/N14/N15/N16/N17 STANDALONE family pre-kill: signed-lag -> EURUSD next-5m sign",
+ "fwd_min": 5,
+ "n_candidates": 76,
+ "val_selected": {
+  "feat": "ownret_15:rev",
+  "val_worsthalf": 0.5099,
+  "2024": 0.5063,
+  "2025": 0.5095,
+  "2026": 0.5109,
+  "n24": 365862,
+  "n26": 128664
+ },
+ "best_by_2026_hindsight": {
+  "feat": "ownret_5:rev",
+  "val_worsthalf": 0.5097,
+  "2024": 0.5058,
+  "2025": 0.506,
+  "2026": 0.5112,
+  "n24": 365862,
+  "n26": 128664
+ },
+ "falsifier": {
+  "KILLED": true,
+  "verdict": "KILLED: the VAL-worst-half-selected signed-lag candidate does NOT hold a stable >=0.52 same-side edge in 2024 AND 2026 -> no STANDALONE signed channel (cross-leg signed-IFR/network-momentum, own signed-flow/propagator-residual/Hawkes-imbalance, own sign-autocorrelation) predicts 5m direction. The certified m5xp UP is the nonlinear GBM COMBINATION of these; standalone they are null. Pre-kills N10/N11/N14/N15/N16/N17 as standalone linear channels."
+ }
+}

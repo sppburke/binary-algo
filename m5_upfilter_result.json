@@ -1,0 +1,84 @@
+{
+ "test": "m5xp side-specific meta-threshold refinement (A8a UP / A8b DOWN)",
+ "breakeven": 0.541,
+ "incumbent_up_binding": 0.577,
+ "frozen_gate_thr": 0.57384,
+ "result": {
+  "UP": {
+   "selected_thr": 0.59844,
+   "val_worsthalf": 0.6856,
+   "val_ns": [
+    792,
+    723
+   ],
+   "per_year": {
+    "2024": {
+     "n": 618,
+     "acc": 0.665,
+     "ci": [
+      0.6278,
+      0.7023
+     ],
+     "out_up_rate": 0.665
+    },
+    "2025": {
+     "n": 512,
+     "acc": 0.6113,
+     "ci": [
+      0.5684,
+      0.6523
+     ],
+     "out_up_rate": 0.6113
+    },
+    "2026": {
+     "n": 31,
+     "acc": 0.5806,
+     "ci": [
+      0.4194,
+      0.7419
+     ],
+     "out_up_rate": 0.5806
+    }
+   },
+   "worst_year_acc": 0.5806
+  },
+  "DOWN": {
+   "selected_thr": 0.59844,
+   "val_worsthalf": 0.6595,
+   "val_ns": [
+    639,
+    699
+   ],
+   "per_year": {
+    "2024": {
+     "n": 610,
+     "acc": 0.6,
+     "ci": [
+      0.5607,
+      0.6393
+     ],
+     "out_up_rate": 0.4
+    },
+    "2025": {
+     "n": 529,
+     "acc": 0.5577,
+     "ci": [
+      0.5161,
+      0.5992
+     ],
+     "out_up_rate": 0.4423
+    },
+    "2026": {
+     "n": 47,
+     "acc": 0.5745,
+     "ci": [
+      0.4255,
+      0.7021
+     ],
+     "out_up_rate": 0.4255
+    }
+   },
+   "worst_year_acc": 0.5577
+  }
+ }
+}
