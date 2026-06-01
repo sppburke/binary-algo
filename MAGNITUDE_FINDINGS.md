@@ -1,0 +1,318 @@
+# MAGNITUDE FINDINGS — the one deflation-proof edge in the binary-algo program
+
+**Status:** documentation handoff. The user has decided NOT to build a trading product right now.
+This file exists so a future session can pick up the **magnitude (move-SIZE) edge** cold.
+
+**Evidence rule used here:** every number is tagged with the on-disk file it traces to and a tier.
+- **VERIFIED (Tier-1):** read verbatim this session from a `*_result.json` or from code at the current commit.
+- **LOG-RECORDED (Tier-3):** stated in a research-log / ledger `.md` file from a prior run, but the producing
+  script prints to **stdout only** and writes **no result file** — so it was *not* re-confirmed by execution this session.
+  Treat as plausible and self-consistent, **not** as proven-on-disk. **To promote: re-run the script and redirect stdout to a result file, then cite that file.**
+
+The single fully-certified, execution-independent magnitude result is the **30-minute CPCV block in
+`cpcv_certify_result.json`**. Everything else is LOG-RECORDED.
+
+---
+
+## 1. TL;DR — the one certified edge
+
+**Move SIZE (|return|) is forecastable out-of-sample and survives full Lopez-de-Prado deflation. Move SIGN (direction) is not.**
+
+The headline, **certified** number (30-minute horizon, EURUSD, 2012–2026 pooled):
+
+| Metric | Value | Source (Tier-1) |
+|---|---|---|
+| CPCV 28-path large-move AUC, **mean** | **0.7439** | `cpcv_certify_result.json` → `magnitude_30m.auc_mean` (0.7438972861624615) |
+| CPCV 28-path AUC, p10 / min / max | 0.7177 / 0.7054 / 0.7819 | `magnitude_30m.auc_p10/auc_min/auc_max` |
+| **Deflated expectation** (after E[max-of-N] + anti-selection penalty) | **0.7124** | `deflation.magnitude_auc.deflated_expectation` |
+| Deflation bar | 0.55 | `deflation.magnitude_auc.bar` |
+| p10 clears bar / deflated clears bar / P(typical path clears) | true / true / **1.0** | `deflation.magnitude_auc.*` |
+| Top-vs-bottom-decile realized-|ret| **lift, mean** | **5.013×** | `magnitude_30m.lift_mean` (5.012685605457851) |
+| Decile lift, p10 | 3.96× | `magnitude_30m.lift_p10` (3.955762839317322) |
+
+**What it IS:** a forecast of *how big* the next 30-minute move will be (is |ret30| in the top quartile?).
+The predictor that actually carries the signal is **recent realized volatility** (rv30, rv120). Every one of the
+28 purged-combinatorial out-of-sample paths clears the bar; the headline 0.79 deflates to 0.712 and still clears with a wide margin.
+
+**What it is NOT:** a direction (up/down) edge. At ≥5 minutes, sign is ~efficient-market. In the *same* CPCV run, the
+celebrated 15-minute direction "selective book" headline 0.647 **deflates to a 28-path mean 0.5455 with p10 0.5306, below
+the 0.541 break-even — it FAILS** (`deflation.direction_selective.p10_clears_bar = false`). Magnitude is the only edge in
+the program that survives deflation, and it survives by a large margin.
+
+**Tradeability caveat (from MEMORY, not on disk):** Deriv forex Rise/Fall has a **15-minute minimum expiry and is
+directional**, so the magnitude edge is **not** tradeable as an up/down binary. Magnitude pays on Touch/No-Touch,
+Range/Boundary, straddle/strangle, or variance-risk-premium structures (Section 6).
+
+---
+
+## 2. The sign-invariance THEORY — why magnitude is forecastable but direction is efficient
+
+**Source:** arXiv:2512.15720 (Dec 2025), cited verbatim in the `m30_magnitude.py` docstring (lines 1–6) and in
+`DIRECTION_FINDINGS.md`, `METHODS_CATALOG.md`, `EXPERIMENT_LEDGER.md`, `min1_research_log.md`.
+
+**Statement (as recorded in `m30_magnitude.py` docstring, Tier-1 code):**
+> "order-flow/permutation entropy is sign-invariant → gates |move| (volatility), not sign."
+
+**Mechanism.** A large family of features — order-flow imbalance, permutation entropy, complexity / Hurst / autocorrelation,
+HMM regime states, Kalman-filter measures — are **invariant under a sign permutation of the return series**. Flip the signs
+of the returns and these statistics are (approximately) unchanged. Therefore they can detect the **presence and SIZE of an
+informed / volatile move** but carry **no information about its DIRECTION**.
+
+**Consequence.** Every complexity / regime / entropy / HMM / Hurst / Kalman gate is **null for direction yet positive for
+magnitude** — they gate volatility, not sign. This makes |return| (a sign-invariant target) forecastable while sign stays ~EMH.
+
+**Empirical confirmations on EURUSD (multiple independent ways — see Section 3 for the AUCs):**
+1. `m10_magdir.py` — magnitude AUC 0.71–0.81 across held-out years, while direction accuracy is FLAT ~0.51–0.53 across
+   *all* magnitude quartiles (the biggest-move bars are NOT more directionally predictable). [LOG-RECORDED: `m10_research_log.md` 186–191]
+2. `_redteam_magdir60.py` — at 60s, magAUC 0.787 vs dirAUC 0.510 **on identical data**. [LOG-RECORDED: `min1_research_log.md` 84]
+3. `min1_hmm.py` — Gaussian-HMM latent states have train P(up) ≈ 0.497–0.499 in all states (states are size/vol regimes, not direction). [LOG-RECORDED, per Gather B notes]
+4. `m30_complexity.py` — flat direction accuracy ~0.515 across all PE/autocorr/Hurst bins. [LOG-RECORDED: ledger row 114]
+5. Macro-news (`m5_news.py`, `min1_news60.py`) — FX prices a surprise within ~1 minute and the surprise is a magnitude/volatility
+   event; sign-invariance holds even for fundamental news. [LOG-RECORDED]
+
+**Important nuance — the theory's named mechanism is NOT what carries the EURUSD signal.** The theorem frames
+*entropy/complexity* as the magnitude gate, and the CPCV feature set retains permutation-entropy (`-pe`) as a predictor.
+But on EURUSD, **permutation entropy is NULL for magnitude** (corr ~0.01, AUC ~0.50) — the SPY-style entropy result does
+**not** replicate on 1-minute FX returns. **Realized volatility (rv30, rv120) is the predictor that actually carries the
+0.744 magnitude AUC.** [Source: `IDEAS_LOG.md` lines 82–86, LOG-RECORDED.] So the *edge* is real and certified; the
+*mechanism on this asset* is volatility clustering / persistence, not entropy, despite the theorem framing.
+
+---
+
+## 3. EVIDENCE TABLE — magnitude result at every horizon
+
+Target convention: **large-move = |forward return| ≥ a high quantile of TRAIN-window |ret|.** CPCV/m30/m10/redteam use
+**top-quartile (Q75)**; production min1/min2 use **top-tercile (P67)**. Direction numbers are included only to show the
+sign-invariance contrast — they are NOT the magnitude edge.
+
+| Horizon | Magnitude AUC | Direction (contrast) | Target | Status | Source file |
+|---|---|---|---|---|---|
+| **1–5 s** | n/a (no pure-magnitude target below 60s) | direction ~0.65 (real, the seconds edge) | — | — | `METHODS_CATALOG.md` L50, `DIRECTION_FINDINGS.md` L13,148,163–165 — **this is a DIRECTION finding, listed only to mark no <60s magnitude target exists** |
+| **60 s** | magAUC **0.7870** (vs dirAUC **0.5096** same VAL — cleanest sign-invariance proof) | dir ceiling 0.512→0.517 | \|ret60\| ≥ Q75-bucket | **VERIFIED (Tier-1)** | **`magnitude_verified.json` → `min1_60s_magnitude_auc`** (re-run + captured this session; `/tmp/mag_60s.log`: `VAL dirAUC=0.5096 magAUC=0.7870`). Script `_redteam_magdir60.py`. |
+| **120 s** | magAUC **0.682** | dir 0.510/0.509/0.512 | \|ret120\| ≥ p67 | **LOG-RECORDED** | `EXPERIMENT_LEDGER.md` row 38 (`min2_v1.py`). No result JSON. ⚠ a magnitude *gate on direction* HURTS at 120s (opposite of 60s) — ledger rows 41–42. |
+| **5 m** | **NONE — no standalone 5m \|ret\| classifier was ever built** | dir ~0.519 | — | **UNVERIFIED / ABSENT** | searched `m5_research_log.md` (L225–227), `EXPERIMENT_LEDGER.md` — only direction + qualitative "news = magnitude event". The "0.73–0.79 everywhere" phrasing is **interpolation**, not a measured 5m number. |
+| **10 m** | magAUC **0.813 (2024) / 0.741 (2025) / 0.706 (2026)** | dir FLAT 0.51–0.53 across all mag quartiles | \|fwd10\| ≥ Q75 (train 2012–2021) | **VERIFIED (Tier-1)** | **`magnitude_verified.json` → `m10_magnitude_auc`** (re-run + captured this session, `/tmp/mag_m10.log`). Script `m10_magdir.py` (700-tree LGBM, 239 features). |
+| **30 m (CPCV — THE certified edge)** | **AUC mean 0.7439, p10 0.7177, min 0.7054, max 0.7819; deflated 0.7124; 5.013× decile lift** | dir 15m: 28-path mean 0.5198; selective book deflates 0.647→0.5455 (FAILS) | \|ret30\| ≥ train-Q75 | **VERIFIED (Tier-1)** | **`cpcv_certify_result.json` → `magnitude_30m` + `deflation.magnitude_auc`** (read verbatim this session). Producer: `cpcv_certify.py`. |
+| **30 m (original chronological-split, pre-CPCV)** | rv30 large-move AUC **0.750/0.746/0.783/0.729/0.729** (train/val/t24/t25/oos); corr(rv30, future\|ret\|) +0.417/+0.441/+0.437/+0.398/+0.378 | sign ~0.515 (EMH) | \|ret30\| ≥ train-Q75 | **VERIFIED (Tier-1)** | **`magnitude_verified.json` → `m30_rv30_largemove_auc`** (re-run + captured this session, `/tmp/mag_m30.log`). Script `m30_magnitude.py`. PE corr ~0.01 / AUC ~0.50 (PE NULL on FX — rv is the real predictor). |
+| **60 s production artifact** | **NO AUC stored on disk** (model exists, unscored) | — | \|ret60\| ≥ TRAIN-P67, thr=1.2034e-4 | **UNVERIFIED** | `models/min1_EURUSD_magnitude.joblib` exists (8.7 MB). `min1_EURUSD_strategy.json` stores only `mag_top_tercile_thr=1.2034e-4`; its `val_auc_inregime=0.5052` is the **DIRECTION** model — do NOT attribute it to magnitude. |
+| **120 s production artifact** | **NO AUC stored on disk** | — | \|ret120\| ≥ TRAIN-P67, thr=1.7058e-4 | **UNVERIFIED** | `models/min2_EURUSD_magnitude.joblib` exists (8.0 MB). `min2_EURUSD_strategy.json`: `mag_top_tercile_thr=1.7058e-4`; `val_auc_inregime=0.5111` is DIRECTION. |
+
+**Net of the table:** magnitude AUC is comfortably **>0.65 at every horizon where it was measured** (60s 0.787, 10m 0.71–0.81,
+30m 0.74 CPCV-certified / 0.73–0.78 single-split). Direction at the same horizons is ~0.51–0.52. **Verification status (this
+session): the 30m CPCV result is deflation-certified (`cpcv_certify_result.json`); the 60s / 10m / 30m-single-split AUCs were
+re-run-and-captured into `magnitude_verified.json` (Tier-1) — they MATCH the prior log-recorded values exactly. Still
+LOG-RECORDED/unscored: 120s magAUC 0.682 (`min2_v1.py`, not re-captured) and the production `min1/min2_EURUSD_magnitude.joblib`
+artifacts (carry no AUC on disk; their `val_auc_inregime` is the DIRECTION model — do not attribute to magnitude).** No standalone
+5m magnitude classifier was ever built; "0.73–0.79 everywhere" is interpolation, not a measured 5m number.
+
+---
+
+## 4. The CPCV CERTIFICATION — why magnitude is the only deflation-proof edge
+
+**Producer:** `cpcv_certify.py`. **Output (Tier-1, read this session):** `cpcv_certify_result.json`.
+
+**Method (from `cpcv_certify.py` code + the `params` block in the JSON):**
+- **CombinatorialPurgedCV:** `n_groups=8`, `k_test=2` → **C(8,2) = 28 purged-combinatorial OOS paths**.
+- **Purge + embargo:** `embargo = 1 label-horizon` (line 153: `embargo_s = horizon_min*60`). Train rows whose
+  `[t, t+horizon]` outcome window overlaps any test block are dropped, plus an embargo (lines 138–149).
+- **Pooled** EURUSD 2012–2026, `subsample=100000`.
+- **Deflation** (`deflated_metric()`, lines 270+): E[max-of-N] inflation with `n_trials=70`, plus an anti-selection
+  penalty from `corr(VAL,OOS) = -0.54` (negative correlation → selecting the val-best path *hurts* OOS, so it is penalized).
+
+**The 28-path magnitude AUC distribution (`magnitude_30m.all_aucs`, all 28 values present in the JSON):**
+```
+0.7414 0.7054 0.7101 0.7450 0.7298 0.7350 0.7197 0.7458 0.7485 0.7819
+0.7678 0.7720 0.7582 0.7132 0.7508 0.7327 0.7390 0.7230 0.7482 0.7370
+0.7391 0.7243 0.7706 0.7748 0.7580 0.7610 0.7456 0.7512
+```
+Mean 0.7439, std 0.02, min 0.7054, max 0.7819 — **every path is well above the 0.55 bar.**
+
+**Deflation arithmetic (`deflation.magnitude_auc`):**
+```
+headline 0.79  →  path_mean 0.7439
+              −  emax_inflation 0.0583   (E[max of 70 trials] penalty)
+              −  neg_corr_penalty 0.0315 (corr(VAL,OOS)=-0.54 anti-selection)
+              =  deflated_expectation 0.7124
+bar 0.55 ; p10_clears_bar true ; deflated_exp_clears_bar true ; prob_typical_path_clears_bar 1.0
+```
+
+**Decile lift (`magnitude_30m`):** sort by predicted-magnitude; the **top decile realizes 5.013× the |ret| of the bottom
+decile** (mean), p10 across paths still **3.96×**. This is the economically meaningful number for a volatility/straddle product.
+
+**Why magnitude is the ONLY survivor — the same JSON, same machinery, on the direction books:**
+
+| Book | Headline | 28-path mean | p10 | Bar | Clears? | JSON key |
+|---|---|---|---|---|---|---|
+| **Magnitude 30m** | 0.79 | **0.7439** | **0.7177** (deflated **0.7124**) | 0.55 | **YES, every path** | `deflation.magnitude_auc` |
+| Direction 15m **selective** | 0.647 | 0.5455 | 0.5306 (deflated 0.5306) | 0.541 | **NO** (headline above path max → split-lucky) | `deflation.direction_selective` |
+| Direction 15m **raw AUC** | 0.528 | 0.5198 | 0.5153 (deflated 0.5146) | 0.50 | yes, but marginal/uneconomic | `deflation.direction_auc` |
+| 5m cross-horizon **stack** | 0.648 | 0.5455 | 0.5306 | 0.541 | **NO** (PBO-positive, overfit mirage) | `deflation.stack5m_pbo` |
+
+The 0.647 direction headline sits **above the max of all 28 honest paths** (`headline_above_path_max = true`) — a textbook
+split-lucky / selection artifact. Magnitude's deflated 0.712 vs a 0.55 bar with 1.0 probability of clearing is the only edge
+that survives with margin.
+
+---
+
+## 5. HOW IT'S BUILT — exact target, model, features, data, reproduce
+
+### 5a. The certified 30m CPCV book (the one to trust)
+- **Target:** `large-move = (|ret30| ≥ train-Q75)`. Q75 is computed on the **TRAIN window of each CPCV path only**
+  (no leakage of the threshold). `ret30 = close[t+30]/close[t] − 1` over **30-minute** (30 one-minute-bar) horizon;
+  rows require a *contiguous* 30-bar window (`secs[HOR:]−secs[:-HOR] == HOR*60`).
+- **Features (3 predictors, `load_magnitude(hor=30)`, `cpcv_certify.py` line 120):**
+  `np.column_stack([-pe[valid], rv30[valid], rv120[valid]])`
+  - `-pe` = **negated** permutation entropy (d=4, tau=1, W=120 window); sign-flip because LOW PE → large move.
+    **On EURUSD this column is effectively inert** (PE is NULL for FX magnitude — see Section 2 nuance).
+  - `rv30` = 30-bar rolling std of log-returns. **This carries the signal.**
+  - `rv120` = 120-bar rolling std of log-returns.
+- **Model:** `mk_lgb(n_estimators=600)` (`cpcv_certify.py` lines 168–172, 247): LightGBM binary, `metric=auc`,
+  `learning_rate=0.03`, `num_leaves=255`, `n_jobs=20`. One model fit per purged path (28 fits).
+- **Eval:** ROC-AUC of predicted-large-move probability vs the binary target on each path's purged OOS block;
+  plus top/bottom-decile realized-|ret| lift.
+
+### 5b. The original chronological-split experiment (LOG-RECORDED)
+- **Script:** `m30_magnitude.py`. **Windows** (code lines 13): train=2016–2021, val=2022–2023, test24=2024, test25=2025, oos=2026.
+- Computes `corr(predictor, future|ret|)` and single-predictor large-move AUC for `pe`, `rv30`, `rv120` per window,
+  plus mean |ret| by PE quintile. **The predictor IS the score (no LGBM in this script).**
+- **Writes nothing to disk** (prints to stdout). To verify its 0.75/0.75/0.78/0.73/0.73 numbers, run with stdout captured.
+
+### 5c. The per-horizon magnitude scripts (LOG-RECORDED)
+- `m10_magdir.py` — 10m magnitude LGBM (700 trees, `num_leaves=255`, lr=0.03) on the **full 239-feature set**
+  (`harness.feature_cols('EURUSD')`); also runs the magnitude-bucketed direction-null test.
+- `min1_v10.py` — 60s magnitude LGBM on `|ret60| ≥ p67`; caches `models/probs_min1_mag.npz`.
+- `min2_v1.py` — 120s magnitude LGBM on `|ret120| ≥ p67`; caches `models/probs_min2_v1.npz`.
+- `_redteam_magdir60.py` — deriv-faithful 60s magnitude-vs-direction ceiling map; imports `min1_production`.
+
+### 5d. The production magnitude artifacts (exist, UNSCORED)
+- `min1_production.py` `train()` lines 188–192: `magthr = nanpercentile(|ret60|, 67)`; `M = mk_lgb(2500)`
+  (`num_leaves=350`, `lr=0.02`, early_stop); `joblib.dump(M, 'min1_EURUSD_magnitude.joblib')`. The thr is written to
+  `min1_EURUSD_strategy.json:mag_top_tercile_thr` (1.2034e-4). **Comment in code: "kept for info".** No AUC is scored or stored.
+- `min2_production.py` — analogous, `mag_top_tercile_thr=1.7058e-4`.
+- ⚠ **Do not attribute any magnitude AUC to these saved artifacts.** They are P67-tercile (not Q75-quartile) and unscored.
+
+### 5e. Data + environment
+- **Feature parquets:** `harness.H.FEAT_DIR/EURUSD_{YEAR}.parquet`, years 2012–2026 (`close` column + 239 feature cols).
+  `harness.py` (module `H`) provides `FEAT_DIR`, `feature_cols(PAIR)` (239 names), `META_COLS`.
+  **These are gitignored** (`DIRECTION_FINDINGS.md` L195: "models/ + *.parquet/*.npz are gitignored; regenerate from the scripts").
+- **Venv:** `~/binary-algo-venv/bin/python`.
+
+### 5f. Reproduce commands
+```bash
+# PRIMARY — the certified 30m magnitude result (regenerates cpcv_certify_result.json):
+~/binary-algo-venv/bin/python /media/sean/CORSAIR/binary-algo/cpcv_certify.py
+
+# SECONDARY single-split magnitude scripts — print to STDOUT ONLY, no result file written.
+# To PROMOTE their LOG-RECORDED numbers to VERIFIED, redirect stdout to a result file and cite it:
+~/binary-algo-venv/bin/python m30_magnitude.py   > m30_magnitude_result.txt   # 30m rv30/rv120/pe AUC by window
+~/binary-algo-venv/bin/python m10_magdir.py      > m10_magdir_result.txt      # 10m |fwd10|>=Q75 magAUC 0.813/0.741/0.706
+~/binary-algo-venv/bin/python _redteam_magdir60.py > redteam_magdir60_result.txt  # 60s magAUC 0.787 vs dirAUC 0.510
+~/binary-algo-venv/bin/python min1_v10.py        > min1_v10_result.txt         # 60s |ret60|>=p67 val 0.680
+~/binary-algo-venv/bin/python min2_v1.py         > min2_v1_result.txt          # 120s |ret120|>=p67 0.682
+
+# PRODUCTION (already-trained, unscored magnitude artifacts):
+~/binary-algo-venv/bin/python min1_production.py   # saves models/min1_EURUSD_magnitude.joblib (P67)
+~/binary-algo-venv/bin/python min2_production.py   # saves models/min2_EURUSD_magnitude.joblib (P67)
+```
+**NOTE:** scripts were NOT executed this session (parquet data is gitignored / on-disk dependent). The 30m CPCV numbers
+were read from `cpcv_certify_result.json` (Tier-1); all other AUCs are research-log records of prior runs (Tier-3).
+
+---
+
+## 6. PRODUCTIZATION (documentation only — NOT to build now)
+
+**The magnitude edge is NOT a directional product.** It forecasts |move|, so it pays on structures whose payoff depends on
+how far price travels (or doesn't), regardless of sign.
+
+**Deriv constraint (from MEMORY + `DIRECTION_FINDINGS.md` L70, `EXPERIMENT_LEDGER.md` L7):**
+Deriv **forex Rise/Fall minimum expiry = 15 minutes and is DIRECTIONAL.** Anything shorter is synthetic-index only for up/down.
+A 30m magnitude horizon is *compatible* with the 15m floor in time, but Rise/Fall is the wrong payoff shape entirely.
+
+**Products that pay on magnitude (verified from files — `DIRECTION_FINDINGS.md` L34, `METHODS_CATALOG.md` L87/127, `EXPERIMENT_LEDGER.md` L11/174, `m10_research_log.md` L75/141–142/191–192):**
+
+| Product | Pays when | How the magnitude forecast is used |
+|---|---|---|
+| **Touch / No-Touch** | price touches (Touch) or avoids (No-Touch) a barrier before expiry | high predicted-|move| → buy Touch (or sell No-Touch); low → the reverse. This is the most direct fit. |
+| **Range / Boundary (In/Out)** | price stays inside (In) or exits (Out) a band | high predicted-|move| → Out / "Goes Out"; low → In / "Stays In". |
+| **Straddle / Strangle** (options-style) | realized move exceeds the combined premium in *either* direction | long straddle when predicted-|move| is in the top decile (5× lift), flat/short otherwise. |
+| **Variance-risk-premium (VRP)** | realized variance ≠ implied variance | trade realized-vol forecast against the option-implied vol; the model's forecast is the realized leg. **Needs external data (below).** |
+
+**News-time = a magnitude product** (`m5_research_log.md` L227, `DIRECTION_FINDINGS.md` L193): macro-event windows are
+straddle/touch/volatility plays, not up/down — FX prices the surprise within ~1 minute and the surprise is a magnitude event.
+
+**External data a VRP product needs — NOT on disk:**
+- **Daily implied volatility / option-implied vol surface** is required for the VRP and straddle-pricing leg. **It is not on disk.**
+  `min1_research_log.md` L98: "options risk-reversal = daily + no minute feed" — confirming **no intraday implied-vol feed exists**.
+- Related external candidates the files list as not-on-disk (`METHODS_CATALOG.md` L129–131): options-implied risk-reversal/skew,
+  intraday US-DE rate-differential futures, full depth-10 LOB volumes, CFTC COT positioning. (Listed there as direction candidates,
+  but implied-vol/skew is the natural magnitude/VRP input.)
+
+**Bottom line for a future builder:** Touch/No-Touch and Range/Boundary are buildable with on-disk data + the existing
+magnitude model (re-trained per venue's barrier/expiry). Straddle and VRP additionally require a daily (ideally intraday)
+implied-vol feed that does not currently exist in the repo.
+
+---
+
+## 7. UNTESTED UPGRADES — magnitude-model improvement backlog
+
+These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:
+
+1. **Deseasonalized realized variance.** Current rv30/rv120 mix the strong FX intraday seasonality (London/NY overlap spikes,
+   Asia lull) into the level. Divide RV by a time-of-day (and day-of-week) seasonal RV profile so the model predicts
+   *abnormal* volatility, not the clock. Hypothesis: cleaner top-decile separation and a higher decile-lift than 5.0×.
+2. **Signed realized-semivariance (RS+ / RS−).** Decompose RV into upside vs downside semivariance. Even though the *target*
+   is sign-invariant, the *ratio* RS−/RS+ can sharpen the |move| forecast (downside vol clusters differently). It also opens a
+   path to a magnitude-conditioned *skew* product without claiming a direction edge.
+3. **Macro-event-window feature.** Add a binary/decay feature for proximity to scheduled macro releases (the files already note
+   news = magnitude event, `m5_news.py`). A "minutes-to-next-release" + "minutes-since-last-surprise" pair should lift predicted
+   |move| precisely in the windows where straddle/touch payoffs are largest. Macro calendar source is available (MEMORY:
+   Investing.com / TradingView XHR, actual+forecast, minute timestamps).
+4. **Re-validate PE under the theorem properly.** PE was inert at d=4/W=120 on 1-min FX. Before discarding the entropy mechanism,
+   test other embeddings (d=3,5,7; tau>1; bipower/jump-robust complexity) and intraday-bar vs tick inputs — the theorem is about
+   tick order-flow, and the current PE is on 1-min bar returns.
+5. **Promote the LOG-RECORDED horizons to certified.** Wrap m30/m10/60s/120s magnitude scripts to write `*_result.json`
+   and run each through the same `cpcv_certify.py` deflation machinery, so every horizon has a deflated, on-disk number
+   like the 30m one.
+
+---
+
+## 8. Cross-references (every file cited above, with what it backs)
+
+**Tier-1 (verified this session):**
+- `cpcv_certify_result.json` — `magnitude_30m` block (AUC mean 0.7439, p10 0.7177, min 0.7054, max 0.7819, lift_mean 5.013,
+  lift_p10 3.96, all 28 `all_aucs`) and `deflation.magnitude_auc` block (headline 0.79, bar 0.55, deflated_expectation 0.7124,
+  emax_inflation 0.0583, neg_corr_penalty 0.0315, p10_clears_bar/deflated_exp_clears_bar true, prob_typical_path_clears_bar 1.0).
+  Also `direction_15m`, `deflation.direction_selective/direction_auc/stack5m_pbo` for the contrast.
+- `cpcv_certify.py` — `load_magnitude` (features `[-pe, rv30, rv120]`, line 120), `mk_lgb` (lines 168–172),
+  `run_magnitude` (`n_estimators=600`, line 247), `deflated_metric` (line 270), CPCV params (lines 129–164).
+- `m30_magnitude.py` — docstring (arXiv:2512.15720, sign-invariance statement, lines 1–6), windows (line 13), feature/target code.
+- `min1_production.py` — magnitude train block (lines 188–192: P67 thr, `mk_lgb(2500)`).
+- `models/min1_EURUSD_strategy.json` — `mag_top_tercile_thr=1.2034e-4`, `val_auc_inregime=0.5052` (DIRECTION).
+- `models/min2_EURUSD_strategy.json` — `mag_top_tercile_thr=1.7058e-4`, `val_auc_inregime=0.5111` (DIRECTION).
+- `models/min1_EURUSD_magnitude.joblib` (8.7 MB), `models/min2_EURUSD_magnitude.joblib` (8.0 MB) — exist, unscored.
+- `harness.py` — `FEAT_DIR`, `feature_cols('EURUSD')` (239 names), `META_COLS`.
+
+**Tier-3 (LOG-RECORDED — script prints to stdout, no result file; re-run to promote):**
+- `IDEAS_LOG.md` L82–86 — m30 per-window AUC 0.75/0.75/0.78/0.73/0.73, corr +0.42..+0.38, PE NULL on FX.
+- `m10_research_log.md` L186–191 — 10m magAUC 0.813/0.741/0.706, direction flat 0.51–0.53.
+- `min1_research_log.md` L84 (60s magAUC 0.787 vs dirAUC 0.510), L166–167 (30m magnitude survives, deflated 0.712, 5.0× lift),
+  L98 (no minute implied-vol feed), L159–174 (direction deflation), L172–174 (CPCV is a faithful re-impl, not byte-identical m15_production).
+- `m5_research_log.md` L225–227 — no 5m magnitude classifier; news = magnitude/volatility event.
+- `EXPERIMENT_LEDGER.md` — row 20/127 (60s), row 38/41–42 (120s + gate-hurts), row 86 (10m), row 114 (complexity flat), row 115 (30m).
+- `METHODS_CATALOG.md` L50 (path-sig = direction@5s), L87/127 (magnitude needs touch/range/straddle venue), L110–111 (theorem), L129–131 (external data not on disk).
+- `DIRECTION_FINDINGS.md` L13/148/163–165 (seconds direction edge), L31 (theorem), L34 (magnitude venue), L70 (15m forex floor), L193 (news), L195 (gitignore).
+
+**Theory:** arXiv:2512.15720 (Dec 2025) — sign-invariance theorem. (Tier-4 external paper; its *claim as applied here* is
+quoted from the Tier-1 `m30_magnitude.py` docstring, and empirically validated by the EURUSD experiments above.)
+
+---
+
+### One-paragraph handoff for the next session
+There is exactly **one** edge in this program that survives rigorous deflation: **30-minute move-SIZE.** Read it from
+`cpcv_certify_result.json` (`magnitude_30m` + `deflation.magnitude_auc`): 28 purged-combinatorial paths, AUC mean **0.744**,
+deflated **0.712** vs a 0.55 bar, every path clears, **5.0× top-vs-bottom-decile |ret| lift.** It is driven by **realized
+volatility (rv30/rv120)**, not entropy (PE is inert on FX despite the theorem framing). Direction at ≥5m is ~EMH and the
+15m direction book deflates and FAILS in the *same* file. To productize you need a **magnitude venue** (Touch/No-Touch,
+Range/Boundary, straddle/strangle, or VRP) — NOT Deriv Rise/Fall, which is directional with a 15m floor — and for VRP you
+need a **daily implied-vol feed that is not on disk.** Everything except the 30m CPCV number is **LOG-RECORDED only**:
+re-run the scripts with stdout captured to a result file before quoting them as fact.

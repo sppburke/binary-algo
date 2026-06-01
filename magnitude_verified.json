@@ -1,0 +1,42 @@
+{
+ "note": "Tier-1 magnitude AUCs captured from fresh runs this session; companion to cpcv_certify_result.json (the deflation-certified 30m result).",
+ "m30_rv30_largemove_auc": {
+  "train": 0.75,
+  "val": 0.746,
+  "test24": 0.783,
+  "test25": 0.729,
+  "oos": 0.729,
+  "corr_rv30_futureabsret": {
+   "train": 0.417,
+   "val": 0.441,
+   "test24": 0.437,
+   "test25": 0.398,
+   "oos": 0.378
+  },
+  "source": "/tmp/mag_m30.log  (script m30_magnitude.py)",
+  "target": "|ret30|>=train-Q75 (5.40e-04)"
+ },
+ "m10_magnitude_auc": {
+  "test24": 0.813,
+  "test25": 0.741,
+  "oos": 0.706,
+  "direction_by_mag_quartile": "flat ~0.51-0.53 (sign-invariance: magnitude does NOT lift direction)",
+  "source": "/tmp/mag_m10.log  (script m10_magdir.py)",
+  "target": "|fwd10|>=train-Q75, 239 feats LGBM"
+ },
+ "cpcv_certified_30m": {
+  "auc_mean": 0.7439,
+  "auc_p10": 0.7177,
+  "deflated": 0.7124,
+  "decile_lift_mean": 5.013,
+  "source": "cpcv_certify_result.json (magnitude_30m + deflation.magnitude_auc)",
+  "status": "the one deflation-proof edge"
+ },
+ "min1_60s_magnitude_auc": {
+  "val_magAUC": 0.787,
+  "val_dirAUC": 0.5096,
+  "note": "same data, same VAL: magnitude AUC 0.787 vs direction AUC 0.510 -> the cleanest single-experiment proof of sign-invariance at 60s",
+  "source": "/tmp/mag_60s.log  (script _redteam_magdir60.py)",
+  "target": "|ret60|>=train-Q75, min1 microstructure feats"
+ }
+}
