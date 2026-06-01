@@ -6,8 +6,12 @@ description: >
   model/methodology at a (currency, timeframe, side); retarget an existing method to a new horizon or
   currency; reference/load/freeze a model from the registry (books/); or write a result into a
   <PAIR>_RESULTS.md. Enforces the deriv-faithful evaluation discipline and the unique-key results schema so
-  results are trustworthy and comparable. Triggers: "evaluate this strategy", "reverse engineer a model for
-  <pair>/<timeframe>", "does <method> work at <horizon>", "add a result to the ledger", "freeze a book".
+  results are trustworthy and comparable. Also drives the EXHAUSTIVE + GENERATIVE SWEEP (§8): work through every
+  permutation in SWEEP_MATRIX.md variant by variant AND research/invent new methods to append, to find the best
+  UP and DOWN predictor for a (currency, timeframe). Triggers: "evaluate this strategy", "reverse engineer a
+  model for <pair>/<timeframe>", "does <method> work at <horizon>", "best <X>-minute strategy for <currency>",
+  "sweep all the models/methods", "try every permutation", "find new model ideas", "add a result to the
+  ledger", "freeze a book".
 ---
 
 # Strategy evaluation & reverse-engineering (binary direction / magnitude)
@@ -106,6 +110,61 @@ cite it, you have not verified it.
    maintenance protocol.
 3. Retarget methods via `MX_HOR`/`HS` and the per-pair artifact convention (scripts are PAIR-parameterized).
 4. Proceed through the workflow per key; freeze surviving books as `<PAIR>.<book>.v1`.
+
+## 8. EXHAUSTIVE SWEEP MODE (find the BEST strategy for a (currency, timeframe))
+Use this when the task is "find the best <X>-minute up/down strategy for <CURRENCY>" — a systematic search
+over EVERY method/ensemble/RL/DQN/etc permutation, not a single candidate. Driver = `SWEEP_MATRIX.md` (the
+permutation menu). The goal is to converge on the best UP and the best DOWN predictor, with every result
+recorded and the search resumable + exhaustive.
+
+**Procedure:**
+1. **Open a sweep ledger** `sweeps/<PAIR>_<tf>.md`. If it exists, resume from it (do NOT restart). If not,
+   create it by instantiating `SWEEP_MATRIX.md` for this (currency, timeframe): expand each method's variant
+   axes (`MX_HOR`/`HS` + the knob ranges) into individual rows, ordered Tier A → F (highest ROI first), each
+   row `status: pending` with columns: id, family, method, variant, script, target, prior, status,
+   combined_oos, up_oos, down_oos, verdict, result_json.
+2. **Work rows top-to-bottom.** For each `pending` row:
+   a. Pre-register its falsifier (cheap fast-KILL for low-prior rows).
+   b. Retarget + run the §2 discipline; evaluate **combined + UP-split + DOWN-split** per-year with CI95.
+   c. Write the row's result into `<PAIR>_RESULTS.md` (combined-book table + per-key) and the result JSON.
+   d. Mark the ledger row `done` (or `killed`) with its numbers + JSON path.
+   e. Update the **UP/DOWN leaderboard** in `<PAIR>_RESULTS.md` — unseat a side-leader only if it beats the
+      incumbent's binding (worst held-out) year with CI95-lower clearing it under discipline.
+   f. Commit (the ledger + results) so progress survives interruption / a drive drop.
+3. **One heavy job at a time** (OOM history); use sub-agents for research (literature, new method variants)
+   and for parallel evaluation of independent rows, but serialize the heavy fits.
+4. **Do not stop** until every row is `done`/`killed`. Then write the final best-UP and best-DOWN for the key,
+   freeze the survivors as `<PAIR>.<book>.v1` books (§6), and report the leaderboard.
+5. **Resumability:** the ledger IS the state. On any resume (new session, after a crash), re-open it and
+   continue from the first `pending`/`running` row. Never repeat a `done` row.
+
+**6. DISCOVERY — generate NEW methods/variants to expand the search (run continuously, don't just drain the menu).**
+The fixed menu is a starting point; the goal is to maximize the chance of finding an edge, so keep ADDING
+candidates:
+   a. **When to discover:** at sweep start, after finishing each tier, and whenever `pending` rows run low —
+      spawn research sub-agents (the program endorses this) to find genuinely new ideas.
+   b. **Where to look:** (i) scholarly literature — arXiv (q-fin.TR/ST, stat.ML), SSRN, journals — for new FX
+      microstructure / time-series / ML / RL / distributional methods; (ii) **cross-disciplinary** transfer —
+      physics (econophysics, statistical mechanics, turbulence), info theory (transfer entropy, directed
+      information), neuroscience/signal-processing (state-space, point processes, Hawkes), causal discovery;
+      (iii) **novel COMBINATIONS** of existing methods (e.g. HMM-regime-gated CCM, magnitude-conditioned
+      cross-horizon stack, RL sizing on the 15m book, online-adaptive meta-labeler) — combinations are often
+      the cheapest novelty; (iv) re-read `IDEAS_LOG.md` + `EXPERIMENT_BACKLOG.md` for already-logged-but-untried
+      ideas.
+   c. **Vet before adding** (cheap filter, avoid junk rows): is it genuinely NEW (not already in
+      `METHODS_CATALOG.md`/the ledger)? Is there a plausible MECHANISM by which it carries *direction* (sign),
+      not just magnitude — i.e. does it survive the sign-invariance theorem, or is it really a magnitude/gate
+      idea? What data does it need (on-disk vs acquisition)? Assign a prior + a fast-KILL falsifier.
+   d. **Append** each vetted candidate as a new row in `SWEEP_MATRIX.md` (the "Tier N — discovered" section)
+      AND the sweep ledger, and log it in `IDEAS_LOG.md` with its source citation + mechanism + prior. Then it
+      gets run like any other row.
+   e. **Loop-until-dry:** keep a discovery round going until it yields K consecutive rounds (e.g. 2) with no
+      novel survivable idea; then the search space is saturated for now. The leaderboard always reflects the
+      current best — discovery only ever ADDS chances to beat it.
+
+**Coverage rule:** run every Tier-A–F method at least once at this (currency, timeframe) even if it was null
+at another horizon — nulls are horizon/regime-specific and confirming them here is the point. But size the
+falsifier to the prior so low-prior rows die fast. Log any variant you prune (don't silently skip).
 
 ## Honest prior (do not waste compute relitigating)
 60s EURUSD direction is near-efficient (~0.50–0.51 AUC across ~24 channels); >0.65 OOS-stable is not
