@@ -105,6 +105,28 @@ HMM-regime-gated CCM · RL (IQN+CVaR) sizing on the 15m book · online-adaptive 
 / directed-information coupling gate · Hawkes up/down arrival-intensity imbalance · twin/seasonal-surrogate
 significance on every microstructure feature · causal-discovery (PCMCI) lead-lag across the 7 majors.
 
+## Tier I — EDGE-IMPROVEMENT levers (apply to EVERY edge found, and to COMBINATIONS — not just base models)
+**The incumbent to beat at a new (currency, timeframe) is NOT the old base GBM — it is the BEST COMBINATION
+already found (e.g. `<PAIR>.m5xp.v1` + the ACI gate). Run these levers ON the certified book(s), and evaluate
+their COMBINATIONS, before declaring an edge final.** Each is a wrapper/objective/ensemble change, not a new
+feature set; the info-bound caps raw AUC, so success is measured in **binding-year win-rate, coverage, and CPCV
+path-clear-rate**, not global AUC. (EURUSD 5m results in parentheses — retarget via MX_HOR/HS.)
+| # | Improvement lever | Script | What it does | Tgt | Prior / 5m result |
+|---|---|---|---|---|---|
+| I1 | **Adaptive-conformal (ACI) gate** | `m5_conformal.py` | online threshold targeting a win-rate w*; trades more in-regime, less off-regime (causal) | gate | **WIN @5m**: binding 2025 .584@n764 vs fixed .579@n618, +36% trades, regime-robust → book `<PAIR>.m5xp_aci.v1` |
+| I2 | Seed-ensemble net ⊕ GBM (decorrelated stack member) | `m5_deep_ens.py` | M-seed AdamW MLP, prob-avg, blend/stack with GBM | D | 5m: decorrelated (corr .694) but 50/50 blend ≈ GBM (try LEARNED stack weight) |
+| I3 | \|return\|-weighted / GMADL loss | `m5_magweight.py` | up-weight large-move bars (sign more predictable) — magnitude→direction bridge | D | 5m: rebalances to two-sided ~.56, collapses 2026 UP (regime-dependent sign); GMADL operating-point untried |
+| I4 | Calibration (temperature/Venn-Abers) + selective threshold | (wrap any book) | calibrate probs so the confidence gate is honest; re-derive gate post-calibration | gate | nearly free; required wrapper for any confidence-gated edge |
+| I5 | Cross-pair POOLING (weight-shared net across pairs) | (new) | train all majors as rows in one net + per-pair instance-norm + pair-id (Sirignano-Cont) | D | untested structural lever; run only if I2 shows life |
+| I6 | AdamW + tuned LR + Optuna TPE/Hyperband | (wrap nets) | n_trials capped & LOGGED as multiplicity; select on worst-VAL-half | tuning | fixes the `Adam lr1e-3 single-seed` anti-patterns |
+
+**COMBINATIONS are first-class rows.** The model space is a CROSS-PRODUCT: {base GBM · cross-pair · cross-horizon
+stack · seed-ensemble · pooled} × {fixed gate · ACI gate · calibrated gate} × {BCE · \|ret\|-weighted/GMADL} ×
+{up-filter · down-filter · specialist}. A future agent must benchmark a new edge against the BEST combination,
+and try novel combinations (e.g. cross-pair book + GMADL loss + ACI gate + seed-ensemble), not just single
+methods. Record each combination as its own ledger row with the incumbent it beat. Lit-review toolkit + saved
+papers: `/home/sean/git/academic-papers/_DL_for_5m_FX_direction_REVIEW.md`.
+
 ---
 ### Sweep accounting rules
 - One ledger row per **method × variant combination** you actually run. Expand the variant axes — e.g. A1
@@ -114,5 +136,11 @@ significance on every microstructure feature · causal-discovery (PCMCI) lead-la
   timeframe), because nulls are horizon- and regime-specific (the whole point of the sweep). Use a cheap,
   fast-KILL falsifier for ~null-prior rows.
 - Stop a row early the moment its pre-registered falsifier fires; record and move on.
-- The sweep is **done** when every row is `done`/`killed`. Then write the final best-UP and best-DOWN per the
-  `(currency, timeframe, side)` keys and freeze the survivors as `<PAIR>.<book>.v1` books.
+- The sweep is **done** when every row is `done`/`killed`, **AND** the Tier-I improvement levers + their
+  combinations have been run on the best edge(s) found, **AND** the discovery loop is dry. Then write the final
+  best-UP and best-DOWN per the `(currency, timeframe, side)` keys and freeze the survivors — including the
+  best COMBINATION (e.g. `<PAIR>.<book>_aci.v1`) — as books.
+- **Incumbent = best COMBINATION, not base model.** When benchmarking a new method/timeframe, the number to beat
+  is the best combination already in MODEL_REGISTRY.md / INDEX.json (e.g. cross-pair book + ACI gate), not the
+  old base GBM. A future agent evaluating a neighboring timeframe (e.g. 10m after 5m) must retarget the Tier-I
+  levers + the certified combinations to it and compare against ALL of them.

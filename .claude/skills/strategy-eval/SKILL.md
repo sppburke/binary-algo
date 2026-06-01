@@ -133,8 +133,22 @@ recorded and the search resumable + exhaustive.
    f. Commit (the ledger + results) so progress survives interruption / a drive drop.
 3. **One heavy job at a time** (OOM history); use sub-agents for research (literature, new method variants)
    and for parallel evaluation of independent rows, but serialize the heavy fits.
-4. **Do not stop** until every row is `done`/`killed`. Then write the final best-UP and best-DOWN for the key,
-   freeze the survivors as `<PAIR>.<book>.v1` books (§6), and report the leaderboard.
+4. **IMPROVE every edge you find (Tier-I levers + COMBINATIONS).** A certified book is the START, not the end.
+   Run the SWEEP_MATRIX **Tier-I edge-improvement levers** — adaptive-conformal (ACI) gate, seed-ensemble ⊕ GBM
+   stack, |return|-weighted/GMADL loss, calibration, cross-pair pooling, AdamW/Optuna tuning — ON the certified
+   book, and evaluate their **COMBINATIONS** (the model space is a cross-product: {base · cross-pair · stack ·
+   seed-ensemble · pooled} × {fixed · ACI · calibrated gate} × {BCE · GMADL loss} × {filter · specialist}). Each
+   improvement gets a pre-registered falsifier (beat the incumbent's binding-year stat and/or lift the CPCV
+   path-clear-rate). Freeze a winning combination as its own book (e.g. `<PAIR>.<book>_aci.v1`).
+5. **Incumbent = the BEST COMBINATION already found, NOT the old base model.** When you benchmark a new method or
+   retarget to a neighboring timeframe (e.g. 10m after 5m), the number to beat is the best combination in
+   MODEL_REGISTRY.md / `books/INDEX.json` (e.g. cross-pair book + ACI gate), and you must retarget the Tier-I
+   levers + the certified combinations to the new key and compare against **ALL** of them — never just the
+   "previous" base books. The DL/improvement lit-review + saved papers live in
+   `/home/sean/git/academic-papers/` (`_DL_for_5m_FX_direction_REVIEW.md`); grow that corpus when you research.
+6. **Do not stop** until every row is `done`/`killed`, the Tier-I levers + combinations are exhausted on the
+   best edge, and the discovery loop is dry. Then write the final best-UP and best-DOWN for the key, freeze the
+   survivors (including the best combination) as books (§6), and report the leaderboard.
 5. **Resumability:** the ledger IS the state. On any resume (new session, after a crash), re-open it and
    continue from the first `pending`/`running` row. Never repeat a `done` row.
 

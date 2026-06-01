@@ -322,8 +322,30 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 
 ---
 
+## Family 9 — EDGE-IMPROVEMENT levers & MODEL COMBINATIONS (apply to every certified edge; the new incumbent)
+**A certified book is the START. Run these ON it and evaluate COMBINATIONS — the incumbent at a new (currency,
+timeframe) is the best COMBINATION in `books/INDEX.json`, not the old base GBM.** Info-bound caps raw AUC, so
+score these on **binding-year win-rate, coverage, and CPCV path-clear-rate**. Saved lit-review + papers:
+`/home/sean/git/academic-papers/_DL_for_5m_FX_direction_REVIEW.md`.
+### 9.1 Adaptive-conformal (ACI) gate
+- **What.** Replace the FIXED confidence/meta threshold with an ONLINE one: trade candidate `t` iff `meta_t ≥ θ_t`; update `θ_{t+1}=θ_t+γ(err_t−(1−w*))` on traded bars only (Gibbs-Candès 2021). Targets a selective win-rate `w*`, trading more in-regime / less off-regime. Causal (past-outcome feedback, no look-ahead) → deployable.
+- **How.** `m5_conformal.py` (retarget the candidate filter + meta source). Sweep `w*`∈{.55,.56,.57}, `γ`≈.02.
+- **Why / status.** **The improvement that WORKED @5m:** binding 2025 UP .584@n764 vs fixed .579@n618 (better win AND coverage), +36% trades → frozen as `EURUSD.m5xp_aci.v1`. The principled "kill-switch done right". CPCV-validation of the policy is the open follow-up.
+### 9.2 Seed-ensemble net ⊕ GBM (decorrelated stack member)
+- **What.** M-seed AdamW MLP (lr 2e-4), average probabilities, blend/stack with the GBM. Only literature-endorsed DL use on tabular (Shwartz-Ziv; Grinsztajn). `m5_deep_ens.py`. @5m: MLP decorrelated (corr .694) but 50/50 blend ≈ GBM — try a LEARNED stack weight + purged OOF.
+### 9.3 |return|-weighted / GMADL loss (magnitude→direction bridge)
+- **What.** `sample_weight=|wc_ret|` (or GMADL objective): up-weight large-move bars (sign most predictable), leveraging the strong magnitude edge. `m5_magweight.py`. @5m: rebalances to two-sided ~.56, collapses 2026 UP (magnitude-conditional sign is regime-dependent) — GMADL operating-point selection still untried.
+### 9.4 Calibration + selective threshold
+- **What.** Temperature/Venn-Abers calibration so the confidence gate is honest; re-derive the gate post-calibration; verify the up-rate tripwire holds. Nearly free; the required wrapper around any confidence-gated edge.
+### 9.5 Cross-pair POOLING (weight-shared net) — untested structural lever
+- **What.** Train all majors as rows in ONE net + per-pair instance-norm + pair-id (Sirignano-Cont). Raises the floor modestly per the literature; run only if 9.2 shows life.
+### 9.6 COMBINATIONS are first-class
+- The model space is a cross-product: {base GBM · cross-pair · cross-horizon stack · seed-ensemble · pooled} × {fixed · ACI · calibrated gate} × {BCE · |ret|-weighted/GMADL} × {up-filter · down-filter · specialist}. Benchmark a new edge against the best combination; try novel combinations (cross-pair + GMADL + ACI + seed-ensemble); freeze each winner as its own `<PAIR>.<book>_<combo>.v1` book.
+
+---
+
 ## Program-level status summary
-- **Survived/tradeable:** 15m compression×NY direction **0.647** (CPCV-faithful ~0.58 p10); 30m 0.591; seconds 1–5s tick ~0.65 (needs tick venue); **magnitude AUC 0.73–0.79 everywhere** (the one CPCV-deflation-certified edge).
+- **Survived/tradeable:** **5m UP cross-pair direction ~0.55–0.57 — refit-CPCV-certified at the operating gate (first sub-15m direction edge to survive the full refit; `EURUSD.m5xp.v1`), IMPROVED by the adaptive-conformal gate (`EURUSD.m5xp_aci.v1`)**; 15m compression×NY direction **0.647** (CPCV-faithful ~0.58 p10); 30m 0.591; seconds 1–5s tick ~0.65 (needs tick venue); **magnitude AUC 0.73–0.79 everywhere** (the one CPCV-deflation-certified edge).
 - **Killed/null with recorded results:** CKS-OFI, cross-impact OFI, **CCM coupling-gate**, ordinal irreversibility, residualized target, Neural-CDE (all have result JSONs); HMM/Kalman/kernel/online/per-side-flow/news/RMT/DRL (ledger + `models/*_summary.json` + logs).
 - **Coded / backlog:** foundation models (Kronos), SSA/fractional-diff/particle-filter/reservoir, Hawkes/TE/VPIN (LOB-blocked), sample-uniqueness weighting, magnitude upgrades (deseasonalized RV / signed semivariance). **The only inputs that could change the directional answer are external:** intraday DE–US 2y rate differential, daily implied-vol / risk-reversal, EURGBP ticks.
 
