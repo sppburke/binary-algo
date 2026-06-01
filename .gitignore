@@ -225,7 +225,8 @@ models/
 *.npz
 *.joblib
 catboost_info/
-.claude/
+.claude/*
+!.claude/skills/
 ohlc_cache/
 vbar_cache/
 

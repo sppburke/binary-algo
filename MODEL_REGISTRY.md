@@ -2,6 +2,8 @@
 
 This registry makes every deliverable model **concrete, uniquely referenceable, and recreatable verbatim**. It is the resolution target for the `(currency, timeframe, side)` keys in `EURUSD_RESULTS.md`.
 
+> **Future agents:** to evaluate/reverse-engineer a strategy for any (currency, timeframe) and record it correctly, invoke the **`strategy-eval`** skill (`.claude/skills/strategy-eval/SKILL.md`). It wires this registry + `METHODS_CATALOG.md` + the evaluation discipline + the `<PAIR>_RESULTS.md` writing protocol into one workflow.
+
 ## The core decision: FREEZE-the-artifact + RECORD-a-manifest (not config-driven re-derivation)
 
 The frozen books are gradient-boosted ensembles (LightGBM/XGBoost/CatBoost) trained **multithreaded (`n_jobs/thread_count=20`) with no seed on the estimators**. That makes them **NOT bit-for-bit retrainable** — re-running the training script yields a *different* model. Therefore:

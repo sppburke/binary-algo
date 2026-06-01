@@ -221,6 +221,7 @@ The up/down decomposition requires taking a frozen book's **independent trades a
 **Do not** assume another timeframe's asymmetry transfers — at 60s the UP edge is real in 2025-26 but a wash in 2024, i.e. horizon- AND regime-specific.
 
 ## How to maintain this file
+**Future agents: invoke the `strategy-eval` skill** (`.claude/skills/strategy-eval/SKILL.md`) — it encodes the mandatory deriv-faithful evaluation discipline, the 7 leakage traps, the registry-freeze step, and this results-writing protocol as one workflow. Then:
 1. Each experiment → add a row to the timeframe's combined-book table (method, file, per-year stats + CI, verdict).
 2. If side-split, update that timeframe's **Key results** AND the **MASTER KEY TABLE** (one row per side). Unseat a key's leader only if the new method beats the incumbent's binding-year stat (worst held-out year) with CI95-lower clearing it, under deriv-faithful moved-bars discipline; move the old leader to a "previous" line.
 3. Keep every number traceable to a result JSON or research-log line (Tier-1). Flag thin-coverage (n<50) and VAL-acc-max numbers as non-robust.
