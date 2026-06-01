@@ -235,3 +235,6 @@ flow_cache/
 
 # transient experiment stdout logs
 *_run.log
+
+# CKS order-flow feature cache (regenerable)
+features_tick_cks/

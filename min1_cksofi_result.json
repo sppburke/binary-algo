@@ -1,0 +1,327 @@
+{
+  "experiment": "CKS event-OFI (Cont-Kukanov-Stoikov) for 60s EURUSD direction",
+  "settlement": "deriv-faithful wc_ret: next-tick entry lag, last-tick<=expiry, mid-to-mid, ties LOSE",
+  "discipline": "non-overlap chronological, moved-bars-only, per-year, bootstrap CI95, select on worst-VAL-half, subsample<=120k",
+  "horizon_s": 60,
+  "gap_s": 70,
+  "subsample_cap": 120000,
+  "splits": {
+    "train": "2021/2022/2023",
+    "val": "2024-04,05",
+    "test": "2024-09..11 + 2025-02..04 + 2025-09..11",
+    "oos": "2026-02..04"
+  },
+  "a_standalone": {
+    "val_auc_worsthalf": 0.49930524858465264,
+    "val_auc_full": 0.499179334358431,
+    "conf_thr": 0.012373983252741035,
+    "feat_names": [
+      "cks_e",
+      "cks_ofi5",
+      "cks_ofin5",
+      "cks_ofi15",
+      "cks_ofin15",
+      "cks_ofi30",
+      "cks_ofin30",
+      "cks_ofi60",
+      "cks_ofin60",
+      "cks_ema5",
+      "cks_ema15",
+      "cks_ema60",
+      "cks_acc",
+      "cks_nev30"
+    ],
+    "per_window": {
+      "test": {
+        "2024": {
+          "n": 36475,
+          "winrate": 0.4835092529129541,
+          "ci": [
+            0.4783276216586703,
+            0.48880054832076764
+          ],
+          "moved_acc": 0.5030807850296668,
+          "n_moved": 35056,
+          "full_moved_auc": 0.4985522630954312,
+          "full_moved_n": 2188305
+        },
+        "2025": {
+          "n": 79867,
+          "winrate": 0.4826649304468679,
+          "ci": [
+            0.479146268170834,
+            0.4861206756232236
+          ],
+          "moved_acc": 0.49691274475682223,
+          "n_moved": 77577,
+          "full_moved_auc": 0.500300147210604,
+          "full_moved_n": 4465342
+        },
+        "2026": {
+          "n": 0,
+          "winrate": null,
+          "ci": [
+            null,
+            null
+          ],
+          "moved_acc": null,
+          "n_moved": 0
+        },
+        "all": {
+          "n": 116342,
+          "winrate": 0.4829296384796548,
+          "ci": [
+            0.48010176892265904,
+            0.4856889601347751
+          ],
+          "moved_acc": 0.49883249136576313,
+          "n_moved": 112633
+        }
+      },
+      "oos": {
+        "2024": {
+          "n": 0,
+          "winrate": null,
+          "ci": [
+            null,
+            null
+          ],
+          "moved_acc": null,
+          "n_moved": 0
+        },
+        "2025": {
+          "n": 0,
+          "winrate": null,
+          "ci": [
+            null,
+            null
+          ],
+          "moved_acc": null,
+          "n_moved": 0
+        },
+        "2026": {
+          "n": 39780,
+          "winrate": 0.4905731523378582,
+          "ci": [
+            0.48572146807440925,
+            0.49547574157868274
+          ],
+          "moved_acc": 0.5034050456585668,
+          "n_moved": 38766,
+          "full_moved_auc": 0.5012674920121214,
+          "full_moved_n": 2202152
+        },
+        "all": {
+          "n": 39780,
+          "winrate": 0.4905731523378582,
+          "ci": [
+            0.48572146807440925,
+            0.49547574157868274
+          ],
+          "moved_acc": 0.5034050456585668,
+          "n_moved": 38766
+        }
+      }
+    }
+  },
+  "b_swap": {
+    "baseline_imb": {
+      "val_auc": 0.5013776796637812,
+      "conf_thr": 0.01591501171543204,
+      "qb": 0.0010318828362505883,
+      "rqt": 0.5028076767921448,
+      "per_window": {
+        "test": {
+          "2024": {
+            "n": 581,
+            "winrate": 0.4819277108433735,
+            "ci": [
+              0.4423407917383821,
+              0.5232358003442341
+            ],
+            "moved_acc": 0.498220640569395,
+            "n_moved": 562
+          },
+          "2025": {
+            "n": 1003,
+            "winrate": 0.5084745762711864,
+            "ci": [
+              0.4765702891326022,
+              0.5383848454636092
+            ],
+            "moved_acc": 0.5241521068859198,
+            "n_moved": 973
+          },
+          "2026": {
+            "n": 0,
+            "winrate": null,
+            "ci": [
+              null,
+              null
+            ],
+            "moved_acc": null,
+            "n_moved": 0
+          },
+          "all": {
+            "n": 1584,
+            "winrate": 0.49873737373737376,
+            "ci": [
+              0.4734848484848485,
+              0.5227272727272727
+            ],
+            "moved_acc": 0.5146579804560261,
+            "n_moved": 1535
+          }
+        },
+        "oos": {
+          "2024": {
+            "n": 0,
+            "winrate": null,
+            "ci": [
+              null,
+              null
+            ],
+            "moved_acc": null,
+            "n_moved": 0
+          },
+          "2025": {
+            "n": 0,
+            "winrate": null,
+            "ci": [
+              null,
+              null
+            ],
+            "moved_acc": null,
+            "n_moved": 0
+          },
+          "2026": {
+            "n": 528,
+            "winrate": 0.5075757575757576,
+            "ci": [
+              0.4659090909090909,
+              0.5492424242424242
+            ],
+            "moved_acc": 0.5173745173745173,
+            "n_moved": 518
+          },
+          "all": {
+            "n": 528,
+            "winrate": 0.5075757575757576,
+            "ci": [
+              0.4659090909090909,
+              0.5492424242424242
+            ],
+            "moved_acc": 0.5173745173745173,
+            "n_moved": 518
+          }
+        }
+      }
+    },
+    "swap_cks": {
+      "val_auc": 0.5010128289818173,
+      "conf_thr": 0.017636995826179176,
+      "qb": 0.0010318828362505883,
+      "rqt": 0.5028076767921448,
+      "per_window": {
+        "test": {
+          "2024": {
+            "n": 617,
+            "winrate": 0.49432739059967584,
+            "ci": [
+              0.4538087520259319,
+              0.5348460291734197
+            ],
+            "moved_acc": 0.5134680134680135,
+            "n_moved": 594
+          },
+          "2025": {
+            "n": 1085,
+            "winrate": 0.5069124423963134,
+            "ci": [
+              0.47649769585253454,
+              0.5373271889400921
+            ],
+            "moved_acc": 0.5223171889838556,
+            "n_moved": 1053
+          },
+          "2026": {
+            "n": 0,
+            "winrate": null,
+            "ci": [
+              null,
+              null
+            ],
+            "moved_acc": null,
+            "n_moved": 0
+          },
+          "all": {
+            "n": 1702,
+            "winrate": 0.5023501762632198,
+            "ci": [
+              0.47767332549941244,
+              0.5264394829612221
+            ],
+            "moved_acc": 0.5191256830601093,
+            "n_moved": 1647
+          }
+        },
+        "oos": {
+          "2024": {
+            "n": 0,
+            "winrate": null,
+            "ci": [
+              null,
+              null
+            ],
+            "moved_acc": null,
+            "n_moved": 0
+          },
+          "2025": {
+            "n": 0,
+            "winrate": null,
+            "ci": [
+              null,
+              null
+            ],
+            "moved_acc": null,
+            "n_moved": 0
+          },
+          "2026": {
+            "n": 579,
+            "winrate": 0.48013816925734026,
+            "ci": [
+              0.44041450777202074,
+              0.5215889464594128
+            ],
+            "moved_acc": 0.49466192170818507,
+            "n_moved": 562
+          },
+          "all": {
+            "n": 579,
+            "winrate": 0.48013816925734026,
+            "ci": [
+              0.44041450777202074,
+              0.5215889464594128
+            ],
+            "moved_acc": 0.49466192170818507,
+            "n_moved": 562
+          }
+        }
+      }
+    }
+  },
+  "falsifier": {
+    "standalone_val_auc_worsthalf": 0.49930524858465264,
+    "standalone_fail(<=0.515)": true,
+    "baseline_2025_winrate": 0.5084745762711864,
+    "swap_2025_winrate": 0.5069124423963134,
+    "swap_2025_ci": [
+      0.47649769585253454,
+      0.5373271889400921
+    ],
+    "swap_lifts_2025_ci_clears_prior": false,
+    "FALSIFIER_KILLED": true,
+    "verdict": "KILLED: standalone VAL AUC<=0.515 AND swap did not lift 2025 with CI clearing prior"
+  },
+  "elapsed_s": 372.0
+}

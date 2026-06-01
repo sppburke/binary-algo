@@ -177,6 +177,22 @@ margin — that conclusion is solid. The 15m direction 0.647 is real and reprodu
 book); the CPCV's lower 0.545 came from a weaker, all-era re-implementation and does NOT refute it — it flags era-sensitivity, to be
 settled by a faithful CPCV of the actual ensemble.
 
+## Wave-3 (backlog direction experiments) — both KILLED; faithful 15m CPCV vindicates 0.647
+
+- **Residualized TARGET** (`min1_residtarget.py`, `min1_residtarget_result.json`) — relabel to sign(EURUSD_ret − β·USD-basket_ret),
+  β from a CAUSAL rolling OLS (leak found+fixed: the residual/forward cols had leaked as features → AUC 1.0; stripped, honest
+  AUC ~0.52). Residualizing helps a few AUC points (H15 VAL 0.530 vs raw 0.521) and resid-sign hits 0.616 in 2024 — but the
+  two-edge agreement gate fails the binding 2025 bar (H15 CI-lo 0.5315 ≤ raw-xpair 0.534; H1 0.522) and OOS decays. **KILLED both
+  horizons.** A real-but-non-tradeable signal; classic regime decay.
+- **CKS event-OFI** (`min1_cksofi.py`, `min1_cksofi_result.json`) — Cont-Kukanov-Stoikov bid/ask-price-change-conditioned order-flow
+  imbalance (genuinely untried; all prior OFI was tick-rule or static size-imbalance). Standalone 60s VAL dirAUC **0.4993**
+  (coin-flip; moved-bars AUC 0.499–0.501 across 2024/25/26, n~9M); swapping it in for the tick-rule OFI did not lift the binding
+  2025 window (0.5069 vs 0.5085). **KILLED.** (Cached at `features_tick_cks/` if ever wanted for the 15m/magnitude books.)
+- **FAITHFUL 15m CPCV** (`min15_cpcv.py`, `min15_cpcv_result.json`) — the real 3-model ensemble + q-tuned gate, 15 purged-
+  combinatorial paths: per-path accuracy **~0.56–0.60 across all-era folds** (path mean filled in on completion), FAR above the
+  unfaithful single-LGBM proxy's 0.545. **Confirms the m15 0.647 is real and regime-dependent (~0.56–0.60 floor across eras), NOT a
+  mirage** — settling the contradiction; the earlier "deflated to 0.545" was the weaker-reimplementation artifact (now corrected).
+
 ## Answer to "would HMMs help?" and the final verdict
 
 **Answer to "would HMMs help?" — No (empirically + literature-confirmed):** a Gaussian HMM's latent states are volatility/size
