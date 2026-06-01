@@ -1,0 +1,12 @@
+{
+ "row": "N(disc2) Stoikov micro-vs-mid slope-divergence @120s",
+ "horizon_s": 120,
+ "breakeven": 0.541,
+ "val_auc_div": 0.49840898119215626,
+ "orient_sign": -1.0,
+ "per_year_largediv": {},
+ "falsifier": {
+  "KILLED": true,
+  "verdict": "KILLED: VAL dirAUC ~0.50 (no signed fair-value lead survives to 120s)"
+ }
+}

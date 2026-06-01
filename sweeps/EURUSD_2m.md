@@ -30,6 +30,7 @@ combined + UP + DOWN → record → commit. `OOS` columns = per-year 2024/2025/2
 | N4 | N | intraday-momentum term-structure | min2_mim.py | killed | best .506 flat | — | no signed intraday-interval predictor stable across 2024&2026 | min2_mim_result.json |
 | N7 | N | asymmetric tick-intensity (Hawkes-proxy) | min2_hawkes.py | killed | best .5057 | — | tick self-excitation decays before 120s | min2_hawkes_result.json |
 | N8 | N | signed-semivariance-skew sign-conditioning | min2_rsskew.py | killed | up-rate ~.48-.52 | — | sign-invariance holds even under signed conditioner | min2_rsskew_result.json |
+| D2 | N | Stoikov micro-vs-mid slope-divergence (disc.round-2 top, 8%) | min2_stoikov.py | killed | VAL dirAUC 0.4984 | — | signed fair-value lead decays before 120s (as tick-intensity/rawtick did) | min2_stoikov_result.json |
 
 ### Subsumed by the keystone (not separately run — documented rationale)
 The online-ARF keystone (C5a: a drift-adaptive forest finds ZERO 2m direction signal every year) **subsumes**
