@@ -25,7 +25,7 @@ done/killed → update leaderboard → commit. Run DISCOVERY (skill §8.6) perio
 | A6a | A | cross-pair USD-residual + OF, MX_HOR≈2 | mode{xp,xpof} | m5_xpair.py (HS=120) | D | med | pending | | | | | |
 | A8a | A | up-only FILTER refinement (conf-tighten, worst-VAL-half) | keep top-25% conf | min2_upfilter.py | U | filter med | killed | | .62/.534/**.697** | — | KILLED — tempting OOS26 .697 (n76) but 2025 .534 FAILS breakeven; fragile/thin (corr(VAL,OOS) trap). Baseline UP .555 (floor .546) more robust. | min2_upfilter_result.json |
 | B1a | B | tick microstructure ensemble @120s | HS=120, OBI/microprice/flow | m_tick_prod.py | D | low (decays by 60s) | pending | | | | | |
-| B3a | B | CKS event-OFI @120s | window{30,60,120}s | min1_cksofi.py (HS=120) | D | ~null | pending | | | | | |
+| B3a | B | CKS event-OFI @120s | retarget HS=120 (cache reused) | min2_cksofi_run.py | D | ~null | killed | | | | KILLED — VAL dirAUC 0.4995 (LGBM early-stops at iter1); null, as at 60s. | min2_cksofi_result.json |
 | C1a | C | HMM regime (K3) gate/switch @120s | K{2,3}, U1/U2 | min1_hmm.py (HS=120) | G+D | ~null | pending | | | | | |
 | C5a | C | online ARF+ADWIN control @120s | 10-tree | min1_online.py (HS=120) | D | ~null (control) | pending | | | | | |
 | E1a | E | MAGNITUDE \|ret120\|≥Q | Q{0.75}, rv-windows | min2_v1.py | M | high (certified family) | pending | | | | | |
@@ -45,5 +45,7 @@ null; the min2 book already embodies the tick-microstructure approach = B1). Def
 agent can extend this ledger. E (magnitude) is the certified edge but is sign-invariant → out of scope for an
 UP/DOWN strategy (track in MAGNITUDE_FINDINGS.md).
 
-Discovery seeds to vet/add: magnitude-conditioned 5m→2m stack · HMM-gated reversion · transfer-entropy
-coupling gate · Hawkes up/down arrival imbalance · RL(IQN+CVaR) sizing on the 2m book.
+| N2 | N | DISCOVERED: triangular USD-canceling residual (EURUSD vs GBPUSD cointegration reversion) | W=500min, \|z\|-thr | min2_triangular.py | D | **15% (top)** | killed | .499/.497/.497 | ~.50 | ~.50 | KILLED — USD-immune residual reversion is coin-flip at 120s (relative-value reverts too slowly). Clean null of the best novel idea. | min2_triangular_result.json |
+| N3-N9 | N | cross-quantilogram / MIM term-structure / PCMCI / directed-info(sign) / Hawkes-asymmetry / RS-skew / cross-ordinal | see SWEEP_MATRIX Tier-N + IDEAS_LOG | (to build) | D | 5-12% | pending | | | | run N6 (directed-info sign gate) first — pre-kills N3/N5/N9 | |
+
+Discovery seeds remaining: see SWEEP_MATRIX Tier-N (N3-N9, sub-agent-sourced 2026-06-01). Run order: N6 gate → N7 Hawkes → N3 quantilogram → N4 MIM → rest.

@@ -122,3 +122,16 @@ Goal re-set to 5-min >65% OOS. New ideas tried (the genuinely-untried-at-5m set)
 **5-MIN CONCLUSION:** honest frontier improved 0.566→**~0.61** (genuine, profitable vs 0.541), but **≥0.65 OOS-stable is NOT
 reachable** — the 2025 regime is near-efficient for 5-min direction. Buildable-from-repo levers exhausted; remaining levers =
 signed macro/news calendar (external) or a seconds/tick broker (real ≥0.65 edge). Deliverable: m5_xpair_production.py.
+
+---
+## Discovery round — novel 2m EURUSD DIRECTION ideas (2026-06-01, sub-agent research, for sweeps/EURUSD_2m)
+Generated for the EURUSD 2m sweep (SWEEP_MATRIX Tier-N). Each vetted: genuinely new vs catalog, plausible
+SIGN mechanism (survives sign-invariance arXiv:2512.15720), on-disk data, fast-KILL falsifier.
+- **N2 Triangular USD-canceling residual** (EURUSD vs GBPUSD rolling cointegration; USD factor algebraically removed → immune to the 2025 USD-factor inversion). arXiv:0812.0913. Prior 15%. **TESTED → KILLED** (min2_triangular_result.json: COMB .499/.497/.497, coin-flip; relative-value reverts too slowly for 120s).
+- N3 Cross-quantilogram tail-lead (Han-Linton-Oka-Whang arXiv:1402.1937) — tail-conditional sign asymmetry. Prior 12%. PENDING.
+- N4 Market-Intraday-Momentum term-structure (Gao-Han-Li-Zhou JFE2018) — lagged clock-interval return → fwd sign. Prior 10%. PENDING.
+- N5 PCMCI+ causal-discovery sign-stable lead (Runge SciAdv2019) — conditions out the common USD factor. Prior 8%. PENDING.
+- N6 Directed-information on SIGN sequences (Massey; Quinn-Coleman-Kiyavash) — magnitude-blind go/no-go gate; pre-kills N3/N5/N9. Prior 6%. PENDING (run as gate).
+- N7 Asymmetric up/down-tick Hawkes intensity imbalance (Bacry-Muzy arXiv:1301.1135) — cross-excitation asymmetry φuu−φdd, mid-tick only. Prior 9%. PENDING.
+- N8 Signed-semivariance-skew sign-conditioning on the magnitude model (Patton-Sheppard) — RS⁺−RS⁻ skew is signed. Prior 5%. PENDING.
+- N9 Cross-pair signed ordinal transition imbalance (Bandt-Pompe / Neuman-Cohen-Tamir) — cross-series, signed. Prior 5%. PENDING.
