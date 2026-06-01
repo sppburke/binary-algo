@@ -135,3 +135,14 @@ SIGN mechanism (survives sign-invariance arXiv:2512.15720), on-disk data, fast-K
 - N7 Asymmetric up/down-tick Hawkes intensity imbalance (Bacry-Muzy arXiv:1301.1135) — cross-excitation asymmetry φuu−φdd, mid-tick only. Prior 9%. PENDING.
 - N8 Signed-semivariance-skew sign-conditioning on the magnitude model (Patton-Sheppard) — RS⁺−RS⁻ skew is signed. Prior 5%. PENDING.
 - N9 Cross-pair signed ordinal transition imbalance (Bandt-Pompe / Neuman-Cohen-Tamir) — cross-series, signed. Prior 5%. PENDING.
+
+## Discovery round 2 — workflow fan-out (5 lenses), 2026-06-01. Novel 2m ideas beyond N2-N9 (priors honestly 4-9%):
+- Stoikov microprice-velocity vs mid-velocity slope-divergence, gated reversion sign (within-EURUSD, USD-inversion-immune; signed fair-value lead, not a level). Prior 8%, on-disk. [TOP — test_spec in workflow output]
+- Directed horizontal-visibility-graph peak-vs-trough irreversibility (signed by tail decomposition; sign-covariant, unlike the killed scalar I_W). Prior 7%, on-disk.
+- PID synergy/redundancy across legs (higher-order info beyond pairwise directed-info, which the cross-leg gate killed). Prior 6%.
+- CMI: condition next-2m sign on the surviving relative-value RESIDUAL STATE (not the slow residual itself). Prior 6%.
+- Event-localized (not time-averaged) information bursts at CKS-OFI events. Prior 5%.
+- WMR-fixing reversal at 2m, FLOW-conditioned (m30_fix found WMR sign-flipped to continuation in 2026 @30m; never tested @2m). Prior 5-6%. Coverage-starved (2026 = 5 month-turns).
+- Turn-of-month signed drift book (only ever a 15m coverage gate, never standalone @2m). Prior 5%. Coverage-starved.
+- ML: contrastive/SSL pretrain → linear sign-probe; conformal-abstain; focal/ordinal loss on the UP asymmetry. Prior 4-9% (program shows ceiling is DATA not model).
+ASSESSMENT: all low-prior; the 13-channel sweep + online-ARF keystone + the UP-uncertified CPCV make these confirmatory. The Stoikov slope-divergence (within-EURUSD, USD-immune, signed) is the single most-worth-testing; tested as a completeness check.

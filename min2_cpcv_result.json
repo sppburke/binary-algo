@@ -1,0 +1,24 @@
+{
+ "test": "min2 (2m,UP) purged-combinatorial + block-bootstrap, TIES-STRICT",
+ "breakeven": 0.541,
+ "n_up_trades": 1875,
+ "pooled_strict_acc": 0.5445,
+ "block_boot_ci95": [
+  0.5211,
+  0.5685
+ ],
+ "cpcv_paths": 28,
+ "path_mean": 0.5445,
+ "path_p10": 0.5242,
+ "path_min": 0.5171,
+ "frac_paths_clear_0.541": 0.571,
+ "per_year_strict": {
+  "2024": 0.5168,
+  "2025": 0.5516,
+  "2026": 0.545
+ },
+ "verdict": {
+  "CERTIFIED": false,
+  "statement": "NOT CERTIFIED: UP path_p10 and/or block-boot CI95-lower below breakeven 0.541 -> the 2m UP 0.555 is point-estimate-positive but does NOT survive purged-combinatorial / serial-dependence-aware scrutiny. Consistent with the 15m precedent (0.647->0.5455 p10 0.531 FAIL) and the online-ARF efficiency keystone. No certified 2m direction edge."
+ }
+}

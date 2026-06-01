@@ -39,11 +39,18 @@ baseline already embodies the regime channel; null at 60s), **B1/B5 tick-microst
 min2 book IS the tick-microstructure ensemble; CKS-OFI already null), **A6a cross-pair** (cross-leg sign-lead
 gate killed it). **E magnitude** is the certified edge but sign-invariant → out of scope for up/down.
 
-## CONCLUSION — GOAL RESULT
-**Best 2-minute EURUSD strategy = `EURUSD.min2.v1` · `ace4d5c6` (3-model GBM ensemble + compression-release
-specialist, reversion-gated), UP side:**
-- **(EURUSD, 2m, UP) = OOS(2026) 0.555** ✅ robust — 0.546/0.565/0.555, clears breakeven 0.541 every year (floor 0.546)
-- **(EURUSD, 2m, DOWN) = OOS(2026) 0.540** ~ marginal — 2025 (0.512) fails breakeven
+## CONCLUSION — GOAL RESULT (corrected after adversarial verification + CPCV)
+**There is NO robustly-certified 2-minute EURUSD direction edge.** The best point estimate is `EURUSD.min2.v1`
+UP-side OOS 0.555 (moved-only) / **0.5445 ties-strict**, but a 3-agent adversarial audit + a purged-combinatorial
+CPCV DOWNGRADED it from "robust" to **UNCERTIFIED**:
+- **(EURUSD, 2m, UP) = ~0.55 point estimate, UNCERTIFIED ⚠** — no per-year CI95-lower clears 0.541
+  (.486/.536/.508); pooled binomial p=0.053; CPCV path **p10 0.524**, block-boot CI-lo **0.521**, only **57% of
+  28 paths clear 0.541**; per-year-strict 2024 **0.517** < breakeven; the UP side is `pred≡1` so acc≡up-rate-of-
+  bet-up-bars (conditional **drift, not two-sided skill**); 2025 combined up-rate **0.534 breaches the mirage
+  tripwire**. The structurally-identical 15m pipeline deflated 0.647→0.5455 (FAIL) under faithful CPCV.
+- **(EURUSD, 2m, DOWN) = ~0.54, DEAD ❌** — sub-breakeven in ALL 3 years (.540/.512/.540).
+- **Keystone:** online-ARF ~0.50 AUC every year → 2m direction is GENUINE EFFICIENCY (no model beats it).
+(min2_cpcv_result.json; verify verdicts: leakage=clean, robustness=FAIL-major, rederive=clean.)
 
 **13 distinct direction channels were swept** (reversion[best], cross-horizon stack, confidence filter,
 session, CKS-OFI, news, intraday-momentum, triangular USD-canceling residual, cross-leg sign-lead family,
