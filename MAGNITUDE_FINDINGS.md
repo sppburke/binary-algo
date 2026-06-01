@@ -144,13 +144,17 @@ decile** (mean), p10 across paths still **3.96×**. This is the economically mea
 | Book | Headline | 28-path mean | p10 | Bar | Clears? | JSON key |
 |---|---|---|---|---|---|---|
 | **Magnitude 30m** | 0.79 | **0.7439** | **0.7177** (deflated **0.7124**) | 0.55 | **YES, every path** | `deflation.magnitude_auc` |
-| Direction 15m **selective** | 0.647 | 0.5455 | 0.5306 (deflated 0.5306) | 0.541 | **NO** (headline above path max → split-lucky) | `deflation.direction_selective` |
-| Direction 15m **raw AUC** | 0.528 | 0.5198 | 0.5153 (deflated 0.5146) | 0.50 | yes, but marginal/uneconomic | `deflation.direction_auc` |
-| 5m cross-horizon **stack** | 0.648 | 0.5455 | 0.5306 | 0.541 | **NO** (PBO-positive, overfit mirage) | `deflation.stack5m_pbo` |
+| Direction 15m **(re-impl, single LGBM, q33, all-era)** | — | 0.5455 | 0.5306 | 0.541 | not a faithful test of `m15_production` | `deflation.direction_selective` |
+| Direction 15m **raw AUC (re-impl)** | — | 0.5198 | 0.5153 (deflated 0.5146) | 0.50 | marginal | `deflation.direction_auc` |
+| 5m cross-horizon **stack** | 0.648 | 0.5455 | 0.5306 | 0.541 | likely overfit (thin n45) | `deflation.stack5m_pbo` |
 
-The 0.647 direction headline sits **above the max of all 28 honest paths** (`headline_above_path_max = true`) — a textbook
-split-lucky / selection artifact. Magnitude's deflated 0.712 vs a 0.55 bar with 1.0 probability of clearing is the only edge
-that survives with margin.
+**⚠ CORRECTION (2026-05-31):** the MAGNITUDE row above is a FAITHFUL CPCV (it certified the actual rv30/rv120 predictors) — that
+result is solid. The DIRECTION rows are **NOT** a faithful test of the real `m15_production` book: the CPCV used a **single LGBM**
+(not the 3-model ensemble), a looser **q33** gate (not the VAL-tuned q{10/20/33}), and **all-era pooled** data (not the recent
+held-out). The actual `m15_production backtest` reproduces **0.647** (2024 0.689 / 2025 0.582 / 2026 0.663, n677, CI[.612,.684],
+`/tmp/m15_verify.log`) — real and live-faithful. So magnitude being the one *deflation-certified* edge stands, but do NOT read these
+direction rows as deflating the 0.647 book; they only flag that the 15m edge is regime-dependent. A faithful CPCV of the actual
+ensemble is the correct follow-up.
 
 ---
 

@@ -159,19 +159,23 @@ Every number below was read from the named result file (not an agent summary), p
 ### ★ CPCV + Deflated-Sharpe / PBO certification (`cpcv_certify.py`, `cpcv_certify_result.json`) — a HEADLINE CORRECTION
 CombinatorialPurgedCV (N=8 groups, k=2 → 28 OOS paths, embargo=1 label-horizon, pooled 2012–2026), then deflate vs E[max of 70
 trials] with the corr(VAL,OOS)=−0.54 anti-selection penalty:
-- **15m DIRECTION selective book (headline 0.647): does NOT survive.** 28-path mean **0.5455**, p10 0.531, min 0.527, **max 0.559** —
-  the 0.647 sits ABOVE the max of all 28 honest purged paths (split-lucky mirage); deflated expectation 0.531 < breakeven 0.541.
-- **15m DIRECTION raw AUC:** 28-path mean 0.520, all paths > 0.50, deflated 0.515 — a real but economically marginal ~0.52-AUC edge.
-- **5m cross-horizon STACK (0.648@n45): PBO-positive (overfit mirage)** — same deflated 0.531 < breakeven.
-- **MAGNITUDE 30m (\|ret\|, headline 0.79 AUC): SURVIVES robustly.** 28-path mean **0.744**, p10 0.718, min 0.705, deflated **0.712**
-  (≫ the 0.55 bar, every path clears), top-vs-bottom-decile realized-\|ret\| lift **5.0×** (p10 3.96×).
+- **15m DIRECTION (the MAGNITUDE part is faithful; the DIRECTION part is NOT a fair test — CORRECTED 2026-05-31):** a *simplified
+  re-implementation* (single LGBM, q33 gate, pooled 2012–2026) generalizes to 28-path mean **0.5455** (max 0.559). I initially
+  wrote this "deflates the 0.647 → mirage" — **that was an overstatement.** The CPCV book is NOT `m15_production`: it is a SINGLE
+  LGBM vs the actual **3-model ensemble**, a looser **q33** vs the VAL-tuned q{10/20/33} gate, and **all-era pooled** vs the
+  **recent-2024-26** held-out. Re-running the ACTUAL `m15_production backtest` (Tier-1, `/tmp/m15_verify.log`) reproduces **0.647**
+  (2024 0.689 / 2025 0.582 / 2026 0.663, n677, CI[.612,.684], live-faithful `nonoverlap_chrono`). **The 0.647 is real and stands.**
+  What the CPCV legitimately shows: the 15m edge is REGIME-DEPENDENT (a simpler version averaged over all eras is ~0.545), so a
+  FAITHFUL purged-combinatorial CV of the actual ensemble is the right robustness follow-up. The 5m-stack 0.648@n45 (thin coverage)
+  remains the more credible overfit concern.
+- **MAGNITUDE 30m (\|ret\|, headline 0.79 AUC): SURVIVES robustly (this IS a faithful test — it certified the actual rv30/rv120
+  predictors directly).** 28-path mean **0.744**, p10 0.718, min 0.705, deflated **0.712** (≫ the 0.55 bar, every path clears),
+  top-vs-bottom-decile realized-\|ret\| lift **5.0×** (p10 3.96×).
 
-**Implication (rigorously certified):** the project's celebrated >0.64 *direction* books (15m 0.647, 5m-stack 0.648) are
-chronological-split / overfit artifacts — under purged-combinatorial CV they generalize to ~0.545 (marginal, p10 below breakeven).
-The ONE edge that survives rigorous deflation with a large margin is **MAGNITUDE** (\|ret\| AUC ~0.71 deflated, 5× decile lift),
-reconfirming sign-invariance: SIZE is forecastable and robust, SIGN is not, at every horizon. *(Caveat: the CPCV book is a faithful
-re-implementation of a compression×NY 15m selective book pooled 2012–2026, not the byte-identical frozen `m15_production`; the
-deflation result is about the generalization of that book class, and is the most rigorous estimate we have.)*
+**Implication (corrected):** MAGNITUDE is the one edge whose CPCV certification is BOTH faithful AND survives deflation with a large
+margin — that conclusion is solid. The 15m direction 0.647 is real and reproduced on the recent regime (best deriv-tradeable up/down
+book); the CPCV's lower 0.545 came from a weaker, all-era re-implementation and does NOT refute it — it flags era-sensitivity, to be
+settled by a faithful CPCV of the actual ensemble.
 
 ## Answer to "would HMMs help?" and the final verdict
 
