@@ -31,6 +31,15 @@ results, or "the literature says it's hard" as permission to give up.**
   same ceiling, the lever is new *information* (external data: rate differentials, implied-vol/risk-reversal,
   triangular legs) or a better *use* of what we have (magnitude→direction bridge, cross-pair pooling) — pursue
   those, don't conclude "impossible."
+- **MINE THE PAPERS EXHAUSTIVELY AND EXPERIMENT ON EVERYTHING.** The corpus in `/home/sean/git/academic-papers/`
+  is fuel, not decoration. Read EVERY paper THOROUGHLY — every word, equation, diagram, table, AND reference list
+  (chase the references that look load-bearing). Extract EVERY piece of logic / math / methodology / loss /
+  architecture / gating / labeling / validation / framing that could plausibly raise the edge — no matter how
+  small or how skeptical you are. Convert each into a falsifiable experiment with a pre-registered falsifier and
+  RUN IT. **Bias hard toward action: it is better to have an idea DISPROVED BY EXPERIMENT than never tried.** Do
+  not pre-dismiss an idea because a survey was pessimistic or because it "probably won't work" — that judgment is
+  what experiments are for. Maintain the running idea→experiment backlog in `IDEAS_LOG.md`; only retire an idea
+  after it has actually been tested (or is provably subsumed by a Tier-1 result), never on a hunch.
 
 ## Reference: the academic-papers corpus
 
@@ -68,6 +77,12 @@ pages). When a side is failing, run a MECHANISM-first research pass (WHY is it h
 methods. Vet each candidate (genuinely new; plausible DIRECTION mechanism surviving sign-invariance — say which
 SIDE's sign it carries; data on disk); append to SWEEP_MATRIX.md Tier-N + IDEAS_LOG.md; test it. Use sub-agents.
 Loop discovery until K dry rounds.
+   MINE THE CORPUS EXHAUSTIVELY: read EVERY paper in /home/sean/git/academic-papers THOROUGHLY (every word,
+   equation, diagram, table, and reference list — chase load-bearing refs). Extract EVERY piece of logic / math /
+   loss / architecture / gating / labeling / validation / framing that could raise the edge, convert each to a
+   falsifiable experiment, and RUN IT. Bias hard toward action — it is better to have an idea DISPROVED BY
+   EXPERIMENT than never tried; never pre-dismiss on a hunch. Fan out reader sub-agents/workflows over the corpus
+   to produce the idea→experiment backlog (IDEAS_LOG.md), then execute it.
 
 3. IMPROVE WHAT YOU FIND (do NOT stop at the first certified book). For every edge found, run the edge-IMPROVING
 levers from the literature toolkit and measure each against the incumbent: seed-ensembling (stabilize the tail /

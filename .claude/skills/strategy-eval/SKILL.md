@@ -146,6 +146,10 @@ recorded and the search resumable + exhaustive.
    levers + the certified combinations to the new key and compare against **ALL** of them — never just the
    "previous" base books. The DL/improvement lit-review + saved papers live in
    `/home/sean/git/academic-papers/` (`_DL_for_5m_FX_direction_REVIEW.md`); grow that corpus when you research.
+   **MINE IT EXHAUSTIVELY:** read every paper thoroughly (every word/equation/diagram/reference), extract every
+   testable lever (logic/math/loss/arch/gating/labeling/validation/framing), and EXPERIMENT on all of them —
+   better DISPROVED BY EXPERIMENT than never tried; never pre-dismiss on a hunch. Fan out reader sub-agents over
+   the corpus → idea→experiment backlog in `IDEAS_LOG.md` → execute.
 6. **Do not stop** until every row is `done`/`killed`, the Tier-I levers + combinations are exhausted on the
    best edge, and the discovery loop is dry. Then write the final best-UP and best-DOWN for the key, freeze the
    survivors (including the best combination) as books (§6), and report the leaderboard.
