@@ -1,0 +1,24 @@
+{
+ "test": "m5xp (5m,UP) purged-combinatorial + block-bootstrap, book-native settlement",
+ "breakeven": 0.541,
+ "n_up_trades": 3052,
+ "pooled_acc": 0.5927,
+ "block_boot_ci95": [
+  0.5754,
+  0.6101
+ ],
+ "cpcv_paths": 28,
+ "path_mean": 0.5927,
+ "path_p10": 0.5759,
+ "path_min": 0.5643,
+ "frac_paths_clear_0.541": 1.0,
+ "per_year": {
+  "2024": 0.6045,
+  "2025": 0.5765,
+  "2026": 0.6151
+ },
+ "verdict": {
+  "CERTIFIED": true,
+  "statement": "CERTIFIED: m5xp 5m-UP path_p10 0.5759 and block-boot CI-lower 0.5754 both clear 0.541"
+ }
+}

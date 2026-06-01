@@ -3,11 +3,12 @@ currency: EURUSD
 timeframe: 5m (300s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 300s, OOS(2026)-verified, clearing breakeven 0.541
-status: IN PROGRESS — instantiating SWEEP_MATRIX for 5m. Combined 5m books exist (m5xp oos 0.606, m5stack
-        comb 0.613) but BOTH side-keys (5m,UP)/(5m,DOWN) are UNTESTED. 5m sits between the efficiency zone
-        (60s/2m ~0.50-0.55) and the 15m edge (~0.58 robust / 0.647 recent); the 15m parent front-loads into 5m.
-incumbent/answer: TBD (row 0 side-split pending). Combined incumbents: EURUSD.m5xp.v1 (oos26 0.606),
-        EURUSD.m5stack.v1 (comb 0.613 / oos26 0.571).
+status: IN PROGRESS — row 0 done. **BREAKTHROUGH: (5m,UP) CERTIFIED** via m5xp side-split (binding 2025 0.577,
+        all 3 yrs CI95-lo clear 0.541, CPCV 28/28 paths clear p10 0.576 — survives the test that killed 2m).
+        First robustly-certified sub-15m direction key besides the seconds tick venue. DOWN dead (2025 0.533).
+        Now sweeping Tier A→F + N to (a) try to BEAT m5xp UP, (b) find a DOWN edge, (c) confirm nulls.
+incumbent/answer: **UP LEADER = EURUSD.m5xp.v1 up-preds (binding 2025 0.577, CERTIFIED).** DOWN = none certified
+        (m5xp down 2025 0.533 dead; m5stack down tripwire-cautioned). Combined incumbent m5xp oos26 0.606.
 prior: 5m direction combined ~0.61 verifiable, capped by the 15m parent; binding window 2025. UP side likely
         live (dip-buy, as at 60s/15m); DOWN side likely dead. >0.65 OOS-stable not expected at 5m.
 ---
@@ -28,8 +29,8 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 
 | id | tier | method | script | status | up_oos (24/25/26) | down (24/25/26) | verdict | result_json |
 |----|------|--------|--------|--------|-------------------|-----------------|---------|-------------|
-| 0a | base | **m5xp frozen book SIDE-SPLIT** (cross-pair+OF+meta) | m5_updown.py | pending | — | — | — | m5_updown_result.json |
-| 0b | base | **m5stack frozen book SIDE-SPLIT** (cross-horizon stack) | m5_updown.py | pending | — | — | — | m5_updown_result.json |
+| 0a | base | **m5xp frozen book SIDE-SPLIT** (cross-pair+OF+meta) | m5_updown.py | **done ✅** | **.605/.577/.615** | .609/**.533**/.592 | **CERTIFIED UP** (LEADER): all 3 yrs CI95-lo clear 0.541 (binding 2025 .577[.552,.603], n1379); up-rate clean .504/.523/.529; COMBINED reproduces book 0.607/0.555/0.606 exactly. **CPCV: p10 .576, 28/28 paths clear, block-boot CI-lo .575 → CERTIFIED** (2m failed same test). DOWN dead 2025 (.533<.541). | m5_updown_result.json, m5_cpcv_m5xp_result.json |
+| 0b | base | **m5stack frozen book SIDE-SPLIT** (cross-horizon stack) | m5_updown.py | done | .663t/.581/.557t | .599/.593/—t | TRIPWIRE-CAUTION: 2024 up-rate .584 breaches [.47,.53] (up-drift selection inflates UP .663); 2026 thin (UP n140 CI-lo .479 fails; DOWN n23). DOWN clears 24+25 but 2024 tainted. m5xp is the cleaner book. | m5_updown_result.json |
 | A1a | A | 3-model GBM ensemble retune (m5 native) | m5_production.py | pending | — | — | — | — |
 | A2a | A | compression × session × coverage gate sweep | m5_lab.py / m5_gate | pending | — | — | — | — |
 | A3a | A | compression-release × reversion specialist | m5 levers | pending | — | — | — | — |
