@@ -1,0 +1,67 @@
+{
+ "row": "N4 Market-Intraday-Momentum term-structure",
+ "fwd_min": 2,
+ "all": [
+  {
+   "interval": "since_open",
+   "mode": "momentum",
+   "2024": 0.4976,
+   "2025": 0.4959,
+   "2026": 0.4983
+  },
+  {
+   "interval": "since_open",
+   "mode": "reversion",
+   "2024": 0.5024,
+   "2025": 0.5042,
+   "2026": 0.5016
+  },
+  {
+   "interval": "last30",
+   "mode": "momentum",
+   "2024": 0.4935,
+   "2025": 0.4938,
+   "2026": 0.4937
+  },
+  {
+   "interval": "last30",
+   "mode": "reversion",
+   "2024": 0.5065,
+   "2025": 0.5063,
+   "2026": 0.5064
+  },
+  {
+   "interval": "last60",
+   "mode": "momentum",
+   "2024": 0.4957,
+   "2025": 0.4955,
+   "2026": 0.4961
+  },
+  {
+   "interval": "last60",
+   "mode": "reversion",
+   "2024": 0.5041,
+   "2025": 0.5045,
+   "2026": 0.5038
+  },
+  {
+   "interval": "last120",
+   "mode": "momentum",
+   "2024": 0.4959,
+   "2025": 0.4962,
+   "2026": 0.4977
+  },
+  {
+   "interval": "last120",
+   "mode": "reversion",
+   "2024": 0.5039,
+   "2025": 0.5039,
+   "2026": 0.5026
+  }
+ ],
+ "survivors_24and26": [],
+ "falsifier": {
+  "KILLED": true,
+  "verdict": "KILLED: no signed intraday-interval predictor gives a stable same-sign next-2m edge in 2024 AND 2026 (intraday momentum/reversion is null at 2m granularity)"
+ }
+}

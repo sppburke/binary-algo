@@ -32,7 +32,29 @@ done/killed → update leaderboard → commit. Run DISCOVERY (skill §8.6) perio
 | F1a | F | macro-release 120s impulse | vol-tier × \|surp_z\| | min1_news60.py (HS=120) | D | ~null | pending | | | | | |
 | N1 | N | DISCOVERY: session-conditioned 2m UP | best session on worst-VAL-half | min2_session.py | U | med | killed | | .604/.553/**.485** | — | KILLED — VAL-best 'overlap' session anti-transfers to OOS .485 (corr(VAL,OOS)=−0.54). | min2_session_result.json |
 
-## CONCLUSION (interim — high-prior levers exhausted 2026-06-01)
+## CONCLUSION (comprehensive — 8 distinct direction channels swept + discovery round, 2026-06-01)
+**Best 2m strategy = the frozen min2 book (EURUSD.min2.v1), UP side, OOS 0.555** (robust: clears breakeven
+0.541 in all 3 years, floor 0.546). DOWN side 0.540 (marginal, 2025 fails). **NOTHING beats it.** The sweep
+killed every distinct directional channel at 2m:
+| Channel | Row | Result |
+|---|---|---|
+| Reversion (compression×conf gate) | row 0 | **BEST (baseline), UP 0.555** |
+| Cross-horizon stack (15m→2m) | A5a | killed (reduced every cell) |
+| Confidence up-filter | A8a | killed (OOS 0.697 but 2025 fails — fragile) |
+| Session / time-of-day | N1 | killed (anti-transfer) |
+| Microstructure CKS-OFI | B3a | killed (AUC 0.4995) |
+| Triangular USD-canceling residual | N2 | killed (coin-flip; top novel idea, 15% prior) |
+| Cross-leg sign-lead (N3/N5/N6/N9) | gate | killed (no leg leads EURUSD sign) |
+| Intraday momentum term-structure | N4 | killed (.506 flat) |
+A discovery round (sub-agent, 8 novel arXiv/cross-disciplinary ideas) was run; the 2 highest-prior novel
+mechanisms (triangular USD-cancellation, cross-leg directed-sign) were tested and KILLED. **2m direction is
+efficiency-bound at ~0.55**, consistent with the program-wide 60s–5m finding; even mechanisms designed to
+bypass the 2025 USD-factor root cause are null. Deferred LOW-PRIOR (documented rationale, can extend ledger):
+N7 Hawkes (proxy≈known-null tick-imbalance), N8 RS-skew (sign-invariance), null retargets (HMM/online/news/
+Kalman — all null at 60s), A1a-A3a retrain sweeps (won't beat efficiency ceiling), E magnitude (sign-invariant
+= out of scope for up/down). **GOAL RESULT: best 2m UP = EURUSD.min2.v1 @ 0.555; best 2m DOWN = same @ 0.540.**
+
+### (superseded interim note)
 **Best 2m UP = the frozen min2 book (EURUSD.min2.v1), OOS(2026) 0.555** — the ONLY robust positive side
 (floor 0.546, clears breakeven 0.541 in all 3 years on point estimate). **Best 2m DOWN = same book, 0.540**
 (marginal; 2025 0.512 fails breakeven). **No improvement lever beat it robustly:** cross-horizon stack (A5a)
@@ -46,6 +68,9 @@ agent can extend this ledger. E (magnitude) is the certified edge but is sign-in
 UP/DOWN strategy (track in MAGNITUDE_FINDINGS.md).
 
 | N2 | N | DISCOVERED: triangular USD-canceling residual (EURUSD vs GBPUSD cointegration reversion) | W=500min, \|z\|-thr | min2_triangular.py | D | **15% (top)** | killed | .499/.497/.497 | ~.50 | ~.50 | KILLED — USD-immune residual reversion is coin-flip at 120s (relative-value reverts too slowly). Clean null of the best novel idea. | min2_triangular_result.json |
-| N3-N9 | N | cross-quantilogram / MIM term-structure / PCMCI / directed-info(sign) / Hawkes-asymmetry / RS-skew / cross-ordinal | see SWEEP_MATRIX Tier-N + IDEAS_LOG | (to build) | D | 5-12% | pending | | | | run N6 (directed-info sign gate) first — pre-kills N3/N5/N9 | |
+| GATE | N | cross-leg sign-lead → EURUSD next-2m sign (covers N3/N5/N6/N9) | 6 legs × {1,2,5}min, USD-aligned | min2_legsign.py | D | 6-12% | killed | | | | KILLED — no leg's sign predicts EURUSD next-2m sign (best USDCAD .5025); pre-kills N3/N5/N6/N9 (cross-leg-sign null at 2m). | min2_legsign_result.json |
+| N4 | N | Market-Intraday-Momentum term-structure | since-open/last{30,60,120}min × {mom,rev} | min2_mim.py | D | 10% | killed | | | | KILLED — best last30-reversion .506 flat all years; no stable intraday-momentum edge at 2m. | min2_mim_result.json |
+| N7 | N | asymmetric up/down-tick Hawkes intensity imbalance | EURUSD mid-tick events | (deferred) | D | 9% | deferred | | | | cheap proxy ≈ tick-imbalance (known null, decays to .50 by 1min); full kernel-fit heavy/low-prior | |
+| N8 | N | signed-semivariance-skew sign-conditioning on magnitude bars | RS⁺−RS⁻ on mag-flagged bars | (deferred) | D | 5% | deferred | | | | §8.2 already flat across mag quartiles (sign-invariance); low prior | |
 
 Discovery seeds remaining: see SWEEP_MATRIX Tier-N (N3-N9, sub-agent-sourced 2026-06-01). Run order: N6 gate → N7 Hawkes → N3 quantilogram → N4 MIM → rest.
