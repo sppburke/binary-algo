@@ -91,36 +91,36 @@ def shadow(Y, E=E, tau=TAU):
 
 def ccm_rho(Y, X, L, tp, E=E, tau=TAU, B=1, rng=None):
     """Cross-map skill rho(X_hat | M_Y) at library length L and forward cross-map lag tp (seconds=grid steps).
-    E+1 neighbors, Theiler window |dt|<=E*tau+tp, exponential weights. Median over B library subsamples."""
+    E+1 neighbors, Theiler window |dt|>E*tau+tp, exponential weights. Median over B library subsamples.
+    BOTH targets AND library neighbors must have t+tp within X (else X[cand+tp] overflows for end-of-window pts).
+    Vectorized over targets (per-target python loop would be hours over millions of fits)."""
     M, base = shadow(Y, E, tau)
     if M is None: return np.nan
-    # targets: base points whose t+tp has a valid X observation
-    valid_t = base + tp < len(X)
-    tgt = base[valid_t]
-    if len(tgt) < E + 2: return np.nan
+    base0 = base[0]
+    pool = base[base + tp < len(X)]                 # usable indices, valid for BOTH library and targets
+    if len(pool) < E + 3: return np.nan
+    tgt = pool                                      # fixed prediction set; library subsamples from same pool
+    Mtgt = M[tgt - base0]
     theiler = E * tau + abs(tp)
     rng = rng or RNG
     rhos = []
     for _ in range(B):
-        lib = base if L >= len(base) else np.sort(rng.choice(base, size=L, replace=False))
-        if len(lib) < E + 2: continue
-        Mlib = M[lib - base[0]]
-        tree = cKDTree(Mlib)
-        Mtgt = M[tgt - base[0]]
-        k = min(E + 1 + 8, len(lib))            # over-fetch to survive Theiler pruning
+        lib = pool if L >= len(pool) else np.sort(rng.choice(pool, size=L, replace=False))
+        if len(lib) < E + 3: continue
+        tree = cKDTree(M[lib - base0])
+        k = min(3 * (E + 1) + 8, len(lib))          # over-fetch so >=E+1 survive the Theiler time-window prune
         dist, nn = tree.query(Mtgt, k=k)
-        xhat = np.full(len(tgt), np.nan)
-        for i in range(len(tgt)):
-            ti = tgt[i]
-            cand = lib[nn[i]]; dd = dist[i]
-            keep = np.abs(cand - ti) > theiler
-            cand, dd = cand[keep][:E + 1], dd[keep][:E + 1]
-            if len(cand) < E + 1: continue
-            d1 = dd[0] if dd[0] > 0 else 1e-12
-            w = np.exp(-dd / d1); w /= w.sum()
-            xhat[i] = np.dot(w, X[cand + tp])
+        cand = lib[nn]                              # (Nt,k) original indices, columns sorted by manifold distance
+        ok = np.abs(cand - tgt[:, None]) > theiler  # Theiler mask (exclude temporally-trivial neighbors)
+        pick = ok & (np.cumsum(ok, axis=1) <= (E + 1))   # first E+1 valid neighbors per target
+        good = pick.sum(axis=1) >= (E + 1)
+        dd = np.where(pick, dist, np.inf)
+        d1 = dd.min(axis=1, keepdims=True); d1 = np.where(d1 <= 0, 1e-12, d1)
+        w = np.where(pick, np.exp(-dd / d1), 0.0)
+        ws = w.sum(axis=1, keepdims=True); w = np.where(ws > 0, w / ws, 0.0)
+        xhat = np.where(good, (w * X[cand + tp]).sum(axis=1), np.nan)  # cand in pool => cand+tp < len(X)
         m = np.isfinite(xhat)
-        if m.sum() < E + 2: continue
+        if m.sum() < E + 3: continue
         xt = X[tgt + tp][m]
         if np.std(xhat[m]) < 1e-12 or np.std(xt) < 1e-12: continue
         rhos.append(np.corrcoef(xhat[m], xt)[0, 1])
@@ -179,12 +179,15 @@ def split_arrays(b):
 
 
 # ----------------------------- per-year gated eval -----------------------------
+def year_of(ts):
+    return pd.to_datetime(np.asarray(ts), unit="s", utc=True).year.values
+
 def gated_year_eval(ts, y, mag, valid, pred, conf, conf_thr, gate_open):
     """Trade gate-open & valid & conf>=thr bars; non-overlap chrono; moved-bars-only; per-year acc + CI95."""
     base = valid & gate_open & (conf >= conf_thr)
     tr = nonoverlap_chrono(ts, base)
     out = {}
-    yrs = P.year_of(ts[tr]) if len(tr) else np.array([])
+    yrs = year_of(ts[tr]) if len(tr) else np.array([])
     for label in ("2024", "2025", "2026", "all"):
         sel = tr if label == "all" else (tr[yrs == int(label)] if len(tr) else tr)
         if len(sel) < 10:

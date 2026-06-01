@@ -1,0 +1,223 @@
+{
+  "experiment": "Cross-impact order-flow imbalance matrix (Cont-Cucuringu-Zhang) for 60s EURUSD direction",
+  "settlement": "deriv-faithful wc_ret: next-tick entry lag, last-tick<=expiry, mid-to-mid, ties LOSE",
+  "discipline": "EURUSD-clean clock (NO 7-pair intersection, NO price ffill; cross-pair OFI missing-sec->0); non-overlap chronological; moved-bars-only; per-year; bootstrap CI95; select on worst-VAL-half; subsample<=120k",
+  "sign_convention": "EUR-equivalent USD-direction: keep XXXUSD sign, FLIP USDJPY/USDCHF/USDCAD",
+  "pairs": [
+    "EURUSD",
+    "GBPUSD",
+    "AUDUSD",
+    "NZDUSD",
+    "USDJPY",
+    "USDCHF",
+    "USDCAD"
+  ],
+  "lags_s": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "horizon_s": 60,
+  "gap_s": 70,
+  "subsample_cap": 120000,
+  "splits": {
+    "train": "2021/2022/2023",
+    "val": "2024-04,05",
+    "test": "2024-09..11 + 2025-02..04 + 2025-09..11",
+    "oos": "2026-02..04"
+  },
+  "standalone": {
+    "val_auc_worsthalf": 0.5015496598189544,
+    "val_auc_full": 0.5010806432662072,
+    "val_moved_uprate": 0.500645277338279,
+    "conf_thr": 0.028547735262407288,
+    "n_features": 42,
+    "per_pair_gain_share": {
+      "EURUSD": 0.2109451970647653,
+      "GBPUSD": 0.1378669829563486,
+      "AUDUSD": 0.1353747999928445,
+      "NZDUSD": 0.13087945943334106,
+      "USDJPY": 0.15023068287676328,
+      "USDCHF": 0.11934552949442309,
+      "USDCAD": 0.11535734818151416
+    },
+    "offdiag_gain_share": 0.7890548029352347,
+    "offdiag_signed_contrib_by_year": {
+      "GBPUSD": {
+        "2024": -1585.86181640625,
+        "2025": -2702.04296875,
+        "2026": -4465.1904296875
+      },
+      "AUDUSD": {
+        "2024": -1616.310302734375,
+        "2025": -3220.28271484375,
+        "2026": -7329.17236328125
+      },
+      "NZDUSD": {
+        "2024": -1372.862548828125,
+        "2025": -2237.412841796875,
+        "2026": -4221.91455078125
+      },
+      "USDJPY": {
+        "2024": -1331.57666015625,
+        "2025": -964.283447265625,
+        "2026": -3177.06201171875
+      },
+      "USDCHF": {
+        "2024": -461.2444763183594,
+        "2025": -414.3705139160156,
+        "2026": -2857.561767578125
+      },
+      "USDCAD": {
+        "2024": -2554.82958984375,
+        "2025": -4315.9931640625,
+        "2026": -5383.4296875
+      }
+    },
+    "diag_signed_contrib_by_year": {
+      "2024": 3225.924560546875,
+      "2025": 394.0107727050781,
+      "2026": -2808.292724609375
+    },
+    "offdiag_sign_flips_2024v2026": [],
+    "per_window": {
+      "test": {
+        "2024": {
+          "n": 36405,
+          "winrate": 0.48292816920752646,
+          "ci": [
+            0.47790138717209174,
+            0.48822963878588105
+          ],
+          "moved_acc": 0.5,
+          "moved_acc_ci": [
+            0.49502232523747225,
+            0.5052329219043286
+          ],
+          "n_moved": 35162,
+          "full_moved_auc": 0.5002956366363877,
+          "full_moved_n": 2188305
+        },
+        "2025": {
+          "n": 73518,
+          "winrate": 0.48613944884246035,
+          "ci": [
+            0.48264370630321823,
+            0.4896766778203977
+          ],
+          "moved_acc": 0.498820639506483,
+          "moved_acc_ci": [
+            0.4951918379879691,
+            0.5025195745928066
+          ],
+          "n_moved": 71649,
+          "full_moved_auc": 0.5002535889175599,
+          "full_moved_n": 4465342
+        },
+        "2026": {
+          "n": 0,
+          "winrate": null,
+          "ci": [
+            null,
+            null
+          ],
+          "moved_acc": null,
+          "moved_acc_ci": [
+            null,
+            null
+          ],
+          "n_moved": 0
+        },
+        "all": {
+          "n": 109923,
+          "winrate": 0.4850759167781083,
+          "ci": [
+            0.48215569080174303,
+            0.48805072641758324
+          ],
+          "moved_acc": 0.49920888298021737,
+          "moved_acc_ci": [
+            0.49621293686979806,
+            0.5021861044274466
+          ],
+          "n_moved": 106811
+        }
+      },
+      "oos": {
+        "2024": {
+          "n": 0,
+          "winrate": null,
+          "ci": [
+            null,
+            null
+          ],
+          "moved_acc": null,
+          "moved_acc_ci": [
+            null,
+            null
+          ],
+          "n_moved": 0
+        },
+        "2025": {
+          "n": 0,
+          "winrate": null,
+          "ci": [
+            null,
+            null
+          ],
+          "moved_acc": null,
+          "moved_acc_ci": [
+            null,
+            null
+          ],
+          "n_moved": 0
+        },
+        "2026": {
+          "n": 39191,
+          "winrate": 0.4871271465387461,
+          "ci": [
+            0.48235500497563216,
+            0.49187377203949884
+          ],
+          "moved_acc": 0.5009183459277917,
+          "moved_acc_ci": [
+            0.4958280856423174,
+            0.5059298908480269
+          ],
+          "n_moved": 38112,
+          "full_moved_auc": 0.5009626461894308,
+          "full_moved_n": 2202152
+        },
+        "all": {
+          "n": 39191,
+          "winrate": 0.4871271465387461,
+          "ci": [
+            0.48235500497563216,
+            0.49187377203949884
+          ],
+          "moved_acc": 0.5009183459277917,
+          "moved_acc_ci": [
+            0.4958280856423174,
+            0.5059298908480269
+          ],
+          "n_moved": 38112
+        }
+      }
+    }
+  },
+  "falsifier": {
+    "val_auc_worsthalf": 0.5015496598189544,
+    "val_auc_fail(<=0.515)": true,
+    "best_moved_acc_ci_lower": 0.49621293686979806,
+    "best_window": "test/all",
+    "no_window_clears_0.515": true,
+    "offdiag_sign_flips": [],
+    "offdiag_flipped": false,
+    "FALSIFIER_KILLED": true,
+    "verdict": "KILLED: VAL dirAUC 0.5015<=0.515; no window moved-acc CI-lower>0.515 (best 0.49621293686979806 @ test/all)",
+    "beats_single_pair_0.499": false,
+    "clears_0.65": false
+  },
+  "elapsed_s": 207.5
+}
