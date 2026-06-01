@@ -56,7 +56,7 @@ a tradeable edge (calibrate the falsifier accordingly; low-prior = design to KIL
 | D3 | TabNet attentive tabular | `exp_tabnet.py` | n_steps, width | D | ~null |
 | D4 | DRL DQN direction-with-abstain | `min1_drl.py` | reward {deriv-settle}, abstain-cost, ε-schedule | D+policy | ~null |
 | D5 | IQN / distributional + CVaR abstain | `min1_drl.py` | quantiles, CVaR-α, mag-gate | D+sizing | ~null (sizing only) |
-| D6 | TS foundation model (Kronos zero-shot) | backlog (`EXPERIMENT_BACKLOG.md` W2-5) | sampling N | D | low (untried) |
+| D6 | TS foundation model (Kronos zero-shot / Chronos·Moirai·TimesFM fine-tune) | KILLED-on-lit @5m (`sweeps/EURUSD_5m.md`; arXiv:2511.18578 — fine-tune deteriorates, no economic gain; daily-equity, MSE-sign-invariant, CPU-OOM) | sampling N | D | skip |
 
 ## Tier E — magnitude & complexity (sign-invariant → the CERTIFIED edge; track in MAGNITUDE_FINDINGS.md)
 | # | Family / method | Script | Variant axes | Tgt | Prior |

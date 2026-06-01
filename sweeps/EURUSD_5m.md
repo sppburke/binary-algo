@@ -107,6 +107,24 @@ measured several of these at 5m.
 - **F4a residualized-target @300s** — null at 60s (`min1_residtarget`). Confirmed-null.
 - **N2a triangular / N4a MIM / N7a Hawkes-proxy / N8a RS-skew @300s** — all KILLED at 2m; signed bases covered by the 5m family probe (~0.51) + sign-invariance. Confirmed-null.
 
+## EDGE-IMPROVEMENT EXPERIMENTS (post-sweep, literature-toolkit levers — IMPROVE the certified UP edge)
+Driven by the 16-agent DL lit-review (`/home/sean/git/academic-papers/_DL_for_5m_FX_direction_REVIEW.md`).
+Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall. Incumbent UP .605/.577/.615.
+- **EXP-1 |return|-weighted retrain** (`m5_magweight.py`, POW=1.0): primary VAL AUC .519; UP .634/**.560**/.525,
+  DOWN .589/**.563**/.557. REBALANCES toward two-sided ~.56 (lifts 2025 DOWN .533→.563) but 2026 UP collapses
+  .615→.525 → the magnitude-conditional SIGN is itself regime-dependent. No clean UP win. `m5_magweight_result.json`.
+- **EXP-2 seed-ensemble MLP ⊕ GBM** (`m5_deep_ens.py`, M=5, AdamW lr2e-4): MLP **genuinely decorrelated from GBM
+  (corr 0.694<0.9)** but a 50/50 blend ≈ GBM (UP2025 .5776 vs .5765, +.001 noise). DL-as-stack-member is
+  null-to-marginal here (info-bound), as the literature predicts. `m5_deep_ens_result.json`.
+- **EXP-3 ADAPTIVE-CONFORMAL gate (ACI)** (`m5_conformal.py`, w*=0.57): **GENUINE IMPROVEMENT.** Online θ targets a
+  win-rate using only PAST outcomes (causal, deployable). Binding 2025 UP **.5838 at n764** vs fixed **.5793 at
+  n618** — better on BOTH win-rate AND coverage; holds win≥.55 every year with a tighter cross-regime spread and
+  ~36% more total trades (1884 vs 1382) → better EV/time + regime robustness. The first lever that improved the
+  edge; validate under CPCV + add to the deployment spec. `m5_conformal_result.json`.
+- **Remaining levers (queued):** learned stack-weight (vs 50/50, earned by the .694 decorrelation), pooled
+  cross-pair weight-shared net, gentler-POW magnitude weighting, calibration. The dominant-EV lever per the
+  review is EXTERNAL DATA (rate differential / implied-vol), an acquisition TODO not a wall.
+
 ## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-01)
 
 **BEST 5m ALGO = the (5m, UP) side of the frozen `EURUSD.m5xp.v1` book** (cross-pair USD-residual + order-flow
@@ -185,6 +203,19 @@ DOWN got the SAME pipeline as UP and the verdict is nuanced — not "dead", but 
   AUC ~0.509 every year. Same overall AUC, weaker high-confidence tail → GBMs dominate this tabular regime; deep is
   information-bound here too (prior deep nulls were single-pair; this closes the cross-pair gap). `m5_deep_result.json`.
   (A literature-grounded multi-agent review of DL architectures/tuning is in progress to confirm nothing better is missed.)
+- **D6 TS FOUNDATION-MODEL FINE-TUNE (Chronos / Moirai / TimesFM) — KILLED on literature (not run; not worth a CPU job):**
+  Adversarial replication-check. The decisive primary source is Rahimikia, Ni & Wang, *Re(Visiting) Time Series Foundation
+  Models in Finance* (arXiv:2511.18578, Nov 2025) — first comprehensive eval of zero-shot / **fine-tune** / from-scratch
+  TSFMs on returns. Verbatim: zero-shot Chronos-large dir-acc ~51% / R²=−1.37%, TimesFM-500M ~<50% / R²=−2.80%; and crucially
+  for the FINE-TUNE setting: *"fine-tuning … yields limited improvements and fails to close the performance gap with
+  benchmarks. Most fine-tuned TSFM performance deteriorates, except for Chronos (large). However, this improvement does NOT
+  translate into economic gains."* Best directional acc anywhere (incl. from-scratch) = Chronos-small **51.74%** vs CatBoost
+  **51.16%** — +0.58pp, and CatBoost still wins economically (Sharpe 6.79). Caveats that make it WORSE for us: their data is
+  **daily equity excess returns (94 countries), NOT intraday FX**; TSFMs are MSE point-forecasters (sign-invariant by our own
+  theorem); **CPU-only fine-tune of a 200M–500M-param model is OOM-infeasible here**. No FX-intraday TSFM-fine-tune study
+  exists (searched). The one contrary FX-direction-with-costs claim, EXFormer (arXiv:2512.12727), is a **bespoke from-scratch
+  Transformer on DAILY data — NOT a TSFM fine-tune** and has **no independent replication** → does not support this row.
+  Verdict: **skip.** Same information-bound wall as D-MLP; adds nothing the GBMs don't already see, at far higher cost.
 - **Soundly subsumed (24 rows, audit-verified Tier-1 rationale):** A1a/A2a/A3a/A5b/A6a/A8c (single-pair TA or dominated
   modes, independently null ~0.51), C1a/C2a/C4a (sign-invariant magnitude gates), D1a/D4a (single-pair sequence/RL),
   E1a/E2a (magnitude=sign-invariant, out of scope), F1a/F2a/F4a (news/price-action/residual-target null).
