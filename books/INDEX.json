@@ -1,214 +1,262 @@
 {
-  "schema": "book-index/v1",
-  "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
-  "created_utc": "2026-06-01",
-  "env": {
-    "python": "/home/sean/binary-algo-venv/bin/python",
-    "python_version": "3.12.3",
-    "key_libs": {
-      "lightgbm": "4.6.0",
-      "xgboost": "3.2.0",
-      "catboost": "1.2.10",
-      "scikit-learn": "1.7.2",
-      "numpy": "2.3.5",
-      "pandas": "2.3.3",
-      "pyarrow": "24.0.0",
-      "scipy": "1.17.1"
-    }
+ "schema": "book-index/v1",
+ "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
+ "created_utc": "2026-06-01",
+ "env": {
+  "python": "/home/sean/binary-algo-venv/bin/python",
+  "python_version": "3.12.3",
+  "key_libs": {
+   "lightgbm": "4.6.0",
+   "xgboost": "3.2.0",
+   "catboost": "1.2.10",
+   "scikit-learn": "1.7.2",
+   "numpy": "2.3.5",
+   "pandas": "2.3.3",
+   "pyarrow": "24.0.0",
+   "scipy": "1.17.1"
+  }
+ },
+ "books": [
+  {
+   "id": "EURUSD.tick3.v1",
+   "currency": "EURUSD",
+   "timeframe": "1-5s",
+   "side": "combined",
+   "role": "direction",
+   "script": "m_tick_prod.py",
+   "metrics": {
+    "oos_3s_selective": 0.657,
+    "alt_3s": 0.667,
+    "note": "TEST+OOS robust; venue floor deriv=15m"
+   },
+   "manifest": "books/EURUSD.tick3.v1.manifest.json",
+   "summary": "Tick microstructure 3s GBM ensemble (lgb+xgb+cat) \u2014 the one genuine >0.65 directional edge (needs a tick venue).",
+   "depends_on": null
   },
-  "books": [
-    {
-      "id": "EURUSD.tick3.v1",
-      "currency": "EURUSD",
-      "timeframe": "1-5s",
-      "side": "combined",
-      "role": "direction",
-      "script": "m_tick_prod.py",
-      "metrics": {
-        "oos_3s_selective": 0.657,
-        "alt_3s": 0.667,
-        "note": "TEST+OOS robust; venue floor deriv=15m"
-      },
-      "manifest": "books/EURUSD.tick3.v1.manifest.json",
-      "summary": "Tick microstructure 3s GBM ensemble (lgb+xgb+cat) \u2014 the one genuine >0.65 directional edge (needs a tick venue).",
-      "depends_on": null
+  {
+   "id": "EURUSD.tick5.v1",
+   "currency": "EURUSD",
+   "timeframe": "1-5s",
+   "side": "combined",
+   "role": "direction",
+   "script": "m_tick_prod.py",
+   "metrics": {
+    "oos_5s_selective": "~0.65-0.66"
+   },
+   "manifest": "books/EURUSD.tick5.v1.manifest.json",
+   "summary": "Tick microstructure 5s GBM ensemble (lgb+xgb+cat); HS=5s chosen for OOS robustness (n=377-1124 cov0.5-2%).",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.min1.v1",
+   "currency": "EURUSD",
+   "timeframe": "60s",
+   "side": "combined",
+   "role": "direction",
+   "script": "min1_production.py",
+   "metrics": {
+    "test_2024_25": 0.539,
+    "oos_2026": 0.55,
+    "up_filter_2026": 0.613,
+    "up_filter_2025": 0.584,
+    "down_2026": 0.516,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.min1.v1.manifest.json",
+   "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.min2.v1",
+   "currency": "EURUSD",
+   "timeframe": "120s",
+   "side": "combined",
+   "role": "direction",
+   "script": "min2_production.py",
+   "metrics": {
+    "test": 0.528,
+    "oos_2026": 0.539,
+    "breakeven": 0.541,
+    "note": "not a row in EURUSD_RESULTS; included for completeness"
+   },
+   "manifest": "books/EURUSD.min2.v1.manifest.json",
+   "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m5_production.py",
+   "metrics": {
+    "val_auc": 0.523,
+    "oos_auc": 0.518,
+    "book_combined": "0.586-0.594"
+   },
+   "manifest": "books/EURUSD.m5.v1.manifest.json",
+   "summary": "5m base OHLCV 3-model GBM ensemble (lgb+xgb+cat) on 239 multi-TF features.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m5_xpair_production.py",
+   "metrics": {
+    "combined": 0.583,
+    "oos_2026": 0.606,
+    "ci": [
+     0.57,
+     0.595
+    ],
+    "ev_R0.85": 0.078,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m5xp.v1.manifest.json",
+   "summary": "5m PRODUCTION freeze: cross-pair USD-residual + order-flow, primary lgb + meta-labeler lgb.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5stack.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "combined",
+   "role": "stack-meta",
+   "script": "m5_stack2.py",
+   "metrics": {
+    "oos_2026": 0.571,
+    "combined_verifiable": 0.613,
+    "thin_q0.99": 0.648,
+    "breakeven": 0.541,
+    "note": "higher COMBINED (0.613) but lower single-year OOS(2026)=0.571 than m5xp (0.606)"
+   },
+   "manifest": "books/EURUSD.m5stack.v1.manifest.json",
+   "summary": "5m BEST: cross-horizon soft stack \u2014 front-load the 15m-parent ensemble's direction into the 5m outcome, meta-gated.",
+   "depends_on": [
+    "EURUSD.m15.v1 (parent ensemble front-loaded)",
+    "EURUSD.m5.v1 (5m base)"
+   ]
+  },
+  {
+   "id": "EURUSD.m10.v1",
+   "currency": "EURUSD",
+   "timeframe": "10m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m10_freeze_honest.py",
+   "metrics": {
+    "combined": 0.602,
+    "oos_2026": 0.594,
+    "floor_2025": 0.579,
+    "ci": [
+     0.582,
+     0.621
+    ],
+    "ev_R0.85": 0.113,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m10.v1.manifest.json",
+   "summary": "10m HONEST freeze: native-10 3-model GBM ensemble, gated by 5m_bb_width x NY (cov10%).",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m15.v1",
+   "currency": "EURUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m15_production.py",
+   "metrics": {
+    "combined_recent": 0.647,
+    "ci": [
+     0.612,
+     0.684
+    ],
+    "oos_2026": 0.663,
+    "test_2025": 0.582,
+    "test_2024": 0.689,
+    "cpcv_faithful_mean": 0.579,
+    "cpcv_p10": 0.557,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m15.v1.manifest.json",
+   "summary": "15m DELIVERABLE (best combined book in program): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m30.v1",
+   "currency": "EURUSD",
+   "timeframe": "30m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m30_production.py",
+   "metrics": {
+    "combined": 0.591,
+    "ci": [
+     0.556,
+     0.625
+    ],
+    "oos_2026": 0.546,
+    "test_2025": 0.589,
+    "test_2024": 0.623,
+    "ev_R0.85": 0.064,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m30.v1.manifest.json",
+   "summary": "30m DELIVERABLE: 3-model GBM ensemble gated by 1h-compression x NY, conf-selective.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5xp_aci.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "up",
+   "role": "gate",
+   "script": "m5_conformal.py",
+   "metrics": {
+    "deployable": "UP, adaptive-conformal gate w*=0.57",
+    "aci_up_per_year_2024_2025_2026": [
+     0.5784,
+     0.5838,
+     0.6471
+    ],
+    "aci_up_n_per_year": [
+     1103,
+     764,
+     17
+    ],
+    "fixed_up_per_year": [
+     0.6262,
+     0.5793,
+     0.6825
+    ],
+    "fixed_up_n_per_year": [
+     701,
+     618,
+     63
+    ],
+    "binding_2025": {
+     "aci": 0.5838,
+     "aci_n": 764,
+     "fixed": 0.5793,
+     "fixed_n": 618
     },
-    {
-      "id": "EURUSD.tick5.v1",
-      "currency": "EURUSD",
-      "timeframe": "1-5s",
-      "side": "combined",
-      "role": "direction",
-      "script": "m_tick_prod.py",
-      "metrics": {
-        "oos_5s_selective": "~0.65-0.66"
-      },
-      "manifest": "books/EURUSD.tick5.v1.manifest.json",
-      "summary": "Tick microstructure 5s GBM ensemble (lgb+xgb+cat); HS=5s chosen for OOS robustness (n=377-1124 cov0.5-2%).",
-      "depends_on": null
+    "coverage_total": {
+     "aci": 1884,
+     "fixed": 1382
     },
-    {
-      "id": "EURUSD.min1.v1",
-      "currency": "EURUSD",
-      "timeframe": "60s",
-      "side": "combined",
-      "role": "direction",
-      "script": "min1_production.py",
-      "metrics": {
-        "test_2024_25": 0.539,
-        "oos_2026": 0.55,
-        "up_filter_2026": 0.613,
-        "up_filter_2025": 0.584,
-        "down_2026": 0.516,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.min1.v1.manifest.json",
-      "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.min2.v1",
-      "currency": "EURUSD",
-      "timeframe": "120s",
-      "side": "combined",
-      "role": "direction",
-      "script": "min2_production.py",
-      "metrics": {
-        "test": 0.528,
-        "oos_2026": 0.539,
-        "breakeven": 0.541,
-        "note": "not a row in EURUSD_RESULTS; included for completeness"
-      },
-      "manifest": "books/EURUSD.min2.v1.manifest.json",
-      "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m5_production.py",
-      "metrics": {
-        "val_auc": 0.523,
-        "oos_auc": 0.518,
-        "book_combined": "0.586-0.594"
-      },
-      "manifest": "books/EURUSD.m5.v1.manifest.json",
-      "summary": "5m base OHLCV 3-model GBM ensemble (lgb+xgb+cat) on 239 multi-TF features.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5xp.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m5_xpair_production.py",
-      "metrics": {
-        "combined": 0.583,
-        "oos_2026": 0.606,
-        "ci": [
-          0.57,
-          0.595
-        ],
-        "ev_R0.85": 0.078,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m5xp.v1.manifest.json",
-      "summary": "5m PRODUCTION freeze: cross-pair USD-residual + order-flow, primary lgb + meta-labeler lgb.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5stack.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "combined",
-      "role": "stack-meta",
-      "script": "m5_stack2.py",
-      "metrics": {
-        "oos_2026": 0.571,
-        "combined_verifiable": 0.613,
-        "thin_q0.99": 0.648,
-        "breakeven": 0.541,
-        "note": "higher COMBINED (0.613) but lower single-year OOS(2026)=0.571 than m5xp (0.606)"
-      },
-      "manifest": "books/EURUSD.m5stack.v1.manifest.json",
-      "summary": "5m BEST: cross-horizon soft stack \u2014 front-load the 15m-parent ensemble's direction into the 5m outcome, meta-gated.",
-      "depends_on": [
-        "EURUSD.m15.v1 (parent ensemble front-loaded)",
-        "EURUSD.m5.v1 (5m base)"
-      ]
-    },
-    {
-      "id": "EURUSD.m10.v1",
-      "currency": "EURUSD",
-      "timeframe": "10m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m10_freeze_honest.py",
-      "metrics": {
-        "combined": 0.602,
-        "oos_2026": 0.594,
-        "floor_2025": 0.579,
-        "ci": [
-          0.582,
-          0.621
-        ],
-        "ev_R0.85": 0.113,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m10.v1.manifest.json",
-      "summary": "10m HONEST freeze: native-10 3-model GBM ensemble, gated by 5m_bb_width x NY (cov10%).",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m15.v1",
-      "currency": "EURUSD",
-      "timeframe": "15m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m15_production.py",
-      "metrics": {
-        "combined_recent": 0.647,
-        "ci": [
-          0.612,
-          0.684
-        ],
-        "oos_2026": 0.663,
-        "test_2025": 0.582,
-        "test_2024": 0.689,
-        "cpcv_faithful_mean": 0.579,
-        "cpcv_p10": 0.557,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m15.v1.manifest.json",
-      "summary": "15m DELIVERABLE (best combined book in program): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m30.v1",
-      "currency": "EURUSD",
-      "timeframe": "30m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m30_production.py",
-      "metrics": {
-        "combined": 0.591,
-        "ci": [
-          0.556,
-          0.625
-        ],
-        "oos_2026": 0.546,
-        "test_2025": 0.589,
-        "test_2024": 0.623,
-        "ev_R0.85": 0.064,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m30.v1.manifest.json",
-      "summary": "30m DELIVERABLE: 3-model GBM ensemble gated by 1h-compression x NY, conf-selective.",
-      "depends_on": null
-    }
-  ]
+    "breakeven": 0.541,
+    "status": "IMPROVEMENT vs fixed gate (more coverage + regime-stable; binding 2025 .584 at n764 vs fixed .579 at n618). Within-experiment comparison (m5_conformal.py); CPCV-validation of the adaptive policy is the open follow-up."
+   },
+   "manifest": "books/EURUSD.m5xp_aci.v1.manifest.json",
+   "summary": "m5xp UP book + ONLINE ADAPTIVE-CONFORMAL (ACI) gate targeting win-rate w*=0.57. Deployable improvement over the fixed meta gate: ~36% more trades + tighter cross-regime spread at a stable/slightly-better binding-year win-rate. Causal (past-outcome feedback, no look-ahead).",
+   "depends_on": [
+    "EURUSD.m5xp.v1"
+   ]
+  }
+ ]
 }

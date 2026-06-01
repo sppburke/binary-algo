@@ -1,0 +1,18 @@
+{
+  "book": "EURUSD.m5xp_aci.v1",
+  "base_book": "EURUSD.m5xp.v1",
+  "horizon_s": 300,
+  "side": "up",
+  "candidate_filter": "sess_ny & primary_pred>0.5 (m5xp primary)",
+  "gate": "ADAPTIVE-CONFORMAL (ACI, Gibbs-Candes 2021): trade UP candidate t iff meta_sm_t >= theta_t; online update theta_{t+1}=theta_t+gamma*(err_t - (1-wstar)) on TRADED bars only (causal).",
+  "aci_params": {
+    "wstar": 0.57,
+    "gamma": 0.02,
+    "theta0": "median(meta_sm)",
+    "theta_bounds": "[quantile(meta_sm,0.05), quantile(meta_sm,0.995)]"
+  },
+  "fixed_gate_meta_thr": 0.5738433064019417,
+  "breakeven": 0.541,
+  "meta_score": "m5xp meta-labeler P(primary correct); same artifacts as EURUSD.m5xp.v1",
+  "settlement": "deriv-faithful book-native (contiguous-300s, _y moved-only, nonoverlap_chrono 300s)"
+}

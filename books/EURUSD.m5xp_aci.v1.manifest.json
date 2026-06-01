@@ -1,0 +1,112 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.m5xp_aci.v1",
+  "content_id": "cd4273d4a2aa0036",
+  "currency": "EURUSD",
+  "timeframe": "5m",
+  "side": "up",
+  "role": "gate",
+  "summary": "m5xp UP book + ONLINE ADAPTIVE-CONFORMAL (ACI) gate targeting win-rate w*=0.57. Deployable improvement over the fixed meta gate: ~36% more trades + tighter cross-regime spread at a stable/slightly-better binding-year win-rate. Causal (past-outcome feedback, no look-ahead).",
+  "metrics": {
+    "deployable": "UP, adaptive-conformal gate w*=0.57",
+    "aci_up_per_year_2024_2025_2026": [
+      0.5784,
+      0.5838,
+      0.6471
+    ],
+    "aci_up_n_per_year": [
+      1103,
+      764,
+      17
+    ],
+    "fixed_up_per_year": [
+      0.6262,
+      0.5793,
+      0.6825
+    ],
+    "fixed_up_n_per_year": [
+      701,
+      618,
+      63
+    ],
+    "binding_2025": {
+      "aci": 0.5838,
+      "aci_n": 764,
+      "fixed": 0.5793,
+      "fixed_n": 618
+    },
+    "coverage_total": {
+      "aci": 1884,
+      "fixed": 1382
+    },
+    "breakeven": 0.541,
+    "status": "IMPROVEMENT vs fixed gate (more coverage + regime-stable; binding 2025 .584 at n764 vs fixed .579 at n618). Within-experiment comparison (m5_conformal.py); CPCV-validation of the adaptive policy is the open follow-up."
+  },
+  "source": {
+    "script": "m5_conformal.py (policy) + m5_xpair_production.py (base book)",
+    "git_sha": "386c1af64c29f7ad096705263aee02a7d519ceaf",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "aci_wstar": 0.57,
+    "aci_gamma": 0.02,
+    "base": "m5xp primary lgb + meta lgb (unchanged)"
+  },
+  "artifacts": [
+    {
+      "file": "m5xp_EURUSD_primary_lgb.txt",
+      "bytes": 2543658,
+      "sha256": "f3bbe7039af5a504f4d672c379d6be98a58d2ac8e52972e570dd2d93ceff7c9f"
+    },
+    {
+      "file": "m5xp_EURUSD_meta_lgb.txt",
+      "bytes": 743649,
+      "sha256": "f18721f5585f0952c2768730de308ad1c2423408170a0369489c0cca538f22a2"
+    },
+    {
+      "file": "m5xp_EURUSD_strategy.json",
+      "bytes": 7305,
+      "sha256": "91738dae9af0734a99b1f13eaf3d18ef2231baedbdbf151e7c4c0f459af2adba"
+    },
+    {
+      "file": "m5xp_aci_EURUSD_strategy.json",
+      "bytes": 791,
+      "sha256": "c3eab36bde9f5f4d92769624911d362ff6303a0e236d5ac9433600017596d41c"
+    }
+  ],
+  "strategy_json": "models/m5xp_aci_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features_of",
+    "patterns": [
+      "*.parquet"
+    ],
+    "n_files": 105,
+    "total_bytes": 3556857749,
+    "sha256_of_listing": "bb4101a0324f295ed7a934a8adc90bbf25bb84872fa9b49ab3ab41a311f09534"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": [
+    "EURUSD.m5xp.v1"
+  ],
+  "notes": "The improvement is in the GATE POLICY (coverage + regime-robustness), not new model weights; the primary+meta bytes are identical to EURUSD.m5xp.v1. Found by the post-sweep edge-improvement loop (lit-review toolkit). EXP-1 magweight rebalanced (no UP win); EXP-2 seed-ensemble decorrelated but blend=GBM. ACI is the lever that worked.",
+  "created_utc": "2026-06-01T23:29:37Z"
+}

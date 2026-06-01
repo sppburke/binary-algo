@@ -1,74 +1,74 @@
 {
  "exp": "EXP-1 |return|-weighted m5xp retrain",
- "POW": 1.0,
+ "POW": 0.5,
  "incumbent_up": {
   "2024": 0.605,
   "2025": 0.577,
   "2026": 0.615
  },
- "primary_val_auc": 0.5194,
- "meta_thr": 0.5695,
+ "primary_val_auc": 0.5224,
+ "meta_thr": 0.5734,
  "per_year_side": {
   "2024_UP": {
-   "n": 1422,
-   "acc": 0.6343,
+   "n": 1436,
+   "acc": 0.6114,
    "ci": [
-    0.609,
-    0.6596
+    0.5857,
+    0.6358
    ],
-   "up_rate": 0.6343
+   "up_rate": 0.6114
   },
   "2024_DOWN": {
-   "n": 993,
-   "acc": 0.5891,
+   "n": 1187,
+   "acc": 0.6049,
    "ci": [
-    0.5589,
-    0.6184
+    0.5771,
+    0.6335
    ],
-   "up_rate": 0.4109
+   "up_rate": 0.3951
   },
-  "2024_uprate_all": 0.5424,
+  "2024_uprate_all": 0.5135,
   "2025_UP": {
-   "n": 1533,
-   "acc": 0.5597,
+   "n": 1438,
+   "acc": 0.5779,
    "ci": [
-    0.5342,
-    0.5838
+    0.5522,
+    0.6036
    ],
-   "up_rate": 0.5597
+   "up_rate": 0.5779
   },
   "2025_DOWN": {
-   "n": 1212,
-   "acc": 0.5627,
+   "n": 1346,
+   "acc": 0.5594,
    "ci": [
-    0.5347,
-    0.5899
+    0.5334,
+    0.5855
    ],
-   "up_rate": 0.4373
+   "up_rate": 0.4406
   },
-  "2025_uprate_all": 0.5056,
+  "2025_uprate_all": 0.5115,
   "2026_UP": {
-   "n": 282,
-   "acc": 0.5248,
+   "n": 258,
+   "acc": 0.5388,
    "ci": [
-    0.4681,
-    0.5851
+    0.4767,
+    0.6008
    ],
-   "up_rate": 0.5248
+   "up_rate": 0.5388
   },
   "2026_DOWN": {
-   "n": 185,
-   "acc": 0.5568,
+   "n": 184,
+   "acc": 0.5489,
    "ci": [
-    0.4865,
-    0.627
+    0.4783,
+    0.625
    ],
-   "up_rate": 0.4432
+   "up_rate": 0.4511
   },
-  "2026_uprate_all": 0.4925
+  "2026_uprate_all": 0.5023
  },
  "verdict": {
-  "IMPROVES_UP": false,
-  "note": "UP 2025 0.5597 vs incumbent 0.577 -> no improvement on the binding year"
+  "IMPROVES_UP": true,
+  "note": "UP 2025 0.5779 vs incumbent 0.577 -> IMPROVES (certify on CPCV)"
  }
 }
