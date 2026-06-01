@@ -7,9 +7,11 @@ status: COMPLETE — exhaustive sweep done (all Tier A–F + N rows run or audit
         discovery rounds; full-refit CPCV + tight-cov confirmation). **(5m,UP) = the best 5m algo, CERTIFIED under
         full per-fold refit at the operating gate** (cov0.05 p10 0.553, 96% folds clear; deflates only at loose cov).
         Deployable win ~0.55–0.57; ⅛-Kelly sizing; win-rate kill-switch NOT worth it (see DEPLOYMENT SPEC below).
-        DOWN dead/efficient. >0.65 not achievable. Corrected verdict twice (frozen-CPCV over-stated, cov0.30 under-stated).
-incumbent/answer: **UP = EURUSD.m5xp.v1 up-preds, refit-certified at the ~5% operating gate (robust floor 0.553,
-        forward 0.58–0.61).** DOWN = none (dead). Combined incumbent m5xp oos26 0.606.
+        UP+DOWN both given the FULL symmetric pipeline. UP deployable-certified; DOWN MARGINAL (refit cov0.05 p10 0.542
+        barely clears but forward 2025 0.538 fails — real but razor-thin, not deployable). >0.65 not achievable.
+incumbent/answer: **UP = EURUSD.m5xp.v1 up-preds, refit-certified at the ~5% gate (floor 0.553, forward 0.58–0.61) —
+        the deployable winner.** DOWN = same book down-preds, ~0.54 marginal/borderline (much weaker, fails binding 2025).
+        Combined incumbent m5xp oos26 0.606.
 prior: 5m direction combined ~0.61 verifiable, capped by the 15m parent; binding window 2025. UP side likely
         live (dip-buy, as at 60s/15m); DOWN side likely dead. >0.65 OOS-stable not expected at 5m.
 ---
@@ -153,11 +155,23 @@ DOWN is dead; every other channel is null or soundly subsumed.
 - **Load-bearing caveat:** the edge is regime-conditional (refit-robust at the gate, but magnitude .55–.58 depends on
   the EUR-up regime that powers it). Size as if the win could be .55, cap absolute exposure, monitor the trailing win.
 
-### DOWN — closed, dead/efficient
-m5xp down .609/**.533**/.592 (2025 fails); A8b tighter gate lifts 2025 to .558 but CI-lo .516<breakeven; **D3
-USD-strength-conditioned DOWN .526 (n502) fails** (`m5_downcond_result.json`). Mechanism (round-2 agent): down-moves
-are **jump/informed-dominated → energy goes to magnitude not sign**; the UP/DOWN asymmetry is a regime-bound dip-buy
-drift, not a law. No (5m, DOWN) edge exists. The only "down" signal is fading exogenous over-shoots back UP.
+### DOWN — MARGINAL / borderline, NOT cleanly deployable (the symmetric exhaustive treatment, corrected)
+DOWN got the SAME pipeline as UP and the verdict is nuanced — not "dead", but much weaker than UP and sub-deployable:
+- **Side-split** m5xp down .609/**.533**/.592 — works 2024/2026, fails binding 2025.
+- **A8b** down-filter (tighter gate): 2025 .558 but CI-lo .516<breakeven.
+- **D3** USD-strength-conditioned DOWN .526 (n502) — fails (`m5_downcond_result.json`).
+- **DOWN confidence curve** (`m5_sidecurve.py`): DOWN tracks UP in 2024(.608)/2026(.586) but 2025 maxes ~.555, **CI-lo
+  never clears .541 at ANY gate** — the 2025 regime is the wall.
+- **A8c DOWN specialist** (purpose-built meta, `m5_downspec.py`): VAL worst-half .749 → OOS 2025 **.509** (ANTI-TRANSFERS,
+  worse than symmetric — textbook corr(VAL,OOS)=−.54 trap). A dedicated DOWN model can't crack 2025.
+- **DOWN full-refit CPCV** (`m5_refit_tightcov_down_result.json`): at the tight gate cov0.05 **p10 0.5421 (barely >breakeven),
+  93% folds clear → mechanically "certified"** — BUT this is dominated by the strong older-year folds; the forward
+  (deployment) **binding 2025 fails (0.538)**. p10 0.542 ≈ breakeven (vs UP's 0.553); 25%/46%/68% folds clear at cov0.30/.15/.10.
+- **Verdict:** DOWN has a FAINT high-confidence-tail signal (real, marginally refit-certified at the tightest gate) but it
+  is razor-thin (p10 at breakeven) and **fails the binding 2025 forward year → NOT a deployable standalone DOWN edge.** It is
+  regime-conditional and the CURRENT (2025) regime is unfavorable for DOWN. Mechanism: down-moves are jump/informed-dominated
+  → energy to magnitude not sign; the UP/DOWN asymmetry is a real degree (UP strong / DOWN borderline), not UP-alive/DOWN-zero.
+  **UP remains the clear deployable winner; DOWN is a marginal, currently-untradeable side.**
 
 ### Everything else — null / subsumed (exhaustive coverage)
 - **Keystone** (online-ARF single-pair TA): AUC .509/.509/.514, selective never >.52 → single-pair channel dead.
