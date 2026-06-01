@@ -1,0 +1,80 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.tick5.v1",
+  "currency": "EURUSD",
+  "timeframe": "1-5s",
+  "side": "combined",
+  "role": "direction",
+  "summary": "Tick microstructure 5s GBM ensemble (lgb+xgb+cat); HS=5s chosen for OOS robustness (n=377-1124 cov0.5-2%).",
+  "metrics": {
+    "oos_5s_selective": "~0.65-0.66"
+  },
+  "source": {
+    "script": "m_tick_prod.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "ensemble": "lgb+xgb+cat",
+    "lgb": "lr0.03,num_leaves300,n_est3000",
+    "xgb": "lr0.03,max_depth8,n_est2000",
+    "cat": "lr0.03,depth8,iter2000",
+    "horizon_s": 5,
+    "entry_lag_s": 1
+  },
+  "artifacts": [
+    {
+      "file": "mtick5_EURUSD_lgb.txt",
+      "bytes": 1133807,
+      "sha256": "125b6c857811262895b9a1c4b400a1616fc56e5103094e664ae9cd6a1732c1a2"
+    },
+    {
+      "file": "mtick5_EURUSD_xgb.json",
+      "bytes": 4509239,
+      "sha256": "1dcd1f92d44d77817e75c136b5e071b734252d30ab942d8851c0fa0b1bb88394"
+    },
+    {
+      "file": "mtick5_EURUSD_cat.cbm",
+      "bytes": 743896,
+      "sha256": "3f186d0c8859119ecea983682c7ca4321eb395bf9ef784afc57d322b86bcb4f6"
+    },
+    {
+      "file": "mtick5_EURUSD_strategy.json",
+      "bytes": 1249,
+      "sha256": "a7ba1a4b5e4c9ce6439282404da22f5ab0a3e2f987cea8bfc2e78196d8a8b2ff"
+    }
+  ],
+  "strategy_json": "models/mtick5_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features_tick",
+    "patterns": [
+      "*_1s.parquet"
+    ],
+    "n_files": 4,
+    "total_bytes": 513769608,
+    "sha256_of_listing": "3abbc3a2c9e14a81de9a7edb22fe6e87188603cdf95715672b30d245da97d9ed"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": null,
+  "created_utc": "2026-06-01"
+}

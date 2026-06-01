@@ -1,0 +1,72 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.m5stack.v1",
+  "currency": "EURUSD",
+  "timeframe": "5m",
+  "side": "combined",
+  "role": "stack-meta",
+  "summary": "5m BEST: cross-horizon soft stack \u2014 front-load the 15m-parent ensemble's direction into the 5m outcome, meta-gated.",
+  "metrics": {
+    "combined_verifiable": 0.613,
+    "oos_2026_frozen_q0.98": 0.571,
+    "thin_q0.99": 0.648,
+    "breakeven": 0.541
+  },
+  "source": {
+    "script": "m5_stack2.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "meta_lgb": "lr0.02,num_leaves15,n_est400",
+    "horizon_min": 5
+  },
+  "artifacts": [
+    {
+      "file": "m5stack_EURUSD_meta_lgb.txt",
+      "bytes": 742555,
+      "sha256": "4c6b649b4bd101b81820590bf4627da7e99552fe6f00d15b54d683cfaf208b72"
+    },
+    {
+      "file": "m5stack_EURUSD_strategy.json",
+      "bytes": 1049,
+      "sha256": "c18e5dbff0d4509b29e7c5f5f09dbeb1ed95df9d5531256ae6872572722067e2"
+    }
+  ],
+  "strategy_json": "models/m5stack_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features",
+    "patterns": [
+      "EURUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1416972944,
+    "sha256_of_listing": "cd2c2ef1b30ef11bcd9e6a91914e69cb7cb239b538405f49ba2e8fb56708cd06"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": [
+    "EURUSD.m15.v1 (parent ensemble front-loaded)",
+    "EURUSD.m5.v1 (5m base)"
+  ],
+  "notes": null,
+  "created_utc": "2026-06-01"
+}

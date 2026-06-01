@@ -12,22 +12,24 @@ A note on "combined / symmetric" books: most models trade BOTH sides and report 
 
 ## MASTER KEY TABLE — one row per (EURUSD, timeframe, side)
 
-For each key: the **model ensemble / methodology** that produced the best OOS result, and **that best OOS number**. `OOS = 2026` (the strict held-out year; test = 2024–2025). "MEASURED" keys are side-split results; "by-side UNTESTED" keys show the best COMBINED book (both sides pooled) as the current best-available proxy + its OOS — the side-specific split has not been run.
+For each key: the **model ensemble / methodology** that produced the best OOS result, **that best OOS number**, and the **frozen book id** that recreates it verbatim (resolves via `books/<id>.manifest.json` — see `MODEL_REGISTRY.md`). `OOS = 2026` (the strict held-out year; test = 2024–2025). "MEASURED" keys are side-split results; "by-side UNTESTED" keys show the best COMBINED book (both sides pooled) as the current best-available proxy + its OOS — the side-specific split has not been run.
 
-| Currency | Timeframe | Side | Best model ensemble / methodology (file) | **Best OOS result (2026)** | Key status |
-|---|---|---|---|---|---|
-| EURUSD | **1–5s** | UP | Tick microstructure GBM ensemble, lgb+xgb+cat (`m_tick_prod.py`) — *combined, not side-split* | **~0.65** (combined; TEST+OOS robust) | by-side UNTESTED |
-| EURUSD | **1–5s** | DOWN | Tick microstructure GBM ensemble, lgb+xgb+cat (`m_tick_prod.py`) — *combined, not side-split* | **~0.65** (combined) | by-side UNTESTED |
-| EURUSD | **60s** | **UP** | **Up-only filter on the 3-model GBM ensemble (lgb+xgb+cat) + compression-release specialist, reversion-filtered** (`min1_updown.py` / `min1_production.py`) | **0.613** ✅ | MEASURED |
-| EURUSD | **60s** | **DOWN** | Same 3-model ensemble, **down-side predictions** (`min1_updown.py`) | **0.516** ❌ dead | MEASURED |
-| EURUSD | **5m** | UP | Cross-horizon soft stack: 15m-parent ensemble front-loaded into 5m, meta-gated (`m5_stack2.py`) — *combined* | **~0.571** (combined; 3-yr headline 0.613) | by-side UNTESTED |
-| EURUSD | **5m** | DOWN | Cross-horizon soft stack (`m5_stack2.py`) — *combined* | **~0.571** (combined) | by-side UNTESTED |
-| EURUSD | **10m** | UP | Native-10 3-model GBM ensemble, gated by 5m_bb_width × NY (`m10_freeze_honest.py`) — *combined* | **0.594** (combined 3-yr 0.602) | by-side UNTESTED |
-| EURUSD | **10m** | DOWN | Native-10 ensemble × 5m_bb_width-NY gate (`m10_freeze_honest.py`) — *combined* | **0.594** (combined) | by-side UNTESTED |
-| EURUSD | **15m** | UP | 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) × NY (`m15_production.py`) — *combined* | **0.663** (combined recent 0.647; CPCV-faithful 0.579) | by-side UNTESTED |
-| EURUSD | **15m** | DOWN | 3-model ensemble × compression×NY (`m15_production.py`) — *combined* | **0.663** (combined) | by-side UNTESTED |
-| EURUSD | **30m** | UP | 3-model GBM ensemble gated by 1h-compression × NY (`m30_production.py`) — *combined* | **0.546** (combined 3-yr 0.591) | by-side UNTESTED |
-| EURUSD | **30m** | DOWN | 3-model ensemble × 1h-compression-NY (`m30_production.py`) — *combined* | **0.546** (combined) | by-side UNTESTED |
+| Currency | Timeframe | Side | Best model ensemble / methodology (file) | **Best OOS (2026)** | Frozen book id | Key status |
+|---|---|---|---|---|---|---|
+| EURUSD | **1–5s** | UP | Tick microstructure GBM ensemble, lgb+xgb+cat (`m_tick_prod.py`) — *combined, not side-split* | **~0.65** (combined) | `EURUSD.tick3.v1` / `EURUSD.tick5.v1` | by-side UNTESTED |
+| EURUSD | **1–5s** | DOWN | Tick microstructure GBM ensemble, lgb+xgb+cat (`m_tick_prod.py`) — *combined, not side-split* | **~0.65** (combined) | `EURUSD.tick3.v1` / `EURUSD.tick5.v1` | by-side UNTESTED |
+| EURUSD | **60s** | **UP** | **Up-only filter on the 3-model GBM ensemble (lgb+xgb+cat) + compression-release specialist, reversion-filtered** (`min1_updown.py` / `min1_production.py`) | **0.613** ✅ | `EURUSD.min1.v1` (up-filter) | MEASURED |
+| EURUSD | **60s** | **DOWN** | Same 3-model ensemble, **down-side predictions** (`min1_updown.py`) | **0.516** ❌ dead | `EURUSD.min1.v1` (down-preds) | MEASURED |
+| EURUSD | **5m** | UP | Cross-horizon soft stack: 15m-parent ensemble front-loaded into 5m, meta-gated (`m5_stack2.py`) — *combined* | **~0.571** (3-yr headline 0.613) | `EURUSD.m5stack.v1` (dep `EURUSD.m15.v1`) | by-side UNTESTED |
+| EURUSD | **5m** | DOWN | Cross-horizon soft stack (`m5_stack2.py`) — *combined* | **~0.571** (combined) | `EURUSD.m5stack.v1` | by-side UNTESTED |
+| EURUSD | **10m** | UP | Native-10 3-model GBM ensemble, gated by 5m_bb_width × NY (`m10_freeze_honest.py`) — *combined* | **0.594** (3-yr 0.602) | `EURUSD.m10.v1` | by-side UNTESTED |
+| EURUSD | **10m** | DOWN | Native-10 ensemble × 5m_bb_width-NY gate (`m10_freeze_honest.py`) — *combined* | **0.594** (combined) | `EURUSD.m10.v1` | by-side UNTESTED |
+| EURUSD | **15m** | UP | 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) × NY (`m15_production.py`) — *combined* | **0.663** (recent 0.647; CPCV 0.579) | `EURUSD.m15.v1` | by-side UNTESTED |
+| EURUSD | **15m** | DOWN | 3-model ensemble × compression×NY (`m15_production.py`) — *combined* | **0.663** (combined) | `EURUSD.m15.v1` | by-side UNTESTED |
+| EURUSD | **30m** | UP | 3-model GBM ensemble gated by 1h-compression × NY (`m30_production.py`) — *combined* | **0.546** (3-yr 0.591) | `EURUSD.m30.v1` | by-side UNTESTED |
+| EURUSD | **30m** | DOWN | 3-model ensemble × 1h-compression-NY (`m30_production.py`) — *combined* | **0.546** (combined) | `EURUSD.m30.v1` | by-side UNTESTED |
+
+**Frozen books** (`EURUSD.*.v1`) are version-controlled in `books/` with provenance manifests; each is the verbatim, recreatable model. The 5m production-freeze alternative is `EURUSD.m5xp.v1` (combined 0.583 / OOS 0.606). See `MODEL_REGISTRY.md`.
 
 **Only 2 of the 12 side-keys are MEASURED** (60s UP 0.613, 60s DOWN 0.516). Every "by-side UNTESTED" key shows the best COMBINED book + its OOS as the current best-available number; the true side-specific OOS is unknown until that book's trades are split by predicted side. **Do NOT treat the combined OOS as the UP or DOWN number, and do NOT copy 60s's asymmetry to another timeframe** — at 60s the UP edge is real in 2025–26 but a wash in 2024, i.e. horizon- AND regime-specific.
 

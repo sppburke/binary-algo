@@ -1,0 +1,33 @@
+{
+  "pair": "EURUSD",
+  "horizon_bars": 10,
+  "model": "native-10 ensemble lgb+xgb+cat (models/m10_EURUSD_direction_*)",
+  "gate_feat": "5m_bb_width",
+  "gate_thr": 0.0007943376549519598,
+  "gate_q_on_val": 20,
+  "session": "sess_ny",
+  "coverage": 0.1,
+  "conf_thr": 0.06604395327145236,
+  "selection": "HONEST healthy-coverage (NOT VAL-acc-max); gate from m10_gate_sweep top-floor among cov>=10%",
+  "heldout": {
+    "test24": {
+      "n": 1493,
+      "acc": 0.6135298057602143
+    },
+    "test25": {
+      "n": 741,
+      "acc": 0.5789473684210527
+    },
+    "oos": {
+      "n": 165,
+      "acc": 0.593939393939394
+    }
+  },
+  "combined_acc": 0.6015006252605252,
+  "combined_ci95": [
+    0.5823259691538141,
+    0.6206752813672364
+  ],
+  "worst_window_floor": 0.5789473684210527,
+  "note": "Honest 10-min native book ~0.60 combined; beats deriv breakeven 0.541; test25 floor ~0.58; NOT a robust >0.65 (the 10-min direction ceiling is data-bound \u2014 see m10_research_log.md)."
+}

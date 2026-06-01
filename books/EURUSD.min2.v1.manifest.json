@@ -1,0 +1,93 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.min2.v1",
+  "currency": "EURUSD",
+  "timeframe": "120s",
+  "side": "combined",
+  "role": "direction",
+  "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered.",
+  "metrics": {
+    "test": 0.528,
+    "oos_2026": 0.539,
+    "breakeven": 0.541,
+    "note": "not a row in EURUSD_RESULTS; included for completeness"
+  },
+  "source": {
+    "script": "min2_production.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "ensemble": "lgb+xgb+cat + specialist",
+    "lgb": "lr0.02,num_leaves350",
+    "spec_lgb": "lr0.01,num_leaves512",
+    "horizon_s": 120,
+    "gap_s": 130,
+    "entry_lag_s": 1
+  },
+  "artifacts": [
+    {
+      "file": "min2_EURUSD_dir_v1_lgb.txt",
+      "bytes": 568116,
+      "sha256": "00c606c9a1c0f46bda885ec902933665700b2f3d602af539c73ee14b2e43f591"
+    },
+    {
+      "file": "min2_EURUSD_dir_v1_xgb.json",
+      "bytes": 6608094,
+      "sha256": "52372d44fc80ea8d4110ad277620f4620c907eec2fa2debbdd08fe2282e8e49b"
+    },
+    {
+      "file": "min2_EURUSD_dir_v1_cat.cbm",
+      "bytes": 271552,
+      "sha256": "2d554b28b7e66720c2d87504188ad04305634eb51d05059588aeba37f8800329"
+    },
+    {
+      "file": "min2_EURUSD_dir_spec_lgb.txt",
+      "bytes": 240070,
+      "sha256": "5125c34ef52fe6e7aba63708786290c63ca40e5fc2346d3cfb7863d9769c196c"
+    },
+    {
+      "file": "min2_EURUSD_magnitude.joblib",
+      "bytes": 8050724,
+      "sha256": "1904fcdbd313a025b6f47d50afffffc0bd7393b4eecac0528bcc65b547ef85fc"
+    },
+    {
+      "file": "min2_EURUSD_strategy.json",
+      "bytes": 1504,
+      "sha256": "ad87143b0d05f7d1bc4eee289f4434bfa2dbb64753fcffa86c3cd07710056563"
+    }
+  ],
+  "strategy_json": "models/min2_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features_tick",
+    "patterns": [
+      "*_1s.parquet"
+    ],
+    "n_files": 4,
+    "total_bytes": 513769608,
+    "sha256_of_listing": "3abbc3a2c9e14a81de9a7edb22fe6e87188603cdf95715672b30d245da97d9ed"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": null,
+  "created_utc": "2026-06-01"
+}

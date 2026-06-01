@@ -1,0 +1,79 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.m5.v1",
+  "currency": "EURUSD",
+  "timeframe": "5m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "5m base OHLCV 3-model GBM ensemble (lgb+xgb+cat) on 239 multi-TF features.",
+  "metrics": {
+    "val_auc": 0.523,
+    "oos_auc": 0.518,
+    "book_combined": "0.586-0.594"
+  },
+  "source": {
+    "script": "m5_production.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "ensemble": "lgb+xgb+cat",
+    "horizon_min": 5,
+    "features": 239
+  },
+  "artifacts": [
+    {
+      "file": "m5_EURUSD_direction_lgb.txt",
+      "bytes": 3958824,
+      "sha256": "bac2958e7cafbcab2cf7fb3964b0bf8b3ec9e3f4da0d37549163a871e2a189d4"
+    },
+    {
+      "file": "m5_EURUSD_direction_xgb.json",
+      "bytes": 11611213,
+      "sha256": "758ca359aa18c5fc2260b6126adf9ad4248f0f7fafac1ddb4ea7d320f09189c6"
+    },
+    {
+      "file": "m5_EURUSD_direction_cat.cbm",
+      "bytes": 4064096,
+      "sha256": "72552362d2ff83804fc5ef133c3f1193e7d0eddbc773225f3e6090afcbc17a4d"
+    },
+    {
+      "file": "m5_EURUSD_strategy.json",
+      "bytes": 5269,
+      "sha256": "1aa4cfb5f1690b6f7af8a6a034c693f5ee85cc60b28967a7166e8585debb4334"
+    }
+  ],
+  "strategy_json": "models/m5_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features",
+    "patterns": [
+      "EURUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1416972944,
+    "sha256_of_listing": "cd2c2ef1b30ef11bcd9e6a91914e69cb7cb239b538405f49ba2e8fb56708cd06"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": null,
+  "created_utc": "2026-06-01"
+}

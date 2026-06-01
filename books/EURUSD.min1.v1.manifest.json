@@ -1,0 +1,98 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.min1.v1",
+  "currency": "EURUSD",
+  "timeframe": "60s",
+  "side": "combined",
+  "role": "direction",
+  "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key.",
+  "metrics": {
+    "test_2024_25": 0.539,
+    "oos_2026": 0.55,
+    "up_filter_2026": 0.613,
+    "up_filter_2025": 0.584,
+    "down_2026": 0.516,
+    "breakeven": 0.541
+  },
+  "source": {
+    "script": "min1_production.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "ensemble": "lgb+xgb+cat + compression-release lgb specialist (w_spec0.5)",
+    "lgb": "lr0.02,num_leaves350,n_est4000",
+    "spec_lgb": "lr0.01,num_leaves512,n_est6000",
+    "xgb": "lr0.02,max_depth9",
+    "cat": "lr0.02,depth9",
+    "horizon_s": 60,
+    "gap_s": 70,
+    "entry_lag_s": 1,
+    "gate": "bbw1800<=q67 & rel_ratio>=p80 & reversion(-sign ret300) & conf>=thr(5%cov)"
+  },
+  "artifacts": [
+    {
+      "file": "min1_EURUSD_direction_lgb.txt",
+      "bytes": 448660,
+      "sha256": "910c0df52b2ddd1555b71ebb15bbd5f0eaadd58308ff58b0e4420d58658f6cd1"
+    },
+    {
+      "file": "min1_EURUSD_direction_xgb.json",
+      "bytes": 11600978,
+      "sha256": "4885a7115e6c019b92cfd7c750933b0812833ac7f1a98c7f18382ecd78ff1b66"
+    },
+    {
+      "file": "min1_EURUSD_direction_cat.cbm",
+      "bytes": 875600,
+      "sha256": "68189411b5adcd84aed336d861f00b68f4f15b31ce17de328a899cfb549473b9"
+    },
+    {
+      "file": "min1_EURUSD_direction_spec_lgb.txt",
+      "bytes": 9358812,
+      "sha256": "99ee4142463bfabc614efe850d491fba830baca43c7e0e132e2d999efc0dd608"
+    },
+    {
+      "file": "min1_EURUSD_magnitude.joblib",
+      "bytes": 8747748,
+      "sha256": "11b2b53d25be7a01a2a4126b35b215b489ff31502266ade6dee3895026594ea2"
+    },
+    {
+      "file": "min1_EURUSD_strategy.json",
+      "bytes": 1563,
+      "sha256": "a37a2680ea18dba3e964efcc6f1da0525eb79ea9d1fbe46139b1e9a1422e0d41"
+    }
+  ],
+  "strategy_json": "models/min1_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features_tick",
+    "patterns": [
+      "*_1s.parquet"
+    ],
+    "n_files": 4,
+    "total_bytes": 513769608,
+    "sha256_of_listing": "3abbc3a2c9e14a81de9a7edb22fe6e87188603cdf95715672b30d245da97d9ed"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": null,
+  "created_utc": "2026-06-01"
+}

@@ -229,6 +229,12 @@ catboost_info/
 ohlc_cache/
 vbar_cache/
 
+# Frozen book registry — VERSION-CONTROLLED model artifacts + provenance manifests (the verbatim deliverable
+# books). These are the only reproducible copies (GBMs are not bit-for-bit retrainable). Keep them, overriding
+# the broad models//*.joblib ignores above. See MODEL_REGISTRY.md. (probs_*/diag *.npz caches stay ignored.)
+!books/
+!books/**
+
 # Downloaded reference papers (external, not project output)
 *.pdf
 flow_cache/

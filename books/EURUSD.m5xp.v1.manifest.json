@@ -1,0 +1,80 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.m5xp.v1",
+  "currency": "EURUSD",
+  "timeframe": "5m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "5m PRODUCTION freeze: cross-pair USD-residual + order-flow, primary lgb + meta-labeler lgb.",
+  "metrics": {
+    "combined": 0.583,
+    "oos_2026": 0.606,
+    "ci": [
+      0.57,
+      0.595
+    ],
+    "ev_R0.85": 0.078,
+    "breakeven": 0.541
+  },
+  "source": {
+    "script": "m5_xpair_production.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "primary_lgb": "lr0.02,num_leaves127,n_est3000",
+    "meta_lgb": "lr0.02,num_leaves15,n_est400",
+    "horizon_min": 5,
+    "features": "239 base + cross-pair + 18 order-flow"
+  },
+  "artifacts": [
+    {
+      "file": "m5xp_EURUSD_primary_lgb.txt",
+      "bytes": 2543658,
+      "sha256": "f3bbe7039af5a504f4d672c379d6be98a58d2ac8e52972e570dd2d93ceff7c9f"
+    },
+    {
+      "file": "m5xp_EURUSD_meta_lgb.txt",
+      "bytes": 743649,
+      "sha256": "f18721f5585f0952c2768730de308ad1c2423408170a0369489c0cca538f22a2"
+    },
+    {
+      "file": "m5xp_EURUSD_strategy.json",
+      "bytes": 7305,
+      "sha256": "91738dae9af0734a99b1f13eaf3d18ef2231baedbdbf151e7c4c0f459af2adba"
+    }
+  ],
+  "strategy_json": "models/m5xp_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features",
+    "patterns": [
+      "EURUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1416972944,
+    "sha256_of_listing": "cd2c2ef1b30ef11bcd9e6a91914e69cb7cb239b538405f49ba2e8fb56708cd06"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": null,
+  "created_utc": "2026-06-01"
+}

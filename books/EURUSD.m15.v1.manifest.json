@@ -1,0 +1,90 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.m15.v1",
+  "currency": "EURUSD",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "15m DELIVERABLE (best combined book in program): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective.",
+  "metrics": {
+    "combined_recent": 0.647,
+    "ci": [
+      0.612,
+      0.684
+    ],
+    "oos_2026": 0.663,
+    "test_2025": 0.582,
+    "test_2024": 0.689,
+    "cpcv_faithful_mean": 0.579,
+    "cpcv_p10": 0.557,
+    "breakeven": 0.541
+  },
+  "source": {
+    "script": "m15_production.py",
+    "git_sha": "cb51cfd80544504069e4310dcc20cc6b0dcd4f1b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "ensemble": "lgb+xgb+cat",
+    "lgb": "lr0.02,num_leaves255,n_est3000",
+    "xgb": "lr0.02,max_depth8,n_est2000",
+    "cat": "lr0.02,depth8,iter2000",
+    "horizon_min": 15,
+    "gate": "15m_bb_width<=q{10,20,33} & sess_ny, VAL-tuned cov"
+  },
+  "artifacts": [
+    {
+      "file": "m15_EURUSD_direction_lgb.txt",
+      "bytes": 5307805,
+      "sha256": "d4f5308795fd7fea9d38699ded5495f61a9a29df2b9842734c3c5aae708d9eff"
+    },
+    {
+      "file": "m15_EURUSD_direction_xgb.json",
+      "bytes": 8997354,
+      "sha256": "c85d1d24ab49d75353a53627312d2967f16eb1319e4fb6b388cfe66374e00845"
+    },
+    {
+      "file": "m15_EURUSD_direction_cat.cbm",
+      "bytes": 2600168,
+      "sha256": "2a08357620aae93f3988f9887744b11e626d5b54faf370c11fdcbc1fe83defa5"
+    },
+    {
+      "file": "m15_EURUSD_strategy.json",
+      "bytes": 5181,
+      "sha256": "df3a5b8883639e79deb3c6a158fbadeeb08ec73f31c0ce2a01237c090147bce8"
+    }
+  ],
+  "strategy_json": "models/m15_EURUSD_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features",
+    "patterns": [
+      "EURUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1416972944,
+    "sha256_of_listing": "cd2c2ef1b30ef11bcd9e6a91914e69cb7cb239b538405f49ba2e8fb56708cd06"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": null,
+  "created_utc": "2026-06-01"
+}
