@@ -1,0 +1,7 @@
+{
+ "row": "F1a macro-release directional impulse @120s",
+ "horizon_s": 120, "breakeven": 0.541,
+ "high_vol_surprise_sign_acc_per_year": {"2024": 0.353, "2025": 0.741, "2026": 0.517},
+ "note": "n: 2024=51, 2025=58 (thin), 2026=29. Wildly regime-unstable; 2024 WORSE than coin-flip (FX moved against the surprise), 2026 coin-flip. 2025 0.741 is a thin regime-favorable artifact.",
+ "falsifier": {"KILLED": true, "verdict": "KILLED: surprise-sign carries no stable 2m direction (2024 0.353 / 2026 0.517; no window n>=25 with CI-lower>breakeven); FX prices the surprise <120s. Null/sign-unstable, as at 60s/5m."}
+}

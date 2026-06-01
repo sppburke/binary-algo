@@ -29,7 +29,7 @@ done/killed → update leaderboard → commit. Run DISCOVERY (skill §8.6) perio
 | C1a | C | HMM regime (K3) gate/switch @120s | K{2,3}, U1/U2 | min1_hmm.py (HS=120) | G+D | ~null | pending | | | | | |
 | C5a | C | online ARF+ADWIN control @120s | 10-tree | min1_online.py (HS=120) | D | ~null (control) | pending | | | | | |
 | E1a | E | MAGNITUDE \|ret120\|≥Q (SIZE, sign-invariant) | top-tercile, frozen mag model | min2_mag_run.py | M | high (certified) | done(N/A for U/Dn) | AUC .775/.739/.705 | — | — | CONFIRMED size edge at 2m (stable all 3 yrs); but sign-invariant → OUT OF SCOPE for up/down (Touch/Range/Straddle, not Rise/Fall). | min2_mag_result.json |
-| F1a | F | macro-release 120s impulse | vol-tier × \|surp_z\| | min1_news60.py (HS=120) | D | ~null | pending | | | | | |
+| F1a | F | macro-release 120s impulse | vol-tier × \|surp_z\|, HS=120 | min2_news_run.py | D | ~null | killed | | | | KILLED — surprise-sign regime-unstable (2024 .353 / 2025 .741thin / 2026 .517); FX prices surprise <120s. Null, as at 60s. | min2_news_result.json |
 | N1 | N | DISCOVERY: session-conditioned 2m UP | best session on worst-VAL-half | min2_session.py | U | med | killed | | .604/.553/**.485** | — | KILLED — VAL-best 'overlap' session anti-transfers to OOS .485 (corr(VAL,OOS)=−0.54). | min2_session_result.json |
 
 ## CONCLUSION (comprehensive — 8 distinct direction channels swept + discovery round, 2026-06-01)
