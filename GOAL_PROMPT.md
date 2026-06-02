@@ -43,7 +43,17 @@ results, or "the literature says it's hard" as permission to give up.**
 
 ## Reference: the academic-papers corpus
 
-`/home/sean/git/academic-papers/` — a shared folder of downloaded papers and review reports. **Use it and grow
+`/home/sean/git/academic-papers/` — a shared folder of downloaded papers and review reports.
+
+**START HERE — `_CORPUS_INDEX.md`** distills all 370 papers so you DON'T re-scan the PDFs (two full agent scans
+already cost ~10M tokens — do not repeat them). Per paper it has a NEUTRAL summary + general `topics`/`methods`/
+`asset_class` tags (cross-task: grep your topic, e.g. `backtest-overfitting`, `conformal-prediction`,
+`order-flow-imbalance`, `reinforcement-learning`) PLUS the 5m-FX-direction `levers` + a `fx5m_tier`. A
+`tangential` tier means "no 5m-FX-direction lever," NOT "useless" — use the neutral summary/topics for other
+tasks. Companions: `_corpus_index.json` (machine-readable), `_extracted_levers.json` (all 2050 levers with
+mechanism+how-to-test+falsifier). Rebuild with `/tmp/ssrn_sess/build_corpus_index.py` after adding papers.
+
+**Use it and grow
 it:** when you research, download the actual PDFs here from ANY source (arXiv, OpenAlex/Unpaywall, author
 homepages, SSRN via cookie) — OpenAlex's API (`api.openalex.org/works?...` → `best_oa_location.pdf_url`) and
 Unpaywall (DOI→OA) are the most reliable, no-auth fetchers; arXiv `arxiv.org/pdf/<id>` never blocks. Write a
