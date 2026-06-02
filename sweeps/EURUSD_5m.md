@@ -126,6 +126,19 @@ Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall
   split, not a robust edge. **EURUSD.m5xp_aci.v1 is DOWNGRADED: do NOT deploy ACI as an improvement over the fixed
   gate.** (This is the verdict-correction the discipline demands — a harder test reversed an earlier positive.)
   `m5_aci_cpcv_result.json`.
+- **B1 POW=0.5 magweight NESTED-REFIT CPCV — UP+DOWN @ confidence cover** (`m5_magweight_cpcv.py`, 2026-06-01):
+  refits the |return|-weighted primary (sample_weight=(|fwd|/med)^0.5) on each of 28 purged paths, evaluates both
+  sides at the certified primary-confidence cover. **UP: certified but NOT improved** — cov0.05 p10 **.5453** < the
+  unweighted incumbent .553 (upweighting big moves adds tail variance); falsifier KILLS the UP-improvement claim →
+  keep the unweighted UP primary. **DOWN: MARGINALLY RESCUED (the one real gain) ✅** — cov0.05 p10 **.5441**, 89.3%
+  of paths clear, mean .5569, med_n 1944 → CERTIFIED (vs incumbent DOWN cov0.05 p10 .5421); and on the forward
+  split it lifts the binding 2025 DOWN from the incumbent's FAILING **.533** to **.559** [CI .533,.586] (2024 .605
+  [.577,.634]; 2026 .549[.478,.625] thin), all-up-rate .51/.51/.50 (tripwire clean). **This is the FIRST DOWN
+  configuration to both CPCV-certify at the tight cover AND point-clear the forward binding year** — a genuine but
+  RAZOR-THIN rescue (certifies only at cov0.05; forward 2025 CI95-lo .533 still grazes below breakeven; fails at
+  cov0.10/0.15 p10 .531/.533). Honest: best DOWN to date, deployable only as a thin tight-cover edge, NOT robust.
+  Freeze pending (magweight primary needs a save-enabled re-train). `m5_magweight_cpcv_result.json`,
+  `m5_magweight_result.json`.
 - **Remaining levers (queued):** learned stack-weight (vs 50/50, earned by the .694 decorrelation), pooled
   cross-pair weight-shared net, gentler-POW magnitude weighting, calibration. The dominant-EV lever per the
   review is EXTERNAL DATA (rate differential / implied-vol), an acquisition TODO not a wall.

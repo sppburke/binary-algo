@@ -1,0 +1,76 @@
+{
+ "test": "(5m) POW=0.5 magweight NESTED-REFIT CPCV \u2014 UP+DOWN at primary-confidence cover",
+ "breakeven": 0.541,
+ "stride": 6,
+ "POW": 0.5,
+ "pooled_n": 876391,
+ "auc_mean": 0.52,
+ "per_side_cov": {
+  "UP_cov0.05": {
+   "n_valid": 28,
+   "mean": 0.5634,
+   "p10": 0.5453,
+   "min": 0.5348,
+   "max": 0.5935,
+   "frac_clear_0.541": 0.964,
+   "med_n": 2109,
+   "CERTIFIED": true
+  },
+  "UP_cov0.1": {
+   "n_valid": 28,
+   "mean": 0.5556,
+   "p10": 0.5426,
+   "min": 0.5404,
+   "max": 0.5773,
+   "frac_clear_0.541": 0.929,
+   "med_n": 4217,
+   "CERTIFIED": true
+  },
+  "UP_cov0.15": {
+   "n_valid": 28,
+   "mean": 0.552,
+   "p10": 0.5427,
+   "min": 0.534,
+   "max": 0.5742,
+   "frac_clear_0.541": 0.929,
+   "med_n": 6326,
+   "CERTIFIED": true
+  },
+  "DOWN_cov0.05": {
+   "n_valid": 28,
+   "mean": 0.5569,
+   "p10": 0.5441,
+   "min": 0.5178,
+   "max": 0.5844,
+   "frac_clear_0.541": 0.893,
+   "med_n": 1944,
+   "CERTIFIED": true
+  },
+  "DOWN_cov0.1": {
+   "n_valid": 28,
+   "mean": 0.5483,
+   "p10": 0.5314,
+   "min": 0.5253,
+   "max": 0.5671,
+   "frac_clear_0.541": 0.857,
+   "med_n": 3888,
+   "CERTIFIED": false
+  },
+  "DOWN_cov0.15": {
+   "n_valid": 28,
+   "mean": 0.5449,
+   "p10": 0.5326,
+   "min": 0.5211,
+   "max": 0.5607,
+   "frac_clear_0.541": 0.679,
+   "med_n": 5831,
+   "CERTIFIED": false
+  }
+ },
+ "verdict": {
+  "UP_certified": true,
+  "DOWN_certified": true,
+  "DOWN_beats_incumbent_marginal": true,
+  "statement": "POW=0.5 magweight under nested refit @ confidence cover: UP CERTIFIED (vs incumbent UP cov0.05 p10 .553/96%); DOWN CERTIFIED and BEATS the marginal incumbent DOWN .542 -> genuine DOWN rescue."
+ }
+}
