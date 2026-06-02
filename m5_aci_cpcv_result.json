@@ -1,0 +1,55 @@
+{
+ "test": "(5m,UP) NESTED-REFIT CPCV: deployed meta gate + ACI policy (both stages refit per path)",
+ "breakeven": 0.541,
+ "stride": 6,
+ "q": 0.95,
+ "pooled_n": 876391,
+ "FIXED": {
+  "n_valid": 28,
+  "mean": 0.5528,
+  "p10": 0.5376,
+  "min": 0.5118,
+  "max": 0.5821,
+  "frac_clear_0.541": 0.786,
+  "med_n": 2247,
+  "CERTIFIED": false
+ },
+ "ACI": {
+  "wstar_0.55": {
+   "n_valid": 28,
+   "mean": 0.54,
+   "p10": 0.5224,
+   "min": 0.4963,
+   "max": 0.5602,
+   "frac_clear_0.541": 0.607,
+   "med_n": 1663,
+   "CERTIFIED": false
+  },
+  "wstar_0.56": {
+   "n_valid": 28,
+   "mean": 0.5407,
+   "p10": 0.5232,
+   "min": 0.4935,
+   "max": 0.5649,
+   "frac_clear_0.541": 0.536,
+   "med_n": 1319,
+   "CERTIFIED": false
+  },
+  "wstar_0.57": {
+   "n_valid": 28,
+   "mean": 0.5435,
+   "p10": 0.521,
+   "min": 0.5053,
+   "max": 0.5693,
+   "frac_clear_0.541": 0.607,
+   "med_n": 1231,
+   "CERTIFIED": false
+  }
+ },
+ "verdict": {
+  "fixed_meta_gate_certified": false,
+  "aci_certified_any": false,
+  "aci_improves_on_fixed": false,
+  "statement": "DEPLOYED meta gate does NOT survive nested refit (p10 0.5376, 0.786 paths). ACI is NOT certified under nested refit."
+ }
+}

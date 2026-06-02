@@ -116,11 +116,16 @@ Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall
 - **EXP-2 seed-ensemble MLP ⊕ GBM** (`m5_deep_ens.py`, M=5, AdamW lr2e-4): MLP **genuinely decorrelated from GBM
   (corr 0.694<0.9)** but a 50/50 blend ≈ GBM (UP2025 .5776 vs .5765, +.001 noise). DL-as-stack-member is
   null-to-marginal here (info-bound), as the literature predicts. `m5_deep_ens_result.json`.
-- **EXP-3 ADAPTIVE-CONFORMAL gate (ACI)** (`m5_conformal.py`, w*=0.57): **GENUINE IMPROVEMENT.** Online θ targets a
-  win-rate using only PAST outcomes (causal, deployable). Binding 2025 UP **.5838 at n764** vs fixed **.5793 at
-  n618** — better on BOTH win-rate AND coverage; holds win≥.55 every year with a tighter cross-regime spread and
-  ~36% more total trades (1884 vs 1382) → better EV/time + regime robustness. The first lever that improved the
-  edge; validate under CPCV + add to the deployment spec. `m5_conformal_result.json`.
+- **EXP-3 ADAPTIVE-CONFORMAL gate (ACI)** (`m5_conformal.py`, w*=0.57): **SINGLE-SPLIT MIRAGE — DOES NOT SURVIVE
+  NESTED-REFIT CPCV (DOWNGRADED 2026-06-01).** On the forward 2024-26 split it LOOKED like a win: binding 2025 UP
+  .5838@n764 vs fixed .5793@n618 (better on win AND coverage, +36% trades). BUT the gold-standard NESTED-REFIT CPCV
+  (`m5_aci_cpcv.py`: refits BOTH primary+meta on each of 28 purged-combinatorial paths, replays the ACI online θ
+  inside each test fold — n=876k, stride6) KILLS the improvement claim: ACI p10 **0.521–0.523**, only **54–61%** of
+  paths clear 0.541, at LOWER coverage (med_n 1231–1663) — strictly WORSE than the fixed meta gate (p10 0.5376,
+  78.6%, med_n 2247) on the robustness tail. The 2025 "win" was a forward-regime ARTIFACT of ONE chronological
+  split, not a robust edge. **EURUSD.m5xp_aci.v1 is DOWNGRADED: do NOT deploy ACI as an improvement over the fixed
+  gate.** (This is the verdict-correction the discipline demands — a harder test reversed an earlier positive.)
+  `m5_aci_cpcv_result.json`.
 - **Remaining levers (queued):** learned stack-weight (vs 50/50, earned by the .694 decorrelation), pooled
   cross-pair weight-shared net, gentler-POW magnitude weighting, calibration. The dominant-EV lever per the
   review is EXTERNAL DATA (rate differential / implied-vol), an acquisition TODO not a wall.
@@ -138,6 +143,14 @@ DOWN is dead; every other channel is null or soundly subsumed.
 - **Full-refit CPCV** (`m5_cpcv_refit.py` / `m5_refit_tightcov.py`, refits the cross-pair primary on each of 28
   purged-combinatorial folds): **CERTIFIED at the book's operating gate** — cov0.05 **p10 0.553, 96% of folds clear**;
   cov0.10 p10 .544/89%; cov0.15 p10 .541/89%. Fails ONLY at loose cov0.30 (p10 .534, 54%) where the model has no edge.
+- **NESTED-REFIT CPCV of the ACTUAL deployed META gate** (`m5_aci_cpcv.py`, 2026-06-01 — refits BOTH stages per
+  fold, n=876k stride6; the prior cert above gated on PRIMARY-CONFIDENCE cover, never the meta gate itself): the
+  deployed gate `sess_ny & meta≥thr` (q0.95) is a **NEAR-MISS** under nested refit — p10 **0.5376**, **78.6%** of 28
+  paths clear (just under the p10≥.541 AND ≥80% bar), mean 0.5528 (profitable), med_n 2247. **KEY INSIGHT:** at
+  EQUAL selectivity (~2200 trades) selecting by PRIMARY CONFIDENCE (cov0.05 p10 .553/96%) is MORE CPCV-robust than
+  the META-labeler gate (p10 .5376/78.6%) — the refit meta gate does not earn its keep over a simple tight
+  confidence cover. **So the certified deployable UP operating point is the TIGHT PRIMARY-CONFIDENCE cover
+  (cov≤0.15, best cov0.05), NOT the meta gate and NOT ACI.** `m5_aci_cpcv_result.json`.
 - Net: a **genuine, refit-robust edge concentrated in the high-confidence tail**, magnitude DEFLATED from the
   single-split. **Deployable win-rate ≈ 0.55–0.57 (robust floor 0.553); optimistic 0.58–0.61 in a favorable regime.**
 - The frozen-trade CPCV (p10 0.576/100%) over-stated it (it doesn't refit → blind to selection overfitting); the
