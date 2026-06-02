@@ -149,18 +149,24 @@ Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall
   CERTIFIED) where single-seed fails (p10 .5409/89.3%, NOT certified) — broader coverage at lower win-rate,
   not a deployable improvement. `m5_seedens_cpcv_result.json`.
 
-- **C4 (queued after C3): Temperature / Venn-Abers calibration + nested-refit CPCV**
-  The deployed meta gate JUST missed the nested-refit bar (p10 .5376/78.6% vs ≥.541/80%). Hypothesis: the
-  gate's rank-ordering is fine but the score is miscalibrated → a Platt/isotonic/Venn-Abers post-hoc
-  calibrator on the meta output, re-derived threshold on calibrated scores, re-run nested-refit.
-  **Pre-registered falsifier: KILL unless calibrated meta gate p10 ≥ .541 AND ≥80% paths (passing the bar
-  the raw gate missed).** Script: `m5_calibcpcv.py` (to write). Result → `m5_calibcpcv_result.json`.
+- **C4 KILLED — calibration does NOT rescue the meta gate** (`m5_calibcpcv.py`, 2026-06-02)
+  Tested isotonic + Platt calibrated meta scores with absolute thresholds {0.50,0.53,0.55,0.57,0.60} AND
+  raw-meta absolute thresholds, vs raw-quantile baseline. ALL variants fail: raw_quantile baseline
+  p10 **0.530**/50% paths (below even the ACI-CPCV baseline .5376/78.6% — draw-to-draw variance on the
+  unseeded meta model); iso/Platt calibrated absolute: p10 ~.525-0.526, **0% paths clear** at every
+  threshold; raw absolute: best raw_abs_0.57 p10 .5247/46%. Calibration is ACTIVELY WORSE than the fold-
+  local quantile because a fixed absolute threshold fails in off-regime folds (regime-sensitivity, not a
+  miscalibration problem). Diagnosis confirmed: the meta gate is regime-dependent regardless of how you
+  threshold it; the robust gate is the **primary confidence cover (cov0.05 p10 .553/96%)**, not the meta
+  stage. **LEVER KILLED.** `m5_calibcpcv_result.json`.
 
-- **C5 (queued after C4): Learned stack-weight (GBM ⊕ MLP, logistic meta on OOF)**
-  EXP-2 used fixed 50/50; MLP IS decorrelated (.694). Per fold: fit a logistic meta on out-of-fold
-  [gbm_pr, mlp_pr] → learned blend. Evaluate UP cov0.05 p10 > .553.
-  **Pre-registered falsifier: KILL unless stacked p10 > .553.**
-  Script: `m5_learnedstack_cpcv.py` (to write). Result → `m5_learnedstack_cpcv_result.json`.
+- **C5 (RUNNING 2026-06-02): Learned stack-weight (GBM ⊕ MLP, logistic stacker on VAL predictions)**
+  `m5_learnedstack.py`, PID 784321, log `/tmp/learnedstack.log`. Fast forward-split test (full CPCV would
+  be 28×500s = ~4hrs; fast test first). Trains M=5 MLPs (same as EXP-2), fits logistic stacker on VAL-set
+  [gbm_pr, mlp_pr] predictions at the meta gate, evaluates on test24/test25/oos. Tests: linear stacker +
+  interaction term stacker. **Pre-registered falsifier: KILL unless stacked UP 2025 > BLEND50 .5776 AND >
+  GBM-alone .5765 (if improves on forward split, escalate to CPCV; mechanically expected: MLP < GBM so
+  α→GBM-alone).** ETA ~500s. Result → `m5_learnedstack_result.json`.
 
 - **C6 (queued after C5): Gentler magnitude weighting (POW=0.25)**
   POW=0.5 hurt UP (p10 .5453 < .553) while rescuing DOWN. A lighter touch (POW=0.25) may preserve UP tail

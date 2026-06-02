@@ -1,0 +1,179 @@
+{
+ "test": "C4: calibrated meta gate \u2014 absolute threshold scan (iso+Platt) vs raw quantile baseline",
+ "breakeven": 0.541,
+ "Q": 0.95,
+ "stride": 6,
+ "pooled_n": 876391,
+ "results": {
+  "raw_quantile_baseline": {
+   "n_valid": 28,
+   "mean": 0.5439,
+   "p10": 0.53,
+   "min": 0.5168,
+   "max": 0.5784,
+   "frac_clear_0.541": 0.5,
+   "med_n": 2043,
+   "CERTIFIED": false
+  },
+  "raw_abs_0.5": {
+   "n_valid": 28,
+   "mean": 0.5286,
+   "p10": 0.5254,
+   "min": 0.5216,
+   "max": 0.5366,
+   "frac_clear_0.541": 0.0,
+   "med_n": 27672,
+   "CERTIFIED": false
+  },
+  "raw_abs_0.53": {
+   "n_valid": 28,
+   "mean": 0.5315,
+   "p10": 0.5249,
+   "min": 0.5193,
+   "max": 0.5424,
+   "frac_clear_0.541": 0.071,
+   "med_n": 14612,
+   "CERTIFIED": false
+  },
+  "raw_abs_0.55": {
+   "n_valid": 28,
+   "mean": 0.536,
+   "p10": 0.5287,
+   "min": 0.5181,
+   "max": 0.5553,
+   "frac_clear_0.541": 0.214,
+   "med_n": 7287,
+   "CERTIFIED": false
+  },
+  "raw_abs_0.57": {
+   "n_valid": 28,
+   "mean": 0.5406,
+   "p10": 0.5247,
+   "min": 0.5173,
+   "max": 0.5733,
+   "frac_clear_0.541": 0.464,
+   "med_n": 2911,
+   "CERTIFIED": false
+  },
+  "raw_abs_0.6": {
+   "n_valid": 28,
+   "mean": 0.5449,
+   "p10": 0.5021,
+   "min": 0.4382,
+   "max": 0.6061,
+   "frac_clear_0.541": 0.679,
+   "med_n": 389,
+   "CERTIFIED": false
+  },
+  "iso_abs_0.5": {
+   "n_valid": 28,
+   "mean": 0.5291,
+   "p10": 0.5253,
+   "min": 0.5206,
+   "max": 0.5372,
+   "frac_clear_0.541": 0.0,
+   "med_n": 23373,
+   "CERTIFIED": false
+  },
+  "iso_abs_0.53": {
+   "n_valid": 28,
+   "mean": 0.5298,
+   "p10": 0.5256,
+   "min": 0.5195,
+   "max": 0.5381,
+   "frac_clear_0.541": 0.0,
+   "med_n": 20392,
+   "CERTIFIED": false
+  },
+  "iso_abs_0.55": {
+   "n_valid": 28,
+   "mean": 0.5301,
+   "p10": 0.526,
+   "min": 0.5207,
+   "max": 0.5381,
+   "frac_clear_0.541": 0.0,
+   "med_n": 18589,
+   "CERTIFIED": false
+  },
+  "iso_abs_0.57": {
+   "n_valid": 28,
+   "mean": 0.5306,
+   "p10": 0.5256,
+   "min": 0.5201,
+   "max": 0.5388,
+   "frac_clear_0.541": 0.0,
+   "med_n": 17519,
+   "CERTIFIED": false
+  },
+  "iso_abs_0.6": {
+   "n_valid": 28,
+   "mean": 0.5312,
+   "p10": 0.5254,
+   "min": 0.5162,
+   "max": 0.5396,
+   "frac_clear_0.541": 0.0,
+   "med_n": 14146,
+   "CERTIFIED": false
+  },
+  "plt_abs_0.5": {
+   "n_valid": 28,
+   "mean": 0.5291,
+   "p10": 0.5254,
+   "min": 0.5205,
+   "max": 0.5375,
+   "frac_clear_0.541": 0.0,
+   "med_n": 23241,
+   "CERTIFIED": false
+  },
+  "plt_abs_0.53": {
+   "n_valid": 28,
+   "mean": 0.5298,
+   "p10": 0.5259,
+   "min": 0.5196,
+   "max": 0.5382,
+   "frac_clear_0.541": 0.0,
+   "med_n": 20073,
+   "CERTIFIED": false
+  },
+  "plt_abs_0.55": {
+   "n_valid": 28,
+   "mean": 0.5304,
+   "p10": 0.5257,
+   "min": 0.5199,
+   "max": 0.5384,
+   "frac_clear_0.541": 0.0,
+   "med_n": 18067,
+   "CERTIFIED": false
+  },
+  "plt_abs_0.57": {
+   "n_valid": 28,
+   "mean": 0.531,
+   "p10": 0.5262,
+   "min": 0.5197,
+   "max": 0.5421,
+   "frac_clear_0.541": 0.036,
+   "med_n": 16002,
+   "CERTIFIED": false
+  },
+  "plt_abs_0.6": {
+   "n_valid": 28,
+   "mean": 0.5322,
+   "p10": 0.5253,
+   "min": 0.5165,
+   "max": 0.5427,
+   "frac_clear_0.541": 0.071,
+   "med_n": 13012,
+   "CERTIFIED": false
+  }
+ },
+ "verdict": {
+  "any_calibration_certified": false,
+  "best_tag": null,
+  "best_p10": 0.0,
+  "baseline_raw_quantile": {
+   "p10": 0.53,
+   "frac": 0.5
+  },
+  "statement": "Best calibration variant: None p10=0.0000 \u2014 calibration does NOT rescue the meta gate. Raw quantile baseline p10 0.53 frac 0.5. LEVER KILLED."
+ }
+}
