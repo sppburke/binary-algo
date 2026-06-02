@@ -1,0 +1,77 @@
+{
+ "test": "(5m,UP) SEED-ENSEMBLE (K=4) nested-refit CPCV vs single-seed control, primary-conf cover",
+ "breakeven": 0.541,
+ "stride": 6,
+ "K": 4,
+ "pooled_n": 876391,
+ "auc_mean_ens": 0.5219,
+ "auc_mean_single": 0.5199,
+ "ENS": {
+  "cov0.05": {
+   "n_valid": 28,
+   "mean": 0.571,
+   "p10": 0.5525,
+   "min": 0.5463,
+   "max": 0.6101,
+   "frac_clear_0.541": 1.0,
+   "med_n": 2137,
+   "CERTIFIED": true
+  },
+  "cov0.1": {
+   "n_valid": 28,
+   "mean": 0.5611,
+   "p10": 0.5451,
+   "min": 0.5414,
+   "max": 0.5878,
+   "frac_clear_0.541": 1.0,
+   "med_n": 4274,
+   "CERTIFIED": true
+  },
+  "cov0.15": {
+   "n_valid": 28,
+   "mean": 0.5549,
+   "p10": 0.5446,
+   "min": 0.5373,
+   "max": 0.5732,
+   "frac_clear_0.541": 0.964,
+   "med_n": 6411,
+   "CERTIFIED": true
+  }
+ },
+ "SINGLE": {
+  "cov0.05": {
+   "n_valid": 28,
+   "mean": 0.5616,
+   "p10": 0.5455,
+   "min": 0.5324,
+   "max": 0.601,
+   "frac_clear_0.541": 0.929,
+   "med_n": 2125,
+   "CERTIFIED": true
+  },
+  "cov0.1": {
+   "n_valid": 28,
+   "mean": 0.5552,
+   "p10": 0.5455,
+   "min": 0.5273,
+   "max": 0.5894,
+   "frac_clear_0.541": 0.964,
+   "med_n": 4249,
+   "CERTIFIED": true
+  },
+  "cov0.15": {
+   "n_valid": 28,
+   "mean": 0.551,
+   "p10": 0.5409,
+   "min": 0.5305,
+   "max": 0.5737,
+   "frac_clear_0.541": 0.893,
+   "med_n": 6374,
+   "CERTIFIED": false
+  }
+ },
+ "verdict": {
+  "seed_ens_improves": false,
+  "statement": "Seed-ensemble (K=4) UP cov0.05 p10 0.5525 (frac 1.0) vs single-seed 0.5455 and incumbent .553 -> does NOT lift the floor above .553 (tail variance not the binding limit)."
+ }
+}

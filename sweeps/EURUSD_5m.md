@@ -139,9 +139,40 @@ Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall
   cov0.10/0.15 p10 .531/.533). Honest: best DOWN to date, deployable only as a thin tight-cover edge, NOT robust.
   Freeze pending (magweight primary needs a save-enabled re-train). `m5_magweight_cpcv_result.json`,
   `m5_magweight_result.json`.
-- **Remaining levers (queued):** learned stack-weight (vs 50/50, earned by the .694 decorrelation), pooled
-  cross-pair weight-shared net, gentler-POW magnitude weighting, calibration. The dominant-EV lever per the
-  review is EXTERNAL DATA (rate differential / implied-vol), an acquisition TODO not a wall.
+- **C3 KILLED — seed-ensemble (K=4) does NOT lift the p10 floor** (`m5_seedens_cpcv.py`, 2026-06-01)
+  Per fold: K=4 LGBMs (seeds 0-3), average predict_proba, primary-confidence cover {0.05,0.10,0.15};
+  single-seed control. ENS cov0.05 **p10 0.5525** (mean .571, 100% paths clear) vs single-seed p10 .5455
+  (mean .5616, 92.9% clear). **Falsifier fires: .5525 < incumbent .553 → KILLED for improvement.**
+  Seed-ensemble DOES lift the single-seed tail (+.007, 100% vs 92.9% clear) but cannot beat the unseeded
+  incumbent — tail variance is not the binding limit; the gap vs .553 is lucky-draw variance in the
+  unseeded production training. Side-note: ENS extends certified coverage to cov0.15 (p10 .5446/96.4%,
+  CERTIFIED) where single-seed fails (p10 .5409/89.3%, NOT certified) — broader coverage at lower win-rate,
+  not a deployable improvement. `m5_seedens_cpcv_result.json`.
+
+- **C4 (queued after C3): Temperature / Venn-Abers calibration + nested-refit CPCV**
+  The deployed meta gate JUST missed the nested-refit bar (p10 .5376/78.6% vs ≥.541/80%). Hypothesis: the
+  gate's rank-ordering is fine but the score is miscalibrated → a Platt/isotonic/Venn-Abers post-hoc
+  calibrator on the meta output, re-derived threshold on calibrated scores, re-run nested-refit.
+  **Pre-registered falsifier: KILL unless calibrated meta gate p10 ≥ .541 AND ≥80% paths (passing the bar
+  the raw gate missed).** Script: `m5_calibcpcv.py` (to write). Result → `m5_calibcpcv_result.json`.
+
+- **C5 (queued after C4): Learned stack-weight (GBM ⊕ MLP, logistic meta on OOF)**
+  EXP-2 used fixed 50/50; MLP IS decorrelated (.694). Per fold: fit a logistic meta on out-of-fold
+  [gbm_pr, mlp_pr] → learned blend. Evaluate UP cov0.05 p10 > .553.
+  **Pre-registered falsifier: KILL unless stacked p10 > .553.**
+  Script: `m5_learnedstack_cpcv.py` (to write). Result → `m5_learnedstack_cpcv_result.json`.
+
+- **C6 (queued after C5): Gentler magnitude weighting (POW=0.25)**
+  POW=0.5 hurt UP (p10 .5453 < .553) while rescuing DOWN. A lighter touch (POW=0.25) may preserve UP tail
+  while retaining some DOWN signal. **Falsifier: KILL unless UP cov0.05 p10 > .553 OR DOWN p10 > .5441.**
+  Script: modify `m5_magweight_cpcv.py` with POW=0.25.
+
+- **Task #12 (freeze magweight DOWN book, low priority, can be deferred):** save-enabled re-train of
+  POW=0.5 primary + manifest.py build/freeze + git-tag `EURUSD.m5xp_magw_down.v1`. Label MARGINAL.
+
+- **External data (dominant-EV, acquisition TODO not a wall):** intraday DE–US 2y rate differential
+  (Dukascopy), daily implied-vol/risk-reversal, EURGBP ticks. Not yet acquired; every on-disk lever has now
+  been run or killed.
 
 ## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-01)
 
