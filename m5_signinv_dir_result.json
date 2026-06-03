@@ -1,0 +1,93 @@
+{
+  "test": "5m sign-invariance DIRECTION test (HMM/Kalman/entropy/Hurst as direction features) \u2014 RUN, not argued",
+  "date": "2026-06-03",
+  "breakeven": 0.541,
+  "incumbent": {
+    "UP_floor": 0.553,
+    "UP_binding": 0.577,
+    "DOWN": 0.5441
+  },
+  "signinv_feats": [
+    "si_kal_dev",
+    "si_kal_vel",
+    "si_kal_dev_sign",
+    "si_kal_vel_sign",
+    "si_ent12",
+    "si_ent24",
+    "si_ent48",
+    "si_hvs24",
+    "si_hrs24",
+    "si_hvs48",
+    "si_hrs48",
+    "si_hvs96",
+    "si_hrs96",
+    "si_hmm_p0",
+    "si_hmm_p1",
+    "si_hmm_p2",
+    "si_hmm_state"
+  ],
+  "leakage": "forward-FILTER only (HMM Baum-Welch fit on TRAIN, posterior via min1_hmm._forward_filter; Kalman min1_kalman.kalman_llt; rolling windows end<=t; NaN->0 never ffill). Verified.",
+  "moved_up_rate": {
+    "2024": 0.5085,
+    "2025": 0.5087,
+    "2026": 0.5004
+  },
+  "uprate_tripwire_ok": true,
+  "TEST_A_standalone": {
+    "worst_val_half_MOVED_dirAUC": 0.5144,
+    "val_halves": [
+      0.5159,
+      0.5144
+    ],
+    "per_year_MOVED_dirAUC": {
+      "2024": 0.5168,
+      "2025": 0.5089,
+      "2026": 0.5161
+    },
+    "selective_UP_binding": {
+      "win": 0.5204,
+      "ci_lo": 0.4872,
+      "min_n": 784
+    },
+    "selective_DOWN_binding": {
+      "win": 0.5201,
+      "ci_lo": 0.4943,
+      "min_n": 617
+    },
+    "SIGN_perm_importance_AUCdrop": {
+      "si_kal_vel": 0.0069,
+      "si_kal_dev": 0.00241,
+      "si_kal_vel_sign": 0.00025,
+      "si_hmm_p1": 0.0002,
+      "si_hmm_p0": 0.00017,
+      "si_hmm_p2": 0.00015
+    }
+  },
+  "SANITY_magnitude": {
+    "note": "SAME features -> |ret| top-tercile MAGNITUDE",
+    "val_AUC": 0.73994,
+    "per_year_AUC": {
+      "2024": 0.7674,
+      "2025": 0.7267,
+      "2026": 0.7297
+    }
+  },
+  "TEST_B_incremental": {
+    "note": "primary_feats(331)+signinv(17) retrained vs incumbent",
+    "UP_binding": {
+      "win": 0.5422,
+      "ci_lo": 0.5036,
+      "min_n": 688
+    },
+    "DOWN_binding": {
+      "win": 0.5369,
+      "ci_lo": 0.5018,
+      "min_n": 560
+    }
+  },
+  "VERDICT": {
+    "sign_invariance_confirmed_at_5m": true,
+    "any_direction_lift": false,
+    "statement": "CONFIRMED BY EXPERIMENT AT 5m: HMM/Kalman/entropy/Hurst statistics carry MAGNITUDE (AUC 0.74, per-year .767/.727/.730) NOT DIRECTION (standalone MOVED dirAUC 0.5144, SIGN perm-importance ~0, selective UP/DOWN binding CI-lo <.50). Incremental add to m5xp lifts NOTHING (UP .5422<.553, DOWN .5369<.5441). This is a clean empirical demonstration of the sign-invariance theorem arXiv:2512.15720 at 5m. Rows C1a(HMM)/C2a(Kalman)/complexity gates are now EXPERIMENT-subsumed at 5m (not merely theorem-subsumed). KILLED for direction; the magnitude signal is the certified MAGNITUDE edge (MAGNITUDE_FINDINGS.md)."
+  }
+}
