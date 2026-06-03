@@ -1,0 +1,109 @@
+{
+  "test": "N14 whale-conditioned signed quote-OIB (top-1% tsz) \u2014 5m EURUSD direction",
+  "breakeven": 0.541,
+  "polarity": "reversion",
+  "delta_q": 0.3,
+  "calib_year": 2023,
+  "calib": {
+    "n": 32882,
+    "acc": 0.5009,
+    "uprate": 0.502,
+    "UP": {
+      "acc": 0.5036,
+      "n": 14825,
+      "ci": [
+        0.4959,
+        0.5115
+      ]
+    },
+    "DOWN": {
+      "acc": 0.4988,
+      "n": 18057,
+      "ci": [
+        0.4914,
+        0.506
+      ]
+    }
+  },
+  "per_year": {
+    "2024": {
+      "n": 27117,
+      "acc": 0.5081,
+      "uprate": 0.504,
+      "UP": {
+        "acc": 0.5077,
+        "n": 22005,
+        "ci": [
+          0.5008,
+          0.5137
+        ]
+      },
+      "DOWN": {
+        "acc": 0.5102,
+        "n": 5112,
+        "ci": [
+          0.4971,
+          0.5243
+        ]
+      }
+    },
+    "2025": {
+      "n": 20422,
+      "acc": 0.5049,
+      "uprate": 0.497,
+      "UP": {
+        "acc": 0.5017,
+        "n": 10842,
+        "ci": [
+          0.4921,
+          0.5111
+        ]
+      },
+      "DOWN": {
+        "acc": 0.5086,
+        "n": 9580,
+        "ci": [
+          0.4983,
+          0.5186
+        ]
+      }
+    },
+    "2026": {
+      "n": 11724,
+      "acc": 0.5038,
+      "uprate": 0.504,
+      "UP": {
+        "acc": 0.5076,
+        "n": 6088,
+        "ci": [
+          0.4949,
+          0.5204
+        ]
+      },
+      "DOWN": {
+        "acc": 0.4998,
+        "n": 5636,
+        "ci": [
+          0.4869,
+          0.513
+        ]
+      }
+    }
+  },
+  "UP_binding": {
+    "acc": 0.5017,
+    "ci_lo": 0.4921,
+    "n": 6088
+  },
+  "DOWN_binding": {
+    "acc": 0.4998,
+    "ci_lo": 0.4869,
+    "n": 5112
+  },
+  "VERDICT": {
+    "UP_survives": false,
+    "DOWN_survives": false,
+    "SURVIVES": false,
+    "statement": "N14 KILLED: UP binding 0.5017 (CI-lo 0.4921, n6088); DOWN binding 0.4998 (CI-lo 0.4869, n5112). Whale-conditioned quote-OIB is coin-flip at 5m on both sides \u2014 empirically confirms the order-flow family null at 300s (joins m5_cksofi300 .5006, m5_perside_flow .5077). Now Tier-1-subsumes N13/N15 (same family/data)."
+  }
+}

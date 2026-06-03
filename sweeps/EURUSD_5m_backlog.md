@@ -134,6 +134,7 @@ These seven are the queue; everything else is contingent on their outcomes or bl
 ## EXTERNAL-DATA ACQUISITION TODOs (separate track — dominant ceiling-EV per the DL review; the binding constraint is INFORMATION not model)
 - **H-TODO-1: Intraday DE–US 2y (Schatz/2Y-UST) yield differential.** Source: Dukascopy historical (per MEMORY note) or a bond-futures feed. Resample to 1-min, align to the EURUSD feature grid 2012-2026, add Δ(rate-diff) as a signed feature. The single most-cited absent carrier. → feeds H1.
 - **H-TODO-2: Daily FX implied-vol + 25Δ risk-reversal (1w/1m tenors) for EURUSD.** Source: a vol-surface vendor (or scrape). Risk-reversal SIGN = market's directional skew = the textbook signed-positioning carrier → the most mechanistically-aligned DOWN-rescue input. → feeds H2.
+  ⚠ **FEASIBILITY VERIFIED 2026-06-02 (web): EURUSD 25Δ risk-reversal / IV-surface history is PAYWALLED** — all sources commercial (FinPricing, TraditionData, Refinitiv/LSEG RICs, CME, Data In Harmony); "free alternatives limited" (Investing.com shows live IV only, no clean historical 25Δ-RR download). So the best DOWN-rescue lever is a **FUNDED-data prerequisite, NOT free-acquirable** — a verified data WALL, not an inference. DOWN is therefore honestly-exhausted on freely-available data; rescuing it requires the user to fund a vol-surface feed.
 - **H-TODO-3: EURGBP (and a 3rd USD cross) tick/1-s data** to algebraically isolate the EUR leg cleaner than the 6-pair basket. → feeds H3.
 - **H-TODO-4 (lower prior): CFTC/positioning + cross-asset (DXY futures, Bund) intraday.** Completeness; ES/NQ already sign-flip-null.
 NOTE: macro-surprise calendar is ALREADY on-disk (macro_calendar.parquet) and ALREADY tested null for direction (sign-invariant); it is NOT in this acquisition list except as the ACI-salvage I4.
@@ -576,3 +577,11 @@ discovery round 3 (top candidate N10 RUN→coin-flip; rest Tier-1-subsumed) + ro
 operational sign-invariance (R1). **The only remaining EV is EXTERNAL DATA** (intraday DE-US rate differential,
 implied-vol/risk-reversal, EURGBP ticks — H-TODO acquisitions, NOT on-disk). UP incumbent = m5xp refit floor .553;
 DOWN = magweight POW=0.5 marginal. → proceed to deployment specs + freeze.
+
+### N14 whale-OIB — KILLED RUN (2026-06-02, `m5_whale.py`/`m5_whale_result.json`)
+Built per-5m whale-conditioned signed quote-imbalance (top-1% tsz) from raw EURUSD ticks 2023-2026 (cached
+`features_tick_whale/`). Coin-flip BOTH sides, ALL years: UP binding **.5017** (CI-lo .492), DOWN binding **.4998**
+(CI-lo .487); 2024 .508/.510, 2025 .502/.509, 2026 .508/.500; up-rate clean ~.50; huge n (no thin-cov mirage).
+**Empirically closes the order-flow family at 5m** (joins m5_cksofi300 .5006, m5_perside_flow .5077). **N13
+(depletion-rate) + N15 (Cont-deLarrard P(up)) now subsumed by this RUN result** (same quote-volume data/family) —
+no longer inference. Order-flow carries NO 5m direction on either side; informed-quote-conviction hypothesis FALSE here.
