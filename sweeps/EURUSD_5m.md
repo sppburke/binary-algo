@@ -197,7 +197,7 @@ direction family-killers** (Tier-N rows N16–N19) that NO prior Tier-1 result d
 | id | family-killer | script | prior | status |
 |----|---------------|--------|-------|--------|
 | N16 | redefined TRAIN label (triple-barrier/trend-scan/jump-filter/deadband) — relabels not reweights | `m5_labels.py` | .20 | **KILLED** — best UP deadband3 2025 CI-lo .5365, best DOWN tb 2025 CI-lo .5165; neither reaches .541 breakeven nor the incumbents (UP .577 / DOWN .5441). Label definition is not the binding constraint. `m5_labels_result.json` |
-| N18 | sign-coupled GMADL/MADL loss + RRL diff-Sharpe tanh-position head | `m5_signedpayoff_torch.py` | .10 | queued |
+| N18 | sign-coupled GMADL/MADL loss + RRL diff-Sharpe tanh-position head | `m5_signedpayoff_torch.py` | .10 | **KILLED** — 0 survivors. GMADL/MADL lgb heads valWH NEGATIVE (bindings .46–.49 < coin-flip), torch GMADL degenerated, RRL meanpnl UP .5254 CI-lo .491 / sharpe DOWN n=25. Sign-coupling the score to the signed return adds nothing over symmetric/BCE. `m5_signedpayoff_torch_result.json` |
 | N19 | H=5 risk-residual RELABEL + DOWN-split | `m5_residlabel_down_h5.py` | .08 | queued |
 | N17 | anti-contemporaneous lead-lag + transfer-entropy gate + RFF VoC | `m5_leadlag_te_rff.py` | .13 | queued last (~6h) |
 

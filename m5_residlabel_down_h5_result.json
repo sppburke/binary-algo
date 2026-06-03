@@ -1,0 +1,19 @@
+{
+  "experiment": "m5_residlabel_down_h5",
+  "design": "DOWN-split of residual-label sign(eu_fwd5 - causal_beta_t*basket_fwd5) @ H=5 (300s)",
+  "distinct_from_prior_DOWN_kills": "RELABELS the target (removes common-USD factor from the LABEL); every prior DOWN kill reweighted/gated/calibrated/pooled/re-objectived the RAW EURUSD-sign target",
+  "machinery": "IMPORTED verbatim from min1_residtarget (build_resid/_causal_beta/_forward_basket); H=5 never run there",
+  "zero_lookahead": "beta_t window ends at anchor a_hi=t-H-1 (=t-6 at H=5); last bar in any beta label is t-1, strictly before t. forward basket + label both 300s-contiguity-gated. window math imported unchanged.",
+  "beta_win": 500,
+  "beta_minp": 100,
+  "train_cap": 120000,
+  "cov": 0.05,
+  "breakeven": 0.541,
+  "incumbent_magw_down_p10": 0.5441,
+  "discipline": "NY gate, DOWN-vote gate (resid<0.5), nonoverlap_chrono(300), worst-VAL-half cover select, per-year boot CI95, ties LOSE (raw _y), moved up-rate in [0.47,0.53] tripwire",
+  "PRE_REGISTERED_FALSIFIER": "KILL the residual-label DOWN path (DOWN-rescue family then confirmed exhausted on-disk) unless the H=5 residual-sign DOWN-SPLIT binding-year (worst of 2024/2025/2026, n>=150) CI95-lo clears 0.541 AND strictly beats incumbent magweight DOWN p10 .5441, with up-rate in [0.47,0.53] AND a stable same-side DOWN edge in BOTH 2024 AND 2026 (single-2025-only or sign-flip across years => KILL). If 2025 DOWN-split CI95-lo <= 0.541, the only remaining DOWN lever is paywalled funded risk-reversal data.",
+  "status": "PRE-REGISTERED (OOS not yet run)",
+  "down_split": {},
+  "pooled_resid_sign": {},
+  "VERDICT": null
+}

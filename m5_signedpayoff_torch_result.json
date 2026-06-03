@@ -1,6 +1,6 @@
 {
   "test": "SIGN-COUPLED objective batch @5m: HEAD A GMADL/MADL (lgb fobj + torch MLP), HEAD B RRL/diff-Sharpe",
-  "status": "PRE-REGISTERED (written before OOS eval)",
+  "status": "COMPLETE",
   "breakeven": 0.541,
   "cov": 0.05,
   "stride": 6,
@@ -16,9 +16,625 @@
   },
   "gmadl_grad_hess": "L_i=-sigma(a*R*z)*|R|^b; grad=-|R|^b*sigma(u)(1-sigma(u))*(a*R); hess=-|R|^b*(a*R)^2*sigma(u)(1-sigma(u))(1-2sigma(u)); u=a*R*z; lgb uses |hess|+eps",
   "PRE_REGISTERED_FALSIFIER": "KILL (loss-reopt + sizing-policy families empirically exhausted) unless a worst-VAL-half-selected book beats incumbent on the BINDING 2025 year on >=1 side at matched-or-higher nonoverlap n: DOWN-2025 CI95-lo >= 0.541 AND > magweight DOWN 0.5594, OR UP-2025 CI95-lo > incumbent 0.577 by > 1 SE; AND up-rate in [0.47,0.53]; AND 2026 does NOT collapse < 0.541; AND any survivor must additionally pass nested-refit CPCV (p10>=0.541 AND >=80% of 28 purged paths clear) before any freeze \u2014 failing refit = KILL.",
-  "HEAD_A": {},
-  "HEAD_B": {},
+  "HEAD_A": {
+    "lgb": {
+      "a50_b1": {
+        "a": 50,
+        "b": 1,
+        "val_worsthalf_payoff": {
+          "UP": -0.10819032761310451,
+          "DOWN": -0.11992273730684327
+        },
+        "UP": {
+          "2024": {
+            "win": 0.4915,
+            "n": 1176,
+            "ci": [
+              0.4626,
+              0.5187
+            ],
+            "up_rate": 0.4915
+          },
+          "2025": {
+            "win": 0.4939,
+            "n": 1310,
+            "ci": [
+              0.4672,
+              0.5198
+            ],
+            "up_rate": 0.4939
+          },
+          "2026": {
+            "win": 0.4945,
+            "n": 457,
+            "ci": [
+              0.4486,
+              0.5427
+            ],
+            "up_rate": 0.4945
+          },
+          "binding": {
+            "win": 0.4915,
+            "ci_lo": 0.4486,
+            "min_n": 457
+          }
+        },
+        "DOWN": {
+          "2024": {
+            "win": 0.4762,
+            "n": 905,
+            "ci": [
+              0.4431,
+              0.5105
+            ],
+            "up_rate": 0.5238
+          },
+          "2025": {
+            "win": 0.4735,
+            "n": 1058,
+            "ci": [
+              0.4442,
+              0.5038
+            ],
+            "up_rate": 0.5265
+          },
+          "2026": {
+            "win": 0.4883,
+            "n": 385,
+            "ci": [
+              0.439,
+              0.5403
+            ],
+            "up_rate": 0.5117
+          },
+          "binding": {
+            "win": 0.4735,
+            "ci_lo": 0.439,
+            "min_n": 385
+          }
+        }
+      },
+      "a50_b2": {
+        "a": 50,
+        "b": 2,
+        "val_worsthalf_payoff": {
+          "UP": -0.12630252100840336,
+          "DOWN": -0.09609843937575031
+        },
+        "UP": {
+          "2024": {
+            "win": 0.4902,
+            "n": 1122,
+            "ci": [
+              0.4599,
+              0.5187
+            ],
+            "up_rate": 0.4902
+          },
+          "2025": {
+            "win": 0.4968,
+            "n": 1087,
+            "ci": [
+              0.4664,
+              0.5271
+            ],
+            "up_rate": 0.4968
+          },
+          "2026": {
+            "win": 0.4665,
+            "n": 373,
+            "ci": [
+              0.4155,
+              0.5174
+            ],
+            "up_rate": 0.4665
+          },
+          "binding": {
+            "win": 0.4665,
+            "ci_lo": 0.4155,
+            "min_n": 373
+          }
+        },
+        "DOWN": {
+          "2024": {
+            "win": 0.4676,
+            "n": 802,
+            "ci": [
+              0.4327,
+              0.5037
+            ],
+            "up_rate": 0.5324
+          },
+          "2025": {
+            "win": 0.4679,
+            "n": 1028,
+            "ci": [
+              0.4377,
+              0.4981
+            ],
+            "up_rate": 0.5321
+          },
+          "2026": {
+            "win": 0.5357,
+            "n": 364,
+            "ci": [
+              0.4863,
+              0.5852
+            ],
+            "up_rate": 0.4643
+          },
+          "binding": {
+            "win": 0.4676,
+            "ci_lo": 0.4327,
+            "min_n": 364
+          }
+        }
+      },
+      "a100_b1": {
+        "a": 100,
+        "b": 1,
+        "val_worsthalf_payoff": {
+          "UP": -0.11027237354085602,
+          "DOWN": -0.11681367144432193
+        },
+        "UP": {
+          "2024": {
+            "win": 0.4919,
+            "n": 1177,
+            "ci": [
+              0.463,
+              0.52
+            ],
+            "up_rate": 0.4919
+          },
+          "2025": {
+            "win": 0.4954,
+            "n": 1308,
+            "ci": [
+              0.4687,
+              0.5226
+            ],
+            "up_rate": 0.4954
+          },
+          "2026": {
+            "win": 0.4956,
+            "n": 454,
+            "ci": [
+              0.4493,
+              0.5419
+            ],
+            "up_rate": 0.4956
+          },
+          "binding": {
+            "win": 0.4919,
+            "ci_lo": 0.4493,
+            "min_n": 454
+          }
+        },
+        "DOWN": {
+          "2024": {
+            "win": 0.4779,
+            "n": 906,
+            "ci": [
+              0.447,
+              0.511
+            ],
+            "up_rate": 0.5221
+          },
+          "2025": {
+            "win": 0.4693,
+            "n": 1059,
+            "ci": [
+              0.4381,
+              0.4995
+            ],
+            "up_rate": 0.5307
+          },
+          "2026": {
+            "win": 0.4896,
+            "n": 386,
+            "ci": [
+              0.4391,
+              0.5415
+            ],
+            "up_rate": 0.5104
+          },
+          "binding": {
+            "win": 0.4693,
+            "ci_lo": 0.4381,
+            "min_n": 386
+          }
+        }
+      },
+      "a100_b2": {
+        "a": 100,
+        "b": 2,
+        "val_worsthalf_payoff": {
+          "UP": -0.12712363330529855,
+          "DOWN": -0.09718225419664268
+        },
+        "UP": {
+          "2024": {
+            "win": 0.4902,
+            "n": 1122,
+            "ci": [
+              0.4599,
+              0.5187
+            ],
+            "up_rate": 0.4902
+          },
+          "2025": {
+            "win": 0.4959,
+            "n": 1085,
+            "ci": [
+              0.4645,
+              0.5253
+            ],
+            "up_rate": 0.4959
+          },
+          "2026": {
+            "win": 0.4665,
+            "n": 373,
+            "ci": [
+              0.4155,
+              0.5174
+            ],
+            "up_rate": 0.4665
+          },
+          "binding": {
+            "win": 0.4665,
+            "ci_lo": 0.4155,
+            "min_n": 373
+          }
+        },
+        "DOWN": {
+          "2024": {
+            "win": 0.4676,
+            "n": 802,
+            "ci": [
+              0.4327,
+              0.5037
+            ],
+            "up_rate": 0.5324
+          },
+          "2025": {
+            "win": 0.4674,
+            "n": 1027,
+            "ci": [
+              0.4372,
+              0.4976
+            ],
+            "up_rate": 0.5326
+          },
+          "2026": {
+            "win": 0.5357,
+            "n": 364,
+            "ci": [
+              0.4863,
+              0.5852
+            ],
+            "up_rate": 0.4643
+          },
+          "binding": {
+            "win": 0.4674,
+            "ci_lo": 0.4327,
+            "min_n": 364
+          }
+        }
+      }
+    },
+    "torch": {
+      "a50_b1": {
+        "a": 50,
+        "b": 1,
+        "best_epoch": -1,
+        "val_worsthalf_payoff_minside": null,
+        "UP": {
+          "2024": {
+            "win": 0.5087,
+            "n": 27739,
+            "ci": [
+              0.503,
+              0.5147
+            ],
+            "up_rate": 0.5087
+          },
+          "2025": {
+            "win": 0.5108,
+            "n": 27605,
+            "ci": [
+              0.5052,
+              0.5166
+            ],
+            "up_rate": 0.5108
+          },
+          "2026": {
+            "win": 0.5055,
+            "n": 9827,
+            "ci": [
+              0.496,
+              0.5157
+            ],
+            "up_rate": 0.5055
+          },
+          "binding": {
+            "win": 0.5055,
+            "ci_lo": 0.496,
+            "min_n": 9827
+          }
+        },
+        "DOWN": {
+          "binding": {
+            "win": null,
+            "ci_lo": null,
+            "min_n": 0
+          }
+        }
+      },
+      "a50_b2": {
+        "a": 50,
+        "b": 2,
+        "best_epoch": -1,
+        "val_worsthalf_payoff_minside": null,
+        "UP": {
+          "2024": {
+            "win": 0.5087,
+            "n": 27739,
+            "ci": [
+              0.503,
+              0.5147
+            ],
+            "up_rate": 0.5087
+          },
+          "2025": {
+            "win": 0.5108,
+            "n": 27605,
+            "ci": [
+              0.5052,
+              0.5166
+            ],
+            "up_rate": 0.5108
+          },
+          "2026": {
+            "win": 0.5055,
+            "n": 9827,
+            "ci": [
+              0.496,
+              0.5157
+            ],
+            "up_rate": 0.5055
+          },
+          "binding": {
+            "win": 0.5055,
+            "ci_lo": 0.496,
+            "min_n": 9827
+          }
+        },
+        "DOWN": {
+          "binding": {
+            "win": null,
+            "ci_lo": null,
+            "min_n": 0
+          }
+        }
+      },
+      "a100_b1": {
+        "a": 100,
+        "b": 1,
+        "best_epoch": -1,
+        "val_worsthalf_payoff_minside": null,
+        "UP": {
+          "2024": {
+            "win": 0.5087,
+            "n": 27739,
+            "ci": [
+              0.503,
+              0.5147
+            ],
+            "up_rate": 0.5087
+          },
+          "2025": {
+            "win": 0.5108,
+            "n": 27605,
+            "ci": [
+              0.5052,
+              0.5166
+            ],
+            "up_rate": 0.5108
+          },
+          "2026": {
+            "win": 0.5055,
+            "n": 9827,
+            "ci": [
+              0.496,
+              0.5157
+            ],
+            "up_rate": 0.5055
+          },
+          "binding": {
+            "win": 0.5055,
+            "ci_lo": 0.496,
+            "min_n": 9827
+          }
+        },
+        "DOWN": {
+          "binding": {
+            "win": null,
+            "ci_lo": null,
+            "min_n": 0
+          }
+        }
+      },
+      "a100_b2": {
+        "a": 100,
+        "b": 2,
+        "best_epoch": -1,
+        "val_worsthalf_payoff_minside": null,
+        "UP": {
+          "2024": {
+            "win": 0.5087,
+            "n": 27739,
+            "ci": [
+              0.503,
+              0.5147
+            ],
+            "up_rate": 0.5087
+          },
+          "2025": {
+            "win": 0.5108,
+            "n": 27605,
+            "ci": [
+              0.5052,
+              0.5166
+            ],
+            "up_rate": 0.5108
+          },
+          "2026": {
+            "win": 0.5055,
+            "n": 9827,
+            "ci": [
+              0.496,
+              0.5157
+            ],
+            "up_rate": 0.5055
+          },
+          "binding": {
+            "win": 0.5055,
+            "ci_lo": 0.496,
+            "min_n": 9827
+          }
+        },
+        "DOWN": {
+          "binding": {
+            "win": null,
+            "ci_lo": null,
+            "min_n": 0
+          }
+        }
+      }
+    }
+  },
+  "HEAD_B": {
+    "mlp_256_64_meanpnl_tau0.0": {
+      "arch": "mlp_256_64",
+      "loss": "meanpnl",
+      "tau": 0.0,
+      "best_epoch": 1,
+      "val_worsthalf_payoff": 0.0215,
+      "UP": {
+        "2024": {
+          "win": 0.547,
+          "n": 1638,
+          "ci": [
+            0.5232,
+            0.5702
+          ],
+          "up_rate": 0.547
+        },
+        "2025": {
+          "win": 0.5403,
+          "n": 2369,
+          "ci": [
+            0.5203,
+            0.5597
+          ],
+          "up_rate": 0.5403
+        },
+        "2026": {
+          "win": 0.5254,
+          "n": 906,
+          "ci": [
+            0.4912,
+            0.5574
+          ],
+          "up_rate": 0.5254
+        },
+        "binding": {
+          "win": 0.5254,
+          "ci_lo": 0.4912,
+          "min_n": 906
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5567,
+          "n": 1288,
+          "ci": [
+            0.5311,
+            0.5846
+          ],
+          "up_rate": 0.4433
+        },
+        "2025": {
+          "win": 0.5072,
+          "n": 2013,
+          "ci": [
+            0.4868,
+            0.5291
+          ],
+          "up_rate": 0.4928
+        },
+        "2026": {
+          "win": 0.528,
+          "n": 697,
+          "ci": [
+            0.4907,
+            0.5638
+          ],
+          "up_rate": 0.472
+        },
+        "binding": {
+          "win": 0.5072,
+          "ci_lo": 0.4868,
+          "min_n": 697
+        }
+      }
+    },
+    "mlp_256_64_sharpe_tau0.2": {
+      "arch": "mlp_256_64",
+      "loss": "sharpe",
+      "tau": 0.2,
+      "best_epoch": 35,
+      "val_worsthalf_payoff": 0.1629,
+      "UP": {
+        "binding": {
+          "win": null,
+          "ci_lo": null,
+          "min_n": 0
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5758,
+          "n": 33,
+          "ci": [
+            0.3939,
+            0.7576
+          ],
+          "up_rate": 0.4242
+        },
+        "2025": {
+          "win": 0.52,
+          "n": 25,
+          "ci": [
+            0.32,
+            0.72
+          ],
+          "up_rate": 0.48
+        },
+        "binding": {
+          "win": 0.52,
+          "ci_lo": 0.32,
+          "min_n": 25
+        }
+      }
+    }
+  },
   "VERDICT": {
-    "status": "pending OOS"
-  }
+    "pre_oos_survivors": [],
+    "cpcv_certified": [],
+    "FROZEN_ELIGIBLE": false,
+    "statement": "KILL (loss-reopt + sizing-policy families empirically exhausted): no sign-coupled GMADL/MADL (a,b) nor RRL/diff-Sharpe (arch,tau) config beat incumbent on the binding-2025 year on either side at the up-rate tripwire with non-collapsing 2026. The objective is not the binding constraint at 5m \u2014 coupling the signed score to the signed return adds nothing the symmetric-reweight / BCE-equivalent family already exhausted. Joins focal/quantile/asym/magweight/seedens/rankloss in the loss graveyard."
+  },
+  "CPCV": {}
 }
