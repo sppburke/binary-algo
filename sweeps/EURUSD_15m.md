@@ -101,7 +101,15 @@ sign-aware direction/labeling levers**, ranked by prior, clustered into 3 famili
 - **Microstructure/OFI/LOB (LOW @15m — decay; null by 60s):** Cont-de Larrard, Sirignano-Cont pooled, Taranto
   OF-surprise, depth-norm OFI, SPDE. → DEPRIORITIZED but confirm-and-kill via the B-pass (one fast row), do NOT
   silently skip (nulls are horizon-specific; the point is to confirm at 15m).
-- Round 2 (arXiv/SSRN fresh + novel combinations) queued after the on-disk rows run. Stop after K=2 dry rounds.
+**Round 2 done (2026-06-03):** mined the corpus's external-blocked + lower-prior untested direction levers.
+Findings: (1) the remaining on-disk direction levers (prior≥.10) are ALL the **cross-pair/cross-sectional family**
+(PC-shrinkage, IPCA, learning-to-rank, DeltaLag, FinGAT, THGNN, RFF) — represented by the cross-pair primary now
+under CPCV (A6c); elaborate variants are lower-marginal-prior follow-ups (N11/N12 lambdarank already killed @5m).
+(2) The genuine NEW-information frontier = **external data** (10 external-blocked levers): VIX/implied-vol risk-off,
+GARCH-MIDAS equity-vol, DE-US 2y/10y rate-diff, cross-asset S&P/oil/gold leads — SEVERAL are DOWN-side gates
+(risk-off USD-bid → EURUSD down). → queued as Tier-G in `sweeps/EURUSD_15m_backlog.md`, gated on user "go".
+**Discovery converging: 1 live on-disk idea (cross-pair, under test); rest subsumed or external. K=2 rounds, the
+only survivable on-disk idea is being certified now → loop near-dry pending A6c.**
 
 ### Tier-N detail (15m discovery rows)
 | id | lever | variants to run | prior | falsifier |

@@ -30,3 +30,19 @@ venue), a 15m UP/DOWN edge is **directly deployable as a deriv binary** (R≈0.8
   un-gated 15m side incumbent by >1 SE (i.e., the 15m hit-rate is genuinely HIGHER on a magnitude regime — the reverse of
   the 5m result). Expected null (sign-invariance), but RUN to confirm at 15m.
 - **Script:** `m15_magdir.py` (retarget `m5_magspot.py`, MX_HOR=15). Data on-disk (15m features + frozen `EURUSD.m15.v1`).
+
+## TIER-G — EXTERNAL-DATA FRONTIER (data-acquisition prerequisite; GATED ON USER "go") [discovery round 2, 2026-06-03]
+Both 15m sides are CERTIFIED on-disk (UP refit-p10 .5475 / DOWN .5486); on-disk improve+discover is exhausted
+(loss/labeling null, cross-pair under final CPCV). The corpus's remaining direction levers are EXTERNAL-blocked —
+these are the only inputs that could materially widen the thin margins or strengthen the DOWN side. NOT a modeling
+row until the data is acquired. Mechanism-ranked (several are DOWN-side specific — risk-off USD-bid drives EURUSD↓):
+- **G1 — DE-US 2y/10y rate differential (intraday, Dukascopy/macro):** the carry/fundamental driver; a two-stream
+  macro tower + agreement gate (corpus: EXFormer/fundamentals-tower). DOWN-relevant. Prior ~.15 (the documented #1).
+- **G2 — Daily VIX / implied-vol / EUR risk-reversal (risk-off STATE gate):** carry crashes when vol spikes →
+  risk-off USD-bid → EURUSD down. A DOWN-side gate. Risk-reversal verified PAYWALLED at 5m; VIX is free (CBOE).
+- **G3 — Equity-vol spillover regime (GARCH-MIDAS on S&P realized vol):** low-freq vol component as a regime gate.
+- **G4 — Cross-asset daily leads (S&P / oil / gold / 5y):** EXFormer DVS top-importance drivers; risk-on/off lead.
+- **G5 — EURGBP ticks (triangular USD-canceling residual, N2):** on-disk-ish if EURGBP ticks acquired; isolates the
+  EUR leg from USD. Prior ~.15.
+**Falsifier (any G-row):** KILL unless the external signal lifts a side's binding-year refit-CPCV p10 above the
+on-disk floor (.5475 UP / .5486 DOWN) by >1 SE under the full discipline. Acquire G1+G2 first (highest mechanism).
