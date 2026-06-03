@@ -1,0 +1,822 @@
+{
+  "test": "magnitude-gate x direction for SPOT",
+  "mag_median_pip": 1.388,
+  "sides": {
+    "UP": {
+      "by_q": {
+        "q0.0": {
+          "val_worsthalf_exp02_pip": 0.2306,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1478,
+                  "exp_pip": 0.2252,
+                  "exp_ci_lo_pip": 0.1331,
+                  "spot_winrate": 0.5744,
+                  "avg_move_pip": 1.081,
+                  "maxDD_1x": -0.0038
+                },
+                "2025": {
+                  "n": 1423,
+                  "exp_pip": 0.2583,
+                  "exp_ci_lo_pip": 0.037,
+                  "spot_winrate": 0.5573,
+                  "avg_move_pip": 2.213,
+                  "maxDD_1x": -0.0075
+                },
+                "2026": {
+                  "n": 254,
+                  "exp_pip": 0.9412,
+                  "exp_ci_lo_pip": 0.076,
+                  "spot_winrate": 0.5945,
+                  "avg_move_pip": 3.214,
+                  "maxDD_1x": -0.0052
+                }
+              },
+              "binding_ci_lo": 0.037,
+              "min_n": 254,
+              "deployable": true
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1478,
+                  "exp_pip": 0.1252,
+                  "exp_ci_lo_pip": 0.0331,
+                  "spot_winrate": 0.521,
+                  "avg_move_pip": 1.081,
+                  "maxDD_1x": -0.0045
+                },
+                "2025": {
+                  "n": 1423,
+                  "exp_pip": 0.1583,
+                  "exp_ci_lo_pip": -0.063,
+                  "spot_winrate": 0.5257,
+                  "avg_move_pip": 2.213,
+                  "maxDD_1x": -0.0086
+                },
+                "2026": {
+                  "n": 254,
+                  "exp_pip": 0.8412,
+                  "exp_ci_lo_pip": -0.024,
+                  "spot_winrate": 0.5669,
+                  "avg_move_pip": 3.214,
+                  "maxDD_1x": -0.0056
+                }
+              },
+              "binding_ci_lo": -0.063,
+              "min_n": 254,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1478,
+                  "exp_pip": -0.0748,
+                  "exp_ci_lo_pip": -0.1669,
+                  "spot_winrate": 0.435,
+                  "avg_move_pip": 1.081,
+                  "maxDD_1x": -0.0118
+                },
+                "2025": {
+                  "n": 1423,
+                  "exp_pip": -0.0417,
+                  "exp_ci_lo_pip": -0.263,
+                  "spot_winrate": 0.4666,
+                  "avg_move_pip": 2.213,
+                  "maxDD_1x": -0.0124
+                },
+                "2026": {
+                  "n": 254,
+                  "exp_pip": 0.6412,
+                  "exp_ci_lo_pip": -0.224,
+                  "spot_winrate": 0.5394,
+                  "avg_move_pip": 3.214,
+                  "maxDD_1x": -0.0064
+                }
+              },
+              "binding_ci_lo": -0.263,
+              "min_n": 254,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 2.213
+        },
+        "q0.3": {
+          "val_worsthalf_exp02_pip": 0.367,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1034,
+                  "exp_pip": 0.2993,
+                  "exp_ci_lo_pip": 0.1682,
+                  "spot_winrate": 0.588,
+                  "avg_move_pip": 1.296,
+                  "maxDD_1x": -0.0038
+                },
+                "2025": {
+                  "n": 996,
+                  "exp_pip": 0.312,
+                  "exp_ci_lo_pip": 0.0077,
+                  "spot_winrate": 0.5582,
+                  "avg_move_pip": 2.749,
+                  "maxDD_1x": -0.0079
+                },
+                "2026": {
+                  "n": 178,
+                  "exp_pip": 1.0333,
+                  "exp_ci_lo_pip": -0.1171,
+                  "spot_winrate": 0.5674,
+                  "avg_move_pip": 3.898,
+                  "maxDD_1x": -0.0061
+                }
+              },
+              "binding_ci_lo": -0.1171,
+              "min_n": 178,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1034,
+                  "exp_pip": 0.1993,
+                  "exp_ci_lo_pip": 0.0682,
+                  "spot_winrate": 0.5445,
+                  "avg_move_pip": 1.296,
+                  "maxDD_1x": -0.0046
+                },
+                "2025": {
+                  "n": 996,
+                  "exp_pip": 0.212,
+                  "exp_ci_lo_pip": -0.0923,
+                  "spot_winrate": 0.5341,
+                  "avg_move_pip": 2.749,
+                  "maxDD_1x": -0.0089
+                },
+                "2026": {
+                  "n": 178,
+                  "exp_pip": 0.9333,
+                  "exp_ci_lo_pip": -0.2171,
+                  "spot_winrate": 0.5393,
+                  "avg_move_pip": 3.898,
+                  "maxDD_1x": -0.0064
+                }
+              },
+              "binding_ci_lo": -0.2171,
+              "min_n": 178,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1034,
+                  "exp_pip": -0.0007,
+                  "exp_ci_lo_pip": -0.1318,
+                  "spot_winrate": 0.4768,
+                  "avg_move_pip": 1.296,
+                  "maxDD_1x": -0.0075
+                },
+                "2025": {
+                  "n": 996,
+                  "exp_pip": 0.012,
+                  "exp_ci_lo_pip": -0.2923,
+                  "spot_winrate": 0.49,
+                  "avg_move_pip": 2.749,
+                  "maxDD_1x": -0.0111
+                },
+                "2026": {
+                  "n": 178,
+                  "exp_pip": 0.7333,
+                  "exp_ci_lo_pip": -0.4171,
+                  "spot_winrate": 0.5169,
+                  "avg_move_pip": 3.898,
+                  "maxDD_1x": -0.007
+                }
+              },
+              "binding_ci_lo": -0.4171,
+              "min_n": 178,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 2.749
+        },
+        "q0.5": {
+          "val_worsthalf_exp02_pip": 0.4943,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 739,
+                  "exp_pip": 0.3387,
+                  "exp_ci_lo_pip": 0.1549,
+                  "spot_winrate": 0.6022,
+                  "avg_move_pip": 1.537,
+                  "maxDD_1x": -0.0038
+                },
+                "2025": {
+                  "n": 712,
+                  "exp_pip": 0.3048,
+                  "exp_ci_lo_pip": -0.1109,
+                  "spot_winrate": 0.5435,
+                  "avg_move_pip": 3.307,
+                  "maxDD_1x": -0.0074
+                },
+                "2026": {
+                  "n": 127,
+                  "exp_pip": 1.7893,
+                  "exp_ci_lo_pip": 0.4366,
+                  "spot_winrate": 0.5591,
+                  "avg_move_pip": 4.242,
+                  "maxDD_1x": -0.0021
+                }
+              },
+              "binding_ci_lo": -0.1109,
+              "min_n": 127,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 739,
+                  "exp_pip": 0.2387,
+                  "exp_ci_lo_pip": 0.0549,
+                  "spot_winrate": 0.567,
+                  "avg_move_pip": 1.537,
+                  "maxDD_1x": -0.0049
+                },
+                "2025": {
+                  "n": 712,
+                  "exp_pip": 0.2048,
+                  "exp_ci_lo_pip": -0.2109,
+                  "spot_winrate": 0.5267,
+                  "avg_move_pip": 3.307,
+                  "maxDD_1x": -0.008
+                },
+                "2026": {
+                  "n": 127,
+                  "exp_pip": 1.6893,
+                  "exp_ci_lo_pip": 0.3366,
+                  "spot_winrate": 0.5433,
+                  "avg_move_pip": 4.242,
+                  "maxDD_1x": -0.0021
+                }
+              },
+              "binding_ci_lo": -0.2109,
+              "min_n": 127,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 739,
+                  "exp_pip": 0.0387,
+                  "exp_ci_lo_pip": -0.1451,
+                  "spot_winrate": 0.5074,
+                  "avg_move_pip": 1.537,
+                  "maxDD_1x": -0.0076
+                },
+                "2025": {
+                  "n": 712,
+                  "exp_pip": 0.0048,
+                  "exp_ci_lo_pip": -0.4109,
+                  "spot_winrate": 0.4958,
+                  "avg_move_pip": 3.307,
+                  "maxDD_1x": -0.01
+                },
+                "2026": {
+                  "n": 127,
+                  "exp_pip": 1.4893,
+                  "exp_ci_lo_pip": 0.1366,
+                  "spot_winrate": 0.5276,
+                  "avg_move_pip": 4.242,
+                  "maxDD_1x": -0.0022
+                }
+              },
+              "binding_ci_lo": -0.4109,
+              "min_n": 127,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 3.307
+        },
+        "q0.7": {
+          "val_worsthalf_exp02_pip": 0.6406,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 444,
+                  "exp_pip": 0.406,
+                  "exp_ci_lo_pip": 0.1271,
+                  "spot_winrate": 0.5991,
+                  "avg_move_pip": 1.941,
+                  "maxDD_1x": -0.0039
+                },
+                "2025": {
+                  "n": 427,
+                  "exp_pip": 0.3647,
+                  "exp_ci_lo_pip": -0.2586,
+                  "spot_winrate": 0.5644,
+                  "avg_move_pip": 4.276,
+                  "maxDD_1x": -0.0063
+                },
+                "2026": {
+                  "n": 76,
+                  "exp_pip": 3.06,
+                  "exp_ci_lo_pip": 1.1063,
+                  "spot_winrate": 0.6053,
+                  "avg_move_pip": 5.02,
+                  "maxDD_1x": -0.0007
+                }
+              },
+              "binding_ci_lo": -0.2586,
+              "min_n": 76,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 444,
+                  "exp_pip": 0.306,
+                  "exp_ci_lo_pip": 0.0271,
+                  "spot_winrate": 0.5743,
+                  "avg_move_pip": 1.941,
+                  "maxDD_1x": -0.0049
+                },
+                "2025": {
+                  "n": 427,
+                  "exp_pip": 0.2647,
+                  "exp_ci_lo_pip": -0.3586,
+                  "spot_winrate": 0.5504,
+                  "avg_move_pip": 4.276,
+                  "maxDD_1x": -0.0067
+                },
+                "2026": {
+                  "n": 76,
+                  "exp_pip": 2.96,
+                  "exp_ci_lo_pip": 1.0063,
+                  "spot_winrate": 0.5921,
+                  "avg_move_pip": 5.02,
+                  "maxDD_1x": -0.0007
+                }
+              },
+              "binding_ci_lo": -0.3586,
+              "min_n": 76,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 444,
+                  "exp_pip": 0.106,
+                  "exp_ci_lo_pip": -0.1729,
+                  "spot_winrate": 0.536,
+                  "avg_move_pip": 1.941,
+                  "maxDD_1x": -0.0069
+                },
+                "2025": {
+                  "n": 427,
+                  "exp_pip": 0.0647,
+                  "exp_ci_lo_pip": -0.5586,
+                  "spot_winrate": 0.5246,
+                  "avg_move_pip": 4.276,
+                  "maxDD_1x": -0.0082
+                },
+                "2026": {
+                  "n": 76,
+                  "exp_pip": 2.76,
+                  "exp_ci_lo_pip": 0.8063,
+                  "spot_winrate": 0.5921,
+                  "avg_move_pip": 5.02,
+                  "maxDD_1x": -0.0008
+                }
+              },
+              "binding_ci_lo": -0.5586,
+              "min_n": 76,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 4.276
+        }
+      },
+      "VAL_selected_q": "q0.7",
+      "widest_deployable_spread_at_selected_q_pip": null
+    },
+    "DOWN": {
+      "by_q": {
+        "q0.0": {
+          "val_worsthalf_exp02_pip": 0.1182,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1318,
+                  "exp_pip": 0.1806,
+                  "exp_ci_lo_pip": 0.0936,
+                  "spot_winrate": 0.5615,
+                  "avg_move_pip": 0.928,
+                  "maxDD_1x": -0.0026
+                },
+                "2025": {
+                  "n": 1378,
+                  "exp_pip": -0.0597,
+                  "exp_ci_lo_pip": -0.3025,
+                  "spot_winrate": 0.5167,
+                  "avg_move_pip": 2.246,
+                  "maxDD_1x": -0.0208
+                },
+                "2026": {
+                  "n": 181,
+                  "exp_pip": 0.9239,
+                  "exp_ci_lo_pip": -0.0113,
+                  "spot_winrate": 0.5746,
+                  "avg_move_pip": 4.357,
+                  "maxDD_1x": -0.0054
+                }
+              },
+              "binding_ci_lo": -0.3025,
+              "min_n": 181,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1318,
+                  "exp_pip": 0.0806,
+                  "exp_ci_lo_pip": -0.0064,
+                  "spot_winrate": 0.5015,
+                  "avg_move_pip": 0.928,
+                  "maxDD_1x": -0.0033
+                },
+                "2025": {
+                  "n": 1378,
+                  "exp_pip": -0.1597,
+                  "exp_ci_lo_pip": -0.4025,
+                  "spot_winrate": 0.4753,
+                  "avg_move_pip": 2.246,
+                  "maxDD_1x": -0.0236
+                },
+                "2026": {
+                  "n": 181,
+                  "exp_pip": 0.8239,
+                  "exp_ci_lo_pip": -0.1113,
+                  "spot_winrate": 0.5691,
+                  "avg_move_pip": 4.357,
+                  "maxDD_1x": -0.0057
+                }
+              },
+              "binding_ci_lo": -0.4025,
+              "min_n": 181,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 1318,
+                  "exp_pip": -0.1194,
+                  "exp_ci_lo_pip": -0.2064,
+                  "spot_winrate": 0.3885,
+                  "avg_move_pip": 0.928,
+                  "maxDD_1x": -0.0147
+                },
+                "2025": {
+                  "n": 1378,
+                  "exp_pip": -0.3597,
+                  "exp_ci_lo_pip": -0.6025,
+                  "spot_winrate": 0.4093,
+                  "avg_move_pip": 2.246,
+                  "maxDD_1x": -0.0433
+                },
+                "2026": {
+                  "n": 181,
+                  "exp_pip": 0.6239,
+                  "exp_ci_lo_pip": -0.3113,
+                  "spot_winrate": 0.5525,
+                  "avg_move_pip": 4.357,
+                  "maxDD_1x": -0.0062
+                }
+              },
+              "binding_ci_lo": -0.6025,
+              "min_n": 181,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 2.246
+        },
+        "q0.3": {
+          "val_worsthalf_exp02_pip": 0.1871,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 922,
+                  "exp_pip": 0.2245,
+                  "exp_ci_lo_pip": 0.1092,
+                  "spot_winrate": 0.5738,
+                  "avg_move_pip": 1.112,
+                  "maxDD_1x": -0.0027
+                },
+                "2025": {
+                  "n": 964,
+                  "exp_pip": -0.0815,
+                  "exp_ci_lo_pip": -0.4113,
+                  "spot_winrate": 0.5135,
+                  "avg_move_pip": 2.851,
+                  "maxDD_1x": -0.0211
+                },
+                "2026": {
+                  "n": 127,
+                  "exp_pip": 1.4784,
+                  "exp_ci_lo_pip": 0.3371,
+                  "spot_winrate": 0.5748,
+                  "avg_move_pip": 4.851,
+                  "maxDD_1x": -0.0042
+                }
+              },
+              "binding_ci_lo": -0.4113,
+              "min_n": 127,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 922,
+                  "exp_pip": 0.1245,
+                  "exp_ci_lo_pip": 0.0092,
+                  "spot_winrate": 0.5184,
+                  "avg_move_pip": 1.112,
+                  "maxDD_1x": -0.0031
+                },
+                "2025": {
+                  "n": 964,
+                  "exp_pip": -0.1815,
+                  "exp_ci_lo_pip": -0.5113,
+                  "spot_winrate": 0.4876,
+                  "avg_move_pip": 2.851,
+                  "maxDD_1x": -0.0226
+                },
+                "2026": {
+                  "n": 127,
+                  "exp_pip": 1.3784,
+                  "exp_ci_lo_pip": 0.2371,
+                  "spot_winrate": 0.5669,
+                  "avg_move_pip": 4.851,
+                  "maxDD_1x": -0.0045
+                }
+              },
+              "binding_ci_lo": -0.5113,
+              "min_n": 127,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 922,
+                  "exp_pip": -0.0755,
+                  "exp_ci_lo_pip": -0.1908,
+                  "spot_winrate": 0.4306,
+                  "avg_move_pip": 1.112,
+                  "maxDD_1x": -0.0073
+                },
+                "2025": {
+                  "n": 964,
+                  "exp_pip": -0.3815,
+                  "exp_ci_lo_pip": -0.7113,
+                  "spot_winrate": 0.4326,
+                  "avg_move_pip": 2.851,
+                  "maxDD_1x": -0.0348
+                },
+                "2026": {
+                  "n": 127,
+                  "exp_pip": 1.1784,
+                  "exp_ci_lo_pip": 0.0371,
+                  "spot_winrate": 0.5512,
+                  "avg_move_pip": 4.851,
+                  "maxDD_1x": -0.0049
+                }
+              },
+              "binding_ci_lo": -0.7113,
+              "min_n": 127,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 2.851
+        },
+        "q0.5": {
+          "val_worsthalf_exp02_pip": 0.2473,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 659,
+                  "exp_pip": 0.231,
+                  "exp_ci_lo_pip": 0.0658,
+                  "spot_winrate": 0.5736,
+                  "avg_move_pip": 1.292,
+                  "maxDD_1x": -0.0028
+                },
+                "2025": {
+                  "n": 689,
+                  "exp_pip": -0.1575,
+                  "exp_ci_lo_pip": -0.6065,
+                  "spot_winrate": 0.4877,
+                  "avg_move_pip": 3.469,
+                  "maxDD_1x": -0.0212
+                },
+                "2026": {
+                  "n": 91,
+                  "exp_pip": 2.185,
+                  "exp_ci_lo_pip": 0.6506,
+                  "spot_winrate": 0.5714,
+                  "avg_move_pip": 5.488,
+                  "maxDD_1x": -0.0035
+                }
+              },
+              "binding_ci_lo": -0.6065,
+              "min_n": 91,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 659,
+                  "exp_pip": 0.131,
+                  "exp_ci_lo_pip": -0.0342,
+                  "spot_winrate": 0.525,
+                  "avg_move_pip": 1.292,
+                  "maxDD_1x": -0.0033
+                },
+                "2025": {
+                  "n": 689,
+                  "exp_pip": -0.2575,
+                  "exp_ci_lo_pip": -0.7065,
+                  "spot_winrate": 0.4702,
+                  "avg_move_pip": 3.469,
+                  "maxDD_1x": -0.0226
+                },
+                "2026": {
+                  "n": 91,
+                  "exp_pip": 2.085,
+                  "exp_ci_lo_pip": 0.5506,
+                  "spot_winrate": 0.5604,
+                  "avg_move_pip": 5.488,
+                  "maxDD_1x": -0.0035
+                }
+              },
+              "binding_ci_lo": -0.7065,
+              "min_n": 91,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 659,
+                  "exp_pip": -0.069,
+                  "exp_ci_lo_pip": -0.2342,
+                  "spot_winrate": 0.4583,
+                  "avg_move_pip": 1.292,
+                  "maxDD_1x": -0.0058
+                },
+                "2025": {
+                  "n": 689,
+                  "exp_pip": -0.4575,
+                  "exp_ci_lo_pip": -0.9065,
+                  "spot_winrate": 0.4354,
+                  "avg_move_pip": 3.469,
+                  "maxDD_1x": -0.0303
+                },
+                "2026": {
+                  "n": 91,
+                  "exp_pip": 1.885,
+                  "exp_ci_lo_pip": 0.3506,
+                  "spot_winrate": 0.5495,
+                  "avg_move_pip": 5.488,
+                  "maxDD_1x": -0.0036
+                }
+              },
+              "binding_ci_lo": -0.9065,
+              "min_n": 91,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 3.469
+        },
+        "q0.7": {
+          "val_worsthalf_exp02_pip": 0.3561,
+          "forward": {
+            "0.1pip": {
+              "per_year": {
+                "2024": {
+                  "n": 396,
+                  "exp_pip": 0.3015,
+                  "exp_ci_lo_pip": 0.0497,
+                  "spot_winrate": 0.5707,
+                  "avg_move_pip": 1.683,
+                  "maxDD_1x": -0.003
+                },
+                "2025": {
+                  "n": 414,
+                  "exp_pip": -0.2563,
+                  "exp_ci_lo_pip": -0.954,
+                  "spot_winrate": 0.4807,
+                  "avg_move_pip": 4.677,
+                  "maxDD_1x": -0.0195
+                },
+                "2026": {
+                  "n": 55,
+                  "exp_pip": 3.2093,
+                  "exp_ci_lo_pip": 1.1611,
+                  "spot_winrate": 0.6545,
+                  "avg_move_pip": 6.35,
+                  "maxDD_1x": -0.0032
+                }
+              },
+              "binding_ci_lo": -0.954,
+              "min_n": 55,
+              "deployable": false
+            },
+            "0.2pip": {
+              "per_year": {
+                "2024": {
+                  "n": 396,
+                  "exp_pip": 0.2015,
+                  "exp_ci_lo_pip": -0.0503,
+                  "spot_winrate": 0.5455,
+                  "avg_move_pip": 1.683,
+                  "maxDD_1x": -0.0034
+                },
+                "2025": {
+                  "n": 414,
+                  "exp_pip": -0.3563,
+                  "exp_ci_lo_pip": -1.054,
+                  "spot_winrate": 0.4734,
+                  "avg_move_pip": 4.677,
+                  "maxDD_1x": -0.0206
+                },
+                "2026": {
+                  "n": 55,
+                  "exp_pip": 3.1093,
+                  "exp_ci_lo_pip": 1.0611,
+                  "spot_winrate": 0.6545,
+                  "avg_move_pip": 6.35,
+                  "maxDD_1x": -0.0032
+                }
+              },
+              "binding_ci_lo": -1.054,
+              "min_n": 55,
+              "deployable": false
+            },
+            "0.4pip": {
+              "per_year": {
+                "2024": {
+                  "n": 396,
+                  "exp_pip": 0.0015,
+                  "exp_ci_lo_pip": -0.2503,
+                  "spot_winrate": 0.4975,
+                  "avg_move_pip": 1.683,
+                  "maxDD_1x": -0.0045
+                },
+                "2025": {
+                  "n": 414,
+                  "exp_pip": -0.5563,
+                  "exp_ci_lo_pip": -1.254,
+                  "spot_winrate": 0.4565,
+                  "avg_move_pip": 4.677,
+                  "maxDD_1x": -0.0244
+                },
+                "2026": {
+                  "n": 55,
+                  "exp_pip": 2.9093,
+                  "exp_ci_lo_pip": 0.8611,
+                  "spot_winrate": 0.6545,
+                  "avg_move_pip": 6.35,
+                  "maxDD_1x": -0.0033
+                }
+              },
+              "binding_ci_lo": -1.254,
+              "min_n": 55,
+              "deployable": false
+            }
+          },
+          "avg_move_at_q_pip": 4.677
+        }
+      },
+      "VAL_selected_q": "q0.7",
+      "widest_deployable_spread_at_selected_q_pip": null
+    }
+  },
+  "VERDICT": {
+    "magnitude_helps_spot": false,
+    "UP_widest_deployable_spread_pip": {
+      "ungated_q0": 0.1,
+      "mag_gated": null
+    },
+    "DOWN_widest_deployable_spread_pip": {
+      "ungated_q0": null,
+      "mag_gated": null
+    },
+    "statement": "Magnitude-gate x direction for SPOT: UP widest deployable spread ungated 0.1pip -> mag-gated Nonepip; DOWN ungated None -> mag-gated None. Magnitude-gating does NOT widen the deployable spread: the larger-move gain is offset by lower directional hit-rate on big/jump-driven moves (the move-size and sign-predictability trade off). Spot deployability unchanged; magnitude confirmed non-rescuing for direction even via the spot channel."
+  }
+}

@@ -287,6 +287,14 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   binary 5m venue-unavailable. **DOWN: NOT deployable at any spread** (binding-2025 spot expectancy negative even @0.1 pip,
   consistent with the marginal .5441 binary edge). This is the honest "deployable-spec'd" answer: UP = spot-deployable@raw,
   DOWN = non-deployable.
+- **MAGNITUDE × DIRECTION for SPOT — RUN, does NOT rescue (2026-06-03, `m5_magspot_result.json`):** the one combination
+  skipped in the combo sweep (pmag disabled for OOM). Trained a move-size predictor on the m5xp features and gated the
+  certified UP/DOWN spot trades to high-predicted-move bars (q sweep). **Magnitude-gating WORSENS spot:** as the gate
+  tightens, avg move rises 2.21→2.75→3.31→**4.28 pip** but binding-year spot CI-lo FALLS +0.037(ungated)→−0.117→−0.111→
+  **−0.259** — the larger-move gain is more than offset by **lower directional hit-rate on large/jump-driven moves**. UP
+  stays deployable ONLY ungated@≤0.1 pip; DOWN stays non-deployable. **Mechanistic insight: the 5m UP edge lives in
+  SMALL/diffusive moves (mean-reverting dip-buy), NOT large moves** (which are jump/informed → sign-unpredictable). Magnitude
+  confirmed non-rescuing for direction even via the spot channel (consistent with sign-invariance + m5_magdyn).
 
 ### DOWN — `EURUSD.m5xp_magw_down.v1` (POW=0.5 magweight; MARGINAL, NOT robustly deployable)
 - Refit-CPCV cov0.05 p10 **0.5441** (89% folds clear) — barely above breakeven 0.541; forward 2025 .559 but CI-lo
