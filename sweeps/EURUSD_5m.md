@@ -207,13 +207,15 @@ direction family-killers** (Tier-N rows N16–N19) that NO prior Tier-1 result d
 - Sanity: `single_pxp` reproduces the incumbent shape (UP .604/.566/.534, DOWN .613/.538/.538). The 2026 .534 (n581, broad cov) vs the incumbent headline .615 (n140 meta-gate pocket) confirms .615 was thin-n; durable 2026 ≈ .53 → the **.553 floor** is the honest figure.
 - Best UP combo = `blend(pxp·.43,p30·.57)` binding-2026 **.5414** CI-lo .497 (< .553). Best DOWN combo = `blend(pxp·.43,p10·.57)` binding-2025 **.5529** CI-lo .5277, 2026 .561 — **closest DOWN has come**, still < .541.
 - Verdict: combinations DILUTE or marginally reshuffle; none clears breakeven CI-lo on the binding year nor beats the meta-gated incumbents. **Empirically confirms the common-factor lesson at scale** — blending same-USD-factor signals re-expresses the same bet, can't break the 2025 wall. (up-rate tripwire reads False on gated subsets = expected direction-gate skew, not a mirage; verdict driven by CI-lo. magnitude families skipped — sign-invariant.)
-- Capstone untested cell: meta-labeler gate (UP's secret sauce, absent from raw blends) on the top blends → `m5_combo_metagate.py` (running). Rows C-combo-1..7 = the 7 families above.
+- Capstone (`m5_combo_metagate.py` / `_result.json`): meta-labeler gate (UP's secret sauce, absent from raw blends) on the top-6 blends × UP/DOWN → **NO SURVIVOR (12/12 fail)**. Best DOWN `blendUP_pxp50_p3050` binding-2025 .5323 CI-lo .5133 (< .541); meta-gating even HURT some (pxp_only-UP 2026 → .50 — selects a high-confidence subset that's coin-flip in the off-regime). **The model-COMBINATION cross-product is EXHAUSTED:** {scores} × {confidence-cover, meta-gate} × {blend, xhorizon-gate, consensus, cascade, regime-switch, horizon-stack} all fail. The meta-gate cannot manufacture 2025/2026 regime information the blended score lacks (consistent with m5_downspec DOWN-meta anti-transfer .509, corr(VAL,OOS)=−.54). Rows C-combo-1..7 = the 7 families; C-combo-meta = capstone. **The wall is information/regime, not architecture.**
 
 Audit **coverage statement:** once N16–N19 are run, the on-disk 5m DIRECTION mechanism space is exhaustively covered on
 BOTH sides; what remains genuinely open is ONLY external/funded data. **The conclusion below stands UNLESS a family-killer
 clears its pre-registered falsifier** (each row will update this ledger + EURUSD_RESULTS.md + the leaderboard on completion).
 
-## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-01, pending N16–N19)
+## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-03; audit + 4 family-killers + 2,874 combinations + meta-gate ALL exhausted)
+
+> **2026-06-03 closure:** the corpus audit (363 levers), the 4 genuinely-distinct direction family-killers (N16–N19, all KILLED), the 2,874-combination model-combination sweep, and the meta-gate capstone (all KILLED) collectively exhaust the on-disk 5m DIRECTION space on BOTH sides. No new edge; the conclusion below STANDS and is reinforced. The only remaining lever is orthogonal external/funded data (rate-differential, risk-reversal). A bigger machine would speed iteration but NOT change these verdicts — the constraint is information, not compute.
 
 **BEST 5m ALGO = the (5m, UP) side of the frozen `EURUSD.m5xp.v1` book** (cross-pair USD-residual + order-flow
 primary → orthogonal meta-labeler, gated `sess_ny & meta≥0.5738`, bet UP only). It is the **first sub-15m

@@ -5,6 +5,396 @@
     "UP": 0.577,
     "DOWN": 0.5441
   },
-  "status": "PRE-REGISTERED",
-  "FALSIFIER": "KILL unless binding-year (worst 24/25/26, n>=150) CI95-lo: UP>=0.553 & beats 0.577 by >1SE; DOWN>=0.541 & beats 0.5441 by >1SE. Survivor -> nested-refit CPCV (p10>=BE & >=80% of 28 paths). Expected null (meta-gate on DOWN anti-transfers, m5_downspec .509)."
+  "results": {
+    "pxp_only|UP": {
+      "val_worsthalf": 0.5684,
+      "thr": 0.7113,
+      "per_year": {
+        "2024": {
+          "win": 0.62,
+          "n": 1558,
+          "ci_lo": 0.5956,
+          "up_rate": 0.62
+        },
+        "2025": {
+          "win": 0.5562,
+          "n": 2208,
+          "ci_lo": 0.5358,
+          "up_rate": 0.5562
+        },
+        "2026": {
+          "win": 0.5,
+          "n": 760,
+          "ci_lo": 0.4658,
+          "up_rate": 0.5
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5,
+        "ci_lo": 0.4658,
+        "n": 760,
+        "min_n": 760
+      },
+      "clears": false
+    },
+    "pxp_only|DOWN": {
+      "val_worsthalf": 0.5472,
+      "thr": 0.7054,
+      "per_year": {
+        "2024": {
+          "win": 0.625,
+          "n": 1360,
+          "ci_lo": 0.6,
+          "up_rate": 0.375
+        },
+        "2025": {
+          "win": 0.5221,
+          "n": 2603,
+          "ci_lo": 0.5029,
+          "up_rate": 0.4779
+        },
+        "2026": {
+          "win": 0.5495,
+          "n": 697,
+          "ci_lo": 0.5136,
+          "up_rate": 0.4505
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.5221,
+        "ci_lo": 0.5029,
+        "n": 2603,
+        "min_n": 697
+      },
+      "clears": false
+    },
+    "blendUP_pxp43_p3057|UP": {
+      "val_worsthalf": 0.5686,
+      "thr": 0.7108,
+      "per_year": {
+        "2024": {
+          "win": 0.6054,
+          "n": 1566,
+          "ci_lo": 0.5811,
+          "up_rate": 0.6054
+        },
+        "2025": {
+          "win": 0.5657,
+          "n": 2238,
+          "ci_lo": 0.5451,
+          "up_rate": 0.5657
+        },
+        "2026": {
+          "win": 0.5073,
+          "n": 753,
+          "ci_lo": 0.4701,
+          "up_rate": 0.5073
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5073,
+        "ci_lo": 0.4701,
+        "n": 753,
+        "min_n": 753
+      },
+      "clears": false
+    },
+    "blendUP_pxp43_p3057|DOWN": {
+      "val_worsthalf": 0.545,
+      "thr": 0.7079,
+      "per_year": {
+        "2024": {
+          "win": 0.6102,
+          "n": 1316,
+          "ci_lo": 0.5836,
+          "up_rate": 0.3898
+        },
+        "2025": {
+          "win": 0.527,
+          "n": 2573,
+          "ci_lo": 0.5076,
+          "up_rate": 0.473
+        },
+        "2026": {
+          "win": 0.5428,
+          "n": 643,
+          "ci_lo": 0.5039,
+          "up_rate": 0.4572
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.527,
+        "ci_lo": 0.5076,
+        "n": 2573,
+        "min_n": 643
+      },
+      "clears": false
+    },
+    "blendUP_pxp50_p3050|UP": {
+      "val_worsthalf": 0.5762,
+      "thr": 0.7107,
+      "per_year": {
+        "2024": {
+          "win": 0.6065,
+          "n": 1540,
+          "ci_lo": 0.5825,
+          "up_rate": 0.6065
+        },
+        "2025": {
+          "win": 0.5583,
+          "n": 2246,
+          "ci_lo": 0.5378,
+          "up_rate": 0.5583
+        },
+        "2026": {
+          "win": 0.5154,
+          "n": 747,
+          "ci_lo": 0.4806,
+          "up_rate": 0.5154
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5154,
+        "ci_lo": 0.4806,
+        "n": 747,
+        "min_n": 747
+      },
+      "clears": false
+    },
+    "blendUP_pxp50_p3050|DOWN": {
+      "val_worsthalf": 0.5588,
+      "thr": 0.7078,
+      "per_year": {
+        "2024": {
+          "win": 0.6121,
+          "n": 1302,
+          "ci_lo": 0.5853,
+          "up_rate": 0.3879
+        },
+        "2025": {
+          "win": 0.5323,
+          "n": 2521,
+          "ci_lo": 0.5133,
+          "up_rate": 0.4677
+        },
+        "2026": {
+          "win": 0.5364,
+          "n": 673,
+          "ci_lo": 0.4993,
+          "up_rate": 0.4636
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.5323,
+        "ci_lo": 0.5133,
+        "n": 2521,
+        "min_n": 673
+      },
+      "clears": false
+    },
+    "blendDN_pxp43_p1057|UP": {
+      "val_worsthalf": 0.568,
+      "thr": 0.7102,
+      "per_year": {
+        "2024": {
+          "win": 0.6144,
+          "n": 1530,
+          "ci_lo": 0.5889,
+          "up_rate": 0.6144
+        },
+        "2025": {
+          "win": 0.5545,
+          "n": 2247,
+          "ci_lo": 0.5345,
+          "up_rate": 0.5545
+        },
+        "2026": {
+          "win": 0.502,
+          "n": 757,
+          "ci_lo": 0.4676,
+          "up_rate": 0.502
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.502,
+        "ci_lo": 0.4676,
+        "n": 757,
+        "min_n": 757
+      },
+      "clears": false
+    },
+    "blendDN_pxp43_p1057|DOWN": {
+      "val_worsthalf": 0.5618,
+      "thr": 0.7063,
+      "per_year": {
+        "2024": {
+          "win": 0.6209,
+          "n": 1332,
+          "ci_lo": 0.5953,
+          "up_rate": 0.3791
+        },
+        "2025": {
+          "win": 0.5229,
+          "n": 2597,
+          "ci_lo": 0.5033,
+          "up_rate": 0.4771
+        },
+        "2026": {
+          "win": 0.5574,
+          "n": 680,
+          "ci_lo": 0.5206,
+          "up_rate": 0.4426
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.5229,
+        "ci_lo": 0.5033,
+        "n": 2597,
+        "min_n": 680
+      },
+      "clears": false
+    },
+    "blendDN_pxp50_p1050|UP": {
+      "val_worsthalf": 0.5686,
+      "thr": 0.7094,
+      "per_year": {
+        "2024": {
+          "win": 0.608,
+          "n": 1523,
+          "ci_lo": 0.585,
+          "up_rate": 0.608
+        },
+        "2025": {
+          "win": 0.5534,
+          "n": 2221,
+          "ci_lo": 0.5326,
+          "up_rate": 0.5534
+        },
+        "2026": {
+          "win": 0.5073,
+          "n": 749,
+          "ci_lo": 0.47,
+          "up_rate": 0.5073
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5073,
+        "ci_lo": 0.47,
+        "n": 749,
+        "min_n": 749
+      },
+      "clears": false
+    },
+    "blendDN_pxp50_p1050|DOWN": {
+      "val_worsthalf": 0.5606,
+      "thr": 0.7066,
+      "per_year": {
+        "2024": {
+          "win": 0.6185,
+          "n": 1355,
+          "ci_lo": 0.5934,
+          "up_rate": 0.3815
+        },
+        "2025": {
+          "win": 0.527,
+          "n": 2628,
+          "ci_lo": 0.5076,
+          "up_rate": 0.473
+        },
+        "2026": {
+          "win": 0.5516,
+          "n": 698,
+          "ci_lo": 0.5158,
+          "up_rate": 0.4484
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.527,
+        "ci_lo": 0.5076,
+        "n": 2628,
+        "min_n": 698
+      },
+      "clears": false
+    },
+    "blendDN_pxp40_p1060|UP": {
+      "val_worsthalf": 0.5629,
+      "thr": 0.7112,
+      "per_year": {
+        "2024": {
+          "win": 0.6093,
+          "n": 1546,
+          "ci_lo": 0.5854,
+          "up_rate": 0.6093
+        },
+        "2025": {
+          "win": 0.5595,
+          "n": 2261,
+          "ci_lo": 0.5378,
+          "up_rate": 0.5595
+        },
+        "2026": {
+          "win": 0.5158,
+          "n": 760,
+          "ci_lo": 0.4803,
+          "up_rate": 0.5158
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5158,
+        "ci_lo": 0.4803,
+        "n": 760,
+        "min_n": 760
+      },
+      "clears": false
+    },
+    "blendDN_pxp40_p1060|DOWN": {
+      "val_worsthalf": 0.5637,
+      "thr": 0.7069,
+      "per_year": {
+        "2024": {
+          "win": 0.6197,
+          "n": 1362,
+          "ci_lo": 0.5936,
+          "up_rate": 0.3803
+        },
+        "2025": {
+          "win": 0.5251,
+          "n": 2611,
+          "ci_lo": 0.5061,
+          "up_rate": 0.4749
+        },
+        "2026": {
+          "win": 0.5496,
+          "n": 686,
+          "ci_lo": 0.5117,
+          "up_rate": 0.4504
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.5251,
+        "ci_lo": 0.5061,
+        "n": 2611,
+        "min_n": 686
+      },
+      "clears": false
+    }
+  },
+  "survivors": [],
+  "VERDICT": {
+    "any_survivor": false,
+    "survivors": [],
+    "statement": "meta-gate on top blends: NO survivor. Adding the learned meta-labeler (UP's secret sauce) on top of the best blends does NOT lift any combination's binding-year CI-lo over breakeven/incumbent. The meta-gate cannot manufacture 2025/2026 regime information the blended score lacks (consistent with m5_downspec DOWN-meta anti-transfer .509 and corr(VAL,OOS)=-.54). The model-COMBINATION cross-product is now exhausted: scores x {conf-cover, meta} x {blend, gate, consensus, cascade, regime, stack} all fail. The wall is information/regime, not architecture."
+  }
 }

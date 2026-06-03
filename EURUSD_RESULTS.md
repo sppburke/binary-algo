@@ -276,6 +276,17 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   / asymmetric class-weight (×1.5,×2) ALL fail — no DOWN binding-year CI-lo clears .541 (best DOWN-2025 .5407, CI-lo .524).
   The objective is not the binding constraint; loss family joins magweight/seed-ens/rankloss. DOWN exhaustion now spans
   features, model class, ensembling, calibration+ACI, hyperparameter tuning (Optuna), AND loss design — all hit the 2025 wall.
+- **FULL CLOSURE (2026-06-03) — corpus audit + 4 family-killers + 2,874-combination sweep + meta-gate, ALL exhausted:**
+  A 16-agent corpus audit (`m5_corpus_audit_result.json`) triaged 363 untested levers → 4 genuinely-distinct direction
+  family-killers, ALL KILLED: N16 redefined-label (`m5_labels`, best DOWN tb-2025 CI-lo .5165), N17 lead-lag+TE+RFF
+  (`m5_leadlag_te_rff`, all null), N18 sign-coupled GMADL/RRL (`m5_signedpayoff_torch`, 0 survivors), N19 H=5 risk-residual
+  DOWN-relabel (`m5_residlabel_down_h5`, strongest DOWN 2024 .5685/2025 .544 but 2026 collapses .5124). Then a **2,874-
+  combination model-combination sweep** (`m5_combo_sweep`: blends/cross-horizon-gates/consensus/cascades/regime-switch/
+  horizon-stacks reusing all frozen per-horizon+cross-pair+stack producers) + a **meta-gate capstone** (`m5_combo_metagate`):
+  **NO survivor.** Best DOWN combo `blend(pxp,p10)` reached binding-2025 .5529 (CI-lo .5277) — closest DOWN has come, still
+  < .541. **The model-combination cross-product is exhausted; the wall is information/regime (the 2025 USD-factor inversion),
+  not model architecture or combination structure.** The sole remaining DOWN lever is the verified-PAYWALLED funded
+  risk-reversal feed. No on-disk DOWN edge exists.
 
 ### Registry notes (to reconcile)
 - `EURUSD.m5xp_magw_down.v1` is git-tagged but MISSING from `books/INDEX.json` — added below.
