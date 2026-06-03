@@ -634,3 +634,10 @@ PROVABLY-SUBSUMED (Tier-1): **calibration** = monotonic rescaling → rank/gate-
 DIAGNOSIS: ensemble (E1), recency (R5), variance-reduction (seed-ens), data-volume (pooling) ALL fail on 2025 → the
 DOWN wall is an **information/regime problem (the 2025 USD-factor regime), not model-capacity**. The only lever carrying
 regime-signed-positioning is **risk-reversal sign — verified PAYWALLED**. DOWN is honestly-exhausted on free/on-disk data.
+
+### DOWN calibration + ACI — RUN LITERALLY (per user, 2026-06-03, `m5_down_calib_aci.py`/`m5_down_calib_aci_result.json`)
+Temperature + isotonic(Venn-Abers) calibration of m5xp P(down) on VAL, then ACI gate (Gibbs-Candès) at w*∈{.54,.55,.56}.
+Best = temperature|ACI_w0.55: DOWN binding-2025 point **.5598** (best DOWN 2025 point yet) but **CI-lo .5242 < breakeven**;
+all configs CI-lo .49-.524 — none clear. KILLED. Confirms calibration is rank-monotone + ACI only re-times the gate;
+it lifts the 2025 POINT slightly but cannot push the CI-lo over breakeven (the edge isn't there to gate). Marginal, like
+magweight. §3 calibration+ACI levers RUN on DOWN → fail.

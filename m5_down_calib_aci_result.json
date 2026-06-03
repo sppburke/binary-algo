@@ -1,0 +1,227 @@
+{
+  "test": "DOWN calibration (temp/isotonic) + ACI gate",
+  "breakeven": 0.541,
+  "T": 1.2,
+  "n_cand": 76269,
+  "results": {
+    "raw|ACI_w0.54": {
+      "2024": {
+        "win": 0.5593,
+        "n": 1282,
+        "ci": [
+          0.532,
+          0.585
+        ]
+      },
+      "2025": {
+        "win": 0.5342,
+        "n": 584,
+        "ci": [
+          0.4932,
+          0.5736
+        ]
+      },
+      "binding": {
+        "win": 0.5342,
+        "ci_lo": 0.4932,
+        "min_n": 584
+      }
+    },
+    "raw|ACI_w0.55": {
+      "2024": {
+        "win": 0.568,
+        "n": 1412,
+        "ci": [
+          0.5425,
+          0.5949
+        ]
+      },
+      "2025": {
+        "win": 0.5573,
+        "n": 759,
+        "ci": [
+          0.5217,
+          0.5916
+        ]
+      },
+      "binding": {
+        "win": 0.5573,
+        "ci_lo": 0.5217,
+        "min_n": 759
+      }
+    },
+    "raw|ACI_w0.56": {
+      "2024": {
+        "win": 0.5687,
+        "n": 939,
+        "ci": [
+          0.5388,
+          0.6006
+        ]
+      },
+      "2025": {
+        "win": 0.5276,
+        "n": 362,
+        "ci": [
+          0.4779,
+          0.5801
+        ]
+      },
+      "binding": {
+        "win": 0.5276,
+        "ci_lo": 0.4779,
+        "min_n": 362
+      }
+    },
+    "temperature|ACI_w0.54": {
+      "2024": {
+        "win": 0.5578,
+        "n": 995,
+        "ci": [
+          0.5256,
+          0.5879
+        ]
+      },
+      "2025": {
+        "win": 0.5492,
+        "n": 732,
+        "ci": [
+          0.5123,
+          0.5833
+        ]
+      },
+      "binding": {
+        "win": 0.5492,
+        "ci_lo": 0.5123,
+        "min_n": 732
+      }
+    },
+    "temperature|ACI_w0.55": {
+      "2024": {
+        "win": 0.5728,
+        "n": 1051,
+        "ci": [
+          0.5423,
+          0.6023
+        ]
+      },
+      "2025": {
+        "win": 0.5598,
+        "n": 786,
+        "ci": [
+          0.5242,
+          0.5941
+        ]
+      },
+      "binding": {
+        "win": 0.5598,
+        "ci_lo": 0.5242,
+        "min_n": 786
+      }
+    },
+    "temperature|ACI_w0.56": {
+      "2024": {
+        "win": 0.5688,
+        "n": 719,
+        "ci": [
+          0.5313,
+          0.6036
+        ]
+      },
+      "2025": {
+        "win": 0.5591,
+        "n": 592,
+        "ci": [
+          0.5186,
+          0.5997
+        ]
+      },
+      "binding": {
+        "win": 0.5591,
+        "ci_lo": 0.5186,
+        "min_n": 592
+      }
+    },
+    "isotonic_vennabers|ACI_w0.54": {
+      "2024": {
+        "win": 0.5575,
+        "n": 1252,
+        "ci": [
+          0.5303,
+          0.5855
+        ]
+      },
+      "2025": {
+        "win": 0.5368,
+        "n": 585,
+        "ci": [
+          0.4974,
+          0.5778
+        ]
+      },
+      "binding": {
+        "win": 0.5368,
+        "ci_lo": 0.4974,
+        "min_n": 585
+      }
+    },
+    "isotonic_vennabers|ACI_w0.55": {
+      "2024": {
+        "win": 0.5608,
+        "n": 904,
+        "ci": [
+          0.5277,
+          0.5918
+        ]
+      },
+      "2025": {
+        "win": 0.5421,
+        "n": 535,
+        "ci": [
+          0.5009,
+          0.5832
+        ]
+      },
+      "binding": {
+        "win": 0.5421,
+        "ci_lo": 0.5009,
+        "min_n": 535
+      }
+    },
+    "isotonic_vennabers|ACI_w0.56": {
+      "2024": {
+        "win": 0.5734,
+        "n": 811,
+        "ci": [
+          0.5388,
+          0.6067
+        ]
+      },
+      "2025": {
+        "win": 0.5415,
+        "n": 349,
+        "ci": [
+          0.4899,
+          0.5931
+        ]
+      },
+      "binding": {
+        "win": 0.5415,
+        "ci_lo": 0.4899,
+        "min_n": 349
+      }
+    }
+  },
+  "best": {
+    "config": "temperature|ACI_w0.55",
+    "binding": {
+      "win": 0.5598,
+      "ci_lo": 0.5242,
+      "min_n": 786
+    }
+  },
+  "VERDICT": {
+    "SURVIVES": false,
+    "statement": "DOWN calib+ACI KILLED: best temperature|ACI_w0.55 binding {'win': 0.5598, 'ci_lo': 0.5242, 'min_n': 786}. Calibration+ACI does NOT hold DOWN over breakeven in 2025 \u2014 calibration is rank-monotone and ACI only starves coverage where the 2025 edge is absent. \u00a73 gate/calibration levers applied-and-failed on DOWN."
+  }
+}
