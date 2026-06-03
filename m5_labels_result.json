@@ -1,0 +1,12 @@
+{
+  "test": "label-engineering batch (triple-barrier / trend-scan / jump-filter / 3-class deadband) on the 5m cross-pair primary \u2014 TRAIN-label redefinition only, eval on TRUE 300s sign",
+  "breakeven": 0.541,
+  "cov": 0.05,
+  "stride": 6,
+  "path_resolution": "1m-bar PROXY from features/EURUSD_<year>.parquet close (native 1s INFEASIBLE for TRAIN years 2012-2020; train_1s.parquet starts 2021-02-28). XP index-epoch==_ts verified; 5 forward 1m bars span 300s; sigma_t=5m_atr_pct (fallback 1m_rv_12*sqrt5).",
+  "incumbent_UP_2025": 0.577,
+  "magweight_DOWN_p10": 0.5441,
+  "PREREGISTERED_FALSIFIER": "KILL the label-engineering family unless some variant yields UP binding-2025 (min per-year, TRUE-300s-sign, ties-LOSE, worst-VAL-half-selected) win-rate CI95-lo >= 0.541 AND beats incumbent UP .577 by >1 SE; OR DOWN binding-2025 CI95-lo >= 0.541 AND beats magweight DOWN p10 .5441 by >1 SE. If best variant's 2025 up-rate not in [0.47,0.53] or only wins on a smoothed label -> subsumed.",
+  "status": "RUNNING",
+  "variants": {}
+}

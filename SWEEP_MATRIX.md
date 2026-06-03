@@ -113,7 +113,18 @@ falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 | N13 | Queue replenishment/depletion RATE asymmetry (Bouchaud adaptive liquidity) | Bouchaud LOB | signed d(bidvol)/dt−d(askvol)/dt + one-sided depletion-event count per 5m (depth withdrawn ahead of move) — vs imbalance LEVEL (B5a killed); LOW prior (60s OFI nulls) | on-disk (tick quote-vol) | ~8% | subsumed-by-N14 RUN (whale-OIB coin-flip .50 both sides @5m) |
 | N14 | Whale (top-1% tick-size) conditioned signed OIB conviction | ssrn-5331995 | net order imbalance from LARGE ticks only (informed conviction) vs pooled OFI noise (B5a killed); LOW prior at 5m | on-disk (tick tsz) | ~7% | killed RUN (m5_whale: .50/.50 both sides all yrs, CI-lo<BE) |
 | N15 | Cont-deLarrard closed-form P(up\|queue) + neg tick-sign autocorr reversal | Cont-deLarrard | bounded nonlinear P(up) transform of queue imbalance + theory reversal curvature as GBM features; LOW prior (microstructure decays by 60s) | on-disk (tick quote-vol) | ~6% | subsumed-by-N14 RUN (same quote-OIB family, empirically null @5m) |
+| N16 | **Redefined TRAIN label** (triple-barrier / trend-scan / jump-filter-diffusive / vol-deadband) | López de Prado AFML + Lucchese | RELABELS the sign target (not reweight/gate, which every prior kill did) using forward path/jump structure; eval on TRUE 300s sign | on-disk (features + 1m path proxy; 1s train starts 2021) | **~20% (top)** | RUNNING (m5_labels.py) |
+| N17 | **Anti-contemporaneous lead-lag + transfer-entropy gate + RFF virtue-of-complexity** | Sirignano-Cont + Schreiber TE + Kelly-Malamud-Zhou VoC | strictly-LAGGED cross-pair (m5xp uses CONCURRENT) + directed-info gate + complexity ridge P≤1e5 — distinct sign-carrying channel/function-form | on-disk (7 legs + features_of) | ~13% | pending (m5_leadlag_te_rff.py, ~6h) |
+| N18 | **Sign-COUPLED payoff objective** (GMADL/MADL loss + RRL diff-Sharpe tanh-position head) | GMADL lit + Moody-Saffell RRL | penalizes sign-WRONG large moves MORE (R·R̂ coupling) + realized-payoff-trained signed position — NOT BCE nor symmetric \|ret\|-weight (all killed) | on-disk (cross-pair) | ~10% | pending (m5_signedpayoff_torch.py) |
+| N19 | **H=5 risk-residual RELABEL + DOWN-split** | Capponi-Cont common-factor residual | DOWN target = sign(eu_fwd − β_t·USD-basket_fwd) at the never-run H=5, with the DOWN-split min1_residtarget omits | on-disk (7-major basket) | ~8% | pending (m5_residlabel_down_h5.py) |
 | … | _(loop-until-dry: stop discovering only after K rounds with no novel survivable idea)_ | | | | | |
+
+> **Corpus subsumption audit (2026-06-03, `m5_corpus_audit_result.json`, 16-agent workflow):** clustered 257 of the 363
+> UNTESTED corpus levers into 14 mechanism families → **8 subsumed** (each with a Tier-1 RUN cite), **40 magnitude-only**
+> (sign-invariance theorem → `MAGNITUDE_FINDINGS.md`), **5 external-blocked** (need multi-level LOB depth / VIX / funded
+> risk-reversal / DE-US rate-diff), and **4 genuinely-distinct direction family-killers** (N16–N19 above) surfaced after an
+> adversarial-challenge pass REFUTED 3 subsumptions. **Coverage:** once N16–N19 run, the on-disk 5m DIRECTION mechanism
+> space is exhaustively covered on BOTH sides; what remains genuinely open is ONLY external/funded data.
 
 Candidate combination seeds (cheap novelty — start here): magnitude-conditioned cross-horizon stack ·
 HMM-regime-gated CCM · RL (IQN+CVaR) sizing on the 15m book · online-adaptive meta-labeler · transfer-entropy

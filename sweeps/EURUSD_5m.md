@@ -183,7 +183,29 @@ Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall
   (Dukascopy), daily implied-vol/risk-reversal, EURGBP ticks. Not yet acquired; every on-disk lever has now
   been run or killed.
 
-## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-01)
+## POST-AUDIT REOPENING (2026-06-03) — exhaustive corpus subsumption audit + 4 family-killers
+The "every on-disk lever has now been run or killed" claim above was audited adversarially before being trusted.
+A 16-agent corpus subsumption audit (`m5_corpus_audit_result.json`) clustered 257 of 363 UNTESTED corpus levers into
+14 mechanism families: **8 subsumed** (Tier-1 cited — signed-OFL→legsign/perside/whale/xofi/hawkes/stoikov; cross-pair
+structure→pool/tarvecm/xasset/triangular + GBM-MLP info-bound; deep/graph/ICL→deep/deep_ens/ncde/rankloss ~0.52 bound;
+loss-reweight→lossbatch/rankloss/magweight; distribution-head→lossbatch quantile; DOWN-reweight/gate/calib/pool→
+downspec/refit/downcond/pool/calib; infra→cert machinery; sizing→aci/kelly/magdyn), **40 magnitude-only** (sign-invariance
+theorem → MAGNITUDE_FINDINGS.md), **5 external-blocked** (multi-level LOB depth / VIX / funded risk-reversal / DE-US
+rate-diff). **An adversarial-challenge pass REFUTED 3 subsumptions**, leaving **4 genuinely-distinct, on-disk, sign-carrying
+direction family-killers** (Tier-N rows N16–N19) that NO prior Tier-1 result decisively hit — these are RUNNING/queued:
+
+| id | family-killer | script | prior | status |
+|----|---------------|--------|-------|--------|
+| N16 | redefined TRAIN label (triple-barrier/trend-scan/jump-filter/deadband) — relabels not reweights | `m5_labels.py` | .20 | RUNNING (2026-06-03) |
+| N18 | sign-coupled GMADL/MADL loss + RRL diff-Sharpe tanh-position head | `m5_signedpayoff_torch.py` | .10 | queued |
+| N19 | H=5 risk-residual RELABEL + DOWN-split | `m5_residlabel_down_h5.py` | .08 | queued |
+| N17 | anti-contemporaneous lead-lag + transfer-entropy gate + RFF VoC | `m5_leadlag_te_rff.py` | .13 | queued last (~6h) |
+
+Audit **coverage statement:** once N16–N19 are run, the on-disk 5m DIRECTION mechanism space is exhaustively covered on
+BOTH sides; what remains genuinely open is ONLY external/funded data. **The conclusion below stands UNLESS a family-killer
+clears its pre-registered falsifier** (each row will update this ledger + EURUSD_RESULTS.md + the leaderboard on completion).
+
+## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-01, pending N16–N19)
 
 **BEST 5m ALGO = the (5m, UP) side of the frozen `EURUSD.m5xp.v1` book** (cross-pair USD-residual + order-flow
 primary → orthogonal meta-labeler, gated `sess_ny & meta≥0.5738`, bet UP only). It is the **first sub-15m
