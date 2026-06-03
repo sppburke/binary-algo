@@ -649,3 +649,10 @@ p=1e-5 SIGNIFICANT; PSR vs0 0.996 (MinTRL 63<n159) SIGNIFICANT; EB/James-Stein s
 2025✗(.274).** CONSISTENT with V1/V2: the POOLED UP edge is real & significant under every lens; the SINGLE-binding-year
 (2025) is thin under the conservative MT lenses → durable UP figure = refit-CPCV floor .553. (Validation levers V4/DM/
 FWER/PSR/EB now RUN; the remaining 60+ inventory validation levers are variants of these — documented in CORPUS_LEVER_INVENTORY.md.)
+
+### OPTUNA TPE tuning (real optuna 4.9.0, installed per user) — DOWN RUN, UP subsumed (2026-06-03, `m5_down_optuna2.py`)
+DOWN study (40 TPE trials, worst-VAL-half selection, magweight cross-pair primary): best VAL-worst-half DOWN **.5801**
+(POW=0.25) but **forward binding-2025 .522 (CI-lo .499) → FAILS** — the VAL-best config anti-transfers (corr(VAL,OOS)=
+−.54), same 2025 wall. Proper optuna confirms the random-search + every other DOWN lever: hyperparameter tuning does
+NOT crack DOWN. UP study killed (pathologically slow ~107s/trial; low-value — UP already certified .553, UP-tuning
+subsumed by seed-ens + walk-forward nulls + the loss-batch UP test). §3 tuning lever RUN on DOWN → fails.
