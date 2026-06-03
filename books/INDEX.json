@@ -283,6 +283,29 @@
    "manifest": "books/EURUSD.m5xp_magw_down.v1.manifest.json",
    "summary": "POW=0.5 |return|-weighted magweight retrain, DOWN-side rescue of m5xp; the best (5m,DOWN) but razor-thin/marginal.",
    "depends_on": "EURUSD.m5xp.v1"
+  },
+  {
+   "id": "EURUSD.m15xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m15_xpair_freeze.py",
+   "metrics": {
+    "up_refit_p10": 0.5673,
+    "down_refit_p10": 0.5742,
+    "frac_paths_clear_both": 1.0,
+    "base_book_up_p10": 0.5475,
+    "base_book_down_p10": 0.5486,
+    "deploy_cov": 0.1,
+    "forward_cov10_up": [0.602, 0.561, 0.539],
+    "forward_cov10_down": [0.610, 0.531, 0.552],
+    "breakeven": 0.541,
+    "status": "NEW (15m,UP)+(15m,DOWN) LEADER. Per-side refit-CPCV-CERTIFIED above the base book (UP p10 .5673 / DOWN .5742, 15/15 paths both sides). BEST certified DOWN edge in program. ADVERSARIAL: edge is REFIT-DEPENDENT (USD factor non-stationary) -> frozen-2021 single-model forward is marginal in binding years; DEPLOY with periodic retrain, size on refit floor. Base book EURUSD.m15.v1 = frozen-stable lower fallback. Deriv-tradeable."
+   },
+   "manifest": "books/EURUSD.m15xp.v1.manifest.json",
+   "summary": "15m cross-pair USD-residual+OF primary (m5xp source retargeted MX_HOR=15). The (15m,UP)+(15m,DOWN) deliverable: UP-bets=(15m,UP) refit-p10 .5673, DOWN-bets=(15m,DOWN) refit-p10 .5742. Deploy gate comp(bb_width q33)xNY x cov10%.",
+   "depends_on": null
   }
  ]
 }

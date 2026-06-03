@@ -69,7 +69,7 @@ Incumbent COMBINED book = `EURUSD.m15.v1` (CPCV-faithful 0.579, p10 0.557; recen
 | A5 | x-horizon | cross-horizon stack: 30m/10m parent → 15m front-load | `m15_stack.py` | D | med | pending | | | | |
 | A6 | x-pair | cross-pair USD-residual+OF PRIMARY (m5xp source) retargeted MX_HOR=15 + blend w/ book | `m15_xpair_blend.py` | D | **high** | **fwd-positive → CPCV** | — | xpair fwd 2025 .570 > book .541 | xpair fwd 2025 .591 > book .517 | `m15_xpair_blend_result.json` |
 | A6c | x-pair | (A6) per-side full-refit CPCV — certify the cross-pair improvement | `m15_xpair_cpcv.py` | D | high | **done ✅ CERTIFIED+IMPROVES** | mean .5804 p10 .5687 | **p10 .5673** (15/15, vs book .5475) | **p10 .5742** (15/15, vs book .5486) | `m15_xpair_cpcv_result.json` |
-| A6f | x-pair | FREEZE the cross-pair 15m book (full-fidelity train + worst-VAL-half gate) | `m15_xpair_freeze.py` | D | — | pending | | | | |
+| A6f | x-pair | FREEZE the cross-pair 15m book → `EURUSD.m15xp.v1` (cov10% deploy gate) | `m15_xpair_freeze.py`+`m15_xpair_regate.py` | D | **done (frozen)** | fwd cov10 .605/.546/.543 | fwd .602/.561/.539 | fwd .610/.531/.552 | `m15_xpair_freeze_result.json` |
 | N2 | discovered | triangular USD-canceling residual (EUR-vs-GBP) — top-prior, retarget @15m | `m15_triresid.py` | D | ~15% | pending | | | | |
 | N16 | discovered | redefined TRAIN label (triple-barrier/trend-scan/jump-filter) — RE-TEST @15m (more trend) | `m15_labels.py` | D | ~15% | pending | | | | |
 | N18 | discovered | sign-coupled payoff objective (GMADL/RRL diff-Sharpe head) | `m15_signedpayoff.py` | D | ~10% | pending | | | | |
@@ -126,6 +126,18 @@ edge into a solid +3.3pt one. Even the WORST cross-pair path (UP .5507/DOWN .568
 confirmed: modeling the USD common factor directly is robust in the USD-regime binding years that capped the base
 book. **NEW LEADER both keys = the cross-pair 15m model.** The base book remains a valid (lower) certified fallback.
 NEXT: freeze the cross-pair 15m book (A6f) as the deliverable; then Q1 magnitude (last on-disk test) + finalize.
+
+**ADVERSARIAL VERIFICATION of the cross-pair (2026-06-03, `m15_xpair_freeze_result.json`):** froze `EURUSD.m15xp.v1`
+and stress-tested the DEPLOYABLE frozen-2021 single model. Finding: refit-CPCV cert (.5673/.5742) is SOUND (folds
+well-powered, n~1000-2000), but the frozen single-model FORWARD is marginal in binding years (@cov10%, n≥50 all
+yrs: UP .602/.561/.539, DOWN .610/.531/.552; binding CI-lo<BE). The gap is explained: the cross-pair edge is
+**REFIT-DEPENDENT** — the USD common factor is non-stationary, so a model frozen on 2012-2021 is staler for 2026
+than the per-fold-refit CPCV models; the base book (own-MTF features) is less time-sensitive and frozen-forward-
+stabler. ALSO: cov5% (worst-VAL-half's pick) is thin-2026-fragile (n<50 trap-6, seed-variance .486-.541) → deploy
+gate set to cov10% (`m15_xpair_regate.py`). **Honest verdict:** cross-pair = CERTIFIED LEADER by the mandated
+refit-CPCV criterion (.5673/.5742 > book .5475/.5486), BEST DOWN edge in program; DEPLOY with periodic retrain
+(not frozen-forever), size on the refit floor. Base book = frozen-stable lower fallback. Vocab: refit-certified +
+regime/refit-dependent (NOT "frozen-forward-positive", which it is only in 2024).
 
 ## ★ MILESTONE 2026-06-03: BOTH SIDES CERTIFIED (refit-CPCV). Honest floors UP .5475 / DOWN .5486 (base book).
 The side-pipeline (a)-(e) is COMPLETE for both sides. Integrity: per-side combined reproduces the independent
