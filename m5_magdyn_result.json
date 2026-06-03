@@ -1,0 +1,112 @@
+{
+  "test": "R1 magnitude-as-dynamic-threshold gate (5m)",
+  "breakeven": 0.541,
+  "magnitude_Q75": 0.0002413936339636727,
+  "mag_feats": 42,
+  "cov": 0.1,
+  "best_lambda": 0.2,
+  "stageA_winrate_by_mag_quartile": [
+    {
+      "quartile": 0,
+      "n": 3313,
+      "win": 0.6284,
+      "mean_aret": 6.5e-05
+    },
+    {
+      "quartile": 1,
+      "n": 3312,
+      "win": 0.6461,
+      "mean_aret": 8.5e-05
+    },
+    {
+      "quartile": 2,
+      "n": 3312,
+      "win": 0.6395,
+      "mean_aret": 0.000107
+    },
+    {
+      "quartile": 3,
+      "n": 3313,
+      "win": 0.6315,
+      "mean_aret": 0.000271
+    }
+  ],
+  "stageA_lift": 0.0031,
+  "mechanism_present": false,
+  "worst_val_half": {
+    "baseline_lam0": 0.623,
+    "best_lam": 0.2,
+    "best": 0.6803
+  },
+  "baseline_per_year": {
+    "2024": {
+      "win": 0.7484,
+      "n": 310,
+      "ci": [
+        0.7,
+        0.7935
+      ]
+    },
+    "2025": {
+      "win": 0.6026,
+      "n": 307,
+      "ci": [
+        0.5505,
+        0.6547
+      ]
+    },
+    "pooled": {
+      "win": 0.6746,
+      "n": 633
+    }
+  },
+  "dynamic_per_year": {
+    "2024": {
+      "win": 0.625,
+      "n": 104,
+      "ci": [
+        0.5288,
+        0.7212
+      ]
+    },
+    "2025": {
+      "win": 0.5884,
+      "n": 379,
+      "ci": [
+        0.5383,
+        0.6385
+      ]
+    },
+    "2026": {
+      "win": 0.5933,
+      "n": 150,
+      "ci": [
+        0.5133,
+        0.6667
+      ]
+    },
+    "pooled": {
+      "win": 0.5956,
+      "n": 633
+    }
+  },
+  "baseline_binding": {
+    "win": 0.6026,
+    "ci_lo": 0.5505
+  },
+  "dynamic_binding": {
+    "win": 0.5884,
+    "ci_lo": 0.5133
+  },
+  "incumbent_to_beat": {
+    "refit_floor": 0.553,
+    "forward_binding_2025": 0.577
+  },
+  "VERDICT": {
+    "mechanism_present": false,
+    "beats_fixed_conf_baseline": false,
+    "binding_year_ci_clears_breakeven": false,
+    "SURVIVES": false,
+    "statement": "R1 KILLED: mechanism_present=False (lift +0.0031), beats_baseline=False (dyn binding 0.5884 vs base 0.6026; worst-half dyn 0.6803 vs base 0.6230), binding_clears=False (CI-lo 0.5133). Magnitude gate adds nothing beyond the book's existing compression+confidence gate."
+  }
+}

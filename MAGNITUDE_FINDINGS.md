@@ -79,6 +79,12 @@ But on EURUSD, **permutation entropy is NULL for magnitude** (corr ~0.01, AUC ~0
 0.744 magnitude AUC.** [Source: `IDEAS_LOG.md` lines 82–86, LOG-RECORDED.] So the *edge* is real and certified; the
 *mechanism on this asset* is volatility clustering / persistence, not entropy, despite the theorem framing.
 
+**Magnitude→direction GATE bridge tested & null `[EURUSD·5m]` (2026-06-02, R1, `m5_magdyn_result.json`):** a 5m
+magnitude model used as a DYNAMIC confidence-threshold on the certified m5xp direction gate added nothing — among
+the book's confident UP bars, win-rate is FLAT across mag-forecast quartiles (.628/.646/.640/.632, lift +0.003), and
+a VAL-tuned magnitude blend ANTI-transferred (binding-2025 .588 < fixed-conf .603). A direct operational confirmation
+of sign-invariance: forecasting move SIZE does not make the SIGN more inferable. Magnitude stays a SIZE edge only.
+
 ---
 
 ## 3. EVIDENCE TABLE — magnitude result at every horizon

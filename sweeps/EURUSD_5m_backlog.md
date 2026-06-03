@@ -402,6 +402,15 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   binding-2025 UP above .584 at ≥500 trades, OR the lift comes only from shrinking n (no EV/hr gain), OR CPCV p10 at the gate
   <0.541. INCUMBENT: m5xp_aci .584. NOVELTY: variant_of_tried — supersedes v1-G1 with the explicit magnitude-model coupling.
   (Gong HF-FX dynamic-α; the program's own magnitude edge)
+  ❌ **KILLED 2026-06-02 (`m5_magdyn.py`, `m5_magdyn_result.json`) — MECHANISM-FIRST KILL.** Trained a 5m magnitude model
+  (|ret300|≥Q75, 42 rv/bb/atr feats) and tested the premise on val+test gated UP bars: **win-rate is FLAT across
+  mag-forecast quartiles (q0 .628/q1 .646/q2 .640/q3 .632; top−bottom lift +0.0031, non-monotonic).** The premise
+  ("bigger forecast move → more inferable sign") is empirically FALSE — a **direct operational confirmation of the
+  sign-invariance theorem at 5m** (and the book already gates on bb_width compression, so residual magnitude adds
+  nothing). Stage-B dynamic gate (score=conf+λ·mag) confirmed: VAL-selected λ=0.2 looked better on worst-VAL-half
+  (.680 vs .623) but **ANTI-TRANSFERRED** — binding-2025 .588 < fixed-conf baseline .603, pooled .596 < .675 (textbook
+  corr(VAL,OOS)=−0.54). Does NOT beat the incumbent; magnitude×direction bridge is null for the GATE at 5m. (Mag stays
+  a SIZE edge → MAGNITUDE_FINDINGS.md, not direction.)
 **R2. ⚡ High-vol-regime AND-gate using GKYZ range-vol (we have 1m OHLC), abstain in calm/efficient regimes.** Multiple papers:
   ML directional predictability is ~7× concentrated in high-vol/high-uncertainty states; the nonlinear cross-pair edge should be
   largest there. EXPERIMENT: compute causal 5m GKYZ range-vol per moved bar in `m5_updown.py`, add as an AND-gate (like sess_ny)
