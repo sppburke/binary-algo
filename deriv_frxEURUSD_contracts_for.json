@@ -1,0 +1,740 @@
+{
+ "contracts_for": {
+  "available": [
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Higher",
+    "contract_type": "CALL",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "up",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Lower",
+    "contract_type": "PUT",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "down",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier": "1.16279",
+    "barrier_category": "euro_non_atm",
+    "barriers": 1,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Higher",
+    "contract_type": "CALL",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "up",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier": "1.16279",
+    "barrier_category": "euro_non_atm",
+    "barriers": 1,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Lower",
+    "contract_type": "PUT",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "down",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Higher",
+    "contract_type": "CALL",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "forward_starting_options": [
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780531199",
+      "date": "1780444800",
+      "open": "1780444800"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780617599",
+      "date": "1780531200",
+      "open": "1780531200"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780692900",
+      "date": "1780617600",
+      "open": "1780617600"
+     }
+    ],
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "up",
+    "start_type": "forward",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Lower",
+    "contract_type": "PUT",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "forward_starting_options": [
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780531199",
+      "date": "1780444800",
+      "open": "1780444800"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780617599",
+      "date": "1780531200",
+      "open": "1780531200"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780692900",
+      "date": "1780617600",
+      "open": "1780617600"
+     }
+    ],
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "down",
+    "start_type": "forward",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Higher",
+    "contract_type": "CALL",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "up",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callput",
+    "contract_category_display": "Up/Down",
+    "contract_display": "Lower",
+    "contract_type": "PUT",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "down",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callputequal",
+    "contract_category_display": "Rise/Fall Equal",
+    "contract_display": "Higher",
+    "contract_type": "CALLE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "up",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callputequal",
+    "contract_category_display": "Rise/Fall Equal",
+    "contract_display": "Lower",
+    "contract_type": "PUTE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "down",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callputequal",
+    "contract_category_display": "Rise/Fall Equal",
+    "contract_display": "Higher",
+    "contract_type": "CALLE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "forward_starting_options": [
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780531199",
+      "date": "1780444800",
+      "open": "1780444800"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780617599",
+      "date": "1780531200",
+      "open": "1780531200"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780692900",
+      "date": "1780617600",
+      "open": "1780617600"
+     }
+    ],
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "up",
+    "start_type": "forward",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callputequal",
+    "contract_category_display": "Rise/Fall Equal",
+    "contract_display": "Lower",
+    "contract_type": "PUTE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "forward_starting_options": [
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780531199",
+      "date": "1780444800",
+      "open": "1780444800"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780617599",
+      "date": "1780531200",
+      "open": "1780531200"
+     },
+     {
+      "blackouts": [
+       [
+        "11:00:00",
+        "13:00:00"
+       ],
+       [
+        "20:00:00",
+        "23:59:59"
+       ]
+      ],
+      "close": "1780692900",
+      "date": "1780617600",
+      "open": "1780617600"
+     }
+    ],
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "down",
+    "start_type": "forward",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callputequal",
+    "contract_category_display": "Rise/Fall Equal",
+    "contract_display": "Higher",
+    "contract_type": "CALLE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "up",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_atm",
+    "barriers": 0,
+    "contract_category": "callputequal",
+    "contract_category_display": "Rise/Fall Equal",
+    "contract_display": "Lower",
+    "contract_type": "PUTE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "intraday",
+    "market": "forex",
+    "max_contract_duration": "1d",
+    "min_contract_duration": "15m",
+    "sentiment": "down",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_non_atm",
+    "barriers": 2,
+    "contract_category": "endsinout",
+    "contract_category_display": "Ends Between/Ends Outside",
+    "contract_display": "Ends Outside",
+    "contract_type": "EXPIRYMISS",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "high_barrier": "1.16279",
+    "low_barrier": "1.15705",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "high_vol",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "euro_non_atm",
+    "barriers": 2,
+    "contract_category": "endsinout",
+    "contract_category_display": "Ends Between/Ends Outside",
+    "contract_display": "Ends Between",
+    "contract_type": "EXPIRYRANGE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "high_barrier": "1.16279",
+    "low_barrier": "1.15705",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "low_vol",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "american",
+    "barriers": 0,
+    "cancellation_range": [],
+    "contract_category": "multiplier",
+    "contract_category_display": "Multiply Up/Multiply Down",
+    "contract_display": "Multiply Up",
+    "contract_type": "MULTUP",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "no_expiry",
+    "market": "forex",
+    "max_contract_duration": "0",
+    "min_contract_duration": "0",
+    "multiplier_range": [
+     100,
+     200,
+     300,
+     500,
+     800
+    ],
+    "sentiment": "up",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "american",
+    "barriers": 0,
+    "cancellation_range": [],
+    "contract_category": "multiplier",
+    "contract_category_display": "Multiply Up/Multiply Down",
+    "contract_display": "Multiply Down",
+    "contract_type": "MULTDOWN",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "no_expiry",
+    "market": "forex",
+    "max_contract_duration": "0",
+    "min_contract_duration": "0",
+    "multiplier_range": [
+     100,
+     200,
+     300,
+     500,
+     800
+    ],
+    "sentiment": "down",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "american",
+    "barriers": 2,
+    "contract_category": "staysinout",
+    "contract_category_display": "Stays Between/Goes Outside",
+    "contract_display": "Stays Between",
+    "contract_type": "RANGE",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "high_barrier": "1.16279",
+    "low_barrier": "1.15705",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "low_vol",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier_category": "american",
+    "barriers": 2,
+    "contract_category": "staysinout",
+    "contract_category_display": "Stays Between/Goes Outside",
+    "contract_display": "Goes Outside",
+    "contract_type": "UPORDOWN",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "high_barrier": "1.16279",
+    "low_barrier": "1.15705",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "high_vol",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier": "1.16279",
+    "barrier_category": "american",
+    "barriers": 1,
+    "contract_category": "touchnotouch",
+    "contract_category_display": "Touch/No Touch",
+    "contract_display": "Touches",
+    "contract_type": "ONETOUCH",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "high_vol",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   },
+   {
+    "barrier": "1.16279",
+    "barrier_category": "american",
+    "barriers": 1,
+    "contract_category": "touchnotouch",
+    "contract_category_display": "Touch/No Touch",
+    "contract_display": "Does Not Touch",
+    "contract_type": "NOTOUCH",
+    "default_stake": 10,
+    "exchange_name": "FOREX",
+    "expiry_type": "daily",
+    "market": "forex",
+    "max_contract_duration": "365d",
+    "min_contract_duration": "1d",
+    "sentiment": "low_vol",
+    "start_type": "spot",
+    "submarket": "major_pairs",
+    "underlying_symbol": "frxEURUSD"
+   }
+  ],
+  "close": 1780531199,
+  "feed_license": "realtime",
+  "hit_count": 22,
+  "non_available": [
+   {
+    "contract_category": "accumulator",
+    "contract_display_name": "Accumulator Up",
+    "contract_type": "ACCU"
+   },
+   {
+    "contract_category": "asian",
+    "contract_display_name": "Asian Down",
+    "contract_type": "ASIAND"
+   },
+   {
+    "contract_category": "asian",
+    "contract_display_name": "Asian Up",
+    "contract_type": "ASIANU"
+   },
+   {
+    "contract_category": "digits",
+    "contract_display_name": "Digit Differs",
+    "contract_type": "DIGITDIFF"
+   },
+   {
+    "contract_category": "digits",
+    "contract_display_name": "Digit Even",
+    "contract_type": "DIGITEVEN"
+   },
+   {
+    "contract_category": "digits",
+    "contract_display_name": "Digit Matches",
+    "contract_type": "DIGITMATCH"
+   },
+   {
+    "contract_category": "digits",
+    "contract_display_name": "Digit Odd",
+    "contract_type": "DIGITODD"
+   },
+   {
+    "contract_category": "digits",
+    "contract_display_name": "Digit Over",
+    "contract_type": "DIGITOVER"
+   },
+   {
+    "contract_category": "digits",
+    "contract_display_name": "Digit Under",
+    "contract_type": "DIGITUNDER"
+   },
+   {
+    "contract_category": "lookback",
+    "contract_display_name": "Close-Low",
+    "contract_type": "LBFLOATCALL"
+   },
+   {
+    "contract_category": "lookback",
+    "contract_display_name": "High-Close",
+    "contract_type": "LBFLOATPUT"
+   },
+   {
+    "contract_category": "lookback",
+    "contract_display_name": "High-Low",
+    "contract_type": "LBHIGHLOW"
+   },
+   {
+    "contract_category": "reset",
+    "contract_display_name": "Reset Call",
+    "contract_type": "RESETCALL"
+   },
+   {
+    "contract_category": "reset",
+    "contract_display_name": "Reset Put",
+    "contract_type": "RESETPUT"
+   },
+   {
+    "contract_category": "runs",
+    "contract_display_name": "Only Ups",
+    "contract_type": "RUNHIGH"
+   },
+   {
+    "contract_category": "runs",
+    "contract_display_name": "Only Downs",
+    "contract_type": "RUNLOW"
+   },
+   {
+    "contract_category": "highlowticks",
+    "contract_display_name": "High Tick",
+    "contract_type": "TICKHIGH"
+   },
+   {
+    "contract_category": "highlowticks",
+    "contract_display_name": "Low Tick",
+    "contract_type": "TICKLOW"
+   },
+   {
+    "contract_category": "turbos",
+    "contract_display_name": "Turbos Long",
+    "contract_type": "TURBOSLONG"
+   },
+   {
+    "contract_category": "turbos",
+    "contract_display_name": "Turbos Short",
+    "contract_type": "TURBOSSHORT"
+   },
+   {
+    "contract_category": "vanilla",
+    "contract_display_name": "Vanilla Long Call",
+    "contract_type": "VANILLALONGCALL"
+   },
+   {
+    "contract_category": "vanilla",
+    "contract_display_name": "Vanilla Long Put",
+    "contract_type": "VANILLALONGPUT"
+   }
+  ],
+  "open": 1780444800,
+  "spot": 1.15991
+ },
+ "echo_req": {
+  "contracts_for": "frxEURUSD",
+  "currency": "USD"
+ },
+ "msg_type": "contracts_for"
+}

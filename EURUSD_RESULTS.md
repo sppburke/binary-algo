@@ -266,6 +266,17 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   (streak is sizing-independent). 2025 is the binding regime.
 - **Kill-switch — TESTED, DO NOT USE:** win-rate kill-switch (window150/kill .52/resume .55) HURTS — end 19.4× vs 25.9×
   no-KS, 6.8% flat, 4 kills (`m5_equity_result.json`). Tested, not assumed; deploy WITHOUT it.
+- **VENUE & SETTLEMENT — VERIFIED LIVE (2026-06-03, `m5_venue_feasibility_result.json` + `deriv_frxEURUSD_contracts_for.json`):**
+  ⚠ **5m EURUSD is NOT a tradeable fixed-payout binary at any verified regulated venue.** deriv `contracts_for` API (live,
+  spot 1.15991) → forex Rise/Fall **MIN duration 15m** (intraday 15m–1d / daily 1d–365d; callput + callputequal, both
+  start types). Nadex — the historical ≤5m US-regulated FX-binary venue (5-min EUR/USD binaries, mid-TWAP settlement) —
+  **CLOSED 2025-12-20** (→ Crypto.com CDNA, prediction-markets pivot, no confirmed 5m FX binary). So the certified (5m,UP)
+  edge is a **certified PREDICTOR, research-grade for binary deployment at 5m — NOT "the best 5m algo to *trade*".** Honest
+  tradeable expressions: **(a)** the deriv **15m** book `EURUSD.m15.v1` (min 15m matches — the 5m research supports it);
+  **(b)** SPOT FX (OANDA/IB) 5m hold, but RE-DERIVE under spot settlement (P&L = 5m move − ~0.1–0.2 pip round-trip spread;
+  the .541 binary breakeven does NOT apply; a ~.55 hit-rate must be re-mapped to spread-aware, magnitude-dependent spot
+  expectancy — likely marginal at 5m); **(c)** offshore ≤5m binary brokers — high counterparty risk, NOT recommended. The
+  R≈0.85 / breakeven-0.541 used to CERTIFY the 5m edge is REAL only at ≥15m; at 5m it is a HYPOTHETICAL payout.
 
 ### DOWN — `EURUSD.m5xp_magw_down.v1` (POW=0.5 magweight; MARGINAL, NOT robustly deployable)
 - Refit-CPCV cov0.05 p10 **0.5441** (89% folds clear) — barely above breakeven 0.541; forward 2025 .559 but CI-lo

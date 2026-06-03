@@ -1,0 +1,31 @@
+{
+  "test": "VENUE & SETTLEMENT FEASIBILITY for 5m EURUSD binary direction (req-5 live-source verification)",
+  "date": "2026-06-03",
+  "verified_from": "live sources this session",
+  "deriv_frxEURUSD": {
+    "source": "deriv contracts_for API (wss://ws.derivws.com app_id=1089), saved deriv_frxEURUSD_contracts_for.json",
+    "spot_at_check": 1.15991,
+    "market_open": true,
+    "rise_fall_min_duration": "15m",
+    "rise_fall_max_intraday": "1d",
+    "daily": "1d..365d",
+    "FINDING": "5m EURUSD Rise/Fall is NOT offered \u2014 deriv forex binary MINIMUM duration is 15m (intraday) / 1d (daily). Confirmed across callput + callputequal, spot-start and forward-start.",
+    "settlement": "mid-to-mid, no spread on settlement, payout R\u22480.85 \u2192 breakeven win-rate 0.541 (the program's wc_ret model). NOTE: this payout/breakeven is REAL at >=15m; at 5m it is HYPOTHETICAL (deriv offers no 5m forex binary).",
+    "latency": "entry = next tick after order (+1s lag) already modeled in wc_ret.",
+    "AUTH_CAVEAT": "This contracts_for query was UNAUTHENTICATED (app_id=1089). The user reported (2026-06-01, after LOGIN) a 1-minute option \u2014 unresolved whether account-tier unlocks sub-15m FOREX contract durations or whether '1min' was chart granularity. CANNOT resolve without the user's authenticated token. To confirm 5m deriv-tradeable, run contracts_for from the user's logged-in account. The 15m floor is the VERIFIED PUBLIC floor."
+  },
+  "nadex": {
+    "source": "WebSearch 2026-06-03 (financefeeds.com, nadex.com/notices, tradingfriends.org)",
+    "historical": "offered 5-minute EUR/USD binary options; all-or-nothing 0/100; settlement = avg of middle 15 of last 25 midpoint prices (TWAP-like mid, no spread); ~$0.10/contract fee.",
+    "STATUS": "CLOSED \u2014 suspended deposits 2025-12-06, disabled all binary trading 2025-12-20; platform retired, transitioned to Crypto.com CDNA. The \u22645m US-regulated FX-binary venue NO LONGER EXISTS."
+  },
+  "cryptocom_cdna": {
+    "source": "WebSearch 2026-06-03 (financemagnates.com, cryptonews.com)",
+    "status": "Nadex successor (CFTC-regulated DCM); pivoting to event-based/prediction-market contracts + margined crypto derivatives. A 5-minute EUR/USD fixed-payout binary is NOT confirmed offered."
+  },
+  "VERDICT": {
+    "five_min_binary_tradeable_at_verified_regulated_venue": false,
+    "statement": "5m EURUSD FIXED-PAYOUT BINARY direction is NOT deployable at a verified regulated venue: deriv minimum forex Rise/Fall duration is 15m (live API), and Nadex \u2014 the historical \u22645m US-regulated FX-binary venue \u2014 CLOSED 2025-12-20. The certified (5m,UP) edge (refit floor .553) is therefore a CERTIFIED PREDICTOR but RESEARCH-GRADE for binary deployment at 5m. Honest tradeable expressions: (a) the deriv 15m book EURUSD.m15.v1 \u2014 IS tradeable (min 15m matches), and the 5m research supports/validates it; (b) SPOT FX (OANDA/IB) with a 5m hold \u2014 but re-derive under SPOT settlement: P&L = 5m move \u2212 round-trip spread (~0.1-0.2 pip EURUSD), so the .541 binary breakeven does NOT apply; a .55 hit-rate must be re-mapped to spread-aware spot expectancy (magnitude-dependent, likely marginal at 5m); (c) offshore/unregulated \u22645m FX-binary brokers \u2014 high counterparty/withdrawal risk, NOT recommended. The deriv-style R\u22480.85 / breakeven .541 used to CERTIFY the 5m edge is REAL only at >=15m; at 5m it is a hypothetical payout.",
+    "remaining_verification_user_gated": "Authenticated deriv contracts_for from the user's account \u2014 the only check that could overturn '5m not tradeable on deriv'. Public/unauth floor is 15m (verified)."
+  }
+}
