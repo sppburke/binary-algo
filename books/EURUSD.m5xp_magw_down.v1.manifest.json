@@ -1,0 +1,80 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "EURUSD.m5xp_magw_down.v1",
+  "content_id": "74a7823f33b62828",
+  "currency": "EURUSD",
+  "timeframe": "5m",
+  "side": "down",
+  "role": "direction",
+  "summary": "Magnitude-weighted (POW=0.5 |return|/median) LightGBM primary for the EURUSD 5m DOWN side. CERTIFIED MARGINAL: CPCV p10=0.5441 (89.3% of 28 purged paths clear 0.541 breakeven). Gate: NY session & pr<0.5 & top-5% confidence cover. Regime-dependent; 2025 is weakest fold.",
+  "metrics": {
+    "cpcv_down_cov0.05_p10": 0.5441,
+    "cpcv_down_cov0.05_frac_clear": 0.893,
+    "cpcv_down_cov0.05_mean": 0.5569,
+    "cpcv_certified": true,
+    "label": "MARGINAL",
+    "breakeven": 0.541,
+    "val_down_acc_cov05": 0.6744
+  },
+  "source": {
+    "script": "m5_magweight_freeze.py",
+    "git_sha": "01ede74079236e9dc8e9983fe5dcc405b18418ff",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "model": "LightGBM",
+    "n_estimators": 700,
+    "learning_rate": 0.03,
+    "num_leaves": 127,
+    "min_child_samples": 300,
+    "subsample": 0.8,
+    "colsample_bytree": 0.5,
+    "reg_lambda": 20,
+    "sample_weight": "(|fwd|/median)^0.5 clipped [0.1,10]",
+    "n_jobs": 20,
+    "estimator_seed": "unset",
+    "training_data": "all 2012-2026 pooled stride=6"
+  },
+  "artifacts": [
+    {
+      "file": "m5xp_EURUSD_magw_down_primary_lgb.txt",
+      "bytes": 10276014,
+      "sha256": "28ce63c5ec043aa9b125c6f3bda906cd2516ce7d72ef822b2e513d2678cb7cf5"
+    }
+  ],
+  "strategy_json": "/media/sean/CORSAIR/binary-algo/models/m5xp_EURUSD_magw_down_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/media/sean/CORSAIR/binary-algo/features",
+    "patterns": [
+      "EURUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1416972944,
+    "sha256_of_listing": "cd2c2ef1b30ef11bcd9e6a91914e69cb7cb239b538405f49ba2e8fb56708cd06"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": [
+    "EURUSD.m5xp.v1"
+  ],
+  "notes": null,
+  "created_utc": null
+}
