@@ -12,8 +12,91 @@
   "incumbent_magw_down_p10": 0.5441,
   "discipline": "NY gate, DOWN-vote gate (resid<0.5), nonoverlap_chrono(300), worst-VAL-half cover select, per-year boot CI95, ties LOSE (raw _y), moved up-rate in [0.47,0.53] tripwire",
   "PRE_REGISTERED_FALSIFIER": "KILL the residual-label DOWN path (DOWN-rescue family then confirmed exhausted on-disk) unless the H=5 residual-sign DOWN-SPLIT binding-year (worst of 2024/2025/2026, n>=150) CI95-lo clears 0.541 AND strictly beats incumbent magweight DOWN p10 .5441, with up-rate in [0.47,0.53] AND a stable same-side DOWN edge in BOTH 2024 AND 2026 (single-2025-only or sign-flip across years => KILL). If 2025 DOWN-split CI95-lo <= 0.541, the only remaining DOWN lever is paywalled funded risk-reversal data.",
-  "status": "PRE-REGISTERED (OOS not yet run)",
-  "down_split": {},
-  "pooled_resid_sign": {},
-  "VERDICT": null
+  "status": "COMPLETE",
+  "down_split": {
+    "2024": {
+      "win": 0.5685,
+      "n": 876,
+      "ci": [
+        0.5365,
+        0.6016
+      ]
+    },
+    "2025": {
+      "win": 0.544,
+      "n": 1353,
+      "ci": [
+        0.5174,
+        0.5698
+      ]
+    },
+    "2026": {
+      "win": 0.5124,
+      "n": 363,
+      "ci": [
+        0.4601,
+        0.562
+      ]
+    }
+  },
+  "pooled_resid_sign": {
+    "2024": {
+      "win": 0.5866,
+      "n": 3919,
+      "ci": [
+        0.5713,
+        0.6022
+      ]
+    },
+    "2025": {
+      "win": 0.5587,
+      "n": 4140,
+      "ci": [
+        0.543,
+        0.5737
+      ]
+    },
+    "2026": {
+      "win": 0.5415,
+      "n": 1446,
+      "ci": [
+        0.5166,
+        0.5664
+      ]
+    }
+  },
+  "VERDICT": {
+    "binding": {
+      "year": "2026",
+      "win": 0.5124,
+      "n": 363,
+      "ci_lo": 0.4601
+    },
+    "uprates": {
+      "2024": 0.504,
+      "2025": 0.5054,
+      "2026": 0.4976
+    },
+    "uprate_tripwire_ok": true,
+    "binding_ci_lo_clears_breakeven_0.541": false,
+    "binding_ci_lo_beats_incumbent_0.5441": false,
+    "binding_n_ge_150": true,
+    "stable_DOWN_edge_2024_AND_2026": true,
+    "2025_down_ci_lo": 0.5174,
+    "only_remaining_lever_is_paywalled_risk_reversal": true,
+    "SURVIVES": false,
+    "KILLED": true,
+    "statement": "RESIDUAL-LABEL DOWN @ H=5 KILLED. binding-year=2026 win=0.5124 ci_lo=0.4601 (n=363); clears breakeven=False; beats incumbent .5441=False; up-rate tripwire ok=True; stable DOWN edge 2024&2026=True. DOWN-rescue family confirmed exhausted on-disk. 2025 DOWN-split CI95-lo <= 0.541 => the only remaining DOWN lever is paywalled funded risk-reversal data."
+  },
+  "val_auc_resid": 0.5288815127058509,
+  "frozen_down_cover": {
+    "thr": 0.0652209195029187,
+    "worsthalf": 0.5481,
+    "cov": 0.03
+  },
+  "uprates": {
+    "2024": 0.504,
+    "2025": 0.5054,
+    "2026": 0.4976
+  }
 }

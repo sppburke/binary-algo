@@ -1,0 +1,94 @@
+{
+  "test": "anti-contemporaneous causal channel: (a) strictly-lagged lead-lag, (b) transfer-entropy gate, (c) RFF virtue-of-complexity \u2014 vs the CONCURRENT certified m5xp.",
+  "status": "PREREGISTERED_STUB",
+  "written_before_oos": true,
+  "config": {
+    "BE": 0.541,
+    "COV": 0.05,
+    "STRIDE": 6,
+    "HOR_min": 5,
+    "GAP_S": 300,
+    "NY": [
+      13.0,
+      22.0
+    ],
+    "lag_min": [
+      1,
+      2,
+      5
+    ],
+    "lag_sec_requested": [
+      30,
+      60,
+      120,
+      300
+    ],
+    "interday_days": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "te_window_min": 120,
+    "te_flow": "OF_of_sum_1",
+    "rff_P": [
+      200,
+      2000,
+      12000,
+      100000
+    ],
+    "rff_gamma": [
+      0.25,
+      1.0,
+      4.0
+    ],
+    "rff_lambda": [
+      1.0,
+      10.0,
+      100.0
+    ],
+    "rff_n_cap": 150000,
+    "splits": {
+      "train": [
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021"
+      ],
+      "val": [
+        "2022",
+        "2023"
+      ],
+      "test24": [
+        "2024"
+      ],
+      "test25": [
+        "2025"
+      ],
+      "oos": [
+        "2026"
+      ]
+    },
+    "mode": "xpof"
+  },
+  "PREREG": {
+    "statement": "KILL each sub-mechanism independently.",
+    "leadlag": "KILL if strictly-lagged permutation importance ~0 at worst-VAL-half OR lagged-only binding-2025 UP CI95-lo<0.541 AND DOWN<0.541. To CERTIFY it must BEAT concurrent m5xp UP .577 by >1 SE (tying => subsumed by the contemporaneous block).",
+    "te": "KILL if high-TE standalone binding-2025 CI95-lo<0.541 AND TE-gating does not lift UP>.577 or DOWN>.5441 by >1 SE => subsumed.",
+    "rff": "KILL if OOS dirAUC flat/decreasing in P across all (gamma,lambda) AND best-P gated binding-2025 UP CI95-lo<0.541 => subsumed by m5_deep info-bound.",
+    "incumbent_up_floor": 0.577,
+    "incumbent_down_floor": 0.5441,
+    "breakeven": 0.541,
+    "expected_prior": "null on all three (5m 2025 wall is information/regime; contemporaneous block already certified)"
+  },
+  "lightgbm": "4.6.0",
+  "numpy": "2.3.5",
+  "pandas": "2.3.3"
+}
