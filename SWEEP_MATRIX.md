@@ -88,6 +88,12 @@ processing); and **novel combinations** of existing methods. Each new row must p
 new · plausible *direction* mechanism that survives sign-invariance · data available · prior + fast-KILL
 falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 
+> **V1 MULTIPLE-TESTING HAIRCUT — mt_adjusted_p (2026-06-02, `m5_mt_haircut_result.json`).** Holm + BHY-FDR + HLZ + N̂.
+> Procedure VALID (all kills non-sig: Stoikov/2m-UP/xofi/POW1.0 BY-adj p=1.000). Survivor `m5xp UP`: **POOLED** wr .5927/n3052
+> **t=5.81 → SURVIVES** (Šidák-p@N̂ 7.3e-08, HLZ t≥3 ✓); **BINDING-2025** wr .5765/n1379 t=2.67 → **BY-adj p 0.158 / Holm 0.137,
+> fails HLZ t≥3** (multiplicity-inflated). **Durable UP floor = refit-CPCV p10 .553**, not the .577 binding headline. New UP
+> candidates must clear .553 AND ideally show binding-year t≥3 (wr≳.581 @n1400) for clean MT-significance. DOWN side MT-fragile.
+
 | # | Discovered method / combination | Source (cite) | Mechanism (why it could carry SIGN) | Data | Prior | Status |
 |---|---|---|---|---|---|---|
 | N2 | **Triangular USD-canceling residual** (EUR-vs-GBP relative-value reversion via EURUSD/GBPUSD) | arXiv:0812.0913 + xpair crumb | signed residual reversion with USD factor ALGEBRAICALLY removed (GBPUSD shares the USD leg) → immune to the 2025 USD-factor sign-inversion that killed RMT/xpair | on-disk (EURUSD+GBPUSD) | **~15% (top)** | testing |

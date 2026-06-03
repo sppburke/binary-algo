@@ -307,6 +307,16 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   FALSIFIER: the procedure is useless if it FAILS to flag the already-killed |return|-retrain-POW1.0 / Stoikov / 24 null-60s
   channels as non-significant; DOWNGRADE m5xp UP to UNCERTIFIED if its BHY-adjusted binding-2025 p>0.05 at realized M.
   INCUMBENT: m5xp UP .577 / ACI .584 (certification robustness). NOVELTY: new_untried. (Harvey-Liu-Zhu, Harvey-Liu DSR)
+  ✅ **DONE 2026-06-02 (`m5_mt_haircut.py`, `m5_mt_haircut_result.json`): PROCEDURE VALID** (all kills — Stoikov 0.4984,
+  2m-UP 0.5168, 60s-xofi 0.5015, POW1.0-retrain — flagged non-significant, BY-adj p=1.000, negative t). **FINDING (two
+  lenses diverge): m5xp UP POOLED edge (wr .5927, n3052, t=5.81) SURVIVES deflation decisively** (Šidák-p@N̂ 7.3e-08,
+  HLZ t≥3 ✓) — the edge is REAL and the refit-CPCV cert (p10 .553/96%) is untouched. **BUT the harsh single-binding-2025
+  lens (wr .5765, n1379, t=2.67) DOWNGRADES**: BY-adj p **0.158**>0.05 (Holm 0.137), **fails HLZ t≥3** (2.67<3.0); robust
+  to M (39 scored→program 70: fails harder). Passes the accurate E[max] test but fails Šidák-at-N̂. **HONEST VERDICT: the
+  binding-year headline 0.577 is MULTIPLICITY-INFLATED — use the refit-CPCV floor .553 as the durable UP figure, not .577.**
+  Bar-to-beat for new UP candidates: refit-CPCV p10 .553 AND ideally binding-year t≥3 (wr≳.581 @n1400) for clean MT-significance.
+  DOWN side even thinner (magweight POW=0.5 DOWN forward-2025 .538 < breakeven → t<0 → MT-fragile; the POW×cov sub-search is
+  textbook multiplicity). Incumbent NOT demoted (no competitor produced; pooled+CPCV stand) — record refined, not killed.
 **V2. ★⚡ True CSCV/PBO + Deflated-Sharpe + N̂ + MinBTL on the real per-bar gated-PnL matrix (not the E[max] proxy).**
   EXPERIMENT: adapt `cpcv_certify.py`/`m5_cpcv.py` — build (T×M) per-bar gated deriv-return matrix across logged 5m
   variants, add ~40 lines CSCV (S=16 quarterly blocks, C(16,8)) + getExpMaxSR DSR with N̂=ρ̄+(1−ρ̄)M; emit PBO, OOS-degradation
@@ -543,9 +553,9 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
 
 ## FIRST-TO-RUN QUEUE (genuinely NEW-or-LIVE + high-priority + cheap — the immediate batch, ordered)
 All reuse existing scripts/outputs, all minutes-to-≤1hr, each has a concrete kill. Run in this order:
-1. **V1** — multiple-testing haircut over the whole sweep family (★⚡, pure post-hoc calc). The single most decision-relevant
-   lever: tells us whether the certified UP/ACI edge SURVIVES deflation at the realized M before we spend any more compute. If
-   it downgrades the incumbent, the whole backlog's "bar to beat" moves. Validate it on the known kills first.
+1. **V1** ✅ **DONE 2026-06-02** — multiple-testing haircut over the whole sweep family (★⚡, pure post-hoc calc). VALID (kills
+   non-sig). Pooled m5xp UP edge SURVIVES (t=5.81); binding-2025 .577 multiplicity-inflated (BY-adj p .158, fails HLZ t≥3).
+   **Bar-to-beat moved: durable UP floor = refit-CPCV p10 .553, not .577.** Incumbent refined, not demoted. `m5_mt_haircut_result.json`.
 2. **V2** — true CSCV/PBO + DSR + MinBTL on the real gated-PnL matrix (★⚡). Companion to V1; replaces the E[max] proxy already
    in cpcv_certify.py with the exact overfit probability. Together V1+V2 re-anchor every "beat .577/.584" claim.
 3. **R1** — magnitude-as-dynamic-threshold gate (★⚡, the magnitude×direction bridge). Highest-EV cheap NEW gate: marries the

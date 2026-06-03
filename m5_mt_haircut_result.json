@@ -1,0 +1,319 @@
+{
+  "test": "V1 multiple-testing haircut over the whole EURUSD sweep family",
+  "breakeven": 0.541,
+  "alpha": 0.05,
+  "family_counts": {
+    "M_5m": 15,
+    "M_2m": 13,
+    "M_60s_channels": 6,
+    "named_kills": 4,
+    "M_realized_scored": 39,
+    "program_stated_n_trials": 70
+  },
+  "procedure_validation": {
+    "all_kills_nonsignificant": true,
+    "detail": {
+      "KILL:Stoikov@120s": {
+        "wr": 0.4984,
+        "t": -3.187,
+        "raw_p": 0.9993,
+        "by_adj_p": 1.0,
+        "flagged_sig": false
+      },
+      "KILL:2m-UP": {
+        "wr": 0.5168,
+        "t": -1.211,
+        "raw_p": 0.887,
+        "by_adj_p": 1.0,
+        "flagged_sig": false
+      },
+      "KILL:60s-xofi": {
+        "wr": 0.5015,
+        "t": -2.952,
+        "raw_p": 0.9984,
+        "by_adj_p": 1.0,
+        "flagged_sig": false
+      },
+      "KILL:POW1.0-retrain": {
+        "wr": 0.5,
+        "t": -3.068,
+        "raw_p": 0.9989,
+        "by_adj_p": 1.0,
+        "flagged_sig": false
+      }
+    }
+  },
+  "incumbent_m5xp_UP": {
+    "pooled": {
+      "wr": 0.5927,
+      "n": 3052,
+      "t": 5.813,
+      "raw_one_sided_p": 3.066e-09,
+      "passes_HLZ_t>=3.0": true,
+      "scenarios": {
+        "M=5m_only|rho=0.2": {
+          "M": 15,
+          "N_hat": 12.2,
+          "Emax_accurate": 1.673,
+          "Emax_crude": 2.237,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=5m_only|rho=0.4": {
+          "M": 15,
+          "N_hat": 9.4,
+          "Emax_accurate": 1.543,
+          "Emax_crude": 2.117,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=5m_only|rho=0.6": {
+          "M": 15,
+          "N_hat": 6.6,
+          "Emax_accurate": 1.354,
+          "Emax_crude": 1.943,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=5m+2m|rho=0.2": {
+          "M": 28,
+          "N_hat": 22.6,
+          "Emax_accurate": 1.954,
+          "Emax_crude": 2.497,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=5m+2m|rho=0.4": {
+          "M": 28,
+          "N_hat": 17.2,
+          "Emax_accurate": 1.833,
+          "Emax_crude": 2.385,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=5m+2m|rho=0.6": {
+          "M": 28,
+          "N_hat": 11.8,
+          "Emax_accurate": 1.657,
+          "Emax_crude": 2.222,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=all_scored|rho=0.2": {
+          "M": 39,
+          "N_hat": 31.4,
+          "Emax_accurate": 2.092,
+          "Emax_crude": 2.626,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=all_scored|rho=0.4": {
+          "M": 39,
+          "N_hat": 23.8,
+          "Emax_accurate": 1.976,
+          "Emax_crude": 2.518,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=all_scored|rho=0.6": {
+          "M": 39,
+          "N_hat": 16.2,
+          "Emax_accurate": 1.806,
+          "Emax_crude": 2.36,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=program_70|rho=0.2": {
+          "M": 70,
+          "N_hat": 56.2,
+          "Emax_accurate": 2.321,
+          "Emax_crude": 2.839,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=program_70|rho=0.4": {
+          "M": 70,
+          "N_hat": 42.4,
+          "Emax_accurate": 2.212,
+          "Emax_crude": 2.738,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        },
+        "M=program_70|rho=0.6": {
+          "M": 70,
+          "N_hat": 28.6,
+          "Emax_accurate": 2.054,
+          "Emax_crude": 2.59,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0,
+          "sidak_sig": true
+        }
+      },
+      "holm_adj_p_in_family": null,
+      "by_adj_p_in_family": null
+    },
+    "binding_2025": {
+      "wr": 0.5765,
+      "n": 1379,
+      "t": 2.668,
+      "raw_one_sided_p": 0.003815,
+      "passes_HLZ_t>=3.0": false,
+      "scenarios": {
+        "M=5m_only|rho=0.2": {
+          "M": 15,
+          "N_hat": 12.2,
+          "Emax_accurate": 1.673,
+          "Emax_crude": 2.237,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0456,
+          "sidak_sig": true
+        },
+        "M=5m_only|rho=0.4": {
+          "M": 15,
+          "N_hat": 9.4,
+          "Emax_accurate": 1.543,
+          "Emax_crude": 2.117,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0353,
+          "sidak_sig": true
+        },
+        "M=5m_only|rho=0.6": {
+          "M": 15,
+          "N_hat": 6.6,
+          "Emax_accurate": 1.354,
+          "Emax_crude": 1.943,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0249,
+          "sidak_sig": true
+        },
+        "M=5m+2m|rho=0.2": {
+          "M": 28,
+          "N_hat": 22.6,
+          "Emax_accurate": 1.954,
+          "Emax_crude": 2.497,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0828,
+          "sidak_sig": false
+        },
+        "M=5m+2m|rho=0.4": {
+          "M": 28,
+          "N_hat": 17.2,
+          "Emax_accurate": 1.833,
+          "Emax_crude": 2.385,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0636,
+          "sidak_sig": false
+        },
+        "M=5m+2m|rho=0.6": {
+          "M": 28,
+          "N_hat": 11.8,
+          "Emax_accurate": 1.657,
+          "Emax_crude": 2.222,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.0441,
+          "sidak_sig": true
+        },
+        "M=all_scored|rho=0.2": {
+          "M": 39,
+          "N_hat": 31.4,
+          "Emax_accurate": 2.092,
+          "Emax_crude": 2.626,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.1131,
+          "sidak_sig": false
+        },
+        "M=all_scored|rho=0.4": {
+          "M": 39,
+          "N_hat": 23.8,
+          "Emax_accurate": 1.976,
+          "Emax_crude": 2.518,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.087,
+          "sidak_sig": false
+        },
+        "M=all_scored|rho=0.6": {
+          "M": 39,
+          "N_hat": 16.2,
+          "Emax_accurate": 1.806,
+          "Emax_crude": 2.36,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.06,
+          "sidak_sig": false
+        },
+        "M=program_70|rho=0.2": {
+          "M": 70,
+          "N_hat": 56.2,
+          "Emax_accurate": 2.321,
+          "Emax_crude": 2.839,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": false,
+          "sidak_p": 0.1933,
+          "sidak_sig": false
+        },
+        "M=program_70|rho=0.4": {
+          "M": 70,
+          "N_hat": 42.4,
+          "Emax_accurate": 2.212,
+          "Emax_crude": 2.738,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": false,
+          "sidak_p": 0.1496,
+          "sidak_sig": false
+        },
+        "M=program_70|rho=0.6": {
+          "M": 70,
+          "N_hat": 28.6,
+          "Emax_accurate": 2.054,
+          "Emax_crude": 2.59,
+          "t_beats_Emax_accurate": true,
+          "t_beats_Emax_crude": true,
+          "sidak_p": 0.1036,
+          "sidak_sig": false
+        }
+      },
+      "holm_adj_p_in_family": 0.1374,
+      "by_adj_p_in_family": 0.1582,
+      "bh_adj_p_in_family": 0.0372
+    }
+  },
+  "VERDICT": {
+    "procedure_valid": true,
+    "pooled_survives_deflation": true,
+    "pooled_sidak_p_at_Nhat": 7.298e-08,
+    "binding2025_by_adj_p": 0.1582,
+    "binding2025_downgrades_per_falsifier": true,
+    "statement": "m5xp UP: POOLED edge SURVIVES multiple-testing deflation decisively (t=5.81, Sidak-p@Nhat=7.3e-08); but the HARSH binding-2025-only lens DOWNGRADES it (BY-adj p=0.158, t=2.67 vs HLZ bar 3.0). Precise status: refit-CPCV-certified + pooled-deflation-robust; single-binding-year edge is NOT multiple-testing-significant under BY at realized M."
+  }
+}

@@ -3,9 +3,10 @@ currency: EURUSD
 timeframe: 5m (300s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 300s, OOS(2026)-verified, clearing breakeven 0.541
-status: COMPLETE — exhaustive sweep done (all Tier A–F + N rows run or audit-subsumed with Tier-1 rationale; 2
-        discovery rounds; full-refit CPCV + tight-cov confirmation). **(5m,UP) = the best 5m algo, CERTIFIED under
+status: SWEEP COMPLETE; v2 IMPROVE/VALIDATE queue IN PROGRESS (V1 done 2026-06-02). **(5m,UP) = the best 5m algo, CERTIFIED under
         full per-fold refit at the operating gate** (cov0.05 p10 0.553, 96% folds clear; deflates only at loose cov).
+        ⚠ **V1 multiple-testing haircut (`m5_mt_haircut_result.json`): durable UP figure is the refit-CPCV floor 0.553 — the
+        binding-2025 headline 0.577 is MULTIPLICITY-INFLATED (BY-adj p 0.158, fails HLZ t≥3); pooled edge t=5.81 survives, cert untouched.**
         Deployable win ~0.55–0.57; ⅛-Kelly sizing; win-rate kill-switch NOT worth it (see DEPLOYMENT SPEC below).
         UP+DOWN both given the FULL symmetric pipeline. UP deployable-certified; DOWN MARGINAL (refit cov0.05 p10 0.542
         barely clears but forward 2025 0.538 fails — real but razor-thin, not deployable). >0.65 not achievable.
