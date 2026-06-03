@@ -1,0 +1,369 @@
+{
+  "test": "SPOT-FX deployment spec (5m EURUSD certified edge re-settled as spot)",
+  "meta_thr": 0.5738433064019417,
+  "venue": "spot FX (EURUSD, no min duration) \u2014 the real venue-available expression; binary 5m is venue-unavailable",
+  "avg_abs_move_pip": 1.775,
+  "sides": {
+    "UP": {
+      "gated_dir_acc_per_year": {
+        "2024": 0.6049,
+        "2025": 0.5812,
+        "2026": 0.6142
+      },
+      "n_per_year": {
+        "2024": 1478,
+        "2025": 1423,
+        "2026": 254
+      },
+      "by_spread": {
+        "0.1pip": {
+          "per_year": {
+            "2024": {
+              "n": 1478,
+              "exp_pip": 0.2252,
+              "exp_ci_lo_pip": 0.1331,
+              "spot_winrate": 0.5744,
+              "sharpe_pertrade": 0.1245,
+              "maxDD_1x": -0.0038,
+              "longest_losing_streak": 7,
+              "final_mult_1x": 1.029
+            },
+            "2025": {
+              "n": 1423,
+              "exp_pip": 0.2583,
+              "exp_ci_lo_pip": 0.037,
+              "spot_winrate": 0.5573,
+              "sharpe_pertrade": 0.0628,
+              "maxDD_1x": -0.0075,
+              "longest_losing_streak": 8,
+              "final_mult_1x": 1.032
+            },
+            "2026": {
+              "n": 254,
+              "exp_pip": 0.9412,
+              "exp_ci_lo_pip": 0.076,
+              "spot_winrate": 0.5945,
+              "sharpe_pertrade": 0.1267,
+              "maxDD_1x": -0.0052,
+              "longest_losing_streak": 7,
+              "final_mult_1x": 1.021
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": 0.2583,
+            "exp_ci_lo_pip": 0.037,
+            "min_n": 254
+          },
+          "deployable": true
+        },
+        "0.2pip": {
+          "per_year": {
+            "2024": {
+              "n": 1478,
+              "exp_pip": 0.1252,
+              "exp_ci_lo_pip": 0.0331,
+              "spot_winrate": 0.521,
+              "sharpe_pertrade": 0.0692,
+              "maxDD_1x": -0.0045,
+              "longest_losing_streak": 8,
+              "final_mult_1x": 1.016
+            },
+            "2025": {
+              "n": 1423,
+              "exp_pip": 0.1583,
+              "exp_ci_lo_pip": -0.063,
+              "spot_winrate": 0.5257,
+              "sharpe_pertrade": 0.0385,
+              "maxDD_1x": -0.0086,
+              "longest_losing_streak": 8,
+              "final_mult_1x": 1.02
+            },
+            "2026": {
+              "n": 254,
+              "exp_pip": 0.8412,
+              "exp_ci_lo_pip": -0.024,
+              "spot_winrate": 0.5669,
+              "sharpe_pertrade": 0.1132,
+              "maxDD_1x": -0.0056,
+              "longest_losing_streak": 7,
+              "final_mult_1x": 1.019
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": 0.1583,
+            "exp_ci_lo_pip": -0.063,
+            "min_n": 254
+          },
+          "deployable": false
+        },
+        "0.4pip": {
+          "per_year": {
+            "2024": {
+              "n": 1478,
+              "exp_pip": -0.0748,
+              "exp_ci_lo_pip": -0.1669,
+              "spot_winrate": 0.435,
+              "sharpe_pertrade": -0.0414,
+              "maxDD_1x": -0.0118,
+              "longest_losing_streak": 11,
+              "final_mult_1x": 0.99
+            },
+            "2025": {
+              "n": 1423,
+              "exp_pip": -0.0417,
+              "exp_ci_lo_pip": -0.263,
+              "spot_winrate": 0.4666,
+              "sharpe_pertrade": -0.0101,
+              "maxDD_1x": -0.0124,
+              "longest_losing_streak": 8,
+              "final_mult_1x": 0.995
+            },
+            "2026": {
+              "n": 254,
+              "exp_pip": 0.6412,
+              "exp_ci_lo_pip": -0.224,
+              "spot_winrate": 0.5394,
+              "sharpe_pertrade": 0.0863,
+              "maxDD_1x": -0.0064,
+              "longest_losing_streak": 7,
+              "final_mult_1x": 1.014
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": -0.0417,
+            "exp_ci_lo_pip": -0.263,
+            "min_n": 254
+          },
+          "deployable": false
+        },
+        "0.6pip": {
+          "per_year": {
+            "2024": {
+              "n": 1478,
+              "exp_pip": -0.2748,
+              "exp_ci_lo_pip": -0.3669,
+              "spot_winrate": 0.3512,
+              "sharpe_pertrade": -0.152,
+              "maxDD_1x": -0.035,
+              "longest_losing_streak": 15,
+              "final_mult_1x": 0.966
+            },
+            "2025": {
+              "n": 1423,
+              "exp_pip": -0.2417,
+              "exp_ci_lo_pip": -0.463,
+              "spot_winrate": 0.4069,
+              "sharpe_pertrade": -0.0588,
+              "maxDD_1x": -0.0314,
+              "longest_losing_streak": 9,
+              "final_mult_1x": 0.971
+            },
+            "2026": {
+              "n": 254,
+              "exp_pip": 0.4412,
+              "exp_ci_lo_pip": -0.424,
+              "spot_winrate": 0.5118,
+              "sharpe_pertrade": 0.0594,
+              "maxDD_1x": -0.0075,
+              "longest_losing_streak": 9,
+              "final_mult_1x": 1.01
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": -0.2417,
+            "exp_ci_lo_pip": -0.463,
+            "min_n": 254
+          },
+          "deployable": false
+        }
+      }
+    },
+    "DOWN": {
+      "gated_dir_acc_per_year": {
+        "2024": 0.6077,
+        "2025": 0.5377,
+        "2026": 0.5856
+      },
+      "n_per_year": {
+        "2024": 1318,
+        "2025": 1378,
+        "2026": 181
+      },
+      "by_spread": {
+        "0.1pip": {
+          "per_year": {
+            "2024": {
+              "n": 1318,
+              "exp_pip": 0.1806,
+              "exp_ci_lo_pip": 0.0936,
+              "spot_winrate": 0.5615,
+              "sharpe_pertrade": 0.117,
+              "maxDD_1x": -0.0026,
+              "longest_losing_streak": 10,
+              "final_mult_1x": 1.021
+            },
+            "2025": {
+              "n": 1378,
+              "exp_pip": -0.0597,
+              "exp_ci_lo_pip": -0.3025,
+              "spot_winrate": 0.5167,
+              "sharpe_pertrade": -0.0136,
+              "maxDD_1x": -0.0208,
+              "longest_losing_streak": 7,
+              "final_mult_1x": 0.993
+            },
+            "2026": {
+              "n": 181,
+              "exp_pip": 0.9239,
+              "exp_ci_lo_pip": -0.0113,
+              "spot_winrate": 0.5746,
+              "sharpe_pertrade": 0.1402,
+              "maxDD_1x": -0.0054,
+              "longest_losing_streak": 6,
+              "final_mult_1x": 1.014
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": -0.0597,
+            "exp_ci_lo_pip": -0.3025,
+            "min_n": 181
+          },
+          "deployable": false
+        },
+        "0.2pip": {
+          "per_year": {
+            "2024": {
+              "n": 1318,
+              "exp_pip": 0.0806,
+              "exp_ci_lo_pip": -0.0064,
+              "spot_winrate": 0.5015,
+              "sharpe_pertrade": 0.0522,
+              "maxDD_1x": -0.0033,
+              "longest_losing_streak": 10,
+              "final_mult_1x": 1.009
+            },
+            "2025": {
+              "n": 1378,
+              "exp_pip": -0.1597,
+              "exp_ci_lo_pip": -0.4025,
+              "spot_winrate": 0.4753,
+              "sharpe_pertrade": -0.0364,
+              "maxDD_1x": -0.0236,
+              "longest_losing_streak": 9,
+              "final_mult_1x": 0.981
+            },
+            "2026": {
+              "n": 181,
+              "exp_pip": 0.8239,
+              "exp_ci_lo_pip": -0.1113,
+              "spot_winrate": 0.5691,
+              "sharpe_pertrade": 0.1251,
+              "maxDD_1x": -0.0057,
+              "longest_losing_streak": 6,
+              "final_mult_1x": 1.013
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": -0.1597,
+            "exp_ci_lo_pip": -0.4025,
+            "min_n": 181
+          },
+          "deployable": false
+        },
+        "0.4pip": {
+          "per_year": {
+            "2024": {
+              "n": 1318,
+              "exp_pip": -0.1194,
+              "exp_ci_lo_pip": -0.2064,
+              "spot_winrate": 0.3885,
+              "sharpe_pertrade": -0.0774,
+              "maxDD_1x": -0.0147,
+              "longest_losing_streak": 15,
+              "final_mult_1x": 0.987
+            },
+            "2025": {
+              "n": 1378,
+              "exp_pip": -0.3597,
+              "exp_ci_lo_pip": -0.6025,
+              "spot_winrate": 0.4093,
+              "sharpe_pertrade": -0.082,
+              "maxDD_1x": -0.0433,
+              "longest_losing_streak": 16,
+              "final_mult_1x": 0.958
+            },
+            "2026": {
+              "n": 181,
+              "exp_pip": 0.6239,
+              "exp_ci_lo_pip": -0.3113,
+              "spot_winrate": 0.5525,
+              "sharpe_pertrade": 0.0947,
+              "maxDD_1x": -0.0062,
+              "longest_losing_streak": 6,
+              "final_mult_1x": 1.01
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": -0.3597,
+            "exp_ci_lo_pip": -0.6025,
+            "min_n": 181
+          },
+          "deployable": false
+        },
+        "0.6pip": {
+          "per_year": {
+            "2024": {
+              "n": 1318,
+              "exp_pip": -0.3194,
+              "exp_ci_lo_pip": -0.4064,
+              "spot_winrate": 0.3042,
+              "sharpe_pertrade": -0.207,
+              "maxDD_1x": -0.0365,
+              "longest_losing_streak": 18,
+              "final_mult_1x": 0.964
+            },
+            "2025": {
+              "n": 1378,
+              "exp_pip": -0.5597,
+              "exp_ci_lo_pip": -0.8025,
+              "spot_winrate": 0.3578,
+              "sharpe_pertrade": -0.1276,
+              "maxDD_1x": -0.0654,
+              "longest_losing_streak": 16,
+              "final_mult_1x": 0.936
+            },
+            "2026": {
+              "n": 181,
+              "exp_pip": 0.4239,
+              "exp_ci_lo_pip": -0.5113,
+              "spot_winrate": 0.5138,
+              "sharpe_pertrade": 0.0643,
+              "maxDD_1x": -0.0068,
+              "longest_losing_streak": 10,
+              "final_mult_1x": 1.007
+            }
+          },
+          "binding": {
+            "year": 2025,
+            "exp_pip": -0.5597,
+            "exp_ci_lo_pip": -0.8025,
+            "min_n": 181
+          },
+          "deployable": false
+        }
+      }
+    }
+  },
+  "VERDICT": {
+    "UP_spot_deployable_at_0p2pip": false,
+    "DOWN_spot_deployable_at_0p2pip": false,
+    "statement": "SPOT-FX deployment of the 5m edge (avg |move| 1.775 pip). UP binding expectancy @0.2pip ECN = 0.1583 pip (CI-lo -0.063) -> NOT deployable. DOWN @0.2pip = -0.1597 pip -> NOT deployable. Spread-sensitive: the certified directional edge is real but the ~2-pip avg 5m move leaves thin margin after spread; deployability requires tight ECN spreads. Binary 5m remains venue-unavailable (deriv 15m/Nadex closed)."
+  }
+}

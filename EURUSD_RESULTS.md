@@ -277,6 +277,16 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   the .541 binary breakeven does NOT apply; a ~.55 hit-rate must be re-mapped to spread-aware, magnitude-dependent spot
   expectancy — likely marginal at 5m); **(c)** offshore ≤5m binary brokers — high counterparty risk, NOT recommended. The
   R≈0.85 / breakeven-0.541 used to CERTIFY the 5m edge is REAL only at ≥15m; at 5m it is a HYPOTHETICAL payout.
+- **SPOT-FX DEPLOYMENT SPEC — the real venue-available expression (2026-06-03, `m5_spot_deploy_result.json`):** EURUSD spot
+  (OANDA/IB, no min duration) IS a real venue; re-settled the certified gated trades as spot (P&L = signed 5m move − round-trip
+  spread). Gated dir-acc reproduces the cert (.605/.581/.614). **avg 5m |move| = 1.76 pip → spread-critical.** Per-trade
+  expectancy, binding (worst-year, CI-lo) by spread: **@0.1 pip raw/prime → +0.258 pip, CI-lo +0.037, all 3 yrs positive →
+  DEPLOYABLE** (Sharpe/trade .12, maxDD(1×) <1%, streak 7; lever to target return, DD scales linearly); **@0.2 pip ECN →
+  +0.158 pip but binding CI-lo −0.06 → NOT robustly deployable** (positive-EV, thin); **@≥0.4 pip retail → negative → NOT
+  deployable.** ⇒ **UP is deployable as SPOT FX only on a raw/prime account (~≤0.1 pip EURUSD spread)**; not at retail spreads;
+  binary 5m venue-unavailable. **DOWN: NOT deployable at any spread** (binding-2025 spot expectancy negative even @0.1 pip,
+  consistent with the marginal .5441 binary edge). This is the honest "deployable-spec'd" answer: UP = spot-deployable@raw,
+  DOWN = non-deployable.
 
 ### DOWN — `EURUSD.m5xp_magw_down.v1` (POW=0.5 magweight; MARGINAL, NOT robustly deployable)
 - Refit-CPCV cov0.05 p10 **0.5441** (89% folds clear) — barely above breakeven 0.541; forward 2025 .559 but CI-lo
