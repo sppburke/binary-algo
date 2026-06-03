@@ -74,3 +74,14 @@ they gate magnitude, not sign. Volatility is forecastable; SIGN is not. Confirms
 - VOLUME/DOLLAR BARS (vbars.py): AUC val 0.509/test 0.516/oos 0.512, selective OOS ~0.50-0.53 — NULL for direction (matches research: bars improve normality not directional AUC).
 - Genuinely DIRECTIONAL orthogonal methods still to test: HAWKES intensity ratio (buy vs sell self-excitation), PATH SIGNATURES (signed area=lead-lag), TRANSFER ENTROPY direction. These are sign-AWARE (not sign-invariant).
 
+## HORIZON-DEPENDENT LEVER TRANSFER (generic, 2026-06-03; example key [EURUSD·15m])
+When moving a sweep to a LONGER horizon, lever priors shift by MECHANISM-decay, not uniformly:
+- **Microstructure/OFI/LOB levers decay** (null by ~60s) → priors DROP at 5m→15m→30m. Confirm-and-kill, don't re-invest.
+- **Loss/labeling objective changes are horizon-AGNOSTIC** (MADL/GMADL sign-weighted loss, triple-barrier path labels, 3-class
+  deadband) — they reshape the GBM's training signal regardless of horizon. The `|ret|`-weight DOWN-rescue that worked at 5m
+  ([5m·DOWN] rebalanced two-sided ~.56) MUST be re-tested per horizon: move COMPOSITION changes (more trend, less micro-noise at
+  longer H) flip whether large moves are sign-predictable. A DOWN side dead at 5m can be alive at 15m (measured: [EURUSD·15m]).
+- **Cross-pair cross-sectional factor/ranking levers get MORE relevant at longer H** — the USD common factor evolves slowly, so
+  rank/PC-shrinkage/IPCA constructions (≠ raw exog features, which were null) plausibly carry more sign at 15m than 5m.
+Source: CORPUS_LEVER_INVENTORY.md families (Lucchese/Michankow MADL-GMADL, Kozak-Nagel-Santosh, IPCA, Sirignano-Cont).
+

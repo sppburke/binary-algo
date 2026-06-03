@@ -1,0 +1,625 @@
+{
+ "book": "EURUSD.m15.v1",
+ "horizon_min": 15,
+ "breakeven": 0.541,
+ "gate": "15m_bb_width<=0.00158684 AND sess_ny>0.5",
+ "selection": "threshold = (1-cov) quantile of VAL in-gate confidence; reported VAL worst-half acc per side",
+ "PRE_REGISTERED_FALSIFIER": {
+  "side_certifiable_candidate_if": "at the VAL-worst-half-selected coverage, the side's BINDING (worst) held-out-year moved-acc CI95-lower clears 0.541 with n>=50 AND up-rate in [0.47,0.53]. Such a candidate then goes to full-refit CPCV (step e).",
+  "side_no_operating_point_if": "no coverage yields binding-year CI-lo>=0.541 at n>=50 -> the frozen book has no certifiable side operating point; escalate to specialist / |ret|-weight / ACI."
+ },
+ "curve": {
+  "cov_1.00": {
+   "cov": 1.0,
+   "thr": 0.0,
+   "UP": {
+    "val_worsthalf": 0.5237,
+    "per_year": {
+     "2024": {
+      "n": 2380,
+      "acc": 0.5277,
+      "ci_lo": 0.5076,
+      "ci_hi": 0.5483,
+      "up_rate": 0.5277
+     },
+     "2025": {
+      "n": 1382,
+      "acc": 0.5434,
+      "ci_lo": 0.5181,
+      "ci_hi": 0.5702,
+      "up_rate": 0.5434
+     },
+     "2026": {
+      "n": 644,
+      "acc": 0.5,
+      "ci_lo": 0.4612,
+      "ci_hi": 0.5388,
+      "up_rate": 0.5
+     }
+    },
+    "binding_ci_lo": 0.4612
+   },
+   "DOWN": {
+    "val_worsthalf": 0.5062,
+    "per_year": {
+     "2024": {
+      "n": 2340,
+      "acc": 0.5214,
+      "ci_lo": 0.5009,
+      "ci_hi": 0.5415,
+      "up_rate": 0.4786
+     },
+     "2025": {
+      "n": 1438,
+      "acc": 0.5216,
+      "ci_lo": 0.4951,
+      "ci_hi": 0.5466,
+      "up_rate": 0.4784
+     },
+     "2026": {
+      "n": 472,
+      "acc": 0.5657,
+      "ci_lo": 0.5212,
+      "ci_hi": 0.6102,
+      "up_rate": 0.4343
+     }
+    },
+    "binding_ci_lo": 0.4951
+   }
+  },
+  "cov_0.50": {
+   "cov": 0.5,
+   "thr": 0.03773,
+   "UP": {
+    "val_worsthalf": 0.5385,
+    "per_year": {
+     "2024": {
+      "n": 1975,
+      "acc": 0.5347,
+      "ci_lo": 0.5129,
+      "ci_hi": 0.5559,
+      "up_rate": 0.5347
+     },
+     "2025": {
+      "n": 1187,
+      "acc": 0.5383,
+      "ci_lo": 0.5097,
+      "ci_hi": 0.567,
+      "up_rate": 0.5383
+     },
+     "2026": {
+      "n": 555,
+      "acc": 0.5333,
+      "ci_lo": 0.4937,
+      "ci_hi": 0.5748,
+      "up_rate": 0.5333
+     }
+    },
+    "binding_ci_lo": 0.4937
+   },
+   "DOWN": {
+    "val_worsthalf": 0.523,
+    "per_year": {
+     "2024": {
+      "n": 1636,
+      "acc": 0.5306,
+      "ci_lo": 0.5061,
+      "ci_hi": 0.555,
+      "up_rate": 0.4694
+     },
+     "2025": {
+      "n": 1100,
+      "acc": 0.5364,
+      "ci_lo": 0.5064,
+      "ci_hi": 0.5664,
+      "up_rate": 0.4636
+     },
+     "2026": {
+      "n": 331,
+      "acc": 0.5831,
+      "ci_lo": 0.5287,
+      "ci_hi": 0.6344,
+      "up_rate": 0.4169
+     }
+    },
+    "binding_ci_lo": 0.5061
+   }
+  },
+  "cov_0.30": {
+   "cov": 0.3,
+   "thr": 0.05463,
+   "UP": {
+    "val_worsthalf": 0.5472,
+    "per_year": {
+     "2024": {
+      "n": 1403,
+      "acc": 0.5189,
+      "ci_lo": 0.4925,
+      "ci_hi": 0.5453,
+      "up_rate": 0.5189
+     },
+     "2025": {
+      "n": 879,
+      "acc": 0.537,
+      "ci_lo": 0.5051,
+      "ci_hi": 0.57,
+      "up_rate": 0.537
+     },
+     "2026": {
+      "n": 388,
+      "acc": 0.5103,
+      "ci_lo": 0.4613,
+      "ci_hi": 0.5593,
+      "up_rate": 0.5103
+     }
+    },
+    "binding_ci_lo": 0.4613
+   },
+   "DOWN": {
+    "val_worsthalf": 0.531,
+    "per_year": {
+     "2024": {
+      "n": 1071,
+      "acc": 0.5481,
+      "ci_lo": 0.5182,
+      "ci_hi": 0.578,
+      "up_rate": 0.4519
+     },
+     "2025": {
+      "n": 687,
+      "acc": 0.5313,
+      "ci_lo": 0.4934,
+      "ci_hi": 0.5677,
+      "up_rate": 0.4687
+     },
+     "2026": {
+      "n": 197,
+      "acc": 0.5178,
+      "ci_lo": 0.4467,
+      "ci_hi": 0.5888,
+      "up_rate": 0.4822
+     }
+    },
+    "binding_ci_lo": 0.4467
+   }
+  },
+  "cov_0.20": {
+   "cov": 0.2,
+   "thr": 0.06477,
+   "UP": {
+    "val_worsthalf": 0.5582,
+    "per_year": {
+     "2024": {
+      "n": 1022,
+      "acc": 0.5548,
+      "ci_lo": 0.5245,
+      "ci_hi": 0.5851,
+      "up_rate": 0.5548
+     },
+     "2025": {
+      "n": 651,
+      "acc": 0.5453,
+      "ci_lo": 0.5069,
+      "ci_hi": 0.5822,
+      "up_rate": 0.5453
+     },
+     "2026": {
+      "n": 291,
+      "acc": 0.5292,
+      "ci_lo": 0.4708,
+      "ci_hi": 0.5842,
+      "up_rate": 0.5292
+     }
+    },
+    "binding_ci_lo": 0.4708
+   },
+   "DOWN": {
+    "val_worsthalf": 0.541,
+    "per_year": {
+     "2024": {
+      "n": 752,
+      "acc": 0.5439,
+      "ci_lo": 0.508,
+      "ci_hi": 0.5785,
+      "up_rate": 0.4561
+     },
+     "2025": {
+      "n": 483,
+      "acc": 0.5321,
+      "ci_lo": 0.4886,
+      "ci_hi": 0.5756,
+      "up_rate": 0.4679
+     },
+     "2026": {
+      "n": 133,
+      "acc": 0.5564,
+      "ci_lo": 0.4737,
+      "ci_hi": 0.6391,
+      "up_rate": 0.4436
+     }
+    },
+    "binding_ci_lo": 0.4737
+   }
+  },
+  "cov_0.15": {
+   "cov": 0.15,
+   "thr": 0.07106,
+   "UP": {
+    "val_worsthalf": 0.5747,
+    "per_year": {
+     "2024": {
+      "n": 813,
+      "acc": 0.5547,
+      "ci_lo": 0.5215,
+      "ci_hi": 0.5892,
+      "up_rate": 0.5547
+     },
+     "2025": {
+      "n": 506,
+      "acc": 0.5474,
+      "ci_lo": 0.504,
+      "ci_hi": 0.5909,
+      "up_rate": 0.5474
+     },
+     "2026": {
+      "n": 231,
+      "acc": 0.5065,
+      "ci_lo": 0.4416,
+      "ci_hi": 0.5714,
+      "up_rate": 0.5065
+     }
+    },
+    "binding_ci_lo": 0.4416
+   },
+   "DOWN": {
+    "val_worsthalf": 0.55,
+    "per_year": {
+     "2024": {
+      "n": 589,
+      "acc": 0.5671,
+      "ci_lo": 0.5263,
+      "ci_hi": 0.6078,
+      "up_rate": 0.4329
+     },
+     "2025": {
+      "n": 383,
+      "acc": 0.5405,
+      "ci_lo": 0.4909,
+      "ci_hi": 0.5927,
+      "up_rate": 0.4595
+     },
+     "2026": {
+      "n": 118,
+      "acc": 0.5847,
+      "ci_lo": 0.5,
+      "ci_hi": 0.678,
+      "up_rate": 0.4153
+     }
+    },
+    "binding_ci_lo": 0.4909
+   }
+  },
+  "cov_0.10": {
+   "cov": 0.1,
+   "thr": 0.07888,
+   "UP": {
+    "val_worsthalf": 0.5891,
+    "per_year": {
+     "2024": {
+      "n": 579,
+      "acc": 0.5838,
+      "ci_lo": 0.5423,
+      "ci_hi": 0.6235,
+      "up_rate": 0.5838
+     },
+     "2025": {
+      "n": 364,
+      "acc": 0.5385,
+      "ci_lo": 0.489,
+      "ci_hi": 0.5907,
+      "up_rate": 0.5385
+     },
+     "2026": {
+      "n": 170,
+      "acc": 0.5412,
+      "ci_lo": 0.4647,
+      "ci_hi": 0.6176,
+      "up_rate": 0.5412
+     }
+    },
+    "binding_ci_lo": 0.4647
+   },
+   "DOWN": {
+    "val_worsthalf": 0.5648,
+    "per_year": {
+     "2024": {
+      "n": 426,
+      "acc": 0.615,
+      "ci_lo": 0.5704,
+      "ci_hi": 0.662,
+      "up_rate": 0.385
+     },
+     "2025": {
+      "n": 299,
+      "acc": 0.5151,
+      "ci_lo": 0.4582,
+      "ci_hi": 0.5719,
+      "up_rate": 0.4849
+     },
+     "2026": {
+      "n": 92,
+      "acc": 0.6196,
+      "ci_lo": 0.5217,
+      "ci_hi": 0.7174,
+      "up_rate": 0.3804
+     }
+    },
+    "binding_ci_lo": 0.4582
+   }
+  },
+  "cov_0.07": {
+   "cov": 0.07,
+   "thr": 0.08505,
+   "UP": {
+    "val_worsthalf": 0.6089,
+    "per_year": {
+     "2024": {
+      "n": 433,
+      "acc": 0.6328,
+      "ci_lo": 0.5866,
+      "ci_hi": 0.679,
+      "up_rate": 0.6328
+     },
+     "2025": {
+      "n": 269,
+      "acc": 0.5242,
+      "ci_lo": 0.4647,
+      "ci_hi": 0.5836,
+      "up_rate": 0.5242
+     },
+     "2026": {
+      "n": 137,
+      "acc": 0.5912,
+      "ci_lo": 0.5036,
+      "ci_hi": 0.6788,
+      "up_rate": 0.5912
+     }
+    },
+    "binding_ci_lo": 0.4647
+   },
+   "DOWN": {
+    "val_worsthalf": 0.5743,
+    "per_year": {
+     "2024": {
+      "n": 332,
+      "acc": 0.6114,
+      "ci_lo": 0.5602,
+      "ci_hi": 0.6627,
+      "up_rate": 0.3886
+     },
+     "2025": {
+      "n": 240,
+      "acc": 0.5458,
+      "ci_lo": 0.4833,
+      "ci_hi": 0.6042,
+      "up_rate": 0.4542
+     },
+     "2026": {
+      "n": 72,
+      "acc": 0.6111,
+      "ci_lo": 0.5,
+      "ci_hi": 0.7222,
+      "up_rate": 0.3889
+     }
+    },
+    "binding_ci_lo": 0.4833
+   }
+  },
+  "cov_0.05": {
+   "cov": 0.05,
+   "thr": 0.09045,
+   "UP": {
+    "val_worsthalf": 0.6063,
+    "per_year": {
+     "2024": {
+      "n": 338,
+      "acc": 0.6391,
+      "ci_lo": 0.5858,
+      "ci_hi": 0.6923,
+      "up_rate": 0.6391
+     },
+     "2025": {
+      "n": 219,
+      "acc": 0.5251,
+      "ci_lo": 0.4612,
+      "ci_hi": 0.5936,
+      "up_rate": 0.5251
+     },
+     "2026": {
+      "n": 108,
+      "acc": 0.6667,
+      "ci_lo": 0.5741,
+      "ci_hi": 0.75,
+      "up_rate": 0.6667
+     }
+    },
+    "binding_ci_lo": 0.4612
+   },
+   "DOWN": {
+    "val_worsthalf": 0.5808,
+    "per_year": {
+     "2024": {
+      "n": 266,
+      "acc": 0.6165,
+      "ci_lo": 0.5564,
+      "ci_hi": 0.6767,
+      "up_rate": 0.3835
+     },
+     "2025": {
+      "n": 202,
+      "acc": 0.5347,
+      "ci_lo": 0.4653,
+      "ci_hi": 0.604,
+      "up_rate": 0.4653
+     },
+     "2026": {
+      "n": 57,
+      "acc": 0.5965,
+      "ci_lo": 0.4737,
+      "ci_hi": 0.7193,
+      "up_rate": 0.4035
+     }
+    },
+    "binding_ci_lo": 0.4653
+   }
+  },
+  "cov_0.03": {
+   "cov": 0.03,
+   "thr": 0.09768,
+   "UP": {
+    "val_worsthalf": 0.5972,
+    "per_year": {
+     "2024": {
+      "n": 228,
+      "acc": 0.6886,
+      "ci_lo": 0.6272,
+      "ci_hi": 0.7456,
+      "up_rate": 0.6886
+     },
+     "2025": {
+      "n": 154,
+      "acc": 0.5909,
+      "ci_lo": 0.513,
+      "ci_hi": 0.6688,
+      "up_rate": 0.5909
+     },
+     "2026": {
+      "n": 64,
+      "acc": 0.6094,
+      "ci_lo": 0.4844,
+      "ci_hi": 0.7344,
+      "up_rate": 0.6094
+     }
+    },
+    "binding_ci_lo": 0.4844
+   },
+   "DOWN": {
+    "val_worsthalf": 0.6057,
+    "per_year": {
+     "2024": {
+      "n": 207,
+      "acc": 0.6184,
+      "ci_lo": 0.5507,
+      "ci_hi": 0.6812,
+      "up_rate": 0.3816
+     },
+     "2025": {
+      "n": 153,
+      "acc": 0.5294,
+      "ci_lo": 0.451,
+      "ci_hi": 0.6078,
+      "up_rate": 0.4706
+     },
+     "2026": {
+      "n": 47,
+      "acc": 0.617,
+      "ci_lo": 0.4681,
+      "ci_hi": 0.7447,
+      "up_rate": 0.383
+     }
+    },
+    "binding_ci_lo": 0.451
+   }
+  },
+  "cov_0.02": {
+   "cov": 0.02,
+   "thr": 0.1026,
+   "UP": {
+    "val_worsthalf": 0.6026,
+    "per_year": {
+     "2024": {
+      "n": 171,
+      "acc": 0.7251,
+      "ci_lo": 0.655,
+      "ci_hi": 0.7895,
+      "up_rate": 0.7251
+     },
+     "2025": {
+      "n": 117,
+      "acc": 0.6068,
+      "ci_lo": 0.5128,
+      "ci_hi": 0.6923,
+      "up_rate": 0.6068
+     },
+     "2026": {
+      "n": 49,
+      "acc": 0.6735,
+      "ci_lo": 0.5306,
+      "ci_hi": 0.7959,
+      "up_rate": 0.6735
+     }
+    },
+    "binding_ci_lo": 0.5128
+   },
+   "DOWN": {
+    "val_worsthalf": 0.6373,
+    "per_year": {
+     "2024": {
+      "n": 173,
+      "acc": 0.6532,
+      "ci_lo": 0.5838,
+      "ci_hi": 0.7225,
+      "up_rate": 0.3468
+     },
+     "2025": {
+      "n": 127,
+      "acc": 0.5591,
+      "ci_lo": 0.4724,
+      "ci_hi": 0.6457,
+      "up_rate": 0.4409
+     },
+     "2026": {
+      "n": 40,
+      "acc": 0.65,
+      "ci_lo": 0.5,
+      "ci_hi": 0.8,
+      "up_rate": 0.35
+     }
+    },
+    "binding_ci_lo": 0.4724
+   }
+  }
+ },
+ "best_operating_point": {
+  "UP": {
+   "cov": 0.5,
+   "thr": 0.03773,
+   "binding_ci_lo": 0.4937,
+   "per_year_acc": {
+    "2024": 0.5347,
+    "2025": 0.5383,
+    "2026": 0.5333
+   },
+   "per_year_n": {
+    "2024": 1975,
+    "2025": 1187,
+    "2026": 555
+   }
+  },
+  "DOWN": {
+   "cov": 0.5,
+   "thr": 0.03773,
+   "binding_ci_lo": 0.5061,
+   "per_year_acc": {
+    "2024": 0.5306,
+    "2025": 0.5364,
+    "2026": 0.5831
+   },
+   "per_year_n": {
+    "2024": 1636,
+    "2025": 1100,
+    "2026": 331
+   }
+  }
+ }
+}
