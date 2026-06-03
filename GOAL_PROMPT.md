@@ -72,72 +72,25 @@ targeted fetches.)
 
 ---
 
-## Full prompt (recommended)
+## Full prompt (recommended) — v3 (2026-06-03)
+_v3 changes vs prior: §2 renamed DISCOVER+INVENT+COMBINE with an explicit combine-menu + "LEARN FROM PRIOR RESULTS BEFORE BUILDING" (attack the diagnosed failure cause, never re-permute a subsumed combo) + MEASURE-don't-guess + corpus via `_CORPUS_INDEX.md`/`_extracted_levers.json` (every lever → RUN or Tier-1-cited subsumption); §3 = explicit CROSS-PRODUCT model space + evaluate vs the ACTUAL deployment channel (binary AND spot-net-of-spread); §4 frozen-overstatement check (frozen≫refit ⇒ trust refit, baseline control reproduces honest #); §5 DO-NOT-DEPLOY sheet + live venue/channel. Placeholders {X}/{CURRENCY} (instantiated EURUSD·5m on line 1 — change line 1 to re-target). 5,514 chars._
+
 ```
-/goal Find the best <X>-minute UP predictor AND the best <X>-minute DOWN predictor for <CURRENCY> binary
-direction, OOS-verified — TWO independent deliverables, each certified to the same standard and each shipped
-with a deployable spec. This is your goal; do not stop until both sides are certified-or-honestly-exhausted AND
-the improvement + discovery loops have gone dry. NULL literature is not permission to give up (see ATTITUDE in
-GOAL_PROMPT.md): we improve the edges we have and hunt for more.
+{X}=5, {CURRENCY}=EURUSD. GOAL: best {X}m UP AND best {X}m DOWN {CURRENCY} binary-direction predictor, OOS-verified — TWO deliverables, each certified + deployable-spec'd. Don't stop until BOTH sides are certified-or-honestly-exhausted AND improve+discover loops go dry. NULL lit ≠ permission to quit (ATTITUDE): improve our edges, hunt more.
 
-1. EXHAUSTIVE SWEEP — BOTH SIDES, SYMMETRICALLY. Follow the `strategy-eval` skill in EXHAUSTIVE SWEEP MODE. Work
-SWEEP_MATRIX.md variant by variant (Tier A→F), retargeting EVERY method/ensemble/RL/DQN/state-space/deep/
-microstructure/magnitude permutation to <X> minutes via the catalog knobs (MX_HOR/HS). Reuse the frozen books
-in MODEL_REGISTRY.md / books/ as parents/baselines. Score COMBINED, UP, and DOWN as THREE SEPARATE questions. A
-SIDE IS NOT "DONE" until it has had the FULL pipeline applied to IT: (a) side-split; (b) a side-specific
-gate/threshold selected on worst-VAL-half; (c) a purpose-built side SPECIALIST; (d) a confidence/coverage curve;
-(e) — for any operating point whose binding (worst) held-out year clears breakeven on CI-lower — the full-refit
-CPCV. Declaring a side dead requires running (a)-(d) and SHOWING the wall, not inferring it from the other side.
+FILE CONVENTION (read REPO_MAP.md; strategy-eval §0a enforces): keep GENERIC (METHODS_CATALOG·SWEEP_MATRIX·IDEAS_LOG·THEORY) separate from KEY-SPECIFIC ({CURRENCY}_RESULTS.md · sweeps/{CURRENCY}_{X}m.md ledger · sweeps/{CURRENCY}_{X}m_backlog.md executable backlog · MAGNITUDE_FINDINGS.md · MODEL_REGISTRY/books). Never bake a per-key number into a generic file — tag [PAIR·tf] + cite the Tier-2 file.
 
-2. DISCOVER + INVENT (continuously, mechanism-first, for BOTH directions). Scour arXiv (q-fin.TR/ST, stat.ML),
-SSRN, cross-disciplinary fields (econophysics, information theory, point processes, causal discovery), and novel
-COMBINATIONS. Download every paper you review to /home/sean/git/academic-papers (arXiv/OpenAlex/Unpaywall/author
-pages). When a side is failing, run a MECHANISM-first research pass (WHY is it hard here?) before cycling more
-methods. Vet each candidate (genuinely new; plausible DIRECTION mechanism surviving sign-invariance — say which
-SIDE's sign it carries; data on disk); append the GENERIC idea to SWEEP_MATRIX.md Tier-N + IDEAS_LOG.md, and the
-per-key instantiation row to sweeps/<CURRENCY>_<X>m_backlog.md; test it. Use sub-agents. Loop discovery until K dry rounds.
-   MINE THE CORPUS EXHAUSTIVELY: read EVERY paper in /home/sean/git/academic-papers THOROUGHLY (every word,
-   equation, diagram, table, and reference list — chase load-bearing refs). Extract EVERY piece of logic / math /
-   loss / architecture / gating / labeling / validation / framing that could raise the edge, convert each to a
-   falsifiable experiment, and RUN IT. Bias hard toward action — it is better to have an idea DISPROVED BY
-   EXPERIMENT than never tried; never pre-dismiss on a hunch. Fan out reader sub-agents/workflows over the corpus
-   to produce the idea→experiment backlog (generic levers → IDEAS_LOG.md; per-key executable queue →
-   sweeps/<CURRENCY>_<X>m_backlog.md), then execute it.
+1. EXHAUSTIVE SWEEP, BOTH SIDES SYMMETRICALLY (strategy-eval SWEEP MODE). Work SWEEP_MATRIX.md row-by-row (Tier A→F), retarget EVERY permutation to {X}m via MX_HOR/HS. Reuse frozen books as baselines. Score COMBINED+UP+DOWN separately. A side isn't done until the FULL pipeline hits IT: (a) side-split; (b) side gate on worst-VAL-half; (c) purpose-built SPECIALIST; (d) confidence/coverage curve; (e) full-refit CPCV for any op-point whose binding (worst) year clears breakeven on CI-lower. Dead = run (a)-(d) & SHOW the wall, never infer from the other side.
 
-3. IMPROVE WHAT YOU FIND (do NOT stop at the first certified book). For every edge found, run the edge-IMPROVING
-levers from the literature toolkit and measure each against the incumbent: seed-ensembling (stabilize the tail /
-lift the CPCV path-clear-rate), |return|-weighted / GMADL loss (bridge the magnitude edge into direction),
-calibration (temperature/Venn-Abers) + ADAPTIVE CONFORMAL gate (regime robustness), DL-as-decorrelated-stack-
-member (not replacement), cross-pair POOLING (weight-shared net across pairs), AdamW + tuned LR + Optuna
-TPE/Hyperband (n_trials capped & logged, select on worst-VAL-half). Each improvement gets a pre-registered
-falsifier: it must beat the incumbent on the binding (worst) held-out year and/or raise the CPCV path-clear-rate.
+2. DISCOVER + INVENT + COMBINE (continuous, mechanism-first, BOTH dirs). Scour arXiv(q-fin.TR/ST,stat.ML)/SSRN + cross-disciplinary; save every paper to /home/sean/git/academic-papers. MINE THE CORPUS EXHAUSTIVELY: read EVERY paper fully (chase load-bearing refs; use _CORPUS_INDEX.md + _extracted_levers.json), extract EVERY testable lever (math/loss/arch/gating/labeling/validation/framing) — EVERY lever ends as a RUN experiment OR a Tier-1-cited subsumption (none silently skipped). ACTIVELY COMBINE models/signals/levers you judge promising — cascade · gate/filter · blend · k-of-n consensus · stack · regime-route · meta-labeler-on-a-combination · cross-horizon · paper-lever×our-model — wherever a DIRECTION mechanism exists (survives sign-invariance; say which side's sign). LEARN FROM PRIOR RESULTS BEFORE BUILDING: read {CURRENCY}_RESULTS.md + ledger/backlog for what combinations already ran, what failed and WHY (diagnosed cause — common-factor/regime/info-bound/overfit); design the NEXT combination to ATTACK that cause and BUILD ON what came closest — never re-permute a subsumed combo. MEASURE assumptions (correlation, coverage); don't guess. Append generic ideas → SWEEP_MATRIX Tier-N + IDEAS_LOG; per-key rows → sweeps/{CURRENCY}_{X}m_backlog.md; test. Sub-agents/fan-out; loop until K dry rounds.
 
-4. EVALUATION & CERTIFICATION DISCIPLINE (non-negotiable). Deriv-faithful settlement (wc_ret/contig ties-LOSE);
-nonoverlap_chrono; per-year 2024/2025/2026 bootstrap CI95; selection on worst-VAL-half NEVER VAL-acc-max
-(corr(VAL,OOS)=-0.54 → VAL-maximal pockets ANTI-transfer; this trap bites SPECIALISTS hardest — watch
-VAL-great/OOS-dead); moved-bars-only with up-rate∈[0.47,0.53] tripwire; pre-register a falsifier in the result
-JSON BEFORE looking at OOS. CERTIFICATION STANDARD: a frozen-trade CPCV (resampling a fixed rule) does NOT refit
-→ blind to selection overfitting → OVER-states; a loose-coverage refit UNDER-states. The certifying test is the
-FULL per-fold-refit CPCV evaluated AT THE BOOK'S OPERATING GATE: certify only if refit p10 ≥ breakeven AND ≥~80%
-of purged folds clear. Use precise vocabulary ("forward-positive" ≠ "refit-certified" ≠ "regime-dependent" ≠
-"dead"); CORRECT THE RECORD immediately if a harder test changes the verdict (either direction). ADVERSARIALLY
-VERIFY every positive (panel: leakage, selection/refit-overfit, drift-not-skill, settlement, coverage).
+3. IMPROVE WHAT YOU FIND (don't stop at first certified book). The model space is a CROSS-PRODUCT: {base·cross-pair·cross-horizon·pooled·seed-ens·DL-stack} × {fixed·ACI·calibrated gate} × {BCE·|ret|/GMADL loss} × {filter·specialist}. Per edge, vs the BEST incumbent COMBINATION, run: seed-ensembling, |return|-weighted/GMADL loss (magnitude→direction bridge), calibration(temp/Venn-Abers)+ADAPTIVE-CONFORMAL gate, DL-as-decorrelated-stack, cross-pair POOLING, Optuna(capped+logged, worst-VAL-half) — AND novel combinations you believe (from prior results + mechanism) will beat it. Each: pre-registered falsifier — beat the incumbent's binding (worst) year or raise CPCV path-clear. Evaluate against the ACTUAL deployment objective (binary win-rate AND, where that's the channel, spot expectancy net of spread): a lever null for hit-rate can still matter for the deployable channel.
 
-5. DEPLOYMENT SPEC for every survivor (each side). Operating gate + coverage (trades/session); confidence/
-coverage curve; FRACTIONAL-Kelly sizing on the ROBUST FLOOR (refit p10), not the optimistic single-split;
-equity path with max drawdown + losing-streak; honest risk note (any kill-switch must be TESTED not assumed).
-VERIFY the actual tradeable venue/min-duration from a live/authoritative source before calling anything "the
-best algo to trade" — do not rely on a stale assumption about the floor.
+4. EVAL & CERT (non-negotiable) = strategy-eval §2-3: wc_ret/contig ties-LOSE; nonoverlap_chrono; per-year 24/25/26 CI95; worst-VAL-half NOT VAL-acc-max (corr=-0.54, bites SPECIALISTS hardest); moved-bars up-rate∈[.47,.53] tripwire; pre-registered falsifier in the result JSON BEFORE OOS. CERTIFY ONLY via full per-fold-refit CPCV at the OPERATING gate: refit p10≥breakeven AND ≥~80% folds clear. Precise vocab (forward-positive≠refit-certified≠regime-dependent≠dead). ADVERSARIALLY VERIFY every positive (leakage, refit-overfit, drift-not-skill, settlement, coverage): when frozen-book forward ≫ its refit-CPCV it's OVERSTATEMENT — trust the refit; a baseline control on the same harness reproduces the honest number. CORRECT THE RECORD when a harder test flips it.
 
-6. SUBSUMPTION AUDIT + RECORD-KEEPING. Mark a row "subsumed" only with a Tier-1 rationale citing the
-script/result-JSON/theorem that fixes its answer; periodically AUDIT the subsumed set (an adversarial pass) to
-separate "truly determined" from "must actually run" — run, don't argue. Record COMBINED+UP+DOWN into
-<CURRENCY>_RESULTS.md (magnitude → MAGNITUDE_FINDINGS.md); maintain sweeps/<CURRENCY>_<X>m.md (ledger/status) +
-sweeps/<CURRENCY>_<X>m_backlog.md (executable backlog) + the two-sided leaderboard; freeze every survivor as
-<CURRENCY>.<book>.v1 via manifest.py + git-tag. ONE heavy job at a time
-(OOM); commit ledger+results frequently (flaky external drive); EVIDENCE-FIRST — every number traces to a
-result JSON, never prose; flag thin-coverage (n<~50) and VAL-acc-max as non-robust. Think before each
-permutation. Be thorough; don't over-claim; and DON'T GIVE UP — a null is a redirect, not a stop.
+5. DEPLOYMENT SPEC per survivor (each side; even a non-deployable side gets a documented DO-NOT-DEPLOY sheet w/ the disqualifying metrics): operating gate + coverage (trades/session); confidence/coverage curve; FRACTIONAL-Kelly on the ROBUST FLOOR (refit p10); equity path w/ max-DD + losing-streak; kill-switch TESTED not assumed; VERIFY real tradeable venue/min-duration/settlement from a LIVE source + test the actual channel (binary vs spot net-of-spread) before calling anything "best algo to trade".
+
+6. SUBSUMPTION AUDIT + RECORDS. Mark "subsumed" only w/ Tier-1 rationale (script/JSON/theorem); AUDIT it adversarially — run, don't argue. Record COMBINED+UP+DOWN → {CURRENCY}_RESULTS.md (magnitude → MAGNITUDE_FINDINGS.md); maintain ledger + executable backlog + two-sided leaderboard; freeze every survivor (incl. best COMBINATION) via manifest.py + git-tag. INCUMBENT = best COMBINATION in books/INDEX.json, NOT the old base GBM — retarget Tier-I levers + certified combinations to a new key, compare vs ALL. ONE heavy job at a time (OOM); commit often (flaky drive); EVIDENCE-FIRST — every number traces to a result JSON, never prose; flag thin-coverage (n<~50) + VAL-acc-max. DON'T GIVE UP — a null is a redirect, not a stop.
 ```
 
 ## Short prompt
