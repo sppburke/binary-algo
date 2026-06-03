@@ -537,3 +537,23 @@ calibration) — NOT >0.65 (proven unreachable on these inputs). The ONLY step-c
 the feature-admission discipline. Run V1+V2 first (they may move the bar), then the cheap NEW gate/regime levers in parallel
 with the v1 near-miss certifications; certify any survivor on full-refit CPCV at the operating gate, freeze as a new book
 (`m5_register_*.py`), update EURUSD_RESULTS.md + the leaderboard. Disproved-by-experiment beats untried.
+
+---
+
+## Discovery round 3 — corpus-mining workflow (2026-06-02, 7 agents, sign-invariance-filtered)
+
+Fanned 6 topic-reader agents over the distilled corpus (`_CORPUS_INDEX.md`), deduped vs the exclusion list.
+22 candidates surfaced; all low-prior (≤0.15) — consistent with 5m near-efficiency. Genuinely-NEW sign-aware
+on-disk candidates appended to `SWEEP_MATRIX.md` Tier-N (N10–N15), test queue here (highest EV first):
+
+- **N10 TAR-VECM EC-speed sign** (prior .15, cheap, `m5_tarvecm.py`) — cointegration reversion VELOCITY/sign w/ TAR band.
+  PRE-REGISTERED RISK: shares the USD-factor sign-flip that killed C3; expect regime-dependence. **[testing next]**
+- **N12 DeltaLag pairwise sign-ranking loss** (prior .13, cheap) — rank-by-P(up) hinge loss vs BCE on the cross-pair GBM.
+- **N11 DeltaLag adaptive non-stationary lead-lag** (prior .12, medium) — per-bar TopK leader+lag (sparse cross-attn), signed.
+- **N13 Bouchaud queue depletion-RATE asymmetry** (prior .08, medium) — LOW prior (60s OFI nulls; microstructure decays by 60s).
+- **N14 whale (top-1% tsz) signed OIB** (prior .07, cheap) — LOW prior at 5m.
+- **N15 Cont-deLarrard closed-form P(up)+reversal** (prior .06, medium) — LOW prior.
+
+Mechanism note: the only candidates aligned with the LIVE edge (cross-pair) are N10/N11/N12; the order-flow set
+(N13/N14/N15) is heavily discounted (raw OFI nulled at 60s, tick edge decays by 60s). Test top-prior first; the
+order-flow set only if a cross-pair lever shows life.
