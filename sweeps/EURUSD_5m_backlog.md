@@ -241,14 +241,14 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   output already on the m5_magweight path); rerun `m5_aci_cpcv.py` nested-refit; report per-year win-rate SPREAD + binding-2025
   win@n. FALSIFIER: KILL if vol-norm does not reduce the 2024/25/26 spread AND does not raise binding-2025 win at ≥ incumbent n
   (no gain over ACI .584@n764); KILL on up-rate∈[.47,.53] breach. INCUMBENT: m5xp_aci .584. NOVELTY: new_untried. (Gibbs-Candès; Bhatnagar)
-  ⏳ **FORWARD-POSITIVE, NOT CERTIFIED 2026-06-02 (`m5_g1l5.py`, `m5_g1l5_result.json`).** Static vol-normalized score
-  (conf/volrank, ex-ante 5m_rv_24, VAL-frozen threshold) FLATTENS the regime profile: binding 2024+2025 **0.6168**
-  (2024 .617/2025 .617, CI-lo .5449) vs raw-conf baseline **0.5921** (2024 .703/2025 .592, CI-lo .474) — trades 2024
-  accuracy for 2025 stability, the G1 premise. **BUT this is the frozen-forward OVERSTATE (cert standard says it
-  over-states), 2026 is ABSENT at the gate coverage (n<20), it's a VAL-selected cov under corr(VAL,OOS)=−0.54, and
-  R1 showed vol-conditioning of win-rate is flat — so treat as a candidate, NOT a win.** REQUIRES nested-refit CPCV
-  (m5_aci_cpcv harness) before any claim; pending. (Adversarial note: an earlier run with |fwd|-weighting LEAKED and
-  was discarded — fixed to ex-ante scoring.)
+  ❌ **KILLED 2026-06-02 under FULL-REFIT CPCV (`m5_g1_cpcv.py`, `m5_g1_cpcv_result.json`).** The frozen-forward
+  "flattening" first seen in `m5_g1l5.py` (binding 2024+25 .617 vs baseline .592) was a SELECTION ARTIFACT. The
+  apples-to-apples refit-CPCV (28 purged paths, primary refit per path; baseline reproduces the incumbent .5531/96.4%
+  exactly = harness validated) shows the vol-normalized gate is WORSE at every cover: cov0.05 **G1 .5398 vs base .5531**;
+  cov0.10 .5410 vs .5435; cov0.15 .5391 vs .5412 — G1>base=False everywhere. Confirms R1 (vol-conditioning of the gate
+  is flat) + V1/V2 (frozen-forward overstates; corr(VAL,OOS)=−0.54). Adversarial note: the initial `m5_g1l5.py` draft
+  used forward-|ret| in the TEST-time score (LEAKAGE) and produced a fake "survive" — caught, fixed to ex-ante, and the
+  proper refit-CPCV then killed it. Incumbent unchanged (refit floor .553).
 **G2. ⚡ Multi-expert online-aggregated ACI (DtACI/FACI/AgACI): K experts over a γ-grid, exp-weight on pinball loss.**
   EXPERIMENT: wrap `m5_conformal.aci_gate`'s scalar θ in K=8 experts (γ∈{.001..0.128}) with DtACI weight update
   (w_i∝exp(−η·pinball)); drop into `m5_aci_cpcv.py`; certify nested-refit per year vs single-γ ACI. KILLS the single-γ choice

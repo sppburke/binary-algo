@@ -1,0 +1,65 @@
+{
+  "test": "G1 vol-normalized gate vs baseline confidence gate \u2014 full-refit CPCV",
+  "breakeven": 0.541,
+  "stride": 6,
+  "covs": [
+    0.05,
+    0.1,
+    0.15
+  ],
+  "baseline": {
+    "0.05": {
+      "p10": 0.5531,
+      "mean": 0.5662,
+      "frac_clear": 0.964,
+      "n_valid": 28,
+      "med_n": 2126
+    },
+    "0.1": {
+      "p10": 0.5435,
+      "mean": 0.5552,
+      "frac_clear": 0.893,
+      "n_valid": 28,
+      "med_n": 4252
+    },
+    "0.15": {
+      "p10": 0.5412,
+      "mean": 0.5501,
+      "frac_clear": 0.893,
+      "n_valid": 28,
+      "med_n": 6378
+    }
+  },
+  "G1_volnorm": {
+    "0.05": {
+      "p10": 0.5398,
+      "mean": 0.5549,
+      "frac_clear": 0.893,
+      "n_valid": 28,
+      "med_n": 2126
+    },
+    "0.1": {
+      "p10": 0.541,
+      "mean": 0.5511,
+      "frac_clear": 0.893,
+      "n_valid": 28,
+      "med_n": 4252
+    },
+    "0.15": {
+      "p10": 0.5391,
+      "mean": 0.5468,
+      "frac_clear": 0.821,
+      "n_valid": 28,
+      "med_n": 6378
+    }
+  },
+  "VERDICT": {
+    "g1_beats_baseline_any_cov": false,
+    "per_cov": {
+      "0.05": false,
+      "0.1": false,
+      "0.15": false
+    },
+    "statement": "G1 NOT an improvement under refit-CPCV: vol-normalized gate refit p10 does NOT exceed the baseline confidence gate at any cover. The frozen-forward 'flattening' was a selection artifact (corr(VAL,OOS)=\u22120.54)."
+  }
+}
