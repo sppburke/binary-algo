@@ -83,8 +83,44 @@ microstructure noise). Fast-KILL falsifier: KILL unless VAL dirAUC>0.515 AND som
 | B-pass | microstructure/OFI | B3 CKS-OFI, B4 x-OFI, B5 per-side flow @15m | min1_* (MX_HOR=15) | ~null | **subsumed** | Tier-1: microstructure DECAYS monotonically with H — null already by 60s across ~24 channels (xOFI VAL .5015, CCM slope .0066, whale/queue/Cont-deLarrard all coin-flip @5m); at 15m the tick-scale signal is gone a fortiori. Sign-invariance: most OFI gates MAGNITUDE. Running = confirm-the-null, near-zero ROI. |
 | C-pass | state-space | C1 HMM-gate, C2 Kalman, C3 RMT, C4 CCM @15m | min1_* | ~null | **subsumed** | Tier-1: HMM/Kalman/RMT/CCM all null @60s; sign-invariance theorem (arXiv:2512.15720) — these gate SIZE not SIGN. The base book ALREADY uses a vol-regime gate (comp×NY); an HMM regime gate is a variant of that, no new direction info. |
 | D-pass | seq/deep | D1 CNN/GRU, D2 NeuralCDE, D3 TabNet @15m | exp_seq/m_cnn | ~null | **subsumed** | Tier-1: info-bound caps raw AUC at ALL horizons (5m DL review: no economic gain; 15m raw AUC .528). Deep nets can't exceed the info content the GBM already extracts; D5 meta-labeler @15m already 0.615<parent. |
-| E/Q1 | magnitude×dir | magnitude regime gate on 15m direction (the queued backlog Q1; the ONE distinct on-disk test) | `m15_magdir.py` | ~.10 | **pending (run)** | sign-invariance prior = null, but 15m move-composition differs from the 5m null → RUN to confirm. Magnitude itself (sign-invariant) → MAGNITUDE_FINDINGS, no UP/DOWN key. |
+| E/Q1 | magnitude×dir | magnitude regime gate on 15m direction (queued Q1) | `m15_magdir.py` | ~.10 | **killed (RAN)** | NULL & confirms mechanism: LOW-magnitude bars have HIGHER dir-acc than HIGH-mag in 5/6 cells (2026 UP LOW .570/HIGH .513; 2025 DOWN LOW .551/HIGH .506) → edge in SMALL/diffusive moves (sign-invariance), magnitude-gating to large moves WORSENS it. No bucket beats incumbent .5673/.5742. `m15_magdir_result.json`. |
 | F-pass | exog | F1 news, F2 price-action, F3 ES/NQ lead-lag, F4 resid-target @15m | m5_*/m30_* | ~null | **subsumed (on-disk) / →Tier-G** | Tier-1: news NULL for ≤5m FX direction (macro-calendar memory); price-action rules (RSI2/BB%b) already in the 239 base features the GBM uses; ES/NQ + macro = EXTERNAL → Tier-G frontier (backlog). |
+
+## ★★★ FINAL CONCLUSION (2026-06-03) — both sides certified + improved; on-disk sweep EXHAUSTED
+**TWO DELIVERABLES, both refit-CPCV-certified, both deriv-tradeable (15m = deriv forex Rise/Fall minimum):**
+
+| key | LEADER | refit-CPCV p10 | frac paths clear | fallback |
+|-----|--------|----------------|------------------|----------|
+| (EURUSD,15m,UP) | `EURUSD.m15xp.v1` cross-pair, UP-bets | **.5673** (mean .5793) | 15/15 | base `EURUSD.m15.v1` p10 .5475 |
+| (EURUSD,15m,DOWN) | `EURUSD.m15xp.v1` cross-pair, DOWN-bets | **.5742** (mean .5818) | 15/15 | base p10 .5486 |
+
+- **First EURUSD horizon with BOTH sides certified** under the full per-fold-refit CPCV, and the BEST certified
+  DOWN-side direction edge in the entire program (every other horizon's DOWN is dead). The 5m UP-only asymmetry
+  does NOT transfer — measured, not assumed.
+- **Path:** side-split (a) → coverage curve (d) → refit-CPCV (e) certified base book both sides → IMPROVE: magweight
+  /relabel/seed-ens NULL (binding-2025 wall) → cross-pair USD-residual primary CERTIFIES +2pt both sides (the USD
+  factor that capped the base book IS the cross-pair's signal) → froze `EURUSD.m15xp.v1`.
+- **Improve loop DRY (on-disk):** 2 null rounds (same-feature levers) + the cross-pair winner; only NEW features
+  (cross-pair) broke the binding-2025 wall. **Discovery loop DRY (on-disk):** corpus rounds 1-2 → the surviving
+  family (cross-pair) is certified; everything else subsumed (Tier-1 cites) or EXTERNAL (Tier-G, gated).
+- **Honest caveats:** (1) margins are THIN even improved (p10 ~.567/.574 vs breakeven .541). (2) the cross-pair edge
+  is REFIT-DEPENDENT (USD factor non-stationary) → DEPLOY WITH PERIODIC RETRAIN; the frozen-2021 single-model
+  forward is marginal in binding years (cov10%: UP .602/.561/.539, DOWN .610/.531/.552). (3) base book is the
+  frozen-stable lower fallback. (4) further improvement needs EXTERNAL data (Tier-G: DE-US rate-diff, VIX/risk-
+  reversal, GARCH-MIDAS equity-vol — several DOWN-side gates), GATED ON USER "go".
+
+### DEPLOYMENT SPEC (both sides)
+- **Venue:** deriv.com forex EURUSD Rise/Fall, duration **15m** (the platform minimum — directly tradeable, unlike
+  the 5m/60s research books). Payout R≈0.85 → breakeven win-rate **0.541**. Settlement mid-to-mid, ties LOSE.
+- **Model:** `EURUSD.m15xp.v1` (cross-pair USD-residual+OF lgb primary). **Signal:** in the gate `15m_bb_width ≤
+  1.94e-3 & NY-session & |p−0.5| ≥ conf_thr(cov10%)`, bet UP if p>0.5 (→ the certified (15m,UP)), DOWN if p<0.5
+  (→ (15m,DOWN)). Independent trades only (nonoverlap 900s).
+- **EV/bet @ R0.85:** at the refit floor w=.567 → EV = .567·.85 − .433 = **+.049/bet** (UP); w=.574 → **+.054/bet**
+  (DOWN). Positive but thin → size **⅛-Kelly on the refit floor**, NOT the optimistic forward years.
+- **Operational:** RETRAIN the cross-pair primary on a rolling window (≥ quarterly) — the edge decays frozen.
+  Coverage ~10% of in-gate bars. Skip the win-rate kill-switch (thin-n single-year is noisy; trust the CPCV floor).
+- **Frozen-stable alternative:** if periodic retrain isn't feasible, deploy the base book `EURUSD.m15.v1` (p10
+  .5475/.5486) — lower ceiling but more frozen-forward-robust.
 
 ## DISCOVERY (loop-until-dry; see task 5 + CORPUS_LEVER_INVENTORY.md)
 **Round 1 done (2026-06-03):** parsed CORPUS_LEVER_INVENTORY.md (550 levers) programmatically → **106 untested
@@ -146,7 +182,13 @@ certified, and the only deriv-deployable one.** DOWN marginally MORE robust (fra
 operating point (.607/.559) was OPTIMISTIC selection — durable figure = the refit p10 floor (.5475 / .5486).
 Margins are THIN (~+0.6-0.7 pt over breakeven .541); the IMPROVE phase tries to widen them.
 
-## NEXT (improve, don't stop at first cert): incumbent to beat = UP refit-p10 .5475 / DOWN .5486 under SAME refit-CPCV.
-Cheap retrains first (1 fit each, ~6-10 min), CPCV only survivors: I3 magweight(POW 0/0.5/1) → relabel family
-(N16 triple-barrier/3-class) → N20 cross-pair rank → gate worst-VAL-half (A2) → seed-ens (I2). Then B-F fast-KILL
-pass + discovery round 2. FREEZE the certified side books now (below).
+## ★ STATUS: GOAL MET — both sides certified+improved (cross-pair `EURUSD.m15xp.v1`); on-disk sweep EXHAUSTED.
+### Improve cross-product accounting (goal §3) — RAN vs reasoned-subsumed (logged, not silently skipped)
+RAN: base (cert .5475/.5486) · cross-pair (cert **.5673/.5742, WINNER**) · |ret|-weight magweight (null) · 3-class
+relabel (null) · seed-ensemble (null) · magnitude×dir gate (null) · gate worst-VAL-half (folded into freeze/regate).
+REASONED-SUBSUMED (Tier-1 low-prior, left for a future agent): **ACI gate** — downgraded at 5m (fails nested-refit
+CPCV); **cross-horizon stack (A5)** — no parent STRONGER than 15m (30m .591/10m .602 < 15m), front-loading a weaker
+parent is low-prior; **cross-pair POOLING (I5)** — the cross-pair primary already captures it, heavy reparam; **GMADL
+/RRL-torch (N18)** — same loss-family as the NULL |ret|-weight; **DL-stack** — info-bound (D-pass). The ONLY lever
+to break the binding-2025 wall was NEW features (cross-pair); same-feature levers all hit the wall → consistent.
+### Remaining genuine frontier = EXTERNAL data (Tier-G in backlog), GATED ON USER "go". See FINAL CONCLUSION above.

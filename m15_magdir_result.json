@@ -1,0 +1,73 @@
+{
+ "exp": "Q1 magnitude x direction @15m",
+ "median_abs_ret": 0.0002034824504932864,
+ "breakeven": 0.541,
+ "incumbent_xpair_refit_p10": {
+  "UP": 0.5673,
+  "DOWN": 0.5742
+ },
+ "falsifier": "KILL unless a magnitude bucket lifts a side's binding-year hit-rate CI-lo > un-bucketed incumbent +1SE",
+ "per_year_bucket_side": {
+  "2024_LOWmag_UP": {
+   "n": 446,
+   "acc": 0.6345,
+   "ci_lo": 0.5897
+  },
+  "2024_LOWmag_DOWN": {
+   "n": 327,
+   "acc": 0.6269,
+   "ci_lo": 0.5749
+  },
+  "2024_HIGHmag_UP": {
+   "n": 493,
+   "acc": 0.572,
+   "ci_lo": 0.5294
+  },
+  "2024_HIGHmag_DOWN": {
+   "n": 280,
+   "acc": 0.5893,
+   "ci_lo": 0.5321
+  },
+  "2025_LOWmag_UP": {
+   "n": 269,
+   "acc": 0.5539,
+   "ci_lo": 0.4944
+  },
+  "2025_LOWmag_DOWN": {
+   "n": 316,
+   "acc": 0.5506,
+   "ci_lo": 0.4968
+  },
+  "2025_HIGHmag_UP": {
+   "n": 330,
+   "acc": 0.5667,
+   "ci_lo": 0.5121
+  },
+  "2025_HIGHmag_DOWN": {
+   "n": 255,
+   "acc": 0.5059,
+   "ci_lo": 0.4471
+  },
+  "2026_LOWmag_UP": {
+   "n": 100,
+   "acc": 0.57,
+   "ci_lo": 0.47
+  },
+  "2026_LOWmag_DOWN": {
+   "n": 57,
+   "acc": 0.5614,
+   "ci_lo": 0.4386
+  },
+  "2026_HIGHmag_UP": {
+   "n": 119,
+   "acc": 0.5126,
+   "ci_lo": 0.4202
+  },
+  "2026_HIGHmag_DOWN": {
+   "n": 39,
+   "acc": 0.5385,
+   "ci_lo": 0.3846
+  }
+ },
+ "verdict": "see analysis \u2014 expected NULL (sign-invariance); magnitude gates SIZE not SIGN"
+}
