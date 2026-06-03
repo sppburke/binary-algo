@@ -181,10 +181,16 @@
     "test_2024": 0.689,
     "cpcv_faithful_mean": 0.579,
     "cpcv_p10": 0.557,
-    "breakeven": 0.541
+    "breakeven": 0.541,
+    "side_split_certified_2026_06_03": {
+     "harness": "m15_cpcv_side.py (per-fold refit CPCV, 15 purged paths); combined reproduces min15_cpcv (mean .5787/p10 .557) -> faithful",
+     "UP": {"refit_p10": 0.5475, "refit_mean": 0.5771, "frac_paths_clear": 0.933, "median_path_n": 949, "verdict": "CERTIFIED"},
+     "DOWN": {"refit_p10": 0.5486, "refit_mean": 0.5805, "frac_paths_clear": 1.0, "median_path_n": 845, "verdict": "CERTIFIED (first certified DOWN edge in program)"},
+     "note": "BOTH sides certified (refit p10 >= .541, >=80% paths clear). Durable floors = refit p10; frozen-forward operating point .607/.559 was optimistic selection. result_json: m15_cpcv_side_result.json"
+    }
    },
    "manifest": "books/EURUSD.m15.v1.manifest.json",
-   "summary": "15m DELIVERABLE (best combined book in program): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective.",
+   "summary": "15m DELIVERABLE (best combined book in program; the ONLY deriv-deployable horizon): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective. Side-split BOTH-SIDES-CERTIFIED 2026-06-03 (UP refit-p10 .5475 / DOWN .5486) -> the (15m,UP) and (15m,DOWN) deliverables are this book's UP-bets and DOWN-bets.",
    "depends_on": null
   },
   {

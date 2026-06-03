@@ -35,8 +35,8 @@ Incumbent COMBINED book = `EURUSD.m15.v1` (CPCV-faithful 0.579, p10 0.557; recen
 | A8a | side-split | FILTER: split frozen m15 book by predicted side (operating + gate-only) | `m15_updown.py` | U/Dn | — | **done** | repro .689/.582/.663 | binding .607 CI[.513,.692] | binding .559 CI[.472,.646] | `m15_updown_result.json` |
 | A8b-up | side-pipeline | (15m,UP) coverage curve (d) — VAL-worst-half threshold sweep | `m15_sidepipe.py` | U | high | **done** | — | binding-CI-lo best .513 @cov2% (never ≥.541) | — | `m15_sidepipe_result.json` |
 | A8b-dn | side-pipeline | (15m,DOWN) coverage curve (d) | `m15_sidepipe.py` | Dn | high | **done** | — | — | binding-CI-lo best .506 @cov50% (never ≥.541) | `m15_sidepipe_result.json` |
-| A8c-up | side-pipeline | (15m,UP) full-refit CPCV (e) at operating gate (refit p10≥.541 & ≥80% folds) | `m15_cpcv_side.py` | U | high | **running** | | | | `m15_cpcv_side_result.json` |
-| A8c-dn | side-pipeline | (15m,DOWN) full-refit CPCV (e) | `m15_cpcv_side.py` | Dn | high | **running** | | | | `m15_cpcv_side_result.json` |
+| A8c-up | side-pipeline | (15m,UP) full-refit CPCV (e) — 15 purged paths, per-side split | `m15_cpcv_side.py` | U | high | **done ✅ CERTIFIED** | — | **p10 .5475** mean .5771 frac .933 | — | `m15_cpcv_side_result.json` |
+| A8c-dn | side-pipeline | (15m,DOWN) full-refit CPCV (e) | `m15_cpcv_side.py` | Dn | high | **done ✅ CERTIFIED** | — | — | **p10 .5486** mean .5805 frac 1.0 | `m15_cpcv_side_result.json` |
 | A8d-up | specialist | (15m,UP) purpose-built specialist (subset/weighted retrain MX_HOR=15) | `m15_spec.py` | U | med | pending | | | | |
 | A8d-dn | specialist | (15m,DOWN) specialist | `m15_spec.py` | Dn | med | pending | | | | |
 | I3 | improve | \|return\|-weighted / GMADL retrain (POW=0.5) — 5m DOWN-rescue mechanism, RE-TEST @15m | `m15_magweight.py` | D | **high@DOWN** | pending | | | | |
@@ -86,4 +86,14 @@ sign-aware direction/labeling levers**, ranked by prior, clustered into 3 famili
 | N20 | cross-pair cross-sectional rank/factor | learning-to-rank (LambdaMART) on 7-major fwd-15m rank · PC-shrinkage residual · IPCA latent | ~.16 | KILL unless binding-2025 side win-rate CI-lo > frozen side incumbent |
 | I3+ | loss/labeling retrain (consolidated) | MADL · GMADL(a,b) · \|ret\|^p p∈{.5,1,2} sample-weight · triple-barrier(λ) 3-class · deadband-tertile | ~.16 | KILL unless DOWN binding-2025 CI-lo>.541 OR UP beats frozen, AND 2026 not collapse, up-rate∈[.47,.53] |
 
-## STATUS: A8a done (side-split). NEXT: A8b coverage curve (both sides) → A8c CPCV.
+## ★ MILESTONE 2026-06-03: BOTH SIDES CERTIFIED (refit-CPCV). Honest floors UP .5475 / DOWN .5486.
+The side-pipeline (a)-(e) is COMPLETE for both sides. Integrity: per-side combined reproduces the independent
+min15_cpcv (mean .5787, p10 .557) → harness faithful. **15m is the first EURUSD horizon with BOTH UP and DOWN
+certified, and the only deriv-deployable one.** DOWN marginally MORE robust (frac-clear 1.0 vs UP .933). Forward
+operating point (.607/.559) was OPTIMISTIC selection — durable figure = the refit p10 floor (.5475 / .5486).
+Margins are THIN (~+0.6-0.7 pt over breakeven .541); the IMPROVE phase tries to widen them.
+
+## NEXT (improve, don't stop at first cert): incumbent to beat = UP refit-p10 .5475 / DOWN .5486 under SAME refit-CPCV.
+Cheap retrains first (1 fit each, ~6-10 min), CPCV only survivors: I3 magweight(POW 0/0.5/1) → relabel family
+(N16 triple-barrier/3-class) → N20 cross-pair rank → gate worst-VAL-half (A2) → seed-ens (I2). Then B-F fast-KILL
+pass + discovery round 2. FREEZE the certified side books now (below).
