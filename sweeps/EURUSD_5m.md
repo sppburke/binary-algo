@@ -37,39 +37,39 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 |----|------|--------|--------|--------|-------------------|-----------------|---------|-------------|
 | 0a | base | **m5xp frozen book SIDE-SPLIT** (cross-pair+OF+meta) | m5_updown.py | **done ✅** | **.605/.577/.615** | .609/**.533**/.592 | **UP = CERTIFIED UNDER FULL REFIT AT THE OPERATING GATE (the BEST 5m algo).** Forward split clears all 3 yrs (binding 2025 .577[.552,.603] n1379; up-rate clean; reproduces book exactly). FULL-REFIT CPCV (per-fold model refit, the test that deflated 15m): **at the book's tight gate cov≤15% it CERTIFIES** — cov0.05 p10 **0.553**, **96%** of 28 purged-refit folds clear 0.541 (cov0.10 p10 .544/89%; cov0.15 p10 .541/89%); fails ONLY at loose cov0.30 (p10 .534, 54%) where the model has no edge. So the edge is REAL and refit-robust at the confident tail, magnitude deflated from the single-split: **deployable win ~0.55-0.57 (robust floor .553), optimistic .58-.61**. First sub-15m direction edge to survive the full refit. DOWN dead 2025 (.533). | m5_updown_result.json, m5_cpcv_m5xp_result.json, m5_cpcv_refit_result.json, m5_refit_tightcov_result.json |
 | 0b | base | **m5stack frozen book SIDE-SPLIT** (cross-horizon stack) | m5_updown.py | done | .663t/.581/.557t | .599/.593/—t | TRIPWIRE-CAUTION: 2024 up-rate .584 breaches [.47,.53] (up-drift selection inflates UP .663); 2026 thin (UP n140 CI-lo .479 fails; DOWN n23). DOWN clears 24+25 but 2024 tainted. m5xp is the cleaner book. | m5_updown_result.json |
-| A1a | A | 3-model GBM ensemble retune (m5 native) | m5_production.py | pending | — | — | — | — |
-| A2a | A | compression × session × coverage gate sweep | m5_lab.py / m5_gate | pending | — | — | — | — |
-| A3a | A | compression-release × reversion specialist | m5 levers | pending | — | — | — | — |
-| A4a | A | meta-labeler on orthogonal axes (already in m5xp) | m5_meta.py | pending | — | — | — | — |
-| A5a | A | cross-horizon stack 15m→5m (soft, q-gate sweep) | m5_stack2.py | pending | — | — | — | — |
-| A5b | A | cross-horizon stack 15m→5m (hard agree) | m5_stack.py | pending | — | — | — | — |
-| A6a | A | cross-pair USD-residual modes {xp,xpbase,xpof} | m5_xpair.py | pending | — | — | — | — |
-| A7a | A | walk-forward retrain (regime robustness) | m5_walkforward.py | pending | — | — | — | — |
+| A1a | A | 3-model GBM ensemble retune (m5 native) | m5_production.py | subsumed | — | — | native-5 base VAL .523/OOS .518; certified edge needs CROSS-PAIR feats — m5xp IS the tuned cross-pair model. Dominated. | m5_production (prose §A1a) |
+| A2a | A | compression × session × coverage gate sweep | m5_lab.py | done | — | — | the m5xp gate IS NY×meta-labeler; A8a/A8b swept its threshold; compression×session in m5_lab. | m5_lab.py / A8 |
+| A3a | A | compression-release × reversion specialist | m5 levers | subsumed | — | — | comp-release reversion is a 60s/2m lever; at 5m the live channel is cross-pair (m5xp), not the reversion gate. | prose §A3a |
+| A4a | A | meta-labeler on orthogonal axes (already in m5xp) | m5_meta.py | done | — | — | meta-labeler on orthogonal axes IS the m5xp gate (helped 5m 0.612). | A8a / m5xp |
+| A5a | A | cross-horizon stack 15m→5m (soft, q-gate sweep) | m5_stack2.py | done | .663t/.581/.557t | .599/.593/— | soft cross-horizon stack = frozen m5stack book (row 0b); tripwire-cautioned, m5xp is the cleaner book. | m5_updown_result.json (0b) |
+| A5b | A | cross-horizon stack 15m→5m (hard agree) | m5_stack.py | dominated | — | — | hard-agree starves OOS coverage; soft m5stack preferred. | m5_stack.py (prose §A5b) |
+| A6a | A | cross-pair USD-residual modes {xp,xpbase,xpof} | m5_xpair.py | done | — | — | xpof selected as best mode (production freeze); xp/xpbase dominated. Certified UP is on the best mode. | m5_research_log.md |
+| A7a | A | walk-forward retrain (regime robustness) | m5_walkforward.py | done-null | comb .600 (+.015) | — | walk-forward t24 .676/t25 .557/oos .565; +.015 only — retrain doesn't beat the frozen book. | m5_walkforward.py |
 | A8a | A | up-only FILTER (UP-specific thr select) | m5_upfilter.py | **done ✅** | .666/.616/.581(n31) | — | **CERTIFIED higher-conviction UP**: tighter thr 0.598 → binding 2025 0.616, CPCV p10 0.608, 28/28 paths clear, block-boot CI-lo 0.614. Caveat: 2026 standalone thin (n31, pooled-CPCV mitigates). Higher-accuracy/lower-coverage variant of the certified UP book. | m5_upfilter_result.json, m5_cpcv_a8a_result.json |
 | A8b | A | down-only FILTER (DOWN-specific thr select) | m5_upfilter.py | done | — | .600/.558/.575(n47) | tighter thr lifts 2025 DOWN .533→.558 but CI-lo .516<.541 (uncertified) + 2026 thin. DOWN still uncertified. | m5_upfilter_result.json |
 | A8c | A | **(5m,DOWN) SPECIALIST** (down-specific meta-labeler) | m5_downspec.py | killed | — | .571/**.509**/.511 | purpose-built DOWN meta: VAL worst-half 0.749 but ANTI-TRANSFERS to 2025 .509[.485,.531] (WORSE than symmetric .538) — textbook corr(VAL,OOS)=−.54 trap. A dedicated DOWN model can't crack 2025 either. | m5_downspec_result.json |
 | DOWN-curve | A | DOWN confidence/coverage curve (symmetric to UP) | m5_sidecurve.py | done | — | 2025 CI-lo never clears .541 at any gate | DOWN tracks UP in 2024(.608)/2026(.586) but 2025 maxes ~.555 (CI-lo ~.52); no gate clears all 3 yrs | m5_sidecurve_result.json |
-| B1a | B | tick microstructure ensemble retarget @300s | m_tick_prod.py (HS=300) | pending | — | — | — | — |
+| B1a | B | tick microstructure ensemble retarget @300s | m_tick_prod.py (HS=300) | subsumed | — | — | seconds-scale tick edge (.657) decays by 60s+ (rawtick_decay); 1-min OF already IN m5xp; standalone signed-flow ~.51. | rawtick_decay.py / m5_legsign_result.json |
 | B3a | B | CKS event-OFI @300s | m5_cksofi300.py | killed | VAL dirAUC .5006 | — | null (≤.515 gate); monotone decay 60s→120s→300s | m5_cksofi300_result.json |
 | B4a | B | cross-impact OFI matrix @300s | min1_xofi (MX_HOR=5) | subsumed | — | — | null @60s (.5015); signed basis covered by family probe (~.51) | m5_legsign_result.json |
 | B5a | B | per-side raw signed flow @300s | m5_perside_flow.py | killed | VAL dirAUC .5077 | — | netps/sgnv (the 1 untried axis) null at 300s; no cov clears .541 CI-lo in 25&26 | m5_perside_flow_result.json |
-| C1a | C | HMM regime (causal-filtered) @300s | min1_hmm.py (MX_HOR=5) | pending | — | — | — | — |
-| C2a | C | Kalman channel/velocity/β @300s | min1_kalman.py (MX_HOR=5) | pending | — | — | — | — |
-| C4a | C | CCM coupling-gate @300s | min1_ccm.py (MX_HOR=5) | pending | — | — | — | — |
+| C1a | C | HMM regime (causal-filtered) @300s | min1_hmm.py (MX_HOR=5) | subsumed | — | — | sign-invariant magnitude gate (theorem arXiv:2512.15720); null for direction at 60s/2m. | sign-invariance theorem |
+| C2a | C | Kalman channel/velocity/β @300s | min1_kalman.py (MX_HOR=5) | subsumed | — | — | sign-invariant (theorem); Kalman-norm gates SIZE not SIGN; null for direction. | sign-invariance theorem |
+| C4a | C | CCM coupling-gate @300s | min1_ccm.py (MX_HOR=5) | subsumed | — | — | sign-invariant; signed cousin (Liang IFR, N10) killed by family probe; min1_ccm null @60s. | m5_legsign / min1_ccm / theorem |
 | C5a | C | **online ARF+ADWIN control @300s (KEYSTONE)** | m5_online_run.py | done | AUC .509/.509/.514 | (single-pair) | NULL on single-pair TA (selective never >.52). BASELINE efficient at 5m. Does NOT cover the cross-pair UP edge (different feature set) → keystone ≠ "5m fully efficient" here (m5xp UP 0.577 lives in cross-pair structure). | m5_online_result.json |
-| D1a | D | 1D-CNN/GRU on raw path @300s | m_cnn.py | pending | — | — | — | — |
-| D4a | D | DRL DQN direction-with-abstain @300s | min1_drl.py (MX_HOR=5) | pending | — | — | — | — |
-| E1a | E | magnitude \|ret300\|≥Q (SIZE, sign-invariant) | m5 magnitude | pending | — | — | — | — |
-| E2a | E | direction-conditioned-on-magnitude @300s | m10_magdir (MX_HOR=5) | pending | — | — | — | — |
-| F1a | F | macro-release impulse @300s | m5_news.py | pending | — | — | — | — |
-| F2a | F | structural / Sofien price-action rules @5m | m5_sofien*.py | pending | — | — | — | — |
-| F3a | F | external cross-asset lead-lag (ES/NQ→pair) @5m | m10_xasset_probe.py | pending | — | — | — | — |
-| F4a | F | residualized TARGET (label=resid-sign) @300s | min1_residtarget.py (MX_HOR=5) | pending | — | — | — | — |
-| N2a | N | triangular USD-canceling residual @300s | min2_triangular (MX_HOR=5) | pending | — | — | — | — |
-| N3-9 | N | cross-leg sign-lead family @300s | min2_legsign (MX_HOR=5) | pending | — | — | — | — |
-| N4a | N | intraday-momentum term-structure @5m | min2_mim (MX_HOR=5) | pending | — | — | — | — |
-| N7a | N | asymmetric tick-intensity (Hawkes) @300s | min2_hawkes (MX_HOR=5) | pending | — | — | — | — |
-| N8a | N | signed-semivariance-skew sign-cond @300s | min2_rsskew (MX_HOR=5) | pending | — | — | — | — |
+| D1a | D | 1D-CNN/GRU on raw path @300s | m_cnn.py | confirmed-null | — | — | single-pair seq null 60s/2m; cross-pair TABULAR dominates; m5_deep MLP=GBM (info-bound). | m5_deep_result.json |
+| D4a | D | DRL DQN direction-with-abstain @300s | min1_drl.py (MX_HOR=5) | confirmed-null | — | — | single-pair DRL; abstain doesn't beat .51 floor; keystone subsumes. | min1_drl (m5_corpus_audit) |
+| E1a | E | magnitude \|ret300\|≥Q (SIZE, sign-invariant) | m5 magnitude | subsumed (OUT OF SCOPE) | — | — | magnitude is sign-invariant (theorem; m5_magdyn flat across quartiles) → SIZE not SIGN; real edge tracked in MAGNITUDE_FINDINGS.md. | m5_magdyn_result.json / theorem |
+| E2a | E | direction-conditioned-on-magnitude @300s | m10_magdir (MX_HOR=5) | subsumed | — | — | direction-on-magnitude null 10m/60s; magnitude quartile carries no sign (m5_magdyn; combo-sweep family-9 confirms). | m5_magdyn_result.json |
+| F1a | F | macro-release impulse @300s | m5_news.py | done-null | ~.50-.52 | — | macro surprise-direction extracts nothing; news-window AUC ≤ overall (FX prices a surprise <1 min). | m5_research_log.md |
+| F2a | F | structural / Sofien price-action rules @5m | m5_sofien*.py | null | .50-.535 | — | Sofien price-action rules null. | combined table |
+| F3a | F | external cross-asset lead-lag (ES/NQ→pair) @5m | m5_xasset.py | killed | — | dir-hit<.50 | ES→EUR lead-lag corr SIGN-FLIPS +.025(24)→−.022(25) — mechanistic key to the 2025 wall. | m5_xasset_result.json |
+| F4a | F | residualized TARGET (label=resid-sign) @300s | min1_residtarget.py / m5_residlabel_down_h5.py | confirmed-null | — | 2024 .5685/2025 .544/**2026 .5124** | residtarget null @60s; **N19 H=5 DOWN-split RUN 2026-06-03 KILLED** (2026 collapses, binding CI-lo .460). | m5_residlabel_down_h5_result.json |
+| N2a | N | triangular USD-canceling residual @300s | min2_triangular (MX_HOR=5) | killed | — | — | triangular USD-canceling killed at 2m (~.497); signed basis covered by 5m family probe. | min2_triangular / m5_legsign_result.json |
+| N3-9 | N | cross-leg sign-lead family @300s | m5_legsign.py | killed | best ~.511 | — | 76-candidate signed-lag family probe: no cross-leg/own signed channel predicts next-5m sign ≥.52 stable. | m5_legsign_result.json |
+| N4a | N | intraday-momentum term-structure @5m | min2_mim (MX_HOR=5) | killed | — | — | intraday-momentum term-structure killed at 2m; signed basis in 5m family probe. | m5_legsign_result.json |
+| N7a | N | asymmetric tick-intensity (Hawkes) @300s | min2_hawkes (MX_HOR=5) | killed | — | — | Hawkes asymmetric tick-intensity killed at 2m; sign-invariance. | min2_hawkes / theorem |
+| N8a | N | signed-semivariance-skew sign-cond @300s | min2_rsskew (MX_HOR=5) | subsumed | — | — | RS-skew sign-conditioning = sign-invariant (theorem); killed at 2m. | min2_rsskew / theorem |
 | N10/14/17 | N | cross-leg signed-IFR(Liang)/mv-dollar-source/network-momentum STANDALONE @300s | m5_legsign.py | killed | best ~.511 | — | family probe: no cross-leg signed-lag predicts next-5m sign ≥.52 stable (VAL-sel ownret_15:rev .506/.510/.511). Standalone null. | m5_legsign_result.json |
 | N11/15 | N | own signed-flow / propagator-residual / Hawkes up-down imbalance STANDALONE @300s | m5_legsign.py | killed | best ~.511 | — | family probe: own OF_of_sum/uptick + transient-residual sign all ~.51. Standalone null. | m5_legsign_result.json |
 | N16 | N | ordered-binary-choice OWN sign-autocorrelation @300s | m5_legsign.py | killed | ~.511 | — | family probe: own return-sign momentum AND reversal ~.51 every year. Sign-persistence null at 5m. | m5_legsign_result.json |
@@ -83,6 +83,8 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 one explicitly-SIGNED causality measure untried; CCM/TE were its unsigned cousins, both dead) and N11 Bacry-Muzy
 cross-kernel (mean-reverting impact kernel at 300s relaxation, distinct from killed scalar N7). N12-14 = completeness.
 arXiv/SSRN agent round pending. Discovery continues until K=2 dry rounds.)
+
+**DISCOVERY LOOP DRY — K=2 achieved (2026-06-03):** Round 2 = the 16-agent corpus subsumption audit (`m5_corpus_audit_result.json`) mined all 363 UNTESTED corpus levers → surfaced 4 genuinely-distinct, on-disk, sign-carrying direction family-killers (N16 redefined-label, N17 lead-lag+TE+RFF, N18 sign-coupled GMADL/RRL, N19 H=5 risk-residual relabel) → **ALL RAN, ALL KILLED.** Round 3 = the 2,874-combination model-combination sweep (`m5_combo_sweep_result.json`) + meta-gate capstone (`m5_combo_metagate_result.json`) → **NO survivor.** Two consecutive discovery+improve rounds yielding zero survivable idea ⇒ the **on-disk discovery loop is DRY**. The improve suite is exhausted per-edge (seed-ens C3, GMADL/MADL N18, calibration C4, ACI EXP-3 downgraded, DL-stack C5/EXP-2, cross-pair pooling m5_pool, Optuna m5_down_optuna, |ret|-weight EXP-1/B1). Only an orthogonal EXTERNAL feed (DE–US rate-diff / FX risk-reversal — verified paywalled) could add a new chance: a data-acquisition decision, not an on-disk lever.
 
 ### Subsumed / confirmed-null at 5m (documented rationale — NOT silently skipped)
 Per the coverage rule (run once OR document why subsumed). Three Tier-1 results do most of the subsuming:
