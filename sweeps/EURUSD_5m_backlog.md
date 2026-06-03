@@ -241,6 +241,14 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   output already on the m5_magweight path); rerun `m5_aci_cpcv.py` nested-refit; report per-year win-rate SPREAD + binding-2025
   win@n. FALSIFIER: KILL if vol-norm does not reduce the 2024/25/26 spread AND does not raise binding-2025 win at ≥ incumbent n
   (no gain over ACI .584@n764); KILL on up-rate∈[.47,.53] breach. INCUMBENT: m5xp_aci .584. NOVELTY: new_untried. (Gibbs-Candès; Bhatnagar)
+  ⏳ **FORWARD-POSITIVE, NOT CERTIFIED 2026-06-02 (`m5_g1l5.py`, `m5_g1l5_result.json`).** Static vol-normalized score
+  (conf/volrank, ex-ante 5m_rv_24, VAL-frozen threshold) FLATTENS the regime profile: binding 2024+2025 **0.6168**
+  (2024 .617/2025 .617, CI-lo .5449) vs raw-conf baseline **0.5921** (2024 .703/2025 .592, CI-lo .474) — trades 2024
+  accuracy for 2025 stability, the G1 premise. **BUT this is the frozen-forward OVERSTATE (cert standard says it
+  over-states), 2026 is ABSENT at the gate coverage (n<20), it's a VAL-selected cov under corr(VAL,OOS)=−0.54, and
+  R1 showed vol-conditioning of win-rate is flat — so treat as a candidate, NOT a win.** REQUIRES nested-refit CPCV
+  (m5_aci_cpcv harness) before any claim; pending. (Adversarial note: an earlier run with |fwd|-weighting LEAKED and
+  was discarded — fixed to ex-ante scoring.)
 **G2. ⚡ Multi-expert online-aggregated ACI (DtACI/FACI/AgACI): K experts over a γ-grid, exp-weight on pinball loss.**
   EXPERIMENT: wrap `m5_conformal.aci_gate`'s scalar θ in K=8 experts (γ∈{.001..0.128}) with DtACI weight update
   (w_i∝exp(−η·pinball)); drop into `m5_aci_cpcv.py`; certify nested-refit per year vs single-γ ACI. KILLS the single-γ choice
@@ -302,6 +310,11 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   threshold worst-VAL-half by MADL=−(1/N)Σ sign(R·R̂)·|R|; eval wc_ret per year; full-refit CPCV at the MADL gate.
   FALSIFIER: KILL if the MADL-selected gate does not beat m5xp UP .577 binding-2025 at ≥ trade count, OR CPCV at the MADL gate
   fails. INCUMBENT: m5xp UP .577 / ACI .584. NOVELTY: new_untried. (Michańków-Sakowski-Ślepaczuk MADL; López-Herrera 8-FX)
+  ❌ **KILLED 2026-06-02 (`m5_g1l5.py`, `m5_g1l5_result.json`).** MADL (|ret|-weighted directional PnL) as the
+  worst-VAL-half cov-SELECTION metric picked the SAME cov as accuracy → identical gate → binding 0.5921, NO change vs
+  the accuracy-selected baseline. Expected: deriv pays a FIXED R, so |ret|-weighting the SELECTION adds nothing over
+  win-rate (the |ret|-weighting only matters on a linear-payout instrument). Does not beat the incumbent. (Ex-ante
+  gate; an earlier |fwd|-weighted per-bar SCORE variant LEAKED and was discarded.)
 **L6. ★ Extreme-value / focal asymmetric loss to RESCUE DOWN on the FULL set (no subsetting) — tail-up-weight large-|neg-ret|
   + asymmetric UP/DOWN cost matrix.** Distinct from the KILLED DOWN specialist (which subset-trained → anti-transferred).
   EXPERIMENT: retrain the cross-pair head with focal-γ / EVL tail-weighted BCE on large-negative-return samples + a
@@ -445,6 +458,12 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   side-split per year; KEY CHECK = does 2026 hold up better than the incumbent. FALSIFIER: KILL if no τ improves the WORST test
   year (esp. 2026) over the unweighted incumbent, OR if a τ that helps 2024/25 degrades 2026 (the |return|-retrain failure mode).
   INCUMBENT: m5xp UP .577 + 2026-collapse rescue. NOVELTY: new_untried. (Avramov-Cheng-Metzker; EPF windowing)
+  ❌ **KILLED 2026-06-02 (`m5_r5.py`, `m5_r5_result.json`).** Refit the cross-pair primary with exp recency weights
+  τ∈{2,4,8,∞}yr (meta refit each time, deployed VAL-q gate). **τ=∞ (uniform, current book) binding 0.5812
+  (2024 .605/2025 .581/2026 .614) — reproduces the book — BEATS every finite τ: τ=4yr binding .5775, τ=8yr binding
+  .5634 (2026 DROPS to .563 = the "helps-24/25-hurts-2026" failure mode the falsifier named).** No τ improves the
+  worst year. **The 2026 collapse is regime NON-STATIONARITY, not slow drift fixable by recency-weighting the 2012-21
+  train** (consistent with corr(VAL,OOS)=−0.54). Uniform weighting already optimal. Incumbent unchanged.
 **R6. ★ VIX / risk-off DOWN-enabler (acquire free daily VIX, forward-fill to 5m, enable DOWN only in high-VIX risk-off
   windows).** Cheap external regime input aimed specifically at the unsolved DOWN side (vol spike → USD bid → EURUSD down-skew).
   EXPERIMENT: acquire daily VIX (Yahoo/Stooq), add VIX-state as a DOWN-side gate conditioner in `m5_downcond.py`/`m5_updown.py`;

@@ -1,0 +1,115 @@
+{
+  "test": "G1 vol-normalized conformity + L5 MADL-selection on m5xp UP (ex-ante, leakage-fixed)",
+  "breakeven": 0.541,
+  "baseline_rawconf": {
+    "cov_selected": 0.05,
+    "worsthalf_acc": 0.6786,
+    "per_year": {
+      "2024": {
+        "win": 0.7033,
+        "n": 91,
+        "ci": [
+          0.6151,
+          0.7912
+        ]
+      },
+      "2025": {
+        "win": 0.5921,
+        "n": 76,
+        "ci": [
+          0.4737,
+          0.6974
+        ]
+      },
+      "pooled": {
+        "win": 0.6529,
+        "n": 170
+      },
+      "binding": {
+        "win": 0.5921,
+        "ci_lo": 0.4737
+      }
+    }
+  },
+  "G1_volnorm": {
+    "cov_selected": 0.3,
+    "worsthalf_acc": 0.6486,
+    "per_year": {
+      "2024": {
+        "win": 0.6169,
+        "n": 757,
+        "ci": [
+          0.5826,
+          0.6499
+        ]
+      },
+      "2025": {
+        "win": 0.6168,
+        "n": 167,
+        "ci": [
+          0.5449,
+          0.6946
+        ]
+      },
+      "pooled": {
+        "win": 0.6161,
+        "n": 930
+      },
+      "binding": {
+        "win": 0.6168,
+        "ci_lo": 0.5449
+      }
+    }
+  },
+  "L5_madl_select": {
+    "cov_selected": 0.05,
+    "worsthalf_madl": 4.307e-05,
+    "per_year": {
+      "2024": {
+        "win": 0.7033,
+        "n": 91,
+        "ci": [
+          0.6151,
+          0.7912
+        ]
+      },
+      "2025": {
+        "win": 0.5921,
+        "n": 76,
+        "ci": [
+          0.4737,
+          0.6974
+        ]
+      },
+      "pooled": {
+        "win": 0.6529,
+        "n": 170
+      },
+      "binding": {
+        "win": 0.5921,
+        "ci_lo": 0.4737
+      }
+    }
+  },
+  "VERDICT": {
+    "baseline_binding": {
+      "win": 0.5921,
+      "ci_lo": 0.4737
+    },
+    "G1": {
+      "binding": 0.6168,
+      "ci_lo": 0.5449,
+      "beats_baseline": true,
+      "clears_breakeven": true,
+      "SURVIVES": true
+    },
+    "L5": {
+      "binding": 0.5921,
+      "ci_lo": 0.4737,
+      "beats_baseline": false,
+      "clears_breakeven": false,
+      "SURVIVES": false
+    },
+    "statement": "baseline(rawconf,acc-select) binding=0.5921 (CI-lo 0.4737). G1(vol-norm) binding=0.6168 (CI-lo 0.5449). L5(MADL-select) binding=0.5921 (CI-lo 0.4737). KILLED unless a variant beats baseline binding + clears breakeven CI."
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "test": "R5 recency-decay sample-weighting \u03c4-sweep (m5xp primary)",
+  "breakeven": 0.541,
+  "val_q": 0.95,
+  "by_tau": {
+    "2": {
+      "per_year": {
+        "2024": {
+          "win": 0.6167,
+          "n": 1753,
+          "ci": [
+            0.5938,
+            0.6378
+          ]
+        },
+        "2025": {
+          "win": 0.5873,
+          "n": 1449,
+          "ci": [
+            0.5618,
+            0.6115
+          ]
+        },
+        "2026": {
+          "win": 0.5591,
+          "n": 254,
+          "ci": [
+            0.4921,
+            0.622
+          ]
+        }
+      },
+      "val_auc": 0.5225,
+      "thr": 0.5734,
+      "binding": {
+        "win": 0.5591,
+        "ci_lo": 0.4921
+      }
+    },
+    "4": {
+      "per_year": {
+        "2024": {
+          "win": 0.6157,
+          "n": 1689,
+          "ci": [
+            0.5921,
+            0.64
+          ]
+        },
+        "2025": {
+          "win": 0.5775,
+          "n": 1375,
+          "ci": [
+            0.5513,
+            0.6036
+          ]
+        },
+        "2026": {
+          "win": 0.6114,
+          "n": 211,
+          "ci": [
+            0.5403,
+            0.6777
+          ]
+        }
+      },
+      "val_auc": 0.5232,
+      "thr": 0.574,
+      "binding": {
+        "win": 0.5775,
+        "ci_lo": 0.5403
+      }
+    },
+    "8": {
+      "per_year": {
+        "2024": {
+          "win": 0.6129,
+          "n": 1731,
+          "ci": [
+            0.591,
+            0.6355
+          ]
+        },
+        "2025": {
+          "win": 0.5939,
+          "n": 1416,
+          "ci": [
+            0.5678,
+            0.6194
+          ]
+        },
+        "2026": {
+          "win": 0.5634,
+          "n": 268,
+          "ci": [
+            0.5,
+            0.6231
+          ]
+        }
+      },
+      "val_auc": 0.5232,
+      "thr": 0.5754,
+      "binding": {
+        "win": 0.5634,
+        "ci_lo": 0.5
+      }
+    },
+    "inf": {
+      "per_year": {
+        "2024": {
+          "win": 0.6049,
+          "n": 1478,
+          "ci": [
+            0.5798,
+            0.6286
+          ]
+        },
+        "2025": {
+          "win": 0.5812,
+          "n": 1423,
+          "ci": [
+            0.5552,
+            0.6065
+          ]
+        },
+        "2026": {
+          "win": 0.6142,
+          "n": 254,
+          "ci": [
+            0.5551,
+            0.6732
+          ]
+        }
+      },
+      "val_auc": 0.5231,
+      "thr": 0.5738,
+      "binding": {
+        "win": 0.5812,
+        "ci_lo": 0.5551
+      }
+    }
+  },
+  "VERDICT": {
+    "tau_inf_binding": 0.5812,
+    "best_finite_tau": "4",
+    "best_finite_binding": {
+      "win": 0.5775,
+      "ci_lo": 0.5403
+    },
+    "SURVIVES": false,
+    "statement": "R5 KILLED: best finite \u03c4=4yr binding 0.5775 (CI-lo 0.5403) does NOT beat uniform \u03c4=\u221e binding 0.5812. The 2026 collapse is NOT slow drift fixable by recency-weighting the 2012-21 train (it is regime non-stationarity, consistent with corr(VAL,OOS)=\u22120.54)."
+  }
+}
