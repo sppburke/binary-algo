@@ -1,0 +1,231 @@
+{
+  "test": "DOWN improve: K=4 seed-ensemble magweight POW=0.5, forward per-year",
+  "breakeven": 0.541,
+  "K": 4,
+  "covs": [
+    0.03,
+    0.05,
+    0.1
+  ],
+  "UP": {
+    "cov0.03": {
+      "2024": {
+        "win": 0.5502,
+        "n": 1216,
+        "ci": [
+          0.5222,
+          0.5773
+        ],
+        "uprate": 0.55
+      },
+      "2025": {
+        "win": 0.523,
+        "n": 1195,
+        "ci": [
+          0.4954,
+          0.5523
+        ],
+        "uprate": 0.523
+      },
+      "2026": {
+        "win": 0.5371,
+        "n": 458,
+        "ci": [
+          0.4891,
+          0.583
+        ],
+        "uprate": 0.537
+      }
+    },
+    "cov0.05": {
+      "2024": {
+        "win": 0.5497,
+        "n": 1921,
+        "ci": [
+          0.5279,
+          0.5721
+        ],
+        "uprate": 0.55
+      },
+      "2025": {
+        "win": 0.5238,
+        "n": 1892,
+        "ci": [
+          0.5011,
+          0.5465
+        ],
+        "uprate": 0.524
+      },
+      "2026": {
+        "win": 0.5098,
+        "n": 716,
+        "ci": [
+          0.4735,
+          0.5461
+        ],
+        "uprate": 0.51
+      }
+    },
+    "cov0.1": {
+      "2024": {
+        "win": 0.5369,
+        "n": 3496,
+        "ci": [
+          0.52,
+          0.5538
+        ],
+        "uprate": 0.537
+      },
+      "2025": {
+        "win": 0.5206,
+        "n": 3429,
+        "ci": [
+          0.5036,
+          0.5369
+        ],
+        "uprate": 0.521
+      },
+      "2026": {
+        "win": 0.511,
+        "n": 1323,
+        "ci": [
+          0.4837,
+          0.5382
+        ],
+        "uprate": 0.511
+      }
+    }
+  },
+  "DOWN": {
+    "cov0.03": {
+      "2024": {
+        "win": 0.5399,
+        "n": 978,
+        "ci": [
+          0.5082,
+          0.5695
+        ],
+        "uprate": 0.46
+      },
+      "2025": {
+        "win": 0.5194,
+        "n": 1007,
+        "ci": [
+          0.4876,
+          0.5492
+        ],
+        "uprate": 0.481
+      },
+      "2026": {
+        "win": 0.5698,
+        "n": 344,
+        "ci": [
+          0.5174,
+          0.6221
+        ],
+        "uprate": 0.43
+      }
+    },
+    "cov0.05": {
+      "2024": {
+        "win": 0.5539,
+        "n": 1549,
+        "ci": [
+          0.5281,
+          0.5778
+        ],
+        "uprate": 0.446
+      },
+      "2025": {
+        "win": 0.5214,
+        "n": 1592,
+        "ci": [
+          0.4975,
+          0.5459
+        ],
+        "uprate": 0.479
+      },
+      "2026": {
+        "win": 0.5636,
+        "n": 550,
+        "ci": [
+          0.5218,
+          0.6036
+        ],
+        "uprate": 0.436
+      }
+    },
+    "cov0.1": {
+      "2024": {
+        "win": 0.5396,
+        "n": 2917,
+        "ci": [
+          0.5218,
+          0.5578
+        ],
+        "uprate": 0.46
+      },
+      "2025": {
+        "win": 0.5139,
+        "n": 2987,
+        "ci": [
+          0.4961,
+          0.532
+        ],
+        "uprate": 0.486
+      },
+      "2026": {
+        "win": 0.5341,
+        "n": 1011,
+        "ci": [
+          0.5015,
+          0.5648
+        ],
+        "uprate": 0.466
+      }
+    }
+  },
+  "cert": {
+    "UP_cov0.03": {
+      "binding": 0.523,
+      "binding_ci_lo": 0.4891,
+      "min_n": 458,
+      "all3yr_clears": false
+    },
+    "UP_cov0.05": {
+      "binding": 0.5098,
+      "binding_ci_lo": 0.4735,
+      "min_n": 716,
+      "all3yr_clears": false
+    },
+    "UP_cov0.1": {
+      "binding": 0.511,
+      "binding_ci_lo": 0.4837,
+      "min_n": 1323,
+      "all3yr_clears": false
+    },
+    "DOWN_cov0.03": {
+      "binding": 0.5194,
+      "binding_ci_lo": 0.4876,
+      "min_n": 344,
+      "all3yr_clears": false
+    },
+    "DOWN_cov0.05": {
+      "binding": 0.5214,
+      "binding_ci_lo": 0.4975,
+      "min_n": 550,
+      "all3yr_clears": false
+    },
+    "DOWN_cov0.1": {
+      "binding": 0.5139,
+      "binding_ci_lo": 0.4961,
+      "min_n": 1011,
+      "all3yr_clears": false
+    }
+  },
+  "VERDICT": {
+    "DOWN_forward_certified": false,
+    "UP_forward_certified": false,
+    "statement": "DOWN still fails: 0.03: bind 0.5194 CI-lo 0.4876 n344; 0.05: bind 0.5214 CI-lo 0.4975 n550; 0.1: bind 0.5139 CI-lo 0.4961 n1011. Seed-ensembling does NOT lift the forward DOWN binding CI over breakeven \u2014 the \u00a73 improve lever is applied-and-failed on DOWN; DOWN genuinely exhausted on-disk."
+  }
+}

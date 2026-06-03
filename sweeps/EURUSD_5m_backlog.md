@@ -605,3 +605,14 @@ no longer inference. Order-flow carries NO 5m direction on either side; informed
   N14 whale-OIB (.50), N12 ranker (.513). External RR DOWN-rescue verified PAYWALLED. No on-disk DOWN edge exists.
 - **Improve loop (V1-R5) + discover loop (rounds 1-3, N10-N15) DRY — empirically** (all RUN or Tier-1-RUN-subsumed).
   Only remaining EV = funded external data (risk-reversal / intraday rate-diff). On-disk space exhausted.
+
+### DOWN §3 IMPROVE applied — seed-ensemble magweight (2026-06-02, `m5_magweight_seedens.py`/`m5_magweight_seedens_result.json`)
+The mandated §3 improve lever (seed-ensembling), NEVER before applied to DOWN, RUN on the POW=0.5 magweight DOWN
+(K=4 seeds, prob-avg, forward per-year cov{.03,.05,.10}). **Does NOT certify DOWN — fails the 2025 binding regime at
+EVERY cov:** DOWN cov0.05 2024 .554 / **2025 .521** (CI-lo .498) / 2026 .564; cov0.03 2025 .519; cov0.10 2025 .514.
+Same 2025-regime wall that kills every DOWN config (side-split .533, magweight forward-2025 CI-lo .533, now seed-ens
+.52). The highest-EV variance-reduction lever leaves DOWN ~.02 below breakeven in the binding year. **DOWN improve-lever
+applied-and-failed → genuinely exhausted on-disk, EMPIRICALLY.** The 2025 USD-regime is the binding wall; the only lever
+that carries regime-signed-positioning (risk-reversal sign) is the verified-PAYWALLED external feed (funded prerequisite).
+Remaining §3 levers (calibration/ACI/Optuna) RUN-failed on the STRONGER UP side (m5_calibcpcv 0% clear, m5_aci_cpcv
+uncertified) → cannot add the +.02 DOWN needs; subsumed by those RUN nulls + the .02 binding gap.
