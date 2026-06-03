@@ -7,6 +7,7 @@ Generic methods: `METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`; cros
 **Tested-on-keys pointers (where these levers were instantiated):**
 - EURUSD · 5m  → `sweeps/EURUSD_5m_backlog.md`  (+ `EURUSD_RESULTS.md`)
 - EURUSD · 2m  → `sweeps/EURUSD_2m_backlog.md`
+- EURUSD · 15m → `sweeps/EURUSD_15m_backlog.md`  (deriv-tradeable binary; Q1 = magnitude×direction gate, user-queued 2026-06-03)
 - EURUSD · 30m → `sweeps/EURUSD_30m_backlog.md`
 
 ---
