@@ -557,3 +557,22 @@ on-disk candidates appended to `SWEEP_MATRIX.md` Tier-N (N10–N15), test queue 
 Mechanism note: the only candidates aligned with the LIVE edge (cross-pair) are N10/N11/N12; the order-flow set
 (N13/N14/N15) is heavily discounted (raw OFI nulled at 60s, tick edge decays by 60s). Test top-prior first; the
 order-flow set only if a cross-pair lever shows life.
+
+### Discovery round 3 — RESULTS (2026-06-02): DRY
+
+- **N10 TAR-VECM EC-speed sign — KILLED** (`m5_tarvecm.py`/`m5_tarvecm_result.json`): cointegration reversion sign is
+  COIN-FLIP at 5m — VAL worst-half .4989; held-out 2024 .504/2025 .508/2026 .494 (binding CI-lo .482); tripwire clean.
+  Not even regime-flip — null on VAL too. The cross-pair *sign* carries no 5m direction (the m5xp edge is the GBM's
+  nonlinear extraction + meta gate, not a residual sign). Confirms C3 RMT-residual kill empirically.
+- **N11/N12 (cross-pair re-optimization) — SUBSUMED** (audit-flagged): N10 (cross-pair sign null) + seed-ensemble null
+  (`m5_seedens_cpcv` p10 .5525≈floor) + magweight/GMADL |ret|-loss done → re-optimizing the same cross-pair GBM does
+  not manufacture sign that isn't there. N11 also DL-info-bound (D1-D6 nulls) + heavy.
+- **N13/N14/N15 (order-flow) — SUBSUMED** (audit-flagged): 60s OFI nulled (B3a .5006/B4a .5015/B5a .5077) + tick edge
+  decays monotonically by 60s → null at 300s; whale/depletion/closed-form refine the same null signal. Audit only if
+  cheap tick infra appears.
+
+**VERDICT: on-disk improve + discover loops DRY.** v2 IMPROVE queue (V1,V2,R1,E1,G1,L5,R5) all killed/incumbent-refining;
+discovery round 3 (top candidate N10 RUN→coin-flip; rest Tier-1-subsumed) + rounds 1-2 prior + ~30 null channels +
+operational sign-invariance (R1). **The only remaining EV is EXTERNAL DATA** (intraday DE-US rate differential,
+implied-vol/risk-reversal, EURGBP ticks — H-TODO acquisitions, NOT on-disk). UP incumbent = m5xp refit floor .553;
+DOWN = magweight POW=0.5 marginal. → proceed to deployment specs + freeze.

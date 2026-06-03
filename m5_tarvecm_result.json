@@ -1,0 +1,45 @@
+{
+  "test": "N10 TAR-VECM error-correction sign \u2014 5m EURUSD direction",
+  "breakeven": 0.541,
+  "polarity": "reversion",
+  "thr": 0.02324100168965939,
+  "val_worsthalf_acc": 0.4989,
+  "per_year": {
+    "2024": {
+      "acc": 0.5035,
+      "n": 74338,
+      "ci": [
+        0.4998,
+        0.5069
+      ],
+      "uprate": 0.503
+    },
+    "2025": {
+      "acc": 0.5077,
+      "n": 39542,
+      "ci": [
+        0.5027,
+        0.5125
+      ],
+      "uprate": 0.508
+    },
+    "2026": {
+      "acc": 0.4935,
+      "n": 7343,
+      "ci": [
+        0.482,
+        0.5044
+      ],
+      "uprate": 0.494
+    }
+  },
+  "binding": {
+    "acc": 0.4935,
+    "ci_lo": 0.482
+  },
+  "uprate_tripwire_ok": true,
+  "VERDICT": {
+    "SURVIVES": false,
+    "statement": "N10 KILLED: EC-sign reversion binding 0.4935 (CI-lo 0.482); per-year { 2024:0.5035,2025:0.5077,2026:0.4935 }; tripwire_ok=True. Cross-pair cointegration sign does NOT carry stable 5m direction (same USD-factor regime-dependence that killed C3 RMT-residual)."
+  }
+}
