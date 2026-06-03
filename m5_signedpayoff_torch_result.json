@@ -1,0 +1,24 @@
+{
+  "test": "SIGN-COUPLED objective batch @5m: HEAD A GMADL/MADL (lgb fobj + torch MLP), HEAD B RRL/diff-Sharpe",
+  "status": "PRE-REGISTERED (written before OOS eval)",
+  "breakeven": 0.541,
+  "cov": 0.05,
+  "stride": 6,
+  "torch_cap": 150000,
+  "payoff": {
+    "win": 0.85,
+    "loss": -1.0,
+    "note": "deriv ties-LOSE binary settlement @H=300s, keyed to moved label _y"
+  },
+  "incumbents": {
+    "UP_2025": 0.577,
+    "DOWN_2025_magweight": 0.5594
+  },
+  "gmadl_grad_hess": "L_i=-sigma(a*R*z)*|R|^b; grad=-|R|^b*sigma(u)(1-sigma(u))*(a*R); hess=-|R|^b*(a*R)^2*sigma(u)(1-sigma(u))(1-2sigma(u)); u=a*R*z; lgb uses |hess|+eps",
+  "PRE_REGISTERED_FALSIFIER": "KILL (loss-reopt + sizing-policy families empirically exhausted) unless a worst-VAL-half-selected book beats incumbent on the BINDING 2025 year on >=1 side at matched-or-higher nonoverlap n: DOWN-2025 CI95-lo >= 0.541 AND > magweight DOWN 0.5594, OR UP-2025 CI95-lo > incumbent 0.577 by > 1 SE; AND up-rate in [0.47,0.53]; AND 2026 does NOT collapse < 0.541; AND any survivor must additionally pass nested-refit CPCV (p10>=0.541 AND >=80% of 28 purged paths clear) before any freeze \u2014 failing refit = KILL.",
+  "HEAD_A": {},
+  "HEAD_B": {},
+  "VERDICT": {
+    "status": "pending OOS"
+  }
+}

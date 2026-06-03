@@ -7,6 +7,359 @@
   "incumbent_UP_2025": 0.577,
   "magweight_DOWN_p10": 0.5441,
   "PREREGISTERED_FALSIFIER": "KILL the label-engineering family unless some variant yields UP binding-2025 (min per-year, TRUE-300s-sign, ties-LOSE, worst-VAL-half-selected) win-rate CI95-lo >= 0.541 AND beats incumbent UP .577 by >1 SE; OR DOWN binding-2025 CI95-lo >= 0.541 AND beats magweight DOWN p10 .5441 by >1 SE. If best variant's 2025 up-rate not in [0.47,0.53] or only wins on a smoothed label -> subsumed.",
-  "status": "RUNNING",
-  "variants": {}
+  "status": "DONE",
+  "variants": {
+    "triple_barrier": {
+      "UP": {
+        "2024": {
+          "win": 0.5949,
+          "n": 1960,
+          "ci": [
+            0.573,
+            0.6168
+          ],
+          "uprate": 0.5949,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5515,
+          "n": 1953,
+          "ci": [
+            0.5305,
+            0.573
+          ],
+          "uprate": 0.5515,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5214,
+          "n": 771,
+          "ci": [
+            0.4851,
+            0.5564
+          ],
+          "uprate": 0.5214,
+          "uprate_ok": true
+        },
+        "binding": {
+          "win": 0.5214,
+          "ci_lo": 0.4851,
+          "min_n": 771,
+          "uprate_2025": 0.5515,
+          "uprate_2025_ok": false
+        },
+        "selected_k": 0.5,
+        "val_worsthalf": 0.5614,
+        "val_n": 4085
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5766,
+          "n": 1698,
+          "ci": [
+            0.5524,
+            0.6013
+          ],
+          "uprate": 0.4234,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5404,
+          "n": 1782,
+          "ci": [
+            0.5165,
+            0.5645
+          ],
+          "uprate": 0.4596,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5721,
+          "n": 610,
+          "ci": [
+            0.5328,
+            0.6115
+          ],
+          "uprate": 0.4279,
+          "uprate_ok": false
+        },
+        "binding": {
+          "win": 0.5404,
+          "ci_lo": 0.5165,
+          "min_n": 610,
+          "uprate_2025": 0.4596,
+          "uprate_2025_ok": false
+        },
+        "selected_k": 1.0,
+        "val_worsthalf": 0.5743,
+        "val_n": 3339
+      }
+    },
+    "trend_scan": {
+      "UP": {
+        "2024": {
+          "win": 0.5875,
+          "n": 1845,
+          "ci": [
+            0.5653,
+            0.6092
+          ],
+          "uprate": 0.5875,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5459,
+          "n": 1764,
+          "ci": [
+            0.5227,
+            0.5697
+          ],
+          "uprate": 0.5459,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5309,
+          "n": 648,
+          "ci": [
+            0.4923,
+            0.571
+          ],
+          "uprate": 0.5309,
+          "uprate_ok": false
+        },
+        "binding": {
+          "win": 0.5309,
+          "ci_lo": 0.4923,
+          "min_n": 648,
+          "uprate_2025": 0.5459,
+          "uprate_2025_ok": false
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5889,
+          "n": 1715,
+          "ci": [
+            0.5662,
+            0.6117
+          ],
+          "uprate": 0.4111,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5417,
+          "n": 1704,
+          "ci": [
+            0.52,
+            0.5651
+          ],
+          "uprate": 0.4583,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5068,
+          "n": 588,
+          "ci": [
+            0.4677,
+            0.5459
+          ],
+          "uprate": 0.4932,
+          "uprate_ok": true
+        },
+        "binding": {
+          "win": 0.5068,
+          "ci_lo": 0.4677,
+          "min_n": 588,
+          "uprate_2025": 0.4583,
+          "uprate_2025_ok": false
+        }
+      }
+    },
+    "jump_filtered": {
+      "UP": {
+        "2024": {
+          "win": 0.5954,
+          "n": 1945,
+          "ci": [
+            0.5733,
+            0.6162
+          ],
+          "uprate": 0.5954,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5441,
+          "n": 1884,
+          "ci": [
+            0.5218,
+            0.5674
+          ],
+          "uprate": 0.5441,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5563,
+          "n": 719,
+          "ci": [
+            0.5188,
+            0.5925
+          ],
+          "uprate": 0.5563,
+          "uprate_ok": false
+        },
+        "binding": {
+          "win": 0.5441,
+          "ci_lo": 0.5188,
+          "min_n": 719,
+          "uprate_2025": 0.5441,
+          "uprate_2025_ok": false
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5692,
+          "n": 1676,
+          "ci": [
+            0.5465,
+            0.5919
+          ],
+          "uprate": 0.4308,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5302,
+          "n": 1737,
+          "ci": [
+            0.5066,
+            0.5536
+          ],
+          "uprate": 0.4698,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5261,
+          "n": 595,
+          "ci": [
+            0.4857,
+            0.5664
+          ],
+          "uprate": 0.4739,
+          "uprate_ok": true
+        },
+        "binding": {
+          "win": 0.5261,
+          "ci_lo": 0.4857,
+          "min_n": 595,
+          "uprate_2025": 0.4698,
+          "uprate_2025_ok": false
+        }
+      },
+      "dropped_frac": 0.0018
+    },
+    "deadband3": {
+      "UP": {
+        "2024": {
+          "win": 0.5831,
+          "n": 1806,
+          "ci": [
+            0.5604,
+            0.6055
+          ],
+          "uprate": 0.5831,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.5642,
+          "n": 1808,
+          "ci": [
+            0.542,
+            0.5868
+          ],
+          "uprate": 0.5642,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5722,
+          "n": 699,
+          "ci": [
+            0.5365,
+            0.6094
+          ],
+          "uprate": 0.5722,
+          "uprate_ok": false
+        },
+        "binding": {
+          "win": 0.5642,
+          "ci_lo": 0.5365,
+          "min_n": 699,
+          "uprate_2025": 0.5642,
+          "uprate_2025_ok": false
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5702,
+          "n": 1559,
+          "ci": [
+            0.5471,
+            0.5943
+          ],
+          "uprate": 0.4298,
+          "uprate_ok": false
+        },
+        "2025": {
+          "win": 0.55,
+          "n": 1580,
+          "ci": [
+            0.5253,
+            0.5734
+          ],
+          "uprate": 0.45,
+          "uprate_ok": false
+        },
+        "2026": {
+          "win": 0.5303,
+          "n": 577,
+          "ci": [
+            0.4905,
+            0.5702
+          ],
+          "uprate": 0.4697,
+          "uprate_ok": false
+        },
+        "binding": {
+          "win": 0.5303,
+          "ci_lo": 0.4905,
+          "min_n": 577,
+          "uprate_2025": 0.45,
+          "uprate_2025_ok": false
+        }
+      },
+      "flat_frac": 0.5864
+    }
+  },
+  "train_path_coverage_300s": 1.0,
+  "binding": {
+    "UP": {
+      "variant": "deadband3",
+      "win": 0.5642,
+      "ci_lo": 0.5365,
+      "min_n": 699,
+      "uprate_2025": 0.5642,
+      "uprate_2025_ok": false
+    },
+    "DOWN": {
+      "variant": "triple_barrier",
+      "win": 0.5404,
+      "ci_lo": 0.5165,
+      "min_n": 610,
+      "uprate_2025": 0.4596,
+      "uprate_2025_ok": false
+    }
+  },
+  "VERDICT": {
+    "UP_beats": false,
+    "DOWN_beats": false,
+    "statement": "label-engineering: UP fails (best deadband3 2025 ci_lo 0.5365); DOWN fails (best triple_barrier 2025 ci_lo 0.5165). Redefining the TRAIN label (triple-barrier / trend-scan / jump-filter / 3-class deadband) does NOT lift UP over .577+1SE nor DOWN over .5441+1SE on the TRUE 300s sign \u2014 the label definition is not the binding constraint at 5m; path-dependent/redefined-label family joins the killed set (focal/quantile/asym/magweight/seedens/rankloss). Eval used the real deriv label (ties-LOSE); selection was worst-VAL-half."
+  }
 }
