@@ -1,0 +1,33 @@
+{
+ "model": "cross-pair xpof primary @MX_HOR=15",
+ "combined": {
+  "n_paths": 15,
+  "mean": 0.5804,
+  "p10": 0.5687,
+  "min": 0.5648,
+  "max": 0.5904,
+  "frac_clear_BE": 1.0
+ },
+ "UP": {
+  "n_paths": 15,
+  "mean": 0.5793,
+  "p10": 0.5673,
+  "min": 0.5507,
+  "max": 0.5961,
+  "frac_clear_BE": 1.0
+ },
+ "DOWN": {
+  "n_paths": 15,
+  "mean": 0.5818,
+  "p10": 0.5742,
+  "min": 0.5684,
+  "max": 0.5959,
+  "frac_clear_BE": 1.0
+ },
+ "book_floor": {
+  "UP": 0.5475,
+  "DOWN": 0.5486
+ },
+ "breakeven": 0.541,
+ "CERT_RULE": "side CERTIFIED iff p10>=.541 & frac>=.80; IMPROVEMENT iff p10 > book floor"
+}

@@ -68,7 +68,8 @@ Incumbent COMBINED book = `EURUSD.m15.v1` (CPCV-faithful 0.579, p10 0.557; recen
 | I6 | improve | Optuna TPE on worst-VAL-half (logged multiplicity) | wrap | tune | low | pending | | | | |
 | A5 | x-horizon | cross-horizon stack: 30m/10m parent → 15m front-load | `m15_stack.py` | D | med | pending | | | | |
 | A6 | x-pair | cross-pair USD-residual+OF PRIMARY (m5xp source) retargeted MX_HOR=15 + blend w/ book | `m15_xpair_blend.py` | D | **high** | **fwd-positive → CPCV** | — | xpair fwd 2025 .570 > book .541 | xpair fwd 2025 .591 > book .517 | `m15_xpair_blend_result.json` |
-| A6c | x-pair | (A6) per-side full-refit CPCV — certify the cross-pair improvement | `m15_xpair_cpcv.py` | D | high | running | | | | `m15_xpair_cpcv_result.json` |
+| A6c | x-pair | (A6) per-side full-refit CPCV — certify the cross-pair improvement | `m15_xpair_cpcv.py` | D | high | **done ✅ CERTIFIED+IMPROVES** | mean .5804 p10 .5687 | **p10 .5673** (15/15, vs book .5475) | **p10 .5742** (15/15, vs book .5486) | `m15_xpair_cpcv_result.json` |
+| A6f | x-pair | FREEZE the cross-pair 15m book (full-fidelity train + worst-VAL-half gate) | `m15_xpair_freeze.py` | D | — | pending | | | | |
 | N2 | discovered | triangular USD-canceling residual (EUR-vs-GBP) — top-prior, retarget @15m | `m15_triresid.py` | D | ~15% | pending | | | | |
 | N16 | discovered | redefined TRAIN label (triple-barrier/trend-scan/jump-filter) — RE-TEST @15m (more trend) | `m15_labels.py` | D | ~15% | pending | | | | |
 | N18 | discovered | sign-coupled payoff objective (GMADL/RRL diff-Sharpe head) | `m15_signedpayoff.py` | D | ~10% | pending | | | | |
@@ -79,11 +80,11 @@ Most are null at 60s/5m and corpus-audit-subsumed for 5m, but 15m regime composi
 microstructure noise). Fast-KILL falsifier: KILL unless VAL dirAUC>0.515 AND some held-out year moved-acc CI-lo>.541.
 | id | family | method | script | prior | status | note |
 |----|--------|--------|--------|-------|--------|------|
-| B-pass | microstructure/OFI | B3 CKS-OFI, B4 x-OFI, B5 per-side flow — at 15m (decay prior says dead) | min1_* (MX_HOR=15) | ~null | pending | tick→15m decay; expect dead |
-| C-pass | state-space | C1 HMM-gate, C2 Kalman, C3 RMT, C4 CCM @15m | min1_* | ~null | pending | sign-invariance: likely magnitude |
-| D-pass | seq/deep | D1 CNN/GRU, D2 NeuralCDE, D3 TabNet @15m | exp_seq/m_cnn | ~null | pending | info-bound caps AUC |
-| E-pass | magnitude | E1 |ret|≥Q @15m → `MAGNITUDE_FINDINGS.md` (sign-invariant, no UP/DOWN key) | m*_magnitude | high(mag) | pending | size edge, not direction |
-| F-pass | exog | F1 news, F2 price-action rules, F3 ES/NQ lead-lag, F4 resid-target @15m | m5_*/m30_* | ~null | pending | external mostly |
+| B-pass | microstructure/OFI | B3 CKS-OFI, B4 x-OFI, B5 per-side flow @15m | min1_* (MX_HOR=15) | ~null | **subsumed** | Tier-1: microstructure DECAYS monotonically with H — null already by 60s across ~24 channels (xOFI VAL .5015, CCM slope .0066, whale/queue/Cont-deLarrard all coin-flip @5m); at 15m the tick-scale signal is gone a fortiori. Sign-invariance: most OFI gates MAGNITUDE. Running = confirm-the-null, near-zero ROI. |
+| C-pass | state-space | C1 HMM-gate, C2 Kalman, C3 RMT, C4 CCM @15m | min1_* | ~null | **subsumed** | Tier-1: HMM/Kalman/RMT/CCM all null @60s; sign-invariance theorem (arXiv:2512.15720) — these gate SIZE not SIGN. The base book ALREADY uses a vol-regime gate (comp×NY); an HMM regime gate is a variant of that, no new direction info. |
+| D-pass | seq/deep | D1 CNN/GRU, D2 NeuralCDE, D3 TabNet @15m | exp_seq/m_cnn | ~null | **subsumed** | Tier-1: info-bound caps raw AUC at ALL horizons (5m DL review: no economic gain; 15m raw AUC .528). Deep nets can't exceed the info content the GBM already extracts; D5 meta-labeler @15m already 0.615<parent. |
+| E/Q1 | magnitude×dir | magnitude regime gate on 15m direction (the queued backlog Q1; the ONE distinct on-disk test) | `m15_magdir.py` | ~.10 | **pending (run)** | sign-invariance prior = null, but 15m move-composition differs from the 5m null → RUN to confirm. Magnitude itself (sign-invariant) → MAGNITUDE_FINDINGS, no UP/DOWN key. |
+| F-pass | exog | F1 news, F2 price-action, F3 ES/NQ lead-lag, F4 resid-target @15m | m5_*/m30_* | ~null | **subsumed (on-disk) / →Tier-G** | Tier-1: news NULL for ≤5m FX direction (macro-calendar memory); price-action rules (RSI2/BB%b) already in the 239 base features the GBM uses; ES/NQ + macro = EXTERNAL → Tier-G frontier (backlog). |
 
 ## DISCOVERY (loop-until-dry; see task 5 + CORPUS_LEVER_INVENTORY.md)
 **Round 1 done (2026-06-03):** parsed CORPUS_LEVER_INVENTORY.md (550 levers) programmatically → **106 untested
@@ -117,7 +118,16 @@ only survivable on-disk idea is being certified now → loop near-dry pending A6
 | N20 | cross-pair cross-sectional rank/factor | learning-to-rank (LambdaMART) on 7-major fwd-15m rank · PC-shrinkage residual · IPCA latent | ~.16 | KILL unless binding-2025 side win-rate CI-lo > frozen side incumbent |
 | I3+ | loss/labeling retrain (consolidated) | MADL · GMADL(a,b) · \|ret\|^p p∈{.5,1,2} sample-weight · triple-barrier(λ) 3-class · deadband-tertile | ~.16 | KILL unless DOWN binding-2025 CI-lo>.541 OR UP beats frozen, AND 2026 not collapse, up-rate∈[.47,.53] |
 
-## ★ MILESTONE 2026-06-03: BOTH SIDES CERTIFIED (refit-CPCV). Honest floors UP .5475 / DOWN .5486.
+## ★★ MILESTONE 2 2026-06-03: CROSS-PAIR IMPROVES BOTH SIDES (refit-CPCV). New floors UP .5673 / DOWN .5742.
+The cross-pair USD-residual+OF primary (m5xp source) retargeted MX_HOR=15 CERTIFIES on the SAME refit-CPCV
+harness at UP p10 **.5673** / DOWN p10 **.5742**, frac-clear **1.0 both sides** (all 15 purged paths clear) —
+a +1.98pt (UP) / +2.56pt (DOWN) improvement over the base-book floors, turning the DOWN side from a thin +.8pt
+edge into a solid +3.3pt one. Even the WORST cross-pair path (UP .5507/DOWN .5684) beats the book p10. MECHANISM
+confirmed: modeling the USD common factor directly is robust in the USD-regime binding years that capped the base
+book. **NEW LEADER both keys = the cross-pair 15m model.** The base book remains a valid (lower) certified fallback.
+NEXT: freeze the cross-pair 15m book (A6f) as the deliverable; then Q1 magnitude (last on-disk test) + finalize.
+
+## ★ MILESTONE 2026-06-03: BOTH SIDES CERTIFIED (refit-CPCV). Honest floors UP .5475 / DOWN .5486 (base book).
 The side-pipeline (a)-(e) is COMPLETE for both sides. Integrity: per-side combined reproduces the independent
 min15_cpcv (mean .5787, p10 .557) → harness faithful. **15m is the first EURUSD horizon with BOTH UP and DOWN
 certified, and the only deriv-deployable one.** DOWN marginally MORE robust (frac-clear 1.0 vs UP .933). Forward
