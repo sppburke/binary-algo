@@ -5,7 +5,12 @@ currency: EURUSD
 timeframe: 5m (300s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 300s, OOS(2026)-verified, clearing breakeven 0.541
-status: SWEEP COMPLETE; v2 IMPROVE/VALIDATE queue IN PROGRESS (V1 done 2026-06-02). **(5m,UP) = the best 5m algo, CERTIFIED under
+status: **GOAL COMPLETE — 5m closed at its honest terminus (user-confirmed 2026-06-03).** Both sides certified-or-exhausted,
+        improve loop exhausted, discover loop K=2 dry, **#3 cross-pair portfolio RESOLVED DEAD** (`m5_xpair_generalize_result.json`:
+        generalizes-in-mechanism but uniformly thin, falsifier 0/6; EURUSD control also failed .4913 so "EURUSD-specific" auto-label
+        corrected). UP = certified deployable floor .553 (spot @≤0.1 pip); DOWN = honestly-exhausted marginal .5441 (do-not-deploy).
+        Remaining levers are EXTERNAL/funded data only (H-TODO; risk-reversal verified paywalled) — user chose NOT to pursue now.
+        [Prior status preserved below.] SWEEP COMPLETE; v2 IMPROVE/VALIDATE queue done. **(5m,UP) = the best 5m algo, CERTIFIED under
         full per-fold refit at the operating gate** (cov0.05 p10 0.553, 96% folds clear; deflates only at loose cov).
         ⚠ **V1 multiple-testing haircut (`m5_mt_haircut_result.json`): durable UP figure is the refit-CPCV floor 0.553 — the
         binding-2025 headline 0.577 is MULTIPLICITY-INFLATED (BY-adj p 0.158, fails HLZ t≥3); pooled edge t=5.81 survives, cert untouched.**
