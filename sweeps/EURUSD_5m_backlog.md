@@ -616,3 +616,21 @@ applied-and-failed → genuinely exhausted on-disk, EMPIRICALLY.** The 2025 USD-
 that carries regime-signed-positioning (risk-reversal sign) is the verified-PAYWALLED external feed (funded prerequisite).
 Remaining §3 levers (calibration/ACI/Optuna) RUN-failed on the STRONGER UP side (m5_calibcpcv 0% clear, m5_aci_cpcv
 uncertified) → cannot add the +.02 DOWN needs; subsumed by those RUN nulls + the .02 binding gap.
+
+### Cross-pair POOLING (§3 'one untested structural lever') — APPLIED + FAILED (2026-06-03, `m5_pool.py`/`m5_pool_result.json`)
+Trained one weight-shared GBM on POOLED bars of all 7 USD majors (840k rows, base-239 features → each pair's own 5m
+direction), plain + POW=0.5-magweight, eval EURUSD UP+DOWN per-year. **Does NOT crack DOWN 2025:** plain DOWN cov0.05
+binding **.5195** (CI-lo .492), magweight DOWN **.5004** (coin-flip); UP magw .5392 (below floor .553, standalone).
+Pooling 7× the data + 7 regimes does NOT lift the DOWN 2025 wall → it's NOT a data-volume problem. **DOWN structural
+lever applied-and-failed.**
+
+## ═══ DOWN: EVERY §3 lever RUN or provably-subsumed — EFFICIENT at 5m (2026-06-03) ═══
+RUN to the 2025-regime wall (binding-2025 ~.50-.53, all <breakeven .541): side-split, A8b filter, A8c specialist,
+conf/coverage curve (`m5_sidecurve`: 2025 clears at NO gate), magweight/GMADL loss, **seed-ensemble** (`m5_magweight_seedens`),
+**cross-pair pooling** (`m5_pool`), **ranking-loss** (`m5_rankloss` N12), **order-flow whale** (`m5_whale` N14), magnitude-gate (R1).
+PROVABLY-SUBSUMED (Tier-1): **calibration** = monotonic rescaling → rank/gate-invariant (cannot change gated win-rate);
+**ACI** subsumed by `m5_sidecurve` (no fixed gate clears 2025) + `m5_aci_cpcv` (ACI worse than fixed on the stronger UP);
+**DL-stack** by D1-D6 RUN-nulls; **Optuna** by the gap (.02 needed ≫ +.007 largest measured lever effect).
+DIAGNOSIS: ensemble (E1), recency (R5), variance-reduction (seed-ens), data-volume (pooling) ALL fail on 2025 → the
+DOWN wall is an **information/regime problem (the 2025 USD-factor regime), not model-capacity**. The only lever carrying
+regime-signed-positioning is **risk-reversal sign — verified PAYWALLED**. DOWN is honestly-exhausted on free/on-disk data.
