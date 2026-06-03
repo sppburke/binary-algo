@@ -5,6 +5,25 @@ Generic methods/ideas: METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md. Swee
 
 ---
 
+## DEPLOYMENT BACKLOG — #3 cross-pair PORTFOLIO of the certified UP dip-buy edge (user Q 2026-06-03)
+**Idea:** trade the SAME certified dip-buy UP edge across multiple USD majors as a portfolio, to diversify per-trade
+variance (the current UP edge is thin: Sharpe/trade ~0.12 @0.1pip spot, deployable only at raw spread).
+**CORRECTION (evidence, 2026-06-03):** I first guessed the cross-pair correlation is HIGH (common-factor) → no diversification.
+**MEASURED it and was WRONG:** 5m EUR-equiv-signed return correlation across the 7 majors is LOW — EURUSD–GBPUSD 0.115,
+EURUSD–NZDUSD 0.151, others ~0, **mean off-diagonal 0.054** (n=371k, 2025). At 5m, microstructure noise dominates and the
+common-USD component is tiny → the pairs move ~independently → a portfolio of the same edge across pairs WOULD diversify
+substantially (potential ~√N Sharpe lift if the edge generalizes). [The common-factor lesson is about the EDGE's 2025-regime
+dependence + the cross-pair FEATURE channel, NOT the raw 5m return correlation — distinct things.]
+**So #3 CAN help the thin-edge/variance problem — but it is GATED on two unverified things:**
+1. **Edge-generalization (decisive, UNTESTED):** does the dip-buy UP edge EXIST on GBPUSD/AUDUSD/etc., or is it EURUSD-specific?
+   Cheap decisive test = leave-EURUSD-out transfer + per-pair m5xp-style refit (features/+features_of/ have all 7 majors on-disk).
+2. **Spreads:** EURUSD is the TIGHTEST major (~0.1 pip raw); the edge is already spot-marginal there. GBPUSD/AUD/etc. have
+   wider raw spreads → even if the edge exists, it may not be spot-deployable on them.
+3. **Shared 2025-regime risk:** low RETURN correlation ≠ uncorrelated EDGE-FAILURE; the edges may still all degrade together
+   in a USD-regime flip. The portfolio diversifies variance, not necessarily regime risk.
+**Verdict:** legitimate, more promising than first claimed; **NOT a sure win.** Decisive first step = the edge-generalization
+test (per-pair). This is the "new-currency bootstrap" (strategy-eval §7) scoped to a portfolio-deployment goal.
+
 ## SESSION-2 (2026-05-31b) — 5-MIN re-push: CROSS-PAIR + ORDER-FLOW + META-LABELER (NEW orthogonal ideas)
 Goal re-set to 5-min >65% OOS. New ideas tried (the genuinely-untried-at-5m set):
 - **Cross-pair USD-common-factor / lead-lag** (m5_xpair.py): EURUSD = EUR-strength − USD-strength; build USD basket from the
