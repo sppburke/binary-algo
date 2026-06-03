@@ -250,13 +250,33 @@
      "fixed": 1382
     },
     "breakeven": 0.541,
-    "status": "IMPROVEMENT vs fixed gate (more coverage + regime-stable; binding 2025 .584 at n764 vs fixed .579 at n618). Within-experiment comparison (m5_conformal.py); CPCV-validation of the adaptive policy is the open follow-up."
+    "status": "IMPROVEMENT vs fixed gate (more coverage + regime-stable; binding 2025 .584 at n764 vs fixed .579 at n618). Within-experiment comparison (m5_conformal.py); CPCV-validation of the adaptive policy is the open follow-up.",
+    "DOWNGRADED_2026-06": "ACI fails nested-refit CPCV (p10 .521-.523, <fixed); V1/V2 confirm. Durable UP = m5xp refit floor 0.553, NOT ACI .584. Forward .584 was a single-split regime artifact."
    },
    "manifest": "books/EURUSD.m5xp_aci.v1.manifest.json",
    "summary": "m5xp UP book + ONLINE ADAPTIVE-CONFORMAL (ACI) gate targeting win-rate w*=0.57. Deployable improvement over the fixed meta gate: ~36% more trades + tighter cross-regime spread at a stable/slightly-better binding-year win-rate. Causal (past-outcome feedback, no look-ahead).",
    "depends_on": [
     "EURUSD.m5xp.v1"
    ]
+  },
+  {
+   "id": "EURUSD.m5xp_magw_down.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "down",
+   "role": "direction",
+   "script": "m5_magweight_freeze.py",
+   "metrics": {
+    "down_cov0.05_refit_p10": 0.5441,
+    "frac_folds_clear": 0.893,
+    "forward_2025_down": 0.559,
+    "forward_2025_ci_lo": 0.533,
+    "breakeven": 0.541,
+    "status": "MARGINAL \u2014 floor at breakeven, forward-2025 CI-lo grazes below; NOT robustly deployable (V1/V2 multiplicity-fragile)"
+   },
+   "manifest": "books/EURUSD.m5xp_magw_down.v1.manifest.json",
+   "summary": "POW=0.5 |return|-weighted magweight retrain, DOWN-side rescue of m5xp; the best (5m,DOWN) but razor-thin/marginal.",
+   "depends_on": "EURUSD.m5xp.v1"
   }
  ]
 }

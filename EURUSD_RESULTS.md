@@ -237,3 +237,43 @@ The up/down decomposition requires taking a frozen book's **independent trades a
 3. Keep every number traceable to a result JSON or research-log line (Tier-1). Flag thin-coverage (n<50) and VAL-acc-max numbers as non-robust.
 4. Magnitude (|ret|) is sign-invariant → it has no up/down key; record it in `MAGNITUDE_FINDINGS.md`.
 5. New currencies get their own `<PAIR>_RESULTS.md` with this exact structure and key.
+
+---
+
+## DEPLOYMENT SPEC — EURUSD 5m, both sides (FINAL, 2026-06-02, post V1/V2 honest correction)
+
+**⚠ VENUE (verified): the 5m EURUSD edge is NOT directly tradeable on deriv FOREX.** Deriv forex Rise/Fall
+minimum duration = 15m (repo-documented + prior-verified; the live deriv glossary confirms duration is
+per-trade-type/asset and the authoritative check is the `contracts_for(frxEURUSD)` API — synthetics allow 1-tick
+but are NOT EURUSD). **So 5m is RESEARCH-grade / horizon-mapping; it needs a ≤5m-expiry EURUSD binary venue
+before any live trade. The deriv-deployable EURUSD direction keys are 15m/30m.** Spec below assumes a ≤5m venue
+at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com glossary + /markets/forex (fetched 2026-06-02).
+
+### UP — `EURUSD.m5xp.v1` up-preds (the deliverable; refit-CPCV-CERTIFIED)
+- **Operating gate:** `sess_ny & meta≥0.5738`, then the TIGHT primary-confidence cover **cov0.05** (NOT the meta
+  gate alone, NOT ACI — `m5xp_aci.v1` ACI is DOWNGRADED: fails nested-refit CPCV, p10 .521–.523).
+- **Robust floor (SIZE ON THIS):** refit-CPCV **p10 = 0.553**, 96% of 28 purged-refit folds clear 0.541. Forward
+  per-year .605/.577/.615 and the binding-year .577 / frozen-tight-cover .647 are **multiplicity/selection-inflated
+  (V1 BY-adj p .158, fails HLZ t≥3; V2 PBO .242)** — do NOT size on them. Pooled edge is real (V1 t=5.81).
+- **Coverage:** ~cov0.05 of NY 5m bars ≈ **1.4 trades/NY-hr (~3–4/session/day)**; med_n 2126 over test+oos.
+- **Confidence/coverage curve** (`m5_kelly_result.json`): Kelly-positive only at the tight cover (thr≳0.569,
+  bind_win .573, ¼-Kelly qf .018); looser covers → bind_win<breakeven → qf=0 (no bet). Tighter = higher win, lower n.
+- **Fractional-Kelly on the floor (0.553, R=0.85):** full-Kelly f*=(pR−(1−p))/R = **2.7%**; deploy **⅛-Kelly ≈ 0.34%/bet**
+  (¼-Kelly ≈ 0.68% if aggressive). EV/bet at the floor ≈ **+2.3% of stake**. (The earlier `m5_equity` 1.07%/bet was
+  sized on the optimistic 0.58 belief — the honest floor sizing is ~⅓ of that.)
+- **Equity path / risk (`m5_equity_result.json`, real frozen trades @ optimistic stake):** forward end 25.9×, **max-DD
+  22%**, **longest losing streak 8**; STRESS-regime max-DD 35.8%. Floor-sized (⅓ stake) → max-DD ≈ **7–12%**, streak 8
+  (streak is sizing-independent). 2025 is the binding regime.
+- **Kill-switch — TESTED, DO NOT USE:** win-rate kill-switch (window150/kill .52/resume .55) HURTS — end 19.4× vs 25.9×
+  no-KS, 6.8% flat, 4 kills (`m5_equity_result.json`). Tested, not assumed; deploy WITHOUT it.
+
+### DOWN — `EURUSD.m5xp_magw_down.v1` (POW=0.5 magweight; MARGINAL, NOT robustly deployable)
+- Refit-CPCV cov0.05 p10 **0.5441** (89% folds clear) — barely above breakeven 0.541; forward 2025 .559 but CI-lo
+  **.533 grazes below breakeven**. V1/V2 imply DOWN is even more multiplicity-fragile (found via a POW×cov sub-search).
+- **Floor (0.5441) sits AT breakeven → near-zero Kelly edge → effectively NON-deployable.** Honest verdict: a real but
+  razor-thin marginal edge; ship as "measured, marginal," not as a deployable book. Rally-selling DOWN remains the open gap.
+
+### Registry notes (to reconcile)
+- `EURUSD.m5xp_magw_down.v1` is git-tagged but MISSING from `books/INDEX.json` — added below.
+- `EURUSD.m5xp_aci.v1` is registered with ACI .584 metrics but **ACI is DOWNGRADED** (nested-refit fail); the durable
+  UP figure is the m5xp refit floor **0.553**, not ACI. Registry metric annotated.
