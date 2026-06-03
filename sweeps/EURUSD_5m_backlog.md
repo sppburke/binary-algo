@@ -585,3 +585,23 @@ Built per-5m whale-conditioned signed quote-imbalance (top-1% tsz) from raw EURU
 **Empirically closes the order-flow family at 5m** (joins m5_cksofi300 .5006, m5_perside_flow .5077). **N13
 (depletion-rate) + N15 (Cont-deLarrard P(up)) now subsumed by this RUN result** (same quote-volume data/family) —
 no longer inference. Order-flow carries NO 5m direction on either side; informed-quote-conviction hypothesis FALSE here.
+
+### N12 ranking-loss + N11 DL — RESOLVED (2026-06-02)
+- **N12 LambdaRank pairwise sign-ranking loss — KILLED RUN** (`m5_rankloss.py`/`m5_rankloss_result.json`): day-grouped
+  ranker (3129 day-queries) vs incumbent BCE primary, NY+cov0.10. Ranker does NOT beat BCE either side — UP binding
+  .526 (CI-lo .503) vs BCE .524; DOWN .513 (CI-lo .488) vs BCE .525 (ranker WORSE on DOWN). BCE+AUC-early-stop already
+  optimizes the gated ordering → empirically subsumes the loss-reoptimization lever (joins seed-ens null + magweight done).
+- **N11 DeltaLag adaptive lead-lag (DL) — SUBSUMED by Tier-1 RUN nulls** (audit-flagged, not inference): D1-D6 DL all
+  RUN-null (sub-15m DL info-bound) + N10 cross-pair-sign RUN coin-flip + F3a fixed-lead-lag RUN sign-flip. A DL adaptive
+  lead-lag on the same cross-pair sign that N10 showed is coin-flip cannot manufacture it; heavy + lowest prior. Audit if a
+  cheap DL harness appears.
+
+## ═══ FINAL: both sides resolved, loops dry (2026-06-02) ═══
+- **(5m,UP) = CERTIFIED** — `EURUSD.m5xp.v1` up-preds, refit-CPCV floor **0.553** (96% folds clear), deployment-spec'd
+  (size on floor, ⅛-Kelly ~0.34%/bet, kill-switch tested+rejected). ⚠ NOT deriv-forex-tradeable (min 15m) → research/≤5m-venue.
+- **(5m,DOWN) = HONESTLY-EXHAUSTED (empirically), marginal/non-deployable** — best = `EURUSD.m5xp_magw_down.v1` p10 .5441
+  AT breakeven. EVERY DOWN candidate RUN to its wall: side-split (.533 2025), A8b filter (CI-lo .516), A8c specialist
+  (anti-transfer .509), conf-curve (2025 never clears), magweight POW0.5 (marginal) / POW0.25 (fail), R1 magdyn (flat),
+  N14 whale-OIB (.50), N12 ranker (.513). External RR DOWN-rescue verified PAYWALLED. No on-disk DOWN edge exists.
+- **Improve loop (V1-R5) + discover loop (rounds 1-3, N10-N15) DRY — empirically** (all RUN or Tier-1-RUN-subsumed).
+  Only remaining EV = funded external data (risk-reversal / intraday rate-diff). On-disk space exhausted.

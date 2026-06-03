@@ -1,0 +1,131 @@
+{
+  "test": "N12 LambdaRank pairwise-ranking-loss primary vs BCE",
+  "breakeven": 0.541,
+  "cov": 0.1,
+  "ranker": {
+    "UP": {
+      "2024": {
+        "win": 0.5554,
+        "n": 4377,
+        "ci": [
+          0.5406,
+          0.5703
+        ]
+      },
+      "2025": {
+        "win": 0.5375,
+        "n": 5397,
+        "ci": [
+          0.5242,
+          0.5507
+        ]
+      },
+      "2026": {
+        "win": 0.5262,
+        "n": 1929,
+        "ci": [
+          0.5029,
+          0.5485
+        ]
+      }
+    },
+    "DOWN": {
+      "2024": {
+        "win": 0.526,
+        "n": 4884,
+        "ci": [
+          0.5117,
+          0.5401
+        ]
+      },
+      "2025": {
+        "win": 0.5179,
+        "n": 4648,
+        "ci": [
+          0.5043,
+          0.5327
+        ]
+      },
+      "2026": {
+        "win": 0.5129,
+        "n": 1550,
+        "ci": [
+          0.4884,
+          0.5368
+        ]
+      }
+    }
+  },
+  "bce_baseline": {
+    "UP": {
+      "2024": {
+        "win": 0.5764,
+        "n": 4469,
+        "ci": [
+          0.5603,
+          0.591
+        ]
+      },
+      "2025": {
+        "win": 0.5523,
+        "n": 5617,
+        "ci": [
+          0.5391,
+          0.5654
+        ]
+      },
+      "2026": {
+        "win": 0.5244,
+        "n": 1949,
+        "ci": [
+          0.5013,
+          0.5464
+        ]
+      }
+    },
+    "DOWN": {
+      "2024": {
+        "win": 0.5544,
+        "n": 4737,
+        "ci": [
+          0.5406,
+          0.5679
+        ]
+      },
+      "2025": {
+        "win": 0.5246,
+        "n": 6929,
+        "ci": [
+          0.5118,
+          0.536
+        ]
+      },
+      "2026": {
+        "win": 0.5296,
+        "n": 2028,
+        "ci": [
+          0.5069,
+          0.5518
+        ]
+      }
+    }
+  },
+  "VERDICT": {
+    "per_side": {
+      "UP": {
+        "ranker_binding": 0.5262,
+        "ranker_ci_lo": 0.5029,
+        "bce_binding": 0.5244,
+        "beats_bce_and_clears": false
+      },
+      "DOWN": {
+        "ranker_binding": 0.5129,
+        "ranker_ci_lo": 0.4884,
+        "bce_binding": 0.5246,
+        "beats_bce_and_clears": false
+      }
+    },
+    "SURVIVES": false,
+    "statement": "N12 KILLED: UP ranker 0.5262(CI-lo 0.5029) vs BCE 0.5244; DOWN ranker 0.5129(CI-lo 0.4884) vs BCE 0.5246. Pairwise ranking loss does NOT beat BCE at the gated tail on either side \u2014 confirms BCE+AUC-early-stop already optimizes the ordering (joins seed-ens null + magweight). Empirically subsumes the loss-reoptimization lever."
+  }
+}

@@ -33,13 +33,18 @@ def main():
     TR=MX.augment(MX.build_xp(XP.SPL["train"],4),XP.SPL["train"],XP.MODE)
     VA=MX.augment(MX.build_xp(XP.SPL["val"]),XP.SPL["val"],XP.MODE)
     EV={w:MX.augment(MX.build_xp(XP.SPL[w]),XP.SPL[w],XP.MODE) for w in ("test24","test25","oos")}
-    ytr=TR["_y"].astype(int).values
-    print(f"[rankloss] train={len(TR):,} feats={len(cols)} {time.time()-t0:.0f}s",flush=True)
+    def daygroup(D):  # sort by ts, return order + per-DAY group sizes (lambdarank caps a group at 10k; a day<=288 bars)
+        ts=D["_ts"].values.astype("int64"); order=np.argsort(ts,kind="stable")
+        days=ts[order]//86400; _,counts=np.unique(days,return_counts=True)  # days[order] non-decreasing -> counts chronological
+        return order,counts
+    o_tr,g_tr=daygroup(TR); o_va,g_va=daygroup(VA)
+    Xtr=TR[cols].astype("float32").to_numpy()[o_tr]; ytr=TR["_y"].astype(int).values[o_tr]
+    Xva=VA[cols].astype("float32").to_numpy()[o_va]; yva=VA["_y"].astype(int).values[o_va]
+    print(f"[rankloss] train={len(TR):,} feats={len(cols)} day-groups={len(g_tr)} (max {g_tr.max()}) {time.time()-t0:.0f}s",flush=True)
     R=lgb.LGBMRanker(objective="lambdarank",n_estimators=1500,learning_rate=0.02,num_leaves=127,
         min_child_samples=400,subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,n_jobs=20,verbosity=-1)
-    yva=VA["_y"].astype(int).values
-    R.fit(TR[cols].astype("float32"),ytr,group=[len(TR)],
-          eval_set=[(VA[cols].astype("float32"),yva)],eval_group=[len(VA)],eval_at=[max(1,int(0.1*len(VA)))],
+    R.fit(Xtr,ytr,group=g_tr,
+          eval_set=[(Xva,yva)],eval_group=[g_va],eval_at=[10],
           callbacks=[lgb.early_stopping(120),lgb.log_evaluation(0)])
     print(f"[rankloss] ranker trained {time.time()-t0:.0f}s",flush=True)
     # gate: NY; UP=top-cov by score, DOWN=bottom-cov by score. Threshold frozen on VAL.
