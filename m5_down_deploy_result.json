@@ -1,0 +1,121 @@
+{
+  "test": "DOWN deployment decision-sheet (EURUSD.m5xp_magw_down.v1)",
+  "breakeven": 0.541,
+  "R": 0.85,
+  "gate": "sess_ny & pr<0.5 & |pr-0.5|>=conf_thr (top-5% DOWN confidence cover)",
+  "conf_thr_down_cov05": 0.09173985884663881,
+  "p10_floor": 0.5441,
+  "status": "PRE-REGISTERED",
+  "DECISION_RULE": "DEPLOY iff binding-year win CI95-lo>0.541 AND spot exp CI-lo>0 @<=0.2pip; else DO NOT DEPLOY + disqualifiers.",
+  "book": "EURUSD.m5xp_magw_down.v1",
+  "operating_gate": "sess_ny & pr<0.5 & |pr-0.5|>=conf_thr (top-5% DOWN confidence cover)",
+  "coverage": "~2.7-5% of NY-session moved bars (DOWN-confidence cover)",
+  "trades_per_year": {
+    "2024": 1175,
+    "2025": 1876,
+    "2026": 444
+  },
+  "per_year_FROZEN_FORWARD": {
+    "2024": {
+      "n": 1175,
+      "frozen_down_winrate": 0.6902,
+      "ci": [
+        0.663,
+        0.7157
+      ],
+      "moved_up_rate": 0.3098,
+      "binary_EV_pct_FROZEN": 27.689
+    },
+    "2025": {
+      "n": 1876,
+      "frozen_down_winrate": 0.6519,
+      "ci": [
+        0.6311,
+        0.673
+      ],
+      "moved_up_rate": 0.3481,
+      "binary_EV_pct_FROZEN": 20.605
+    },
+    "2026": {
+      "n": 444,
+      "frozen_down_winrate": 0.7252,
+      "ci": [
+        0.6824,
+        0.7658
+      ],
+      "moved_up_rate": 0.2748,
+      "binary_EV_pct_FROZEN": 34.167
+    }
+  },
+  "FROZEN_OVERSTATEMENT_FLAG": {
+    "frozen_forward_winrate_range": [
+      0.6519,
+      0.7252
+    ],
+    "frozen_moved_up_rate_range": [
+      0.2748,
+      0.3481
+    ],
+    "gap_vs_refit_floor": 0.1078,
+    "verdict": "FROZEN OVERSTATES: frozen forward >> refit p10 .5441 and up-rate far below [.47,.53] -> the frozen .65-.73 is selection/overfit, NOT robust skill. Control (m5xp unweighted, same harness) gives the established .536. Equity/spot numbers below are on frozen-overstated trades -> NOT deployable figures, shown only to document."
+  },
+  "ROBUST_refit_cpcv": {
+    "source": "m5_magweight_cpcv_result.json",
+    "cov0_05_p10": 0.5441,
+    "cov0_05_frac_clear": 0.893,
+    "refit_forward_2025_down": 0.559,
+    "refit_forward_2025_ci_lo": 0.533,
+    "certified_at_cov0_05": true,
+    "note": "CPCV refit p10 .5441 ~ breakeven; forward-2025 CI-lo .533 < .541 -> binding year fails"
+  },
+  "kelly_on_refit_floor_full_pct": 0.7747,
+  "binary_equity_FROZEN_OVERSTATED": {
+    "full_kelly": {
+      "stake_pct": 0.7747,
+      "final_mult": 738.8872,
+      "maxDD": -0.0873,
+      "longest_losing_streak": 6,
+      "n_trades": 3495
+    },
+    "eighth_kelly": {
+      "stake_pct": 0.0968,
+      "final_mult": 2.3047,
+      "maxDD": -0.0112,
+      "longest_losing_streak": 6,
+      "n_trades": 3495
+    }
+  },
+  "spot_equity_FROZEN_OVERSTATED": {
+    "0.1pip": {
+      "exp_pip": 1.1665,
+      "exp_ci_lo_pip": 1.0412,
+      "spot_winrate": 0.6538,
+      "n": 3495
+    },
+    "0.2pip": {
+      "exp_pip": 1.0665,
+      "exp_ci_lo_pip": 0.9412,
+      "spot_winrate": 0.6246,
+      "n": 3495
+    },
+    "0.4pip": {
+      "exp_pip": 0.8665,
+      "exp_ci_lo_pip": 0.7412,
+      "spot_winrate": 0.5614,
+      "n": 3495
+    }
+  },
+  "venue": "5m binary venue-unavailable (deriv min 15m / Nadex closed 2025-12-20). Spot FX is the only venue; on the HONEST refit edge (~breakeven) spot EV is marginal-to-negative (the frozen +1pip is overstated).",
+  "kill_switch": "N/A \u2014 not deployed",
+  "DECISION": {
+    "DEPLOY": false,
+    "basis": "refit-CPCV (frozen-forward overstates and is rejected)",
+    "disqualifiers": [
+      "REFIT-CPCV floor p10 0.5441 ~ breakeven 0.541 -> full-Kelly only 0.775% (near-zero robust edge)",
+      "REFIT forward-2025 binding DOWN .559 CI95-lo .533 < breakeven 0.541 -> negative-EV in the binding year on the HONEST test",
+      "frozen-forward .65-.73 is OVERSTATED (moved up-rate ~.35; frozen >> refit; control m5xp reproduces .536) -> not robust skill",
+      "no 5m fixed-payout binary venue exists (deriv 15m / Nadex closed); spot EV marginal-to-negative on the honest edge"
+    ],
+    "statement": "DO NOT DEPLOY (5m,DOWN). On the HONEST refit-CPCV test the book sits AT breakeven (p10 .5441, full-Kelly 0.775%) and the binding forward year (2025) refit DOWN .559 has CI95-lo .533 < 0.541 (negative-EV). The frozen-book forward .65-.73 is a FROZEN OVERSTATEMENT (moved up-rate ~.35, frozen >> refit, and the unweighted control reproduces the established .536) \u2014 NOT a real edge. Full deployment spec (gate/coverage/Kelly/equity/maxDD/streak/venue) is recorded to DOCUMENT the disqualification. The only path to a deployable DOWN is orthogonal external data (risk-reversal \u2014 verified paywalled)."
+  }
+}

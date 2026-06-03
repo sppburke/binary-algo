@@ -308,6 +308,14 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   < .541. **The model-combination cross-product is exhausted; the wall is information/regime (the 2025 USD-factor inversion),
   not model architecture or combination structure.** The sole remaining DOWN lever is the verified-PAYWALLED funded
   risk-reversal feed. No on-disk DOWN edge exists.
+- **DOWN DEPLOYMENT DECISION-SHEET — DO NOT DEPLOY, documented (2026-06-03, `m5_down_deploy_result.json`):** operating gate
+  `sess_ny & pr<0.5 & |pr−0.5|≥0.0917` (~2.7–5% NY cov; ~1175/1876/444 trades 2024/25/26). **Robust (refit-CPCV) floor p10
+  .5441 ≈ breakeven → full-Kelly only 0.775%** (near-zero edge, no margin); refit forward-2025 binding DOWN .559 **CI-lo .533
+  < .541 → negative-EV in the binding year**. Kill-switch N/A. Venue: no 5m binary (deriv 15m / Nadex closed); spot EV
+  marginal-to-negative on the honest edge. ⚠ **Adversarial-verify catch:** a first pass showed frozen-book forward
+  .69/.65/.73 — but moved up-rate .31/.35/.27 (far outside [.47,.53]) + frozen ≫ refit .5441 + the unweighted m5xp control
+  reproducing the established .536 expose it as a **FROZEN OVERSTATEMENT** (selection/overfit, not skill); rejected. The
+  do-not-deploy stands on the honest refit floor. Disqualifiers: floor at breakeven · binding-year negative-EV · no venue.
 
 ### Registry notes (to reconcile)
 - `EURUSD.m5xp_magw_down.v1` is git-tagged but MISSING from `books/INDEX.json` — added below.
