@@ -166,11 +166,12 @@ Goal = lift the certified UP edge / its CPCV path-clear-rate, NOT confirm a wall
   weaker; optimal blend downweights MLP to ~zero, recovering GBM. No complementary direction signal
   extractable. Full CPCV would be 28×500s=~4hrs for a null — skipped. `m5_learnedstack_result.json`.
 
-- **C6 (RUNNING 2026-06-02): Gentler magnitude weighting (POW=0.25) nested-refit CPCV**
-  `M5_STRIDE=6 M5_POW=0.25 python m5_magweight_cpcv.py`, log `/tmp/magw025.log`. POW=0.5 hurt UP (p10
-  .5453 < .553) while rescuing DOWN. POW=0.25 is a lighter touch — may preserve UP tail while retaining
-  some DOWN signal. **Falsifier: KILL unless UP cov0.05 p10 > .553 OR DOWN cov0.05 p10 > .5441.**
-  ETA ~2 hrs. Result → `m5_magweight_cpcv_pow025_result.json`.
+- **C6 (KILLED 2026-06-02): Gentler magnitude weighting (POW=0.25) nested-refit CPCV**
+  `M5_STRIDE=6 M5_POW=0.25 python m5_magweight_cpcv.py`. Result → `m5_magweight_cpcv_pow025_result.json`.
+  UP cov0.05: p10=0.5477, mean=0.5639, frac_clear=1.00 — CERTIFIED but below incumbent 0.553.
+  DOWN cov0.05: p10=0.5382, mean=0.5585, frac_clear=0.821 — NOT CERTIFIED (below B1 0.5441).
+  **Falsifier triggered: neither side improves on incumbent.** POW=0.25 loses to both POW=0 (unweighted,
+  incumbent UP 0.553) and POW=0.5 (B1, DOWN 0.5441). Lighter weighting helps neither. KILLED.
 
 - **Task #12 (freeze magweight DOWN book, low priority, can be deferred):** save-enabled re-train of
   POW=0.5 primary + manifest.py build/freeze + git-tag `EURUSD.m5xp_magw_down.v1`. Label MARGINAL.
