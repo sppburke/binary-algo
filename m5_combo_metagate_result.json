@@ -1,0 +1,10 @@
+{
+  "test": "meta-labeler gate on top combo blends",
+  "breakeven": 0.541,
+  "incumbent": {
+    "UP": 0.577,
+    "DOWN": 0.5441
+  },
+  "status": "PRE-REGISTERED",
+  "FALSIFIER": "KILL unless binding-year (worst 24/25/26, n>=150) CI95-lo: UP>=0.553 & beats 0.577 by >1SE; DOWN>=0.541 & beats 0.5441 by >1SE. Survivor -> nested-refit CPCV (p10>=BE & >=80% of 28 paths). Expected null (meta-gate on DOWN anti-transfers, m5_downspec .509)."
+}
