@@ -2,6 +2,9 @@
 
 # EURUSD Binary-Direction Research — MASTER METHODOLOGY CATALOG
 
+> **Full literature lever inventory:** `CORPUS_LEVER_INVENTORY.md` documents all 550 testable levers mined from the academic corpus (methodology · 5m test-plan · sign-invariance · status · falsifier). This catalog holds the 9 method FAMILIES; the inventory holds every individual lever + its tested-status.
+
+
 **Technique-centric, timeframe-agnostic.** Every methodology used in this program gets a self-contained entry: *what it is · how to use it · why to use it · process notes (leakage traps / discipline) · status*. Each entry cites its implementing file and points STATUS at where the verified result lives. For per-horizon **results** and the **up/down leaderboard**, see the companion `EURUSD_RESULTS.md`.
 
 All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 (xofi + CCM both KILLED).
