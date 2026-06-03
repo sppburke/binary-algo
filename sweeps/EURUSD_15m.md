@@ -28,6 +28,25 @@ Incumbent COMBINED book = `EURUSD.m15.v1` (CPCV-faithful 0.579, p10 0.557; recen
   NOT single-year CI-lo. Binding year = 2025 for UP; for DOWN the weak year rotates (2025 weakest at tight cov).
   Mechanism update: the edge is a thin, regime-rotating, confidence-concentrated directional signal; both sides
   share it; certification hinges on whether per-side CPCV p10 clears with the n available.
+- **2026-06-03 (CROSS-PAIR fwd-POSITIVE — the first improvement lever to beat the book):** the m5xp cross-pair
+  USD-residual+OF primary, retargeted MX_HOR=15 (`m15_xpair_blend.py`), beats the frozen book on the BINDING year
+  forward, BOTH sides: xpair 2025 UP .570/DOWN .591 vs book .541/.517; blend 2025 UP .581/DOWN .568. Corr(book,
+  xpair)=0.83 (high) yet xpair's operating point is better. MECHANISM: 2025 was binding BECAUSE of a USD-factor
+  regime shift; the cross-pair model directly captures the USD factor → robust exactly there. This is mechanism-
+  backed, not forward noise → escalated to per-side refit CPCV (A6c). If it certifies > book floor, it's the new
+  (15m) deliverable / a blend book. NOTE: a frozen-book+frozen-xpair BLEND is a legit DEPLOYMENT combo (both
+  frozen on 2012-21, evaluated forward) even if only the standalone xpair gets the per-fold-refit cert.
+- **2026-06-03 (improve round 2 NULL):** N16 3-class relabel + I2 seed-ensemble both fail to beat the lgb control
+  on binding 2025 (~.52-.53). I4 calibration subsumed (monotonic ⇒ same selection). Binding-2025 wall holds for
+  same-feature levers; only the cross-pair (NEW features) breaks it.
+- **2026-06-03 (CERT + I3 magweight KILLED):** Per-side refit CPCV CERTIFIED both sides (UP p10 .5475 / DOWN .5486).
+  `|ret|`-weight retrain (I3, POW=0.5) does NOT improve 15m — fwd binding-2025 UP .562 (<frozen .607), DOWN **.513
+  (<breakeven)**; VAL AUC dropped .528→.522. The 5m DOWN-rescue mechanism (up-weight large moves) is WRONG for 15m:
+  15m DOWN already lives on diffusive/trend moves; up-weighting large (jump-driven, sign-unpredictable) moves
+  degrades it. CONFIRMS the horizon-transfer reasoning. **Methodological note:** reduced-fidelity (600/700/700)
+  forward retrains at thin auto-cov2% are NOISE-DOMINATED (POW=0 control hit n=11-36 thin pockets) — improve levers
+  must report at FIXED cov5%/10% with a matched-fidelity control; only forward-winners get the expensive CPCV. The
+  certified frozen full-fidelity book is a strong incumbent that reduced-fidelity retrains start behind.
 
 ## LEDGER (ROI order; work top→bottom; never repeat a `done` row)
 | id | family | method / variant | script | tgt | prior | status | combined | UP | DOWN | result_json |
@@ -39,13 +58,17 @@ Incumbent COMBINED book = `EURUSD.m15.v1` (CPCV-faithful 0.579, p10 0.557; recen
 | A8c-dn | side-pipeline | (15m,DOWN) full-refit CPCV (e) | `m15_cpcv_side.py` | Dn | high | **done ✅ CERTIFIED** | — | — | **p10 .5486** mean .5805 frac 1.0 | `m15_cpcv_side_result.json` |
 | A8d-up | specialist | (15m,UP) purpose-built specialist (subset/weighted retrain MX_HOR=15) | `m15_spec.py` | U | med | pending | | | | |
 | A8d-dn | specialist | (15m,DOWN) specialist | `m15_spec.py` | Dn | med | pending | | | | |
-| I3 | improve | \|return\|-weighted / GMADL retrain (POW=0.5) — 5m DOWN-rescue mechanism, RE-TEST @15m | `m15_magweight.py` | D | **high@DOWN** | pending | | | | |
+| I3 | improve | \|return\|-weighted retrain (POW=0.5) — 5m DOWN-rescue, RE-TEST @15m | `m15_magweight.py` | D | **high@DOWN** | **killed** | .54/.51/.57 | fwd 2025 .562<frozen .607 | fwd 2025 **.513<BE** | `m15_magweight_result_pow0.5.json` |
 | I1 | improve | Adaptive-conformal (ACI) gate on the m15 book — 5m WIN lever | `m15_conformal.py` | gate | **high** | pending | | | | |
 | A2 | gate | compression×session×coverage gate re-sweep (worst-VAL-half, fix VAL-acc-max trap) | `m15_gate_sweep.py` | G+D | med | pending | | | | |
-| I2 | improve | seed-ensemble MLP ⊕ GBM decorrelated stack | `m15_deep_ens.py` | D | med | pending | | | | |
+| I2 | improve | seed-ensemble K=3 lgb avg (variance reduction) | `m15_improve.py` | D | med | **killed** | — | 2025 .520 ≤ ctrl .526 | 2025 .519 ≤ ctrl .534 | `m15_improve_result.json` |
+| N16 | improve | 3-class up/flat/down deadband relabel (trend hypo) | `m15_improve.py` | D | ~.15 | **killed** | — | 2025 .533 ≈ ctrl | 2025 .530 ≤ ctrl .534 | `m15_improve_result.json` |
+| I4 | improve | temperature/Platt calibration + selective gate | wrap | gate | low | **subsumed** | — | — | — | monotonic transform ⇒ preserves \|p−0.5\| ranking ⇒ SAME cov-gated selection ⇒ same acc (Tier-1 logic) |
 | I4 | improve | calibration (temp/Venn-Abers) + re-derived selective gate | wrap | gate | med | pending | | | | |
 | I6 | improve | Optuna TPE on worst-VAL-half (logged multiplicity) | wrap | tune | low | pending | | | | |
 | A5 | x-horizon | cross-horizon stack: 30m/10m parent → 15m front-load | `m15_stack.py` | D | med | pending | | | | |
+| A6 | x-pair | cross-pair USD-residual+OF PRIMARY (m5xp source) retargeted MX_HOR=15 + blend w/ book | `m15_xpair_blend.py` | D | **high** | **fwd-positive → CPCV** | — | xpair fwd 2025 .570 > book .541 | xpair fwd 2025 .591 > book .517 | `m15_xpair_blend_result.json` |
+| A6c | x-pair | (A6) per-side full-refit CPCV — certify the cross-pair improvement | `m15_xpair_cpcv.py` | D | high | running | | | | `m15_xpair_cpcv_result.json` |
 | N2 | discovered | triangular USD-canceling residual (EUR-vs-GBP) — top-prior, retarget @15m | `m15_triresid.py` | D | ~15% | pending | | | | |
 | N16 | discovered | redefined TRAIN label (triple-barrier/trend-scan/jump-filter) — RE-TEST @15m (more trend) | `m15_labels.py` | D | ~15% | pending | | | | |
 | N18 | discovered | sign-coupled payoff objective (GMADL/RRL diff-Sharpe head) | `m15_signedpayoff.py` | D | ~10% | pending | | | | |

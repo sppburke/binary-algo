@@ -1,0 +1,101 @@
+{
+ "exp": "I3 |ret|-weighted 15m retrain + worst-VAL-half gate",
+ "POW": 0.5,
+ "approx": "3-model at 600/700/700 trees (frozen book uses 3000) \u2014 side-rebalance test; refit full+CPCV if a POW wins",
+ "gate": {
+  "q": 33,
+  "cov": 0.02,
+  "conf_thr": 0.1378,
+  "bb_thr": 0.001937591703608632,
+  "val_worsthalf": 0.5881
+ },
+ "val_auc": 0.522,
+ "side_incumbent_frozen": {
+  "UP": "binding 2025 .607",
+  "DOWN": "binding 2025 .559"
+ },
+ "breakeven": 0.541,
+ "per_year_side": {
+  "2024_UP": {
+   "n": 185,
+   "acc": 0.5892,
+   "ci": [
+    0.5189,
+    0.6595
+   ],
+   "up_rate": 0.5892
+  },
+  "2024_DOWN": {
+   "n": 158,
+   "acc": 0.5316,
+   "ci": [
+    0.4557,
+    0.6076
+   ],
+   "up_rate": 0.4684
+  },
+  "2024_COMBINED": {
+   "n": 343,
+   "acc": 0.5627,
+   "ci": [
+    0.5101,
+    0.6152
+   ],
+   "up_rate": 0.5335
+  },
+  "2025_UP": {
+   "n": 203,
+   "acc": 0.5616,
+   "ci": [
+    0.4975,
+    0.6305
+   ],
+   "up_rate": 0.5616
+  },
+  "2025_DOWN": {
+   "n": 152,
+   "acc": 0.5132,
+   "ci": [
+    0.4342,
+    0.5921
+   ],
+   "up_rate": 0.4868
+  },
+  "2025_COMBINED": {
+   "n": 355,
+   "acc": 0.5408,
+   "ci": [
+    0.493,
+    0.5915
+   ],
+   "up_rate": 0.5296
+  },
+  "2026_UP": {
+   "n": 89,
+   "acc": 0.5169,
+   "ci": [
+    0.4157,
+    0.618
+   ],
+   "up_rate": 0.5169
+  },
+  "2026_DOWN": {
+   "n": 50,
+   "acc": 0.66,
+   "ci": [
+    0.52,
+    0.78
+   ],
+   "up_rate": 0.34
+  },
+  "2026_COMBINED": {
+   "n": 139,
+   "acc": 0.5683,
+   "ci": [
+    0.4892,
+    0.6475
+   ],
+   "up_rate": 0.4532
+  }
+ }
+}
