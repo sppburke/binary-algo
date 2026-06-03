@@ -356,6 +356,13 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   FALSIFIER: KILL if binding-2025 UP ≤ m5xp_aci .584 at ≥ n, OR weights collapse to constant (no regime dependence), OR CPCV at
   the gate fails; up-rate∈[.47,.53]. INCUMBENT: m5xp_aci .584. NOVELTY: new_untried — supersedes v1-C1 (which was a static
   worst-VAL-half WEIGHT; this is ONLINE). (Carta expert-aggregation; HAELT)
+  ❌ **KILLED 2026-06-02 (`m5_boa.py`, `m5_boa_result.json`).** Online Hedge/EWA (square-loss, η∈{.25,.5,1,2,4}, no-look-ahead
+  weight update over non-overlapping NY trades) over the 4 frozen books {m5xp, m15, m10, m5}, UP cov0.10. **Best online
+  (η4.0) binding-year 0.5404 (CI-lo 0.498) ≈ static-equal 0.5419 ≈ m5xp-alone 0.5396 — statistically indistinguishable,
+  none clear breakeven robustly.** Weights barely move (converge to ~equal across all η) = "weights collapse to constant"
+  falsifier clause triggered. Online performance-weighting does NOT fix the 2026 collapse — direct confirmation of
+  corr(VAL,OOS)=−0.54: recent-performance chasing anti-transfers. The static blend ties (as already known); online adds
+  nothing. Incumbent (deployed meta-gate m5xp, refit floor .553) unchanged and unbeaten.
 **E2. ⚡ BOA-on-conformalized-experts (conformalize each model with ACI FIRST, THEN online-aggregate via Bernstein Online
   Aggregation on pinball loss).** The EPF headline: conformalize-then-aggregate beats either layer alone; inference-only.
   EXPERIMENT: adapt `m5_conformal.py` — collect per-bar (ts,score,win) streams for K experts, wrap each in aci_gate(), run BOA
