@@ -1,0 +1,206 @@
+{
+  "test": "loss-lever batch (focal/quantile/asym) on cross-pair primary",
+  "breakeven": 0.541,
+  "cov": 0.05,
+  "variants": {
+    "focal_g2": {
+      "UP": {
+        "2024": {
+          "win": 0.5428,
+          "n": 2257,
+          "ci": [
+            0.5219,
+            0.5618
+          ]
+        },
+        "2025": {
+          "win": 0.5366,
+          "n": 2266,
+          "ci": [
+            0.5163,
+            0.5569
+          ]
+        },
+        "2026": {
+          "win": 0.5269,
+          "n": 835,
+          "ci": [
+            0.491,
+            0.5599
+          ]
+        },
+        "binding": {
+          "win": 0.5269,
+          "ci_lo": 0.491,
+          "min_n": 835
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5142,
+          "n": 2184,
+          "ci": [
+            0.494,
+            0.5357
+          ]
+        },
+        "2025": {
+          "win": 0.5147,
+          "n": 2207,
+          "ci": [
+            0.4943,
+            0.536
+          ]
+        },
+        "2026": {
+          "win": 0.5222,
+          "n": 743,
+          "ci": [
+            0.4872,
+            0.5585
+          ]
+        },
+        "binding": {
+          "win": 0.5142,
+          "ci_lo": 0.4872,
+          "min_n": 743
+        }
+      }
+    },
+    "quantile_median": {
+      "UP": {
+        "2024": {
+          "win": 0.5521,
+          "n": 1726,
+          "ci": [
+            0.5295,
+            0.5765
+          ]
+        },
+        "2025": {
+          "win": 0.5435,
+          "n": 1586,
+          "ci": [
+            0.5177,
+            0.5675
+          ]
+        },
+        "2026": {
+          "win": 0.5027,
+          "n": 555,
+          "ci": [
+            0.4595,
+            0.5441
+          ]
+        },
+        "binding": {
+          "win": 0.5027,
+          "ci_lo": 0.4595,
+          "min_n": 555
+        }
+      },
+      "DOWN": {
+        "2024": {
+          "win": 0.5674,
+          "n": 1507,
+          "ci": [
+            0.5415,
+            0.5932
+          ]
+        },
+        "2025": {
+          "win": 0.5042,
+          "n": 1303,
+          "ci": [
+            0.4774,
+            0.5318
+          ]
+        },
+        "2026": {
+          "win": 0.5639,
+          "n": 493,
+          "ci": [
+            0.5182,
+            0.6096
+          ]
+        },
+        "binding": {
+          "win": 0.5042,
+          "ci_lo": 0.4774,
+          "min_n": 493
+        }
+      }
+    },
+    "asym_down_w1.5": {
+      "DOWN": {
+        "2024": {
+          "win": 0.5661,
+          "n": 3012,
+          "ci": [
+            0.5478,
+            0.5843
+          ]
+        },
+        "2025": {
+          "win": 0.5297,
+          "n": 2996,
+          "ci": [
+            0.5122,
+            0.5477
+          ]
+        },
+        "2026": {
+          "win": 0.5324,
+          "n": 1110,
+          "ci": [
+            0.504,
+            0.5622
+          ]
+        },
+        "binding": {
+          "win": 0.5297,
+          "ci_lo": 0.504,
+          "min_n": 1110
+        }
+      }
+    },
+    "asym_down_w2.0": {
+      "DOWN": {
+        "2024": {
+          "win": 0.5634,
+          "n": 3200,
+          "ci": [
+            0.547,
+            0.5806
+          ]
+        },
+        "2025": {
+          "win": 0.5407,
+          "n": 3172,
+          "ci": [
+            0.5235,
+            0.558
+          ]
+        },
+        "2026": {
+          "win": 0.5277,
+          "n": 1175,
+          "ci": [
+            0.4996,
+            0.5557
+          ]
+        },
+        "binding": {
+          "win": 0.5277,
+          "ci_lo": 0.4996,
+          "min_n": 1175
+        }
+      }
+    }
+  },
+  "VERDICT": {
+    "DOWN_certified": false,
+    "UP_beats_floor": false,
+    "statement": "loss-batch: DOWN still fails, UP no. Focal/quantile/asym-weight losses do NOT lift DOWN over breakeven nor UP over .553 \u2014 the objective is not the binding constraint (DOWN 2025 sign is coin-flip in the features). Loss-reoptimization family exhausted (joins magweight/seedens/rankloss)."
+  }
+}

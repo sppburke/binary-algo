@@ -282,6 +282,15 @@ DOWN got the SAME pipeline as UP and the verdict is nuanced — not "dead", but 
   exists (searched). The one contrary FX-direction-with-costs claim, EXFormer (arXiv:2512.12727), is a **bespoke from-scratch
   Transformer on DAILY data — NOT a TSFM fine-tune** and has **no independent replication** → does not support this row.
   Verdict: **skip.** Same information-bound wall as D-MLP; adds nothing the GBMs don't already see, at far higher cost.
+- **LOSS-REOPTIMIZATION family** (focal / quantile-median / asymmetric class-weight, `m5_lossbatch.py`, 2026-06-03):
+  §3 IMPROVE lever asking whether the OBJECTIVE (not the features) is the binding constraint, on the cross-pair primary,
+  cov0.05 per-year (2024/2025/2026). `focal_g2` (γ=2 custom fobj): UP .543/.537/**.527**, DOWN .514/.515/.522. `quantile_median`
+  (LightGBM `objective=quantile` α=0.5 on forward return → sign of predicted median; this IS the Sirignano distribution-head
+  direction test): UP .552/.544/**.503**, DOWN .567/**.504**/.564. `asym_down_w1.5`: DOWN .566/**.530**/.532. `asym_down_w2.0`:
+  DOWN .563/.541/**.528** (best DOWN-2025 .5407 but CI-lo .524<breakeven). **ALL FAIL** — no UP binding clears .553, no DOWN
+  binding-year CI-lo clears .541. The objective is NOT the binding constraint (DOWN 2025 sign is coin-flip in these features);
+  loss-reoptimization joins magweight/seed-ensemble/rankloss as exhausted. `quantile_median`'s null pre-subsumes the corpus
+  distribution-head (Sirignano full-distribution) direction lever. `m5_lossbatch_result.json`.
 - **Soundly subsumed (24 rows, audit-verified Tier-1 rationale):** A1a/A2a/A3a/A5b/A6a/A8c (single-pair TA or dominated
   modes, independently null ~0.51), C1a/C2a/C4a (sign-invariant magnitude gates), D1a/D4a (single-pair sequence/RL),
   E1a/E2a (magnitude=sign-invariant, out of scope), F1a/F2a/F4a (news/price-action/residual-target null).

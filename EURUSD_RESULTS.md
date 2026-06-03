@@ -272,6 +272,10 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   **.533 grazes below breakeven**. V1/V2 imply DOWN is even more multiplicity-fragile (found via a POW×cov sub-search).
 - **Floor (0.5441) sits AT breakeven → near-zero Kelly edge → effectively NON-deployable.** Honest verdict: a real but
   razor-thin marginal edge; ship as "measured, marginal," not as a deployable book. Rally-selling DOWN remains the open gap.
+- **§3 loss-reoptimization exhausted (2026-06-03, `m5_lossbatch_result.json`):** focal-γ2 / quantile-median (distribution-head)
+  / asymmetric class-weight (×1.5,×2) ALL fail — no DOWN binding-year CI-lo clears .541 (best DOWN-2025 .5407, CI-lo .524).
+  The objective is not the binding constraint; loss family joins magweight/seed-ens/rankloss. DOWN exhaustion now spans
+  features, model class, ensembling, calibration+ACI, hyperparameter tuning (Optuna), AND loss design — all hit the 2025 wall.
 
 ### Registry notes (to reconcile)
 - `EURUSD.m5xp_magw_down.v1` is git-tagged but MISSING from `books/INDEX.json` — added below.
