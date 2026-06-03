@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # 5-Minute Binary Option Direction Prediction — Findings & Strategy
 
 > ⚠️ **SUPERSEDED IN PART — read the 2026-05-30 bias audit first** (`research_log.md` "BIAS AUDIT" and

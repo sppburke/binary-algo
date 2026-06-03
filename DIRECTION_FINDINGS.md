@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # EURUSD Binary DIRECTION — Exhaustive Investigation & Findings (2026-05-30/31)
 
 Master summary of the multi-day effort to build a high-accuracy EURUSD up/down binary model across horizons

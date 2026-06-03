@@ -1,3 +1,5 @@
+> **SCOPE: GENERIC registry** (multi-currency). Every entry is keyed `<PAIR>.<book>.v1` with a provenance manifest. See REPO_MAP.md.
+
 # Model Registry — frozen books, manifests, and how to recreate them verbatim
 
 This registry makes every deliverable model **concrete, uniquely referenceable, and recreatable verbatim**. It is the resolution target for the `(currency, timeframe, side)` keys in `EURUSD_RESULTS.md`.

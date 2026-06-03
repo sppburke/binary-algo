@@ -1,6 +1,15 @@
+> **SCOPE: GENERIC** (currency/timeframe-agnostic). Per-key numbers, if cited, are tagged [PAIR·tf] examples whose record-of-truth is the Tier-2 file. See REPO_MAP.md.
+
 # /goal prompt templates — exhaustive + generative + edge-IMPROVING strategy search
 
 Fill `<X>` (timeframe, e.g. `5`) and `<CURRENCY>` (e.g. `EURUSD`). Paste after `/goal`.
+
+**FILE CONVENTION (read `REPO_MAP.md` first; the `strategy-eval` skill §0a enforces it).** Keep generic ↔ key-specific
+clean: a *discovered generic idea/lever* → `IDEAS_LOG.md` + `SWEEP_MATRIX.md` Tier-N (+ `METHODS_CATALOG.md` if new
+method); the *per-key executable queue* (TOP-N experiments, FIRST-TO-RUN, incumbents-to-beat, discovery rounds) →
+`sweeps/<CURRENCY>_<X>m_backlog.md`; *results of record* → `<CURRENCY>_RESULTS.md` (+ `MAGNITUDE_FINDINGS.md`); *sweep
+status* → `sweeps/<CURRENCY>_<X>m.md`; cross-key theory → `THEORY.md`. Never bake per-key numbers into a generic file
+(tag `[PAIR·tf]` + cite the Tier-2 file instead).
 
 ---
 
@@ -85,14 +94,15 @@ SSRN, cross-disciplinary fields (econophysics, information theory, point process
 COMBINATIONS. Download every paper you review to /home/sean/git/academic-papers (arXiv/OpenAlex/Unpaywall/author
 pages). When a side is failing, run a MECHANISM-first research pass (WHY is it hard here?) before cycling more
 methods. Vet each candidate (genuinely new; plausible DIRECTION mechanism surviving sign-invariance — say which
-SIDE's sign it carries; data on disk); append to SWEEP_MATRIX.md Tier-N + IDEAS_LOG.md; test it. Use sub-agents.
-Loop discovery until K dry rounds.
+SIDE's sign it carries; data on disk); append the GENERIC idea to SWEEP_MATRIX.md Tier-N + IDEAS_LOG.md, and the
+per-key instantiation row to sweeps/<CURRENCY>_<X>m_backlog.md; test it. Use sub-agents. Loop discovery until K dry rounds.
    MINE THE CORPUS EXHAUSTIVELY: read EVERY paper in /home/sean/git/academic-papers THOROUGHLY (every word,
    equation, diagram, table, and reference list — chase load-bearing refs). Extract EVERY piece of logic / math /
    loss / architecture / gating / labeling / validation / framing that could raise the edge, convert each to a
    falsifiable experiment, and RUN IT. Bias hard toward action — it is better to have an idea DISPROVED BY
    EXPERIMENT than never tried; never pre-dismiss on a hunch. Fan out reader sub-agents/workflows over the corpus
-   to produce the idea→experiment backlog (IDEAS_LOG.md), then execute it.
+   to produce the idea→experiment backlog (generic levers → IDEAS_LOG.md; per-key executable queue →
+   sweeps/<CURRENCY>_<X>m_backlog.md), then execute it.
 
 3. IMPROVE WHAT YOU FIND (do NOT stop at the first certified book). For every edge found, run the edge-IMPROVING
 levers from the literature toolkit and measure each against the incumbent: seed-ensembling (stabilize the tail /
@@ -122,8 +132,9 @@ best algo to trade" — do not rely on a stale assumption about the floor.
 6. SUBSUMPTION AUDIT + RECORD-KEEPING. Mark a row "subsumed" only with a Tier-1 rationale citing the
 script/result-JSON/theorem that fixes its answer; periodically AUDIT the subsumed set (an adversarial pass) to
 separate "truly determined" from "must actually run" — run, don't argue. Record COMBINED+UP+DOWN into
-<CURRENCY>_RESULTS.md (magnitude → MAGNITUDE_FINDINGS.md); maintain sweeps/<CURRENCY>_<X>m.md + the two-sided
-leaderboard; freeze every survivor as <CURRENCY>.<book>.v1 via manifest.py + git-tag. ONE heavy job at a time
+<CURRENCY>_RESULTS.md (magnitude → MAGNITUDE_FINDINGS.md); maintain sweeps/<CURRENCY>_<X>m.md (ledger/status) +
+sweeps/<CURRENCY>_<X>m_backlog.md (executable backlog) + the two-sided leaderboard; freeze every survivor as
+<CURRENCY>.<book>.v1 via manifest.py + git-tag. ONE heavy job at a time
 (OOM); commit ledger+results frequently (flaky external drive); EVIDENCE-FIRST — every number traces to a
 result JSON, never prose; flag thin-coverage (n<~50) and VAL-acc-max as non-robust. Think before each
 permutation. Be thorough; don't over-claim; and DON'T GIVE UP — a null is a redirect, not a stop.
@@ -137,11 +148,17 @@ operating gate). Use the strategy-eval skill in sweep mode: run every SWEEP_MATR
 research/invent new ones (download papers to /home/sean/git/academic-papers) AND run the edge-IMPROVING levers
 (seed-ensemble, |ret|-weighted/GMADL loss, calibration+adaptive-conformal, DL+GBM stacking, cross-pair pooling)
 on whatever you find. Certify = full-refit CPCV at the operating gate; ship a deployment spec (gate, fractional-
-Kelly on the refit floor, equity/drawdown). Record combined+up+down; resumable ledger + two-sided leaderboard;
-freeze survivors. Evidence-first; one heavy job at a time; null literature ≠ give up — improve the edge.
+Kelly on the refit floor, equity/drawdown). Record combined+up+down in <CURRENCY>_RESULTS.md; resumable ledger
+(sweeps/<CURRENCY>_<X>m.md) + executable backlog (sweeps/<CURRENCY>_<X>m_backlog.md) + two-sided leaderboard;
+generic ideas→IDEAS_LOG.md/SWEEP_MATRIX.md (see REPO_MAP.md); freeze survivors. Evidence-first; one heavy job at
+a time; null literature ≠ give up — improve the edge.
 ```
 
 ## Notes
+- **File convention:** `REPO_MAP.md` defines GENERIC (methods/menus/ideas/theory — `METHODS_CATALOG.md`,
+  `SWEEP_MATRIX.md`, `IDEAS_LOG.md`, `THEORY.md`) vs KEY-SPECIFIC (`<CURRENCY>_RESULTS.md`,
+  `sweeps/<CURRENCY>_<X>m{,_backlog}.md`). Record per-key numbers ONLY in the key files; tag any example in a
+  generic file `[PAIR·tf]`. The skill §0a enforces this.
 - The skill (`.claude/skills/strategy-eval/SKILL.md`) is auto-discovered; the prompt sets the objective + scope.
 - For a NEW currency with no data on disk, the first step is data acquisition (a prerequisite the skill flags).
 - To resume an interrupted sweep, the same prompt works — the ledger is the state; pick up the first `pending`

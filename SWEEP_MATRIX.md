@@ -1,3 +1,5 @@
+> **SCOPE: GENERIC** (currency/timeframe-agnostic). Per-key numbers, if cited, are tagged [PAIR·tf] examples whose record-of-truth is the Tier-2 file. See REPO_MAP.md.
+
 # SWEEP MATRIX — the exhaustive permutation menu for a (currency, timeframe) strategy search
 
 This is the **menu** an exhaustive strategy sweep works through, variant by variant, to find the best UP and
@@ -88,11 +90,12 @@ processing); and **novel combinations** of existing methods. Each new row must p
 new · plausible *direction* mechanism that survives sign-invariance · data available · prior + fast-KILL
 falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 
-> **V1 MULTIPLE-TESTING HAIRCUT — mt_adjusted_p (2026-06-02, `m5_mt_haircut_result.json`).** Holm + BHY-FDR + HLZ + N̂.
-> Procedure VALID (all kills non-sig: Stoikov/2m-UP/xofi/POW1.0 BY-adj p=1.000). Survivor `m5xp UP`: **POOLED** wr .5927/n3052
-> **t=5.81 → SURVIVES** (Šidák-p@N̂ 7.3e-08, HLZ t≥3 ✓); **BINDING-2025** wr .5765/n1379 t=2.67 → **BY-adj p 0.158 / Holm 0.137,
-> fails HLZ t≥3** (multiplicity-inflated). **Durable UP floor = refit-CPCV p10 .553**, not the .577 binding headline. New UP
-> candidates must clear .553 AND ideally show binding-year t≥3 (wr≳.581 @n1400) for clean MT-significance. DOWN side MT-fragile.
+> **Validation-lever menu (generic): multiple-testing haircut** (Holm + BHY-FDR + HLZ t≥3 + N̂-from-ρ̄, via an
+> `m{tf}_mt_haircut.py` mirroring `cpcv_certify.py`) — run on a key's whole sweep family to deflate the headline
+> by the realized M before trusting a survivor; pre-register the falsifier "procedure must flag the known kills
+> non-significant; DOWNGRADE the incumbent if its BY-adjusted binding-year p>0.05 at realized M." Companion levers:
+> CSCV/PBO + Deflated-Sharpe + MinBTL on the gated-PnL matrix. **Per-key mt_adjusted_p results live in the key's
+> backlog/results** (e.g. EURUSD·5m → `sweeps/EURUSD_5m_backlog.md` + `EURUSD_RESULTS.md`, `m5_mt_haircut_result.json`).
 
 | # | Discovered method / combination | Source (cite) | Mechanism (why it could carry SIGN) | Data | Prior | Status |
 |---|---|---|---|---|---|---|

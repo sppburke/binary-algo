@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD · 10m** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # 10-MINUTE EURUSD binary direction — research log
 
 **Goal (set 2026-05-31):** a 10-minute EURUSD up/down model with **>65% accuracy, OOS-verified**. Be creative,

@@ -1,3 +1,5 @@
+> **SCOPE: GENERIC** (currency/timeframe-agnostic). Per-key numbers, if cited, are tagged [PAIR·tf] examples whose record-of-truth is the Tier-2 file. See REPO_MAP.md.
+
 # 00 — Research Index & Orientation
 
 ## The goal, the splits, what's ruled out

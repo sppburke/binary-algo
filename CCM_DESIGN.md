@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD · 60s** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # CCM Coupling-Gate Experiment — Design Document (`min1_ccm.py`)
 
 Target: 60-second EURUSD binary direction (deriv.com Rise/Fall). Design pass 2026-06-01.

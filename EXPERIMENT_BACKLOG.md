@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # EURUSD Research — FORWARD-LOOKING EXPERIMENT BACKLOG (2026-05-31, 8-agent proactive sweep)
 
 Output of an 8-front literature/competition/alt-data/signal-processing/info-theory/microstructure/methodology sweep

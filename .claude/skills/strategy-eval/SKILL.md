@@ -26,6 +26,22 @@ Results for a currency live in `<PAIR>_RESULTS.md` (e.g. `EURUSD_RESULTS.md`). A
 file, copied from `EURUSD_RESULTS.md`'s exact structure. **Never pool across timeframes; never copy one
 timeframe's or one side's number into another key.**
 
+### 0a. GENERIC ↔ KEY-SPECIFIC file convention (READ `REPO_MAP.md` — enforce it)
+Every doc is exactly one tier; keep them clean as keys multiply:
+- **GENERIC** (currency/timeframe-agnostic): `METHODS_CATALOG.md` (methods), `SWEEP_MATRIX.md` (permutation
+  menu), `IDEAS_LOG.md` (transferable idea→experiment backlog + falsifier templates), `THEORY.md` (sign-invariance,
+  direction ceiling, settlement), `GOAL_PROMPT.md`, `research/**`. **Never bake a single key's incumbents/numbers
+  into these** — if you must cite a result as an example, tag it inline `[PAIR·tf]` and point to the Tier-2 file.
+- **KEY-SPECIFIC** (named/labeled by the key — ALL incumbents/numbers/results/backlogs live here):
+  `<PAIR>_RESULTS.md` (results of record + leaderboard), `sweeps/<PAIR>_<tf>.md` (sweep LEDGER / status),
+  **`sweeps/<PAIR>_<tf>_backlog.md` (the per-key EXECUTABLE backlog — TOP-N experiments, FIRST-TO-RUN queue,
+  incumbents-to-beat, discovery rounds)**, `MAGNITUDE_FINDINGS.md` (per-currency), `MODEL_REGISTRY.md`+`books/`.
+- Legacy key-specific files keep their names (`research_log.md`, `m{5,10,30}_research_log.md`, `EXPERIMENT_LEDGER.md`,
+  `FINDINGS.md`, `DIRECTION_FINDINGS.md`, `CCM_DESIGN.md`) but each carries a `SCOPE:` banner declaring its key —
+  don't rename (dense cross-refs into production scripts); the banner is the label.
+- **When you run a sweep/idea on a key: record the idea generically once (IDEAS_LOG/SWEEP_MATRIX/METHODS_CATALOG),
+  and the result ONLY in the key's Tier-2 files.** Every file opens with a 1-line `SCOPE:` banner — keep it.
+
 ## 1. Before touching code — read, don't redo
 1. `METHODS_CATALOG.md` — every methodology, how to retarget it (env `MX_HOR=<minutes>` for bar models;
    `HS`/`HSEC` seconds for tick models), its leakage traps, and its status. Most methods are already

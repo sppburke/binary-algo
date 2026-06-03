@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD** (key-specific — all timeframes × sides; the results of record + UP/DOWN leaderboard). Generic methods: METHODS_CATALOG.md. See REPO_MAP.md.
+
 # EURUSD — Results Ledger (unique key: currency × timeframe × side)
 
 **Pair tag: `EURUSD`.** (Other currencies get their own `<PAIR>_RESULTS.md`.)

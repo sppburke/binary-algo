@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD · 60s** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # 1-MINUTE EURUSD DIRECTION — Session-4 re-push (2026-05-31d)
 
 **Goal (re-set):** "move back to the 1-minute prediction, give me a model with prediction accuracy > 0.65, OOS-verified.

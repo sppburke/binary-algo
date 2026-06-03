@@ -1,5 +1,11 @@
 # binary-algo — FX binary-option direction prediction (research)
 
+> **📂 START HERE → `REPO_MAP.md`** — the file-organization convention (GENERIC ↔ KEY-SPECIFIC). A "key" is
+> `(PAIR, timeframe[, side])`; **5m EURUSD is one key among many.** Reusable methods/ideas/theory are generic
+> (`METHODS_CATALOG.md`, `SWEEP_MATRIX.md`, `IDEAS_LOG.md`, `THEORY.md`); per-key incumbents/numbers/results/backlogs
+> live in key-named files (`<PAIR>_RESULTS.md`, `sweeps/<PAIR>_<tf>{,_backlog}.md`). The `strategy-eval` skill
+> (§0a) enforces it. **Any EURUSD numbers below are `[EURUSD]` examples; the record-of-truth is `EURUSD_RESULTS.md`.**
+
 Predicting **price direction (up/down from current spot)** for FX pairs from tick/OHLCV data,
 with a rigorous, leakage-controlled, out-of-sample methodology. Started from a 5-minute target on
 EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy variants.

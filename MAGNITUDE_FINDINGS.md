@@ -1,3 +1,5 @@
+> **SCOPE: per-currency MAGNITUDE findings** (sign-invariant → no UP/DOWN key; label each result by PAIR). Currently EURUSD. Generic theory: THEORY.md. See REPO_MAP.md.
+
 # MAGNITUDE FINDINGS — the one deflation-proof edge in the binary-algo program
 
 **Status:** documentation handoff. The user has decided NOT to build a trading product right now.

@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # Research Log — 5-Minute Binary Option Direction Prediction
 
 **Goal:** Predict whether spot price will be **up or down 5 minutes from now** for FX pairs

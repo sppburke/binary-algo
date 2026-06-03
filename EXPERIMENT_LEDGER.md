@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+
 # EXPERIMENT LEDGER — EURUSD Binary Direction/Magnitude (1s → 30m)
 
 **Authoritative, deduplicated catalog of every experiment ever run in this repo.** Built by merging 8 slice-catalogs against the Tier-1 file inventory (140 top-level `.py`, 11 top-level `.md`, 22 `research/*.md`, 26 `models/*.json`). Cross-checked each script's docstring + result prints against the matching research log for the authoritative honest number.

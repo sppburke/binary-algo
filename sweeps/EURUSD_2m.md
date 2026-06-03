@@ -1,3 +1,5 @@
+> **SCOPE: EURUSD · 2m** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_2m_backlog.md. Results: EURUSD_RESULTS.md. See REPO_MAP.md.
+
 ---
 currency: EURUSD
 timeframe: 2m (120s)
