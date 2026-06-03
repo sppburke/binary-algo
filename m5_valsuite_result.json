@@ -1,0 +1,73 @@
+{
+  "test": "validation suite on m5xp UP (cov0.05 certified op-point)",
+  "breakeven": 0.541,
+  "n_trades": 159,
+  "pooled_win": 0.6478,
+  "per_year": {
+    "2024": {
+      "n": 74,
+      "win": 0.6757
+    },
+    "2025": {
+      "n": 72,
+      "win": 0.5833
+    },
+    "2026": {
+      "n": 13,
+      "win": 0.8462
+    }
+  },
+  "V4_impose_null_blockboot": {
+    "binding_year": 2025,
+    "observed": 0.5833,
+    "null_mean": 0.4993,
+    "null_p95": 0.6016,
+    "emp_p": 0.085,
+    "clears": false
+  },
+  "DM_HAC_vs_coinflip": {
+    "mean_acc_minus_half": 0.1478,
+    "dm_stat": 4.306,
+    "one_sided_p": 1e-05,
+    "significant": true
+  },
+  "per_year_FWER_holm": {
+    "raw_p": {
+      "2024": 0.0128,
+      "2025": 0.2742,
+      "2026": 0.0232
+    },
+    "holm_adj": {
+      "2024": 0.0385,
+      "2026": 0.0464,
+      "2025": 0.2742
+    },
+    "all3_clear_holm": false
+  },
+  "PSR": {
+    "per_trade_sharpe": 0.2238,
+    "PSR_vs_0": 0.9958,
+    "MinTRL_trades": 63.0,
+    "n_exceeds_MinTRL": true,
+    "significant": true
+  },
+  "EB_shrinkage": {
+    "grand": 0.6478,
+    "raw": [
+      0.6757,
+      0.5833,
+      0.8462
+    ],
+    "shrunk": [
+      0.6669,
+      0.6056,
+      0.7252
+    ]
+  },
+  "VERDICT": {
+    "pooled_edge_significant": true,
+    "binding_year_v4_clears": false,
+    "per_year_all_holm_clear": false,
+    "statement": "m5xp UP cov0.05 n=159, pooled win 0.6478. POOLED edge SIGNIFICANT (DM 4.31, PSR 0.996, n>MinTRL True). Binding-2025 impose-null block-boot p=0.085 (thin); per-year Holm all-clear=False. Corroborates V1/V2: pooled UP edge real & significant; single-binding-year thin (use refit floor .553)."
+  }
+}

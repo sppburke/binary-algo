@@ -641,3 +641,11 @@ Best = temperature|ACI_w0.55: DOWN binding-2025 point **.5598** (best DOWN 2025 
 all configs CI-lo .49-.524 — none clear. KILLED. Confirms calibration is rank-monotone + ACI only re-times the gate;
 it lifts the 2025 POINT slightly but cannot push the CI-lo over breakeven (the edge isn't there to gate). Marginal, like
 magweight. §3 calibration+ACI levers RUN on DOWN → fail.
+
+### VALIDATION SUITE — extra certification depth on m5xp UP (2026-06-03, `m5_valsuite.py`/`m5_valsuite_result.json`)
+Five corpus validation levers RUN (post-hoc on the cov0.05 certified op-point, n159): **DM-HAC vs coin-flip dm=4.31
+p=1e-5 SIGNIFICANT; PSR vs0 0.996 (MinTRL 63<n159) SIGNIFICANT; EB/James-Stein shrinkage per-year [.676/.583/.846]→
+[.667/.606/.725]; V4 impose-null 5-day-block bootstrap binding-2025 p=0.085 (thin); per-year FWER-Holm 2024✓/2026✓/
+2025✗(.274).** CONSISTENT with V1/V2: the POOLED UP edge is real & significant under every lens; the SINGLE-binding-year
+(2025) is thin under the conservative MT lenses → durable UP figure = refit-CPCV floor .553. (Validation levers V4/DM/
+FWER/PSR/EB now RUN; the remaining 60+ inventory validation levers are variants of these — documented in CORPUS_LEVER_INVENTORY.md.)
