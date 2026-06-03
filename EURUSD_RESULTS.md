@@ -295,6 +295,20 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
   stays deployable ONLY ungated@≤0.1 pip; DOWN stays non-deployable. **Mechanistic insight: the 5m UP edge lives in
   SMALL/diffusive moves (mean-reverting dip-buy), NOT large moves** (which are jump/informed → sign-unpredictable). Magnitude
   confirmed non-rescuing for direction even via the spot channel (consistent with sign-invariance + m5_magdyn).
+- **CROSS-PAIR PORTFOLIO (#3) — edge-generalization test RAN, #3 NOT BUILT (2026-06-03, `m5_xpair_generalize_result.json`):**
+  Built the m5xp cross-pair construction TARGETED on each of the 7 USD majors (basket sign-aligned to each pair's own
+  up-direction; label = that pair's own next-5m sign), primary GBM UP-gated @NY·pr>.5·cov0.05, per-year 24/25/26 CI95.
+  Pre-registered falsifier: GENERALIZES iff ≥2 NON-EUR majors binding-year UP CI95-lo > .53. **FAILED — 0/6** (binding CI-lo:
+  GBP .490 / AUD .502 / NZD .472 / JPY .506 / CHF .478 / CAD .471; EURUSD control .491). **The script auto-labeled this
+  "EURUSD-specific" — CORRECTED (adversarial verify): the EURUSD CONTROL ALSO failed (.4913), so that label is unsupportable.**
+  Honest read: the dip-buy edge GENERALIZES in **MECHANISM** — every major shows the identical shape (strong 2024 .55–.62 →
+  decaying to ~.51–.55 by 2026, a generic USD-major mean-reversion) — but is **UNIFORMLY THIN** (this reduced single-GBM/cov0.05
+  transfer harness under-powers vs the certified `EURUSD.m5xp_magw` ensemble's .553 floor; it reproduces the shape but certifies
+  no single pair, incl. EURUSD). **#3 VERDICT: DEAD for deployment.** It is not a route to a new certifiable single-pair edge
+  (none exists); the only surviving thesis (aggregate N decorrelated thin edges, 5m return-corr 0.054, into one book) runs into
+  the spread gate — EURUSD is the TIGHTEST major and already spot-deployable only @≤0.1 pip; the other 6 carry WIDER spreads, so
+  each leg is MORE spot-marginal, and the 2026 slices decay *coherently in time* (shared regime risk) despite decorrelated
+  per-bar returns. Recorded as a mechanism finding; do NOT build the portfolio.
 
 ### DOWN — `EURUSD.m5xp_magw_down.v1` (POW=0.5 magweight; MARGINAL, NOT robustly deployable)
 - Refit-CPCV cov0.05 p10 **0.5441** (89% folds clear) — barely above breakeven 0.541; forward 2025 .559 but CI-lo

@@ -1,0 +1,217 @@
+{
+  "test": "edge-generalization across 7 USD majors (#3 gate)",
+  "breakeven": 0.541,
+  "cov": 0.05,
+  "status": "PRE-REGISTERED",
+  "FALSIFIER": "GENERALIZES iff >=2 non-EUR majors binding-year UP CI95-lo>0.53 (n>=150); EURUSD control ~.55+. Else edge is EURUSD-specific -> cross-pair portfolio (#3) DEAD.",
+  "per_pair": {
+    "EURUSD": {
+      "per_year": {
+        "2024": {
+          "win": 0.5824,
+          "n": 2354,
+          "ci_lo": 0.5616,
+          "moved_up_rate": 0.5085
+        },
+        "2025": {
+          "win": 0.5419,
+          "n": 2349,
+          "ci_lo": 0.5232,
+          "moved_up_rate": 0.5087
+        },
+        "2026": {
+          "win": 0.526,
+          "n": 865,
+          "ci_lo": 0.4913,
+          "moved_up_rate": 0.5004
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.526,
+        "ci_lo": 0.4913,
+        "min_n": 865
+      }
+    },
+    "GBPUSD": {
+      "per_year": {
+        "2024": {
+          "win": 0.6095,
+          "n": 2246,
+          "ci_lo": 0.5886,
+          "moved_up_rate": 0.5038
+        },
+        "2025": {
+          "win": 0.5442,
+          "n": 2172,
+          "ci_lo": 0.523,
+          "moved_up_rate": 0.5055
+        },
+        "2026": {
+          "win": 0.5248,
+          "n": 808,
+          "ci_lo": 0.4901,
+          "moved_up_rate": 0.5
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5248,
+        "ci_lo": 0.4901,
+        "min_n": 808
+      }
+    },
+    "AUDUSD": {
+      "per_year": {
+        "2024": {
+          "win": 0.5801,
+          "n": 2286,
+          "ci_lo": 0.5591,
+          "moved_up_rate": 0.5069
+        },
+        "2025": {
+          "win": 0.5362,
+          "n": 2240,
+          "ci_lo": 0.5161,
+          "moved_up_rate": 0.5065
+        },
+        "2026": {
+          "win": 0.5357,
+          "n": 855,
+          "ci_lo": 0.5018,
+          "moved_up_rate": 0.5063
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5357,
+        "ci_lo": 0.5018,
+        "min_n": 855
+      }
+    },
+    "NZDUSD": {
+      "per_year": {
+        "2024": {
+          "win": 0.5569,
+          "n": 2480,
+          "ci_lo": 0.5371,
+          "moved_up_rate": 0.5025
+        },
+        "2025": {
+          "win": 0.5367,
+          "n": 2346,
+          "ci_lo": 0.5171,
+          "moved_up_rate": 0.5044
+        },
+        "2026": {
+          "win": 0.5059,
+          "n": 846,
+          "ci_lo": 0.4716,
+          "moved_up_rate": 0.5045
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5059,
+        "ci_lo": 0.4716,
+        "min_n": 846
+      }
+    },
+    "USDJPY": {
+      "per_year": {
+        "2024": {
+          "win": 0.5552,
+          "n": 2156,
+          "ci_lo": 0.5345,
+          "moved_up_rate": 0.5073
+        },
+        "2025": {
+          "win": 0.5279,
+          "n": 2097,
+          "ci_lo": 0.5064,
+          "moved_up_rate": 0.504
+        },
+        "2026": {
+          "win": 0.5489,
+          "n": 756,
+          "ci_lo": 0.5119,
+          "moved_up_rate": 0.5129
+        }
+      },
+      "binding": {
+        "year": 2025,
+        "win": 0.5279,
+        "ci_lo": 0.5064,
+        "min_n": 756
+      }
+    },
+    "USDCHF": {
+      "per_year": {
+        "2024": {
+          "win": 0.623,
+          "n": 1984,
+          "ci_lo": 0.6023,
+          "moved_up_rate": 0.4989
+        },
+        "2025": {
+          "win": 0.5745,
+          "n": 1906,
+          "ci_lo": 0.5519,
+          "moved_up_rate": 0.4982
+        },
+        "2026": {
+          "win": 0.5143,
+          "n": 735,
+          "ci_lo": 0.4776,
+          "moved_up_rate": 0.4978
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5143,
+        "ci_lo": 0.4776,
+        "min_n": 735
+      }
+    },
+    "USDCAD": {
+      "per_year": {
+        "2024": {
+          "win": 0.5825,
+          "n": 2055,
+          "ci_lo": 0.5611,
+          "moved_up_rate": 0.4975
+        },
+        "2025": {
+          "win": 0.5468,
+          "n": 2063,
+          "ci_lo": 0.5259,
+          "moved_up_rate": 0.4974
+        },
+        "2026": {
+          "win": 0.5058,
+          "n": 777,
+          "ci_lo": 0.471,
+          "moved_up_rate": 0.4996
+        }
+      },
+      "binding": {
+        "year": 2026,
+        "win": 0.5058,
+        "ci_lo": 0.471,
+        "min_n": 777
+      }
+    }
+  },
+  "EURUSD_control_binding": {
+    "year": 2026,
+    "win": 0.526,
+    "ci_lo": 0.4913,
+    "min_n": 865
+  },
+  "non_eur_pairs_with_edge": [],
+  "VERDICT": {
+    "edge_generalizes": false,
+    "n_other_majors_with_edge": 0,
+    "statement": "EURUSD control binding 0.526 (CI-lo 0.4913) \u2014 harness CHECK. Non-EUR majors with binding-year UP CI95-lo>0.53: [] (0/6). EDGE IS EURUSD-SPECIFIC -> cross-pair portfolio (#3) DEAD: the other majors do not carry a comparable dip-buy UP edge, so a portfolio adds noise not edge. The certified edge is idiosyncratic to EURUSD."
+  }
+}

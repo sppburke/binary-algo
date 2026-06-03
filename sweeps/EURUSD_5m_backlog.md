@@ -24,6 +24,47 @@ dependence + the cross-pair FEATURE channel, NOT the raw 5m return correlation �
 **Verdict:** legitimate, more promising than first claimed; **NOT a sure win.** Decisive first step = the edge-generalization
 test (per-pair). This is the "new-currency bootstrap" (strategy-eval §7) scoped to a portfolio-deployment goal.
 
+### RESOLVED — edge-generalization test RAN (`m5_xpair_generalize.py` / `m5_xpair_generalize_result.json`, 2026-06-03)
+Built the SAME m5xp cross-pair construction TARGETED on each of the 7 majors (basket sign-aligned to that pair's own
+up-direction; label = that pair's own next-5m sign), primary GBM (n_est 1500, lr .03, leaves 127), UP-gated @NY·pr>.5·cov0.05,
+per-year 2024/25/26 nonoverlap_chrono + boot CI95. **Pre-registered falsifier:** GENERALIZES iff ≥2 NON-EUR majors binding-year
+(worst of 24/25/26, n≥150) UP CI95-lo > **0.53**; else EURUSD-specific. Full board (binding = worst-year):
+
+| pair | 2024 / 2025 / 2026 | binding yr | win | CI95-lo | min_n |
+|---|---|---|---|---|---|
+| **EURUSD (control)** | .582 / .542 / .526 | 2026 | .526 | **.4913** | 865 |
+| GBPUSD | .610 / .544 / .525 | 2026 | .525 | .4901 | 808 |
+| AUDUSD | .580 / .536 / .536 | 2026 | .536 | .5018 | 855 |
+| NZDUSD | .557 / .537 / .506 | 2026 | .506 | .4716 | 846 |
+| USDJPY | .555 / .528 / .549 | 2025 | .528 | .5064 | 756 |
+| USDCHF | .623 / .575 / .514 | 2026 | .514 | .4776 | 735 |
+| USDCAD | .583 / .547 / .506 | 2026 | .506 | .4710 | 777 |
+
+**Strict falsifier: FAILED — 0 of 6 non-EUR majors clear binding CI-lo > .53** (best USDJPY .5064; only AUDUSD/USDJPY even clear .50).
+
+**CORRECTION OF THE SCRIPT'S AUTO-LABEL (adversarial verification).** The script's auto-statement says *"EDGE IS EURUSD-SPECIFIC."*
+That is **WRONG / overclaimed.** The script itself flagged `harness CHECK` because **the EURUSD CONTROL also failed** (binding CI-lo
+.4913 < .50). When the control fails, "EURUSD-specific" is unsupportable. The honest read of the board:
+- **The edge GENERALIZES in MECHANISM, not as a certifiable per-pair number.** EVERY major shows the identical dip-buy shape —
+  strong 2024 (.55–.62), decaying to ~.51–.55 by 2026. This is a **generic USD-major mean-reversion**, NOT idiosyncratic to EURUSD.
+- **It is UNIFORMLY THIN everywhere, including EURUSD.** This reduced single-GBM / cov0.05 harness under-powers vs the certified
+  `EURUSD.m5xp_magw` ensemble (meta-stack + magweight, .553 floor); it reproduces the EURUSD *shape* but lands below .53 on the
+  binding year for ALL pairs. So the test confirms generalization-in-shape but cannot certify ANY single pair (the EURUSD edge's
+  certify-ability comes from the full ensemble, which this transfer test did not rebuild per-pair).
+
+**#3 (cross-pair portfolio) — VERDICT: DEAD for practical deployment; mechanism-generalization recorded.**
+- The portfolio is NOT a route to a new *certifiable single-pair* edge — none exists on the other majors (and neither does EURUSD on
+  this harness). Gate-1 (edge-generalization) resolves to "generalizes-in-mechanism-but-uniformly-thin."
+- The ONLY #3 thesis that survives is the SPECULATIVE one: *aggregate N decorrelated thin edges (5m return-corr 0.054) into one
+  combined book and hope the aggregate is more robust than any single pair.* That is unproven and runs straight into Gate-2: the
+  certified EURUSD edge is already spot-deployable ONLY at ≤0.1 pip raw spread (tightest major); GBP/AUD/NZD/JPY/CHF/CAD all carry
+  WIDER 5m spreads → each leg is more spot-marginal than EURUSD, so adding them likely adds cost+noise faster than √N variance
+  reduction buys back. Gate-3 (shared 2025-regime risk) is also live — every pair's 2026 slice decays together, i.e. the edges fail
+  *coherently in time* even though per-bar returns are decorrelated.
+- **DECISION: do NOT build the #3 portfolio.** Recorded as a mechanism finding (generic USD-major dip-buy). If revisited, the correct
+  next step is NOT a single-pair refit but a *pooled/combined book* (D1/D2-style 7-pair pooling, already KILLED for EURUSD via
+  `m5_pool.py`) evaluated as ONE aggregated spot strategy net of each pair's real spread — but the spread gate makes the prior low.
+
 ## SESSION-2 (2026-05-31b) — 5-MIN re-push: CROSS-PAIR + ORDER-FLOW + META-LABELER (NEW orthogonal ideas)
 Goal re-set to 5-min >65% OOS. New ideas tried (the genuinely-untried-at-5m set):
 - **Cross-pair USD-common-factor / lead-lag** (m5_xpair.py): EURUSD = EUR-strength − USD-strength; build USD basket from the
