@@ -201,6 +201,15 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   FALSIFIER: if CSCV labels the certified m5xp/m5xp_aci PBO>0.05 OR DSR-deflated edge <0.541, DOWNGRADE to UNCERTIFIED; if
   the 5m sample is below MinBTL at realized N̂, the VAL-selected edge is noise. INCUMBENT: m5xp/ACI certification.
   NOVELTY: variant_of_tried (cpcv_certify exists; CSCV/PBO/DSR are the new exact computations). (Bailey-LdP PBO/DSR)
+  ✅ **DONE 2026-06-02 (`m5_cscv_pbo.py`, `m5_cscv_pbo_result.json`):** T=5810 indep gated bars, 10 configs
+  (UP/DOWN × cov{.30,.15,.10,.05,.02}), C(16,8)=12870 CSCV splits. **PBO 0.242 (>0.05 FAIL); DSR @M=10 .906 / @N̂=6
+  .934 / @prog70 .745 (<0.95 FAIL); MinBTL @prog70=118 < deployed n153 (PASS).** Falsifier triggers — but the driver
+  is operating-point SELECTION instability: **OOS-degradation slope −0.505** (= the corr(VAL,OOS)=−0.54 anti-transfer),
+  NOT edge-absence: only **3.1%** of splits put the IS-best below breakeven; IS-best OOS win-rate mean .667 / **p10 .589**.
+  Deployed UP_cov0.05 frozen-pools to .647 (overstated vs refit floor .553). **CONSISTENT WITH V1: edge real + robustly
+  profitable; the cover/side/year selection is overfit-prone → size on the refit-CPCV floor .553, never the optimistic
+  operating point.** Incumbent refined, not killed. (Caveat: combined UP+DOWN family + ultra-thin cov0.02 inflate PBO
+  somewhat; the anti-transfer slope is the real signal.)
 **V3. ★⚡ Diebold-Mariano HAC head-to-head as the formal challenger-promotion gate (replaces eyeball CI95).**
   EXPERIMENT: add `dm_test()` to the strategy-eval harness — per-bar directional-loss diff challenger−m5xp_aci per test year,
   Newey-West DM (lag≈horizon−1=overlap), Bonferroni over sweep count; promote only on significant DM AND CPCV path-clear.

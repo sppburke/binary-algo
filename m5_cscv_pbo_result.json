@@ -1,0 +1,69 @@
+{
+  "test": "V2 CSCV/PBO + DSR + N\u0302 + MinBTL on m5xp 5m gated-PnL matrix",
+  "breakeven": 0.541,
+  "payout_R": 0.85,
+  "T_independent_gated_bars": 5810,
+  "meta_thr": 0.5738,
+  "family": [
+    "UP_cov0.3",
+    "UP_cov0.15",
+    "UP_cov0.1",
+    "UP_cov0.05",
+    "UP_cov0.02",
+    "DOWN_cov0.3",
+    "DOWN_cov0.15",
+    "DOWN_cov0.1",
+    "DOWN_cov0.05",
+    "DOWN_cov0.02"
+  ],
+  "M_configs": 10,
+  "S_blocks": 16,
+  "n_splits": 12870,
+  "CSCV": {
+    "PBO": 0.2423,
+    "frac_ISbest_OOS_below_breakeven": 0.0314,
+    "oos_degradation_slope": -0.505,
+    "oos_isbest_winrate_mean": 0.6673,
+    "oos_isbest_winrate_p10": 0.5888
+  },
+  "deployed_config": {
+    "name": "UP_cov0.05",
+    "n": 153,
+    "win_rate": 0.6471,
+    "per_trade_sharpe": 0.2222,
+    "skew": -0.609,
+    "kurt": 1.361
+  },
+  "DSR": {
+    "var_trial_sr": 0.00472,
+    "at_M": {
+      "N": 10,
+      "sr0": 0.1082,
+      "DSR": 0.9059
+    },
+    "at_Nhat": {
+      "N": 6.4,
+      "sr0": 0.0919,
+      "DSR": 0.9338
+    },
+    "at_program70": {
+      "N": 70,
+      "DSR": 0.7451
+    }
+  },
+  "MinBTL": {
+    "at_M": 51.0,
+    "at_program70": 118.0,
+    "actual_T": 5810,
+    "sample_exceeds_minBTL_atM": true,
+    "sample_exceeds_minBTL_prog": true
+  },
+  "VERDICT": {
+    "PBO_le_0p05": false,
+    "DSR_at_Nhat_ge_0p95": false,
+    "deployed_winrate_ge_breakeven": true,
+    "sample_ge_minBTL": true,
+    "downgrades_per_falsifier": true,
+    "statement": "PBO=0.242 (FAIL >0.05); deployed UP_cov0.05 win=0.6471 n=153, DSR@N\u0302=0.934 (FAIL <0.95); MinBTL@70=118 vs T=5810 (PASS). m5xp UP DOWNGRADES under V2."
+  }
+}
