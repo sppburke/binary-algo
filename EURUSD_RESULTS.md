@@ -30,8 +30,8 @@ One row per key = **best OOS % | model id · content_id | description**. `OOS = 
 | EURUSD · **5m** · DOWN | **~0.54** ⚠ marginal — best via POW=0.5 magweight (.605/**.559**/.549) | `EURUSD.m5xp.v1` down-preds → **POW=0.5 magweight rescue** (book freeze pending) | Symmetric pipeline (side-split, A8b, D3, conf-curve, A8c specialist) left DOWN dead: unweighted refit cov0.05 p10 .5421 mechanically certifies BUT forward binding 2025 **.538 fails**. **B1 |return|-weighted retrain (POW=0.5, `m5_magweight_cpcv.py`, 2026-06-01) is the first DOWN to BOTH CPCV-certify AND point-clear the forward binding year:** DOWN cov0.05 p10 **.5441**/89.3%, mean .5569; forward 2025 DOWN **.559**[.533,.586] (vs incumbent's failing .533), 2024 .605[.577,.634], up-rate tripwire clean. RAZOR-THIN — certifies only at cov0.05 (fails .10/.15), forward 2025 CI-lo .533 grazes below breakeven. Deployable only as a thin tight-cover edge, NOT robust. `m5_magweight_cpcv_result.json` ⚠ **§3 IMPROVE APPLIED + FAILED (2026-06-02, `m5_magweight_seedens_result.json`):** seed-ensemble (K=4) on the magweight-DOWN — the highest-EV variance-reduction lever — does NOT certify DOWN: forward 2025 ~**.52** at every cov (CI-lo .498), same 2025-regime wall. DOWN genuinely exhausted on-disk EMPIRICALLY; the binding 2025 USD-regime is the wall; only remaining lever (risk-reversal sign) is verified-PAYWALLED. **NO certified/deployable DOWN edge exists.** | **MEASURED, marginal (magweight); §3 improve applied+failed → exhausted, non-deployable** |
 | EURUSD · **10m** · UP | **0.594** | `EURUSD.m10.v1` · `05fd0a85e07b50fb` | Native-10 3-model ensemble × 5m_bb_width-NY gate | untested (combined) |
 | EURUSD · **10m** · DOWN | **0.594** | `EURUSD.m10.v1` · `05fd0a85e07b50fb` | Native-10 3-model ensemble × 5m_bb_width-NY gate | untested (combined) |
-| EURUSD · **15m** · UP | **0.663** | `EURUSD.m15.v1` · `67370590c2293e0d` | 3-model ensemble × 15m compression(bb_width)×NY | untested (combined) |
-| EURUSD · **15m** · DOWN | **0.663** | `EURUSD.m15.v1` · `67370590c2293e0d` | 3-model ensemble × 15m compression(bb_width)×NY | untested (combined) |
+| EURUSD · **15m** · UP | **.607** binding (op cov2%; .725/.607/.674) | `EURUSD.m15.v1` · `67370590c2293e0d` (up-bets) | 3-model ensemble × 15m compression(bb_width)×NY, UP bets | ⏳ side-split MEASURED (a); CI-lo .513 — pipeline (b)-(e) in progress |
+| EURUSD · **15m** · DOWN | **.559** binding (op cov2%; .653/.559/.650) | `EURUSD.m15.v1` · `67370590c2293e0d` (down-bets) | 3-model ensemble × 15m compression(bb_width)×NY, DOWN bets | ⏳ side-split MEASURED (a); **not dead** (>.541 pt); CI-lo .472 — pipeline (b)-(e) |
 | EURUSD · **30m** · UP | **0.546** | `EURUSD.m30.v1` · `a17be49b9262668f` | 3-model ensemble × 1h-compression×NY | untested (combined) |
 | EURUSD · **30m** · DOWN | **0.546** | `EURUSD.m30.v1` · `a17be49b9262668f` | 3-model ensemble × 1h-compression×NY | untested (combined) |
 
@@ -185,10 +185,21 @@ The best COMBINED direction book in the program. Raw AUC ≈ 0.528.
 ### Key results
 | Key | Result | Status |
 |---|---|---|
-| **(EURUSD, 15m, UP)** | `UNTESTED` | Combined 0.647 recent / 0.579 CPCV-faithful, never split by side. ⚠ Earlier docs mis-attributed the 60s up/down numbers (0.584/0.613) to 15m — that was an error; 15m has NO measured up/down split. Open: split `m15_production.py` trades by predicted side. |
-| **(EURUSD, 15m, DOWN)** | `UNTESTED` | Same — open. |
+| **(EURUSD, 15m, UP)** | **side-split MEASURED (step a)** — operating point .725/**.607**/.674 (binding 2025 n117 CI[.513,.692]); gate-only .528/.543/**.500** | ⏳ pipeline (b)-(e) in progress. Binding-year CI-lo .513 < .541 → not yet certified; point estimates clear breakeven. `m15_updown_result.json`. |
+| **(EURUSD, 15m, DOWN)** | **side-split MEASURED (step a)** — operating point .653/**.559**/.650 (binding 2025 n127 CI[.472,.646]); gate-only .521/.522/**.566** | ⏳ pipeline (b)-(e) in progress. **NOT dead** (unlike 5m): binding 2025 point .559 > breakeven, but CI-lo .472 < .541. `m15_updown_result.json`. |
 
 Reconciling the combined number: **0.647** = recent chronological split (favorable end); **0.579** = faithful 15-path CPCV (durable headline); walk-forward is worse (frozen optimal). The 0.545 from `cpcv_certify.py` is a weaker re-implementation, not a refutation. Citations: `min15_cpcv_result.json`, `m15_walkforward_result.json`, `DIRECTION_FINDINGS.md:15`.
+
+### Side-split (step a) — `m15_updown.py` → `m15_updown_result.json` (2026-06-03)
+Integrity check ✓ operating COMBINED reproduces the frozen book per-year (2024 .689 / 2025 .582 / 2026 .663). No mirage: operating ALL moved-up-rate .529, gate-only .502 (both ≈[.47,.53]).
+| view | side | 2024 | 2025 (binding) | 2026 |
+|---|---|---|---|---|
+| operating (cov~2%, deployed) | UP | .725 (n171) | **.607** [.513,.692] n117 | .674 [.531,.796] n49 |
+| operating | DOWN | .653 (n173) | **.559** [.472,.646] n127 | .650 [.500,.800] n40 |
+| gate-only (n powered) | UP | .528 (n2380) | .543 [.518,.570] n1382 | **.500** [.461,.539] n644 |
+| gate-only | DOWN | .521 (n2340) | .522 [.495,.547] n1438 | **.566** [.521,.610] n472 |
+
+**What this overturns / what I learned:** (1) **15m DOWN is NOT dead** — unlike 5m (DOWN binding .533, dead), 15m DOWN operating binding-2025 point **.559 > breakeven**. The 5m UP-only asymmetry does NOT transfer (docs warned). (2) **The edge is confidence-driven, not side-driven** — gate-only is ~.50–.54 both sides (barely above coin); all the lift comes from the top-2% confidence selection, roughly symmetric across sides at the operating point. (3) **Regime flip at the gate level** — UP strong 2024-25 / dead 2026 (.500); DOWN weak 2024-25 / strong 2026 (.566). The confidence selection picks whichever side is right per regime → why the combined book works and why a *fixed* side-only filter fights a rotating edge. Binding year 2025 for both; UP (.607) > DOWN (.559). Neither binding CI-lo clears yet (thin-n power problem at cov 2%) → run coverage curve (d) + full-refit CPCV (e) before any dead/certified verdict.
 
 ---
 

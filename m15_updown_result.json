@@ -1,0 +1,225 @@
+{
+ "book": "EURUSD.m15.v1",
+ "horizon_min": 15,
+ "breakeven": 0.541,
+ "gate": "15m_bb_width<=0.00158684 AND sess_ny>0.5",
+ "conf_thr": 0.10259909813593122,
+ "settlement": "book-native: 15m wall-clock-contiguous close-to-close, _y=(ret>0), ties(ret==0) dropped at build; nonoverlap_chrono 900s; moved-only; per-year bootstrap CI95",
+ "PRE_REGISTERED_FALSIFIER": {
+  "purpose": "Locate where the 15m directional edge lives by side. NOT a certification.",
+  "side_LIVE_if": "at operating OR gate_only, the side's BINDING (worst) held-out year moved-acc CI95-lower clears 0.541 with n>=50 AND up-rate in [0.47,0.53]. LIVE side -> full (a)-(e) pipeline.",
+  "side_DEAD_prelim_if": "even gate_only binding-year point estimate < 0.541 (regime-level no-edge).",
+  "integrity_check": "operating COMBINED per-year reproduces m15_production backtest (2024 .689/2025 .582/2026 .663).",
+  "prior": "UP-tilt (dip-buy) recurs at 60s/5m but is horizon+regime specific; measure, don't copy. DOWN prior dead/marginal elsewhere (rally-selling ~0.52)."
+ },
+ "operating": {
+  "view": "operating",
+  "diag": {
+   "2024": {
+    "n": 344,
+    "pred_up_share": 0.4971,
+    "moved_up_rate": 0.5349
+   },
+   "2025": {
+    "n": 244,
+    "pred_up_share": 0.4795,
+    "moved_up_rate": 0.5205
+   },
+   "2026": {
+    "n": 89,
+    "pred_up_share": 0.5506,
+    "moved_up_rate": 0.5281
+   }
+  },
+  "per_year_side": {
+   "2024_UP": {
+    "n": 171,
+    "acc": 0.7251,
+    "ci": [
+     0.655,
+     0.7895
+    ],
+    "out_up_rate": 0.7251
+   },
+   "2024_DOWN": {
+    "n": 173,
+    "acc": 0.6532,
+    "ci": [
+     0.5838,
+     0.7225
+    ],
+    "out_up_rate": 0.3468
+   },
+   "2024_COMBINED": {
+    "n": 344,
+    "acc": 0.689,
+    "ci": [
+     0.6395,
+     0.7384
+    ],
+    "out_up_rate": 0.5349
+   },
+   "2025_UP": {
+    "n": 117,
+    "acc": 0.6068,
+    "ci": [
+     0.5128,
+     0.6923
+    ],
+    "out_up_rate": 0.6068
+   },
+   "2025_DOWN": {
+    "n": 127,
+    "acc": 0.5591,
+    "ci": [
+     0.4724,
+     0.6457
+    ],
+    "out_up_rate": 0.4409
+   },
+   "2025_COMBINED": {
+    "n": 244,
+    "acc": 0.582,
+    "ci": [
+     0.5204,
+     0.6434
+    ],
+    "out_up_rate": 0.5205
+   },
+   "2026_UP": {
+    "n": 49,
+    "acc": 0.6735,
+    "ci": [
+     0.5306,
+     0.7959
+    ],
+    "out_up_rate": 0.6735
+   },
+   "2026_DOWN": {
+    "n": 40,
+    "acc": 0.65,
+    "ci": [
+     0.5,
+     0.8
+    ],
+    "out_up_rate": 0.35
+   },
+   "2026_COMBINED": {
+    "n": 89,
+    "acc": 0.6629,
+    "ci": [
+     0.5618,
+     0.7528
+    ],
+    "out_up_rate": 0.5281
+   }
+  },
+  "all_pred_up_share": 0.4978,
+  "all_moved_up_rate": 0.5288
+ },
+ "gate_only": {
+  "view": "gate_only",
+  "diag": {
+   "2024": {
+    "n": 4720,
+    "pred_up_share": 0.5042,
+    "moved_up_rate": 0.5034
+   },
+   "2025": {
+    "n": 2820,
+    "pred_up_share": 0.4901,
+    "moved_up_rate": 0.5103
+   },
+   "2026": {
+    "n": 1116,
+    "pred_up_share": 0.5771,
+    "moved_up_rate": 0.4722
+   }
+  },
+  "per_year_side": {
+   "2024_UP": {
+    "n": 2380,
+    "acc": 0.5277,
+    "ci": [
+     0.5076,
+     0.5483
+    ],
+    "out_up_rate": 0.5277
+   },
+   "2024_DOWN": {
+    "n": 2340,
+    "acc": 0.5214,
+    "ci": [
+     0.5009,
+     0.5415
+    ],
+    "out_up_rate": 0.4786
+   },
+   "2024_COMBINED": {
+    "n": 4720,
+    "acc": 0.5246,
+    "ci": [
+     0.5102,
+     0.539
+    ],
+    "out_up_rate": 0.5034
+   },
+   "2025_UP": {
+    "n": 1382,
+    "acc": 0.5434,
+    "ci": [
+     0.5181,
+     0.5702
+    ],
+    "out_up_rate": 0.5434
+   },
+   "2025_DOWN": {
+    "n": 1438,
+    "acc": 0.5216,
+    "ci": [
+     0.4951,
+     0.5466
+    ],
+    "out_up_rate": 0.4784
+   },
+   "2025_COMBINED": {
+    "n": 2820,
+    "acc": 0.5323,
+    "ci": [
+     0.5142,
+     0.5507
+    ],
+    "out_up_rate": 0.5103
+   },
+   "2026_UP": {
+    "n": 644,
+    "acc": 0.5,
+    "ci": [
+     0.4612,
+     0.5388
+    ],
+    "out_up_rate": 0.5
+   },
+   "2026_DOWN": {
+    "n": 472,
+    "acc": 0.5657,
+    "ci": [
+     0.5212,
+     0.6102
+    ],
+    "out_up_rate": 0.4343
+   },
+   "2026_COMBINED": {
+    "n": 1116,
+    "acc": 0.5278,
+    "ci": [
+     0.4991,
+     0.5565
+    ],
+    "out_up_rate": 0.4722
+   }
+  },
+  "all_pred_up_share": 0.509,
+  "all_moved_up_rate": 0.5016
+ }
+}
