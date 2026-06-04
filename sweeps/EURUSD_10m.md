@@ -23,15 +23,18 @@
 | I3 | improve | \|ret\|-weighted retrain POW=0.5 | `m10_magweight.py 0.5` | D | med (rescued 5m DOWN) | **KILLED** | ~.56 | 2025 .578 (<inc .605) | 2025 .539 (<inc .574,<BE) | does NOT beat certified book either side; 2026 UP collapses .474 (up-rate .429 tripwire) — same as 5m. POW=1.0 pruned-dominated. | `m10_magweight_result.json` |
 | I2 | improve | seed-ensemble net ⊕ GBM decorrelated stack | `m5_deep_ens.py`@MX_HOR=10 | D | low-med | pending | — | — | — | — | — |
 | I4 | improve | calibration (temp/Venn-Abers) + re-gate | wrap book | gate | low (nearly free) | pending | — | — | — | required wrapper for any conf-gated edge | — |
-| I5 | improve | cross-pair POOLING weight-shared net (Sirignano-Cont) | new | D | low (struct) | pending | — | — | — | run only if I2 shows life | — |
-| I6 | improve | Optuna TPE worst-VAL-half tuning | wrap | tune | low | pending | — | — | — | — | — |
+| X-horizon | improve/combo | cross-horizon blend 10m×15m cross-pair | `m10_xhorizon_blend.py` | D | low-med | **KILLED** | — | 2025 .596 | 2025 .637(cov5,~=certified) | **corr(p10,p15)=.957** → same signal, no decorrelated gain (mechanism: identical cross-pair family adjacent horizon) | `m10_xhorizon_blend_result.json` |
+| I2 | improve | seed-ensemble net ⊕ GBM | `m5_deep_ens.py`@10m | D | low | **subsumed** | — | — | — | Tier-1: 5m blend≈GBM (corr .694, no lift) + 10m x-horizon blend corr .957 → same-feature seed-ens decorrelates even less → cannot beat certified. Logged prune. | — |
+| I5 | improve | cross-pair POOLING weight-shared net (Sirignano-Cont) | new | D | low (struct) | **subsumed** | — | — | — | gated on I2 showing life (it didn't); cross-pair already IS the certified mechanism | — |
+| I4 | improve | calibration (isotonic/Platt) + re-gate | inline | gate | low | pending | — | — | — | single-model monotonic calib ≈ rank-invariant for |p-0.5| gate; verify | — |
+| I6 | improve | Optuna TPE worst-VAL-half tuning | wrap | tune | low | pending | — | — | — | info-bound caps AUC; multiplicity risk | — |
 | A8c | side | purpose-built UP/DOWN specialist + meta-labeler (step c) | `m15_updown.py`/spec @10m | U/Dn | med (filter), low (spec) | pending | — | — | — | per side not yet certified/dead | — |
 | Ad  | side | confidence/coverage curve (step d) per side | `m15_sidepipe.py`@10m | U/Dn | — | pending | — | — | — | — | — |
 | N19 | discover | H=10 risk-residual RELABEL + DOWN-split | `m10_residlabel_down_h10.py` | D | low-med | **KILLED** | — | — | 2025 .5077 | residual sign coin-flip in 2025; edge is gated RAW cross-pair sign not idiosyncratic residual | `m10_residlabel_down_h10_result.json` |
 | N18 | discover | signed-payoff GMADL sign-coupled loss (a∈{50,100}×b∈{1,2}) | `m10_signedpayoff_gmadl.py` | D | ~10% | **KILLED** | — | 2025 .44–.49 | 2025 .46–.48 | all 4 configs BELOW 0.5 — sign-coupled payoff loss WORSE than gated BCE; loss-reopt family exhausted (cf magweight+N19) | `m10_signedpayoff_gmadl_result.json` |
 | I1 | improve | ACI adaptive-conformal gate (deploy) | `m10_deploy_eval.py` | gate | high (WIN@5m) | **KILLED** | — | 2025 .611<.679 | 2025 .564<.579 | ACI trades MORE at LOWER 2025 win than fixed; compression×NY gate already captures regime | `m10_deploy_eval_result.json` |
 | Ad | side | coverage curve (step d) + deploy EV net-of-spread | `m10_deploy_eval.py` | U/Dn | — | **DONE** | — | 2025 cov5 .613/cov10 .605/cov15 .585 | 2025 cov5 .630(EV.166)/cov10 .574/cov15 .583 | DOWN better at TIGHTER cov (cov5 EV.166>cov10 EV.062) → per-side deploy: DOWN cov5, UP cov10 | `m10_deploy_eval_result.json` |
-| A8c | side | purpose-built side specialist (step c) | `m10_spec.py` | U/Dn | low (spec worse @5m) | pending | — | — | — | run-once fast-KILL | — |
+| A8c | side | purpose-built side specialist (step c) — asym class-weight | `m10_spec.py` | U/Dn | low (spec worse @5m) | **KILLED** | — | 2025 .559<.605 | 2025 .572<.630(cov5) | asym-weight side specialist does NOT beat symmetric side-split either side; subset/asym training kills ranking (confirms 5m). **Full (a)-(e) pipeline now run both sides → both CERTIFIED (not dead).** | `m10_spec_result.json` |
 | N17 | discover | lead-lag transfer-entropy + RFF | `m5_leadlag_te_rff.py`@10m | D | low (5m null) | pending | — | — | — | bounded run / subsume | — |
 | N16 | discover | Cont–deLarrard P(up\|queue) + tick-sign reversal | (spec)@10m | D | low | pending | — | — | — | — | — |
 
@@ -54,14 +57,16 @@
 |---|---|---|---|
 | 1 | cross-pair xpof primary (A6c) | **.5863** (15/15) | ✅ CERTIFIED leader |
 | 2 | base 3-model ensemble (L0) | .5611 (15/15) | certified, lower (fallback) |
-| — | magweight POW=0.5 (I3) | 2025 .578 < .605 | KILLED (no improve) |
+| — | magweight POW=0.5 (I3) · ACI gate (I1) · GMADL (N18) · asym specialist (A8c) | all 2025 < .605 (GMADL <0.5) | all KILLED — none beat the certified UP |
 ### (10m, DOWN) — LEADER: `EURUSD.m10xp.v1` cross-pair primary, **refit-CPCV p10 .5683** (15/15), forward cov10 2024 .599/2025 .574/2026 .476(thin)
 | rank | method | refit p10 / binding | verdict |
 |---|---|---|---|
-| 1 | cross-pair xpof primary (A6c) | **.5683** (15/15) | ✅ CERTIFIED leader |
+| 1 | cross-pair xpof primary (A6c) | **.5683** (15/15) | ✅ CERTIFIED leader (deploy DOWN at cov5%: fwd-2025 .630, EV .166) |
 | 2 | base 3-model ensemble (L0) | .5519 (14/15) | certified-by-rule, regime-dependent (2021–26 .528) |
-| — | magweight POW=0.5 (I3) | 2025 .539 < .574, <BE | KILLED (no improve) |
-| — | residual-label H=10 (N19) | 2025 .5077 (coin-flip) | KILLED (collapses 2025; edge is gated RAW cross-pair sign, not idiosyncratic residual) |
+| — | magweight POW=0.5 (I3) | 2025 .539 < .574, <BE | KILLED |
+| — | residual-label H=10 (N19) | 2025 .5077 (coin-flip) | KILLED (collapses 2025; edge=gated RAW cross-pair sign, not idiosyncratic residual) |
+| — | GMADL sign-coupled loss (N18) | 2025 .46–.48 (<0.5) | KILLED (loss worse than gated BCE) |
+| — | ACI gate (I1) · asym specialist (A8c) | 2025 < .574 | KILLED (none beat certified DOWN) |
 
 ## Discovery rounds (loop until K=2 dry)
 - **Round 1 (improve/discover on the certified cross-pair edge) — DRY** (no lever beat the certified book): magweight POW0.5 (KILL, 2025 collapse) · N19 residual-label DOWN (KILL, 2025 .5077) · ACI gate I1 (KILL, trades more at lower 2025 win) · GMADL sign-coupled loss N18 (KILL, all configs <0.5) · specialist (c) (running) · coverage-curve (done). **Mechanistic conclusion: the 10m direction edge is the gated raw cross-pair sign; every loss/label/gate modification collapses on the 2025-USD-regime wall — the same info-bound + leader-not-unseated pattern as 15m.**
