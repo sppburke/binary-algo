@@ -26,7 +26,10 @@
 | X-horizon | improve/combo | cross-horizon blend 10m×15m cross-pair | `m10_xhorizon_blend.py` | D | low-med | **KILLED** | — | 2025 .596 | 2025 .637(cov5,~=certified) | **corr(p10,p15)=.957** → same signal, no decorrelated gain (mechanism: identical cross-pair family adjacent horizon) | `m10_xhorizon_blend_result.json` |
 | I2 | improve | seed-ensemble net ⊕ GBM | `m5_deep_ens.py`@10m | D | low | **subsumed** | — | — | — | Tier-1: 5m blend≈GBM (corr .694, no lift) + 10m x-horizon blend corr .957 → same-feature seed-ens decorrelates even less → cannot beat certified. Logged prune. | — |
 | I5 | improve | cross-pair POOLING weight-shared net (Sirignano-Cont) | new | D | low (struct) | **subsumed** | — | — | — | gated on I2 showing life (it didn't); cross-pair already IS the certified mechanism | — |
-| I4 | improve | calibration (isotonic/Platt) + re-gate | inline | gate | low | pending | — | — | — | single-model monotonic calib ≈ rank-invariant for |p-0.5| gate; verify | — |
+| I4 | improve | calibration (isotonic) + re-gate | `m10_calib.py` | gate | low | **KILLED** | — | 2025 .592≈.61 | 2025 .568≈.564 | within-noise of raw; monotonic calib ≈ rank-invariant for the |p-0.5| gate | (inline log) |
+| N17 | discover | strictly-lagged cross-pair lead-lag (bounded, no RFF/TE tail) | `m10_leadlag.py` | D | low (5m null) | **KILLED** | VAL AUC .517 | 2025 .542<.605 | 2025 .519<.574 | anti-contemporaneous channel adds nothing over concurrent cross-pair (confirms 5m null; lead-lag decays, concurrent dominates at 10m) | `m10_leadlag_result.json` |
+| N4 | discover | clock-conditioned intraday-momentum / turning-point (corpus residue) | `m10_intramom.py` | D | low (~8-10%, sign-inv risk) | running | — | — | — | the one genuinely-unrun signed construction from the corpus scan | `m10_intramom_result.json` |
+| N16 | discover | Cont–deLarrard P(up\|queue) + triple-barrier | (tick spec) | D | low | **subsumed** | — | — | — | Tier-1: killed @5m (DOWN CI-lo .5165); tick/sub-minute queue-imbalance is SIGN-INVARIANT at 10m + OF_* already in certified book | `m5_corpus_audit` |
 | I6 | improve | Optuna TPE worst-VAL-half tuning | wrap | tune | low | pending | — | — | — | info-bound caps AUC; multiplicity risk | — |
 | A8c | side | purpose-built UP/DOWN specialist + meta-labeler (step c) | `m15_updown.py`/spec @10m | U/Dn | med (filter), low (spec) | pending | — | — | — | per side not yet certified/dead | — |
 | Ad  | side | confidence/coverage curve (step d) per side | `m15_sidepipe.py`@10m | U/Dn | — | pending | — | — | — | — | — |
@@ -36,7 +39,6 @@
 | Ad | side | coverage curve (step d) + deploy EV net-of-spread | `m10_deploy_eval.py` | U/Dn | — | **DONE** | — | 2025 cov5 .613/cov10 .605/cov15 .585 | 2025 cov5 .630(EV.166)/cov10 .574/cov15 .583 | DOWN better at TIGHTER cov (cov5 EV.166>cov10 EV.062) → per-side deploy: DOWN cov5, UP cov10 | `m10_deploy_eval_result.json` |
 | A8c | side | purpose-built side specialist (step c) — asym class-weight | `m10_spec.py` | U/Dn | low (spec worse @5m) | **KILLED** | — | 2025 .559<.605 | 2025 .572<.630(cov5) | asym-weight side specialist does NOT beat symmetric side-split either side; subset/asym training kills ranking (confirms 5m). **Full (a)-(e) pipeline now run both sides → both CERTIFIED (not dead).** | `m10_spec_result.json` |
 | N17 | discover | lead-lag transfer-entropy + RFF | `m5_leadlag_te_rff.py`@10m | D | low (5m null) | pending | — | — | — | bounded run / subsume | — |
-| N16 | discover | Cont–deLarrard P(up\|queue) + tick-sign reversal | (spec)@10m | D | low | pending | — | — | — | — | — |
 
 ### Already-run at 10m COMBINED (status `done`/`killed` — recorded in EURUSD_RESULTS.md, NOT re-run; side-split is the open work)
 | id | method | result (combined) | verdict | source |
