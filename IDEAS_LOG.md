@@ -95,3 +95,17 @@ When moving a sweep to a LONGER horizon, lever priors shift by MECHANISM-decay, 
   rank/PC-shrinkage/IPCA constructions (≠ raw exog features, which were null) plausibly carry more sign at 15m than 5m.
 Source: CORPUS_LEVER_INVENTORY.md families (Lucchese/Michankow MADL-GMADL, Kozak-Nagel-Santosh, IPCA, Sirignano-Cont).
 
+**Corollary — cross-pair pooling is HORIZON-GATED DOWNWARD (measured 2026-06-04):** the cross-pair USD-residual+OF primary
+(`m5_xpair.py`, the lever that CERTIFIED [EURUSD·5m·UP] and BOTH [EURUSD·15m] sides under refit-CPCV) is **null below 5m** —
+at 2m it KILLED under ties-strict refit-CPCV (UP p10 .5096 / DOWN .5124, 0-7% of 15 paths clear) and at 60s it was never an
+edge. The slow USD-common-factor needs ≥5m to overcome microstructure noise; the certification gradient is none@60s → UP@5m →
+both@15m and does NOT extend back to sub-5m. **Do not expect cross-pair to rescue a sub-5m direction key** — confirm-and-kill.
+**Lesson — ALWAYS refit-CPCV a frozen-gate positive (the overfit-gate dissolution recurs):** at [EURUSD·2m] a frozen-VAL
+compression gate (probe) AND a frozen-VAL meta-labeler (specialist) BOTH showed .55-.61 selective acc that **collapsed to
+~.50 when the gate was re-tuned per fold** under (nested) refit-CPCV. A frozen-VAL selective-accuracy number is never a
+certification — only per-fold-refit p10 ≥ breakeven with ≥80% paths clearing is. (Same lesson as the 5m ACI nested-refit kill.)
+**Lesson — a different FUNCTION CLASS does not rescue an empty channel:** RFF virtue-of-complexity (P~T random nonlinear basis,
+Kelly-Malamud) on the same [EURUSD·2m] features gave VAL AUC .4997 — the 4th model class (after 3-GBM ensemble, online-ARF,
+single GBM) to read ~.50. When ≥3 diverse learners agree on ~.50 AUC, the channel is information-empty, not capacity-limited;
+the redirect is NEW DATA (external), not a new model.
+

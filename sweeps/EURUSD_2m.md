@@ -5,9 +5,9 @@ currency: EURUSD
 timeframe: 2m (120s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 120s, OOS(2026)-verified, clearing breakeven 0.541
-status: RE-OPENED 2026-06-04 to run the goal's full (a)-(e) pipeline symmetrically. KEYSTONE GAP CLOSED: the
-        cross-pair POOLING lever (certified 5m UP & 15m both) was never actually run at 2m — now RUN + KILLED
-        under refit-CPCV (A6c). 13 prior channels + online-ARF keystone stand. No certified 2m direction edge.
+status: DONE 2026-06-04 — full (a)-(e) pipeline run symmetrically BOTH sides; both honestly EXHAUSTED on-disk.
+        Keystone gap closed (cross-pair pooling RUN+KILLED refit-CPCV A6c); RFF + specialist-nested-CPCV also killed;
+        discovery K=2 dry; Tier-G external queued. NO certified 2m direction edge (4 model classes ~.50-.52 AUC).
 incumbent/answer: NO certified edge. Best point estimate EURUSD.min2.v1 UP 0.555 / 0.5445 ties-strict (uncertified);
         DOWN dead. Cross-pair refit-CPCV p10 UP .5096 / DOWN .5124 (0-7% paths clear) — efficiency-bound confirmed.
 prior: 120s is in the efficiency zone (60s ~0.50-0.51, 5m ~0.52 AUC); cross-pair edge gradient none@60s→UP@5m→both@15m
@@ -39,7 +39,7 @@ combined + UP + DOWN → record → commit. `OOS` columns = per-year 2024/2025/2
 | A6c | A | **cross-pair POOLING primary + TIES-STRICT refit-CPCV** (the keystone lever that certified 5m UP & 15m both) | min2_xpair_probe.py / min2_xpair_cpcv.py | **killed** | refit p10 **.5096**, max .544, 1/15 paths clear | refit p10 **.5124**, 0/15 paths clear | **KILLED under the §4 standard.** Probe's frozen-VAL gate gave .61/.56 (2024/25) — an OVERFIT-GATE artifact that DISSOLVED when the gate is re-tuned per fold (15 purged paths, all well-powered n≥3.9k, up-rates balanced [.482,.524], moved-AUC .517). The slow USD-common-factor signal needs ≥5m; at 2m it's swamped. Properly RUN, not subsumed. | min2_xpair_cpcv_result.json |
 | I-RFF | I | RFF virtue-of-complexity SDF on xpof features (4th model class) | min2_rff.py | **killed** | VAL AUC **.4997** (coin-flip, all gamma×ridge .4985-.4997) | — | **4th model class (random nonlinear basis) finds ZERO 2m sign signal** → channel genuinely empty, not a GBM-capacity artifact | min2_rff_result.json |
 | C-spec | c | purpose-built UP/DOWN meta-labeler SPECIALIST (step c), FROZEN | min2_spec.py | done | UP frozen .575/.5525/.6009 (SURVIVES→CPCV) | DOWN .566/.526/.471 (KILL) | UP frozen-VAL meta-gate clears .545 all 3 yrs — but same shape as the probe's overfit-gate; escalated to nested-refit CPCV. DOWN killed outright. | min2_spec_result.json |
-| C-spec-cpcv | c/e | UP specialist NESTED-REFIT CPCV (primary+meta refit/fold) | min2_spec_cpcv.py | running | — | — | adversarial verify the UP frozen positive; CERT iff p10≥.541 & ≥80% paths | min2_spec_cpcv_result.json |
+| C-spec-cpcv | c/e | UP specialist NESTED-REFIT CPCV (primary+meta refit/fold) | min2_spec_cpcv.py | **killed** | p10 **.4957**, 0/15 paths (mean .5024) | p10 **.4912**, 0/15 paths | **The UP frozen .575/.5525/.6009 was an OVERFIT-GATE artifact — collapses to ~.50 (below!) when the meta-gate is refit per fold.** Same dissolution as the probe→cross-pair-CPCV. Specialist step (c) RUN + KILLED both sides. | min2_spec_cpcv_result.json |
 
 ### Subsumed by the keystone (not separately run — documented rationale)
 The online-ARF keystone (C5a: a drift-adaptive forest finds ZERO 2m direction signal every year) **subsumes**
@@ -75,3 +75,32 @@ tested). **All killed except the baseline.** The online-ARF **keystone** proves 
 market efficiency — no model, adaptive or static, finds a 2m direction edge. Even the novel mechanism designed
 to bypass the 2025 USD-factor root cause (triangular cancellation) is a coin-flip. The only forecastable thing
 at 2m is **magnitude** (AUC 0.74, size not sign). **2m direction is efficiency-bound; nothing beats min2 UP 0.555.**
+
+## ★ 2026-06-04 RE-EXAMINATION — keystone gap closed, both sides honestly exhausted under the FULL (a)-(e) pipeline
+Re-opened to run the goal's full symmetric pipeline. The prior closure had a real gap: the **cross-pair feature-row
+POOLING** lever — the ONLY lever that CERTIFIED 5m UP and BOTH 15m sides — had never actually been run at 2m (it was
+wrongly subsumed under the *different* cross-leg-sign-lead mechanism). Closed it + ran the remaining distinct shots:
+- **A6c cross-pair pooling, TIES-STRICT refit-CPCV (15 purged paths, per-fold gate refit):** UP p10 **.5096** (1/15 clear),
+  DOWN p10 **.5124** (0/15), COMBINED p10 .5116 (0/15), moved-AUC .517, up-rates balanced [.482,.524]. The probe's frozen-VAL
+  gate gave .6126/.5603 — an OVERFIT-GATE artifact that dissolved under per-fold refit. **NOT CERTIFIED.** (`min2_xpair_cpcv_result.json`)
+- **I-RFF virtue-of-complexity SDF (4th model class, P~T random nonlinear basis on the same xpof features):** best VAL AUC
+  **.4997** (coin-flip). The 2m sign channel is empty across FOUR model classes (3-GBM ensemble, online-ARF, GBM, RFF) →
+  capacity is not the constraint; the information isn't there. (`min2_rff_result.json`)
+- **C-spec purpose-built UP/DOWN meta-labeler specialist (step c) + nested-refit CPCV:** DOWN frozen-killed; UP frozen-survived
+  (.575/.5525/.6009) but **collapsed to p10 .4957 / .4912 (0/15 both sides) under nested refit** — overfit-gate, same as the probe.
+- **mag×direction bridge:** already RUN at 120s (EXPERIMENT_LEDGER rows 41-42) — a magnitude gate on direction HURTS at 2m.
+- **Discovery round 3** (corpus re-mine, 2050+550 levers): all on-disk direction candidates reduce to the cross-pair family
+  (killed) or are subsumed (TMFG-graph, adversarial-gate, sign-restrictions, lambdarank). **K=2 dry.** External = Tier-G (gated).
+- **Subsumed w/ Tier-1 cites:** base-book refit (its 239 features ⊂ the .51 xpof superset + tick-micro channels all null);
+  |ret|-weight/GMADL (null @5m+15m, same family); seed-ens/calibration/ACI (AUC-preserving / nested-refit-killed @5m).
+
+### FINAL GOAL RESULT (2026-06-04)
+**NO certified 2m EURUSD direction edge exists — both sides honestly EXHAUSTED on-disk under the full (a)-(e) standard.**
+- **(EURUSD, 2m, UP)** = best AVAILABLE `EURUSD.min2.v1` up-preds **0.555 point / 0.5445 ties-strict — UNCERTIFIED**. Every
+  certification-grade test fails: frozen-book CPCV p10 .524; cross-pair refit p10 .5096; RFF .4997; specialist nested-refit .4957.
+- **(EURUSD, 2m, DOWN)** = **DEAD** (~.52, sub-breakeven all years; cross-pair refit p10 .5124; specialist nested-refit .4912).
+- **Keystone:** four model classes at ~.50-.52 AUC every year → 2m direction is GENUINE market efficiency. The cross-pair
+  edge gradient (none@60s → UP@5m → both@15m) does NOT reach back to 2m: the slow USD-common-factor needs ≥5m to be exploitable.
+- **Forecastable at 2m = magnitude only** (sign-invariant, AUC ~.68-.74; Touch/Range/Straddle, NOT Rise/Fall). Track in MAGNITUDE_FINDINGS.md.
+- **Redirect (not a wall):** external data — DE-US rate-diff / VIX-risk-reversal / GARCH-MIDAS / cross-asset leads (Tier-G, gated on user "go").
+- **Venue:** 120s is BELOW deriv's 15m forex minimum → a research horizon, not directly deployable regardless.
