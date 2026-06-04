@@ -1,0 +1,342 @@
+{
+ "key": "(EURUSD,60s,DOWN)",
+ "method": "USD-strength-conditioned DOWN (D3 retarget @MX_HOR=1)",
+ "breakeven": 0.541,
+ "settlement": "MX bar-grid 60s contiguous, ties dropped (NOT tick wc_ret)",
+ "incumbent_1m_DOWN": "0.522/0.522/0.516 (min1.v1 down-preds, dead)",
+ "prior_5m_D3": "KILLED (2025 USDstrong 0.5259 ~ USDweak 0.5374)",
+ "agree_floor": 0.75,
+ "per_year": {
+  "2024": {
+   "ny_bars": 126575,
+   "tie_note": "MX drops exact ties (fwd==0) at build",
+   "NY_DOWN_baseline": {
+    "n": 126575,
+    "acc": 0.4968,
+    "ci": [
+     0.494,
+     0.4996
+    ],
+    "up_rate": 0.5032
+   },
+   "A_USDstrong_DOWN": {
+    "n": 62016,
+    "acc": 0.5001,
+    "ci": [
+     0.4962,
+     0.504
+    ]
+   },
+   "A_USDweak_DOWN": {
+    "n": 64558,
+    "acc": 0.4936,
+    "ci": [
+     0.4897,
+     0.4976
+    ]
+   },
+   "A_USDweak_UP": {
+    "n": 64558,
+    "acc": 0.5064,
+    "ci": [
+     0.5024,
+     0.5103
+    ]
+   },
+   "B_coverage_curve_DOWN": {
+    "top50pct": {
+     "n": 63287,
+     "acc": 0.5001,
+     "ci": [
+      0.4962,
+      0.5039
+     ],
+     "up_rate": 0.4999
+    },
+    "top30pct": {
+     "n": 37972,
+     "acc": 0.5027,
+     "ci": [
+      0.4976,
+      0.5079
+     ],
+     "up_rate": 0.4973
+    },
+    "top20pct": {
+     "n": 25315,
+     "acc": 0.5023,
+     "ci": [
+      0.4963,
+      0.5085
+     ],
+     "up_rate": 0.4977
+    },
+    "top10pct": {
+     "n": 12658,
+     "acc": 0.5019,
+     "ci": [
+      0.4932,
+      0.5106
+     ],
+     "up_rate": 0.4981
+    },
+    "top5pct": {
+     "n": 6329,
+     "acc": 0.5048,
+     "ci": [
+      0.492,
+      0.5171
+     ],
+     "up_rate": 0.4952
+    },
+    "top2pct": {
+     "n": 2532,
+     "acc": 0.5051,
+     "ci": [
+      0.4858,
+      0.5245
+     ],
+     "up_rate": 0.4949
+    }
+   },
+   "B2_USDstrong_coherent_DOWN": {
+    "n": 35550,
+    "acc": 0.5034,
+    "ci": [
+     0.4983,
+     0.5085
+    ]
+   },
+   "C_persist3_DOWN": {
+    "n": 28253,
+    "acc": 0.5097,
+    "ci": [
+     0.5038,
+     0.5155
+    ]
+   }
+  },
+  "2025": {
+   "ny_bars": 132431,
+   "tie_note": "MX drops exact ties (fwd==0) at build",
+   "NY_DOWN_baseline": {
+    "n": 132431,
+    "acc": 0.4951,
+    "ci": [
+     0.4923,
+     0.4978
+    ],
+    "up_rate": 0.5049
+   },
+   "A_USDstrong_DOWN": {
+    "n": 65401,
+    "acc": 0.4939,
+    "ci": [
+     0.4902,
+     0.4977
+    ]
+   },
+   "A_USDweak_DOWN": {
+    "n": 67029,
+    "acc": 0.4962,
+    "ci": [
+     0.4923,
+     0.4999
+    ]
+   },
+   "A_USDweak_UP": {
+    "n": 67029,
+    "acc": 0.5038,
+    "ci": [
+     0.5001,
+     0.5077
+    ]
+   },
+   "B_coverage_curve_DOWN": {
+    "top50pct": {
+     "n": 66215,
+     "acc": 0.4937,
+     "ci": [
+      0.4899,
+      0.4973
+     ],
+     "up_rate": 0.5063
+    },
+    "top30pct": {
+     "n": 39729,
+     "acc": 0.4939,
+     "ci": [
+      0.489,
+      0.4989
+     ],
+     "up_rate": 0.5061
+    },
+    "top20pct": {
+     "n": 26486,
+     "acc": 0.4952,
+     "ci": [
+      0.4891,
+      0.5012
+     ],
+     "up_rate": 0.5048
+    },
+    "top10pct": {
+     "n": 13243,
+     "acc": 0.4926,
+     "ci": [
+      0.4842,
+      0.5011
+     ],
+     "up_rate": 0.5074
+    },
+    "top5pct": {
+     "n": 6622,
+     "acc": 0.4897,
+     "ci": [
+      0.478,
+      0.5021
+     ],
+     "up_rate": 0.5103
+    },
+    "top2pct": {
+     "n": 2649,
+     "acc": 0.4753,
+     "ci": [
+      0.4564,
+      0.4941
+     ],
+     "up_rate": 0.5247
+    }
+   },
+   "B2_USDstrong_coherent_DOWN": {
+    "n": 42378,
+    "acc": 0.4925,
+    "ci": [
+     0.4877,
+     0.4972
+    ]
+   },
+   "C_persist3_DOWN": {
+    "n": 29748,
+    "acc": 0.496,
+    "ci": [
+     0.4902,
+     0.5015
+    ]
+   }
+  },
+  "2026": {
+   "ny_bars": 47874,
+   "tie_note": "MX drops exact ties (fwd==0) at build",
+   "NY_DOWN_baseline": {
+    "n": 47874,
+    "acc": 0.4992,
+    "ci": [
+     0.4948,
+     0.5037
+    ],
+    "up_rate": 0.5008
+   },
+   "A_USDstrong_DOWN": {
+    "n": 23628,
+    "acc": 0.4971,
+    "ci": [
+     0.4908,
+     0.5034
+    ]
+   },
+   "A_USDweak_DOWN": {
+    "n": 24246,
+    "acc": 0.5012,
+    "ci": [
+     0.4947,
+     0.5076
+    ]
+   },
+   "A_USDweak_UP": {
+    "n": 24246,
+    "acc": 0.4988,
+    "ci": [
+     0.4924,
+     0.5053
+    ]
+   },
+   "B_coverage_curve_DOWN": {
+    "top50pct": {
+     "n": 23937,
+     "acc": 0.4973,
+     "ci": [
+      0.4909,
+      0.5037
+     ],
+     "up_rate": 0.5027
+    },
+    "top30pct": {
+     "n": 14362,
+     "acc": 0.4967,
+     "ci": [
+      0.4885,
+      0.505
+     ],
+     "up_rate": 0.5033
+    },
+    "top20pct": {
+     "n": 9575,
+     "acc": 0.4936,
+     "ci": [
+      0.4836,
+      0.5036
+     ],
+     "up_rate": 0.5064
+    },
+    "top10pct": {
+     "n": 4788,
+     "acc": 0.4921,
+     "ci": [
+      0.4783,
+      0.5065
+     ],
+     "up_rate": 0.5079
+    },
+    "top5pct": {
+     "n": 2394,
+     "acc": 0.4862,
+     "ci": [
+      0.4662,
+      0.5063
+     ],
+     "up_rate": 0.5138
+    },
+    "top2pct": {
+     "n": 958,
+     "acc": 0.4645,
+     "ci": [
+      0.4332,
+      0.4958
+     ],
+     "up_rate": 0.5355
+    }
+   },
+   "B2_USDstrong_coherent_DOWN": {
+    "n": 17858,
+    "acc": 0.5004,
+    "ci": [
+     0.493,
+     0.5079
+    ]
+   },
+   "C_persist3_DOWN": {
+    "n": 10769,
+    "acc": 0.4906,
+    "ci": [
+     0.4814,
+     0.5
+    ]
+   }
+  }
+ },
+ "falsifier": {
+  "HAS_60s_DOWN_EDGE": false,
+  "verdict": "KILLED @60s: NO USD-conditioned DOWN variant clears 0.541 CI-lo in binding 2025 (baseline NY-DOWN 0.4951; coverage-curve max DOWN-acc 0.4952 at the most-USD-strong tail); USD-strong 0.4939 vs USD-weak 0.4962 (no separation) -> 60s EURUSD DOWN is efficient even USD-gated; confirms + STRENGTHENS the 5m D3 kill (5m USDstrong .526 had some lift; 60s has none)."
+ }
+}
