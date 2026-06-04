@@ -16,12 +16,11 @@ re-weighting that the 5m DOWN responded to, and (2) the magnitude→direction br
    `min1_magweight_result.json`). DOWN binding-2025 cov0.05 **.507** (CI-lo .495) < 0.541 & < incumbent .522; UP worse
    than filter. **best_iter=8/4000** — the magweighted direction model has no learnable signal to weight toward. The
    5m razor-thin DOWN edge (cov0.05 p10 .5441) does NOT transfer to the more-efficient 60s. Loss-reweighting exhausted.
-2. **[DOWN · on-disk · prior ~8%] magnitude→direction bridge @60s** — bet DOWN only on bars the magnitude model
-   flags as large-move AND the direction model leans down, restricted to NY. Mechanism: |ret| is the one certified
-   60s signal (magAUC .787); IF direction has any edge it lives on large moves (informational, not coverage —
-   `_redteam_magdir60` showed the gap to .65 is informational). Falsifier: KILL unless large-move DOWN binding-2025
-   CI-lo ≥ 0.541. Prior LOW (sign-invariance theorem predicts magnitude gate adds size not sign) — but it directly
-   tests the one place sign could hide. Subsumes any further "avoid-losers" gate.
+2. ~~[DOWN · on-disk] magnitude→direction bridge @60s~~ — **DONE / KILLED 2026-06-03** (`min1_magdir.py`,
+   `min1_magdir_result.json`). DOWN FLAT ~.50 across EVERY predicted-move-size gate (magq0.0 .500 → magq0.95 .498 in
+   2025); UP same ~.50-.51. The magnitude model perfectly selects big moves (magAUC .787) but they carry ZERO
+   direction — textbook sign-invariance AT THE OPERATING POINT. The 60s direction edge does NOT hide on large moves.
+   **Subsumes any further confidence-only / "avoid-losers" DOWN gate.**
 3. **[UP · improve · prior ~15%] |return|-weighted (POW=0.5) retrain @60s, UP-split** — same `min1_magweight.py`,
    UP head. The UP filter is the incumbent; magweight is the highest-EV improve lever not yet tried at 60s. Falsifier:
    beat UP floor .520 / OOS .613 on the worst held-out year with CI-lo clearing.
