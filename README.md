@@ -342,11 +342,19 @@ bars `[mid, imb, micro, spread, nt, tsz]`; `strategy.signal(buffer)` returns `{"
 direction confidence clears the frozen threshold (so it abstains most of the time, by design). Decision uses
 only data up to `t`; the binary settles on `mid(t+60s)`. Enforce the 60s non-overlap (one open position).
 
-## The 2-minute strategy — compression-release reversion book (`min2_production.py`) ★ best tradeable horizon
+## The 2-minute strategy — compression-release reversion book (`min2_production.py`)
+
+> **⚠ CORRECTED 2026-06-04 — this section's framing is OBSOLETE. The honest result of record is in `EURUSD_RESULTS.md`
+> + `sweeps/EURUSD_2m.md`.** The old ">75%" / "best tradeable horizon" claims were **methodology-inflated** (bar-shift
+> mislabel + greedy de-overlap; see the inflation note near the top of this README). Under the deriv-faithful discipline
+> with a proper side-split + per-fold-refit CPCV, **there is NO certified 2m direction edge**: UP = 0.555 / 0.5445
+> ties-strict (UNCERTIFIED), DOWN dead (~0.52); the keystone cross-pair-pooling lever, RFF, and a purpose-built
+> specialist were all KILLED (cross-pair refit-CPCV UP p10 .5096 / DOWN .5124; RFF VAL AUC .4997; specialist nested-refit
+> .4957/.4912). 2m direction is efficiency-bound (4 model classes ~.50-.52 AUC). 120s is also BELOW deriv's 15m forex
+> minimum → a research horizon, not deployable. The prose below is retained for the mechanism/pipeline description only.
 
 A **2-minute (120-second) up/down binary** on **EURUSD specifically**, from 1-second tick microstructure. Same
-splits and non-overlapping (120s-gap) selective evaluation as the 1-min book. **This is the strongest of the
-tradeable horizons** — it clears >75% out-of-sample.
+splits and non-overlapping (120s-gap) selective evaluation as the 1-min book.
 
 **Headline (frozen pipeline, nothing tuned on the evaluation periods):**
 

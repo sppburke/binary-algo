@@ -100,8 +100,8 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 - **What.** Decompose EURUSD into EUR-strength − USD-strength using a sign-aligned basket of the 6 other majors; the relative-value reversion residual, per-pair lead-lag residual, catch-up residual, dispersion/agreement.
 - **How.** `m5_xpair.py` (env `MX_HOR`; modes `xp`/`xpbase`/`xpof`), probe `m5_xpair_probe.py`, merger `crosspair.py`, production `m5_xpair_production.py`. `augment(...,"xpof")` adds 239 base + 18 order-flow cols.
 - **Why.** The one orthogonal family **sign-stable across 2024 & 2026** (momentum agreement is dead/sign-blind).
-- **Process notes.** Strongest at 5m, fades by 10m, ~0.52 at 60s; does NOT lift the 15m parent.
-- **STATUS.** **helped** 5m 0.586; **null/capped** 10m 0.556, 15m, 30m.
+- **Process notes.** **HORIZON-GATED**: the slow USD-common-factor needs ≥5m to be exploitable, so the certification gradient is none@60s → UP@5m → both@15m and does NOT extend back below 5m. ALWAYS verify a frozen-VAL gate positive under refit-CPCV — at 2m a frozen gate showed .61 that dissolved to ~.51 per-fold (overfit-gate).
+- **STATUS.** **CERTIFIED via refit-CPCV** at 5m-UP (`EURUSD.m5xp.v1`, p10 .553) and BOTH 15m sides (`EURUSD.m15xp.v1`, UP .5673/DOWN .5742, 15/15 paths — the program's best DOWN edge). **NULL below 5m:** 2m KILLED under ties-strict refit-CPCV (UP p10 .5096/DOWN .5124, `min2_xpair_cpcv.py`), 60s ~0.52; capped 10m 0.556, 30m. Combined-book 5m 0.586.
 
 ### 3.3 RMT (Marchenko-Pastur) cross-pair eigen-residual reversion
 - **What.** Clean the 7-pair correlation matrix by keeping only eigenmodes above the MP upper edge λ+; project EURUSD onto the cleaned common factors; trade the idiosyncratic residual reversion — mechanistically immunized against the 2025 USD-factor inversion.
