@@ -1,0 +1,104 @@
+{
+ "corr_p10_p15": 0.957,
+ "blend_w": 0.7,
+ "cov": 0.05,
+ "per_year": {
+  "2024": {
+   "UP": {
+    "n": 487,
+    "win": 0.6448,
+    "ci": [
+     0.5996,
+     0.6879
+    ],
+    "ev": 0.1928
+   },
+   "DOWN": {
+    "n": 360,
+    "win": 0.6028,
+    "ci": [
+     0.5527,
+     0.6528
+    ],
+    "ev": 0.1151
+   },
+   "ALL": {
+    "n": 847,
+    "win": 0.6269,
+    "ci": [
+     0.5927,
+     0.66
+    ],
+    "ev": 0.1598
+   }
+  },
+  "2025": {
+   "UP": {
+    "n": 109,
+    "win": 0.5963,
+    "ci": [
+     0.5046,
+     0.6881
+    ],
+    "ev": 0.1032
+   },
+   "DOWN": {
+    "n": 146,
+    "win": 0.637,
+    "ci": [
+     0.5548,
+     0.7192
+    ],
+    "ev": 0.1784
+   },
+   "ALL": {
+    "n": 255,
+    "win": 0.6196,
+    "ci": [
+     0.5608,
+     0.6784
+    ],
+    "ev": 0.1463
+   }
+  },
+  "2026": {
+   "UP": {
+    "n": 31,
+    "win": 0.6452,
+    "ci": [
+     0.4839,
+     0.8065
+    ],
+    "ev": 0.1935
+   },
+   "DOWN": {
+    "n": 24,
+    "win": 0.4583,
+    "ci": [
+     0.25,
+     0.6667
+    ],
+    "ev": -0.1521
+   },
+   "ALL": {
+    "n": 55,
+    "win": 0.5636,
+    "ci": [
+     0.4364,
+     0.6909
+    ],
+    "ev": 0.0427
+   }
+  }
+ },
+ "incumbent": {
+  "UP_2025": 0.605,
+  "DOWN_2025": 0.574
+ },
+ "breakeven": 0.541,
+ "PRE_REGISTERED_FALSIFIER": "KILL unless blend beats p10-alone on binding 2025 (UP>=.605 OR DOWN>=.574) at >=same cov AND corr<0.9 (genuine decorrelated gain)",
+ "VERDICT": {
+  "SURVIVES": false,
+  "note": "corr=0.957 (>=0.9 => same signal, blend==p10); chosen w=0.7  KILLED \u2014 cross-horizon blend does not beat p10-alone on 2025"
+ }
+}

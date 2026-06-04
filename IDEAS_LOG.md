@@ -8,8 +8,13 @@ Generic methods: `METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`; cros
 - EURUSD · 1m  → `sweeps/EURUSD_1m_backlog.md`  (+ `EURUSD_RESULTS.md` §60s) — **CLOSED 2026-06-03: both sides certified-or-exhausted, 2 discovery rounds DRY**
 - EURUSD · 5m  → `sweeps/EURUSD_5m_backlog.md`  (+ `EURUSD_RESULTS.md`)
 - EURUSD · 2m  → `sweeps/EURUSD_2m_backlog.md`
+- EURUSD · 10m → `sweeps/EURUSD_10m_backlog.md`  (+ `EURUSD_RESULTS.md` §10m) — **CLOSED 2026-06-04: BOTH sides certified (cross-pair `EURUSD.m10xp.v1` UP p10 .586 / DOWN p10 .568, 15/15), improve+discover loops DRY (2 rounds, 11 levers)**
 - EURUSD · 15m → `sweeps/EURUSD_15m_backlog.md`  (deriv-tradeable binary; Q1 = magnitude×direction gate, user-queued 2026-06-03)
 - EURUSD · 30m → `sweeps/EURUSD_30m_backlog.md`
+
+**Cross-pair direction-edge HORIZON GRADIENT (generic, confirmed 2026-06-04):** the cross-pair USD-common-factor sign edge is monotone in horizon — **none@60s → UP-only@5m → BOTH sides@10m & 15m; null <5m (2m)**. Mechanism: the informed/jump component of moves (esp. DOWN) averages out as the horizon lengthens, so the common-factor SIGN becomes forecastable at ≥10m; below 5m the channel is jump/noise-dominated. CONCURRENT cross-pair (windows ending at t) is the carrier; strictly-LAGGED lead-lag is dominated. **For a new (currency, ≥10m) key, the cross-pair refit-CPCV side-split is the #1-prior lever; expect BOTH sides to certify.**
+
+**Loss/label/gate re-engineering does NOT beat the gated cross-pair sign ≥5m (generic, reinforced [EURUSD·10m] 2026-06-04):** with BOTH 10m sides already certified by the plain-BCE cross-pair book, 11 distinct improve/discover levers ALL failed to beat it on the binding 2025 year — magweight |ret|-reweight, GMADL sign-coupled loss, residual-relabel, ACI gate, asym-class-weight specialist, isotonic calibration, cross-horizon 10m×15m blend (pred corr .957=same signal), lagged lead-lag, queue/triple-barrier, intraday-momentum. They collapse on the binding-regime wall: a wrapper/loss/relabel cannot create SIGN the regime has erased. **Lesson — once the cross-pair book certifies a ≥10m key, the improve loop is near-certainly dry; run the cross-product with fast-KILL falsifiers to confirm, but the redirect for a HIGHER number is external data, not another loss/gate variant.** Same as 5m (leader not unseated) + 15m.
 
 **Discovery-round vetting outcome (generic, mechanism-level — 2026-06-03):** two adversarial discovery rounds over the
 UNTESTED sign-aware microstructure family (OF-surprise/MRR residual, propagator past-sign, DAR sign-AR, queue-imbalance

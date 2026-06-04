@@ -1,0 +1,86 @@
+{
+ "exp": "I3 |return|-weighted cross-pair retrain @MX_HOR=10",
+ "POW": 0.5,
+ "incumbent_xpair_forward_cov10": {
+  "UP": {
+   "2024": 0.642,
+   "2025": 0.605,
+   "2026": 0.68
+  },
+  "DOWN": {
+   "2024": 0.599,
+   "2025": 0.574,
+   "2026": 0.476
+  }
+ },
+ "incumbent_xpair_refit_p10": {
+  "UP": 0.5863,
+  "DOWN": 0.5683
+ },
+ "primary_val_auc": 0.5261,
+ "meta_thr": 0.5844,
+ "per_year_side": {
+  "2024_UP": {
+   "n": 909,
+   "acc": 0.6414,
+   "ci": [
+    0.6106,
+    0.6722
+   ],
+   "up_rate": 0.6414
+  },
+  "2024_DOWN": {
+   "n": 732,
+   "acc": 0.6038,
+   "ci": [
+    0.5683,
+    0.6393
+   ],
+   "up_rate": 0.3962
+  },
+  "2024_uprate_all": 0.532,
+  "2025_UP": {
+   "n": 1049,
+   "acc": 0.5777,
+   "ci": [
+    0.5481,
+    0.6073
+   ],
+   "up_rate": 0.5777
+  },
+  "2025_DOWN": {
+   "n": 948,
+   "acc": 0.539,
+   "ci": [
+    0.5084,
+    0.5717
+   ],
+   "up_rate": 0.461
+  },
+  "2025_uprate_all": 0.5223,
+  "2026_UP": {
+   "n": 287,
+   "acc": 0.4739,
+   "ci": [
+    0.4146,
+    0.5331
+   ],
+   "up_rate": 0.4739
+  },
+  "2026_DOWN": {
+   "n": 130,
+   "acc": 0.6692,
+   "ci": [
+    0.5846,
+    0.7462
+   ],
+   "up_rate": 0.3308
+  },
+  "2026_uprate_all": 0.4293
+ },
+ "verdict": {
+  "IMPROVES_UP_2025": false,
+  "IMPROVES_DOWN_2025": false,
+  "note": "UP25=0.5777 vs 0.605; DOWN25=0.539 vs 0.574 -> no binding-year improvement either side"
+ }
+}

@@ -1,0 +1,100 @@
+{
+  "experiment": "m10_residlabel_down_h10",
+  "design": "DOWN-split of residual-label sign(eu_fwd10 - causal_beta_t*basket_fwd10) @ H=10 (600s)",
+  "distinct_from_prior_DOWN_kills": "RELABELS the target (removes common-USD factor from the LABEL); the certified cross-pair book uses the residual as a FEATURE not a LABEL",
+  "machinery": "IMPORTED verbatim from min1_residtarget (build_resid/_causal_beta/_forward_basket) @ H=10",
+  "beta_win": 500,
+  "beta_minp": 100,
+  "train_cap": 120000,
+  "cov": 0.05,
+  "breakeven": 0.541,
+  "incumbent_xpair_down_p10": 0.5683,
+  "discipline": "NY gate, DOWN-vote gate (resid<0.5), nonoverlap_chrono(600), worst-VAL-half cover select, per-year boot CI95, ties LOSE (raw _y), moved up-rate in [0.47,0.53] tripwire",
+  "PRE_REGISTERED_FALSIFIER": "KILL (residual-relabel does not improve certified 10m DOWN) unless the H=10 residual-sign DOWN-SPLIT binding-year (worst of 2024/2025/2026, n>=150) CI95-lo clears 0.541 AND strictly beats the certified cross-pair DOWN p10 .5683, with up-rate in [0.47,0.53] AND a stable same-side DOWN edge in BOTH 2024 AND 2026 (single-2025-only or sign-flip => KILL).",
+  "status": "COMPLETE",
+  "down_split": {
+    "2024": {
+      "win": 0.5765,
+      "n": 765,
+      "ci": [
+        0.5399,
+        0.6105
+      ]
+    },
+    "2025": {
+      "win": 0.5077,
+      "n": 843,
+      "ci": [
+        0.4745,
+        0.5409
+      ]
+    },
+    "2026": {
+      "win": 0.5771,
+      "n": 175,
+      "ci": [
+        0.5029,
+        0.6457
+      ]
+    }
+  },
+  "pooled_resid_sign": {
+    "2024": {
+      "win": 0.6095,
+      "n": 3201,
+      "ci": [
+        0.5926,
+        0.6267
+      ]
+    },
+    "2025": {
+      "win": 0.5766,
+      "n": 3401,
+      "ci": [
+        0.5601,
+        0.5934
+      ]
+    },
+    "2026": {
+      "win": 0.5607,
+      "n": 1161,
+      "ci": [
+        0.5314,
+        0.5891
+      ]
+    }
+  },
+  "VERDICT": {
+    "binding": {
+      "year": "2025",
+      "win": 0.5077,
+      "n": 843,
+      "ci_lo": 0.4745
+    },
+    "uprates": {
+      "2024": 0.5061,
+      "2025": 0.5067,
+      "2026": 0.4949
+    },
+    "uprate_tripwire_ok": true,
+    "binding_ci_lo_clears_breakeven_0.541": false,
+    "binding_ci_lo_beats_xpair_down_0.5683": false,
+    "binding_n_ge_150": true,
+    "stable_DOWN_edge_2024_AND_2026": true,
+    "2025_down_ci_lo": 0.4745,
+    "SURVIVES": false,
+    "KILLED": true,
+    "statement": "RESIDUAL-LABEL DOWN @ H=10 KILLED \u2014 does not improve certified DOWN .5683. binding-year=2025 win=0.5077 ci_lo=0.4745 (n=843); clears breakeven=False; beats xpair DOWN .5683=False; up-rate tripwire ok=True; stable DOWN edge 2024&2026=True."
+  },
+  "val_auc_resid": 0.5311036769727395,
+  "frozen_down_cover": {
+    "thr": 0.06663247236478641,
+    "worsthalf": 0.5597,
+    "cov": 0.02
+  },
+  "uprates": {
+    "2024": 0.5061,
+    "2025": 0.5067,
+    "2026": 0.4949
+  }
+}

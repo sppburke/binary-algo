@@ -1,0 +1,87 @@
+{
+ "experiment": "m10_intramom (clock-conditioned intraday-momentum / turning-point, N4)",
+ "incumbent": {
+  "UP_2025": 0.605,
+  "DOWN_2025": 0.574
+ },
+ "breakeven": 0.541,
+ "PRE_REGISTERED_FALSIFIER": "KILL unless beats incumbent on 2025 (UP>=.605 OR DOWN>=.574) at healthy n, up-rate [.47,.53].",
+ "status": "COMPLETE",
+ "val_auc": 0.5261,
+ "sides": {
+  "UP": {
+   "val_cover": {
+    "thr": 0.09901735000550886,
+    "cov": 0.05
+   },
+   "years": {
+    "2024": {
+     "n": 651,
+     "win": 0.6329,
+     "ci": [
+      0.596,
+      0.6697
+     ],
+     "all_up_rate": 0.5061
+    },
+    "2025": {
+     "n": 1124,
+     "win": 0.5623,
+     "ci": [
+      0.5329,
+      0.5916
+     ],
+     "all_up_rate": 0.5067
+    },
+    "2026": {
+     "n": 528,
+     "win": 0.5189,
+     "ci": [
+      0.4773,
+      0.5606
+     ],
+     "all_up_rate": 0.4945
+    }
+   }
+  },
+  "DOWN": {
+   "val_cover": {
+    "thr": 0.096406773305611,
+    "cov": 0.05
+   },
+   "years": {
+    "2024": {
+     "n": 610,
+     "win": 0.6279,
+     "ci": [
+      0.5902,
+      0.6656
+     ],
+     "all_up_rate": 0.5061
+    },
+    "2025": {
+     "n": 1062,
+     "win": 0.5056,
+     "ci": [
+      0.4746,
+      0.5348
+     ],
+     "all_up_rate": 0.5067
+    },
+    "2026": {
+     "n": 390,
+     "win": 0.5718,
+     "ci": [
+      0.5231,
+      0.6205
+     ],
+     "all_up_rate": 0.4945
+    }
+   }
+  }
+ },
+ "VERDICT": {
+  "SURVIVES": false,
+  "statement": "Intraday-momentum/turning-point @10m KILLED \u2014 no on-disk 10m DIRECTION beyond the certified cross-pair edge (intraday-momentum sign-invariant/dominated here)."
+ }
+}

@@ -188,6 +188,13 @@ All paths healthy n (UP 638–3576, DOWN 442–2399 → no thin-coverage mirage)
 
 Conclusion: **10m is a BOTH-SIDES refit-CPCV-certified direction edge via the cross-pair USD-common-factor — the same two-sided mechanism as 15m.** Leader = `EURUSD.m10xp.v1` (UP p10 .586 / DOWN p10 .568, 15/15 paths each), improving the base-book floors (.561/.552) which themselves beat the 15m base. Combined honest deliverable .602/floor .579 remains the fallback; the >0.65 at 10m is magnitude. Citations: `m10_xpair_cpcv_result.json`, `m10_cpcv_side_result.json`, `m10_research_log.md:115-191`.
 
+### DEPLOYMENT SPEC — EURUSD 10m, both sides (FINAL, 2026-06-04; improve+discover loops dry, K=2 dry rounds)
+**Book:** `EURUSD.m10xp.v1` (cross-pair USD-residual+OF primary, lgb 3000-tree, m5xp source @MX_HOR=10). **Gate:** `5m_bb_width ≤ q-thr × sess_ny(13–22 UTC) × |p−0.5| ≥ conf_thr`. **Settlement:** deriv Rise/Fall mid-to-mid, +1s entry, ties LOSE, breakeven 0.541, nonoverlap 600s. **Durable number = refit-CPCV p10** (well-powered, 15/15 paths); frozen-forward overstates (selection on easy years) — size on the refit floor.
+- **(10m, UP) — `EURUSD.m10xp.v1` UP-bets (p>0.5).** Certified refit-CPCV p10 **.5863** (mean .5985, min .564, 15/15). Deploy gate cov10% (conf_thr in strategy.json); forward 2024 .642 / 2025 .605. Size ⅛-Kelly on the **.586** floor. Robust across recent CPCV paths (no regime fragility).
+- **(10m, DOWN) — `EURUSD.m10xp.v1` DOWN-bets (p<0.5).** Certified refit-CPCV p10 **.5683** (mean .6001, min .5556, 15/15). Deploy gate **cov5%** for DOWN (forward 2025 .630, EV/bet .166@R0.85 — materially better than cov10's .574/EV .062); cov10% also clears. Size ⅛-Kelly on the **.568** floor.
+- **Caveat (deployability):** 10m < deriv's **15m forex Rise/Fall minimum** → this is a RESEARCH / synthetic-index horizon; for live deriv forex use the deployable sibling `EURUSD.m15xp.v1` (same mechanism, 15m, deriv-tradeable). 2026 per-side n is thin (partial year, n~20–25) → the refit-CPCV cert (pooled, well-powered) is the operative evidence, not the 2026 forward slice.
+- **Exhaustion (both sides):** full (a)-(e) pipeline ran + 11 distinct improve/discover levers (magweight, residual-label N19, GMADL N18, ACI, asym-specialist, calibration, cross-horizon-blend, lagged-leadlag N17, queue N16, intraday-momentum N4, base) — ALL KILLED/subsumed; none beats the gated raw cross-pair sign. Edge is info-bound by the 2025-USD-regime. Only open frontier = external/funded data (gated). See `sweeps/EURUSD_10m{,_backlog}.md`.
+
 ---
 
 ## EURUSD × 15m (deriv-tradeable)

@@ -1,0 +1,102 @@
+{
+ "experiment": "m10_spec (asym class-weight side specialist)",
+ "incumbent": {
+  "UP_2025": 0.605,
+  "DOWN_2025": 0.574
+ },
+ "breakeven": 0.541,
+ "PRE_REGISTERED_FALSIFIER": "KILL specialist unless a side-specialist beats incumbent SAME side on 2025 (DOWN>=.574 OR UP>=.605) at healthy n, up-rate in [.47,.53].",
+ "status": "COMPLETE",
+ "sides": {
+  "UP": {
+   "class_weight": {
+    "0": 1.0,
+    "1": 1.6
+   },
+   "val_cover": {
+    "thr": 0.1940534637990597,
+    "worsthalf": 0.6095,
+    "cov": 0.05
+   },
+   "years": {
+    "2024": {
+     "n": 681,
+     "win": 0.6358,
+     "ci": [
+      0.5977,
+      0.6725
+     ],
+     "out_up_rate": 0.6358,
+     "all_up_rate": 0.5061
+    },
+    "2025": {
+     "n": 279,
+     "win": 0.5591,
+     "ci": [
+      0.5018,
+      0.6165
+     ],
+     "out_up_rate": 0.5591,
+     "all_up_rate": 0.5067
+    },
+    "2026": {
+     "n": 38,
+     "win": 0.6316,
+     "ci": [
+      0.4737,
+      0.7895
+     ],
+     "out_up_rate": 0.6316,
+     "all_up_rate": 0.4947
+    }
+   }
+  },
+  "DOWN": {
+   "class_weight": {
+    "0": 1.6,
+    "1": 1.0
+   },
+   "val_cover": {
+    "thr": 0.19122086662291013,
+    "worsthalf": 0.561,
+    "cov": 0.05
+   },
+   "years": {
+    "2024": {
+     "n": 659,
+     "win": 0.607,
+     "ci": [
+      0.5705,
+      0.6449
+     ],
+     "out_up_rate": 0.393,
+     "all_up_rate": 0.5061
+    },
+    "2025": {
+     "n": 374,
+     "win": 0.5722,
+     "ci": [
+      0.5241,
+      0.623
+     ],
+     "out_up_rate": 0.4278,
+     "all_up_rate": 0.5067
+    },
+    "2026": {
+     "n": 36,
+     "win": 0.5,
+     "ci": [
+      0.3333,
+      0.6667
+     ],
+     "out_up_rate": 0.5,
+     "all_up_rate": 0.4947
+    }
+   }
+  }
+ },
+ "VERDICT": {
+  "SURVIVES": false,
+  "statement": "Side specialist @10m KILLED \u2014 symmetric side-split (certified book) remains best; asym-weight specialist does not beat it on 2025 (consistent with 5m: subset/asym training kills ranking)."
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "experiment": "m10_leadlag (strictly-lagged cross-pair, N17 bounded)",
+ "incumbent": {
+  "UP_2025": 0.605,
+  "DOWN_2025": 0.574
+ },
+ "breakeven": 0.541,
+ "PRE_REGISTERED_FALSIFIER": "KILL lagged lead-lag unless beats incumbent on 2025 (UP>=.605 OR DOWN>=.574) at healthy n, up-rate in [.47,.53].",
+ "status": "COMPLETE",
+ "val_auc": 0.5173,
+ "sides": {
+  "UP": {
+   "val_cover": {
+    "thr": 0.03826647329100821,
+    "cov": 0.1
+   },
+   "years": {
+    "2024": {
+     "n": 1641,
+     "win": 0.5308,
+     "ci": [
+      0.5064,
+      0.5558
+     ],
+     "all_up_rate": 0.5061
+    },
+    "2025": {
+     "n": 2707,
+     "win": 0.5423,
+     "ci": [
+      0.5231,
+      0.5611
+     ],
+     "all_up_rate": 0.5067
+    },
+    "2026": {
+     "n": 1011,
+     "win": 0.5242,
+     "ci": [
+      0.4926,
+      0.5549
+     ],
+     "all_up_rate": 0.4947
+    }
+   }
+  },
+  "DOWN": {
+   "val_cover": {
+    "thr": 0.04685158828209011,
+    "cov": 0.05
+   },
+   "years": {
+    "2024": {
+     "n": 642,
+     "win": 0.5202,
+     "ci": [
+      0.4798,
+      0.5592
+     ],
+     "all_up_rate": 0.5061
+    },
+    "2025": {
+     "n": 1727,
+     "win": 0.5188,
+     "ci": [
+      0.4957,
+      0.5426
+     ],
+     "all_up_rate": 0.5067
+    },
+    "2026": {
+     "n": 657,
+     "win": 0.5373,
+     "ci": [
+      0.4992,
+      0.5754
+     ],
+     "all_up_rate": 0.4947
+    }
+   }
+  }
+ },
+ "VERDICT": {
+  "SURVIVES": false,
+  "statement": "Lagged lead-lag @10m KILLED \u2014 anti-contemporaneous channel adds nothing over concurrent cross-pair (confirms 5m null)."
+ }
+}
