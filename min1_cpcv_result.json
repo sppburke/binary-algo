@@ -1,0 +1,50 @@
+{
+ "key": "(EURUSD,60s) UP+DOWN faithful CPCV (frozen-book, ties-strict, purged-comb + block-boot)",
+ "breakeven": 0.541,
+ "n_groups": 8,
+ "k_test": 2,
+ "note": "frozen-book (no per-path refit) = OPTIMISTIC bound; a FAIL here is decisive.",
+ "UP": {
+  "n_trades": 562,
+  "pooled_strict_acc": 0.573,
+  "block_boot_ci95": [
+   0.5302,
+   0.6157
+  ],
+  "cpcv_paths": 28,
+  "path_mean": 0.5728,
+  "path_p10": 0.5243,
+  "path_min": 0.4857,
+  "frac_paths_clear_0.541": 0.75,
+  "per_year_strict": {
+   "2024": 0.5197,
+   "2025": 0.5839,
+   "2026": 0.6129
+  },
+  "CERTIFIED": false
+ },
+ "DOWN": {
+  "n_trades": 803,
+  "pooled_strict_acc": 0.5193,
+  "block_boot_ci95": [
+   0.4844,
+   0.5529
+  ],
+  "cpcv_paths": 28,
+  "path_mean": 0.5193,
+  "path_p10": 0.4743,
+  "path_min": 0.4577,
+  "frac_paths_clear_0.541": 0.286,
+  "per_year_strict": {
+   "2024": 0.5217,
+   "2025": 0.5203,
+   "2026": 0.5156
+  },
+  "CERTIFIED": false
+ },
+ "verdict": {
+  "UP_CERTIFIED": false,
+  "DOWN_CERTIFIED": false,
+  "statement": "UP NOT certified (pooled-strict 0.573, block-boot CI-lo 0.5302, path p10 0.5243, 0.75 of paths clear); DOWN NOT certified (pooled-strict 0.5193, path p10 0.4743). Neither 60s side survives purged-combinatorial / serial-dependence-aware scrutiny under ties-strict settlement -> consistent with the 2m precedent (.5445 FAIL) + online-ARF efficiency keystone. No certified 60s direction edge; UP is a regime-dependent filter, DOWN dead."
+ }
+}
