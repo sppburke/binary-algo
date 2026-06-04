@@ -192,3 +192,40 @@ predicted magnitude; measured native-10 direction accuracy per bucket.
 NOT more directionally predictable. The last creative in-data direction combination is null. **But the same run shows the
 10-min MAGNITUDE model already clears the >0.65-equivalent bar (AUC 0.71-0.81)** — the ready-made genuine edge, tradeable on
 touch/straddle/volatility products (NOT Rise/Fall up/down). 9 levers now; direction verdict is airtight.
+
+---
+
+## 2026-06-04 — SIDE-SPLIT + CROSS-PAIR re-push: BOTH (10m,UP) and (10m,DOWN) CERTIFIED
+
+**The prior verdict was COMBINED-only.** Both side-keys had never been split. This session ran the full
+`(a)-(e)` per-side pipeline + the improve/discover cross-product, using the certified 5m/15m cross-pair pipeline
+as the template (the cross-pair USD-common-factor lever, retargeted to `MX_HOR=10`).
+
+**(a)+(e) base book side-split refit-CPCV** (`m10_cpcv_side.py`, faithful clone of the keystone `m15_cpcv_side.py`,
+3-model ensemble refit per fold, 15 purged paths, gate `5m_bb_width × NY × conf`): pooled n=5.29M, up-rate .5018.
+Surprise — the BASE book already certifies both sides by rule: **UP p10 .5611 (15/15), DOWN p10 .5519 (14/15)**,
+above the 15m base floors (.5475/.5486). DOWN regime-dependent (2021–26 path .528).
+
+**KEYSTONE cross-pair side refit-CPCV** (`m10_xpair_cpcv.py`, single cross-pair lgb refit per fold, gate same):
+**UP p10 .5863 (15/15, min .564) / DOWN p10 .5683 (15/15, min .5556)** — CERTIFIES + IMPROVES both base floors,
+and FIXES DOWN's recent-era weakness (2019–26 .575 / 2021–26 .570 vs base .528). All paths healthy n (UP 638–3576,
+DOWN 442–2399; no thin-coverage mirage). Adversarially verified: refit-CPCV (not frozen-forward overstatement);
+up-rate .5018 ∈ band. **10m DOWN behaves like 15m (cross-pair carries DOWN sign), NOT like 5m (dead)** — the
+informed/jump component averages out by 10m. Frozen → `EURUSD.m10xp.v1` (cov10% deploy via `m10_xpair_freeze.py`
++ `m10_xpair_regate.py`; cov5% gives better DOWN EV .166). This confirms the gradient **none@60s→UP@5m→BOTH@10m&15m**.
+
+**IMPROVE + DISCOVER loops DRY (K=2 rounds, 11 distinct levers — ALL KILLED/subsumed; none beats the gated raw
+cross-pair sign):** magweight POW0.5 (2025 .578/.539<cert), residual-relabel DOWN N19 (2025 .5077 coin-flip),
+GMADL sign-coupled loss N18 (all configs <0.5), ACI gate (trades more at lower 2025 win), asym-class-weight
+specialist (2025 .559/.572<cert), isotonic calibration (rank-invariant), cross-horizon 10m×15m blend (pred
+**corr .957** = same signal), lagged lead-lag N17 (VAL AUC .517), queue/triple-barrier N16 (subsumed sign-invariant),
+intraday-momentum N4 (VAL AUC .526, 2025 .562/.506 — the corpus-scan residue, sign-invariant/dominated). A
+corpus-mining sub-agent (read `_extracted_levers.json` 2050 levers + `_CORPUS_INDEX.md`) confirmed everything else
+maps to a killed bucket / magnitude-only / external-blocked.
+
+**Mechanistic conclusion:** every loss/label/gate modification collapses on the **2025-USD-regime wall** — a wrapper
+cannot create SIGN the regime erased. The 10m direction edge is the gated raw cross-pair USD-common-factor sign,
+info-bound; same leader-not-unseated outcome as 15m. **Only remaining frontier = external/funded data** (intraday
+DE–US rate-diff, implied-vol/risk-reversal, EURGBP ticks) — gated. **NOTE: 10m < deriv's 15m forex Rise/Fall minimum
+→ research/synthetic-index horizon; the deployable sibling is `EURUSD.m15xp.v1`.** Records: `EURUSD_RESULTS.md` §10m,
+`sweeps/EURUSD_10m{,_backlog}.md`, all `m10_*_result.json`.
