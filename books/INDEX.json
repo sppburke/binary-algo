@@ -64,13 +64,23 @@
     "side_split_cpcv_2026_06_03": {
      "harness": "min1_cpcv.py (frozen-book, ties-strict, 28 purged-comb paths + block-boot)",
      "UP_certified": false,
-     "UP": {"pooled_strict": 0.573, "block_boot_ci_lo": 0.530, "path_p10": 0.524, "frac_paths_clear": 0.75, "note": "regime-dependent up-filter, best AVAILABLE 60s UP, NOT certified (2024-strict .520 < breakeven); near-miss like 2m UP .5445"},
+     "UP": {
+      "pooled_strict": 0.573,
+      "block_boot_ci_lo": 0.53,
+      "path_p10": 0.524,
+      "frac_paths_clear": 0.75,
+      "note": "regime-dependent up-filter, best AVAILABLE 60s UP, NOT certified (2024-strict .520 < breakeven); near-miss like 2m UP .5445"
+     },
      "DOWN_certified": false,
-     "DOWN": {"pooled_strict": 0.519, "path_p10": 0.474, "note": "dead + honestly exhausted on-disk; D3a/magweight/mag-bridge killed + 2 dry discovery rounds; external (risk-reversal/rate-diff) only redirect"}
+     "DOWN": {
+      "pooled_strict": 0.519,
+      "path_p10": 0.474,
+      "note": "dead + honestly exhausted on-disk; D3a/magweight/mag-bridge killed + 2 dry discovery rounds; external (risk-reversal/rate-diff) only redirect"
+     }
     }
    },
    "manifest": "books/EURUSD.min1.v1.manifest.json",
-   "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key. SIDE-SPLIT 2026-06-03: UP uncertified (CPCV p10 .524, regime-dependent), DOWN dead/exhausted (p10 .474) — no certified 60s direction edge.",
+   "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key. SIDE-SPLIT 2026-06-03: UP uncertified (CPCV p10 .524, regime-dependent), DOWN dead/exhausted (p10 .474) \u2014 no certified 60s direction edge.",
    "depends_on": null
   },
   {
@@ -84,10 +94,31 @@
     "test": 0.528,
     "oos_2026": 0.539,
     "breakeven": 0.541,
-    "note": "not a row in EURUSD_RESULTS; included for completeness"
+    "note": "not a row in EURUSD_RESULTS; included for completeness",
+    "side_split_2026_06_04": {
+     "harness": "min2_xpair_cpcv.py (cross-pair ties-strict refit-CPCV) + min2_spec_cpcv.py (specialist nested-refit) + min2_rff.py",
+     "UP_certified": false,
+     "UP": {
+      "best_available_point": 0.555,
+      "ties_strict": 0.5445,
+      "frozenbook_cpcv_p10": 0.524,
+      "crosspair_refit_p10": 0.5096,
+      "rff_val_auc": 0.4997,
+      "specialist_nested_refit_p10": 0.4957,
+      "note": "uncertified, best-AVAILABLE; honestly exhausted on-disk"
+     },
+     "DOWN_certified": false,
+     "DOWN": {
+      "point": 0.54,
+      "crosspair_refit_p10": 0.5124,
+      "specialist_nested_refit_p10": 0.4912,
+      "note": "dead + honestly exhausted; sub-breakeven all years"
+     },
+     "verdict": "NO certified 2m direction edge; both sides exhausted under full (a)-(e). Cross-pair (keystone) + RFF + specialist all killed. 4 model classes ~.50-.52 AUC = genuine efficiency. Redirect=external Tier-G (gated). 120s < deriv 15m min = research horizon."
+    }
    },
    "manifest": "books/EURUSD.min2.v1.manifest.json",
-   "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered.",
+   "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered. SIDE-SPLIT 2026-06-04: both sides UNCERTIFIED+EXHAUSTED (cross-pair refit p10 .5096/.5124, RFF .4997, specialist nested-refit .4957/.4912) \u2014 no certified 2m direction edge.",
    "depends_on": null
   },
   {
@@ -191,8 +222,20 @@
     "breakeven": 0.541,
     "side_split_certified_2026_06_03": {
      "harness": "m15_cpcv_side.py (per-fold refit CPCV, 15 purged paths); combined reproduces min15_cpcv (mean .5787/p10 .557) -> faithful",
-     "UP": {"refit_p10": 0.5475, "refit_mean": 0.5771, "frac_paths_clear": 0.933, "median_path_n": 949, "verdict": "CERTIFIED"},
-     "DOWN": {"refit_p10": 0.5486, "refit_mean": 0.5805, "frac_paths_clear": 1.0, "median_path_n": 845, "verdict": "CERTIFIED (first certified DOWN edge in program)"},
+     "UP": {
+      "refit_p10": 0.5475,
+      "refit_mean": 0.5771,
+      "frac_paths_clear": 0.933,
+      "median_path_n": 949,
+      "verdict": "CERTIFIED"
+     },
+     "DOWN": {
+      "refit_p10": 0.5486,
+      "refit_mean": 0.5805,
+      "frac_paths_clear": 1.0,
+      "median_path_n": 845,
+      "verdict": "CERTIFIED (first certified DOWN edge in program)"
+     },
      "note": "BOTH sides certified (refit p10 >= .541, >=80% paths clear). Durable floors = refit p10; frozen-forward operating point .607/.559 was optimistic selection. result_json: m15_cpcv_side_result.json"
     }
    },
@@ -305,8 +348,16 @@
     "base_book_up_p10": 0.5475,
     "base_book_down_p10": 0.5486,
     "deploy_cov": 0.1,
-    "forward_cov10_up": [0.602, 0.561, 0.539],
-    "forward_cov10_down": [0.610, 0.531, 0.552],
+    "forward_cov10_up": [
+     0.602,
+     0.561,
+     0.539
+    ],
+    "forward_cov10_down": [
+     0.61,
+     0.531,
+     0.552
+    ],
     "breakeven": 0.541,
     "status": "NEW (15m,UP)+(15m,DOWN) LEADER. Per-side refit-CPCV-CERTIFIED above the base book (UP p10 .5673 / DOWN .5742, 15/15 paths both sides). BEST certified DOWN edge in program. ADVERSARIAL: edge is REFIT-DEPENDENT (USD factor non-stationary) -> frozen-2021 single-model forward is marginal in binding years; DEPLOY with periodic retrain, size on refit floor. Base book EURUSD.m15.v1 = frozen-stable lower fallback. Deriv-tradeable."
    },
