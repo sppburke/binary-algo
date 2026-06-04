@@ -19,9 +19,10 @@ import m5_xpair as MX
 
 HOR = 2; GAP_S = HOR * 60; BE = 0.541
 GATE_FEAT = "1m_bb_width"
-T_SUB = 16000     # subsample moved train rows -> virtue-of-complexity regime P ~ T
-P = 12000         # total random features (P/2 sin + P/2 cos); kept memory-safe (OOM at 20k)
+T_SUB = 12000     # subsample moved train rows -> virtue-of-complexity regime P ~ T
+P = 8000          # total random features (P/2 sin + P/2 cos); memory- & time-safe
 SEED = 7
+VAL_AUC_SUB = 80000   # subsample VAL for the fast-KILL AUC (full predict only if it survives)
 
 
 def yr(ts):
@@ -73,18 +74,21 @@ def main():
     tsv = VA["_ts"].values.astype("int64"); bbv = VA[GATE_FEAT].values.astype("float32")
     nyv = VA["sess_ny"].values > 0.5
     del TR, Xtr, VA, Xva; gc.collect()
+    vsub = rng.choice(len(Zva), size=min(VAL_AUC_SUB, len(Zva)), replace=False)
+    Zva_s = Zva[vsub]; yva_s = yva[vsub]
     best = None
-    for gamma in (0.5 / np.sqrt(D), 1.0 / np.sqrt(D), 2.0 / np.sqrt(D)):
+    for gamma in (1.0 / np.sqrt(D), 2.0 / np.sqrt(D)):
         F = rff_map(Zs, omega, gamma)                            # (T_SUB, P)
         G = F.T @ F                                              # (P,P)
         Fy = F.T @ ys
-        for z in (1.0, 10.0, 100.0):
+        for z in (10.0, 100.0):
             w = np.linalg.solve(G + z * np.eye(P, dtype="float32"), Fy).astype("float32")
-            pv = predict_batched(Zva, omega, gamma, w)
-            auc = roc_auc_score(yva, pv)
+            pv = predict_batched(Zva_s, omega, gamma, w)
+            auc = roc_auc_score(yva_s, pv)
+            print(f"[rff] gamma={gamma:.4g} ridge={z} VAL_sub AUC={auc:.4f} {time.time()-t0:.0f}s", flush=True)
             if best is None or auc > best[0]:
                 best = (auc, gamma, z, w)
-        del F, G, Fy
+        del F, G, Fy; gc.collect()
     valauc, GAMMA, Z_RIDGE, W = best
     print(f"[rff] best VAL AUC={valauc:.4f} gamma={GAMMA:.4g} ridge={Z_RIDGE} (P={P}, T={T_SUB}) {time.time()-t0:.0f}s", flush=True)
     res = {"test": "RFF virtue-of-complexity SDF @MX_HOR=2 (xpof features)", "breakeven": BE, "P": P, "T_sub": T_SUB,

@@ -1,0 +1,73 @@
+{
+ "test": "purpose-built UP/DOWN meta-labeler specialists @MX_HOR=2 (cross-pair primary)",
+ "breakeven": 0.541,
+ "falsifier": {
+  "KILL_side_if": "meta-gated held-out acc < 0.545 in >=2 of 3 years (n>=25)"
+ },
+ "sides": {
+  "UP": {
+   "val_worst_half": 0.6034,
+   "meta_q": 0.95,
+   "per_year": {
+    "2024": {
+     "n": 5574,
+     "acc": 0.575,
+     "ci": [
+      0.5621,
+      0.5877
+     ]
+    },
+    "2025": {
+     "n": 2541,
+     "acc": 0.5525,
+     "ci": [
+      0.5336,
+      0.571
+     ]
+    },
+    "2026": {
+     "n": 233,
+     "acc": 0.6009,
+     "ci": [
+      0.5365,
+      0.6609
+     ]
+    }
+   },
+   "years_ge_0.545": 3,
+   "verdict": "SURVIVES->refit-CPCV"
+  },
+  "DOWN": {
+   "val_worst_half": 0.616,
+   "meta_q": 0.95,
+   "per_year": {
+    "2024": {
+     "n": 3921,
+     "acc": 0.5659,
+     "ci": [
+      0.5504,
+      0.582
+     ]
+    },
+    "2025": {
+     "n": 2525,
+     "acc": 0.5263,
+     "ci": [
+      0.5061,
+      0.5461
+     ]
+    },
+    "2026": {
+     "n": 189,
+     "acc": 0.4709,
+     "ci": [
+      0.4021,
+      0.5397
+     ]
+    }
+   },
+   "years_ge_0.545": 1,
+   "verdict": "KILL"
+  }
+ }
+}

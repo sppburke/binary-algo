@@ -1,0 +1,17 @@
+{
+ "test": "RFF virtue-of-complexity SDF @MX_HOR=2 (xpof features)",
+ "breakeven": 0.541,
+ "P": 8000,
+ "T_sub": 12000,
+ "val_auc": 0.4997,
+ "gamma": 0.05496497099293127,
+ "ridge": 100.0,
+ "falsifier": {
+  "KILL_if_val_auc<=": 0.515,
+  "ESCALATE_if": "side clears 0.545 in >=2 held-out years"
+ },
+ "verdict": {
+  "KILLED": true,
+  "reason": "VAL moved-dirAUC 0.4997 <= 0.515 \u2014 RFF extracts no 2m cross-pair sign edge the GBM/ARF missed; channel genuinely empty (4th flat model class)."
+ }
+}
