@@ -1,0 +1,63 @@
+{
+ "book": "EURUSD.m30xp.v1",
+ "model": "cross-pair xpof primary @MX_HOR=30",
+ "finding": "30m cross-pair edge is carried by POOLED TRAINING on base multi-TF features, NOT cross-pair/lead-lag/factor features",
+ "gain_by_family_pct": {
+  "base239_multiTF": 94.0,
+  "leadlag_ll": 2.1,
+  "crosspair_xp": 2.0,
+  "orderflow_OF": 1.8
+ },
+ "top15": [
+  {
+   "hour_sin": 2.48
+  },
+  {
+   "1m_dist_ema100": 2.46
+  },
+  {
+   "hour_cos": 1.99
+  },
+  {
+   "1m_dist_ema50": 1.63
+  },
+  {
+   "4h_autocorr_10": 1.54
+  },
+  {
+   "4h_bb_width": 1.27
+  },
+  {
+   "4h_rv_24": 1.19
+  },
+  {
+   "30m_autocorr_10": 1.17
+  },
+  {
+   "4h_ema_fast_slow": 1.16
+  },
+  {
+   "4h_ret_1": 1.13
+  },
+  {
+   "1h_autocorr_10": 1.13
+  },
+  {
+   "4h_dist_lo_48": 1.12
+  },
+  {
+   "4h_dist_ema100": 1.1
+  },
+  {
+   "4h_dist_hi_48": 1.07
+  },
+  {
+   "4h_rv_12": 1.06
+  }
+ ],
+ "subsumes": {
+  "I-Aa_antisymmetric_leadlag": "ll_ lead-lag features carry only 2.1% gain AND are already GBM inputs; Aa is a linear combo of them -> cannot beat incumbent (Tier-1 subsumption)",
+  "I-ipca_instrumented_betas": "cross-pair factor channel carries 2.0% gain; IPCA refines that channel -> cannot move the pooled-base-feature edge (Tier-1 subsumption)"
+ },
+ "implication": "the lever that produced the edge is POOLING (7-pair rows -> more data + cross-pair regularization of base features, esp rescuing DOWN), not the xpof feature block. Discovery R2 should probe pooling breadth/scheme, not factor refinements."
+}
