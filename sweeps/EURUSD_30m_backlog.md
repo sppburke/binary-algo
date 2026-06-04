@@ -47,3 +47,33 @@ a sign-invariance theorem). The predictable structure is MAGNITUDE (realized vol
 directional edge is at the SECONDS scale (~0.65, confirmed by signatures). For an up/down 30m binary, >0.65/>0.75 is not
 achievable on EURUSD; the honest tradeable edges are: 15m compression×NY ~0.64, 3s tick ~0.66, and the NEW magnitude/vol
 model ~0.75 (volatility/touch products, not up/down).
+
+---
+
+## 2026-06-04 — NEW TWO-SIDED CERTIFICATION PUSH (/goal): the cross-pair lever was NEVER run at 30m
+**The above "DEFINITIVE CONCLUSION" predates the cross-pair breakthrough.** It chased >75% (impossible) and its
+"cross-pair" test (Iteration-2) bolted 60 peer FEATURES onto a single EURUSD LGB (+0). The DIFFERENT mechanism —
+POOLED 7-major training + USD-common-factor residual + order-flow (xpof, m5_xpair) — certified BOTH sides at 10m
+(.586/.568) and 15m (.5673/.5742). Goal now = certify best UP + best DOWN vs breakeven 0.541 (not 0.75). 30m is the
+LONGEST deriv-tradeable horizon. Live: K1 m30_cpcv_side.py (base floor), K2 m30_xpair_cpcv.py (keystone cert).
+
+### DISCOVERY ROUND 1 (workflow 2026-06-04; 4 agents over corpus+arXiv; 6 levers, vetted by sign-invariance)
+Most cross-pair decomposition ideas (Giglio-Xiu 3-pass, PCA-residual, currency-strength, ECM) are SUBSUMED by xpof = K2.
+Actionable NEW improve-levers (run ONLY after K2 certifies, build ON the frozen K2 book; each must beat K2 binding-side p10):
+- **I-Aa — Antisymmetric cross-pair matrix component** [med/new/on-disk]. Fit lagged 7x7 cross-pair AR/prediction matrix
+  A on TRAIN; split A = As (symmetric, own-pair-replicable) + Aa (antisymmetric = signed lead-lag rotation). Add Aa(X_t)
+  as ONE extra primary feature on the K2 book; re-run side-split refit-CPCV. Sign-carrying via lead-lag rotation (Lévy-area
+  family, but aggregated not seconds-only). Orthogonal-by-construction to K2's symmetric common factor. KILL if rank(Aa)<2
+  after SVD, OR Aa OOS directional payoff <=0 on worst-VAL-half, OR fails to raise K2 binding-side p10 by >=0.005.
+- **I-IPCA — Time-varying USD-loadings (instrumented betas)** [med/new/on-disk]. Replace K2's static USD-beta with IPCA
+  (Kelly-Pruitt-Su): beta_{i,t}=z_{i,t}'Gamma linear in the 239 feats, single global Gamma by ALS on TRAIN; EUR 30m dir =
+  beta'_{EUR,t} lambda_t. The ONLY lever that can FLIP the EUR-USD loading sign across regimes -> directly attacks the
+  2025 USD-factor-inversion wall (documented cause of static-residual improve-lever KILLs at 10m). KILL if ALS <2 factors
+  eigenvalue>1, OR OOS dir R2<0.5%, OR IPCA EUR-sign acc on 2025 worst-VAL-half does NOT beat the static K2 book.
+- **I-GX — Giglio-Xiu weak-factor Wald/R2_g feature pre-screen** [med/variant/on-disk]. Sign-NEUTRAL hardening: keep only
+  K2 xpof cols rejecting H0:h=0 (p<0.05) vs the 7-major PCA factors; refit K2 on survivors to shrink overfit surface
+  (attacks corr(VAL,OOS)=-0.54). KILL if Spearman(R2_g rank, per-feat OOS dirAUC) < 0.1 on train+val (abort, no signal),
+  OR pruning lowers K2 binding-side refit p10.
+- **(gated, low) External DE-US 2y rate-diff + 25-delta risk-reversal** [low/new/OFF-disk]. Only non-redundant info channel
+  left, but data not acquired + likely subsumed by realized-vol SIZE gate. Defer to external-data phase.
+Generic versions of I-Aa / I-IPCA / I-GX -> IDEAS_LOG.md + SWEEP_MATRIX Tier-N during records phase.
