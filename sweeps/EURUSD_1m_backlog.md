@@ -27,6 +27,18 @@ re-weighting that the 5m DOWN responded to, and (2) the magnitude→direction br
 4. **[both · improve · prior ~10%] seed-ensemble (K=4) ⊕ GBM on the best 60s book** — variance-reduction on the UP
    filter and any DOWN survivor. (At 5m seed-ens did NOT rescue DOWN — same 2025 wall — so prior tempered.)
 
+# DISCOVERY ROUND 1 (2026-06-03) — DRY (0 survivors / 12 vetted)
+Adversarial fan-out (`discover-60s-down-levers` workflow, 12 Explore agents, each grounded in the repo kill
+evidence) vetted every UNTESTED sign-aware microstructure DOWN/direction lever in CORPUS_LEVER_INVENTORY.md for
+subsumption + sign-invariance at 60s. **ALL 12 subsumed/sign-invariant; 0 survivors.** The order-flow microstructure
+family is uniformly a reparameterization of the signed-flow channel already dead at 60s (CKS-OFI VAL .4993,
+cross-impact-OFI .5015, per-side-flow ~.50, online-ARF keystone .503-.508) and/or sign-invariant (magdir proof).
+Vetted-subsumed (do NOT build without a NEW mechanism): OF-surprise/MRR residual · Lipton buy/sell drift asymmetry ·
+SPDE depletion asymmetry · Bouchaud propagator past-sign · DAR(p) sign-AR · metaorder continuation P_m · Cont-de
+Larrard queue-imbalance p_up · trade-time/event-clock labeling · Capponi-Cont idiosyncratic residual flow ·
+long-OF-history GRU · microprice deviation anchor · predictability-conditioned impact gate. Recurring finding: the
+60s DOWN wall is GENUINE EFFICIENCY, not a feature-discovery gap. → DOWN side honestly EXHAUSTED on-disk.
+
 # Subsumed / dead at 60s (do NOT re-run without a NEW mechanism)
 - USD/cross-pair conditioning DOWN (D3a, killed 2026-06-03) — and its 5m parent. Cross-pair sign-lead family null.
 - Side-specialists (subset-training kills ranking). Online-ARF (efficiency keystone). HMM/Kalman/RMT/CCM/OFI/CKS
