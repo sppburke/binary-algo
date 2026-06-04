@@ -101,3 +101,11 @@ rationale also doesn't bind at 30m where 2025 is the STRONG fwd year). `m30_xpai
   (Dukascopy intraday yields; FRED daily too coarse). The only frontier that could further move 30m direction — same
   conclusion as 60s/2m/5m. Falsifier if acquired: univariate dirAUC>.52 worst-VAL-half + lifts m30xp binding p10 >=.005.
 => R2 yields ZERO surviving on-disk levers (month-end KILLED; rate-diff external-gated). DRY round #1. R3 to confirm K=2.
+
+### DISCOVERY ROUND 3 (confirmatory, 2026-06-04) — DRY (empty)
+Hard cross-disciplinary + arXiv-2024/26 sweep for ANY novel ON-DISK sign-carrier not subsumed: returned **0 levers
+(dry=true)**. => **K=2 consecutive dry rounds (R2+R3) — the 30m DISCOVER loop is EXHAUSTED.** ~30+ on-disk levers across
+6+ data sources tried/subsumed/null. The cross-pair POOLED book is the best on-disk edge; the ONLY non-redundant
+remaining frontier is EXTERNAL data (DE-US 2y rate-diff = H-TODO-1, daily risk-reversal) — gated on acquisition, same
+terminal conclusion as 60s/2m/5m/10m/15m. NULL ≠ quit: this is honest exhaustion of the on-disk search, with the
+external-data redirect logged for when data is acquired.
