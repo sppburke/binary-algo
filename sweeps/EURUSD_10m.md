@@ -28,7 +28,7 @@
 | A8c | side | purpose-built UP/DOWN specialist + meta-labeler (step c) | `m15_updown.py`/spec @10m | U/Dn | med (filter), low (spec) | pending | — | — | — | per side not yet certified/dead | — |
 | Ad  | side | confidence/coverage curve (step d) per side | `m15_sidepipe.py`@10m | U/Dn | — | pending | — | — | — | — | — |
 | N19 | discover | H=10 risk-residual RELABEL + DOWN-split | `m10_residlabel_down_h10.py` | D | low-med | **KILLED** | — | — | 2025 .5077 | residual sign coin-flip in 2025; edge is gated RAW cross-pair sign not idiosyncratic residual | `m10_residlabel_down_h10_result.json` |
-| N18 | discover | signed-payoff GMADL/MADL + RRL diff-Sharpe head | `m10_signedpayoff.py`@10m | D | ~10% | pending | — | — | — | sign-coupled loss (distinct from magweight reweight) | — |
+| N18 | discover | signed-payoff GMADL sign-coupled loss (a∈{50,100}×b∈{1,2}) | `m10_signedpayoff_gmadl.py` | D | ~10% | **KILLED** | — | 2025 .44–.49 | 2025 .46–.48 | all 4 configs BELOW 0.5 — sign-coupled payoff loss WORSE than gated BCE; loss-reopt family exhausted (cf magweight+N19) | `m10_signedpayoff_gmadl_result.json` |
 | I1 | improve | ACI adaptive-conformal gate (deploy) | `m10_deploy_eval.py` | gate | high (WIN@5m) | **KILLED** | — | 2025 .611<.679 | 2025 .564<.579 | ACI trades MORE at LOWER 2025 win than fixed; compression×NY gate already captures regime | `m10_deploy_eval_result.json` |
 | Ad | side | coverage curve (step d) + deploy EV net-of-spread | `m10_deploy_eval.py` | U/Dn | — | **DONE** | — | 2025 cov5 .613/cov10 .605/cov15 .585 | 2025 cov5 .630(EV.166)/cov10 .574/cov15 .583 | DOWN better at TIGHTER cov (cov5 EV.166>cov10 EV.062) → per-side deploy: DOWN cov5, UP cov10 | `m10_deploy_eval_result.json` |
 | A8c | side | purpose-built side specialist (step c) | `m10_spec.py` | U/Dn | low (spec worse @5m) | pending | — | — | — | run-once fast-KILL | — |
@@ -64,7 +64,8 @@
 | — | residual-label H=10 (N19) | 2025 .5077 (coin-flip) | KILLED (collapses 2025; edge is gated RAW cross-pair sign, not idiosyncratic residual) |
 
 ## Discovery rounds (loop until K=2 dry)
-- Round 0: pending — kick off after L0/A6c resolve (build on the closest result). Retarget genuinely-distinct Tier-N direction levers (N16–N19) + scan corpus for 10m-specific levers.
+- **Round 1 (improve/discover on the certified cross-pair edge) — DRY** (no lever beat the certified book): magweight POW0.5 (KILL, 2025 collapse) · N19 residual-label DOWN (KILL, 2025 .5077) · ACI gate I1 (KILL, trades more at lower 2025 win) · GMADL sign-coupled loss N18 (KILL, all configs <0.5) · specialist (c) (running) · coverage-curve (done). **Mechanistic conclusion: the 10m direction edge is the gated raw cross-pair sign; every loss/label/gate modification collapses on the 2025-USD-regime wall — the same info-bound + leader-not-unseated pattern as 15m.**
+- **Round 2 (fresh discovery) — in progress:** cross-horizon 10m×15m blend (queued) · calibration I4 · corpus scan for any 10m-specific direction lever (prior: 5m corpus audit + 2m closure showed on-disk direction space exhausted, only external/funded data remains).
 
 ## Status log
 - 2026-06-04: ledger created. L0 (base side-CPCV) launched. A6c (keystone) scripted, blocked on L0 floor. Both sides currently UNTESTED → no certified 10m direction edge yet.
