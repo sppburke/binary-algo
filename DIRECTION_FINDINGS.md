@@ -115,6 +115,7 @@ ceiling ≈ 0.60–0.61; >0.65 OOS-verified is NOT achievable** — every method
   floor than the 15m-winner's `15m_bb_width × NY` — a genuine (small) refinement, but it does not break 0.65.
 - **Walk-forward is the cleanest regime test and it closes the door:** adapting through 2024 to predict 2025 lifts the
   binding window only +0.017. The 2025 EURUSD 10-min regime is near-efficient for direction; gap-reduction isn't the lever.
+  **(UPDATE 2026-06-04 — Session-1 above was COMBINED-only. The side-split re-push certifies BOTH 10m sides via the SELECTIVE compression×NY×confidence-gated cross-pair USD-common-factor sign: `EURUSD.m10xp.v1` refit-CPCV UP p10 .5863 / DOWN p10 .5683, 15/15 paths — see the top table + `m10_research_log.md` + `sweeps/EURUSD_10m.md`. Raw 10m direction does remain ~efficient (~.52 AUC); the certified edge is the thin gated cross-pair sign, info-bound by the 2025 regime, not a refutation of near-efficiency.)**
 - **EXTERNAL cross-asset (ES S&P500 e-mini minute futures, the only untried directional lever) — null, and it reveals the
   mechanism:** the ES→EURUSD *lead-lag* corr is tiny (|corr|<0.055) AND **sign-flips from +0.02 in 2024 to −0.05 in 2025**;
   contemporaneous corr is real (+0.16..+0.22) but untradeable. The normal risk-on→USD-weakness link **decoheres/inverts in

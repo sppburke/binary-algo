@@ -28,12 +28,25 @@ Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measur
   **not** achievable at ≤5m on clock-bar data. `[EURUSD·60s]`
 - Short tick horizons (1–5s) carry a genuine `>0.65` directional edge but need a **tick venue** (deriv forex
   min duration is 15m — see §3). `[EURUSD·1-5s]`
-- Intermediate horizons (≈15m) carry a modest **regime-dependent** direction edge (~0.58 cross-era / ~0.65
-  recent). `[EURUSD·15m]`
+- Intermediate horizons (≈10–15m) carry a modest **regime-dependent** direction edge (~0.58 cross-era / ~0.65
+  recent). `[EURUSD·15m]` `[EURUSD·10m]`
+- **CROSS-PAIR USD-COMMON-FACTOR is THE direction lever, and it is HORIZON-GATED — a gradient: none@60s → UP-only@5m
+  → BOTH sides@10m & 15m; null again <5m.** Mechanism: the informed/jump component of a move (especially DOWN) is
+  noise at short horizons but **averages out as the horizon lengthens**, so the slow USD-common-factor SIGN becomes
+  forecastable at ≥10m. The carrier is the **CONCURRENT** cross-pair read (windows ending at t); strictly-LAGGED
+  lead-lag is dominated. Per-fold-refit CPCV certified: 5m-UP (p10 .553), BOTH 10m sides (.586/.568), BOTH 15m sides
+  (.567/.574); KILLED at 2m (p10 ~.51). For a new (currency, ≥10m) key the cross-pair refit-CPCV side-split is the
+  #1-prior lever. `[EURUSD·5m/10m/15m/2m]` (see `EURUSD_RESULTS.md`, `sweeps/EURUSD_{10,15}m.md`, `METHODS_CATALOG.md` A6)
+- Once the cross-pair book certifies a ≥10m key, **loss/label/gate re-engineering does NOT beat the gated raw
+  cross-pair sign** — magweight, GMADL/sign-coupled loss, residual-relabel, ACI gate, specialist, calibration,
+  cross-horizon blend, lagged lead-lag, intraday-momentum all collapse on the binding-regime wall (a wrapper cannot
+  create SIGN the regime erased). The redirect for a HIGHER number is **external data**, not another loss/gate variant.
+  `[EURUSD·10m]` (11 levers dry, 2 rounds) — same outcome as 15m.
 - **MAGNITUDE is the one CPCV-deflation-certified edge** at every horizon tested (large-move AUC ≈0.71–0.81).
   `[EURUSD·30m/60s]`
-- Where a direction edge exists it tends to be **one-sided** (e.g. dip-buy UP) and **regime-/horizon-specific** —
-  never assume a side or copy one key's asymmetry to another.
+- Where a direction edge exists it is **regime-/horizon-specific** and may be **one-sided** (dip-buy UP at 60s/5m)
+  OR **two-sided** (BOTH sides via cross-pair at 10m & 15m, DOWN as robust as UP) — never assume a side or copy one
+  key's asymmetry to another; measure each side directly.
 
 ## 3. Deriv.com Rise/Fall settlement & breakeven (platform mechanics — generic)
 
