@@ -31,17 +31,27 @@ Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measur
 - Intermediate horizons (≈10–15m) carry a modest **regime-dependent** direction edge (~0.58 cross-era / ~0.65
   recent). `[EURUSD·15m]` `[EURUSD·10m]`
 - **CROSS-PAIR USD-COMMON-FACTOR is THE direction lever, and it is HORIZON-GATED — a gradient: none@60s → UP-only@5m
-  → BOTH sides@10m & 15m; null again <5m.** Mechanism: the informed/jump component of a move (especially DOWN) is
+  → BOTH sides@10m, 15m & 30m; null again <5m.** Mechanism: the informed/jump component of a move (especially DOWN) is
   noise at short horizons but **averages out as the horizon lengthens**, so the slow USD-common-factor SIGN becomes
   forecastable at ≥10m. The carrier is the **CONCURRENT** cross-pair read (windows ending at t); strictly-LAGGED
   lead-lag is dominated. Per-fold-refit CPCV certified: 5m-UP (p10 .553), BOTH 10m sides (.586/.568), BOTH 15m sides
-  (.567/.574); KILLED at 2m (p10 ~.51). For a new (currency, ≥10m) key the cross-pair refit-CPCV side-split is the
+  (.567/.574), BOTH 30m sides (.5588/.5525 — the LONGEST deriv horizon, but REFIT-DEPENDENT: the frozen-2021 book's
+  forward edge DECAYS by the 2026 OOS year, esp. UP → deploy with periodic retraining); KILLED at 2m (p10 ~.51).
+  For a new (currency, ≥10m) key the cross-pair refit-CPCV side-split is the
   #1-prior lever. `[EURUSD·5m/10m/15m/2m]` (see `EURUSD_RESULTS.md`, `sweeps/EURUSD_{10,15}m.md`, `METHODS_CATALOG.md` A6)
 - Once the cross-pair book certifies a ≥10m key, **loss/label/gate re-engineering does NOT beat the gated raw
   cross-pair sign** — magweight, GMADL/sign-coupled loss, residual-relabel, ACI gate, specialist, calibration,
   cross-horizon blend, lagged lead-lag, intraday-momentum all collapse on the binding-regime wall (a wrapper cannot
   create SIGN the regime erased). The redirect for a HIGHER number is **external data**, not another loss/gate variant.
-  `[EURUSD·10m]` (11 levers dry, 2 rounds) — same outcome as 15m.
+  `[EURUSD·10m]` (11 levers dry, 2 rounds), `[EURUSD·30m]` (magweight HURTS — dilutes sign→magnitude; seed-ens/
+  specialist/Aₐ/IPCA subsumed; 2 dry discovery rounds) — same outcome as 15m.
+- **The cross-pair edge is carried by POOLED TRAINING on the BASE multi-TF features, NOT the cross-pair-specific
+  features** (measured: frozen 30m cross-pair book feature-importance = base multi-TF **94%** gain vs lead-lag 2.1% /
+  cross-pair-factor 2.0% / order-flow 1.8%). Pooling 6–7 USD-major rows gives more data + cross-sectional
+  regularization of the SAME base features (esp. rescuing DOWN); the xpof factor/lead-lag block is near-zero gain.
+  ⇒ factor-refinement levers (IPCA instrumented betas, antisymmetric lead-lag matrix Aₐ) are **subsumed** — they
+  refine a ~2%-gain channel. CORRECTS the earlier speculation that factor/IPCA levers grow more relevant at longer H:
+  what grows is the *pooling* benefit, not the factor features. `[EURUSD·30m]` (`m30_xpair_featimp_result.json`)
 - **MAGNITUDE is the one CPCV-deflation-certified edge** at every horizon tested (large-move AUC ≈0.71–0.81).
   `[EURUSD·30m/60s]`
 - Where a direction edge exists it is **regime-/horizon-specific** and may be **one-sided** (dip-buy UP at 60s/5m)
