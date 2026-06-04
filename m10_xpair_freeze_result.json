@@ -1,0 +1,208 @@
+{
+ "book": "EURUSD.m10xp.v1",
+ "val_auc": 0.5261737534511004,
+ "gate": "5m_bb_width<=thr AND sess_ny>0.5 AND |p-0.5|>=conf_thr",
+ "cert_verdict": {
+  "UP": {
+   "p10": 0.5863,
+   "frac": 1.0,
+   "n_paths": 15,
+   "base_floor": 0.5611,
+   "certified": true,
+   "improves_base": true
+  },
+  "DOWN": {
+   "p10": 0.5683,
+   "frac": 1.0,
+   "n_paths": 15,
+   "base_floor": 0.5519,
+   "certified": true,
+   "improves_base": true
+  }
+ },
+ "refit_cpcv": {
+  "UP": {
+   "p10": 0.5863,
+   "frac": 1.0,
+   "mean": 0.5985
+  },
+  "DOWN": {
+   "p10": 0.5683,
+   "frac": 1.0,
+   "mean": 0.6001
+  }
+ },
+ "forward_side_split": {
+  "2024_UP": {
+   "n": 298,
+   "acc": 0.6879,
+   "ci": [
+    0.6375,
+    0.7383
+   ],
+   "up_rate": 0.6879
+  },
+  "2024_DOWN": {
+   "n": 239,
+   "acc": 0.6276,
+   "ci": [
+    0.5649,
+    0.6862
+   ],
+   "up_rate": 0.3724
+  },
+  "2024_COMBINED": {
+   "n": 537,
+   "acc": 0.6611,
+   "ci": [
+    0.6201,
+    0.7002
+   ],
+   "up_rate": 0.5475
+  },
+  "2025_UP": {
+   "n": 111,
+   "acc": 0.6126,
+   "ci": [
+    0.5225,
+    0.7027
+   ],
+   "up_rate": 0.6126
+  },
+  "2025_DOWN": {
+   "n": 146,
+   "acc": 0.6301,
+   "ci": [
+    0.5479,
+    0.7123
+   ],
+   "up_rate": 0.3699
+  },
+  "2025_COMBINED": {
+   "n": 257,
+   "acc": 0.6226,
+   "ci": [
+    0.5642,
+    0.6809
+   ],
+   "up_rate": 0.4747
+  },
+  "2026_UP": {
+   "n": 8,
+   "acc": 0.875,
+   "ci": [
+    0.625,
+    1.0
+   ],
+   "up_rate": 0.875
+  },
+  "2026_DOWN": {
+   "n": 10,
+   "acc": 0.4,
+   "ci": [
+    0.1,
+    0.7
+   ],
+   "up_rate": 0.6
+  },
+  "2026_COMBINED": {
+   "n": 18,
+   "acc": 0.6111,
+   "ci": [
+    0.3889,
+    0.8333
+   ],
+   "up_rate": 0.7222
+  }
+ },
+ "breakeven": 0.541,
+ "forward_side_split_cov10": {
+  "2024_UP": {
+   "n": 581,
+   "acc": 0.642,
+   "ci": [
+    0.6024,
+    0.6816
+   ],
+   "up_rate": 0.642
+  },
+  "2024_DOWN": {
+   "n": 451,
+   "acc": 0.5987,
+   "ci": [
+    0.5543,
+    0.6431
+   ],
+   "up_rate": 0.4013
+  },
+  "2024_COMBINED": {
+   "n": 1032,
+   "acc": 0.6231,
+   "ci": [
+    0.594,
+    0.6521
+   ],
+   "up_rate": 0.5368
+  },
+  "2025_UP": {
+   "n": 195,
+   "acc": 0.6051,
+   "ci": [
+    0.5333,
+    0.6718
+   ],
+   "up_rate": 0.6051
+  },
+  "2025_DOWN": {
+   "n": 230,
+   "acc": 0.5739,
+   "ci": [
+    0.5087,
+    0.6391
+   ],
+   "up_rate": 0.4261
+  },
+  "2025_COMBINED": {
+   "n": 425,
+   "acc": 0.5882,
+   "ci": [
+    0.5412,
+    0.6376
+   ],
+   "up_rate": 0.5082
+  },
+  "2026_UP": {
+   "n": 25,
+   "acc": 0.68,
+   "ci": [
+    0.48,
+    0.84
+   ],
+   "up_rate": 0.68
+  },
+  "2026_DOWN": {
+   "n": 21,
+   "acc": 0.4762,
+   "ci": [
+    0.2857,
+    0.6667
+   ],
+   "up_rate": 0.5238
+  },
+  "2026_COMBINED": {
+   "n": 46,
+   "acc": 0.587,
+   "ci": [
+    0.4348,
+    0.7391
+   ],
+   "up_rate": 0.6087
+  }
+ },
+ "deploy_operating_point": {
+  "coverage": 0.1,
+  "comp_q": 10,
+  "conf_thr": 0.08782222935527356,
+  "rationale": "cov5% (worst-VAL-half pick) thin in partial-2026 (n=8/10, trap-6); cov10% more robust. Durable number = refit-CPCV p10 (UP .5863 / DOWN .5683), NOT the overstated frozen-forward."
+ }
+}
