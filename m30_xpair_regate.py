@@ -71,12 +71,19 @@ def main():
             flag = "" if v["ci"][0] is None else (" <-CI-lo<BE" if v["ci"][0] < BE else "")
             print(f"  {k:14} n={v['n']:>4} acc={v['acc']:.4f} CI={v['ci']} up_rate={v['up_rate']}{flag}", flush=True)
 
+    DEPLOY_NOTE = (f"Deploy at cov{COV:.0%} (worst-VAL-half pick {wh:.4f}; cov10 gave lower 0.6164 AND worse fwd-2026 "
+                   "UP .4652 so was rejected). EDGE IS REFIT-DEPENDENT: the frozen-2021 primary's forward edge DECAYS "
+                   "by the 2026 OOS year (UP .5302 / DOWN .5778 n45-thin; corr(VAL,OOS)=-0.54 USD-regime drift). "
+                   "CERTIFICATION = refit-CPCV (UP p10 .5588 / DOWN p10 .5525, 15/15 paths) which REFITS per era -> "
+                   "deploy WITH periodic retraining; the frozen book is a decaying fallback. Base EURUSD.m30.v1 "
+                   "combined .591 = lower fallback. 30m = longest deriv-tradeable horizon.")
     strat.update({"coverage": COV, "conf_thr": cthr, "comp_q": q, "bb_width_thr": bthr, "val_worsthalf": wh,
-                  "deploy_note": f"operating point set to cov{COV:.0%} for thin-2026 robustness (trap-6 n>=50); cov5% fragile at 30m gap=1800s"})
+                  "deploy_note": DEPLOY_NOTE})
     json.dump(strat, open(f"{MODELS}/m30xp_EURUSD_strategy.json", "w"), indent=2)
     fr["forward_side_split_cov10"] = res
-    fr["deploy_operating_point"] = {"coverage": COV, "comp_q": q, "conf_thr": cthr,
-        "rationale": "cov5% (worst-VAL-half pick) thin in partial-2026 (n<50, trap-6) at 30m gap=1800s; cov10% robust all 3 yrs"}
+    fr["deploy_operating_point"] = {"coverage": COV, "comp_q": q, "conf_thr": cthr, "deploy_note": DEPLOY_NOTE,
+        "rationale": "cov5 = worst-VAL-half pick (0.6389>cov10 0.6164); cov10 rejected (fwd-2026 UP collapses .4652). "
+                     "Edge refit-dependent (frozen-2021 fwd decays 2026); certification = refit-CPCV per-era."}
     json.dump(fr, open("m30_xpair_freeze_result.json", "w"), indent=1)
 
     sidestr = "+".join(cert_sides) if cert_sides else "NONE"
@@ -98,8 +105,10 @@ def main():
         hyperparams={"primary": "lgb 3000 trees lr0.02 num_leaves127 mcs400 cs0.5 rl20", "mode": "xpof", "MX_HOR": 30,
                      "gate": f"comp q{q} x NY x cov{COV}", "gate_feat": GATE_FEAT, "bb_thr": bthr, "conf_thr": cthr},
         strategy_json=strat, depends_on=None, created_utc="2026-06-04",
-        notes="Certified by m30_xpair_cpcv.py (per-side refit CPCV; well-powered folds). Deploy gate cov{:.0%} (regate). "
-              "Base book EURUSD.m30.v1 = valid lower certified fallback.".format(COV))
+        notes="Certified by m30_xpair_cpcv.py (per-side refit CPCV; UP p10 .5588 / DOWN p10 .5525, 15/15). "
+              "REFIT-DEPENDENT: frozen-2021 forward decays in 2026 OOS (UP .5302/.4652, DOWN .5778 n45) -> deploy "
+              "WITH retraining. Deploy gate cov{:.0%} (worst-VAL-half; cov10 rejected). Base EURUSD.m30.v1 = lower "
+              "fallback. 30m = longest deriv-tradeable horizon.".format(COV))
     MAN.freeze(man, artifacts_src=[f"{MODELS}/m30xp_EURUSD_primary_lgb.txt", f"{MODELS}/m30xp_EURUSD_strategy.json"])
     json.dump(man, open("books/EURUSD.m30xp.v1.manifest.json", "w"), indent=1)
     print(f"[regate30] manifest updated, content_id={man['content_id']} -> cov{COV:.0%} deploy gate", flush=True)
