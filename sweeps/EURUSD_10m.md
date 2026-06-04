@@ -20,17 +20,20 @@
 | **L0** | base | m10 base 3-model ensemble side-split refit-CPCV (step a+e) | `m10_cpcv_side.py` | U/Dn | high | **DONE** | p10 .563 (15/15) | **p10 .5611 (15/15)** | **p10 .5519 (14/15)** | base book certifies BOTH sides by rule; UP robust, DOWN regime-dependent (2021–26 path .528). FLOOR for A6c. | `m10_cpcv_side_result.json` |
 | **A6c** | cross-pair | **KEYSTONE** xpof USD-residual+OF primary side refit-CPCV @MX_HOR=10 | `m10_xpair_cpcv.py` | U/Dn | **HIGH** (cert@5m-UP/15m-both; 10m between) | **DONE ✅ BOTH CERTIFIED** | p10 .579 (15/15) | **p10 .5863 (15/15)** | **p10 .5683 (15/15)** | CERTIFIES + IMPROVES base both sides; DOWN min .5556 (vs base .528) — fixes recent-era weakness. **NEW (10m,UP)+(10m,DOWN) leader.** Freeze→`EURUSD.m10xp.v1`. | `m10_xpair_cpcv_result.json` |
 | I1 | improve | ACI adaptive-conformal gate on certified edge | `m5_conformal.py`@MX_HOR=10 | gate | high (WIN@5m) | pending | — | — | — | apply iff A6c certifies a side | — |
-| I3 | improve | \|ret\|-weighted / GMADL loss (POW sweep) | `m5_magweight.py`@MX_HOR=10 | D | med (rescued 5m DOWN) | pending | — | — | — | esp. for DOWN if it doesn't certify unweighted | — |
+| I3 | improve | \|ret\|-weighted retrain POW=0.5 | `m10_magweight.py 0.5` | D | med (rescued 5m DOWN) | **KILLED** | ~.56 | 2025 .578 (<inc .605) | 2025 .539 (<inc .574,<BE) | does NOT beat certified book either side; 2026 UP collapses .474 (up-rate .429 tripwire) — same as 5m. POW=1.0 pruned-dominated. | `m10_magweight_result.json` |
 | I2 | improve | seed-ensemble net ⊕ GBM decorrelated stack | `m5_deep_ens.py`@MX_HOR=10 | D | low-med | pending | — | — | — | — | — |
 | I4 | improve | calibration (temp/Venn-Abers) + re-gate | wrap book | gate | low (nearly free) | pending | — | — | — | required wrapper for any conf-gated edge | — |
 | I5 | improve | cross-pair POOLING weight-shared net (Sirignano-Cont) | new | D | low (struct) | pending | — | — | — | run only if I2 shows life | — |
 | I6 | improve | Optuna TPE worst-VAL-half tuning | wrap | tune | low | pending | — | — | — | — | — |
 | A8c | side | purpose-built UP/DOWN specialist + meta-labeler (step c) | `m15_updown.py`/spec @10m | U/Dn | med (filter), low (spec) | pending | — | — | — | per side not yet certified/dead | — |
 | Ad  | side | confidence/coverage curve (step d) per side | `m15_sidepipe.py`@10m | U/Dn | — | pending | — | — | — | — | — |
-| N17 | discover | lead-lag transfer-entropy + RFF virtue-of-complexity | `m5_leadlag_te_rff.py`@10m | D | ~13% | pending | — | — | — | strictly-lagged cross-pair + directed-info gate | — |
-| N18 | discover | signed-payoff GMADL/MADL + RRL diff-Sharpe head | `m5_signedpayoff_torch.py`@10m | D | ~10% | pending | — | — | — | sign-coupled payoff objective | — |
-| N16 | discover | Cont–deLarrard P(up\|queue) + tick-sign reversal | (per N16 spec)@10m | D | low | pending | — | — | — | — | — |
-| N19 | discover | H=10 risk-residual RELABEL + DOWN-split | `m5_residlabel_*`@10m | D | low-med | pending | — | — | — | — | — |
+| N19 | discover | H=10 risk-residual RELABEL + DOWN-split | `m10_residlabel_down_h10.py` | D | low-med | **KILLED** | — | — | 2025 .5077 | residual sign coin-flip in 2025; edge is gated RAW cross-pair sign not idiosyncratic residual | `m10_residlabel_down_h10_result.json` |
+| N18 | discover | signed-payoff GMADL/MADL + RRL diff-Sharpe head | `m10_signedpayoff.py`@10m | D | ~10% | pending | — | — | — | sign-coupled loss (distinct from magweight reweight) | — |
+| I1 | improve | ACI adaptive-conformal gate (deploy) | `m10_aci.py` | gate | high (WIN@5m; targets regime) | pending | — | — | — | targets the 2025 non-stationarity directly | — |
+| Ad | side | coverage curve (step d) + deploy EV net-of-spread | `m10_deploy_eval.py` | U/Dn | — | pending | — | — | — | per side | — |
+| A8c | side | purpose-built side specialist (step c) | `m10_spec.py` | U/Dn | low (spec worse @5m) | pending | — | — | — | run-once fast-KILL | — |
+| N17 | discover | lead-lag transfer-entropy + RFF | `m5_leadlag_te_rff.py`@10m | D | low (5m null) | pending | — | — | — | bounded run / subsume | — |
+| N16 | discover | Cont–deLarrard P(up\|queue) + tick-sign reversal | (spec)@10m | D | low | pending | — | — | — | — | — |
 
 ### Already-run at 10m COMBINED (status `done`/`killed` — recorded in EURUSD_RESULTS.md, NOT re-run; side-split is the open work)
 | id | method | result (combined) | verdict | source |
@@ -43,6 +46,22 @@
 | A0 | **HONEST freeze** native-10 × 5m_bb_width-NY | comb .602 [.582,.621] floor .579 | ✅ honest deliverable (combined) = incumbent | `m10_freeze_honest.py` |
 | F3 | ES→EURUSD lead-lag | +0.02(2024)→−0.05(2025) | killed (null; mechanistic key to 2025 wall) | `m10_xasset_probe.py` |
 | E1 | direction-on-magnitude | mag AUC .813/.741/.706; dir flat .51–.53 | done (dir null / magnitude → MAGNITUDE_FINDINGS) | `m10_magdir.py` |
+
+## TWO-SIDED LEADERBOARD (10m) — incumbent per side + all attempts vs it
+**Operating metric = per-side refit-CPCV p10 at the operating gate (durable); forward side-split = descriptive (overstates).**
+### (10m, UP) — LEADER: `EURUSD.m10xp.v1` cross-pair primary, **refit-CPCV p10 .5863** (15/15), forward cov10 2024 .642/2025 .605/2026 .68(thin)
+| rank | method | refit p10 / binding | verdict |
+|---|---|---|---|
+| 1 | cross-pair xpof primary (A6c) | **.5863** (15/15) | ✅ CERTIFIED leader |
+| 2 | base 3-model ensemble (L0) | .5611 (15/15) | certified, lower (fallback) |
+| — | magweight POW=0.5 (I3) | 2025 .578 < .605 | KILLED (no improve) |
+### (10m, DOWN) — LEADER: `EURUSD.m10xp.v1` cross-pair primary, **refit-CPCV p10 .5683** (15/15), forward cov10 2024 .599/2025 .574/2026 .476(thin)
+| rank | method | refit p10 / binding | verdict |
+|---|---|---|---|
+| 1 | cross-pair xpof primary (A6c) | **.5683** (15/15) | ✅ CERTIFIED leader |
+| 2 | base 3-model ensemble (L0) | .5519 (14/15) | certified-by-rule, regime-dependent (2021–26 .528) |
+| — | magweight POW=0.5 (I3) | 2025 .539 < .574, <BE | KILLED (no improve) |
+| — | residual-label H=10 (N19) | 2025 .5077 (coin-flip) | KILLED (collapses 2025; edge is gated RAW cross-pair sign, not idiosyncratic residual) |
 
 ## Discovery rounds (loop until K=2 dry)
 - Round 0: pending — kick off after L0/A6c resolve (build on the closest result). Retarget genuinely-distinct Tier-N direction levers (N16–N19) + scan corpus for 10m-specific levers.
