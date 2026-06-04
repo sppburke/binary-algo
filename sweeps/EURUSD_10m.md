@@ -29,8 +29,8 @@
 | Ad  | side | confidence/coverage curve (step d) per side | `m15_sidepipe.py`@10m | U/Dn | — | pending | — | — | — | — | — |
 | N19 | discover | H=10 risk-residual RELABEL + DOWN-split | `m10_residlabel_down_h10.py` | D | low-med | **KILLED** | — | — | 2025 .5077 | residual sign coin-flip in 2025; edge is gated RAW cross-pair sign not idiosyncratic residual | `m10_residlabel_down_h10_result.json` |
 | N18 | discover | signed-payoff GMADL/MADL + RRL diff-Sharpe head | `m10_signedpayoff.py`@10m | D | ~10% | pending | — | — | — | sign-coupled loss (distinct from magweight reweight) | — |
-| I1 | improve | ACI adaptive-conformal gate (deploy) | `m10_aci.py` | gate | high (WIN@5m; targets regime) | pending | — | — | — | targets the 2025 non-stationarity directly | — |
-| Ad | side | coverage curve (step d) + deploy EV net-of-spread | `m10_deploy_eval.py` | U/Dn | — | pending | — | — | — | per side | — |
+| I1 | improve | ACI adaptive-conformal gate (deploy) | `m10_deploy_eval.py` | gate | high (WIN@5m) | **KILLED** | — | 2025 .611<.679 | 2025 .564<.579 | ACI trades MORE at LOWER 2025 win than fixed; compression×NY gate already captures regime | `m10_deploy_eval_result.json` |
+| Ad | side | coverage curve (step d) + deploy EV net-of-spread | `m10_deploy_eval.py` | U/Dn | — | **DONE** | — | 2025 cov5 .613/cov10 .605/cov15 .585 | 2025 cov5 .630(EV.166)/cov10 .574/cov15 .583 | DOWN better at TIGHTER cov (cov5 EV.166>cov10 EV.062) → per-side deploy: DOWN cov5, UP cov10 | `m10_deploy_eval_result.json` |
 | A8c | side | purpose-built side specialist (step c) | `m10_spec.py` | U/Dn | low (spec worse @5m) | pending | — | — | — | run-once fast-KILL | — |
 | N17 | discover | lead-lag transfer-entropy + RFF | `m5_leadlag_te_rff.py`@10m | D | low (5m null) | pending | — | — | — | bounded run / subsume | — |
 | N16 | discover | Cont–deLarrard P(up\|queue) + tick-sign reversal | (spec)@10m | D | low | pending | — | — | — | — | — |
