@@ -1,0 +1,42 @@
+{
+ "model": "cross-pair xpof primary @MX_HOR=2, TIES-STRICT refit-CPCV",
+ "breakeven": 0.541,
+ "combined": {
+  "n_paths": 15,
+  "mean": 0.5226,
+  "p10": 0.5116,
+  "min": 0.5103,
+  "max": 0.5375,
+  "frac_clear_BE": 0.0
+ },
+ "UP": {
+  "n_paths": 15,
+  "mean": 0.5228,
+  "p10": 0.5096,
+  "min": 0.5056,
+  "max": 0.544,
+  "frac_clear_BE": 0.067
+ },
+ "DOWN": {
+  "n_paths": 15,
+  "mean": 0.5225,
+  "p10": 0.5124,
+  "min": 0.5116,
+  "max": 0.5388,
+  "frac_clear_BE": 0.0
+ },
+ "moved_auc": {
+  "mean": 0.5168,
+  "min": 0.5108
+ },
+ "test_block_up_rate": {
+  "mean": 0.5044,
+  "min": 0.4823,
+  "max": 0.5245
+ },
+ "incumbent_floor": {
+  "UP": 0.5445,
+  "DOWN": 0.541
+ },
+ "CERT_RULE": "side CERTIFIED iff p10>=.541 & frac_clear>=.80; IMPROVES incumbent iff p10>incumbent_floor"
+}

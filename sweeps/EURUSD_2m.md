@@ -5,10 +5,13 @@ currency: EURUSD
 timeframe: 2m (120s)
 started: 2026-06-01
 target: best UP and DOWN binary predictor at 120s, OOS(2026)-verified, clearing breakeven 0.541
-status: COMPREHENSIVE — 13 distinct direction channels swept (incl. 2 discovery rounds) all killed except the
-        baseline; online-ARF keystone proves genuine efficiency. Best = EURUSD.min2.v1 (UP 0.555 / DOWN 0.540).
-incumbent/answer: EURUSD.min2.v1 · ace4d5c6 — UP-side OOS 0.555 (robust), DOWN 0.540 (marginal)
-prior: 120s is in the efficiency zone (60s ~0.50-0.51, 5m ~0.52 AUC); confirmed.
+status: RE-OPENED 2026-06-04 to run the goal's full (a)-(e) pipeline symmetrically. KEYSTONE GAP CLOSED: the
+        cross-pair POOLING lever (certified 5m UP & 15m both) was never actually run at 2m — now RUN + KILLED
+        under refit-CPCV (A6c). 13 prior channels + online-ARF keystone stand. No certified 2m direction edge.
+incumbent/answer: NO certified edge. Best point estimate EURUSD.min2.v1 UP 0.555 / 0.5445 ties-strict (uncertified);
+        DOWN dead. Cross-pair refit-CPCV p10 UP .5096 / DOWN .5124 (0-7% paths clear) — efficiency-bound confirmed.
+prior: 120s is in the efficiency zone (60s ~0.50-0.51, 5m ~0.52 AUC); cross-pair edge gradient none@60s→UP@5m→both@15m
+       does NOT reach back to 2m. Confirmed by faithful refit-CPCV.
 ---
 
 # Sweep ledger — EURUSD 2-minute (120s) UP/DOWN
@@ -33,14 +36,21 @@ combined + UP + DOWN → record → commit. `OOS` columns = per-year 2024/2025/2
 | N7 | N | asymmetric tick-intensity (Hawkes-proxy) | min2_hawkes.py | killed | best .5057 | — | tick self-excitation decays before 120s | min2_hawkes_result.json |
 | N8 | N | signed-semivariance-skew sign-conditioning | min2_rsskew.py | killed | up-rate ~.48-.52 | — | sign-invariance holds even under signed conditioner | min2_rsskew_result.json |
 | D2 | N | Stoikov micro-vs-mid slope-divergence (disc.round-2 top, 8%) | min2_stoikov.py | killed | VAL dirAUC 0.4984 | — | signed fair-value lead decays before 120s (as tick-intensity/rawtick did) | min2_stoikov_result.json |
+| A6c | A | **cross-pair POOLING primary + TIES-STRICT refit-CPCV** (the keystone lever that certified 5m UP & 15m both) | min2_xpair_probe.py / min2_xpair_cpcv.py | **killed** | refit p10 **.5096**, max .544, 1/15 paths clear | refit p10 **.5124**, 0/15 paths clear | **KILLED under the §4 standard.** Probe's frozen-VAL gate gave .61/.56 (2024/25) — an OVERFIT-GATE artifact that DISSOLVED when the gate is re-tuned per fold (15 purged paths, all well-powered n≥3.9k, up-rates balanced [.482,.524], moved-AUC .517). The slow USD-common-factor signal needs ≥5m; at 2m it's swamped. Properly RUN, not subsumed. | min2_xpair_cpcv_result.json |
+| I-RFF | I | RFF virtue-of-complexity SDF on xpof features (4th model class) | min2_rff.py | running | — | — | distinct function class vs GBM/ARF/ensemble (all ~.51 AUC); fast-KILL if VAL AUC≤.515 | min2_rff_result.json |
 
 ### Subsumed by the keystone (not separately run — documented rationale)
 The online-ARF keystone (C5a: a drift-adaptive forest finds ZERO 2m direction signal every year) **subsumes**
 the remaining model-based rows: **A1a/A2a/A3a** (a retuned/gate-swept static ensemble cannot beat what a
 continuously-adapting forest can't find), **C1a HMM / Kalman** (state-space regime models — the reversion-gate
 baseline already embodies the regime channel; null at 60s), **B1/B5 tick-microstructure & per-side-flow** (the
-min2 book IS the tick-microstructure ensemble; CKS-OFI already null), **A6a cross-pair** (cross-leg sign-lead
-gate killed it). **E magnitude** is the certified edge but sign-invariant → out of scope for up/down.
+min2 book IS the tick-microstructure ensemble; CKS-OFI already null). **E magnitude** is the certified edge but
+sign-invariant → out of scope for up/down.
+> **CORRECTION (2026-06-04):** the earlier "A6a cross-pair subsumed by cross-leg-sign-lead" note was WRONG —
+> cross-leg sign-lead (`min2_legsign`, another pair's *sign* as a signal) is a DIFFERENT mechanism from cross-pair
+> feature-row POOLING (one EURUSD-sign model trained on the pooled multi-pair feature rows, USD-factor removed).
+> The pooling lever — which CERTIFIED 5m UP and BOTH 15m sides — was NEVER actually run at 2m. It has now been
+> RUN (row A6c) under the full §4 refit-CPCV standard and KILLED. The subsumption is replaced by a real Tier-1 test.
 
 ## CONCLUSION — GOAL RESULT (corrected after adversarial verification + CPCV)
 **There is NO robustly-certified 2-minute EURUSD direction edge.** The best point estimate is `EURUSD.min2.v1`

@@ -1,0 +1,120 @@
+{
+ "test": "cross-pair xpof primary @MX_HOR=2 single-fit side-split probe",
+ "breakeven": 0.541,
+ "gate_feat": "1m_bb_width",
+ "val_auc": 0.5182,
+ "falsifier": {
+  "KILL_if_val_auc<=": 0.515,
+  "ESCALATE_if": "some side point-acc >= 0.545 in >=2 of 3 held-out years",
+  "ELSE": "KILL: cross-pair direction dead at 2m on-disk"
+ },
+ "frozen_gate": {
+  "use_ny": true,
+  "bb_q": 20,
+  "bb_thr": 0.00035589883918873966,
+  "cov": 0.05,
+  "conf_thr": 0.05565505283405986,
+  "val_worst_half": 0.5902,
+  "val_n": 3854
+ },
+ "per_year": {
+  "2024": {
+   "n_sel": 2416,
+   "auc_full": 0.5166,
+   "combined": {
+    "acc": 0.6126,
+    "ci": [
+     0.5931,
+     0.6325
+    ],
+    "n": 2416,
+    "up_rate_moved": 0.4934
+   },
+   "UP": {
+    "acc": 0.6168,
+    "ci": [
+     0.5876,
+     0.6451
+    ],
+    "n": 1096
+   },
+   "DOWN": {
+    "acc": 0.6091,
+    "ci": [
+     0.5826,
+     0.6356
+    ],
+    "n": 1320
+   }
+  },
+  "2025": {
+   "n_sel": 1169,
+   "auc_full": 0.5118,
+   "combined": {
+    "acc": 0.5603,
+    "ci": [
+     0.5312,
+     0.5877
+    ],
+    "n": 1169,
+    "up_rate_moved": 0.4782
+   },
+   "UP": {
+    "acc": 0.5553,
+    "ci": [
+     0.5061,
+     0.6044
+    ],
+    "n": 407
+   },
+   "DOWN": {
+    "acc": 0.563,
+    "ci": [
+     0.5276,
+     0.5997
+    ],
+    "n": 762
+   }
+  },
+  "2026": {
+   "n_sel": 92,
+   "auc_full": 0.5166,
+   "combined": {
+    "acc": 0.5435,
+    "ci": [
+     0.4457,
+     0.6522
+    ],
+    "n": 92,
+    "up_rate_moved": 0.5543
+   },
+   "UP": {
+    "acc": 0.6154,
+    "ci": [
+     0.4615,
+     0.7692
+    ],
+    "n": 39
+   },
+   "DOWN": {
+    "acc": 0.4906,
+    "ci": [
+     0.3585,
+     0.6226
+    ],
+    "n": 53
+   }
+  }
+ },
+ "tie_fraction_heldout": {
+  "frac_exact_zero_2bar": 0.03142,
+  "n": 875104,
+  "note": "moved-bar accs above DROP these; deriv charges them as losses (~this much optimism upper bound)"
+ },
+ "verdict": {
+  "ESCALATE": true,
+  "up_years_ge_0.545": 3,
+  "down_years_ge_0.545": 2,
+  "reason": "ESCALATE to refit-CPCV: a side point-clears 0.545 in >=2 held-out years"
+ }
+}
