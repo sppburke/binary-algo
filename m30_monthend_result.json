@@ -1,0 +1,57 @@
+{
+ "lever": "month-end/quarter-end rebalancing-flow directional bias",
+ "HOR": 30,
+ "stride": 3,
+ "tripwire": "[0.47,0.53] moved up-rate; need STABLE significant directional bias across 2024/25/26",
+ "per_year": {
+  "2024": {
+   "month_end": {
+    "pe_n": 14369,
+    "pe_uprate": 0.494,
+    "rest_uprate": 0.509,
+    "chi2_p": 0.0008
+   },
+   "quarter_end": {
+    "pe_n": 7399,
+    "pe_uprate": 0.4998,
+    "rest_uprate": 0.5077,
+    "chi2_p": 0.1899
+   }
+  },
+  "2025": {
+   "month_end": {
+    "pe_n": 14412,
+    "pe_uprate": 0.5042,
+    "rest_uprate": 0.5091,
+    "chi2_p": 0.2714
+   },
+   "quarter_end": {
+    "pe_n": 7559,
+    "pe_uprate": 0.5269,
+    "rest_uprate": 0.5073,
+    "chi2_p": 0.001
+   }
+  },
+  "2026": {
+   "month_end": {
+    "pe_n": 5448,
+    "pe_uprate": 0.4978,
+    "rest_uprate": 0.496,
+    "chi2_p": 0.8116
+   },
+   "quarter_end": {
+    "pe_n": 3790,
+    "pe_uprate": 0.4918,
+    "rest_uprate": 0.4966,
+    "chi2_p": 0.5842
+   }
+  }
+ },
+ "verdict": {
+  "month_end_survives": false,
+  "month_end_why": "same_dir=False exits_tripwire=False any_sig=True",
+  "quarter_end_survives": false,
+  "quarter_end_why": "same_dir=False exits_tripwire=False any_sig=True",
+  "KILLED": true
+ }
+}

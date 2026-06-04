@@ -77,3 +77,27 @@ Actionable NEW improve-levers (run ONLY after K2 certifies, build ON the frozen 
 - **(gated, low) External DE-US 2y rate-diff + 25-delta risk-reversal** [low/new/OFF-disk]. Only non-redundant info channel
   left, but data not acquired + likely subsumed by realized-vol SIZE gate. Defer to external-data phase.
 Generic versions of I-Aa / I-IPCA / I-GX -> IDEAS_LOG.md + SWEEP_MATRIX Tier-N during records phase.
+
+### MECHANISM UPDATE (2026-06-04, Tier-1 feature-importance of frozen EURUSD.m30xp.v1)
+The 30m cross-pair edge is carried by **POOLED TRAINING on the BASE 239 multi-TF features (94% gain)** — top: hour_sin/cos
+seasonality, 1m/4h trend, 4h vol/autocorr. The cross-pair-SPECIFIC block carries almost nothing: lead-lag ll_ **2.1%**,
+cross-pair factor (eu_r/usdbask/catchup/eurresid/disp/agree) **2.0%**, order-flow OF **1.8%**. => the lever is POOLING
+(more data + cross-pair regularization of base feats, esp. rescuing DOWN), NOT the xpof factor features. SUBSUMES I-Aa
+(linear combo of 2.1%-gain ll_ already in input) and I-IPCA (refines 2.0%-gain factor channel; its 2025-inversion
+rationale also doesn't bind at 30m where 2025 is the STRONG fwd year). `m30_xpair_featimp_result.json`.
+
+### IMPROVE-LEVER RESULTS (vs incumbent cross-pair p10 UP .5588 / DOWN .5525)
+- **I-magw** (\|ret\|-weight POW=0.5, `m30_magweight_cpcv.py`): UP p10 .5528 / DOWN .5382 — **SUBSUMED/HURTS**. Magnitude-
+  weighting pulls toward the sign-invariant SIZE signal, diluting directional sign (textbook sign-invariance).
+- **I-Aa, I-IPCA**: **SUBSUMED (Tier-1 FI above)** — not run; the channels they refine carry ~2% gain.
+- **I-seed** (seed-ensemble K=4, `m30_seedens_cpcv.py`): running (variance-reduction; tail-variance not expected binding).
+
+### DISCOVERY ROUND 2 (workflow 2026-06-04; retargeted on the pooling finding) — effectively DRY (no surviving on-disk lever)
+- **Month-end / quarter-end rebalancing-flow** [on-disk, low prior]: **KILLED** (`m30_monthend.py`/`_result.json`). No stable
+  directional bias — ME up-rate 2024 .494/2025 .504/2026 .498 (sign FLIPS, never exits [.47,.53]); QE .500/.527/.492 same.
+  Hour-of-day seasonality (already the book's #1/#3 feature) subsumes any calendar edge; up-rate tripwire constrains it.
+- **Intraday DE-US 2y rate differential (CIP carrier)** [EXTERNAL, low prior, BLOCKED]: the one genuinely non-redundant
+  sign-carrier (every on-disk channel is price/flow-derived). = standing backlog H-TODO-1, gated on data acquisition
+  (Dukascopy intraday yields; FRED daily too coarse). The only frontier that could further move 30m direction — same
+  conclusion as 60s/2m/5m. Falsifier if acquired: univariate dirAUC>.52 worst-VAL-half + lifts m30xp binding p10 >=.005.
+=> R2 yields ZERO surviving on-disk levers (month-end KILLED; rate-diff external-gated). DRY round #1. R3 to confirm K=2.
