@@ -17,8 +17,8 @@
 
 | id | family | method / variant | script | tgt | prior | status | combined | UP | DOWN | verdict | result_json |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| **L0** | base | m10 base 3-model ensemble side-split refit-CPCV (step a+e) | `m10_cpcv_side.py` | U/Dn | high | **running** | — | — | — | establishes honest base-book side floors (both keys UNTESTED) | `m10_cpcv_side_result.json` |
-| **A6c** | cross-pair | **KEYSTONE** xpof USD-residual+OF primary side refit-CPCV @MX_HOR=10 | `m10_xpair_cpcv.py` | U/Dn | **HIGH** (cert@5m-UP/15m-both; 10m between) | pending (blocked by L0 floor) | — | — | — | the highest-prior 10m lever; certifies/kills both sides vs base floor | `m10_xpair_cpcv_result.json` |
+| **L0** | base | m10 base 3-model ensemble side-split refit-CPCV (step a+e) | `m10_cpcv_side.py` | U/Dn | high | **DONE** | p10 .563 (15/15) | **p10 .5611 (15/15)** | **p10 .5519 (14/15)** | base book certifies BOTH sides by rule; UP robust, DOWN regime-dependent (2021–26 path .528). FLOOR for A6c. | `m10_cpcv_side_result.json` |
+| **A6c** | cross-pair | **KEYSTONE** xpof USD-residual+OF primary side refit-CPCV @MX_HOR=10 | `m10_xpair_cpcv.py` | U/Dn | **HIGH** (cert@5m-UP/15m-both; 10m between) | **running** (floor: UP .561/DOWN .552) | — | — | — | the highest-prior 10m lever; must beat base floor to lead | `m10_xpair_cpcv_result.json` |
 | I1 | improve | ACI adaptive-conformal gate on certified edge | `m5_conformal.py`@MX_HOR=10 | gate | high (WIN@5m) | pending | — | — | — | apply iff A6c certifies a side | — |
 | I3 | improve | \|ret\|-weighted / GMADL loss (POW sweep) | `m5_magweight.py`@MX_HOR=10 | D | med (rescued 5m DOWN) | pending | — | — | — | esp. for DOWN if it doesn't certify unweighted | — |
 | I2 | improve | seed-ensemble net ⊕ GBM decorrelated stack | `m5_deep_ens.py`@MX_HOR=10 | D | low-med | pending | — | — | — | — | — |
@@ -49,3 +49,4 @@
 
 ## Status log
 - 2026-06-04: ledger created. L0 (base side-CPCV) launched. A6c (keystone) scripted, blocked on L0 floor. Both sides currently UNTESTED → no certified 10m direction edge yet.
+- 2026-06-04: **L0 DONE — surprise: the base m10 book already carries a two-sided refit-CPCV edge.** UP p10 **.5611** (15/15 clear, robust across recent paths), DOWN p10 **.5519** (14/15, but regime-dependent: 2021–26 path **.528** < BE). Both ABOVE the 15m base floors (.5475/.5486). Updated model of the edge: at 10m the cross-pair common factor is ALREADY embedded enough in the base 239 features that even the plain ensemble certifies both sides by rule — consistent with the none@60s→UP@5m→both@15m gradient (10m≈15m-like for the base book). **Open questions now:** (1) does the dedicated cross-pair primary (A6c) beat .561/.552, esp. lifting DOWN's recent-era robustness? (2) can IMPROVE levers firm DOWN's 2021–26 .528? A6c running.
