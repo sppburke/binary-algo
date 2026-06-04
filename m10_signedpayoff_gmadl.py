@@ -25,10 +25,12 @@ INC = {"UP_2025": 0.605, "DOWN_2025": 0.574}
 
 
 def gmadl_fobj_builder(R, a, b):
+    """sklearn-wrapper custom objective fobj(y_true, y_pred): y_pred = raw margin z; R captured (aligned to
+    training rows). L_i=-sigma(a*R*z)*|R|^b ; grad/hess wrt z; non-convex hess floored to |.|+eps."""
     absRb = np.abs(R) ** b
     aR = a * R
-    def fobj(preds, dtrain):
-        z = preds
+    def fobj(y_true, y_pred):
+        z = y_pred
         u = aR * z
         s = 1.0 / (1.0 + np.exp(-np.clip(u, -30, 30)))
         sp = s * (1.0 - s)
@@ -92,7 +94,6 @@ def main():
     Xtr = TR[cols].astype("float32").values; Xva = VA[cols].astype("float32").values
     yva = VA["_y"].astype(int).values; tsv = VA["_ts"].values.astype("int64"); nyv = VA["sess_ny"].values > 0.5
     print(f"[gmadl10] train={len(TR):,} val={len(VA):,} feats={len(cols)} {time.time()-t0:.0f}s", flush=True)
-    dtr = lgb.Dataset(Xtr, label=ytr, free_raw_data=False)
     years = {}
     for w in ("test24", "test25", "oos"):
         D = MX.augment(MX.build_xp(SPL[w]), SPL[w], MODE)
@@ -103,9 +104,10 @@ def main():
     for a in (50.0, 100.0):
         for b in (1, 2):
             fobj = gmadl_fobj_builder(Rtr, a, b)
-            bst = lgb.train({"learning_rate": 0.03, "num_leaves": 127, "min_child_samples": 300, "subsample": 0.8,
-                             "bagging_freq": 1, "colsample_bytree": 0.5, "reg_lambda": 20, "verbosity": -1, "num_threads": 20},
-                            dtr, num_boost_round=600, fobj=fobj)
+            bst = lgb.LGBMClassifier(n_estimators=600, learning_rate=0.03, num_leaves=127, min_child_samples=300,
+                                     subsample=0.8, subsample_freq=1, colsample_bytree=0.5, reg_lambda=20,
+                                     n_jobs=20, verbosity=-1, objective=fobj)
+            bst.fit(Xtr, ytr)
             rawva = bst.predict(Xva, raw_score=True)
             row = {"a": a, "b": b}
             for side, nm in ((1, "UP"), (0, "DOWN")):
