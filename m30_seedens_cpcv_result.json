@@ -1,0 +1,64 @@
+{
+ "model": "cross-pair xpof @MX_HOR=30 SEED-ENSEMBLE K=4 vs single-seed",
+ "K": 4,
+ "incumbent_xpair": {
+  "UP": 0.5588,
+  "DOWN": 0.5525
+ },
+ "ENS": {
+  "comb": {
+   "n_paths": 15,
+   "mean": 0.59,
+   "p10": 0.5632,
+   "min": 0.5599,
+   "max": 0.6576,
+   "frac_clear_BE": 1.0
+  },
+  "UP": {
+   "n_paths": 15,
+   "mean": 0.5868,
+   "p10": 0.5572,
+   "min": 0.5315,
+   "max": 0.6458,
+   "frac_clear_BE": 0.933
+  },
+  "DOWN": {
+   "n_paths": 15,
+   "mean": 0.5945,
+   "p10": 0.5503,
+   "min": 0.5479,
+   "max": 0.6797,
+   "frac_clear_BE": 1.0
+  }
+ },
+ "S1": {
+  "comb": {
+   "n_paths": 15,
+   "mean": 0.5775,
+   "p10": 0.5503,
+   "min": 0.5455,
+   "max": 0.6187,
+   "frac_clear_BE": 1.0
+  },
+  "UP": {
+   "n_paths": 15,
+   "mean": 0.5693,
+   "p10": 0.5397,
+   "min": 0.5306,
+   "max": 0.6158,
+   "frac_clear_BE": 0.733
+  },
+  "DOWN": {
+   "n_paths": 15,
+   "mean": 0.5885,
+   "p10": 0.5521,
+   "min": 0.5303,
+   "max": 0.6628,
+   "frac_clear_BE": 0.933
+  }
+ },
+ "breakeven": 0.541,
+ "CERT_RULE": "IMPROVES a side iff ENS certified AND ENS p10 > incumbent p10; else SUBSUMED",
+ "verdict_UP": "ENS p10 0.5572 vs incumbent 0.5588 -> SUBSUMED",
+ "verdict_DOWN": "ENS p10 0.5503 vs incumbent 0.5525 -> SUBSUMED"
+}
