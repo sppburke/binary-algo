@@ -28,6 +28,7 @@ from 2026-06-03 onward (the both-sides-symmetric DOWN/UP push).
 |----|------|--------|--------|--------|-------------------|-----------------|---------|-------------|
 | base | base | **min1 frozen book SIDE-SPLIT (the answer)** | min1_updown.py | **done** | **.520/.584/.613** (filter) | .522/.522/.516 | UP-filter best (floor .520, regime-dependent); DOWN dead all yrs | EURUSD_RESULTS.md§60s |
 | D3a | N | **USD-strength-conditioned DOWN** (retarget of 5m m5_downcond) | min1_downcond.py | **killed** | — (UP mirror .506/.504/.499) | USD-strong **.500/.494/.497** | DOWN efficient even USD-gated; USD-strong≈USD-weak (no separation); coverage curve FALLS to .475(25)/.464(26) at top-2% USD-strong tail (microstructure mean-reversion) → STRENGTHENS 5m D3 kill (5m had some lift .526; 60s has none) | min1_downcond_result.json |
+| B1a | I | **\|ret\|-weighted magweight retrain** POW=0.5 (retarget of 5m m5_magweight, the only lever that ever certified 5m DOWN) | min1_magweight.py | **killed** | cov.15 .45/**.522**/.495 (worse than filter) | cov.05 .513/**.507**/.512 (CI-lo<.50) | tick substrate, deriv-faithful. **best_iter=8/4000** = no learnable direction signal to weight. DOWN binding-2025 .507 < breakeven & < incumbent .522; UP worse than filter. 5m razor-thin DOWN edge does NOT transfer to more-efficient 60s | min1_magweight_result.json |
 
 ### Prior-subsumed at 60s (documented, not re-run)
 - **Side-specialists** (UP/DOWN trained on subset bars): killed — subset-training destroys the confidence ranking

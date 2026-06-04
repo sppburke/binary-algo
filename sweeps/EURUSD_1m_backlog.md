@@ -12,12 +12,10 @@ no next-60s sign** — at 60s the USD-driver move is already priced within the m
 even mean-reverts. So the next DOWN levers must NOT be another USD/cross-pair gate (subsumed). Attack via (1) loss
 re-weighting that the 5m DOWN responded to, and (2) the magnitude→direction bridge (the one real 60s signal).
 
-1. **[DOWN · on-disk · prior ~10%] |return|-weighted (POW=0.5) retrain @60s** — `min1_magweight.py` (retarget of
-   `m5_magweight_cpcv.py`, the ONLY lever that gave 5m DOWN a razor-thin certify: cov0.05 p10 .5441). Mechanism: up-
-   weight large-move bars in BCE so the model learns the directional structure that exists only on big moves; DOWN-
-   split, gate `sess_ny`, worst-VAL-half cover, per-year CI95. Falsifier: KILL unless DOWN binding-2025 cov0.05
-   CI-lo ≥ 0.541 AND beats the .522 incumbent. Prior LOW (60s more efficient than 5m where it was already razor-
-   thin), but it is the closest-to-working DOWN result → run it.
+1. ~~[DOWN · on-disk] |return|-weighted (POW=0.5) retrain @60s~~ — **DONE / KILLED 2026-06-03** (`min1_magweight.py`,
+   `min1_magweight_result.json`). DOWN binding-2025 cov0.05 **.507** (CI-lo .495) < 0.541 & < incumbent .522; UP worse
+   than filter. **best_iter=8/4000** — the magweighted direction model has no learnable signal to weight toward. The
+   5m razor-thin DOWN edge (cov0.05 p10 .5441) does NOT transfer to the more-efficient 60s. Loss-reweighting exhausted.
 2. **[DOWN · on-disk · prior ~8%] magnitude→direction bridge @60s** — bet DOWN only on bars the magnitude model
    flags as large-move AND the direction model leans down, restricted to NY. Mechanism: |ret| is the one certified
    60s signal (magAUC .787); IF direction has any edge it lives on large moves (informational, not coverage —

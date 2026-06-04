@@ -1,0 +1,197 @@
+{
+ "key": "(EURUSD,60s,DOWN) primary / UP secondary",
+ "method": "min1 tick magweight POW=0.5 retrain",
+ "breakeven": 0.541,
+ "POW": 0.5,
+ "substrate": "min1 tick microstructure (62 feats)",
+ "settlement": "deriv-faithful wc_ret (ties LOSE), moved-only, nonoverlap_chrono, per-year CI95",
+ "incumbent_60s_DOWN": "0.522/0.522/0.516",
+ "incumbent_60s_UP": "0.520/0.584/0.613 (filter)",
+ "prior_5m_magweight": "DOWN cov0.05 p10 .5441 razor-thin, not robust (seed-ens failed); UP cert .553",
+ "per_side_cover": {
+  "DOWN": {
+   "cov0.05": {
+    "2024": {
+     "n": 926,
+     "acc": 0.513,
+     "ci": [
+      0.4805,
+      0.5443
+     ]
+    },
+    "2025": {
+     "n": 6351,
+     "acc": 0.507,
+     "ci": [
+      0.4947,
+      0.519
+     ]
+    },
+    "2026": {
+     "n": 2517,
+     "acc": 0.5117,
+     "ci": [
+      0.4923,
+      0.5316
+     ]
+    }
+   },
+   "cov0.1": {
+    "2024": {
+     "n": 1845,
+     "acc": 0.5285,
+     "ci": [
+      0.5068,
+      0.5507
+     ]
+    },
+    "2025": {
+     "n": 11088,
+     "acc": 0.5069,
+     "ci": [
+      0.4977,
+      0.5161
+     ]
+    },
+    "2026": {
+     "n": 5178,
+     "acc": 0.5106,
+     "ci": [
+      0.4973,
+      0.5243
+     ]
+    }
+   },
+   "cov0.15": {
+    "2024": {
+     "n": 2626,
+     "acc": 0.5091,
+     "ci": [
+      0.4901,
+      0.5282
+     ]
+    },
+    "2025": {
+     "n": 16244,
+     "acc": 0.5026,
+     "ci": [
+      0.4951,
+      0.5104
+     ]
+    },
+    "2026": {
+     "n": 8095,
+     "acc": 0.5097,
+     "ci": [
+      0.4986,
+      0.5206
+     ]
+    }
+   }
+  },
+  "UP": {
+   "cov0.05": {
+    "2024": {
+     "n": 132,
+     "acc": 0.4394,
+     "ci": [
+      0.3561,
+      0.5227
+     ]
+    },
+    "2025": {
+     "n": 533,
+     "acc": 0.4953,
+     "ci": [
+      0.4522,
+      0.5403
+     ]
+    },
+    "2026": {
+     "n": 268,
+     "acc": 0.4963,
+     "ci": [
+      0.4366,
+      0.556
+     ]
+    }
+   },
+   "cov0.1": {
+    "2024": {
+     "n": 230,
+     "acc": 0.4217,
+     "ci": [
+      0.3565,
+      0.487
+     ]
+    },
+    "2025": {
+     "n": 1052,
+     "acc": 0.52,
+     "ci": [
+      0.4895,
+      0.5513
+     ]
+    },
+    "2026": {
+     "n": 439,
+     "acc": 0.4829,
+     "ci": [
+      0.4351,
+      0.5308
+     ]
+    }
+   },
+   "cov0.15": {
+    "2024": {
+     "n": 342,
+     "acc": 0.4532,
+     "ci": [
+      0.4006,
+      0.5058
+     ]
+    },
+    "2025": {
+     "n": 1549,
+     "acc": 0.5223,
+     "ci": [
+      0.4984,
+      0.5468
+     ]
+    },
+    "2026": {
+     "n": 576,
+     "acc": 0.4948,
+     "ci": [
+      0.4549,
+      0.5365
+     ]
+    }
+   }
+  }
+ },
+ "binding_2025": {
+  "DOWN": {
+   "cov": 0.05,
+   "n": 6351,
+   "acc": 0.507,
+   "ci": [
+    0.4947,
+    0.519
+   ]
+  },
+  "UP": {
+   "cov": 0.15,
+   "n": 1549,
+   "acc": 0.5223,
+   "ci": [
+    0.4984,
+    0.5468
+   ]
+  }
+ },
+ "falsifier": {
+  "DOWN_forward_survives": false,
+  "verdict": "DOWN KILLED @60s: best binding-2025 magweight DOWN = 0.507 (cov0.05, n6351, CI-lo 0.4947) does NOT clear 0.541 / beat incumbent .522 -> |ret|-weighting does not unlock 60s DOWN on the tick substrate; DOWN exhausted on-disk."
+ }
+}

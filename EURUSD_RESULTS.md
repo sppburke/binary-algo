@@ -96,6 +96,7 @@ Breakeven 0.541. **60s direction is near-efficient: ~0.50–0.51 AUC across ever
 | 16 | Residualized TARGET (`min1_residtarget.py`) | H1 resid-sign 2026 0.534; agree 2025 0.522 | ❌ KILLED (`min1_residtarget_result.json`) |
 | 17 | **CCM coupling-gate** (`min1_ccm.py`) | all 7 drivers slope≤0.0066; gated 2024≈0.51/2025≈0.503/2026≈0.52 | ❌ KILLED (`min1_ccm_result.json`) |
 | 18 | **USD-strength-conditioned DOWN** (D3 retarget, `min1_downcond.py` MX_HOR=1) | USD-strong DOWN 2024 .500/2025 **.494**/2026 .497; coverage curve FALLS to .475(25)/.464(26) at the top-2% most-USD-strong tail; USD-strong≈USD-weak (no separation) | ❌ KILLED (`min1_downcond_result.json`) — 60s DOWN efficient even USD-gated; STRENGTHENS 5m D3 kill |
+| 19 | **\|ret\|-weighted magweight retrain** (POW=0.5, `min1_magweight.py`, tick substrate, deriv-faithful) | DOWN cov0.05 2024 .513/2025 **.507**/2026 .512 (CI-lo all <.50); UP worse than filter (2024 .42-.45). **best_iter=8/4000** — no learnable direction signal to weight | ❌ KILLED (`min1_magweight_result.json`) — loss-reweighting doesn't unlock 60s DOWN; 5m razor-thin edge doesn't transfer to more-efficient 60s |
 
 Adversarial controls: informational ceiling (`_redteam_magdir60.py`) 2025 cond-acc 0.512@10%→0.517@0.5%cov (gap to 0.65 is informational, not coverage); 60s **dirAUC 0.510 vs magAUC 0.787** identical data (sign-invariance).
 
