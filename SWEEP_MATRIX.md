@@ -90,6 +90,15 @@ processing); and **novel combinations** of existing methods. Each new row must p
 new · plausible *direction* mechanism that survives sign-invariance · data available · prior + fast-KILL
 falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 
+> **Discovery-vetting outcome — sub-minute microstructure-sign family (generic, 2026-06-03):** two adversarial
+> fan-out rounds (20 candidates: OF-surprise/MRR residual, propagator past-sign, DAR sign-AR, Cont-de Larrard queue
+> p_up, metaorder continuation, SPDE depletion-asymmetry, microprice, event-clock, idiosyncratic-residual-flow,
+> long-OF-history, Lipton drift, predictability-gate + cross-horizon/calendar/UP-cert/recent-lit angles) all returned
+> **subsumed or sign-invariant** at ≤2m. Mechanism: they reparameterize the signed-flow channel that decays to noise by
+> ~60s (raw OFI/CKS/per-side-flow null; online-ARF keystone ~0.50) or are functions of the return *distribution* not its
+> *signed order*. **Do NOT re-add these as Tier-N rows without a genuinely new signed representation.** Per-key kill
+> evidence: `sweeps/EURUSD_1m_backlog.md` (discovery rounds 1+2); see also `IDEAS_LOG.md`.
+
 > **Validation-lever menu (generic): multiple-testing haircut** (Holm + BHY-FDR + HLZ t≥3 + N̂-from-ρ̄, via an
 > `m{tf}_mt_haircut.py` mirroring `cpcv_certify.py`) — run on a key's whole sweep family to deflate the headline
 > by the realized M before trusting a survivor; pre-register the falsifier "procedure must flag the known kills
@@ -141,7 +150,7 @@ path-clear-rate**, not global AUC. (EURUSD 5m results in parentheses — retarge
 |---|---|---|---|---|---|
 | I1 | **Adaptive-conformal (ACI) gate** | `m5_conformal.py` | online threshold targeting a win-rate w*; trades more in-regime, less off-regime (causal) | gate | **WIN @5m**: binding 2025 .584@n764 vs fixed .579@n618, +36% trades, regime-robust → book `<PAIR>.m5xp_aci.v1` |
 | I2 | Seed-ensemble net ⊕ GBM (decorrelated stack member) | `m5_deep_ens.py` | M-seed AdamW MLP, prob-avg, blend/stack with GBM | D | 5m: decorrelated (corr .694) but 50/50 blend ≈ GBM (try LEARNED stack weight) |
-| I3 | \|return\|-weighted / GMADL loss | `m5_magweight.py` | up-weight large-move bars (sign more predictable) — magnitude→direction bridge | D | 5m: rebalances to two-sided ~.56, collapses 2026 UP (regime-dependent sign); GMADL operating-point untried |
+| I3 | \|return\|-weighted / GMADL loss | `m5_magweight.py`, `min1_magweight.py` | up-weight large-move bars (sign more predictable) — magnitude→direction bridge | D | 5m: rebalances to two-sided ~.56, collapses 2026 UP (regime-dependent sign); GMADL operating-point untried. **[EURUSD·60s] NULL** (`min1_magweight.py`: best_iter=8/4000, no learnable signal; DOWN .507) + the explicit mag→dir bridge (`min1_magdir.py`) confirms sign-invariance at the operating point (magnitude finds big moves, zero direction) |
 | I4 | Calibration (temperature/Venn-Abers) + selective threshold | (wrap any book) | calibrate probs so the confidence gate is honest; re-derive gate post-calibration | gate | nearly free; required wrapper for any confidence-gated edge |
 | I5 | Cross-pair POOLING (weight-shared net across pairs) | (new) | train all majors as rows in one net + per-pair instance-norm + pair-id (Sirignano-Cont) | D | untested structural lever; run only if I2 shows life |
 | I6 | AdamW + tuned LR + Optuna TPE/Hyperband | (wrap nets) | n_trials capped & LOGGED as multiplicity; select on worst-VAL-half | tuning | fixes the `Adam lr1e-3 single-seed` anti-patterns |

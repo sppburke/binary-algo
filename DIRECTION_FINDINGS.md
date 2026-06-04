@@ -13,7 +13,7 @@ windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_re
 | Horizon | DIRECTION (sign) — best honest OOS | Tradeable? |
 |---|---|---|
 | 1–5 seconds | **~0.65–0.66** (tick microstructure ensemble) | only on a tick/seconds-expiry broker; latency-critical |
-| 1 minute (60 s) | **~0.55–0.60** (reversion × compression-release; best refinement = HMM vol-state gate, floor 0.60 thin-cov; 2026-05-31d) | synthetic-index only (deriv forex floor = 15 m) |
+| 1 minute (60 s) | **UP 0.520/0.584/0.613 but CPCV-UNCERTIFIED** (regime-dependent up-filter, path p10 .524, block-boot CI-lo .530); **DOWN dead/exhausted** (p10 .474). Both sides formally CLOSED 2026-06-03 — no certified 60s edge (`min1_cpcv.py`) | synthetic-index only (deriv forex floor = 15 m) |
 | 15 minutes | **0.647 recent (real) / ~0.58 robust** — the actual 3-model ensemble × compression×NY: chronological-split 2024-26 = **0.647** (2024 0.689/2025 0.582/2026 0.663, n677, CI[.612,.684], `m15_production.py backtest`); FAITHFUL purged-combinatorial CV of the SAME ensemble+gate (15 paths, all eras) = **mean 0.579, CI[.567,.591], 14/15 paths > breakeven** (`min15_cpcv_result.json`). So: real, regime-dependent, robustly profitable — 0.647 is the favorable-regime end, ~0.58 the durable cross-era number. NOT a mirage. (The earlier "0.545" was a weaker single-LGBM proxy — corrected.) | ✅ deriv — best tradeable up/down book |
 | 10 minutes | **~0.60** (native-10 ensemble × 5m_bb_width-NY; honest deliverable, 2026-05-31c) | ✅ deriv |
 | 30 minutes | **~0.59** (compression-1h × NY selective) | ✅ deriv |
@@ -70,6 +70,25 @@ six independent levers all pinned by the 2025 regime / market efficiency:**
   breakeven 0.541 but OOS CI not clear of it, NOT >0.65). Tooling installed for completeness: hmmlearn, statsmodels (Markov-switching),
   arch, ruptures, pomegranate, river, nolds, filterpy/pykalman, stumpy, tsfresh/tslearn/sktime/darts. **Venue:** deriv EUR/USD
   forex Rise/Fall floor = 15 min, so a 60s book is synthetic-index-only.
+
+## Session-5 (2026-06-03) — 1-MIN FORMAL CLOSURE: both sides CPCV + 2 dry discovery rounds
+Goal re-set to **best 1m UP & best 1m DOWN, OOS-verified**. Ran the remaining on-disk DOWN levers + a faithful CPCV of
+both sides + two adversarial discovery rounds. Ledger `sweeps/EURUSD_1m{,_backlog}.md`; per-key rows EURUSD_RESULTS.md
+§60s rows 18-21.
+
+| Lever (file) | Result | Verdict |
+|---|---|---|
+| **USD-strength-conditioned DOWN** (`min1_downcond.py`, D3 retarget MX_HOR=1) | USD-strong 2025 DOWN .494 ≈ USD-weak; coverage curve FALLS to .475/.464 at top-2% USD-strong tail (mean-reverts) | ❌ KILLED — 60s DOWN efficient even USD-gated; strengthens the 5m D3 kill |
+| **\|ret\|-weighted magweight retrain** (`min1_magweight.py`, POW=0.5, tick substrate) | **best_iter=8/4000** (no learnable signal); DOWN 2025 .507, UP worse than filter | ❌ KILLED — loss-reweighting doesn't unlock 60s DOWN; 5m razor-thin edge doesn't transfer |
+| **magnitude→direction bridge** (`min1_magdir.py`, frozen mag+dir) | DOWN FLAT ~.50 across EVERY predicted-move-size gate incl. top-5% biggest moves (magAUC .787, zero direction) | ❌ KILLED — textbook sign-invariance at the operating point |
+| **Faithful CPCV** (`min1_cpcv.py`, frozen-book, ties-strict, 28 purged paths + block-boot) | **UP** pooled-strict .573, CI-lo .530, p10 **.524**, 75% clear, 2024 .520; **DOWN** .519, p10 **.474** | ⚠/❌ NEITHER certified — UP regime-dependent filter (near-miss, like 2m UP .5445), DOWN dead |
+| **Discovery rounds 1+2** (adversarial fan-out, 20 candidates) | round 1: 12 microstructure-sign levers; round 2: 8 cross-horizon/calendar/UP-cert/recent-lit — **ALL subsumed/sign-invariant, 0 survivors** | both rounds DRY → discover loop dry |
+
+**VERDICT:** no certified 60s direction edge exists. **UP** = best-AVAILABLE up-only filter (.520/.584/.613 moved,
+.573 ties-strict), regime-dependent dip-buy, **uncertified**; the 2024 wash is STRUCTURAL regime, so no variance lever
+(seed-ens/ACI/calibration) can certify it. **DOWN** = dead + honestly EXHAUSTED on-disk; the online-ARF keystone proves
+60s direction is genuine efficiency. Only DOWN redirect = EXTERNAL data (option-implied risk-reversal sign
+[verified-paywalled], intraday DE-US rate differential) — acquisition prerequisite. 60s remains synthetic-index-only.
 
 ## Session-3 (2026-05-31c) — 10-MIN battery: native ensemble, gate sweep, cross-horizon stack, walk-forward
 

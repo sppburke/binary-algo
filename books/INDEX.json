@@ -60,10 +60,17 @@
     "up_filter_2026": 0.613,
     "up_filter_2025": 0.584,
     "down_2026": 0.516,
-    "breakeven": 0.541
+    "breakeven": 0.541,
+    "side_split_cpcv_2026_06_03": {
+     "harness": "min1_cpcv.py (frozen-book, ties-strict, 28 purged-comb paths + block-boot)",
+     "UP_certified": false,
+     "UP": {"pooled_strict": 0.573, "block_boot_ci_lo": 0.530, "path_p10": 0.524, "frac_paths_clear": 0.75, "note": "regime-dependent up-filter, best AVAILABLE 60s UP, NOT certified (2024-strict .520 < breakeven); near-miss like 2m UP .5445"},
+     "DOWN_certified": false,
+     "DOWN": {"pooled_strict": 0.519, "path_p10": 0.474, "note": "dead + honestly exhausted on-disk; D3a/magweight/mag-bridge killed + 2 dry discovery rounds; external (risk-reversal/rate-diff) only redirect"}
+    }
    },
    "manifest": "books/EURUSD.min1.v1.manifest.json",
-   "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key.",
+   "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key. SIDE-SPLIT 2026-06-03: UP uncertified (CPCV p10 .524, regime-dependent), DOWN dead/exhausted (p10 .474) — no certified 60s direction edge.",
    "depends_on": null
   },
   {

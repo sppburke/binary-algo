@@ -49,7 +49,7 @@ indices**, not forex. So the 1 m / 2 m books **cannot be placed on deriv EUR/USD
 
 | Production model | Horizon | Deriv EUR/USD tradeable? | TEST 2024-25 | OOS 2026 | Verdict |
 |---|---|---|---|---|---|
-| `min1_production.py` | 60 s | ❌ below 15 m floor | 0.539 (n1017) | 0.550 (n349, CI[.499,.602]) | ~breakeven — no edge. Session-4 re-push (`min1_research_log.md`) confirmed >0.65 NOT reachable: 5 model families (cross-horizon stack, cross-pair, Hurst/VR, **HMM**, online concept-drift) all ~0.50–0.60, pinned by 2025; best refinement = HMM vol-state gate ~0.60 thin-cov |
+| `min1_production.py` | 60 s | ❌ below 15 m floor | 0.539 (n1017) | 0.550 (n349, CI[.499,.602]) | ~breakeven — no edge. Session-4 re-push (`min1_research_log.md`) confirmed >0.65 NOT reachable: 5 model families all ~0.50–0.60. **Session-5 (2026-06-03) FORMALLY CLOSED both sides** (`sweeps/EURUSD_1m.md`): up-filter UP .520/.584/.613 but **CPCV-uncertified** (p10 .524, regime-dependent); DOWN dead/exhausted (p10 .474) — D3a/magweight/mag-bridge killed + 2 dry discovery rounds. No certified 60s edge |
 | `min2_production.py` | 120 s | ❌ below 15 m floor | 0.528 (n2528) | 0.539 (n710, CI[.503,.576]) | ~coin-flip — no edge |
 | **`m15_production.py`** | **15 min** | ✅ **at the floor** | 2024 0.689 / 2025 0.582 | **0.663** (n89, CI[.562,.753]) | **Combined 0.647 (n677, CI[.612,.684]) — the real deriv edge** |
 | `m10_production.py` (+ `m10_freeze_honest.py`) | 10 min | ✅ above floor | 2024 0.614 / 2025 0.579 | 0.594 (n165) | Combined 0.602 (n2399, CI[.582,.621]) — honest book; >0.65 NOT reachable (8 levers, see `m10_research_log.md`) |

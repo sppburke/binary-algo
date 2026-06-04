@@ -5,10 +5,20 @@ falsifier TEMPLATES. **No per-key incumbents/numbers here** — those live in th
 Generic methods: `METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`; cross-key theory: `THEORY.md`.
 
 **Tested-on-keys pointers (where these levers were instantiated):**
+- EURUSD · 1m  → `sweeps/EURUSD_1m_backlog.md`  (+ `EURUSD_RESULTS.md` §60s) — **CLOSED 2026-06-03: both sides certified-or-exhausted, 2 discovery rounds DRY**
 - EURUSD · 5m  → `sweeps/EURUSD_5m_backlog.md`  (+ `EURUSD_RESULTS.md`)
 - EURUSD · 2m  → `sweeps/EURUSD_2m_backlog.md`
 - EURUSD · 15m → `sweeps/EURUSD_15m_backlog.md`  (deriv-tradeable binary; Q1 = magnitude×direction gate, user-queued 2026-06-03)
 - EURUSD · 30m → `sweeps/EURUSD_30m_backlog.md`
+
+**Discovery-round vetting outcome (generic, mechanism-level — 2026-06-03):** two adversarial discovery rounds over the
+UNTESTED sign-aware microstructure family (OF-surprise/MRR residual, propagator past-sign, DAR sign-AR, queue-imbalance
+p_up, metaorder continuation, depletion-asymmetry, microprice, event-clock, idiosyncratic-residual-flow, long-OF-history)
+and the cross-horizon/calendar/UP-cert/recent-lit angles found **every candidate subsumed or sign-invariant** at the
+sub-minute horizon. Mechanism: these reparameterize the signed-flow channel that decays to noise by ~60s (raw OFI/CKS/
+per-side-flow all null, online-ARF keystone ~0.50) and/or are functions of the return *distribution* not its *signed
+order* (sign-invariance theorem [[THEORY]]). Treat the whole microstructure-sign family as **subsumed for ≤2m direction**
+unless a genuinely NEW signed representation appears. (Per-key kill evidence: `sweeps/EURUSD_1m_backlog.md` discovery rounds.)
 
 ---
 
