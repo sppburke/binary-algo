@@ -39,6 +39,17 @@ Larrard queue-imbalance p_up · trade-time/event-clock labeling · Capponi-Cont 
 long-OF-history GRU · microprice deviation anchor · predictability-conditioned impact gate. Recurring finding: the
 60s DOWN wall is GENUINE EFFICIENCY, not a feature-discovery gap. → DOWN side honestly EXHAUSTED on-disk.
 
+# DISCOVERY ROUND 2 (2026-06-03) — DRY (0 survivors / 8 vetted)
+Second fan-out (`discover-60s-round2` workflow, 5 orthogonal angles → 8 candidates → adversarial vet), deliberately
+DIFFERENT from round 1: UP-filter certification levers, cross-horizon 15m→60s transfer, non-microstructure DOWN
+(fixing-window/calendar/momentum-term-structure), recent literature, novel on-disk combinations. **ALL 8 subsumed/
+sign-invariant; 0 survivors.** Key findings: (1) NO UP-improvement lever attacks PATH VARIANCE — the UP CPCV near-miss
+(p10 .524) is the STRUCTURAL 2024-regime wash, which seed-ens/calibration/ACI/Optuna cannot fix. (2) 15m→60s transfer
+= subsumed by the killed cross-horizon stack (min1_stack, oos .53-.55). (3) WMR fixing-window DOWN = subsumed by
+m30_fix (WMR reversal sign-FLIPPED OOS to .429) + sign-invariance. (4) intraday-momentum term-structure = subsumed by
+N4 (min2_mim killed @2m). (5) calendar/option-expiry = sign-invariant (magnitude gates). **TWO consecutive DRY rounds
+→ discover loop DRY.** The on-disk 60s direction space is saturated on both sides.
+
 # Subsumed / dead at 60s (do NOT re-run without a NEW mechanism)
 - USD/cross-pair conditioning DOWN (D3a, killed 2026-06-03) — and its 5m parent. Cross-pair sign-lead family null.
 - Side-specialists (subset-training kills ranking). Online-ARF (efficiency keystone). HMM/Kalman/RMT/CCM/OFI/CKS

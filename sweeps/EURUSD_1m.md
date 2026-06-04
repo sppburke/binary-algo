@@ -42,8 +42,11 @@ from 2026-06-03 onward (the both-sides-symmetric DOWN/UP push).
   (AUC .503-.508) → 60s direction is genuine efficiency; subsumes retuned/gate-swept static ensembles.
 - **Magnitude** is the certified edge (magAUC 0.787) but sign-invariant → out of scope for up/down (→ MAGNITUDE_FINDINGS.md).
 
-## Running conclusion (1m) — BOTH SIDES CLOSED (2026-06-03)
-**No certified 60s EURUSD direction edge exists** (faithful CPCV, `min1_cpcv.py`):
+## GOAL RESULT (1m) — BOTH SIDES CLOSED, improve+discover loops DRY (2026-06-03)
+**No certified 60s EURUSD direction edge exists** (faithful CPCV, `min1_cpcv.py`). Both improve and discover loops are
+dry: the |ret|-magweight improve lever is killed (best_iter=8), no UP-improvement lever attacks the structural 2024
+regime wall, and TWO consecutive adversarial discovery rounds came back DRY (round 1: 12 microstructure-sign levers
+subsumed; round 2: 8 cross-horizon/calendar/UP-cert/recent-lit candidates subsumed). Detail:
 - **UP** = `EURUSD.min1.v1` up-only filter — best AVAILABLE 60s UP point estimate (moved .520/.584/.613; ties-strict
   pooled .573), but **NOT CPCV-certified**: block-boot CI-lo **.530**, 28-path **p10 .524**, 75% of paths clear,
   2024-strict **.520**<breakeven. A regime-dependent dip-buy filter (works in the EUR-up 2025-26 regime, washes in
