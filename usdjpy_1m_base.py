@@ -19,7 +19,7 @@ Pre-registered falsifier written to usdjpy_1m_base_result.json BEFORE the held-o
 
 Usage: ~/binary-algo-venv/bin/python usdjpy_1m_base.py
 """
-import os, json, time, numpy as np, pandas as pd
+import os, sys, json, time, numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
@@ -28,8 +28,10 @@ PAIR = "USDJPY"; HOR = 1; GAP = 60; BE = 0.541
 FEAT = H.FEAT_DIR
 SPL = {"train":[str(y) for y in range(2012,2022)], "val":["2022","2023"],
        "test24":["2024"], "test25":["2025"], "oos":["2026"]}
-TR_STRIDE = 24          # train ~3.5M moved bars -> ~150k (skill: subsample train <=150k)
-RESULT = "usdjpy_1m_base_result.json"
+# defaults reproduce the recorded baseline; override via argv: python usdjpy_1m_base.py <stride> <leaves>
+TR_STRIDE = int(sys.argv[1]) if len(sys.argv)>1 else 24    # train ~3.5M moved bars -> stride 24 ~= 150k
+NUM_LEAVES = int(sys.argv[2]) if len(sys.argv)>2 else 127
+RESULT = "usdjpy_1m_base_result.json" if (TR_STRIDE==24 and NUM_LEAVES==127) else f"usdjpy_1m_base_s{TR_STRIDE}_l{NUM_LEAVES}_result.json"
 
 FEATS = H.feature_cols(PAIR)   # 239 base features
 
@@ -70,8 +72,8 @@ def boot(corr, nb=5000, seed=7):
     a=np.array([corr[rng.integers(0,n,n)].mean() for _ in range(nb)])
     return float(np.percentile(a,2.5)),float(np.percentile(a,97.5))
 
-def mk_lgb(n=3000):
-    return lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=127,
+def mk_lgb(n=3000, num_leaves=127):
+    return lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=num_leaves,
         min_child_samples=400,subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,
         n_estimators=n,n_jobs=20,verbosity=-1)
 
@@ -117,8 +119,8 @@ def main():
     Xtr,ytr,mtr,_=build(SPL["train"], TR_STRIDE)
     Xva,yva,mva,tsv=build(SPL["val"])
     itr=mtr; iva=mva                                  # train/early-stop on MOVED bars (ties excluded)
-    print(f"[base] train={int(itr.sum()):,} val={int(iva.sum()):,} feats={len(FEATS)} build={time.time()-t0:.0f}s", flush=True)
-    L=mk_lgb()
+    print(f"[base] stride={TR_STRIDE} leaves={NUM_LEAVES} train={int(itr.sum()):,} val={int(iva.sum()):,} feats={len(FEATS)} build={time.time()-t0:.0f}s", flush=True)
+    L=mk_lgb(num_leaves=NUM_LEAVES)
     L.fit(Xtr[itr], ytr[itr], eval_set=[(Xva[iva], yva[iva])], eval_metric="auc",
           callbacks=[lgb.early_stopping(150), lgb.log_evaluation(0)])
     pva=L.predict_proba(Xva)[:,1]

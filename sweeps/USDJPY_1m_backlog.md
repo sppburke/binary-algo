@@ -15,6 +15,12 @@
   3. **Regime gate** — UP edge may concentrate in compression / specific sessions (Tokyo dip-buy?) (A2a/A3a).
   4. **Magnitude→direction bridge for UP** — if large UP moves are more sign-predictable (E1a→I3).
 - Next experiment chosen to ATTACK cause #1 (highest mechanism-distinctness) + #2 (cheapest), in parallel-research + serial-fit.
+- **v2 (post cross-pair + more-data + raw-conditional analysis):**
+  - **Cause #1 (cross-pair, A6a) PARTIAL/KILLED:** xpof lifts AUC (.524) + mid-cov win-rate in 2024-25 (lead-lag ll_GBPUSD/AUDUSD, own_r1, hour, OF_kyle top) but DILUTES the OOS tight tail (cov1% UP .513 < baseline .545); cross-pair lead-lag is regime-dependent (not 2026). Not the UP lever.
+  - **Cause #2 (data-starved, A1a) CONFIRMED partial:** stride6+leaves255 (592k train) lifts UP cov2% to .547/.534/.538 (worst .534, +1pt) — signal WAS data-starved; still sub-BE on worst year.
+  - **MECHANISM nailed (Tier-1 raw conditional, no model):** USDJPY 1m signed edge = **dip-buy mean-reversion**, OOS-stable: after-dip UP-rate .515/.510/.517 vs after-rally .495/.495/.497; **amplified by compression + Tokyo session** (comp×Tokyo×dip .513/.520/.524, OOS-best). DOWN = after-rally down-rate only ~.505 (weak). This is JPY-home-session importer/carry dip-buying. The GBM tail selects within this.
+  - **Now testing:** regime-gated UP filter (dip×comp×Tokyo × model-confidence) on the s6/l255 model — does gating to the signed regime push the worst year UP CI-lo over 0.541? (`usdjpy_1m_regime.py`, running).
+  - **If regime insufficient:** the edge is a thin (~.52-.54) dip-buy reversion; remaining shots = Tier-N genuinely-new signed channels (Tokyo fixing/gotobi flow, MoF intervention reversion, JPY-cross triangular residual — from discovery workflow) + magnitude→direction bridge + Tier-I (seed-ens/ACI) variance reduction. Then honest exhaustion if all dry.
 
 ## FIRST-TO-RUN queue (ROI order; reasoned, not blind permutation)
 1. **BASE** — single-pair LGBM baseline (`usdjpy_1m_base.py`). RUNNING. Establishes: is there ANY 1m signal; UP/DOWN asymmetry; where (if anywhere) a coverage gate clears breakeven.

@@ -1,0 +1,38 @@
+{
+  "key": "USDJPY.1m",
+  "model": "regime-gated side FILTER on symmetric GBM (stride6)",
+  "mechanism": "dip-buy (prior5<0) x compression (rv30 low) x session; symmetric GBM + side+regime filter",
+  "settlement": "bar-close approx, ties LOSE, BE 0.541, gap60",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "no held-out year UP win-rate CI95-lower clears 0.541 at the VAL-frozen gate (n>=150)",
+    "incumbent": "single-pair baseline UP cov1% .538/.540/.545 (sub-BE)"
+  }
+}
