@@ -1,0 +1,36 @@
+> **SCOPE: USDJPY · 1m** (key-specific EXECUTABLE backlog — TOP-N first-to-run queue, incumbents-to-beat, discovery rounds). Ledger/status: `sweeps/USDJPY_1m.md`. Results of record: `USDJPY_RESULTS.md`. Generic ideas: `IDEAS_LOG.md` + `SWEEP_MATRIX.md`.
+
+# USDJPY × 1m — Executable Backlog
+
+## Incumbents to beat (current best per side)
+- (USDJPY,1m,UP): single-pair LGBM up-preds — **.538/.540/.545 @cov1%** (sub-breakeven; `usdjpy_1m_base_result.json`). Beat = lift a held-out-year UP CI-lo over 0.541 at a tradeable coverage.
+- (USDJPY,1m,DOWN): single-pair LGBM down-preds — ~.51, **dead**. Beat = produce ANY monotone UP-of-breakeven DOWN signal.
+- Breakeven 0.541. Certify only via full per-fold-refit CPCV at the operating gate (p10 ≥ 0.541, ≥~80% folds clear).
+
+## Model of the edge (updated each iteration — THE ENGINE)
+- **v0 (prior, pre-data):** 60s/1m direction near-efficient (EURUSD: 24 channels null; cross-pair none@60s). USDJPY differs structurally → faint UP-autocorrelation plausible; magnitude likely the real edge.
+- **v1 (post-baseline, `usdjpy_1m_base_result.json`):** USDJPY 1m direction near-efficient (AUC .514–.520, best_iter only 114 → very little learnable signal). **DOWN dead** (no monotone lift, ≤.51, <.50 at tight cov & OOS — rally-selling has no edge). **UP = faint MONOTONE-in-confidence dip-buy tilt**, OOS-PERSISTENT (cov1% .538/.540/.545; 2026 the strongest, unlike EURUSD 60s where UP faded). Cause of sub-breakeven = weak base signal (AUC .52), NOT coverage. **Attack the cause:**
+  1. **Strengthen the UP channel** — USDJPY has DIRECT USD-factor exposure (it IS a USD pair) + on-disk OF (`features_of/USDJPY`). Cross-pair USDJPY-target (A6a) is the most mechanism-distinct lever even though EURUSD cross-pair was none@60s.
+  2. **More data / tuning** — baseline subsampled hard (stride24→148k); the faint ranking may sharpen with more train + leaf tuning (A1a).
+  3. **Regime gate** — UP edge may concentrate in compression / specific sessions (Tokyo dip-buy?) (A2a/A3a).
+  4. **Magnitude→direction bridge for UP** — if large UP moves are more sign-predictable (E1a→I3).
+- Next experiment chosen to ATTACK cause #1 (highest mechanism-distinctness) + #2 (cheapest), in parallel-research + serial-fit.
+
+## FIRST-TO-RUN queue (ROI order; reasoned, not blind permutation)
+1. **BASE** — single-pair LGBM baseline (`usdjpy_1m_base.py`). RUNNING. Establishes: is there ANY 1m signal; UP/DOWN asymmetry; where (if anywhere) a coverage gate clears breakeven.
+2. **A8a up/down FILTER + coverage curve** — if BASE shows a UP tilt (as EURUSD 60s did), the deliverable UP predictor is the up-only filter on the symmetric model; map the coverage curve to find where UP CI-lo clears 0.541.
+3. **A1a GBM knob sweep** — only if BASE AUC > ~0.515 (signal worth tuning); pick by worst-VAL-half.
+4. **A6a cross-pair USDJPY-target (xp/xpbase/xpof)** — USDJPY IS a USD pair (direct USD-factor exposure); even though EURUSD cross-pair was none@60s, USDJPY's own USD loading + OF (features_of/USDJPY exists) is a distinct channel. Low prior at 1m but mechanism-distinct → run once.
+5. **E1a magnitude |ret60|≥Q** — the likely-real edge (sign-invariant); record in MAGNITUDE_FINDINGS.md. Establishes whether a magnitude→direction bridge (I3) is even worth trying.
+6. **A2a gate sweep / A3a reversion-compression specialist** — regime gating to concentrate the UP edge.
+7. **F4a residualized-target / A8b specialist** — controls; expected to confirm subset-training hurts ranking.
+
+## Discovery rounds (loop until K=2 dry) — USDJPY-specific mechanisms to research
+- USDJPY carry/risk-on-off lead from cross-asset (Nikkei/JGB/US2Y) — likely external-data-gated.
+- MoF/BoJ intervention-zone reversion (price-level conditioning near round numbers / prior intervention bands) — bar-computable; signed reversion mechanism.
+- Tokyo-fixing (gotobi 5/10-day) directional flow — calendar gate, bar-computable, signed.
+- JPY-cross triangular residual (USDJPY vs EURUSD×EURJPY) — USD-canceling, on-disk if EURJPY present (check).
+- (mine `_CORPUS_INDEX.md` + `_extracted_levers.json` for 1m/60s direction levers not yet subsumed.)
+
+## KILLED / subsumed (with Tier-1 cite) — fill as rows complete
+_(none yet)_
