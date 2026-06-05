@@ -2,10 +2,10 @@
 
 # USDJPY × 1m — Executable Backlog
 
-## Incumbents to beat (current best per side)
-- (USDJPY,1m,UP): single-pair LGBM up-preds — **.538/.540/.545 @cov1%** (sub-breakeven; `usdjpy_1m_base_result.json`). Beat = lift a held-out-year UP CI-lo over 0.541 at a tradeable coverage.
-- (USDJPY,1m,DOWN): single-pair LGBM down-preds — ~.51, **dead**. Beat = produce ANY monotone UP-of-breakeven DOWN signal.
-- Breakeven 0.541. Certify only via full per-fold-refit CPCV at the operating gate (p10 ≥ 0.541, ≥~80% folds clear).
+## Incumbents to beat (FINAL best per side — 2026-06-05)
+- (USDJPY,1m,UP): best fixed model+gate = baseline @cov1% **.538/.540/.545** (2024/25/OOS); deploy-spec s6/l255 @cov2% **.547/.534/.538**. **Sub-breakeven, uncertified** (`usdjpy_1m_base_result.json`). Best-ever single-year UP point = .567 (2024 seed-ens cov1%, selection-inflated). Beat = lift a held-out-year UP CI-lo over 0.541 at tradeable coverage.
+- (USDJPY,1m,DOWN): **dead** — best fixed model OOS only ~.515 (seed-ens cov10%); every DOWN gate collapses OOS (regime .495 / OF-resid .480 / magweight .486). Beat = ANY OOS-stable DOWN signal above breakeven.
+- Breakeven 0.541. Certify only via full per-fold-refit CPCV at the operating gate (p10 ≥ 0.541, ≥~80% folds clear). **2nd-pass exhaustiveness audit (2026-06-05) confirmed near-efficiency** — online-ARF keystone AUC ~.50 every year; magweight/ACI/GRU/Kalman/Optuna/cross-horizon all null/sub-BE. Only frontier = external data (Tier-G).
 
 ## Model of the edge (updated each iteration — THE ENGINE)
 - **v0 (prior, pre-data):** 60s/1m direction near-efficient (EURUSD: 24 channels null; cross-pair none@60s). USDJPY differs structurally → faint UP-autocorrelation plausible; magnitude likely the real edge.

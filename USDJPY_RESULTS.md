@@ -65,7 +65,19 @@ Symmetric s6/l255 GBM + dip×compression×Tokyo (UP) / rally (DOWN) regime filte
 
 ---
 
-## DEPLOYMENT SPEC / FINAL CONCLUSION — USDJPY 1m, both sides (2026-06-04; improve+discover loops dry)
+## BEST UP / DOWN ACCURACY (2026-06-05) — the headline numbers
+Per held-out year **2024 / 2025 / 2026-OOS**, moved-bars-only, deriv-faithful (ties LOSE), gap=60s. **Breakeven = 0.541. None CPCV-certified.** Numbers derived by scanning all 16 `usdjpy_1m_*_result.json` coverage curves (n≥150 floor).
+
+| Side | Honest single fixed model+gate (deployable form) | Most-flattering per-year slice (best model×cov each yr — selection-inflated) |
+|---|---|---|
+| **UP** | baseline @cov1% **.538 / .540 / .545**; deploy-spec s6/l255 @cov2% **.547 / .534 / .538** | **.567 / .540 / .545** (2024 seed-ens cov1%) |
+| **DOWN — dead** | best single fixed model OOS only **~.515** (seed-ens @cov10%) | .547 / .547 / **.515** — the 2024/25 ~.55 is cherry-picked and **collapses to .515 OOS** |
+
+- **UP ≈ 53.5–54.5%** at tradeable coverage — real + OOS-persistent but **at/just-below the 0.541 breakeven, uncertified** (worst-year CI-lo never clears).
+- **DOWN ≈ 51–52% OOS — dead** (the higher 2024/25 numbers don't survive to 2026: regime .495 / OF-resid .480 / magweight .486 all collapse).
+- Contrast — **magnitude** (move-size, sign-invariant, NOT direction): AUC **0.72–0.79** (`usdjpy_1m_magnitude_result.json`). The online-ARF keystone (adaptive model) sits at AUC **~.50** every year → direction is genuinely near-efficient.
+
+## DEPLOYMENT SPEC / FINAL CONCLUSION — USDJPY 1m, both sides (2026-06-04; improve+discover loops dry; 2nd-pass exhaustiveness audit 2026-06-05)
 
 **Verdict: USDJPY 1-minute direction is NEAR-EFFICIENT. No certified, deployable UP or DOWN edge exists on the available (on-disk) data. Both sides honestly EXHAUSTED.**
 
