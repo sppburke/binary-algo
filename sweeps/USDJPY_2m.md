@@ -102,6 +102,18 @@ BE needs NEW orthogonal signal (different representation of on-disk data) OR ext
 | N-R1i | **intraday US–JP 2y rate differential (carry)** | carry | **EXTERNAL (Dukascopy)** | .30 | **gated** | the structurally-right USDJPY direction driver |
 | N-R1j | VIX / JPY risk-reversal carry-crash DOWN gate | carry | **EXTERNAL** | .22 | **gated** | DOWN-enabler (risk-off → JPY up → USDJPY down) |
 
+### DEEP-PASS by-experiment runs (2026-06-05, after "did not feel exhaustive" challenge — RAN the argued levers)
+| id | lever | RAN result | verdict |
+|----|-------|-----------|---------|
+| DP-esn | ESN reservoir → pooled (N-R1a) | VAL .5228 (not >C1 .524); res-feats rank34/303; held-out UP .541/.528/.511 (worse, OOS hurt) | **KILLED** — no intra-window path structure GBM misses (confirms GRU) |
+| DP-loss | GMADL/|ret|^pow-weighted on pooled (E1) | pow0=BCE reproduces C1 .547/.546/.570; pow.5/1 LOWER VAL-AUC .522/.517 + worse held-out | **KILLED** — sign-invariance confirmed by experiment |
+| DP-compgate | pooled × compression-regime gate combine | cpcv2: comp UP .465-.520 vs nogate .513-.533, n slashed to ~370/path | **KILLED** — gating to compression HURTS + starves n |
+| DP-covgrid | CPCV cov {1,2,3,5}% operating points | nogate cov.03 reproduces ~.53; lower cov → noisier p10 (n penalty), no lift | no better operating point |
+| DP-magdir | magnitude→direction bridge (mag-gate confident bars) | high-mag UP .530/.537/.502 vs low-mag .544/.499/.480 — INCONSISTENT, all CIs overlap | **KILLED** — high-mag bars not robustly more sign-predictable (theorem holds) |
+| DP-xhorizon | cross-horizon stack (H5/H15 pooled preds → H2) | compute-prohibitive @stride30 (6 pooled fits, killed at 23min); A5 already showed 15m parent sub-BE OOS | low-prior, **subsumed by A5** |
+| DP-multialgo | lgb+xgb+cat decorrelation CPCV | RUNNING | pending |
+| DP-optuna | Optuna worst-VAL-half on pooled | queued | pending |
+
 **Discovery R2 (2026-06-05, skeptical confirmation agent): DRY — on-disk direction space SATURATED.** Independent Tier-1
 review confirmed every sign-carrying family run-and-killed or subsumed: path/sequence (GRU AUC .514<GBM .524 → subsumes
 ESN N-R1a + path-signature/Lévy-area = signed-return autocorr GBM already ingests); OF/microstructure (sign-invariance +

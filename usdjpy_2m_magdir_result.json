@@ -1,0 +1,65 @@
+{
+  "key": "USDJPY.2m",
+  "model": "mag-gated direction (pooled dir x pooled mag-Q75)",
+  "stride": 42,
+  "magthr": 0.0001731494566452052,
+  "falsifier": {
+    "KILL_if": "high-mag confident UP wr NOT CI-sep above low-mag AND mag-gated UP cov2% not > C1"
+  },
+  "years": {
+    "test24": {
+      "UP_highmag": [
+        1379,
+        0.5301,
+        [
+          0.503,
+          0.555
+        ]
+      ],
+      "UP_lowmag": [
+        1378,
+        0.5443,
+        [
+          0.518,
+          0.57
+        ]
+      ]
+    },
+    "test25": {
+      "UP_highmag": [
+        1357,
+        0.5372,
+        [
+          0.511,
+          0.564
+        ]
+      ],
+      "UP_lowmag": [
+        1357,
+        0.4989,
+        [
+          0.472,
+          0.525
+        ]
+      ]
+    },
+    "oos": {
+      "UP_highmag": [
+        508,
+        0.502,
+        [
+          0.459,
+          0.545
+        ]
+      ],
+      "UP_lowmag": [
+        508,
+        0.4803,
+        [
+          0.435,
+          0.524
+        ]
+      ]
+    }
+  }
+}
