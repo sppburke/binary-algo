@@ -126,3 +126,16 @@ never the mean; variance-reduction levers plateau at the worst-regime signal bou
 .50 between 1m and 2m — a thin REAL edge that is genuinely absent at 1m, but still ~1pp under breakeven. (Magnitude stays the
 strong sign-invariant edge: [USDJPY·2m] magAUC ~.78 vs dirAUC ~.52.)
 
+**META-LESSON — when an edge is ~1pp from certification, RUN the Tier-I cross-product; do NOT subsume-by-analogy (the program's
+own "2nd-pass exhaustiveness audit" pattern) (2026-06-05, [USDJPY·2m]):** a first pass declared exhaustion after seed-ensemble;
+a deep 2nd-pass RAN all 9 previously-argued levers and confirmed the ceiling BY EXPERIMENT. Two textbook gap-closers actively
+MADE IT WORSE: (i) **multi-algorithm decorrelation HURTS a thin signal** — lgb+xgb+cat ensemble p10 .519 < lgb seed-ens .531,
+because xgb/cat are weaker learners on the residual and drag the average (decorrelation only helps when the members are
+individually comparable). (ii) **Optuna worst-VAL-half ANTI-TRANSFERS** — best config scored VAL .550 (passes!) but held-out
+WORSE than the untuned default, a clean live demo of corr(VAL_acc,OOS_acc)=−.54. Also confirmed null at 2m: recency-weighting
+(overfits the small recent window → monotonically worse), ESN reservoir (no intra-window path order the GBM misses), GMADL/|ret|
+loss + mag→dir bridge (sign-invariance holds: big moves are NOT more sign-predictable), compression-gate combine (starves n).
+**Generalize:** once ≥3 diverse learners agree near the info floor and variance-reduction has plateaued, tuning/decorrelation/
+reweighting/re-representation cannot cross a SIGNAL bound — the only redirect is NEW DATA (external). But you must SHOW this by
+running the cross-product, not asserting it.
+

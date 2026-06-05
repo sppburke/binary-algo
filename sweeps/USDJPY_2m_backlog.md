@@ -4,7 +4,19 @@ SCOPE: USDJPY · 2m (120s). KEY-SPECIFIC. The reasoned, prioritized experiment q
 `sweeps/USDJPY_2m.md`; results of record = `USDJPY_RESULTS.md`. Update the MODEL OF THE EDGE in the ledger
 after every result, then re-rank this queue.
 
-## INCUMBENTS TO BEAT (start of sweep)
+## ★ FINAL STATE (2026-06-05) — SWEEP COMPLETE, on-disk EXHAUSTED, both sides REAL-but-sub-BE
+- **Outcome:** USDJPY 2m direction is a REAL but SUB-BREAKEVEN reversion edge. Best (UP & DOWN) = cross-pair POOLED+seed-ens
+  lgb GBM: per-fold-refit CPCV win-rate **mean .546 / p10 .531** (frozen-gate point .547/.546/.570 = thin-n overstatement).
+  Neither side clears 0.541 robustly. NOT certified, NOT deployable, NO book frozen (follows 1m precedent).
+- **Established by experiment (not argument):** pooling lifts the edge above the 1m near-efficiency floor (ARF .508>.50
+  confirms genuine thin signal); but the worst-regime p10 SATURATES ~.531. The full Tier-I cross-product was RUN in the
+  deep 2nd-pass — seed-ens, +2× data, multi-algo (lgb+xgb+cat, p10 .519 — HURTS), Optuna (VAL .550 / OOS worse — anti-transfer),
+  ESN reservoir, GMADL/|ret|-loss, compression-gate combine, cov-grid, mag→dir bridge, recency-weighting — **all killed/no-lift,
+  none crossed .541.** See ledger DEEP-PASS table + `usdjpy_2m_{esn,loss,magdir,cpcv2_multialgo_all7,optuna,recency}_result.json`.
+- **The ONLY live frontier = EXTERNAL DATA** (see bottom; the structurally-right unlock is USDJPY 1s tick microstructure).
+- Magnitude STRONG (magAUC ~.78, `usdjpy_2m_magnitude_result.json` → MAGNITUDE_FINDINGS.md). Sign-invariant, not a direction key.
+
+## INCUMBENTS TO BEAT (start of sweep — historical)
 - No certified USDJPY 2m book yet. Cross-horizon refs: USDJPY 1m near-efficient (best UP uncertified .547/.534/.538);
   EURUSD 2m `EURUSD.min2.v1` UP 0.555 robust / DOWN 0.540 marginal (TICK-based — not directly portable; USDJPY has no
   tick cache, so USDJPY 2m is bar-based).
@@ -33,12 +45,9 @@ after every result, then re-rank this queue.
    forward-filter state-space (sign-invariance gate). Run once each (coverage rule) sized to prior.
 7. **G CPCV cert** triggers the moment any row shows a worst held-out year CI-lo ≥ 0.541.
 
-## FIRST-TO-RUN QUEUE (re-rank after each result)
-1. [RUNNING] A1 `usdjpy_2m_base.py` (stride24/leaves127) — canonical baseline, fast read.
-2. A2 `usdjpy_2m_base.py 6 255` — strong config (1m-best). Run regardless of A1 (tail is data-hungry).
-3. D1 `usdjpy_2m_regime.py compress` — compression-release specialist (the EURUSD-2m mechanism). WRITE this script.
-4. C1 `usdjpy_2m_xpair.py pool` — cross-pair pooled GBM (the 94%-lever). WRITE this script.
-5. B3/B4 specialists; D2 session gate; then F Tier-I levers on the best; E lower-prior; G CPCV on any survivor.
+## FIRST-TO-RUN QUEUE — ✅ ALL DONE (sweep complete)
+All Tier A–G rows + deep-pass Tier-I cross-product done/killed/subsumed (see ledger). Nothing on-disk remains to run.
+The next experiments are EXTERNAL-DATA-gated only (below) — a data-acquisition prerequisite, not a modeling task.
 
 ## DISCOVERY (Tier-N) — run after Tier A–D drain; loop until 2 dry rounds
 - Mine `/home/sean/git/academic-papers/_CORPUS_INDEX.md` + `_extracted_levers.json` for 2m-direction levers not yet tried
