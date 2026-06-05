@@ -267,6 +267,40 @@
    "depends_on": null
   },
   {
+   "id": "EURUSD.m30xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "30m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m30_xpair_freeze.py (gate via m30_xpair_regate.py)",
+   "metrics": {
+    "up_refit_p10": 0.5588,
+    "down_refit_p10": 0.5525,
+    "frac_paths_clear_both": 1.0,
+    "deploy_cov": 0.05,
+    "breakeven": 0.541,
+    "base_floor": {
+     "UP": 0.5538,
+     "DOWN": 0.5356
+    },
+    "forward_cov5": {
+     "2024_UP": 0.6291,
+     "2024_DOWN": 0.6488,
+     "2024_COMBINED": 0.6366,
+     "2025_UP": 0.6175,
+     "2025_DOWN": 0.5641,
+     "2025_COMBINED": 0.6036,
+     "2026_UP": 0.5302,
+     "2026_DOWN": 0.5778,
+     "2026_COMBINED": 0.5412
+    },
+    "note": "BOTH sides refit-CPCV-certified (UP p10 .5588 / DOWN p10 .5525, 15/15). 30m = LONGEST deriv-tradeable horizon. REFIT-DEPENDENT: frozen-2021 fwd decays by 2026 OOS (UP .5302@cov5/.4652@cov10) -> deploy w/ retrain; durable=refit p10. Improve loop DRY (magweight hurts; seed-ens/specialist/Aa/IPCA/3-model-ensemble-on-pool/recency all subsumed); discover DRY (K=2)."
+   },
+   "manifest": "books/EURUSD.m30xp.v1.manifest.json",
+   "summary": "30m cross-pair USD-residual+OF primary (m5xp source @MX_HOR=30). NEW (30m,UP)+(30m,DOWN) leader: per-side refit-CPCV-CERTIFIED above base book (UP p10 .5588 / DOWN p10 .5525, 15/15 paths each, improves base floors .5538/.5356; DOWN rescued from near-miss). 30m IS deriv-tradeable (longest horizon). Deploy cov5% w/ retrain (REFIT-DEPENDENT). Edge = POOLED base-feat training (94% gain), not xpof factors -> improve levers subsumed. UP-bets=(30m,UP), DOWN-bets=(30m,DOWN). Base EURUSD.m30.v1 = lower combined fallback.",
+   "depends_on": null
+  },
+  {
    "id": "EURUSD.m5xp_aci.v1",
    "currency": "EURUSD",
    "timeframe": "5m",

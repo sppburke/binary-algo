@@ -259,6 +259,8 @@ Raw direction AUC ≈ 0.52. **BOTH sides now refit-CPCV-CERTIFIED** via the cros
 | ES lead-lag (`m30_es_feas.py`) | 30m lead corr +0.001/−0.041/+0.011 | ❌ null (real external data) |
 | **Cross-pair xpof refit-CPCV** (`m30_xpair_cpcv.py`) | combined refit p10 **.5645** (15/15); UP **.5588** / DOWN **.5525** both cert; AUC ~.529 | ✅✅ **BOTH SIDES CERTIFIED** → `EURUSD.m30xp.v1` (the prior "cross-pair +0" tested peer-FEATURES-on-1-LGB, not pooled xpof) |
 | Base-book side-split refit-CPCV (`m30_cpcv_side.py`) | combined p10 .5594; UP .5538 ✅cert / DOWN .5356 near-miss (13/15) | base floor; cross-pair improves both + rescues DOWN |
+| **IMPROVE levers** (all vs cross-pair incumbent UP .5588/DOWN .5525) | magweight UP .5528/DOWN .5382 (HURTS); seed-ens .5572/.5503; 3-model-ens-on-pool .5542/.5432; specialist .5501/.5203(collapses); recency HURTS UP; Aₐ/IPCA — | **ALL SUBSUMED** — feature-importance (`m30_xpair_featimp`): edge = POOLED base-feat training (94% gain), NOT xpof factors (~6%) → model/loss/feature/reweight tweaks can't move the binding p10. `m30_{magweight,seedens,xpair_ens,spec,recency}_cpcv_result.json` |
+| Discovery (3 rounds, K=2 dry) | month-end rebalancing KILLED (no stable bias); rate-diff/risk-reversal external-gated | only frontier = external data, same as all horizons |
 
 ### Magnitude (the certified edge — NO up/down key, sign-invariant)
 | Method (file) | Result | Verdict |
