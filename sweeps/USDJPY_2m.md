@@ -91,11 +91,11 @@ DOWN .5124; min2_rff SDF VAL AUC .4997). ⇒ factor/SDF/OFI-recovery levers add 
 BE needs NEW orthogonal signal (different representation of on-disk data) OR external data.
 | id | lever | theme | data | prior | status | notes |
 |----|-------|-------|------|-------|--------|-------|
-| N-R1a | ESN reservoir temporal feats → pooled GBM | crossdisc | on-disk-base | .30→.15 | pending | most genuinely-orthogonal on-disk (path memory per-bar GBM misses); risk=echo-of-magnitude (permute-control). G1c result gates whether worth building |
-| N-R1b | regime-matcher Euclidean kNN (directional consensus) | crossdisc | on-disk-base | .28→.12 | pending | instance-based; but re-represents SAME feats GBM already exploits — low marginal prior |
-| N-R1c | informed/uninformed flow ROUTER (continuation vs reversion) | signed-micro | on-disk-OF | .26→.10 | pending | OF dead at 1m (N3 .480); router construction new but magnitude-restatement risk high |
-| N-R1d | depth-scaled OFI (OF_sum × Kyle-λ) | signed-micro | on-disk-OF | .22 | pending | close to N3 (killed .480); fast confirmatory kill only |
-| N-R1e | asymmetric-label conformal DOWN gate | losses | on-disk-base | .20 | pending | wrapper on pooled; DOWN-specific α split |
+| N-R1a | ESN reservoir temporal feats → pooled GBM | crossdisc | on-disk-base | .30→.15 | subsumed | SUBSUMED by E2 GRU (trained sequence model AUC .514 < pooled GBM .524 → no path memory the GBM misses; reservoir = strictly-weaker random-projection of what the GRU already failed to extract). R2-confirmed. |
+| N-R1b | regime-matcher Euclidean kNN (directional consensus) | crossdisc | on-disk-base | .28→.12 | subsumed | SUBSUMED — re-represents SAME feats the GBM already exploits; GRU failure shows no representational headroom. R2-confirmed. |
+| N-R1c | informed/uninformed flow ROUTER (continuation vs reversion) | signed-micro | on-disk-OF | .26→.10 | subsumed | SUBSUMED — OF sign dead by 60s (1m N3 .480, ARF ~.50); cannot resurrect at 120s; router uses the same dead channel. R2-confirmed. |
+| N-R1d | depth-scaled OFI (OF_sum × Kyle-λ) | signed-micro | on-disk-OF | .22 | subsumed | SUBSUMED — close to N3 (killed .480); sign-invariant OF magnitude channel. R2-confirmed. |
+| N-R1e | asymmetric-label conformal DOWN gate | losses | on-disk-base | .20 | subsumed | SUBSUMED — conformal/gate wrapper can't manufacture sign on a sub-BE base (1m ACI no-lift). R2-confirmed. |
 | N-R1f | worst-window SoftMin/entropic-VaR loss | losses | on-disk-base | .18 | subsumed | EURUSD-2m loss kills (min2 lossbatch) |
 | N-R1g | SDF-drift / TMFG-HCNN / factor-recovery | crosspair | on-disk | .10 | **subsumed (DRY)** | cross-pair sign doesn't reach 2m; pooling already = decorrelation |
 | N-R1h | **triangular USDJPY synthetic (EURJPY×EURUSD dislocation)** | crosspair | **EXTERNAL (EURJPY not on disk)** | .30 | **gated** | structurally-right + sign-carrying; needs EURJPY 1m bars |
