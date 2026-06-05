@@ -37,8 +37,13 @@
 | UJ-N4 | realized signed-semivariance skew RS+−RS− (thin cks_e tick) | — | both | .05 | **subsumed** | cks1s cache has only cks_e(signed event)+cks_nev — NO sub-bar prices/returns → classical RS-skew not buildable; buildable cks_e-variance-asymmetry = signed-OF channel already KILLED (UJ-N3, features_of). OOS only 2026-02..05 (can't certify). Tier-1 subsumption | (cks1s inspection) |
 | UJ-N5 | gotobi/Tokyo-fix calendar as GBM conditioning feature | pending | UP | .04 | pending | | |
 
-## Tier-I (improve) — apply to any edge that survives
-_(pending — only after an edge is found)_
+## Tier-I (improve) — run on the best base (s6/l255) even though sub-BE
+| lever | script | result | verdict |
+|---|---|---|---|
+| I2 seed-ensemble K=5 | `usdjpy_1m_improve.py seedens` | VAL AUC .5238; UP cov2% .551/.532/.536 (worst .532); DOWN .524/.542/.494 | ❌ no lift — variance reduction can't close the ~1pp gap; wall is signal-level. `usdjpy_1m_improve_seedens_result.json` |
+| I1 ACI gate | — | **moot/subsumed**: ACI only reallocates coverage to target a win-rate the model can't hit OOS; the regime-gate run already proved coverage reallocation OOS-collapses (.495). No fixed gate clears → adaptive gate cannot either. |
+| I4 calibration | — | **moot**: gate is sub-BE pre/post-calibration; calibration doesn't add signal. |
+| I3 \|ret\|-weight/GMADL | — | **subsumed** by magnitude sign-invariance (magnitude finds big moves w/ zero direction; mag→dir bridge null, EURUSD [60s] `min1_magdir`) + revspec signed feats already null. |
 
 ## Discovery rounds (loop until K=2 dry)
 _(pending)_
