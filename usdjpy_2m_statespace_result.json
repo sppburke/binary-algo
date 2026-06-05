@@ -1,0 +1,31 @@
+{
+  "key": "USDJPY.2m",
+  "tier": "C state-space coverage",
+  "stride_arf": 25,
+  "note": "online-ARF keystone (genuine-efficiency confirmator @2m) + Kalman forward-filter (trap#1-safe)",
+  "kalman_drift": {
+    "test24": {
+      "auc": 0.4878898166964686
+    },
+    "test25": {
+      "auc": 0.4879910683524987
+    },
+    "oos": {
+      "auc": 0.4879772152086998
+    }
+  },
+  "online_arf": {
+    "test24": {
+      "auc": 0.506757736978732,
+      "n": 14433
+    },
+    "test25": {
+      "auc": 0.5085298981903661,
+      "n": 14389
+    },
+    "oos": {
+      "auc": 0.5093443799630465,
+      "n": 4935
+    }
+  }
+}

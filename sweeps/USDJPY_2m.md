@@ -43,36 +43,42 @@ incumbent/answer: TBD (sweep in progress).
   **Honest interim verdict: 2m direction REAL-but-sub-BE (CPCV p10 ~.531 both sides), lifted above 1m by pooling, not
   certifiable on-disk; frontier = tick/external data.**
 
-## STATUS: IN PROGRESS (started 2026-06-05). Working Tier A→F; both sides scored symmetrically every row.
+## STATUS: NEAR-COMPLETE (2026-06-05). All Tier A–G rows done/killed/subsumed (none silently skipped). Full (a)-(e)
+pipeline + Tier-I improve (seed-ens/data, saturates) + CPCV (not certified) + discovery R1 done; R2 dryness-check running.
+VERDICT: USDJPY 2m direction = **REAL-but-sub-BE both sides** (cross-pair POOLED GBM, CPCV p10 ~.531 UP & DOWN; mean .546).
+The pooling LIFTS the edge above the 1m near-efficiency floor (1m ~.52 → 2m mean .546) — a genuine signal gain — but the
+worst-regime p10 saturates ~1pp under the 0.541 deriv breakeven and is SIGNAL-bound (variance reduction can't close it).
+Not robustly certifiable on-disk. Magnitude STRONG (magAUC ~.78). Only frontiers = EXTERNAL data (USDJPY tick microstructure
+= the EURUSD-2m edge driver USDJPY lacks; + triangular EURJPY; + US-JP rate-diff). Final verdict + deployment spec → USDJPY_RESULTS.md.
 
 ## LEDGER
 | id | family | method | variant | script | target | prior | status | combined_oos | up_oos | down_oos | verdict | result_json |
 |----|--------|--------|---------|--------|--------|-------|--------|--------------|--------|----------|---------|-------------|
 | A1 | base | single-pair LGBM | stride24 leaves127 | usdjpy_2m_base.py | 2m | — | done | .541/.521/.516 | .546/.525/.527 | .532/.515/.498 | KILLED (no yr COMB CI-lo≥BE; VAL-AUC .524) | usdjpy_2m_base_result.json |
 | A2 | base | single-pair LGBM | stride6 leaves255 (1m-best cfg) | usdjpy_2m_base.py 6 255 | 2m | .35 | done | .538/.522/.523 | .546/.524/.536 | .529/.520/.507 | KILLED (binding yr 2025 UP .524 CI-lo .512<BE; VAL-AUC .526) | usdjpy_2m_base_s6_l255_result.json |
-| A3 | base | single-pair LGBM | stride12 leaves191 (capacity mid) | usdjpy_2m_base.py 12 191 | 2m | .15 | pending | | | | | usdjpy_2m_base_s12_l191_result.json |
-| B1 | side | UP/DOWN split @frozen gate | (free from A covcurve) | — | 2m | — | pending | | | | | (from A result) |
-| B2 | gate | worst-VAL-half gate sweep | per side | usdjpy_2m_base (built-in) | 2m | — | pending | | | | | |
-| B3 | spec | UP specialist (subset-trained) | dip-buy/Tokyo | usdjpy_2m_spec.py up | 2m | .15 | pending | | | | | usdjpy_2m_spec_up_result.json |
-| B4 | spec | DOWN specialist (subset-trained) | rally-fade | usdjpy_2m_spec.py down | 2m | .12 | pending | | | | | usdjpy_2m_spec_down_result.json |
+| A3 | base | single-pair LGBM | stride12 leaves191 (capacity mid) | usdjpy_2m_base.py 12 191 | 2m | .15 | subsumed | — | — | — | SUBSUMED by A1/A2 (capacity doesn't cross BE) + C1b (data-volume tested in pool, mean rises but p10 saturates). |
+| B1 | side | UP/DOWN split @frozen gate | (free from A covcurve) | — | 2m | — | done | — | — | — | DONE — UP/DOWN scored separately EVERY row; CPCV (G1) is the definitive side-split (UP p10 .531, DOWN p10 .531). |
+| B2 | gate | worst-VAL-half gate sweep | per side | usdjpy_2m_base (built-in) | 2m | — | done | — | — | — | DONE — worst-VAL-half gate built into base + CPCV uses within-fold VAL-tuned threshold. |
+| B3 | spec | UP specialist (subset-trained) | dip-buy/Tokyo | usdjpy_2m_spec.py up | 2m | .15 | subsumed | — | — | — | SUBSUMED — subset-training destroys ranking (1m `usdjpy_1m_improve spec` + EURUSD finding); D1 regime FILTER is the proper specialist (sub-BE). |
+| B4 | spec | DOWN specialist (subset-trained) | rally-fade | usdjpy_2m_spec.py down | 2m | .12 | subsumed | — | — | — | SUBSUMED — same; the POOLED down-preds ARE the best DOWN (CPCV p10 .531); D1 rally-fade dead (oos .497). |
 | C1 | xpair | cross-pair POOLED GBM | 7-major pooled s42/l255, eval USDJPY | usdjpy_2m_xpair.py pool 42 255 | 2m | .40 | **INCUMBENT** | .535/.547/.551 | **.547/.546/.570** | .519/.548/.520 | NOT-killed-as-edge (UP pts ABOVE BE all 3 yrs incl OOS .570; KILLED only on CI-lo width ~.527<BE @cov2%). POOLING LIFTED binding 2025 (.524→.546). → improve+CPCV | usdjpy_2m_xpair_pool.log (Tier-1; JSON clobbered by C1b stub, numbers in log) |
 | C1b | xpair | cross-pair POOLED GBM | 2x data s21/l255 | usdjpy_2m_xpair.py pool 21 255 | 2m | .45 | done | .544/.542/.526 | .542/.540/.527 | .548/.544/.524 | KILLED on CI-lo; lifted 2024/25 (COMB pt>BE) but OOS 2026 DROPPED .526. Confirms thin/tail-sensitive edge. C1(s42) keeps better worst-yr → incumbent | usdjpy_2m_xpair_pool_s21_l255_result.json |
-| C2 | xpair | cross-pair OF residual | UJ-N3 analog @2m | usdjpy_2m_xpair.py ofresid | 2m | .12 | pending | | | | | usdjpy_2m_xpair_ofresid_result.json |
-| C3 | xpair | EURUSD.min2 frozen-parent fwd | transfer to USDJPY | usdjpy_2m_xpair.py transfer | 2m | .10 | pending | | | | | usdjpy_2m_xpair_transfer_result.json |
+| C2 | xpair | cross-pair OF residual | UJ-N3 analog @2m | usdjpy_2m_xpair.py ofresid | 2m | .12 | subsumed | — | — | — | SUBSUMED — 1m N3 OF-residual KILLED (.480 dead); discovery R1 Tier-1: cross-pair SIGN doesn't reach 2m (EURUSD min2_xpair_cpcv UP p10 .5096); pooling already = decorrelation, OF adds nothing. |
+| C3 | xpair | EURUSD.min2 frozen-parent fwd | transfer to USDJPY | usdjpy_2m_xpair.py transfer | 2m | .10 | subsumed | — | — | — | SUBSUMED — EURUSD.min2.v1 is TICK-based (1s microstructure features); USDJPY is bar-only → INCOMPATIBLE feature space, cannot transfer the frozen book. |
 | D1 | regime | compression-release filter | dip×comp×session, sym-GBM | usdjpy_2m_regime.py 8 | 2m | .30 | killed | — | .548/.521/.542 | .519/.513/.497 | KILLED both (UP binding 2025 .521 CI-lo .503<BE; pt .54+ only in 2024/26; DOWN dead). Mechanism regime-dependent, doesn't transfer robustly to USDJPY | usdjpy_2m_regime_s8_result.json |
-| D2 | regime | gotobi / Tokyo-session gate | JPY-specific calendar | usdjpy_2m_regime.py session | 2m | .18 | pending | | | | | usdjpy_2m_regime_session_result.json |
-| D3 | regime | vol/regime-route blend | route hi/lo-vol | usdjpy_2m_regime.py route | 2m | .12 | pending | | | | | usdjpy_2m_regime_route_result.json |
-| E1 | loss | |ret|-weighted / GMADL objective | on best base | usdjpy_2m_loss.py | 2m | .12 | pending | | | | | usdjpy_2m_loss_result.json |
-| E2 | dl | GRU/MLP decorrelated stack | torch | usdjpy_2m_dl.py | 2m | .10 | pending | | | | | usdjpy_2m_dl_result.json |
-| E3 | statespace | Kalman/HMM forward-filter gate | sign-invariance check | usdjpy_2m_statespace.py | 2m | .07 | pending | | | | | usdjpy_2m_statespace_result.json |
-| F1 | improve | seed-ensemble | on best edge | usdjpy_2m_improve.py seedens | 2m | .15 | pending | | | | | usdjpy_2m_improve_seedens_result.json |
-| F2 | improve | ACI adaptive-conformal gate | on best edge | usdjpy_2m_aci.py | 2m | .12 | pending | | | | | usdjpy_2m_aci_result.json |
-| F3 | improve | calibration (isotonic/Platt) | on best edge | usdjpy_2m_improve.py calib | 2m | .08 | pending | | | | | usdjpy_2m_improve_calib_result.json |
-| F4 | improve | Optuna (worst-VAL-half obj) | on best edge | usdjpy_2m_optuna.py | 2m | .12 | pending | | | | | usdjpy_2m_optuna_result.json |
+| D2 | regime | gotobi / Tokyo-session gate | JPY-specific calendar | usdjpy_2m_regime.py session | 2m | .18 | subsumed | — | — | — | SUBSUMED — 1m gotobi NULL (+.0004 AUC, `usdjpy_1m_gotobi`); session (Tokyo/NY) already in D1 gate (sub-BE). |
+| D3 | regime | vol/regime-route blend | route hi/lo-vol | usdjpy_2m_regime.py route | 2m | .12 | subsumed | — | — | — | SUBSUMED — D1 regime route (dip×comp×session) sub-BE; vol-routing is a gate, adds no DIRECTION signal to a sub-BE base. |
+| E1 | loss | |ret|-weighted / GMADL objective | on best base | usdjpy_2m_loss.py | 2m | .12 | subsumed | — | — | — | SUBSUMED — sign-invariance: |ret|/payoff losses reweight toward MOVE SIZE (magnitude), not sign; 1m I3 |ret|-weighted DOWN no-transfer (.486/.509); EURUSD min2 lossbatch null. |
+| E2 | dl | GRU sequence model | W=30 torch | usdjpy_2m_dl.py | 2m | .10 | killed | AUC .518/.514/.514 | cov2% .562/.552/.541 | cov2% .516/.537/.514 | KILLED — GRU AUC .514 < pooled GBM .524; trained sequence model finds LESS than per-bar GBM → no path structure GBM misses (SUBSUMES ESN N-R1a); DL info-bound @2m (as 1m + EURUSD D1-6). | usdjpy_2m_dl_result.json |
+| E3 | statespace | (see E3-run below) | — | usdjpy_2m_statespace.py | 2m | .07 | done→ | superseded by E3-run row | | | ran as ARF+Kalman | usdjpy_2m_statespace_result.json |
+| F1 | improve | seed-ensemble | K=3/5 on pooled, IN CPCV | usdjpy_2m_cpcv.py (NSEED) | 2m | .15 | done | — | p10 .5245→.531 | p10 .520→.531 | DONE via G1b/G1c — seed-ens DOES lift p10 (+0.6pp) but SATURATES ~.531; best Tier-I lever, still sub-cert. |
+| F2 | improve | ACI adaptive-conformal gate | on best edge | usdjpy_2m_aci.py | 2m | .12 | subsumed | — | — | — | SUBSUMED — 1m ACI no-lift (base-rate trading .534/.519/.513); conformal/adaptive GATES don't manufacture signal on a sub-BE base. |
+| F3 | improve | calibration (isotonic/Platt) | on best edge | usdjpy_2m_improve.py calib | 2m | .08 | subsumed | — | — | — | SUBSUMED — calibration is monotone, doesn't change AUC/ranking; CPCV's VAL-tuned threshold = effective calibration already. |
+| F4 | improve | Optuna (worst-VAL-half obj) | on best edge | usdjpy_2m_optuna.py | 2m | .12 | subsumed | — | — | — | SUBSUMED — 1m I6 Optuna best worst-VAL-half .5347<BE; hyperparam tuning can't cross a SIGNAL bound (keystone-predicted); pooled+seed-ens already near the on-disk ceiling. |
 | G1 | cert | full per-fold-refit CPCV (pooled) | 6grp C(6,2)=15 paths, ties-strict, cov3% | usdjpy_2m_cpcv.py 16 0.03 | 2m | — | **done** | p10 .527 | **p10 .524** (mean .536) | p10 .520 (mean .536) | **NOT CERTIFIED** — UP p10 .5245 frac_clear .33; DOWN p10 .5195 frac_clear .33. CORRECTS C1 overstatement. Recency: recent regime WEAKER (UP .532 vs older .542). Edge real but sub-BE | usdjpy_2m_cpcv_result.json |
 | G1b | cert | seed-ensemble pooled CPCV (Tier-I) | K=3 seeds/fold, cov3% | usdjpy_2m_cpcv.py 16 0.03 3 | 2m | .12 | done | p10 .532 | **p10 .5306** (mean .542, p50 .543, frac .53) | p10 .5262 (frac .67) | NOT certified but IMPROVES — seed-ens lifts UP p10 .5245→.5306, frac .33→.53. Edge CLOSABLE (~1pp short). | usdjpy_2m_cpcv_k3_result.json |
 | G1c | cert | stack: 2x data + K=5 seeds | stride14 K5 cov3% | usdjpy_2m_cpcv.py 14 0.03 5 | 2m | .15 | done | p10 .5345 (mean .546 frac .60) | **p10 .531** (mean .546, p50 .545, frac .60) | p10 .531 (mean .546, frac .667) | NOT certified — **p10 SATURATED ~.531** (K1 .5245→K3 .5306→stack .531); mean/p50 now >BE but worst-regime signal-bound. Variance-reduction CEILING. | usdjpy_2m_cpcv_s14_k5_result.json |
-| E3 | statespace | online-ARF keystone + Kalman | stride25 | usdjpy_2m_statespace.py 25 | 2m | .08 | running | | | | | usdjpy_2m_statespace_result.json |
+| E3 | statespace | online-ARF keystone + Kalman | stride25 | usdjpy_2m_statespace.py 25 | 2m | .08 | done | ARF AUC .5068/.5085/.5093 | — | Kalman drift .488 | ★ KEYSTONE: adaptive ARF finds thin REAL edge (.508>.50, vs 1m .50 floor) — CONFIRMS 2m has genuine thin signal (not pure efficiency). Kalman drift anti-predictive (.488=reversion). | usdjpy_2m_statespace_result.json |
 
 Legend: prior = subjective P(survives a pre-registered falsifier), used to size fast-KILL effort. status ∈ {pending,running,done,killed,subsumed}.
 Tier-N (discovered) rows appended below as discovery rounds run. CPCV (G1) triggers only when a row's worst held-out year CI-lo ≥ 0.541.
