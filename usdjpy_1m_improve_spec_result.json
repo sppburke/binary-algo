@@ -1,0 +1,68 @@
+{
+  "key": "USDJPY.1m",
+  "mode": "spec",
+  "stride": 6,
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "falsifier": {
+    "KILL_if": "no held-out year UP (or DOWN) cov1-2% CI-lo clears 0.541",
+    "incumbent": "s6/l255 UP cov2% .547/.534/.538 (worst .534, sub-BE)"
+  },
+  "years": {
+    "test24": {
+      "UP_spec_cov2": {
+        "wr": 0.531,
+        "n": 6712
+      },
+      "DOWN_spec_cov2": {
+        "wr": 0.5146,
+        "n": 7200
+      }
+    },
+    "test25": {
+      "UP_spec_cov2": {
+        "wr": 0.5282,
+        "n": 6380
+      },
+      "DOWN_spec_cov2": {
+        "wr": 0.5193,
+        "n": 7054
+      }
+    },
+    "oos": {
+      "UP_spec_cov2": {
+        "wr": 0.5236,
+        "n": 2227
+      },
+      "DOWN_spec_cov2": {
+        "wr": 0.5165,
+        "n": 2430
+      }
+    }
+  }
+}

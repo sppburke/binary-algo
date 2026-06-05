@@ -5,6 +5,7 @@
 > (`METHODS_CATALOG.md`, `SWEEP_MATRIX.md`, `IDEAS_LOG.md`, `THEORY.md`); per-key incumbents/numbers/results/backlogs
 > live in key-named files (`<PAIR>_RESULTS.md`, `sweeps/<PAIR>_<tf>{,_backlog}.md`). The `strategy-eval` skill
 > (§0a) enforces it. **Any EURUSD numbers below are `[EURUSD]` examples; the record-of-truth is `EURUSD_RESULTS.md`.**
+> Per-currency results files: **`EURUSD_RESULTS.md`** (1s–30m) · **`USDJPY_RESULTS.md`** (1m — first non-EURUSD pair, 2026-06-04: direction near-efficient/exhausted, magnitude strong; `sweeps/USDJPY_1m{,_backlog}.md`).
 
 Predicting **price direction (up/down from current spot)** for FX pairs from tick/OHLCV data,
 with a rigorous, leakage-controlled, out-of-sample methodology. Started from a 5-minute target on
