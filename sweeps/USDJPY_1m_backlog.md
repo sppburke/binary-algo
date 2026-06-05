@@ -51,6 +51,9 @@ Data corrections verified Tier-1: thin USDJPY tick cache DOES exist (`features_t
 - Traded EURJPY/GBPJPY triangular residual — prior .06. Needs a traded JPY cross.
 - OANDA retail order/position-book stop-clusters — prior .04, forward-collect only.
 
+## Hooks for future work (out of current 1m scope)
+- **USDJPY 15m UP edge (regime-dependent)** — A5 probe (`usdjpy_xhorizon_result.json`): H=15m base GBM UP cov5% 2024 **.593** (CI-lo .574 clears breakeven!) but 2025 .530 / OOS .545 (CI-lo .510, sub-BE). Stronger than 1m and CLEARS in 2024 — a future USDJPY 15m goal should pursue this (cross-pair was the EURUSD 15m keystone; USDJPY 15m base already shows life). Regime-dependent → would need refit-CPCV + regime robustness. Out of scope here (goal = 1m).
+
 ## KILLED / subsumed (with Tier-1 cite)
 - A6a cross-pair price-basket (xpof): AUC .516-.519, DOWN .477 oos cov1%, UP tail diluted. `usdjpy_1m_xpair_xpof_result.json`. → subsumes all price-basket/lead-lag/synthetic-risk-basket discovery candidates.
 - A3a/A8a regime-gated filter: OOS UP collapses .495 (VAL gate .558). `usdjpy_1m_regime_s6_result.json`.

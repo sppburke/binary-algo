@@ -41,7 +41,7 @@
 | lever | script | result | verdict |
 |---|---|---|---|
 | I2 seed-ensemble K=5 | `usdjpy_1m_improve.py seedens` | VAL AUC .5238; UP cov2% .551/.532/.536 (worst .532); DOWN .524/.542/.494 | ❌ no lift — variance reduction can't close the ~1pp gap; wall is signal-level. `usdjpy_1m_improve_seedens_result.json` |
-| I1 ACI gate | — | **moot/subsumed**: ACI only reallocates coverage to target a win-rate the model can't hit OOS; the regime-gate run already proved coverage reallocation OOS-collapses (.495). No fixed gate clears → adaptive gate cannot either. |
+| I1 ACI gate | `usdjpy_1m_aci.py` | **RUN→KILLED** (2nd pass): adaptive-conformal gate UP .534/.519/.513, DOWN .520/.505/.493, CI-lo never clears .541. With sub-BE unconditional WR, ACI just trades at the base rate (can't manufacture an edge). The EURUSD-5m winner lever does not transfer. `usdjpy_1m_aci_result.json` |
 | I4 calibration | — | **moot**: gate is sub-BE pre/post-calibration; calibration doesn't add signal. |
 | I3 \|ret\|-weight (POW 0.5,1.0) | `usdjpy_1m_loss.py magw` | **RUN→KILLED** (2nd pass): POW0.5 VAL AUC .521, DOWN cov2% .533/.520/**.486** (OOS collapse); POW1.0 VAL .515, DOWN .525/.522/.509. The EURUSD-5m DOWN-rescue does NOT transfer to the more-efficient 1m. `usdjpy_1m_loss_magw_result.json` |
 
@@ -51,9 +51,10 @@
 | C5 | **online-ARF keystone** (river, adaptive concept-drift forest, chronological predict-before-learn) | `usdjpy_1m_statespace.py` | per-year AUC **.502/.501/.506** (incl. OOS) | ★ **KEYSTONE: confirms GENUINE EFFICIENCY** — an adaptive continuously-retraining model is coin-flip every year; the wall is signal-level, not stationary-GBM limitation. `usdjpy_1m_statespace_result.json` |
 | C2 | Kalman forward-filter drift sign (trap#1-safe, FILTER only) | `usdjpy_1m_statespace.py` | drift-AUC .488/.489/.489 | ❌ anti-predictive (trend-following dead → dip-buy reversion confirmed) |
 | I3 | \|ret\|-weighted retrain POW {0.5,1.0} | `usdjpy_1m_loss.py magw` | DOWN OOS .486/.509; UP no lift | ❌ RUN→KILLED (EURUSD-5m DOWN rescue doesn't transfer to 1m) |
-| A5 | cross-horizon edge probe (H=5,15) + stack | `usdjpy_xhorizon.py` | running | — |
-| I1 | ACI adaptive gate (EURUSD-5m winner lever) | `usdjpy_1m_aci.py` | queued | — |
-| D1 | GRU on bar-feature path | `usdjpy_1m_dl.py` | queued | — |
+| A5 | cross-horizon edge probe (H=5,15) — does USDJPY have a robust parent edge to front-load? | `usdjpy_xhorizon.py` | H5 UP cov5% .555/.539/.548; **H15 UP .593/.530/.545** (2024 CI-lo .574 clears, but 2025/OOS CI-lo .510 sub-BE) | ❌ NO ROBUST PARENT — higher-horizon UP edge is regime-dependent (binding 2025/2026 sub-BE), so stacking to 1m inherits the collapse, can't certify. Ran the prerequisite parent (not just pruned). NB: H=15m regime-dependent UP is a hook for a future 15m goal. `usdjpy_xhorizon_result.json` |
+| I1 | ACI adaptive gate (EURUSD-5m winner lever) | `usdjpy_1m_aci.py` | UP .534/.519/.513, DOWN .520/.505/.493 (CI-lo never clears) | ❌ KILLED — adaptive gate trades at base rate; can't manufacture edge from sub-BE WR. `usdjpy_1m_aci_result.json` |
+| D1 | GRU on bar-feature path (W=30, 15 feats) | `usdjpy_1m_dl.py` | VAL AUC .518; held-out AUC .515/.515/.515; cov2% UP .554/.518/.508 DOWN .542/.533/.499 | ❌ KILLED — info-bound caps DL at ~.51-.52 (binding years sub-BE); confirms EURUSD D1-D6. `usdjpy_1m_dl_result.json` |
+| I6 | Optuna TPE 10-trial (worst-VAL-half deploy objective) | `usdjpy_1m_optuna.py` | running | — |
 
 ## Discovery rounds (loop until dry)
 - **Round 1** (8-agent workflow `usdjpy-1m-discover`): surfaced 5 runnable Tier-N (UJ-N1..N5) — ALL run-and-killed/subsumed (see Tier-N table); 5 data-blocked (Tier-G). NOT dry (had survivable candidates) → ran them.

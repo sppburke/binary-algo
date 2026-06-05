@@ -18,20 +18,19 @@ BE=0.541; SPL={"train":[str(y) for y in range(2012,2022)],"val":["2022","2023"],
 STRIDE=int(sys.argv[1]) if len(sys.argv)>1 else 6
 RESULT="usdjpy_1m_aci_result.json"
 
-def aci_gate(pr, y, moved, ts, side, w_target=0.56, gamma=0.02, thr0=0.5):
-    """Causal ACI: walk bars in time; maintain conf-threshold thr_t; take predicted-`side` bar iff conf>=thr_t;
-    after a TAKEN trade, thr += gamma*( (1 if loss else 0) - (1-w_target) )  -> raise thr after losses."""
-    order=np.argsort(ts); thr=thr0; taken=[]; wins=[]
+def aci_gate(pr, y, moved, ts, side, w_target=0.545, gamma=0.0008, thr0=0.0, thr_cap=0.20):
+    """Causal ACI: walk bars in time; maintain conf-threshold thr_t (in |p-0.5| units, range ~0-0.1); take
+    predicted-`side` bar iff conf>=thr_t; after a TAKEN trade, thr += gamma*((1 if loss else 0) - (1-w_target))
+    -> raise thr after losses, lower after wins; if ACI sustains w_target at nonzero coverage there's an edge."""
+    order=np.argsort(ts); thr=thr0; taken=[]; wins=[]; block_until=-1
     want_up = side=="UP"
-    block_until=-1
     for i in order:
-        if (pr[i]>0.5)!=want_up:    # only this side's predictions
-            continue
+        if (pr[i]>0.5)!=want_up: continue
         conf=abs(pr[i]-0.5)
         if conf>=thr and ts[i]>=block_until:
             win = 1.0 if (((pr[i]>0.5)==(y[i]==1)) and moved[i]) else 0.0
             taken.append(i); wins.append(win); block_until=int(ts[i])+60
-            thr = max(0.0, thr + gamma*((1.0-win) - (1.0-w_target)))   # err - target_miss
+            thr = min(thr_cap, max(0.0, thr + gamma*((1.0-win) - (1.0-w_target))))
     if len(taken)<5: return {"n":len(taken),"wr":float("nan"),"ci":[float("nan")]*2}
     wins=np.array(wins); lo,hi=boot(wins)
     return {"n":int(len(taken)),"wr":float(wins.mean()),"ci":[lo,hi],"final_thr":float(thr)}
