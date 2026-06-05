@@ -43,7 +43,7 @@
 | I2 seed-ensemble K=5 | `usdjpy_1m_improve.py seedens` | VAL AUC .5238; UP cov2% .551/.532/.536 (worst .532); DOWN .524/.542/.494 | ❌ no lift — variance reduction can't close the ~1pp gap; wall is signal-level. `usdjpy_1m_improve_seedens_result.json` |
 | I1 ACI gate | — | **moot/subsumed**: ACI only reallocates coverage to target a win-rate the model can't hit OOS; the regime-gate run already proved coverage reallocation OOS-collapses (.495). No fixed gate clears → adaptive gate cannot either. |
 | I4 calibration | — | **moot**: gate is sub-BE pre/post-calibration; calibration doesn't add signal. |
-| I3 \|ret\|-weight/GMADL | — | **subsumed** by magnitude sign-invariance (magnitude finds big moves w/ zero direction; mag→dir bridge null, EURUSD [60s] `min1_magdir`) + revspec signed feats already null. |
+| I3 \|ret\|-weight (POW 0.5,1.0) | `usdjpy_1m_loss.py magw` | **RUN→KILLED** (2nd pass): POW0.5 VAL AUC .521, DOWN cov2% .533/.520/**.486** (OOS collapse); POW1.0 VAL .515, DOWN .525/.522/.509. The EURUSD-5m DOWN-rescue does NOT transfer to the more-efficient 1m. `usdjpy_1m_loss_magw_result.json` |
 
 ## Discovery rounds (loop until dry)
 - **Round 1** (8-agent workflow `usdjpy-1m-discover`): surfaced 5 runnable Tier-N (UJ-N1..N5) — ALL run-and-killed/subsumed (see Tier-N table); 5 data-blocked (Tier-G). NOT dry (had survivable candidates) → ran them.
