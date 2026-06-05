@@ -45,6 +45,16 @@
 | I4 calibration | — | **moot**: gate is sub-BE pre/post-calibration; calibration doesn't add signal. |
 | I3 \|ret\|-weight (POW 0.5,1.0) | `usdjpy_1m_loss.py magw` | **RUN→KILLED** (2nd pass): POW0.5 VAL AUC .521, DOWN cov2% .533/.520/**.486** (OOS collapse); POW1.0 VAL .515, DOWN .525/.522/.509. The EURUSD-5m DOWN-rescue does NOT transfer to the more-efficient 1m. `usdjpy_1m_loss_magw_result.json` |
 
+## 2nd-pass coverage (exhaustiveness audit, 2026-06-05) — running the levers previously subsumed-by-argument
+| id | method | script | result | verdict |
+|----|--------|--------|--------|---------|
+| C5 | **online-ARF keystone** (river, adaptive concept-drift forest, chronological predict-before-learn) | `usdjpy_1m_statespace.py` | per-year AUC **.502/.501/.506** (incl. OOS) | ★ **KEYSTONE: confirms GENUINE EFFICIENCY** — an adaptive continuously-retraining model is coin-flip every year; the wall is signal-level, not stationary-GBM limitation. `usdjpy_1m_statespace_result.json` |
+| C2 | Kalman forward-filter drift sign (trap#1-safe, FILTER only) | `usdjpy_1m_statespace.py` | drift-AUC .488/.489/.489 | ❌ anti-predictive (trend-following dead → dip-buy reversion confirmed) |
+| I3 | \|ret\|-weighted retrain POW {0.5,1.0} | `usdjpy_1m_loss.py magw` | DOWN OOS .486/.509; UP no lift | ❌ RUN→KILLED (EURUSD-5m DOWN rescue doesn't transfer to 1m) |
+| A5 | cross-horizon edge probe (H=5,15) + stack | `usdjpy_xhorizon.py` | running | — |
+| I1 | ACI adaptive gate (EURUSD-5m winner lever) | `usdjpy_1m_aci.py` | queued | — |
+| D1 | GRU on bar-feature path | `usdjpy_1m_dl.py` | queued | — |
+
 ## Discovery rounds (loop until dry)
 - **Round 1** (8-agent workflow `usdjpy-1m-discover`): surfaced 5 runnable Tier-N (UJ-N1..N5) — ALL run-and-killed/subsumed (see Tier-N table); 5 data-blocked (Tier-G). NOT dry (had survivable candidates) → ran them.
 - **Round 2** (2-agent workflow `usdjpy-1m-discover-r2`, given full kill-list): **BOTH agents DRY.** No genuinely-new on-disk-runnable signed direction lever exists. Independently confirmed via their own Tier-1 probes (WMR 4pm-fix reversal .509/.512/.501; Krohn-Mueller-Whelan seasonal W-pattern collapses OOS .490; per-channel dirAUCs all ~.485-.50; cross-pair/point-process/label-engineering families subsumed by run kills + sign-invariance). Only frontier = DATA-BLOCKED external inputs.
