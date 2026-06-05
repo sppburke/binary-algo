@@ -29,8 +29,13 @@
 | F4a | F4 | residualized TARGET (label = USD-residual sign) | bar analog of `min1_residtarget` | D | ~null | pending | | | | | |
 | —  | B/C(tick)/D | tick microstructure / state-space-on-tick / seq-DL | — | D | — | **BLOCKED** | — | — | — | no USDJPY tick cache (data-acq prereq) | — |
 
-## Tier-N (discovered) rows — appended by discovery rounds (see backlog)
-_(none yet — discovery starts after Tier-A baseline establishes the landscape)_
+## Tier-N (discovered, round-1 8-agent workflow) rows
+| id | method | script | tgt | prior | status | result | result_json |
+|----|--------|--------|-----|-------|--------|--------|-------------|
+| UJ-N1/N2 | signed spike×rangepos reversion + signed path-state (cumret/run-len/dist-from-extreme), +16 feats on s6/l255 | `usdjpy_1m_revspec.py` | both | .10/.08 | **killed/subsumed** | VAL AUC .5235 UNCHANGED; new feats #38-90/254; UP .556/.523/.527 (worst↓), DOWN OOS .503 | `usdjpy_1m_revspec_s6_result.json` |
+| UJ-N3 | cross-pair OF-basket + RESIDUAL (own OF − USD-up-basket OF) | `usdjpy_1m_ofresid.py` | both | .06 | running | — | `usdjpy_1m_ofresid_s8_result.json` |
+| UJ-N4 | realized signed-semivariance skew RS+−RS− (thin cks_e tick) | pending | both | .05 | pending | | |
+| UJ-N5 | gotobi/Tokyo-fix calendar as GBM conditioning feature | pending | UP | .04 | pending | | |
 
 ## Tier-I (improve) — apply to any edge that survives
 _(pending — only after an edge is found)_

@@ -1,0 +1,46 @@
+{
+  "key": "USDJPY.1m",
+  "model": "base239 + own18OF + cross-pair OF-basket+RESIDUAL (UJ-N3), stride8",
+  "settlement": "bar-close, ties LOSE, BE .541",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "new_feats": [
+    "baskOF_5",
+    "baskOF_15",
+    "baskOF_30",
+    "residOF_5",
+    "residOF_15",
+    "residOF_30"
+  ],
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "VAL AUC<=.515 OR no year UP/DOWN cov2% CI-lo>.541 AND residOF feats rank low",
+    "prior": 0.06,
+    "incumbent": "s6/l255 base UP cov2% .547/.534/.538; DOWN dead"
+  }
+}
