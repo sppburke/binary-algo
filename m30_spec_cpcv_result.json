@@ -1,0 +1,25 @@
+{
+ "model": "UP/DOWN meta-labeler specialist @MX_HOR=30, NESTED-REFIT CPCV (primary+meta refit per fold)",
+ "breakeven": 0.541,
+ "incumbent_xpair": {
+  "UP": 0.5588,
+  "DOWN": 0.5525
+ },
+ "UP": {
+  "n_paths": 15,
+  "mean": 0.5614,
+  "p10": 0.5501,
+  "min": 0.5304,
+  "max": 0.5744,
+  "frac_clear_BE": 0.933
+ },
+ "DOWN": {
+  "n_paths": 15,
+  "mean": 0.5396,
+  "p10": 0.5203,
+  "min": 0.5155,
+  "max": 0.5611,
+  "frac_clear_BE": 0.4
+ },
+ "CERT_RULE": "side IMPROVES iff p10>=.541 & frac>=.80 AND p10>incumbent; else SUBSUMED"
+}

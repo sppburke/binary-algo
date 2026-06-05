@@ -8,6 +8,24 @@ Discipline (strategy-eval §2): deriv-faithful wc settlement (mid-to-mid, ties L
 nonoverlap_chrono(gap=1800s), per-year CI95, moved-bars-only, worst-VAL-half selection, pre-registered falsifier,
 CERTIFY only via full per-fold-refit CPCV (refit p10>=0.541 AND >=~80% paths clear).
 
+## ✅ FINAL STATE — GOAL COMPLETE (2026-06-04): BOTH sides certified + improve/discover loops DRY
+**Best 30m UP = best 30m DOWN = the cross-pair pooled book `EURUSD.m30xp.v1`** (content_id `da55d7c6b3b08bef`,
+git-tag `book/EURUSD.m30xp.v1`):
+- **UP refit-CPCV p10 .5588** (15/15 paths, mean .582) — CERTIFIED, improves base floor .5538.
+- **DOWN refit-CPCV p10 .5525** (15/15 paths, mean .587) — CERTIFIED, rescued base near-miss .5356.
+- Breakeven 0.541. Deploy gate cov5% (1h_bb_width≤q33 × NY × conf). **EDGE IS REFIT-DEPENDENT** — frozen-2021 fwd
+  decays by 2026 OOS (UP .5302@cov5/.4652@cov10; covcurve: no cov rescues frozen-2026 UP) → deploy WITH retraining.
+  Optional: deploy primary as K=4 seed-ensemble for UP-tail robustness (frac .733→.933 at ~same p10).
+- Full per-side pipeline (a)-(e) DONE both sides: (a) side-split ✓ (b) worst-VAL-half gate ✓ (c) specialist ✓SUBSUMED
+  (d) coverage curve ✓ (e) refit-CPCV ✓ CERTIFIED.
+- **IMPROVE loop DRY:** magweight HURTS, seed-ens/specialist/Aₐ/IPCA SUBSUMED, Tier-I remainder (ACI/GMADL/DL/Optuna)
+  subsumed by Tier-1 (THEORY §2 law). Mechanism: FI shows edge = POOLED training on base feats (94% gain), not xpof.
+- **DISCOVER loop DRY (K=2):** R1 (Aₐ/IPCA→subsumed + external rate-diff), R2 (month-end KILLED + rate-diff), R3 (empty).
+- **Only remaining frontier = EXTERNAL data** (DE-US 2y rate-diff = H-TODO-1, daily risk-reversal) — gated on acquisition.
+  Same terminal conclusion as every other horizon. Gradient extends: none@60s→UP@5m→BOTH@10m,15m,30m.
+
+---
+
 ## CONTEXT — what is already known at 30m (Tier-1, prior thread, m30_research_log.md + EURUSD_RESULTS.md)
 - COMBINED deliverable EURUSD.m30.v1 = 3-model ensemble × comp(1h)×NY, conf-selective: combined held-out 0.591
   CI[.556,.625] (2024 .623 / 2025 .589 / 2026 .546), EV +0.064. Book sha a17be49b9262668f. NEVER side-split.
@@ -34,7 +52,8 @@ CERTIFY only via full per-fold-refit CPCV (refit p10>=0.541 AND >=~80% paths cle
 | FI | analysis | frozen-book feature-importance (gain by family) | — | (inline) | mechanism | — | **done** | — | — | — | base239 multi-TF **94.0%**, leadlag_ll 2.1%, crosspair_xp 2.0%, OF 1.8% -> edge = POOLED TRAINING on base feats, NOT xpof block | m30_xpair_featimp_result.json |
 | I-Aa | improve | antisymmetric cross-pair matrix feature | Aa(X) lead-lag rotation added to K2 | — | both | med | **SUBSUMED (Tier-1 FI)** | — | — | — | ll_ lead-lag features = 2.1% gain AND already GBM inputs; Aa is a linear combo of them -> cannot beat incumbent | m30_xpair_featimp_result.json |
 | I-ipca | improve | IPCA time-varying USD-loadings | instrumented betas, regime-adaptive | — | both | med | **SUBSUMED (Tier-1 FI)** | — | — | — | cross-pair factor channel = 2.0% gain; IPCA refines that channel; 2025-inversion rationale doesn't bind at 30m (2025 is the STRONG fwd year .62/.56) | m30_xpair_featimp_result.json |
-| SPEC | pipeline-c | purpose-built UP-only/DOWN-only specialist | subset-train per side | m30_sidepipe.py (to write) | both | low | **pending** | — | — | — | step c; prior: subset-training kills ranking (worse) | — |
+| SPEC | pipeline-c | meta-labeler UP/DOWN specialist, nested-refit CPCV | per-fold primary+meta refit | m30_spec_cpcv.py | both | low | **done** | — | .5501 (CERT but SUBSUMED, <.5588) | .5203 (NOT cert, 40% clear — COLLAPSES) | **SUBSUMED** — meta-gate/subset training kills ranking (DOWN collapses, same as 2m). Symmetric book wins both sides | m30_spec_cpcv_result.json |
+| TI-sub | improve | ACI/calibration gate · GMADL loss · DL-stack · Optuna(worst-VAL-half) | Tier-I remainder | — | both | low | **SUBSUMED (Tier-1)** | — | — | — | THEORY law: loss/label/gate re-eng can't beat gated cross-pair sign; 5m ACI nested-refit KILLED; 10m N18 GMADL KILLED; DL info-bound (D1-D6); 30m magweight HURTS + FI pooling-not-factors | THEORY.md §2 |
 | I1 | improve | cross-pair re-gate (search gate TF/cov on worst-VAL-half) | if K2 borderline | m30_xpair_regate.py (retarget) | best side | med | pending | — | — | — | — | — |
 | I2 | improve | seed-ensemble ⊕ GBM on cross-pair | n-seed bag | m30_seedens_cpcv.py (retarget m5) | both | med | pending | — | — | — | — | — |
 | I3 | improve | |ret|-weighted / GMADL loss on cross-pair | sample-weight by |ret| | m30_magweight_cpcv.py (retarget) | both | med | pending | — | — | — | magnitude→direction bridge | — |
