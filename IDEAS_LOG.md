@@ -139,3 +139,18 @@ loss + mag→dir bridge (sign-invariance holds: big moves are NOT more sign-pred
 reweighting/re-representation cannot cross a SIGNAL bound — the only redirect is NEW DATA (external). But you must SHOW this by
 running the cross-product, not asserting it.
 
+**Lever — BAR / CANDLESTICK PATTERN recognition (vetted 2026-06-05; corpus papers present):** sources in corpus —
+`OA_Sezer_AlgorithmicFinancialTrading_StockBarChartImageCNN` (CNN-BI: render N OHLC bars as a 2-D image → 2-D CNN →
+direction), GAF / Markov-Transition-Field → CNN image encodings, Kronos (candlestick/K-line foundation model with a price
+tokenizer), SACLSTM. **Vet:** (i) explicit candlestick FEATURES (body/wick/range ratios; doji/engulfing/hammer/pin) are
+SUBSUMED — they are deterministic functions of O/H/L/C that a GBM already accesses through `rangepos`/`atr_pct`/`gap_prev`/
+`bb_width`/multi-TF returns; the re-representation adds nothing (same kill as ESN/GRU), and named candlestick patterns
+classically gate move SIZE not SIGN (`OA_Singha_HiddenOrderEntropy_MagnitudeNotDirection`; most "it works" results die under
+deflated/purged CV per the Bailey/Lopez-de-Prado backtest-overfitting corpus). (ii) The ONE genuinely NON-subsumed sub-lever
+= a **2-D CNN over rendered OHLC bar IMAGES** (Sezer CNN-BI) / Kronos: a conv learns LOCAL 2-D pattern detectors that neither
+a per-bar GBM nor a 1-D sequence net (GRU/ESN, both tested) can represent. Prior LOW (corpus grades the image-CNN/GAF levers
+`low`; FX-direction CNNs typically ~.52-.55, ≈ the existing edge). **DATA GATE:** needs O/H/L — on disk only as
+`ohlc_cache/EURUSD_5m_*` (+ rebuildable from EURUSD ticks via `vbars.py` source). **NOT computable for any pair whose feature
+store keeps only `close` (e.g. USDJPY) without raw tick/OHLC acquisition.** ⇒ runnable today on EURUSD; an external-data lever
+for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ breakeven falsifier, eval vs the GBM baseline.
+

@@ -59,3 +59,10 @@ The next experiments are EXTERNAL-DATA-gated only (below) — a data-acquisition
 ## EXTERNAL-DATA FRONTIER (gated on explicit user "go" — do not acquire without it)
 - Intraday US–JP 2y rate differential (carry driver; BoJ vs Fed) via Dukascopy; daily JPY implied-vol / risk-reversal;
   EURJPY+EURUSD ticks for triangular USDJPY synthetic. These are the only inputs that could change a near-efficiency verdict.
+- **Bar/candlestick PATTERN recognition (vetted 2026-06-05, DATA-BLOCKED for USDJPY).** Corpus has the lit (Sezer CNN-BI
+  bar-chart-image CNN; GAF/MTF→CNN; Kronos K-line foundation model). Explicit candlestick FEATURES are SUBSUMED (the GBM
+  already has the geometry via rangepos/atr/gap/bb_width; classically magnitude-not-sign). The ONE non-subsumed sub-lever =
+  a **2-D CNN over rendered OHLC bar images** (local pattern detectors a GBM/1-D-GRU can't represent) — but it needs O/H/L,
+  and **USDJPY's feature store keeps only `close`; no USDJPY tick/OHLC on disk** → requires raw USDJPY tick/OHLC acquisition
+  (same prerequisite as the tick-microstructure unlock). Prior LOW (corpus grades it `low`; FX-dir CNNs ~.52-.55). Runnable
+  TODAY only on EURUSD (`ohlc_cache/EURUSD_5m_*`), which is out of this goal's scope (USDJPY·2m). See SWEEP_MATRIX Tier-N.

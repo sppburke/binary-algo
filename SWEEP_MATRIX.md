@@ -99,6 +99,19 @@ falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 > *signed order*. **Do NOT re-add these as Tier-N rows without a genuinely new signed representation.** Per-key kill
 > evidence: `sweeps/EURUSD_1m_backlog.md` (discovery rounds 1+2); see also `IDEAS_LOG.md`.
 
+> **Discovery-vetting outcome — BAR / CANDLESTICK PATTERN recognition family (generic, 2026-06-05):** corpus has the
+> canonical papers (`OA_Sezer_AlgorithmicFinancialTrading_StockBarChartImageCNN` = CNN-BI 2-D OHLC bar-chart-image CNN;
+> GAF/Markov-Transition-Field→2-D-CNN; Kronos K-line foundation-model tokenizer; SACLSTM). VET: (i) explicit candlestick
+> FEATURES (body/wick/range, doji/engulfing/pin) = SUBSUMED — they are functions of O/H/L/C the GBM already accesses via
+> `rangepos`/`atr_pct`/`gap_prev`/`bb_width`/returns (same re-representation kill as ESN/GRU); and classically gate move
+> SIZE not SIGN (cf. `OA_Singha_HiddenOrderEntropy_MagnitudeNotDirection`; most named-pattern results die under
+> deflated/purged CV — Bailey/Lopez-de-Prado corpus). (ii) The ONE non-subsumed sub-lever = **2-D CNN over rendered OHLC
+> bar IMAGES** (Sezer CNN-BI) / Kronos — a conv learns LOCAL 2-D pattern detectors a per-bar GBM and a 1-D GRU cannot
+> represent (GRU+ESN were tested, a 2-D image-conv was NOT). Prior LOW (corpus grades it `low`; FX-dir CNNs land ~.52-.55).
+> **DATA GATE:** requires O/H/L — present only as `ohlc_cache/EURUSD_5m_*` + rebuildable from EURUSD ticks (`vbars.py` src);
+> **NOT computable for USDJPY (feature store keeps only `close`; no USDJPY tick/OHLC on disk)** → for USDJPY it is an
+> external-data lever. Runnable only on EURUSD. Per-key: `sweeps/USDJPY_2m_backlog.md` external frontier; `IDEAS_LOG.md`.
+
 > **Discovery-vetting outcome — USDJPY 1m (generic, 2026-06-04):** a fresh new-currency bootstrap (8-agent discovery
 > R1 + 2-agent R2) confirms the **60s/1m near-efficiency keystone is currency-GENERIC, not EURUSD-specific** — USDJPY
 > 1m direction is also near-efficient (dirAUC ~.514–.524; only signed structure = a thin ~.52–.54 dip-buy reversion
