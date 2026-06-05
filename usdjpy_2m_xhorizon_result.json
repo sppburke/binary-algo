@@ -1,0 +1,9 @@
+{
+  "key": "USDJPY.2m",
+  "model": "POOLED H2 + xh(H5,H15 pooled P_up) features",
+  "stride": 30,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "xh feats rank<top-30 OR no held-out UP cov2% beats C1 CI-sep"
+  }
+}
