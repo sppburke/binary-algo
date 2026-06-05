@@ -1,0 +1,389 @@
+{
+  "model": "cross-pair POOLED base-GBM @2m, TIES-STRICT per-fold-REFIT CPCV",
+  "key": "USDJPY.2m",
+  "breakeven": 0.541,
+  "pool_stride": 14,
+  "cov": 0.03,
+  "n_groups": 6,
+  "k_test": 2,
+  "sub_fit": 150000,
+  "incumbent_floor": {
+    "UP": 0.546,
+    "DOWN": 0.541,
+    "COMBINED": 0.547
+  },
+  "CERT_RULE": "side CERTIFIED iff p10>=0.541 AND frac_clear_BE>=0.80; IMPROVES incumbent iff p10>incumbent_floor",
+  "falsifier": {
+    "registered_utc": "pre-paths",
+    "KILL_if": "UP p10 < 0.541 OR UP frac_clear_BE < 0.80"
+  },
+  "paths": [
+    {
+      "fold": [
+        0,
+        1
+      ],
+      "auc": 0.5282,
+      "up_rate": 0.5031,
+      "UP": [
+        1487,
+        0.5609
+      ],
+      "DOWN": [
+        2419,
+        0.5697
+      ],
+      "COMBINED": [
+        3906,
+        0.5663
+      ],
+      "thr": 0.0398
+    },
+    {
+      "fold": [
+        0,
+        2
+      ],
+      "auc": 0.5321,
+      "up_rate": 0.5023,
+      "UP": [
+        2022,
+        0.5628
+      ],
+      "DOWN": [
+        1262,
+        0.5396
+      ],
+      "COMBINED": [
+        3284,
+        0.5539
+      ],
+      "thr": 0.042
+    },
+    {
+      "fold": [
+        0,
+        3
+      ],
+      "auc": 0.5299,
+      "up_rate": 0.5027,
+      "UP": [
+        1728,
+        0.5642
+      ],
+      "DOWN": [
+        1763,
+        0.5502
+      ],
+      "COMBINED": [
+        3491,
+        0.5571
+      ],
+      "thr": 0.0316
+    },
+    {
+      "fold": [
+        0,
+        4
+      ],
+      "auc": 0.5268,
+      "up_rate": 0.5043,
+      "UP": [
+        1549,
+        0.5462
+      ],
+      "DOWN": [
+        1953,
+        0.5453
+      ],
+      "COMBINED": [
+        3502,
+        0.5457
+      ],
+      "thr": 0.0314
+    },
+    {
+      "fold": [
+        0,
+        5
+      ],
+      "auc": 0.5218,
+      "up_rate": 0.5039,
+      "UP": [
+        2294,
+        0.5366
+      ],
+      "DOWN": [
+        1428,
+        0.5357
+      ],
+      "COMBINED": [
+        3722,
+        0.5363
+      ],
+      "thr": 0.0444
+    },
+    {
+      "fold": [
+        1,
+        2
+      ],
+      "auc": 0.5318,
+      "up_rate": 0.502,
+      "UP": [
+        1788,
+        0.5604
+      ],
+      "DOWN": [
+        2135,
+        0.5611
+      ],
+      "COMBINED": [
+        3923,
+        0.5608
+      ],
+      "thr": 0.0343
+    },
+    {
+      "fold": [
+        1,
+        3
+      ],
+      "auc": 0.5255,
+      "up_rate": 0.5023,
+      "UP": [
+        2979,
+        0.5274
+      ],
+      "DOWN": [
+        1338,
+        0.5463
+      ],
+      "COMBINED": [
+        4317,
+        0.5332
+      ],
+      "thr": 0.0413
+    },
+    {
+      "fold": [
+        1,
+        4
+      ],
+      "auc": 0.5263,
+      "up_rate": 0.504,
+      "UP": [
+        2436,
+        0.5427
+      ],
+      "DOWN": [
+        1325,
+        0.5313
+      ],
+      "COMBINED": [
+        3761,
+        0.5387
+      ],
+      "thr": 0.0319
+    },
+    {
+      "fold": [
+        1,
+        5
+      ],
+      "auc": 0.5192,
+      "up_rate": 0.5036,
+      "UP": [
+        1986,
+        0.5317
+      ],
+      "DOWN": [
+        1270,
+        0.5457
+      ],
+      "COMBINED": [
+        3256,
+        0.5372
+      ],
+      "thr": 0.0336
+    },
+    {
+      "fold": [
+        2,
+        3
+      ],
+      "auc": 0.5298,
+      "up_rate": 0.5015,
+      "UP": [
+        1701,
+        0.545
+      ],
+      "DOWN": [
+        1337,
+        0.5684
+      ],
+      "COMBINED": [
+        3038,
+        0.5553
+      ],
+      "thr": 0.0362
+    },
+    {
+      "fold": [
+        2,
+        4
+      ],
+      "auc": 0.5264,
+      "up_rate": 0.5032,
+      "UP": [
+        2646,
+        0.559
+      ],
+      "DOWN": [
+        904,
+        0.5465
+      ],
+      "COMBINED": [
+        3550,
+        0.5558
+      ],
+      "thr": 0.0369
+    },
+    {
+      "fold": [
+        2,
+        5
+      ],
+      "auc": 0.5246,
+      "up_rate": 0.5028,
+      "UP": [
+        1861,
+        0.5368
+      ],
+      "DOWN": [
+        1783,
+        0.5508
+      ],
+      "COMBINED": [
+        3644,
+        0.5436
+      ],
+      "thr": 0.0285
+    },
+    {
+      "fold": [
+        3,
+        4
+      ],
+      "auc": 0.5254,
+      "up_rate": 0.5035,
+      "UP": [
+        1831,
+        0.538
+      ],
+      "DOWN": [
+        1749,
+        0.5489
+      ],
+      "COMBINED": [
+        3580,
+        0.5433
+      ],
+      "thr": 0.0345
+    },
+    {
+      "fold": [
+        3,
+        5
+      ],
+      "auc": 0.5168,
+      "up_rate": 0.5031,
+      "UP": [
+        2773,
+        0.5305
+      ],
+      "DOWN": [
+        1469,
+        0.5248
+      ],
+      "COMBINED": [
+        4242,
+        0.5285
+      ],
+      "thr": 0.0407
+    },
+    {
+      "fold": [
+        4,
+        5
+      ],
+      "auc": 0.5187,
+      "up_rate": 0.5048,
+      "UP": [
+        749,
+        0.5541
+      ],
+      "DOWN": [
+        2397,
+        0.5315
+      ],
+      "COMBINED": [
+        3146,
+        0.5369
+      ],
+      "thr": 0.0383
+    }
+  ],
+  "auc_summary": {
+    "mean": 0.5256,
+    "min": 0.5168,
+    "max": 0.5321
+  },
+  "uprate_tripwire_ok": true,
+  "summary": {
+    "UP": {
+      "n_paths": 15,
+      "mean": 0.5464,
+      "p10": 0.531,
+      "p50": 0.545,
+      "min": 0.5274,
+      "frac_clear_BE": 0.6
+    },
+    "DOWN": {
+      "n_paths": 15,
+      "mean": 0.5464,
+      "p10": 0.5314,
+      "p50": 0.5463,
+      "min": 0.5248,
+      "frac_clear_BE": 0.667
+    },
+    "COMBINED": {
+      "n_paths": 15,
+      "mean": 0.5462,
+      "p10": 0.5345,
+      "p50": 0.5436,
+      "min": 0.5285,
+      "frac_clear_BE": 0.6
+    }
+  },
+  "verdict": {
+    "UP": {
+      "p10": 0.531,
+      "frac_clear_BE": 0.6,
+      "CERTIFIED": false,
+      "IMPROVES_incumbent": false
+    },
+    "DOWN": {
+      "p10": 0.5314,
+      "frac_clear_BE": 0.667,
+      "CERTIFIED": false,
+      "IMPROVES_incumbent": false
+    },
+    "COMBINED": {
+      "p10": 0.5345,
+      "frac_clear_BE": 0.6,
+      "CERTIFIED": false,
+      "IMPROVES_incumbent": false
+    }
+  }
+}

@@ -29,10 +29,19 @@ incumbent/answer: TBD (sweep in progress).
   / 22% paths clear; older (2012-20) .542 / 50% clear. So the deployable-regime edge is ~.53 UP, ~1.5pp SUB-BE, and MORE
   data won't fix a regime/signal deficit. Pooling DID lift the global mean above 1m (.536 vs .52) — real signal gain, not
   certifiable. **Cross-pair-pooled direction path = EXHAUSTED pending Tier-I seed-ens check (G1b).**
-- ⇒ Remaining live frontiers: (1) Tier-I seed-ens on pooled CPCV (G1b, low prior — won't close 1.5pp); (2) DISCOVERY levers
-  (workflow running — NEW directional mechanisms the base/pool miss); (3) lower-prior ledger rows (loss/DL/statespace/session);
-  (4) EXTERNAL data (US-JP rate-diff/carry — the structurally-right USDJPY lever, gated on user "go"). Magnitude (sign-invariant)
-  not yet measured at 2m — likely STRONG (like 1m), record separately.
+- **★ VARIANCE-REDUCTION CEILING (G1b/G1c):** seed-ens + 2x data lifts UP CPCV mean .536→.546 (>BE!) and frac_clear .33→.60,
+  but **p10 SATURATES ~.531** (K1 .5245→K3 .5306→K5+2xdata .531). Worst regime-paths are SIGNAL-bound, not variance-bound —
+  decorrelation can't close the last ~1pp. ⇒ pooled edge = **marginal regime-risky** (avg .546>BE, worst-regime .527-.531<BE),
+  NOT robustly certifiable on bar data. [Earlier "recency is the wall" (G1) refined: K=1 understated; with seed-ens the recent
+  regime improves too, but the p10 across ALL regime-combos plateaus — it's a regime-VARIANCE/signal bound.]
+- **Discovery R1 (corpus, Tier-1):** cross-pair SIGN doesn't reach 2m (none@60s→UP@5m gradient); C1 lift = decorrelation NOT
+  factor signal ⇒ factor/SDF/OFI levers DRY. On-disk new-signal = ESN/kNN/GRU re-representations (low prior, info-bound).
+  Real unlocks are EXTERNAL: USDJPY TICK microstructure (the EURUSD-2m edge driver, USDJPY lacks it) + triangular EURJPY +
+  US-JP rate-diff.
+- ⇒ Remaining: coverage confirmators (ARF keystone/GRU/Kalman @2m), magnitude@2m (sign-invariant, record), DOWN-specialist +
+  asym-DOWN-conformal, fast-KILL low-prior on-disk discovery levers, THEN verdict + deployment spec + external/tick frontier.
+  **Honest interim verdict: 2m direction REAL-but-sub-BE (CPCV p10 ~.531 both sides), lifted above 1m by pooling, not
+  certifiable on-disk; frontier = tick/external data.**
 
 ## STATUS: IN PROGRESS (started 2026-06-05). Working Tier A→F; both sides scored symmetrically every row.
 
@@ -61,13 +70,30 @@ incumbent/answer: TBD (sweep in progress).
 | F3 | improve | calibration (isotonic/Platt) | on best edge | usdjpy_2m_improve.py calib | 2m | .08 | pending | | | | | usdjpy_2m_improve_calib_result.json |
 | F4 | improve | Optuna (worst-VAL-half obj) | on best edge | usdjpy_2m_optuna.py | 2m | .12 | pending | | | | | usdjpy_2m_optuna_result.json |
 | G1 | cert | full per-fold-refit CPCV (pooled) | 6grp C(6,2)=15 paths, ties-strict, cov3% | usdjpy_2m_cpcv.py 16 0.03 | 2m | — | **done** | p10 .527 | **p10 .524** (mean .536) | p10 .520 (mean .536) | **NOT CERTIFIED** — UP p10 .5245 frac_clear .33; DOWN p10 .5195 frac_clear .33. CORRECTS C1 overstatement. Recency: recent regime WEAKER (UP .532 vs older .542). Edge real but sub-BE | usdjpy_2m_cpcv_result.json |
-| G1b | cert | seed-ensemble pooled CPCV (Tier-I) | K=3 seeds/fold, cov3% | usdjpy_2m_cpcv.py 16 0.03 3 | 2m | .12 | pending | | | | | usdjpy_2m_cpcv_k3_result.json |
+| G1b | cert | seed-ensemble pooled CPCV (Tier-I) | K=3 seeds/fold, cov3% | usdjpy_2m_cpcv.py 16 0.03 3 | 2m | .12 | done | p10 .532 | **p10 .5306** (mean .542, p50 .543, frac .53) | p10 .5262 (frac .67) | NOT certified but IMPROVES — seed-ens lifts UP p10 .5245→.5306, frac .33→.53. Edge CLOSABLE (~1pp short). | usdjpy_2m_cpcv_k3_result.json |
+| G1c | cert | stack: 2x data + K=5 seeds | stride14 K5 cov3% | usdjpy_2m_cpcv.py 14 0.03 5 | 2m | .15 | done | p10 .5345 (mean .546 frac .60) | **p10 .531** (mean .546, p50 .545, frac .60) | p10 .531 (mean .546, frac .667) | NOT certified — **p10 SATURATED ~.531** (K1 .5245→K3 .5306→stack .531); mean/p50 now >BE but worst-regime signal-bound. Variance-reduction CEILING. | usdjpy_2m_cpcv_s14_k5_result.json |
+| E3 | statespace | online-ARF keystone + Kalman | stride25 | usdjpy_2m_statespace.py 25 | 2m | .08 | running | | | | | usdjpy_2m_statespace_result.json |
 
 Legend: prior = subjective P(survives a pre-registered falsifier), used to size fast-KILL effort. status ∈ {pending,running,done,killed,subsumed}.
 Tier-N (discovered) rows appended below as discovery rounds run. CPCV (G1) triggers only when a row's worst held-out year CI-lo ≥ 0.541.
 
-## TIER-N — discovered (appended by discovery rounds)
-(none yet — discovery round R1 pending after Tier A–D drain)
+## TIER-N — discovered (discovery round R1, 2026-06-05; corpus-mining workflow, 67 levers→11 ranked)
+Synthesis KEY (Tier-1): the C1 pooling lift is **noise-decorrelation, NOT a cross-pair factor/SDF sign signal** — the
+cross-pair SIGN gradient is none@60s→UP@5m→both@10m/15m and does NOT reach 2m (EURUSD min2_xpair_cpcv UP p10 .5096 /
+DOWN .5124; min2_rff SDF VAL AUC .4997). ⇒ factor/SDF/OFI-recovery levers add nothing (DRY cluster, subsumed). Crossing
+BE needs NEW orthogonal signal (different representation of on-disk data) OR external data.
+| id | lever | theme | data | prior | status | notes |
+|----|-------|-------|------|-------|--------|-------|
+| N-R1a | ESN reservoir temporal feats → pooled GBM | crossdisc | on-disk-base | .30→.15 | pending | most genuinely-orthogonal on-disk (path memory per-bar GBM misses); risk=echo-of-magnitude (permute-control). G1c result gates whether worth building |
+| N-R1b | regime-matcher Euclidean kNN (directional consensus) | crossdisc | on-disk-base | .28→.12 | pending | instance-based; but re-represents SAME feats GBM already exploits — low marginal prior |
+| N-R1c | informed/uninformed flow ROUTER (continuation vs reversion) | signed-micro | on-disk-OF | .26→.10 | pending | OF dead at 1m (N3 .480); router construction new but magnitude-restatement risk high |
+| N-R1d | depth-scaled OFI (OF_sum × Kyle-λ) | signed-micro | on-disk-OF | .22 | pending | close to N3 (killed .480); fast confirmatory kill only |
+| N-R1e | asymmetric-label conformal DOWN gate | losses | on-disk-base | .20 | pending | wrapper on pooled; DOWN-specific α split |
+| N-R1f | worst-window SoftMin/entropic-VaR loss | losses | on-disk-base | .18 | subsumed | EURUSD-2m loss kills (min2 lossbatch) |
+| N-R1g | SDF-drift / TMFG-HCNN / factor-recovery | crosspair | on-disk | .10 | **subsumed (DRY)** | cross-pair sign doesn't reach 2m; pooling already = decorrelation |
+| N-R1h | **triangular USDJPY synthetic (EURJPY×EURUSD dislocation)** | crosspair | **EXTERNAL (EURJPY not on disk)** | .30 | **gated** | structurally-right + sign-carrying; needs EURJPY 1m bars |
+| N-R1i | **intraday US–JP 2y rate differential (carry)** | carry | **EXTERNAL (Dukascopy)** | .30 | **gated** | the structurally-right USDJPY direction driver |
+| N-R1j | VIX / JPY risk-reversal carry-crash DOWN gate | carry | **EXTERNAL** | .22 | **gated** | DOWN-enabler (risk-off → JPY up → USDJPY down) |
 
 ## EVENT LOG
 - 2026-06-05: ledger created; `usdjpy_2m_base.py` written (H=2 fork of usdjpy_1m_base.py); A1 launched.
