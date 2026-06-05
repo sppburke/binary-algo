@@ -18,8 +18,12 @@ git-tag `book/EURUSD.m30xp.v1`):
   Optional: deploy primary as K=4 seed-ensemble for UP-tail robustness (frac .733→.933 at ~same p10).
 - Full per-side pipeline (a)-(e) DONE both sides: (a) side-split ✓ (b) worst-VAL-half gate ✓ (c) specialist ✓SUBSUMED
   (d) coverage curve ✓ (e) refit-CPCV ✓ CERTIFIED.
-- **IMPROVE loop DRY:** magweight HURTS, seed-ens/specialist/Aₐ/IPCA SUBSUMED, Tier-I remainder (ACI/GMADL/DL/Optuna)
-  subsumed by Tier-1 (THEORY §2 law). Mechanism: FI shows edge = POOLED training on base feats (94% gain), not xpof.
+- **IMPROVE loop DRY (best-combos RUN, not assumed):** magweight HURTS; seed-ens/specialist/Aₐ/IPCA SUBSUMED;
+  **3-model ensemble ON the pool RUN→SUBSUMED** (p10 .5542/.5432 < single-LGB — model-class diversity raises mean but
+  widens worst-path dispersion); **recency-weight RUN→SUBSUMED** (HURTS UP — shrinking the pool hurts, confirms FI).
+  Optuna subsumed by the ensemble RUN (xgb+cat = a LARGER perturbation than LGB-hyperparam tuning, already lost on p10);
+  ACI/GMADL/DL Tier-1-subsumed (THEORY §2 law + 5m/10m runs). Mechanism: FI = edge is POOLED base-feat training (94%
+  gain), so model/loss/feature/reweight tweaks can't move the binding p10.
 - **DISCOVER loop DRY (K=2):** R1 (Aₐ/IPCA→subsumed + external rate-diff), R2 (month-end KILLED + rate-diff), R3 (empty).
 - **Only remaining frontier = EXTERNAL data** (DE-US 2y rate-diff = H-TODO-1, daily risk-reversal) — gated on acquisition.
   Same terminal conclusion as every other horizon. Gradient extends: none@60s→UP@5m→BOTH@10m,15m,30m.
@@ -48,6 +52,8 @@ git-tag `book/EURUSD.m30xp.v1`):
 | FZ | records | freeze cross-pair book + deploy gate (worst-VAL-half) | EURUSD.m30xp.v1·da55d7c6b3b08bef | m30_xpair_freeze.py + regate cov5 | book | high | **done** | — | — | — | FROZEN, git-tag book/EURUSD.m30xp.v1. Deploy cov5 (worst-VAL-half .6389; cov10 rejected, 2026 UP .4652). REFIT-DEPENDENT: frozen-2021 fwd decays 2026 (UP .530/.465). | m30_xpair_freeze_result.json |
 | I-magw | improve | \|ret\|-weighted loss (magnitude->direction bridge) | POW=0.5, same K2 gate/CPCV | m30_magweight_cpcv.py | both | med | **done** | p10 .5608 | .5528 (SUBSUMED, <.5588) | .5382 (HURTS, <.5525 + <BE) | **KILLED/SUBSUMED** — \|ret\|-weight pulls toward MAGNITUDE (sign-invariant), dilutes directional sign. Confirms sign-invariance thm. | m30_magweight_cpcv_result.json |
 | I-seed | improve | seed-ensemble K=4 (variance reduction) | same K2 gate/CPCV | m30_seedens_cpcv.py | both | low-med | **done** | ENS p10 .5632 | .5572 (SUBSUMED, ~incumbent) | .5503 (SUBSUMED) | tail-variance NOT binding (p10 ~flat vs incumbent) BUT stabilizes UP vs single-seed (S1 .5397/.733 -> ENS .5572/.933) -> DEPLOY primary as K=4 seed-ens for robustness | m30_seedens_cpcv_result.json |
+| I-ens | improve | **3-model ensemble (lgb+xgb+cat) ON the pool** (the untested best-combo) | same K2 gate/CPCV | m30_xpair_ens_cpcv.py | both | med | **done** | p10 .558 | .5542 (SUBSUMED, <.5588) | .5432 (SUBSUMED, frac .867) | model-class diversity RAISES mean (DOWN .5956) but INCREASES worst-path dispersion -> p10 DROPS; regularized single-LGB tighter on worst paths. Incumbent stands (tested, not assumed) | m30_xpair_ens_cpcv_result.json |
+| I-recency | improve | recency-weighted frozen-forward (attack 2026 decay) | hl∈{flat,4y,2y} | m30_recency.py | both | low-med | **done** | — | — | — | **SUBSUMED** — recency HURTS UP every year (downweighting old data shrinks the pool = the mechanism); side-finding: flat 2026 UP .574 vs freeze .530 = seed/threshold-fragile. "deploy w/ retrain" stays the fix | m30_recency_result.json |
 | I-cov | pipeline-d | confidence/coverage curve (frozen book) | cov 2-20% per yr/side | m30_xpair_covcurve.py | both | — | **done** | — | — | — | step d DONE. 2024/25 UP .62-.63 DOWN .57-.65 @cov5; **2026 UP DECAYED (<=.57 all covs, .46 @cov8-10)**, DOWN holds .56-.60 -> reinforces REFIT-DEPENDENCE; no cov rescues frozen 2026 UP | m30_xpair_covcurve_result.json |
 | FI | analysis | frozen-book feature-importance (gain by family) | — | (inline) | mechanism | — | **done** | — | — | — | base239 multi-TF **94.0%**, leadlag_ll 2.1%, crosspair_xp 2.0%, OF 1.8% -> edge = POOLED TRAINING on base feats, NOT xpof block | m30_xpair_featimp_result.json |
 | I-Aa | improve | antisymmetric cross-pair matrix feature | Aa(X) lead-lag rotation added to K2 | — | both | med | **SUBSUMED (Tier-1 FI)** | — | — | — | ll_ lead-lag features = 2.1% gain AND already GBM inputs; Aa is a linear combo of them -> cannot beat incumbent | m30_xpair_featimp_result.json |
