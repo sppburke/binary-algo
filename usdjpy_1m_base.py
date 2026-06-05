@@ -29,8 +29,10 @@ FEAT = H.FEAT_DIR
 SPL = {"train":[str(y) for y in range(2012,2022)], "val":["2022","2023"],
        "test24":["2024"], "test25":["2025"], "oos":["2026"]}
 # defaults reproduce the recorded baseline; override via argv: python usdjpy_1m_base.py <stride> <leaves>
-TR_STRIDE = int(sys.argv[1]) if len(sys.argv)>1 else 24    # train ~3.5M moved bars -> stride 24 ~= 150k
-NUM_LEAVES = int(sys.argv[2]) if len(sys.argv)>2 else 127
+# tolerant parse so other scripts can `import build` without their argv (e.g. a mode string) breaking this
+def _argint(i, default): return int(sys.argv[i]) if len(sys.argv)>i and str(sys.argv[i]).isdigit() else default
+TR_STRIDE = _argint(1, 24)     # train ~3.5M moved bars -> stride 24 ~= 150k
+NUM_LEAVES = _argint(2, 127)
 RESULT = "usdjpy_1m_base_result.json" if (TR_STRIDE==24 and NUM_LEAVES==127) else f"usdjpy_1m_base_s{TR_STRIDE}_l{NUM_LEAVES}_result.json"
 
 FEATS = H.feature_cols(PAIR)   # 239 base features
