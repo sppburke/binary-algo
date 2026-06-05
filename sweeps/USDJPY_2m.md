@@ -112,8 +112,8 @@ BE needs NEW orthogonal signal (different representation of on-disk data) OR ext
 | DP-magdir | magnitude→direction bridge (mag-gate confident bars) | high-mag UP .530/.537/.502 vs low-mag .544/.499/.480 — INCONSISTENT, all CIs overlap | **KILLED** — high-mag bars not robustly more sign-predictable (theorem holds) |
 | DP-xhorizon | cross-horizon stack (H5/H15 pooled preds → H2) | compute-prohibitive @stride30 (6 pooled fits, killed at 23min); A5 already showed 15m parent sub-BE OOS | low-prior, **subsumed by A5** |
 | DP-multialgo | lgb+xgb+cat decorrelation CPCV | UP p10 **.5185** @cov3% (< seedens-lgb .531); DOWN p10 .510; comp-gate worse at every cov | **KILLED** — cross-algo decorrelation HURTS (xgb/cat weaker on thin signal); lgb seed-ens stays best; cov3%/nogate confirmed best op-point. `usdjpy_2m_cpcv2_multialgo_all7_result.json` |
-| DP-optuna | Optuna worst-VAL-half on pooled | RUNNING | pending |
-| DP-recency | recency-weighted pooled training | queued (motivated by recent-regime weakness) | pending |
+| DP-optuna | Optuna worst-VAL-half on pooled (14 trials) | best VAL-worst-half .5496 (passes VAL!) but held-out UP cov2% .528/.527/.543 < C1, AUC dropped .51 | **KILLED** — VAL-overfit ANTI-TRANSFERS (the corr(VAL,OOS)=−.54 trap, by experiment); tuning can't cross a signal bound. `usdjpy_2m_optuna_result.json` |
+| DP-recency | recency-weighted pooled training | RUNNING (motivated by recent-regime weakness) | pending |
 
 **Discovery R2 (2026-06-05, skeptical confirmation agent): DRY — on-disk direction space SATURATED.** Independent Tier-1
 review confirmed every sign-carrying family run-and-killed or subsumed: path/sequence (GRU AUC .514<GBM .524 → subsumes
