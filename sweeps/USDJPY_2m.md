@@ -43,8 +43,9 @@ incumbent/answer: TBD (sweep in progress).
   **Honest interim verdict: 2m direction REAL-but-sub-BE (CPCV p10 ~.531 both sides), lifted above 1m by pooling, not
   certifiable on-disk; frontier = tick/external data.**
 
-## STATUS: NEAR-COMPLETE (2026-06-05). All Tier A–G rows done/killed/subsumed (none silently skipped). Full (a)-(e)
-pipeline + Tier-I improve (seed-ens/data, saturates) + CPCV (not certified) + discovery R1 done; R2 dryness-check running.
+## STATUS: COMPLETE (2026-06-05). All Tier A–G rows done/killed/subsumed (none silently skipped). Full (a)-(e)
+pipeline + Tier-I improve (seed-ens/data, saturates) + CPCV (not certified) + discovery R1+R2 (DRY). Both sides honestly
+EXHAUSTED on-disk. improve+discover loops DRY.
 VERDICT: USDJPY 2m direction = **REAL-but-sub-BE both sides** (cross-pair POOLED GBM, CPCV p10 ~.531 UP & DOWN; mean .546).
 The pooling LIFTS the edge above the 1m near-efficiency floor (1m ~.52 → 2m mean .546) — a genuine signal gain — but the
 worst-regime p10 saturates ~1pp under the 0.541 deriv breakeven and is SIGNAL-bound (variance reduction can't close it).
@@ -100,6 +101,14 @@ BE needs NEW orthogonal signal (different representation of on-disk data) OR ext
 | N-R1h | **triangular USDJPY synthetic (EURJPY×EURUSD dislocation)** | crosspair | **EXTERNAL (EURJPY not on disk)** | .30 | **gated** | structurally-right + sign-carrying; needs EURJPY 1m bars |
 | N-R1i | **intraday US–JP 2y rate differential (carry)** | carry | **EXTERNAL (Dukascopy)** | .30 | **gated** | the structurally-right USDJPY direction driver |
 | N-R1j | VIX / JPY risk-reversal carry-crash DOWN gate | carry | **EXTERNAL** | .22 | **gated** | DOWN-enabler (risk-off → JPY up → USDJPY down) |
+
+**Discovery R2 (2026-06-05, skeptical confirmation agent): DRY — on-disk direction space SATURATED.** Independent Tier-1
+review confirmed every sign-carrying family run-and-killed or subsumed: path/sequence (GRU AUC .514<GBM .524 → subsumes
+ESN N-R1a + path-signature/Lévy-area = signed-return autocorr GBM already ingests); OF/microstructure (sign-invariance +
+1m N3 .480 + signed-flow decays by 60s, can't resurrect at 120s); cross-pair/factor/SDF (sign null <5m; C1 lift=decorrelation);
+regime (D1 killed — EURUSD-2m mechanism is tick-based); wrappers (loss/gate/conformal/calibration/Optuna/kNN = sign-invariant
+or signal-bound). p10-saturation (.5245→.5306→.531) = the clincher. ⇒ **2 dry rounds (R1 no-survivable-novel + R2 confirm) →
+DISCOVERY LOOP DRY.** Remaining real unlocks = EXTERNAL data only (N-R1h/i/j), correctly gated.
 
 ## EVENT LOG
 - 2026-06-05: ledger created; `usdjpy_2m_base.py` written (H=2 fork of usdjpy_1m_base.py); A1 launched.

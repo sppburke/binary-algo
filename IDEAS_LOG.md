@@ -114,3 +114,15 @@ Kelly-Malamud) on the same [EURUSD·2m] features gave VAL AUC .4997 — the 4th 
 single GBM) to read ~.50. When ≥3 diverse learners agree on ~.50 AUC, the channel is information-empty, not capacity-limited;
 the redirect is NEW DATA (external), not a new model.
 
+**Lesson — cross-pair POOLING lifts the MEAN, NOT the worst-regime p10 (decorrelation ≠ certification) (measured 2026-06-05,
+[USDJPY·2m]):** pooling 7 USD-majors' 239 base feats (train each pair on its OWN forward sign, eval the target — distinct from
+the cross-pair-FEATURES `m5_xpair` lever above) lifted per-fold-refit-CPCV win-rate MEAN from the single-pair ~.52 to **.546
+(>0.541 BE)** — yet the worst-regime **p10 SATURATED ~.531** across the variance-reduction stack (seed-ens K1 .5245 → K3 .5306 →
+K5+2×data .531). Pooling = **noise-decorrelation** (more diverse training rows → smoother conditional-mean), NOT a new cross-pair
+factor SIGN (which doesn't reach <5m — gradient lesson above). So pooling can make the AVERAGE win-rate tradeable while the WORST
+regime-combination stays sub-BE → a *marginal regime-risky* edge, not a certification. **Always read CPCV p10 + frac-clear-BE,
+never the mean; variance-reduction levers plateau at the worst-regime signal bound.** **ARF horizon-gradient refinement:** at
+[USDJPY·2m] online-ARF reads **.508** (>.50, vs the 1m .50 efficiency floor) → adaptive *detectability* of direction first crosses
+.50 between 1m and 2m — a thin REAL edge that is genuinely absent at 1m, but still ~1pp under breakeven. (Magnitude stays the
+strong sign-invariant edge: [USDJPY·2m] magAUC ~.78 vs dirAUC ~.52.)
+
