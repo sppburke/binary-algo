@@ -35,7 +35,7 @@
 | UJ-N1/N2 | signed spike×rangepos reversion + signed path-state (cumret/run-len/dist-from-extreme), +16 feats on s6/l255 | `usdjpy_1m_revspec.py` | both | .10/.08 | **killed/subsumed** | VAL AUC .5235 UNCHANGED; new feats #38-90/254; UP .556/.523/.527 (worst↓), DOWN OOS .503 | `usdjpy_1m_revspec_s6_result.json` |
 | UJ-N3 | cross-pair OF-basket + RESIDUAL (own OF − USD-up-basket OF) | `usdjpy_1m_ofresid.py` | both | .06 | **killed** | VAL AUC .5219 (≤base); OF feats rank #15-25 but no net gain; UP cov2% .538/.528/.519, DOWN cov2% .533/.518/**.480** (OOS collapse) | `usdjpy_1m_ofresid_s8_result.json` |
 | UJ-N4 | realized signed-semivariance skew RS+−RS− (thin cks_e tick) | — | both | .05 | **subsumed** | cks1s cache has only cks_e(signed event)+cks_nev — NO sub-bar prices/returns → classical RS-skew not buildable; buildable cks_e-variance-asymmetry = signed-OF channel already KILLED (UJ-N3, features_of). OOS only 2026-02..05 (can't certify). Tier-1 subsumption | (cks1s inspection) |
-| UJ-N5 | gotobi/Tokyo-fix calendar as GBM conditioning feature | pending | UP | .04 | pending | | |
+| UJ-N5 | gotobi/Tokyo-fix calendar as GBM conditioning feature | `usdjpy_1m_gotobi.py` | UP | .04 | **killed** | VAL AUC rise +.0004 (<.003); gotobi/near_fix rank #197/#245; UP cov2% .543/.529/.523, DOWN OOS .481 | `usdjpy_1m_gotobi_s6_result.json` |
 
 ## Tier-I (improve) — run on the best base (s6/l255) even though sub-BE
 | lever | script | result | verdict |
@@ -45,7 +45,9 @@
 | I4 calibration | — | **moot**: gate is sub-BE pre/post-calibration; calibration doesn't add signal. |
 | I3 \|ret\|-weight/GMADL | — | **subsumed** by magnitude sign-invariance (magnitude finds big moves w/ zero direction; mag→dir bridge null, EURUSD [60s] `min1_magdir`) + revspec signed feats already null. |
 
-## Discovery rounds (loop until K=2 dry)
-_(pending)_
+## Discovery rounds (loop until dry)
+- **Round 1** (8-agent workflow `usdjpy-1m-discover`): surfaced 5 runnable Tier-N (UJ-N1..N5) — ALL run-and-killed/subsumed (see Tier-N table); 5 data-blocked (Tier-G). NOT dry (had survivable candidates) → ran them.
+- **Round 2** (2-agent workflow `usdjpy-1m-discover-r2`, given full kill-list): **BOTH agents DRY.** No genuinely-new on-disk-runnable signed direction lever exists. Independently confirmed via their own Tier-1 probes (WMR 4pm-fix reversal .509/.512/.501; Krohn-Mueller-Whelan seasonal W-pattern collapses OOS .490; per-channel dirAUCs all ~.485-.50; cross-pair/point-process/label-engineering families subsumed by run kills + sign-invariance). Only frontier = DATA-BLOCKED external inputs.
+- **VERDICT: discovery loop DRY** (round-2 dry + all round-1 survivors killed + EURUSD 1m's own 2 dry rounds cited). A round 3 would re-return dry given the mechanism-level subsumption.
 
 ## STATUS: bootstrap in progress — baseline running. Next: record baseline, instantiate Tier-A heavy rows serially.

@@ -25,22 +25,22 @@ def lgbm(seed, leaves=255, n=3000):
         min_child_samples=400,subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,
         n_estimators=n,n_jobs=20,verbosity=-1,random_state=seed)
 
-def prior5(years):
-    """recompute prior-5min sign per row aligned to build() output, for specialist subset masks."""
-    # build() already returns rows in the same order; reconstruct prior5 from close per year
-    import harness as H
+def prior5(years, stride):
+    """prior-5min return aligned EXACTLY to build()'s rows (same valid mask + stride), for subset masks."""
     out=[]
     for y in years:
         p=f"{H.FEAT_DIR}/{PAIR}_{y}.parquet"
         if not os.path.exists(p): continue
-        d=pd.read_parquet(p,columns=["close"]); d=d[~d.index.duplicated(keep="last")]
+        d=pd.read_parquet(p,columns=H.feature_cols(PAIR)+["close"]); d=d[~d.index.duplicated(keep="last")]
         c=d["close"].values.astype(float); ts=d.index.values.astype("datetime64[s]").astype("int64"); n=len(d)
         contig=np.zeros(n,bool); contig[:n-1]=(ts[1:]-ts[:-1])==60
         fr=np.full(n,np.nan); fr[:n-1]=c[1:]/c[:-1]-1.0
         p5=np.full(n,np.nan); p5[5:]=c[5:]/c[:-5]-1.0
-        X=pd.read_parquet(p,columns=H.feature_cols(PAIR)); keepf=X.isna().mean(axis=1).values<0.5
+        keepf=d[H.feature_cols(PAIR)].isna().mean(axis=1).values<0.5
         valid=contig&np.isfinite(fr)&keepf
-        out.append(p5[valid])
+        idx=np.where(valid)[0]
+        if stride>1: idx=idx[::stride]
+        out.append(p5[idx])
     return np.concatenate(out)
 
 def main():
@@ -68,7 +68,7 @@ def main():
             print(f"=== {w} === AUC={res['years'][w]['moved_auc']:.4f} | UP cov2%:{g('0.02','UP')} cov1%:{g('0.01','UP')} | DOWN cov2%:{g('0.02','DOWN')}",flush=True)
 
     elif MODE=="spec":
-        p5tr=prior5(SPL["train"])
+        p5tr=prior5(SPL["train"],STRIDE)
         res["years"]={}
         for sidename,subset,want in (("UP",p5tr<0,"UP"),("DOWN",p5tr>0,"DOWN")):
             sub=mtr&subset

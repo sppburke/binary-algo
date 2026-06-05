@@ -99,6 +99,18 @@ falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 > *signed order*. **Do NOT re-add these as Tier-N rows without a genuinely new signed representation.** Per-key kill
 > evidence: `sweeps/EURUSD_1m_backlog.md` (discovery rounds 1+2); see also `IDEAS_LOG.md`.
 
+> **Discovery-vetting outcome — USDJPY 1m (generic, 2026-06-04):** a fresh new-currency bootstrap (8-agent discovery
+> R1 + 2-agent R2) confirms the **60s/1m near-efficiency keystone is currency-GENERIC, not EURUSD-specific** — USDJPY
+> 1m direction is also near-efficient (dirAUC ~.514–.524; only signed structure = a thin ~.52–.54 dip-buy reversion
+> below the 0.541 breakeven; magnitude STRONG magAUC ~.72–.79, sign-invariant). Two genuinely-new GENERIC levers were
+> INVENTED + RUN here, now Tier-1 nulls at 1m (transferable): (i) **cross-pair ORDER-FLOW residual** (own signed OF −
+> USD-up-basket OF from 6 majors' `features_of`; the untested delta vs returns-based xpair) — [USDJPY·1m] KILLED
+> (`usdjpy_1m_ofresid_s8_result.json`, OOS DOWN .480); the cross-pair `none@60s` gradient holds in OF space too.
+> (ii) **gotobi/Tokyo-fix calendar as GBM conditioning feature** — [USDJPY·1m] KILLED (`usdjpy_1m_gotobi_s6_result.json`,
+> +.0004 AUC, flags rank #197/#245). Also confirmed at 1m: signed reversion/path-state feats SUBSUMED by base;
+> regime-gating + model-confidence ANTI-transfers OOS (corr(VAL,OOS)=−.54); seed-ensemble can't close a ~1pp gap.
+> Per-key evidence: `sweeps/USDJPY_1m{,_backlog}.md`, `USDJPY_RESULTS.md`.
+
 > **Validation-lever menu (generic): multiple-testing haircut** (Holm + BHY-FDR + HLZ t≥3 + N̂-from-ρ̄, via an
 > `m{tf}_mt_haircut.py` mirroring `cpcv_certify.py`) — run on a key's whole sweep family to deflate the headline
 > by the realized M before trusting a survivor; pre-register the falsifier "procedure must flag the known kills
