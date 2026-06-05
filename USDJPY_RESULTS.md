@@ -48,6 +48,9 @@ UP-side win-rate is monotone in model confidence and OOS-persistent (the deliver
 
 DOWN: flat/declining → **dead**. UP: monotone↑, OOS-best at cov1% (.545) but thin-slice CI-lo (≈.507 @ n651) does not clear 0.541.
 
+### Regime-gated filter (steps a+b+c+d) — `usdjpy_1m_regime.py` → `usdjpy_1m_regime_s6_result.json`
+Symmetric s6/l255 GBM + dip×compression×Tokyo (UP) / rally (DOWN) regime filter + model-confidence, gate FROZEN on VAL worst-half. **Both KILLED.** UP gate `dip_comp_tk` looked strong on VAL (worst-half .558) but held-out UP = .524 / .529 / **.495** — **OOS collapses below 0.50**. The model's confidence ranking *within* the regime ANTI-TRANSFERS (corr(VAL,OOS)=−0.54); the only OOS-stable thing is the raw regime base-rate (~.52, sub-breakeven). DOWN rally-gate .518/.515/.513 — consistent thin sell-rally reversion, well below breakeven. **Lesson: gating + model-confidence does NOT lift USDJPY 1m direction over breakeven; the signed edge is a raw ~.52 reversion, not model-extractable to a tradeable level.**
+
 ### Key results (MEASURED — baseline)
 | Key | Result (2024 / 2025 / 2026) | Method | Status |
 |---|---|---|---|
