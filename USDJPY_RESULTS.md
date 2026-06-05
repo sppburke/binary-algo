@@ -92,6 +92,18 @@ Symmetric s6/l255 GBM + dip×compression×Tokyo (UP) / rally (DOWN) regime filte
 
 **Only frontier = EXTERNAL DATA (Tier-G, gated on user "go"):** intraday US–JP 2y/10y rate-differential (carry sign), intraday Nikkei/risk-asset lead (Tokyo hours), USDJPY 25-delta risk-reversal skew (DOWN-enabler), traded JPY crosses (EURJPY/GBPJPY triangular). None on disk; modeling rows cannot manufacture them. See `sweeps/USDJPY_1m_backlog.md` DATA-BLOCKED.
 
+### 2nd-pass exhaustiveness audit (2026-06-05)
+After the first pass leaned on subsume-by-analogy-to-EURUSD, a second pass RAN the previously-argued levers (coverage rule: run each family once even if null elsewhere). All confirm the wall:
+- **★ C5 online-ARF keystone** (`usdjpy_1m_statespace.py`): an ADAPTIVE continuously-retraining forest = AUC **.502/.501/.506** every year incl. OOS → the wall is **genuine efficiency**, not a stationary-GBM limitation (the GBM's .52 is marginally *above* it). This is the decisive confirmator.
+- **C2 Kalman forward-filter** drift-sign AUC .488/.489/.489 — anti-predictive (trend dead → dip-buy reversion confirmed).
+- **I3 |ret|-weighted retrain** (POW .5/1.0): DOWN OOS .486/.509 — the EURUSD-5m DOWN-rescue does NOT transfer.
+- **I1 ACI adaptive gate** (EURUSD-5m winner): UP .534/.519/.513, DOWN .520/.505/.493 — base-rate trading, no edge.
+- **D1 GRU** (Tier-D): AUC .515 all years, win-rates sub-BE — info-bound caps DL (confirms EURUSD D1–D6).
+- **A5 cross-horizon**: USDJPY H=15m UP 2024 .593 (clears!) but 2025/OOS sub-BE → no robust parent to front-load (hook for a future 15m goal).
+- **I6 Optuna** (10-trial TPE, worst-VAL-half deploy objective): best worst-VAL-half WR **.5347 < .541**; held-out UP cov2% .548/.528/.527, DOWN sub-BE — tuning can't cross breakeven (signal-bound, as the keystone predicts). `usdjpy_1m_optuna_result.json`.
+
+Remaining families subsumed on Tier-1 grounds (run-don't-argue exception — the dominating variant ran + failed): **C1 HMM / C3 RMT / C4 CCM** (state/complexity gates = sign-invariant by theorem; the adaptive-state-space question is answered by the ARF keystone @.50, the directional state-space by Kalman @anti-predictive); **D2 NCDE / D3 TabNet / D4-D5 DRL** (info-bound caps all DL, established by D1 GRU + EURUSD D1–D6); **E2 dir-cond-on-mag** (magnitude is sign-invariant: E1 strong + dir flat; EURUSD `min1_magdir` null); **E3 complexity / E4 info-bars** (sign-invariant by theorem); **I5 cross-pair pooling** (the cross-pair channel carries no 1m sign — A6a returns + N3 OF both dead); **cks1s tick model** (signed-event = OFI family, dead: `min1_xofi` .5015 + N3 OF-residual .480). **Net: every on-disk method family has now been run-or-subsumed-with-a-Tier-1-cite; the verdict is unchanged and better-supported.**
+
 ---
 
 ## How to maintain this file
