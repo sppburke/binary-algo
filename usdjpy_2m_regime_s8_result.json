@@ -1,0 +1,120 @@
+{
+  "key": "USDJPY.2m",
+  "model": "regime-gated side FILTER on symmetric GBM (stride8)",
+  "mechanism": "compression-release: dip-buy (prior5<0) x compression (rv30 low) x session; symmetric GBM + side+regime filter @2m",
+  "settlement": "bar-close approx, ties LOSE, BE 0.541, gap120",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "no held-out year UP (or DOWN) win-rate CI95-lower clears 0.541 at the VAL-frozen gate (n>=150)",
+    "incumbent": "single-pair 2m baseline UP cov2% .546/.525/.527 (sub-BE), DOWN dead"
+  },
+  "val_auc": 0.5245620937247037,
+  "comp_q33": 9.107869721199794e-05,
+  "UP_gate": {
+    "val_worst_half_wr": 0.5400477534187107,
+    "gate": "dip_comp",
+    "cov_in_gate": 0.1,
+    "thr": 0.054756445073552366
+  },
+  "DOWN_gate": {
+    "val_worst_half_wr": 0.521697371867633,
+    "gate": "rally",
+    "cov_in_gate": 0.1,
+    "thr": 0.06345994191927753
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5208700076943062,
+      "moved_up_rate": 0.5062996349386183,
+      "UP": {
+        "n": 5422,
+        "wr": 0.5475839173736629,
+        "ci": [
+          0.5341156399852454,
+          0.5616008852821837
+        ]
+      },
+      "DOWN": {
+        "n": 10676,
+        "wr": 0.5184526039715249,
+        "ci": [
+          0.5088047958036718,
+          0.5279130760584488
+        ]
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5149129456902213,
+      "moved_up_rate": 0.5026305084000352,
+      "UP": {
+        "n": 2748,
+        "wr": 0.5207423580786026,
+        "ci": [
+          0.50254730713246,
+          0.539665211062591
+        ]
+      },
+      "DOWN": {
+        "n": 12240,
+        "wr": 0.5130718954248366,
+        "ci": [
+          0.5041646241830066,
+          0.5220608660130719
+        ]
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5167355782915115,
+      "moved_up_rate": 0.509965538625784,
+      "UP": {
+        "n": 1660,
+        "wr": 0.541566265060241,
+        "ci": [
+          0.5174698795180723,
+          0.5662650602409639
+        ]
+      },
+      "DOWN": {
+        "n": 4069,
+        "wr": 0.4971737527648071,
+        "ci": [
+          0.48242197100024575,
+          0.5126566724010814
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "UP_years_CIlo_clears_BE": [],
+    "DOWN_years_CIlo_clears_BE": [],
+    "UP_KILLED": true,
+    "DOWN_KILLED": true
+  }
+}

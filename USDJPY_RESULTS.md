@@ -16,9 +16,11 @@
 |---|---|---|---|---|
 | USDJPY · **1m** · UP | **~0.534–0.545** ⚠ **sub-breakeven, honestly EXHAUSTED on-disk** | best-available: s6/l255 LGBM up-preds (`usdjpy_1m_base.py 6 255`) | Faint MONOTONE-in-confidence dip-buy UP edge: cov2% .547/.534/.538, cov1% .538/.540/.545; OOS-persistent but **worst-year CI-lo never clears 0.541**. EXHAUSTED under full (a)-(e): more-data/cross-pair/regime-gate/signed-feats(N1/N2)/OF-residual(N3)/seed-ens/gotobi(N5) all sub-BE; discovery 2 rounds (R2 DRY). The ~1pp gap is informational (efficiency), not model/coverage. NOT certified, NOT deployable. | **MEASURED, sub-breakeven, EXHAUSTED on-disk** |
 | USDJPY · **1m** · DOWN | **~0.51** ❌ **dead + honestly EXHAUSTED** | s6/l255 LGBM down-preds | No monotone lift; ≤.51 all covers; every gated/regime/specialist attempt OOS-collapses (<.50 in 2026: regime .495, OF-resid .480, gotobi .481). Sell-rally reversion has no OOS-stable edge. Same (a)-(e) + Tier-N exhaustion as UP. | **MEASURED, dead, EXHAUSTED** |
-| USDJPY · 5m/10m/15m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 1m). Bar data present; bootstrap when scoped. | UNTESTED |
+| USDJPY · **2m** · UP | **CPCV p10 .5245** ⚠ **real-but-sub-BE (not certified)** — sweep IN PROGRESS | best edge: cross-pair POOLED GBM (`usdjpy_2m_xpair.py pool`) | Cross-pair pooling LIFTS the edge above the 1m level (CPCV mean .536 vs 1m ~.52) but per-fold-refit CPCV p10 .5245 < 0.541 (frac_clear .33); recent regime weaker (.532). Frozen-gate .547/.546/.570 was a thin-n overstatement. Base/compression-regime sub-BE. Discovery + Tier-I + external-data frontiers open. | **MEASURED real-but-sub-BE; sweep open** |
+| USDJPY · **2m** · DOWN | **CPCV p10 .5195** ❌ **sub-BE (not certified)** — sweep IN PROGRESS | best edge: cross-pair POOLED GBM down-preds | Pooling lifts DOWN to CPCV mean .536 (vs 1m dead ~.51) — a real gain — but p10 .5195 < BE, frac_clear .33. All-bars/regime-fade sub-BE. Purpose-built DOWN specialist + discovery pending. | **MEASURED real-but-sub-BE; sweep open** |
+| USDJPY · 5m/10m/15m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 2m). Bar data present; bootstrap when scoped. | UNTESTED |
 
-Provenance: `usdjpy_1m_base_result.json` (Tier-1).
+Provenance: `usdjpy_1m_base_result.json`, `usdjpy_2m_base_result.json`, `usdjpy_2m_base_s6_l255_result.json` (Tier-1).
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (USDJPY pending).
 
@@ -115,6 +117,29 @@ After the first pass leaned on subsume-by-analogy-to-EURUSD, a second pass RAN t
 - **I6 Optuna** (10-trial TPE, worst-VAL-half deploy objective): best worst-VAL-half WR **.5347 < .541**; held-out UP cov2% .548/.528/.527, DOWN sub-BE — tuning can't cross breakeven (signal-bound, as the keystone predicts). `usdjpy_1m_optuna_result.json`.
 
 Remaining families subsumed on Tier-1 grounds (run-don't-argue exception — the dominating variant ran + failed): **C1 HMM / C3 RMT / C4 CCM** (state/complexity gates = sign-invariant by theorem; the adaptive-state-space question is answered by the ARF keystone @.50, the directional state-space by Kalman @anti-predictive); **D2 NCDE / D3 TabNet / D4-D5 DRL** (info-bound caps all DL, established by D1 GRU + EURUSD D1–D6); **E2 dir-cond-on-mag** (magnitude is sign-invariant: E1 strong + dir flat; EURUSD `min1_magdir` null); **E3 complexity / E4 info-bars** (sign-invariant by theorem); **I5 cross-pair pooling** (the cross-pair channel carries no 1m sign — A6a returns + N3 OF both dead); **cks1s tick model** (signed-event = OFI family, dead: `min1_xofi` .5015 + N3 OF-residual .480). **Net: every on-disk method family has now been run-or-subsumed-with-a-Tier-1-cite; the verdict is unchanged and better-supported.**
+
+---
+
+## USDJPY × 2m (120-second)
+Breakeven 0.541. **Prior: 2m is the transition horizon** (EURUSD 1m~.50 → 2m UP .555 robust, but EURUSD's 2m edge is TICK-based). USDJPY is BAR-only (no tick cache). Sweep started 2026-06-05; ledger `sweeps/USDJPY_2m.md`, backlog `sweeps/USDJPY_2m_backlog.md`.
+
+### Combined-book / single-pair + cross-pair experiments (combined-context; per-side below)
+| # | Method (file) | Result (2024 / 2025 / 2026 moved-AUC; gate UP wr) | Verdict |
+|---|---|---|---|
+| A1 | single-pair LGBM s24/l127 (`usdjpy_2m_base.py`) | AUC .519/.515/.518; UP cov2% .546/.525/.527 | ❌ KILLED standalone (no yr COMB CI-lo≥.541). `usdjpy_2m_base_result.json` |
+| A2 | single-pair LGBM s6/l255 (`usdjpy_2m_base.py 6 255`) | AUC .521/.517/.518; UP cov2% .546/.524/.536 (worst 2025 .524) | ❌ KILLED — more data doesn't cross BE (same all-bars wall as 1m). `usdjpy_2m_base_s6_l255_result.json` |
+| D1 | compression-release regime FILTER (`usdjpy_2m_regime.py`) | UP dip×comp gate .548/.521/.542; DOWN .519/.513/.497 | ❌ KILLED both — binding 2025 UP .521; EURUSD-2m mechanism (TICK-based) doesn't transfer to bar-only USDJPY. `usdjpy_2m_regime_s8_result.json` |
+| **C1** | **cross-pair POOLED GBM 7-major s42/l255 (`usdjpy_2m_xpair.py pool 42 255`)** | **UP frozen-gate cov2% .547/.546/.570; covcurve cov3% UP .549/.543/.555** | ⚠ **best frozen edge — point-above-BE all 3 yrs incl OOS, but CI-lo n-limited ~.527. POOLING LIFTS binding 2025 (.524→.546).** Numbers in `usdjpy_2m_xpair_pool.log` (Tier-1) |
+| C1b | cross-pair POOLED 2x data s21/l255 | UP cov2% .542/.540/.527; COMB .544/.542/.526 | ❌ KILLED on CI-lo; lifts 2024/25 but OOS 2026 drops .527. Thin/tail-sensitive. `usdjpy_2m_xpair_pool_s21_l255_result.json` |
+| **G1** | **★ full per-fold-REFIT CPCV of pooled (`usdjpy_2m_cpcv.py`)** | **UP p10 .5245 (mean .536, frac_clear .33); DOWN p10 .5195; COMB p10 .527** | ❌ **NOT CERTIFIED — CORRECTS C1 overstatement (trust refit). Recency: recent regime UP .532/22%-clear vs older .542/50%. Edge REAL (mean .536 > 1m .52) but sub-BE in deployable regime.** `usdjpy_2m_cpcv_result.json` |
+
+### Key results (MEASURED — cross-pair pooled best edge; CPCV-honest)
+| Key | Result (CPCV p10 / mean @cov3%) | Method | Status |
+|---|---|---|---|
+| **(USDJPY, 2m, UP)** | **p10 .5245 / mean .536** (frozen-gate cov2% .547/.546/.570 = overstatement) | up-preds of cross-pair POOLED GBM (`usdjpy_2m_xpair.py pool`) | ⚠ real-but-sub-BE; pooling lifts above 1m level but CPCV p10 < .541; **best AVAILABLE, NOT certified.** Discovery+Tier-I+external open |
+| **(USDJPY, 2m, DOWN)** | **p10 .5195 / mean .536** | down-preds of cross-pair POOLED GBM | ⚠ real-but-sub-BE (lifted from 1m-dead by pooling); CPCV p10 < .541. Purpose-built DOWN specialist + discovery pending |
+
+**The 2m story so far:** unlike 1m (near-efficient, dip-buy ~1pp sub-BE), **2m has a REAL cross-pair-pooled direction edge** — pooling 7 majors' base features lifts the CPCV mean to ~.536 (both sides), a genuine gain over the 1m ~.52 floor. But it does **not certify** (refit-CPCV p10 ~.524, ~1.5pp sub-BE; recent regime weaker). The signal is on the right side of the horizon gradient (none@60s → emerging@2m) but **the on-disk bar features fall ~1.5pp short of the deriv breakeven**. Improve (Tier-I) + discovery + external-data (US–JP rate-diff) frontiers remain open before an exhaustion verdict.
 
 ---
 
