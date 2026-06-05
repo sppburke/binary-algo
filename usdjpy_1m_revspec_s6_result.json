@@ -1,0 +1,54 @@
+{
+  "key": "USDJPY.1m",
+  "model": "base239 + 16 signed reversion/path-state feats (UJ-N1+N2), stride6 leaves255",
+  "settlement": "bar-close, ties LOSE, BE .541, gap60",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "new_feats": [
+    "sret3",
+    "sret6",
+    "sret12",
+    "sret30",
+    "rangepos48",
+    "dist_hi48",
+    "dist_lo48",
+    "dfrommax30",
+    "dfrommin30",
+    "up_run",
+    "down_run",
+    "atr_pct",
+    "spk12_pos",
+    "spk6_lo",
+    "spk12_dmax"
+  ],
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "no held-out year UP OR DOWN win-rate CI95-lo clears 0.541 at cov<=2% (n>=75) AND new feats don't lift tail vs base",
+    "incumbent": "s6/l255 base: UP cov2% .547/.534/.538; DOWN dead"
+  }
+}

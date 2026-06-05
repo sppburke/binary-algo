@@ -24,7 +24,7 @@
 | A6a | A6 | **cross-pair USD-residual, USDJPY-target** (xpof, stride8) | `usdjpy_xpair.py` | D | low@1m | **killed** | AUC .519/.516/.519; cov2% COMB .532/.526/.512 | cov2% UP .534/.526/.519; cov1% .538/.522/.513 | cov2% .531/.520/**.477** | KILLED — lifts AUC + mid-cov 24/25 but DILUTES the OOS tail (cov1% UP .513 < baseline .545); lead-lag regime-dependent | `usdjpy_1m_xpair_xpof_result.json` |
 | A8a | A8 | up/down side split (FILTER) of BASE/best book | bar analog of `min1_updown` | U/Dn | filter med | pending | | | | | |
 | A8b | A8 | purpose-built UP / DOWN specialist | bar analog of `min1_upspec` | U/Dn | ~null | pending | | | | | |
-| E1a | E1 | magnitude \|ret60\|≥Q classifier (sign-invariant; → MAGNITUDE_FINDINGS) | bar analog | M | high (cert elsewhere) | pending | | | | | |
+| E1a | E1 | magnitude \|ret60\|≥Q classifier (sign-invariant; → MAGNITUDE_FINDINGS) | `usdjpy_1m_magnitude.py` | M | high | **done (strong)** | magAUC OOS .716/.730/.790 (Q67/75/90), lift ~2.1-2.5x | n/a (sign-invariant) | n/a | ✅ real SIZE edge, confirms sign-invariance (dirAUC ~.52 vs magAUC ~.79); recorded MAGNITUDE_FINDINGS [USDJPY·1m] | `usdjpy_1m_magnitude_result.json` |
 | F2a | F2 | price-action / RSI2 / BB%b / NR7 rules | bar | D | ~null | pending | | | | | |
 | F4a | F4 | residualized TARGET (label = USD-residual sign) | bar analog of `min1_residtarget` | D | ~null | pending | | | | | |
 | —  | B/C(tick)/D | tick microstructure / state-space-on-tick / seq-DL | — | D | — | **BLOCKED** | — | — | — | no USDJPY tick cache (data-acq prereq) | — |

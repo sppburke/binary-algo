@@ -32,12 +32,22 @@
 6. **A2a gate sweep / A3a reversion-compression specialist** — regime gating to concentrate the UP edge.
 7. **F4a residualized-target / A8b specialist** — controls; expected to confirm subset-training hurts ranking.
 
-## Discovery rounds (loop until K=2 dry) — USDJPY-specific mechanisms to research
-- USDJPY carry/risk-on-off lead from cross-asset (Nikkei/JGB/US2Y) — likely external-data-gated.
-- MoF/BoJ intervention-zone reversion (price-level conditioning near round numbers / prior intervention bands) — bar-computable; signed reversion mechanism.
-- Tokyo-fixing (gotobi 5/10-day) directional flow — calendar gate, bar-computable, signed.
-- JPY-cross triangular residual (USDJPY vs EURUSD×EURJPY) — USD-canceling, on-disk if EURJPY present (check).
-- (mine `_CORPUS_INDEX.md` + `_extracted_levers.json` for 1m/60s direction levers not yet subsumed.)
+## Discovery round 1 (8-agent workflow `usdjpy-1m-discover`, 2026-06-04) — RUNNABLE Tier-N, ranked
+Data corrections verified Tier-1: thin USDJPY tick cache DOES exist (`features_tick_xofi/USDJPY_*_cks1s.parquet`, cols cks_e/cks_nev, OOS only 2026-02..05); NO JPY crosses on disk (triangular BLOCKED); `close` is /100-scaled (absolute round-number conditioning BLOCKED, only scale-free rangepos/dist proxies).
+- **UJ-N1** (prior .10) **spike-into-extreme signed reversion GBM** (DOWN-revive primary + UP). Osler stop-cascade: sharp UP-thrust into range-top → reverts DOWN. Agent probe: sharp-up@range-top next-bar up-rate .4728 (DOWN bias). Feats {signed 1m_ret_6/12, rangepos_48, dist_hi/lo_48, spike×rangepos, atr_pct}. KILL if no held-out DOWN CI-lo > .541 @cov w/ n≥75/yr. → `usdjpy_1m_revspec.py`
+- **UJ-N2** (prior .08) **signed path-state dip-buy** (UP-lift). Add signed cumret_5/15/30, signed dist-from-running-extreme, up/down run-length to base. KILL if UP cov1-2% CI-lo doesn't clear .541 OR feats rank below existing rangepos/dist. → combine with N1.
+- **UJ-N3** (prior .06) **cross-pair ORDER-FLOW residual** (both). USDJPY own OF − USD-up-basket OF (6 majors' OF). The untested delta (A6a used returns, not OF). Data: features_of all 7. KILL if VAL AUC≤.515 or no year CI-lo>.541. → `usdjpy_1m_ofresid.py`
+- **UJ-N4** (prior .05) **realized signed-semivariance skew** RS+−RS− from cks_e tick events. Thin-OOS caveat. KILL if no stable signed decile split in val+oos (= EURUSD N8 kill reproduced).
+- **UJ-N5** (prior .04) **gotobi/Tokyo-fix calendar as GBM conditioning feature** (UP, long-shot). DST-correct JST minute/day-of-month/gotobi/minutes-to-fix added to base. KILL if VAL AUC rise <.003 AND no UP CI-lo>.541. (Standalone fix/gotobi already KILLED — folded in as conditioning only.)
 
-## KILLED / subsumed (with Tier-1 cite) — fill as rows complete
-_(none yet)_
+## DATA-BLOCKED (Tier-G, gated on user 'go') — from discovery
+- Intraday US-JP 2y/10y rate-differential signed change (carry sign carrier) — prior .10, highest external value. Needs Dukascopy Treasury-future CFDs + JGB futures 1m.
+- Intraday Nikkei225/TOPIX risk lead (Tokyo-hours) — prior .06. Needs index futures 1m.
+- USDJPY 25-delta risk-reversal skew regime gate (DOWN-enabler) — prior .05. Needs vol-vendor RR (daily ok).
+- Traded EURJPY/GBPJPY triangular residual — prior .06. Needs a traded JPY cross.
+- OANDA retail order/position-book stop-clusters — prior .04, forward-collect only.
+
+## KILLED / subsumed (with Tier-1 cite)
+- A6a cross-pair price-basket (xpof): AUC .516-.519, DOWN .477 oos cov1%, UP tail diluted. `usdjpy_1m_xpair_xpof_result.json`. → subsumes all price-basket/lead-lag/synthetic-risk-basket discovery candidates.
+- A3a/A8a regime-gated filter: OOS UP collapses .495 (VAL gate .558). `usdjpy_1m_regime_s6_result.json`.
+- Standalone gotobi/Tokyo-fix, big-move reversion, macro-surprise-bar-after, synthetic-EURJPY triangular — all measured/pre-killed (see dropped list in discovery result).

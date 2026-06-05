@@ -1,4 +1,4 @@
-> **SCOPE: per-currency MAGNITUDE findings** (sign-invariant → no UP/DOWN key; label each result by PAIR). Currently EURUSD. Generic theory: THEORY.md. See REPO_MAP.md.
+> **SCOPE: per-currency MAGNITUDE findings** (sign-invariant → no UP/DOWN key; label each result by PAIR). EURUSD + USDJPY (USDJPY·1m added 2026-06-04, `usdjpy_1m_magnitude_result.json`). Generic theory: THEORY.md. See REPO_MAP.md.
 
 # MAGNITUDE FINDINGS — the one deflation-proof edge in the binary-algo program
 
@@ -104,6 +104,7 @@ sign-invariance contrast — they are NOT the magnitude edge.
 | **30 m (original chronological-split, pre-CPCV)** | rv30 large-move AUC **0.750/0.746/0.783/0.729/0.729** (train/val/t24/t25/oos); corr(rv30, future\|ret\|) +0.417/+0.441/+0.437/+0.398/+0.378 | sign ~0.515 (EMH) | \|ret30\| ≥ train-Q75 | **VERIFIED (Tier-1)** | **`magnitude_verified.json` → `m30_rv30_largemove_auc`** (re-run + captured this session, `/tmp/mag_m30.log`). Script `m30_magnitude.py`. PE corr ~0.01 / AUC ~0.50 (PE NULL on FX — rv is the real predictor). |
 | **60 s production artifact** | **NO AUC stored on disk** (model exists, unscored) | — | \|ret60\| ≥ TRAIN-P67, thr=1.2034e-4 | **UNVERIFIED** | `models/min1_EURUSD_magnitude.joblib` exists (8.7 MB). `min1_EURUSD_strategy.json` stores only `mag_top_tercile_thr=1.2034e-4`; its `val_auc_inregime=0.5052` is the **DIRECTION** model — do NOT attribute it to magnitude. |
 | **120 s production artifact** | **NO AUC stored on disk** | — | \|ret120\| ≥ TRAIN-P67, thr=1.7058e-4 | **UNVERIFIED** | `models/min2_EURUSD_magnitude.joblib` exists (8.0 MB). `min2_EURUSD_strategy.json`: `mag_top_tercile_thr=1.7058e-4`; `val_auc_inregime=0.5111` is DIRECTION. |
+| **1 m [USDJPY·1m]** | magAUC OOS **Q67 0.716 / Q75 0.730 / Q90 0.790** (VAL 0.740/0.752/0.802; t24 0.764/0.778/0.825; t25 0.707/0.720/0.771; top-decile \|ret\| lift ~2.1–2.5×) | dirAUC ~0.515–0.52 (UP cov1% .545 SUB-breakeven; DOWN dead) | \|ret60\| ≥ train-Q{67,75,90} | **VERIFIED (Tier-1)** | **`usdjpy_1m_magnitude_result.json`** (this session). Script `usdjpy_1m_magnitude.py` (255-leaf LGBM, 239 bar feats, bar-based — no full USDJPY tick). USDJPY reproduces the EURUSD pattern: strong sign-invariant SIZE edge, no tradeable direction. |
 
 **Net of the table:** magnitude AUC is comfortably **>0.65 at every horizon where it was measured** (60s 0.787, 10m 0.71–0.81,
 30m 0.74 CPCV-certified / 0.73–0.78 single-split). Direction at the same horizons is ~0.51–0.52. **Verification status (this
