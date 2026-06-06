@@ -59,7 +59,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 ### Frequency 10m — PRIORITY 4  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.790** | ✅ LDN p10 **.797** | ✅ Asia p10 **.753** | `session_10m_mag_<sess>_result.json` |
-| C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_10m_zeroshot_result.json` |
+| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 10m) | ❌ .507 | ❌ .503 | ❌ .500 | `kronos_dir_mtf_mtf_zs_10m_all_result.json` — pooled .505 p10 .495 KILLED (Kronos blind to cross-pair edge that certifies here) |
 | D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | ❌ .523/.524 | ❌ .511/.516 | `session_xpair_10m_<sess>_result.json` — edge NY-ONLY (where deployed book gated); LDN/Asia session-only DON'T certify. NY beats legacy .586/.568 |
 
 ### Frequency 15m — (base book + cross-pair lever)
@@ -68,7 +68,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 ### Frequency 30m — PRIORITY 5  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 .504 (2024 .566/25 .558) | ⚠ LDN p10 **.538** (frac .82, near-miss) | ❌ Asia p10 .495 | `session_30m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.799** | ✅ LDN p10 **.764** | ✅ Asia p10 **.717** | `session_30m_mag_<sess>_result.json` |
-| C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_30m_zeroshot_result.json` |
+| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 30m) | ❌ .510 | ❌ .503 | ❌ .511 | `kronos_dir_mtf_mtf_zs_30m_all_result.json` — pooled .507 p10 .489 KILLED. Kronos direction NULL at ALL horizons 1/5/10/15/30m |
 | D. **Cross-pair book** (STRICT session-only train+gate) | ✅ **UP .568/DOWN .564** (both CERT) | ❌ .520/.514 | ❌ .487/.509 | `session_xpair_30m_<sess>_result.json` — NY-only; beats legacy .559/.553 |
 
 ## KEY FINDINGS SO FAR (session split, DST-correct)
@@ -88,6 +88,12 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
    tick-GBM, bar-CNN, Kronos — all null in NY, LDN AND Asia. **1m MAGNITUDE certified in all three sessions** (cov≤10%
    frac_clear 1.0; magAUC NY .675/LDN .728/Asia .717), so the sign-invariance split (size forecastable, sign not) is
    itself session-robust. Reinforces [[binary-algo-direction-ceiling]] + [[magnitude-edge]] at the session level.
+5. **CORRECTED Kronos (kronos_mtf, alignment-fixed) direction = NULL at EVERY horizon** 1/5/10/15/30m, zero-shot AND
+   fine-tuned, all sessions (pooled .50-.51, CPCV p10 .489-.500, all KILLED, up-rates in-band). Even at NY ≥10m where
+   the cross-pair GBM CERTIFIES (.57-.61), Kronos reads ~.50 — because it ingests only EURUSD's OWN OHLCV candles, not
+   the 7-pair USD cross-section that carries the edge. So Kronos confirms (with correct alignment now) that single-pair
+   candlestick patterns don't forecast direction; the edge is cross-sectional, not in-pattern. Kronos's value remains
+   magnitude/path. The earlier "Kronos null" (misaligned harness) was right-for-the-wrong-reason; now right-for-right.
 
 ## ⚠ METHODOLOGY FIX (user-caught 2026-06-06) — Kronos eval look-forward MISALIGNMENT
 `kronos_dir.py` (and the inherited `kronos_ft.py` eval) scored Kronos direction against the WRONG 60s window: at
