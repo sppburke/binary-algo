@@ -250,3 +250,9 @@ features_tick_cks/
 barcnn_*.pt
 barcnn_pred_*.npz
 barcnn_*.log
+
+# session re-campaign transient logs (keep the *_result.json + scripts + SESSION_CAMPAIGN.md)
+session_*.log
+kronos_*.log
+campaign_orch.log
+orch.log

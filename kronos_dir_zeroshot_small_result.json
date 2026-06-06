@@ -1,0 +1,74 @@
+{
+ "tag": "zeroshot_small",
+ "model": "NeoQuasar/Kronos-small",
+ "tokenizer": "NeoQuasar/Kronos-Tokenizer-base",
+ "L": 256,
+ "K": 10,
+ "n_eval": 4500,
+ "breakeven": 0.541,
+ "per_year": {
+  "2024": {
+   "n": 1500,
+   "acc": 0.4947,
+   "ci95": [
+    0.4687,
+    0.5193
+   ]
+  },
+  "2025": {
+   "n": 1500,
+   "acc": 0.5133,
+   "ci95": [
+    0.4893,
+    0.5387
+   ]
+  },
+  "2026": {
+   "n": 1500,
+   "acc": 0.4947,
+   "ci95": [
+    0.4687,
+    0.52
+   ]
+  }
+ },
+ "falsifier": "KILL if no year moved-acc CI95-lo >= 0.541 OR CPCV path_p10 < 0.541",
+ "pooled_acc": 0.5009,
+ "cpcv_path_p10": 0.4868,
+ "cpcv_frac_clear_0.541": 0.0,
+ "per_session": {
+  "ny": {
+   "n": 1682,
+   "acc": 0.4929,
+   "ci95": [
+    0.4691,
+    0.5172
+   ]
+  },
+  "london": {
+   "n": 1558,
+   "acc": 0.5032,
+   "ci95": [
+    0.4788,
+    0.5282
+   ]
+  },
+  "overlap": {
+   "n": 621,
+   "acc": 0.5008,
+   "ci95": [
+    0.4605,
+    0.5411
+   ]
+  },
+  "asia": {
+   "n": 1881,
+   "acc": 0.5061,
+   "ci95": [
+    0.4827,
+    0.5279
+   ]
+  }
+ },
+ "VERDICT": "KILLED"
+}
