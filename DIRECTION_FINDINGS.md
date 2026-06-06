@@ -19,6 +19,7 @@ windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_re
 | 10 minutes | **BOTH sides CERTIFIED (2026-06-04)** — cross-pair USD-residual+OF book `EURUSD.m10xp.v1`: per-side refit-CPCV **UP p10 .5863 / DOWN p10 .5683, 15/15 paths** (improves base-book side floors .561/.552; base combined .602). 11 improve/discover levers all KILLED → gated raw cross-pair sign, info-bound by 2025 regime; loops dry. Confirms gradient none@60s→UP@5m→BOTH@10m&15m (`m10_xpair_cpcv.py`, `sweeps/EURUSD_10m.md`) | synthetic-index only (deriv forex floor = 15 m; deployable sibling = `EURUSD.m15xp.v1`) |
 | 30 minutes | **~0.59** (compression-1h × NY selective) | ✅ deriv |
 | 5 minutes | **0.613 verifiable / 0.648 thin-cov** (cross-horizon stack: 15m edge × 5m cross-pair meta; 2026-05-31b) | needs a ≤5m-expiry broker |
+| 10/15/30m **by session** (2026-06-06) | **NY-only** cross-pair: NY UP/DOWN 10m .6053/.5896, 15m .5845/.5712, 30m .5681/.5639 (15/15); **LDN & Asia certify NOTHING** (~.49-.53). DST-correct STRICT session-only; NY beats legacy fixed-UTC gate (`session_xpair_*_result.json`) | same venue as the parent horizon — edge is NY-concentrated |
 
 **A >75% (or even >65%) DIRECTIONAL edge does not exist at 5m/15m/30m on EURUSD.** Direction at ≥5 minutes is the
 efficient-market part: ~0.50–0.52 AUC, ~0.515 unconditional (mild mean-reversion). The only place a >0.65 *directional*
@@ -35,6 +36,92 @@ This is backed by a sign-invariance **theorem** (arXiv:2512.15720, Dec 2025): or
 invariant under sign permutation, so complexity/entropy measures detect the *presence/size* of informed moves
 (magnitude), **not the sign**. That is *why* every complexity/regime/gate approach was null for direction — they gate
 volatility, not direction. Magnitude is tradeable on **Touch/No-Touch, Range/Boundary, straddle** products (not up/down).
+
+## 2026-06-06 — DST-correct session re-campaign + Kronos look-forward fix + full-suite audit
+
+Re-ran the direction question **segmented by trading session** (DST-correct: NY 8-17 America/New_York, LDN 8-16
+Europe/London, Asia 9-18 Asia/Tokyo; `sessions.py` `session_mask` = local-tz hour, applied per-day across train+val+test+oos),
+caught and fixed a 1-bar look-forward bug in the Kronos direction eval, and ran a full-suite forecast-derivation correctness
+audit. **Net direction result: the certified ≥10m cross-pair edge is decisively NY-CONCENTRATED; LDN/Asia certify at NO
+horizon; Kronos direction is null at every horizon after the alignment fix; 1m/2m direction stays null in every session.**
+All numbers Tier-1 (result JSONs on disk).
+
+### The Kronos look-forward bug (user-caught) + fix → corrected NULL at every horizon
+
+`kronos_dir.py` / `kronos_ft.py` eval had a **1-bar look-forward MISALIGNMENT** (failure-mode "FM-F forecast-derivation"):
+at decision bar `i` it fed context `slice(i-L,i)` = bars `[i-L..i-1]`, predicted bar `i`, and scored `Pup = pred_close(i) > C[i-1]`
+— i.e. the move INTO the entry, window `[t[i-1],t[i]]`. But the deriv label `y[i]` (`barcnn_bars.labels_at`: entry `t[i]+1s`,
+exit `t[i]+61s`) is the FORWARD window `[t[i]+1, t[i]+61]` — DISJOINT, off by one bar. A misaligned forecast yields a FALSE
+NULL, never a false positive. **Fix = `kronos_mtf.py`:** context ends AT bar `i` (`slice(i-L+1,i+1)`, last close = entry ref
+`C[i]`), predict `pred_len = H/GRID` FORWARD steps, `Pup = pred_close(+H) > C[i]`; pred-side contiguity
+`t[i+Hsteps]-t[i] == Hsteps*step`; nonoverlap `GAP = HS+TOL`. Validated: forward label agrees with next-bar sign **92.3%**
+(n=233,950). `kronos_dir.py` is now gated (`KRONOS_DIR_LEGACY=1` to override); the legacy result is superseded.
+
+**Corrected Kronos direction (`kronos_mtf.py`, alignment-fixed) is NULL at EVERY horizon** 1/5/10/15/30m, zero-shot AND
+fine-tuned, all sessions: pooled .50-.51, CPCV p10 .489-.500, all KILLED, up-rates in-band. Even at **NY ≥10m where cross-pair
+certifies .57-.61, Kronos reads ~.50** — it ingests only EURUSD's OWN OHLCV candles, not the 7-pair USD cross-section that
+carries the edge; fine-tuning did NOT help direction. Files `kronos_dir_mtf_*_result.json`. (FINE-mode "1m→Nm up the chain" +
+multi-TF ensembles **in progress**.)
+
+### Cross-pair book, STRICT session-only — the ≥10m direction edge is NY-only
+
+`session_xpair.py` (the certified ≥10m lever, run STRICT session-only DST-correct; gate
+`{2:1m_bb_width, 5/10:5m_bb_width, 15:15m_bb_width, 30:1h_bb_width}`). **NY certifies BOTH sides at every horizon; LDN and
+Asia certify at NONE:**
+
+| Horizon | NY UP / DOWN (p10) | LDN UP / DOWN | Asia UP / DOWN | vs legacy fixed-UTC gate |
+|---|---|---|---|---|
+| 10m | **.6053 / .5896** (15/15 each) | .523 / .524 | .511 / .516 | NY BEATS legacy .586/.568 |
+| 15m | **.5845 / .5712** | .527 / .520 | .519 / .496 | — |
+| 30m | **.5681 / .5639** | .520 / .514 | .487 / .509 | NY BEATS legacy .559/.553 |
+
+NY at 10m/30m **beats the legacy fixed-UTC gate** (10m legacy .586/.568, 30m legacy .559/.553) — the direction edge is not
+just present in NY, it is *stronger* when the session filter is DST-correct and strict. Files
+`session_xpair_{10,15,30}m_{sess}_result.json`. (**5m + 2m in progress.**) Discipline: the session filter restricts DECISION
+ROWS in train+val+test+oos (GBM/xpair use causal-continuous features, so this is rows-only).
+
+### Per-session base GBM — direction null/killed every session; magnitude certified every session
+
+- **1m tick GBM** (`session_1m.py`): DIRECTION **null all sessions** (pooled ~.504, p10 .500-.504, frac_clear 0.0). MAGNITUDE
+  certified all (cov≤10% frac 1.0; magAUC NY .675 / LDN .728 / Asia .717; p10 .60-.71). Files
+  `session_1m_{dir,mag}_{ny,ldn,asia}_result.json`.
+- **2m tick GBM** (`session_2m.py`): DIRECTION **null all** (p10 .496-.500); MAGNITUDE certified all (p10 .58-.70). Files
+  `session_2m_*`.
+- **5m/10m/30m base bar GBM** (`session_bars.py`): DIRECTION **KILLED all sessions** (NY strongest, e.g. 10m NY p10 .525);
+  MAGNITUDE certified all sessions (p10 .72-.80). Files `session_{5,10,30}m_{dir,mag}_{sess}_result.json`. (**15m base GBM in
+  progress.**)
+
+So: at the base-feature substrate, no session unlocks direction at any horizon — the certified ≥10m direction edge lives
+ONLY in the cross-pair USD cross-section, and ONLY in the NY session. The session split reaffirms (not refutes) the
+direction≠magnitude split per-session: magnitude certifies in every session at every horizon, direction does not.
+
+### Full-suite forecast-derivation correctness audit — bug is ISOLATED, no cert invalidated
+
+A 19-agent workflow + lead Tier-1 proofs swept all 308 scripts for the FM-F misalignment. **VERDICT: isolated to the Kronos
+family (2 scripts); NOT systemic.** Every other forecast-derivation script (`usdjpy_{1m,2m}_statespace`,
+`usdjpy_2m_xhorizon`, `m5_xhorizon`, `m5_lossbatch`, `f1_compound`) predicts the FORWARD quantity over the SAME horizon as the
+label at the SAME bar = correctly aligned. GBM/CNN classifiers are trained DIRECTLY on the label and scored against it →
+structurally immune to FM-F. **PROVEN CLEAN (Tier-1 empirical):** TICK substrate (features causal via truncation test
+max|full−trunc|=0.0; label = forward deriv outcome, 0/4000 independent-recompute mismatch; corr(y,future)=.486 vs
+corr(y,past)=−.003; up-rate .5006); BAR substrate (forward label 0/2000 mismatch at H=5/10/30, corr(y,future)~.99 vs ~−.02,
+up-rate .498-.506); XPAIR substrate (`m5_xpair.build_xp _y` forward 0/2000 mismatch H=10); BAR-feature causality (239 features,
+truncation max|full−trunc|=0.0 across ALL). **NO certified direction/magnitude book is invalidated.** Bounded flags (do NOT
+invalidate any cert): `barcnn_mag.py:163` + `barcnn_regime.py:69,71` FM-E selective-threshold on pooled test+oos (magnitude/regime
+target, CPCV-deflated; fix = use VAL threshold); `usdjpy_2m_cpcv2.py` FM-E max-p10 cell (best .5185 ≪ .541, certified=false
+anyway); `min2_mim.py:18` + `min2_legsign.py:25` FM-A `shift(-FWD)` no contiguity guard (KILL screens, already KILLED);
+superseded pre-v3 cohort (`min1_v*`/`min2_v*`/`tickmodel*`/`tick5s_final`/`tick_ensemble`, documented bar-shift label + greedy
+nonoverlap, no result.json, replaced by `*_production` books).
+
+### New scripts (this session)
+
+`sessions.py` (DST-correct `session_mask`/`SESSIONS`); `session_1m.py`, `session_2m.py` (tick GBM per session),
+`session_bars.py` (bar GBM per session, any H), `session_xpair.py` (cross-pair STRICT session-only, any H);
+`kronos_ft.py` (single-process GPU adaptation of the GPU/DDP-only Kronos `finetune/train_predictor.py` — frozen base
+tokenizer, predictor FT on session-only contiguous 1m stream, AMP bf16, early-stop); `kronos_mtf.py` (CORRECTED + multi-TF
+Kronos direction eval, native + fine modes, per-session, ensemble-ready npz); `kronos_bars.py` (H-min/fine-grid OHLCV + forward
+deriv-label builder, generalizes `barcnn_bars`); `kronos_ensemble.py` (multi-TF vote combine); `barcnn_run.py` gained a SESSION
+arg (per-session bar-image CNN). Hardware note: box now has an NVIDIA RTX 5050 Laptop (8GB, Blackwell sm_120, driver 580/CUDA13);
+venv torch swapped `2.12.0+cpu`→`2.12.0+cu130` → Kronos FT+inference now GPU.
 
 ## Session-4 (2026-05-31d) — 1-MIN re-push: lesson-transfer + Hidden Markov + online concept-drift
 

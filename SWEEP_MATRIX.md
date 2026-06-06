@@ -28,6 +28,7 @@ a tradeable edge (calibrate the falsifier accordingly; low-prior = design to KIL
 | A6 | Cross-pair USD-residual / lead-lag / dispersion | `m5_xpair.py` (`MX_HOR`, modes xp/xpbase/xpof) | mode {xp, xpbase, xpof}, basket {6-major}, residual {reversion, catch-up, lead-lag} | D | **HORIZON-GATED edge gradient: none@60s → UP@5m → BOTH@10m & 15m.** Cert both sides refit-CPCV @10m ([EURUSD·10m] UP p10 .586/DOWN p10 .568, `m10_xpair_cpcv.py`) + @15m; UP-only @5m; **null <5m** ([EURUSD·2m] p10 .51). Informed/jump component (esp. DOWN) averages out as horizon lengthens → cross-pair carries SIGN ≥10m. THE keystone direction lever ≥5m; CONCURRENT cross-pair (lagged dominated, [EURUSD·10m] `m10_leadlag` AUC .517). |
 | A7 | Walk-forward retrain (regime robustness) | `m{5,10,15}_walkforward.py` | gap {1yr}, retrain-window {expanding, rolling} | D | low (often worse) |
 | A8 | Up/down side asymmetry: FILTER vs SPECIALIST | `min1_updown.py` (filter), `min1_upspec.py` (specialist) | side {up, down} × {filter-on-symmetric, separately-trained} | U/Dn | filter med, spec ~null |
+| A9 | **DST-correct SESSION segmentation** (conditioning AXIS on EVERY method) | `sessions.py` + `session_xpair.py` (xpair), `session_bars.py` (bar GBM, any H), `session_{1,2}m.py` (tick GBM) | session {NY 8-17 ET, LDN 8-16 London, Asia 9-18 Tokyo} × {filter decision-rows (GBM/xpair) \| strict session-only input (Kronos FT)} | D+M+G | **HIGH (NY) — direction edge is NY-CONCENTRATED.** [EURUSD] cross-pair certs BOTH sides EVERY H in NY, NONE in LDN/Asia (10m NY UP .6053/DOWN .5896 15/15, 15m .5845/.5712, 30m .5681/.5639; LDN/Asia .49-.53) and NY > legacy fixed-UTC gate. Base-feat dir KILLED all sessions; magnitude certified all sessions (magAUC .675-.80). `session_xpair_{10,15,30}m_{ny,ldn,asia}_result.json`, `session_{5,10,30}m_{dir,mag}_*`, `session_{1,2}m_*`. (15m base + 5m/2m xpair in progress) |
 
 ## Tier B — microstructure / order-flow (tick & sub-minute)
 | # | Family / method | Script | Variant axes | Tgt | Prior |
@@ -58,7 +59,10 @@ a tradeable edge (calibrate the falsifier accordingly; low-prior = design to KIL
 | D3 | TabNet attentive tabular | `exp_tabnet.py` | n_steps, width | D | ~null |
 | D4 | DRL DQN direction-with-abstain | `min1_drl.py` | reward {deriv-settle}, abstain-cost, ε-schedule | D+policy | ~null |
 | D5 | IQN / distributional + CVaR abstain | `min1_drl.py` | quantiles, CVaR-α, mag-gate | D+sizing | ~null (sizing only) |
-| D6 | TS foundation model (Kronos zero-shot / Chronos·Moirai·TimesFM fine-tune) | KILLED-on-lit @5m (`sweeps/EURUSD_5m.md`; arXiv:2511.18578 — fine-tune deteriorates, no economic gain; daily-equity, MSE-sign-invariant, CPU-OOM) | sampling N | D | skip |
+| D6 | TS foundation model (Kronos zero-shot / Chronos·Moirai·TimesFM fine-tune) | KILLED-on-lit @5m (`sweeps/EURUSD_5m.md`; arXiv:2511.18578 — fine-tune deteriorates, no economic gain; daily-equity, MSE-sign-invariant, CPU-OOM) | sampling N | D | skip-on-lit; superseded by D7 RUN |
+| D7 | **Kronos K-line foundation model — direction (alignment-corrected)**, zero-shot AND fine-tune, multi-TF | `kronos_mtf.py` (corrected FM-F: predict H/GRID FORWARD steps, Pup=pred_close(+H)>C[i]); `kronos_ft.py` (single-proc GPU predictor FT, frozen tokenizer, AMP bf16); `kronos_bars.py` (fwd deriv-label builder) | mode {native zero-shot, fine}, H {1,5,10,15,30}m, session {NY,LDN,Asia} | D | **RUN→NULL every H, zero-shot AND fine-tuned, all sessions** (pooled .50-.51, CPCV p10 .489-.500, up-rates in-band; ALL KILLED). Even at NY≥10m where xpair certs .57-.61, Kronos reads ~.50 — ingests only EURUSD OWN OHLCV, not the 7-pair USD cross-section; FT did NOT help. Corrects the legacy look-forward bug (`kronos_dir.py` gated `KRONOS_DIR_LEGACY=1`). `kronos_dir_mtf_*_result.json`. (FINE chain + multi-TF ensemble `kronos_ensemble.py` in progress) |
+| D8 | **Multi-timeframe Kronos vote-ensemble** (combine per-TF fine forecasts) | `kronos_ensemble.py` (npz vote-combine across `kronos_mtf.py` TFs) | TF set {1,5,10,15,30}m, vote {mean-prob, majority}, session | D | in progress (each constituent TF null per D7 → low prior) |
+| D9 | **Per-session bar-image CNN** (Sezer CNN-BI under session filter) | `barcnn_run.py SESSION` (2-D OHLC image-conv, +SESSION arg) | session {NY,LDN,Asia} × variant {hist, ohlc, gaf} | D+M | in progress (base bar-image CNN DIRECTION KILLED / MAGNITUDE >65% pooled — see BAR/CANDLESTICK blockquote; session slice tests NY-concentration of the size edge) |
 
 ## Tier E — magnitude & complexity (sign-invariant → the CERTIFIED edge; track in MAGNITUDE_FINDINGS.md)
 | # | Family / method | Script | Variant axes | Tgt | Prior |
@@ -124,6 +128,42 @@ falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 > sign-invariance demo: one method, null on sign, >65% on size — and the key knob is preserving ABSOLUTE vol scale
 > (per-window min-max only reaches .64). Kronos NOT built: its gains are RankIC/magnitude (no FX/60s/direction numbers)
 > and fine-tune deteriorates (arXiv:2511.18578) → magnitude probe, not a direction lever (deprioritized).
+
+> **Discovery-vetting outcome — DST-correct SESSION segmentation + Kronos look-forward fix + full-suite audit
+> (generic, 2026-06-06):** two structural additions to the menu. **(A) DST-correct session segmentation as a
+> conditioning AXIS on every method** (`sessions.py`: NY=8-17 America/New_York, LDN=8-16 Europe/London,
+> Asia=9-18 Asia/Tokyo; `session_mask` = local-tz hour applied per-day across train+val+test+oos). Discipline:
+> GBM/xpair use causal-CONTINUOUS features and filter DECISION ROWS only; Kronos FT uses strict session-only
+> INPUT (filter-before-window + contiguity). RESULT — the certified ≥10m cross-pair direction edge is decisively
+> **NY-CONCENTRATED**: `session_xpair.py` (strict session-only, gate per-H) certifies BOTH sides at EVERY horizon
+> in NY, NONE in LDN/Asia — 10m NY UP .6053/DOWN .5896 (15/15), 15m NY UP .5845/DOWN .5712, 30m NY UP .5681/DOWN
+> .5639; LDN/Asia .49-.53 throughout. **NY BEATS the legacy fixed-UTC gate** (10m legacy .586/.568, 30m .559/.553)
+> → re-running A6/the certified combinations under an NY session filter is a strict improvement, not just a slice.
+> Base-feature GBM DIRECTION is KILLED in every session at every freq (`session_{1,2}m`, `session_bars`; NY
+> strongest e.g. 10m NY p10 .525), but MAGNITUDE is certified in EVERY session at EVERY freq (magAUC .675-.80,
+> p10 .58-.80) — sign-invariance holds per-session. **(B) Kronos look-forward bug fix (FM-F forecast-derivation).**
+> The legacy `kronos_dir.py`/`kronos_ft.py` eval scored Pup from a forecast of the bar INTO the entry (window
+> [t[i-1],t[i]]), DISJOINT/off-by-one from the forward deriv label [t[i]+1,t[i]+61] — a misaligned forecast yields
+> a FALSE NULL, never a false positive. FIXED in `kronos_mtf.py` (context ends AT bar i, predict H/GRID FORWARD
+> steps, Pup=pred_close(+H)>C[i], pred-side contiguity + nonoverlap GAP=HS+TOL; forward label agrees next-bar sign
+> 92.3%, n=233,950); `kronos_dir.py` now gated behind `KRONOS_DIR_LEGACY=1`, legacy result superseded. A 19-agent
+> full-suite correctness audit confirmed the bug is **ISOLATED to the Kronos family (2 scripts), NOT systemic** —
+> no second FM-F instance across 308 scripts; every other forecast-derivation script (`usdjpy_{1m,2m}_statespace`,
+> `usdjpy_2m_xhorizon`, `m5_xhorizon`, `m5_lossbatch`, `f1_compound`) predicts the FORWARD quantity over the SAME
+> horizon at the SAME bar = correctly aligned; tick/bar/xpair substrates + 239 bar-features proven Tier-1 CAUSAL
+> (truncation max|full-trunc|=0.0; label 0-mismatch independent recompute) → **no certified book invalidated**.
+> **CORRECTED Kronos verdict: NULL at every horizon 1/5/10/15/30m, zero-shot AND fine-tuned, ALL sessions** (pooled
+> .50-.51, CPCV p10 .489-.500, all KILLED, up-rates in-band) — even at NY≥10m where cross-pair certifies .57-.61,
+> Kronos reads ~.50 because it ingests only EURUSD's OWN OHLCV candles, not the 7-pair USD cross-section that
+> carries the edge; fine-tune did NOT help direction. The alignment-corrected null thus AGREES with the bar-image
+> CNN null (`barcnn`) and the ESN/GRU subsumption: own-pair price geometry/forecasts carry SIZE not sub-30m SIGN.
+> New scripts: `sessions.py`, `session_1m.py`, `session_2m.py`, `session_bars.py`, `session_xpair.py`,
+> `kronos_ft.py` (single-process GPU adaptation of the DDP-only Kronos `finetune/train_predictor.py`),
+> `kronos_mtf.py`, `kronos_bars.py`, `kronos_ensemble.py`, `barcnn_run.py`+SESSION arg. Files:
+> `session_1m_{dir,mag}_{ny,ldn,asia}_result.json`, `session_2m_*`, `session_{5,10,30}m_{dir,mag}_{ny,ldn,asia}_result.json`,
+> `session_xpair_{10,15,30}m_{ny,ldn,asia}_result.json`, `kronos_dir_mtf_*_result.json`. **In progress:** 15m base
+> GBM per session; `session_xpair` 5m + 2m; Kronos FINE "1m→Nm up the chain" + multi-TF ensembles; per-session
+> bar-image CNN (`barcnn_run.py SESSION`).
 
 > **Discovery-vetting outcome — USDJPY 1m (generic, 2026-06-04):** a fresh new-currency bootstrap (8-agent discovery
 > R1 + 2-agent R2) confirms the **60s/1m near-efficiency keystone is currency-GENERIC, not EURUSD-specific** — USDJPY

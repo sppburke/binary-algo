@@ -16,6 +16,69 @@ The single fully-certified, execution-independent magnitude result is the **30-m
 
 ---
 
+## 2026-06-06 — DST-correct session re-campaign + Kronos look-forward fix + full-suite audit
+
+**Headline for THIS file: the sign-invariant MAGNITUDE edge is SESSION-ROBUST.** Re-running the whole magnitude
+suite under DST-correct per-session masks (`sessions.py`: NY=8–17 `America/New_York`, LDN=8–16 `Europe/London`,
+Asia=9–18 `Asia/Tokyo`; `session_mask` = local-tz hour, applied per-day across train+val+test+oos) does **not** break
+magnitude. It certifies in **NY, LDN AND Asia** at **1m / 2m / 5m / 10m / 30m** — every session, every horizon tested.
+Direction, by contrast, is null/killed in every non-NY session (and the edge that survives at all is decisively
+NY-concentrated). The size edge is the one that travels across the clock.
+
+**MAGNITUDE — certified in all three sessions, every horizon `[EURUSD]` (VERIFIED, Tier-1):**
+
+| Horizon | Substrate / script | NY magAUC | LDN magAUC | Asia magAUC | Cert (cov≤10% frac_clear) | Result files |
+|---|---|---|---|---|---|---|
+| **1 m** | tick GBM (`session_1m.py`) | **0.675** | **0.728** | **0.717** | **1.0** all (p10 .60–.71) | `session_1m_mag_{ny,ldn,asia}_result.json` |
+| **2 m** | tick GBM (`session_2m.py`) | certified | certified | certified | **1.0** all (p10 .58–.70) | `session_2m_mag_{ny,ldn,asia}_result.json` |
+| **5 m** | base bar GBM (`session_bars.py`) | certified | certified | certified | **1.0** all (p10 .72–.80) | `session_5m_mag_{ny,ldn,asia}_result.json` |
+| **10 m** | base bar GBM (`session_bars.py`) | certified | certified | certified | **1.0** all (p10 .72–.80) | `session_10m_mag_{ny,ldn,asia}_result.json` |
+| **30 m** | base bar GBM (`session_bars.py`) | certified | certified | certified | **1.0** all (p10 .72–.80) | `session_30m_mag_{ny,ldn,asia}_result.json` |
+
+Net: magAUC across sessions lands in **0.67–0.80**, `frac_clear` = **1.0** at cov ≤ 10% in **all** sessions and horizons.
+Session-conditioning does not degrade the size edge — it is robust to which trading session the decision row falls in.
+(15m base-GBM magnitude per-session is **in progress**.)
+
+**DIRECTION (contrast, the sign-invariance signature persists per-session):** session-conditioned direction is
+**null/KILLED in every session** for the tick + base-bar GBMs (1m pooled ~.504, p10 .500–.504, frac_clear 0.0; 2m p10
+.496–.500; 5m/10m/30m base bar KILLED all, NY strongest e.g. 10m NY p10 .525). The only direction edge that survives is
+the **cross-pair book**, and it is **NY-concentrated only** (`session_xpair.py`, STRICT session-only DST-correct):
+NY certifies BOTH sides at every ≥10m horizon (10m NY UP .6053/DOWN .5896, 15m UP .5845/DOWN .5712, 30m UP .5681/DOWN
+.5639, 15/15), while **LDN and Asia certify nothing** (~.49–.53). So within the same session masks where magnitude clears
+1.0 everywhere, direction collapses outside NY — a clean operational restatement of sign-invariance.
+(5m + 2m cross-pair sessions **in progress**.)
+
+**KRONOS look-forward fix — DOES NOT affect any magnitude result (clean-up, recorded for completeness).** A user-caught
+1-bar look-forward MISALIGNMENT in `kronos_dir.py` / `kronos_ft.py` (failure-mode **FM-F forecast-derivation**: it scored
+`Pup = pred_close(i) > C[i-1]`, the move INTO the entry over window `[t[i-1],t[i]]`, while the deriv label `y[i]` is the
+DISJOINT forward window `[t[i]+1, t[i]+61]`) produced a FALSE NULL — never a false positive. Fixed in `kronos_mtf.py`
+(context ends AT bar i, predict H forward steps, `Pup = pred_close(+H) > C[i]`; forward label agrees with next-bar sign
+**92.3%**, n=233,950). The corrected Kronos direction eval is **null at every horizon** (1/5/10/15/30m, zero-shot AND
+fine-tuned, all sessions; pooled .50–.51, CPCV p10 .489–.500, all KILLED) — Kronos ingests only EURUSD's own OHLCV
+candles, not the 7-pair cross-section that carries the NY direction edge. **This is a DIRECTION bug; no magnitude script
+is in the Kronos family.** (Kronos FINE-mode chains + multi-TF ensembles **in progress**.)
+
+**Full-suite correctness audit (19-agent workflow + lead Tier-1 proofs): NO magnitude cert invalidated.** The FM-F bug
+is **isolated to the 2 Kronos scripts** — across all 308 scripts + a dedicated forecast-derivation sweep, no second
+instance was found; GBM/CNN magnitude classifiers are trained DIRECTLY on the label and are structurally immune to FM-F.
+The MAGNITUDE substrate was proven clean empirically: the BAR label is forward (0/2000 mismatch at H=5/10/30,
+corr(y,future) ~.99 vs ~−.02, up-rate .498–.506; `harness` features + `contig_fwd`), the TICK label is forward
+(corr(y,future) .486 vs corr(y,past) −.003), and BAR-feature causality holds (truncation `max|full−trunc| = 0.0` across
+all 239 features). **Bounded flag touching this file:** `barcnn_mag.py:163` carries an FM-E selective-threshold chosen on
+pooled test+oos for the MAGNITUDE target — it is **CPCV-deflated** (the `barcnn_mag_ohlcabs_result.json` cert in §3 uses
+the 28-path purged distribution, not the selective point), so the 60s bar-image cert is **NOT** invalidated; the noted
+fix is to set the selective threshold on VAL only. No certified magnitude (or direction) book is invalidated by the audit.
+
+**New scripts this session (magnitude-relevant):** `sessions.py` (DST-correct `session_mask`/`SESSIONS`);
+`session_1m.py`, `session_2m.py` (per-session tick GBM, dir+mag); `session_bars.py` (per-session bar GBM, any H, dir+mag);
+`session_xpair.py` (cross-pair STRICT session-only, direction); plus the Kronos-family `kronos_ft.py`, `kronos_mtf.py`,
+`kronos_bars.py`, `kronos_ensemble.py` and `barcnn_run.py` SESSION arg (direction-side, listed for provenance only).
+
+**Hardware note:** box now has an NVIDIA RTX 5050 Laptop (8GB, Blackwell sm_120, CUDA13); venv torch swapped to
+`2.12.0+cu130` so Kronos FT+inference runs on GPU. No bearing on the GBM magnitude results above.
+
+---
+
 ## 1. TL;DR — the one certified edge
 
 **Move SIZE (|return|) is forecastable out-of-sample and survives full Lopez-de-Prado deflation. Move SIGN (direction) is not.**

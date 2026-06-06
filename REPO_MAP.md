@@ -24,6 +24,7 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `GOAL_PROMPT.md` | `/goal` kickoff templates (parameterized by `<X>`,`<CURRENCY>`). |
 | `research/**` | Literature corpus + synthesis (generic). |
 | `README.md`, `REPO_MAP.md` | Repo overview + this convention. |
+| `CORRECTNESS_AUDIT.md` | Record-of-truth for evaluation integrity: FM-A…FM-G failure-mode taxonomy, repo-wide audit verdict (FM-F look-forward bug isolated to Kronos), the 4 clean-substrate proofs, flagged-scripts table + remediation. |
 
 ## TIER 2 — KEY-SPECIFIC (named/labeled by the key — ALL incumbents, numbers, results, backlogs live here)
 

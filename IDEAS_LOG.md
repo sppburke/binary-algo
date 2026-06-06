@@ -171,3 +171,86 @@ for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ bre
 > at .64). **Generic lesson: a bar IMAGE is a magnitude representation; normalize it min-max and you keep shape but
 > lose the size signal — for magnitude, preserve absolute scale; for direction, neither helps (sign isn't there).**
 
+---
+
+## 2026-06-06 — DST-correct session re-campaign + Kronos look-forward fix + full-suite correctness audit
+
+Three generic, cross-key transferable findings from a DST-correct per-session (NY/LDN/Asia) re-test of every freq×method,
+a user-caught look-forward bug in the Kronos forecast→direction family, and a 19-agent + lead full-suite audit. New scripts:
+`sessions.py` (DST-correct `session_mask`/`SESSIONS`), `session_1m.py`/`session_2m.py` (tick GBM per session),
+`session_bars.py` (bar GBM, any H), `session_xpair.py` (cross-pair STRICT session-only, any H), `kronos_ft.py` (single-process
+GPU Kronos predictor fine-tune), `kronos_mtf.py` (alignment-CORRECTED multi-TF Kronos direction eval), `kronos_bars.py`
+(H-min OHLCV + forward deriv-label builder), `kronos_ensemble.py` (multi-TF vote combine), `barcnn_run.py` gained a SESSION arg.
+
+### (a) Lever — DIRECTION edge is SESSION-CONCENTRATED (NY carries the cross-pair sign); MAGNITUDE is SESSION-INVARIANT
+The certified ≥10m cross-pair USD-common-factor SIGN edge is **decisively NY-concentrated**. STRICT session-only DST-correct
+cross-pair (`session_xpair.py`, `sessions.py`: NY=8–17 America/New_York, LDN=8–16 Europe/London, Asia=9–18 Asia/Tokyo,
+session_mask = local-tz hour applied per-day across train+val+test+oos) certifies **BOTH** sides at every horizon **only in NY**;
+LDN and Asia certify at NONE. Files `session_xpair_{10,15,30}m_{ny,ldn,asia}_result.json` (5m + 2m **in progress**):
+- 10m: NY UP .6053 / DOWN .5896 (15/15 each); LDN .523/.524; Asia .511/.516.
+- 15m: NY UP .5845 / DOWN .5712; LDN .527/.520; Asia .519/.496.
+- 30m: NY UP .5681 / DOWN .5639; LDN .520/.514; Asia .487/.509.
+
+NY BEATS the legacy fixed-UTC pooled gate at every horizon (legacy 10m .586/.568, 30m .559/.553) — i.e. the all-hours number
+was a NY edge DILUTED by two near-coin-flip sessions, not a uniformly-distributed edge. By contrast MAGNITUDE certifies in
+**every** session at every freq (tick 1m/2m GBM `session_{1m,2m}_mag_{ny,ldn,asia}_result.json` p10 .58–.71, magAUC NY .675/
+LDN .728/Asia .717; bar 5m/10m/30m `session_{5,10,30}m_mag_{sess}_result.json` p10 .72–.80). DIRECTION GBM is null/killed in
+**all** sessions at every freq (tick 1m/2m pooled ~.504/.496–.500, frac_clear 0.0; bars killed all, NY strongest e.g. 10m NY
+p10 .525 — `session_{1m,2m}_dir_*` / `session_{5,10,30}m_dir_*`). 15m base GBM **in progress**.
+> **Generic lesson:** the direction-edge HORIZON gradient (none@60s→UP@5m→BOTH@≥10m) has a SESSION dimension that is just as
+> sharp — the cross-sectional USD sign is forecastable **when the US desk is the marginal price-setter (NY hours)** and decays
+> to coin-flip in LDN/Asia, while MAGNITUDE (volatility presence, the sign-invariant edge) is session-AGNOSTIC. **For any new
+> (currency, ≥10m) key, run the cross-pair side-split GATED ON THE NY SESSION first — it both lifts the number and reveals
+> whether an all-hours edge is really a diluted NY edge.** Falsifier template: if NY session-only fails to beat the all-hours
+> pooled number at the same horizon, the edge is NOT NY-concentrated for that key — record and fall back to all-hours.
+
+### (b) METHODOLOGY lesson — FM-F forecast-derivation: align the PREDICTED window to the LABEL window
+A user-caught 1-bar look-forward MISALIGNMENT in `kronos_dir.py`/`kronos_ft.py` eval: at decision bar `i` they fed context
+`slice(i-L, i)` = bars [i-L..i-1], predicted bar `i`, and scored `Pup = pred_close(i) > C[i-1]` — i.e. the move INTO the entry,
+window [t[i-1], t[i]]. But the deriv label `y[i]` (`barcnn_bars.labels_at`: entry t[i]+1s, exit t[i]+61s) is the FORWARD window
+[t[i]+1, t[i]+61] — DISJOINT from the scored window, off by one bar. **Failure-mode "FM-F forecast-derivation": deriving a binary
+signal from a generative price FORECAST scored against a window misaligned with the deriv label.** Critically this direction is
+SAFE — **a misaligned forecast yields a FALSE NULL, never a false POSITIVE** (it scores a past/disjoint window uncorrelated with
+the forward label). FIX (`kronos_mtf.py`): context ends AT bar `i` (`slice(i-L+1, i+1)`, last close = entry ref `C[i]`), predict
+`pred_len = H/GRID` FORWARD steps, `Pup = pred_close(+H) > C[i]`; pred-side contiguity `t[i+Hsteps]-t[i] == Hsteps*step`;
+nonoverlap GAP = HS+TOL. Validated: forward label agrees with next-bar sign 92.3% (n=233,950). `kronos_dir.py` now gated
+(`KRONOS_DIR_LEGACY=1` to override); legacy result superseded.
+> **Generic lesson — when a model FORECASTS price and you DERIVE direction, the predicted window MUST cover the SAME forward
+> interval as the deriv label at the SAME decision bar.** Check three things: (i) context ends at (includes) the entry bar so the
+> last context close = the entry reference price; (ii) the forecast horizon equals the label horizon in the SAME units; (iii)
+> pred-side contiguity + nonoverlap gap on the forecast steps. Falsifier template: confirm the derived label agrees with the raw
+> forward next-bar sign at ≥90% before trusting any AUC — if it doesn't, you are scoring a misaligned (often past/disjoint)
+> window and any null is uninterpretable. Audit scope: the full-suite audit found this bug ISOLATED to the 2 Kronos scripts;
+> every other forecast-derivation script (`usdjpy_{1m,2m}_statespace`, `usdjpy_2m_xhorizon`, `m5_xhorizon`, `m5_lossbatch`,
+> `f1_compound`) predicts the FORWARD quantity over the SAME horizon as the label at the SAME bar = correctly aligned, and
+> GBM/CNN classifiers trained DIRECTLY on the label are structurally immune to FM-F.
+
+### (c) Lever — single-pair foundation-model (Kronos) DIRECTION = NULL; the edge is CROSS-SECTIONAL not own-history
+With the alignment fixed, the corrected Kronos eval (`kronos_mtf.py`) reads NULL at EVERY horizon (1/5/10/15/30m), zero-shot AND
+fine-tuned, in ALL sessions (pooled .50–.51, CPCV p10 .489–.500, all KILLED, up-rates in-band). Files
+`kronos_dir_mtf_*_result.json` (FINE-mode "1m→Nm up-the-chain" + multi-TF ensembles **in progress**). The decisive observation:
+even at NY≥10m where `session_xpair` certifies .57–.61, Kronos reads ~.50 — because it ingests only EURUSD's OWN OHLCV candles,
+NOT the 7-pair USD cross-section that carries the sign. Fine-tuning the predictor did NOT help direction.
+> **Generic lesson — a single-pair candlestick/K-line foundation model is a MAGNITUDE/path model, not a direction lever; the
+> ≥10m direction edge is CROSS-SECTIONAL (7-pair USD common factor), so any learner fed only one pair's own OHLCV is blind to
+> it by construction — adding model capacity / fine-tuning / multi-TF context cannot create a cross-sectional sign from a
+> single-pair input.** This is the 5th+ model class to read ~.50 on own-history direction (after 3-GBM ensemble, online-ARF,
+> single GBM, RFF, 1-D GRU/ESN, 2-D bar-image CNN). Falsifier template: if a single-pair foundation model EVER beats the
+> cross-pair NY gate at the same (horizon, session), the edge is NOT purely cross-sectional for that key — re-open the own-history
+> channel. (Consistent with the bar-image-CNN/Kronos magnitude finding above: Kronos's reported gains are RankIC/magnitude.)
+
+**Full-suite audit verdict (generic, reinforces "no certified book invalidated"):** the FM-F bug is ISOLATED to the Kronos
+family (2 scripts), NOT systemic — across all 308 scripts + a dedicated forecast-derivation sweep, no second instance was found.
+Tier-1 empirical clean proofs on each substrate: TICK (features causal via truncation test max|full-trunc|=0.0, label forward
+0/4000 mismatch, corr(y,future)=.486 vs corr(y,past)=−.003, up-rate .5006), BAR (forward 0/2000 mismatch at H=5/10/30,
+corr(y,future)~.99 vs ~−.02, up-rate .498–.506), XPAIR (`m5_xpair.build_xp` forward 0/2000 mismatch H=10), BAR-FEATURE causality
+(239 features, truncation max|full-trunc|=0.0). Bounded flags that do NOT invalidate any cert (recorded for fix, not redirect):
+`barcnn_mag.py:163` + `barcnn_regime.py:69,71` FM-E selective-threshold on pooled test+oos (magnitude/regime target,
+CPCV-deflated; fix = use VAL threshold); `usdjpy_2m_cpcv2.py` FM-E max-p10 cell (best .5185≪.541 → CERTIFIED=false anyway);
+`min2_mim.py:18` + `min2_legsign.py:25` FM-A shift(−FWD) no contiguity guard (KILL screens, already KILLED); superseded pre-v3
+cohort (`min1_v*`/`min2_v*`/`tickmodel*`/`tick5s_final`/`tick_ensemble`, no result.json, replaced by `*_production` books).
+> **Generic lesson — a look-forward/alignment bug in one model FAMILY does not invalidate the program; prove each SUBSTRATE
+> clean independently (truncation-causality on features + forward-mismatch recompute on labels + corr(y,future)≫corr(y,past) +
+> up-rate in-band), and classify every other forecast-derivation script as aligned-or-not by the same FM-F test.** FM-F (false
+> NULL) and FM-E (selective-threshold on test, false POSITIVE) are the two recurring forecast/threshold traps to screen.
+

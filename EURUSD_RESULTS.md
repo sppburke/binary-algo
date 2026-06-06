@@ -8,7 +8,7 @@
 
 A note on "combined / symmetric" books: most models trade BOTH sides and report a single pooled accuracy. That pooled number is shown per timeframe as **context only** (labelled `COMBINED`); it is decomposed into its UP-side and DOWN-side accuracy ONLY where that decomposition was actually run (so far: 60s only). A pooled number does NOT populate the UP or DOWN key.
 
-**Conventions.** Deriv-faithful settlement (mid-to-mid, next-tick entry +1s, ties LOSE), breakeven **0.541**. Splits: bars train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026; tick train 2021-23 / val 2024-H1 / test 2024.09-2025.11 / oos 2026. Selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS)=−0.54`). Moved-bars-only; per-year CI95. Deriv EURUSD forex Rise/Fall **minimum expiry = 15m** → 1s/1m/2m/5m/10m are research/synthetic-index horizons; 15m/30m are deriv-tradeable. Last updated 2026-06-04 (30m two-sided certification: cross-pair keystone CERTIFIES BOTH 30m sides — refit-CPCV UP p10 .5588 / DOWN p10 .5525, 15/15, `EURUSD.m30xp.v1`; refit-dependent. Gradient now none@60s→UP@5m→BOTH@10m,15m,30m).
+**Conventions.** Deriv-faithful settlement (mid-to-mid, next-tick entry +1s, ties LOSE), breakeven **0.541**. Splits: bars train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026; tick train 2021-23 / val 2024-H1 / test 2024.09-2025.11 / oos 2026. Selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS)=−0.54`). Moved-bars-only; per-year CI95. Deriv EURUSD forex Rise/Fall **minimum expiry = 15m** → 1s/1m/2m/5m/10m are research/synthetic-index horizons; 15m/30m are deriv-tradeable. Last updated 2026-06-06 (DST-correct **session segmentation**: the certified ≥10m cross-pair direction edge is decisively **NY-session-concentrated** — strict session-only NY recertifies BOTH sides at 10m/15m/30m and BEATS the legacy fixed-UTC gate, while LDN/Asia certify at NONE; corrected Kronos is NULL at every horizon/session; full-suite audit found the Kronos look-forward bug ISOLATED to 2 scripts and invalidates NO certified book. See the 2026-06-06 dated section below. Prior 2026-06-04 entry: 30m two-sided certification — cross-pair keystone CERTIFIES BOTH 30m sides, refit-CPCV UP p10 .5588 / DOWN p10 .5525, 15/15, `EURUSD.m30xp.v1`; refit-dependent. Gradient now none@60s→UP@5m→BOTH@10m,15m,30m).
 
 ---
 
@@ -44,6 +44,40 @@ Robustness caveats on the single 2026 number (the program selects on per-year+CI
 *Provenance of the OOS numbers:* 60s UP/DOWN — `min1_research_log.md:104-113` (2026 column). 5m 0.571 — `m5_research_log.md` (m5_stack2 q0.98 oos n163). 10m 0.594 — `m10_freeze_honest.py` / `m10_research_log.md`. 15m 0.663 — `m15_production` 2026 (`DIRECTION_FINDINGS.md:15`, `m15_walkforward.py` frozen map). 30m 0.546 — `m30_production.py` (`m30_research_log.md`). 1–5s ~0.65 — `m_tick_prod.py:4-5` (no 2026-only split on disk; TEST+OOS-robust).
 
 **Magnitude** (|ret|≥Q) is sign-invariant by construction → it has NO up/down key. It is the size edge (AUC 0.71–0.81), tracked separately in `MAGNITUDE_FINDINGS.md`, not here.
+
+---
+
+## 2026-06-06 — DST-correct session re-campaign + Kronos look-forward fix + full-suite audit
+
+This session re-tested every freq×method **segmented by trading session** under DST-correct local-tz masks (`sessions.py`: NY 8–17 America/New_York, LDN 8–16 Europe/London, Asia 9–18 Asia/Tokyo; `session_mask` = local-tz hour applied per-day across train+val+test+oos). It also CAUGHT + FIXED a 1-bar look-forward misalignment in the Kronos direction eval, and ran a full-suite correctness audit. **No new key unseats a leader; the headline is WHEN the certified ≥10m direction edge lives (NY only) and a corrected Kronos null.**
+
+### DIRECTION — session-segmented cross-pair (the certified ≥10m lever, strict session-only, DST-correct)
+`session_xpair.py` runs the certified cross-pair USD-residual+OF book STRICT session-only (filter restricts decision rows in train+val+test+oos; causal-continuous features = rows-only), gate `{10:5m_bb_width, 15:15m_bb_width, 30:1h_bb_width}×conf`. **NY certifies BOTH sides at every horizon; LDN and Asia certify at NONE.** NY also **BEATS the legacy fixed-UTC gate** (10m legacy .586/.568, 30m legacy .559/.553) — the direction edge is decisively NY-concentrated.
+
+| Horizon | NY UP (p10) | NY DOWN (p10) | LDN UP / DOWN | Asia UP / DOWN | NY verdict |
+|---|---|---|---|---|---|
+| **10m** | **0.6053** (15/15) | **0.5896** (15/15) | .523 / .524 | .511 / .516 | ✅ BOTH certify (NY); LDN/Asia null |
+| **15m** | **0.5845** | **0.5712** | .527 / .520 | .519 / .496 | ✅ BOTH certify (NY); LDN/Asia null |
+| **30m** | **0.5681** | **0.5639** | .520 / .514 | .487 / .509 | ✅ BOTH certify (NY); LDN/Asia null |
+
+Files: `session_xpair_{10,15,30}m_{ny,ldn,asia}_result.json`. **5m + 2m cross-pair session runs are (in progress).** These NY numbers are the **strongest DIRECTION result of the session re-campaign** and refine (do not replace) the existing fixed-UTC `EURUSD.m{10,15,30}xp.v1` certifications: the cert is real but its edge is concentrated in the NY session.
+
+### DIRECTION — session-segmented base GBM / tick GBM (all NULL or KILLED, every session)
+- **1m tick GBM** (`session_1m.py`): DIRECTION NULL all sessions (pooled ~.504, p10 .500–.504, frac_clear 0.0). `session_1m_dir_{ny,ldn,asia}_result.json`.
+- **2m tick GBM** (`session_2m.py`): DIRECTION NULL all (p10 .496–.500). `session_2m_dir_{ny,ldn,asia}_result.json`.
+- **5m/10m/30m base bar GBM** (`session_bars.py`): DIRECTION KILLED all sessions (NY strongest, e.g. 10m NY p10 .525). `session_{5,10,30}m_dir_{ny,ldn,asia}_result.json`. **15m base GBM (in progress).**
+
+### KRONOS direction — CORRECTED (look-forward bug fixed) → NULL at every horizon & session
+A user-caught **1-bar look-forward misalignment** in `kronos_dir.py`/`kronos_ft.py` (decision-bar context scored against the move INTO the entry, disjoint from the forward deriv label — failure-mode FM-F) was fixed in `kronos_mtf.py` (context ends AT bar i, predict H forward steps, `Pup = pred_close(+H) > C[i]`, pred-side contiguity + nonoverlap gap; forward label agrees next-bar sign 92.3%, n=233,950). `kronos_dir.py` is now gated behind `KRONOS_DIR_LEGACY=1`; the legacy result is superseded. **Corrected verdict: Kronos direction is NULL at every horizon 1/5/10/15/30m, zero-shot AND fine-tuned, all sessions** (pooled .50–.51, CPCV p10 .489–.500, all KILLED, up-rates in-band). Even at NY≥10m where cross-pair certifies .57–.61, Kronos reads ~.50 — it ingests only EURUSD's OWN OHLCV, not the 7-pair USD cross-section that carries the edge; fine-tune did not help direction. Files: `kronos_dir_mtf_*_result.json`. (FINE-mode "1m→Nm up the chain" + multi-TF ensembles **in progress**.) New scripts: `kronos_ft.py`, `kronos_mtf.py`, `kronos_bars.py`, `kronos_ensemble.py`; `barcnn_run.py` gained a per-session SESSION arg.
+
+### MAGNITUDE (context — sign-invariant, no up/down key; full detail in `MAGNITUDE_FINDINGS.md`)
+Session-segmented magnitude CERTIFIES every session at every freq: 1m magAUC NY .675/LDN .728/Asia .717 (p10 .60–.71); 2m p10 .58–.70; 5m/10m/30m base bar p10 .72–.80. Files `session_{1m,2m}_mag_*`, `session_{5,10,30}m_mag_*`. (Recorded here for completeness only; magnitude has no UP/DOWN key.)
+
+### FULL-SUITE CORRECTNESS AUDIT — no certified book invalidated
+A 19-agent audit + lead Tier-1 proofs confirmed the look-forward bug is **ISOLATED to the Kronos family (2 scripts), NOT systemic** — across all 308 scripts + a dedicated forecast-derivation sweep, NO second instance was found. Every other forecast-derivation script predicts the FORWARD quantity over the SAME horizon as the label at the SAME bar (correctly aligned); GBM/CNN classifiers train directly on the label → structurally immune. Proven clean (Tier-1 empirical): TICK substrate (features causal max|full−trunc|=0.0; label forward 0/4000 mismatch; up-rate .5006), BAR substrate (0/2000 mismatch at H=5/10/30; up-rate .498–.506), XPAIR substrate (0/2000 at H=10), and all 239 bar features (truncation max|full−trunc|=0.0). **NO certified direction/magnitude book is invalidated.** Bounded FM-E/FM-A flags exist (`barcnn_mag.py`, `barcnn_regime.py`, `usdjpy_2m_cpcv2.py` max-p10 cell .5185 <<.541 already CERTIFIED=false, `min2_mim.py`/`min2_legsign.py` KILL screens, superseded pre-v3 cohort) but none invalidate a cert.
+
+### Leaderboard impact
+No leader changes. The certified ≥10m cross-pair DIRECTION keys (10m UP .586/DOWN .568, 15m UP .5673/DOWN .5742, 30m UP .5588/DOWN .5525) stand; this session **localizes their edge to the NY session** (NY recert UP/DOWN: 10m .605/.590, 15m .585/.571, 30m .568/.564 — NY beats the fixed-UTC gate) and adds the corrected Kronos null as a closed channel at all horizons/sessions.
 
 ---
 
