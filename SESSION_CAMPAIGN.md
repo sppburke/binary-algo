@@ -55,6 +55,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | A. GBM direction comb@5% | ❌ NY p10 .518 (2024 .570) | ❌ LDN p10 .500 | ❌ Asia p10 .508 | `session_5m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.793** (frac1.0) | ✅ LDN p10 **.798** | ✅ Asia p10 **.772** | `session_5m_mag_<sess>_result.json` |
 | C. Kronos zero-shot direction (corrected `kronos_mtf`, native 5m) | ❌ .519 | ❌ .519 | ❌ .511 | `kronos_dir_mtf_mtf_zs_5m_all_result.json` — pooled .511 p10 .500 KILLED; faint per-session whiff but sub-BE |
+| D. **Cross-pair book** (STRICT session-only) | ✅ **UP .596/DOWN .588** (both CERT) | ❌ .526/.516 | ❌ .510/.504 | `session_xpair_5m_<sess>_result.json` — NY certifies BOTH sides at 5m; legacy was UP-ONLY (.553), so strict-session NY ADDS the DOWN side. Edge extends down to 5m, still NY-only |
 
 ### Frequency 10m — PRIORITY 4  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
@@ -63,6 +64,8 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | ❌ .523/.524 | ❌ .511/.516 | `session_xpair_10m_<sess>_result.json` — edge NY-ONLY (where deployed book gated); LDN/Asia session-only DON'T certify. NY beats legacy .586/.568 |
 
 ### Frequency 15m — (base book + cross-pair lever)
+| A. GBM direction comb@5% | ❌ NY p10 .520 | ❌ LDN .515 | ❌ Asia .512 | `session_15m_dir_<sess>_result.json` — all KILLED |
+| B. Magnitude sel@10% | ✅ NY p10 **.789** | ✅ LDN **.807** | ✅ Asia **.770** | `session_15m_mag_<sess>_result.json` — magAUC .70-.73, all certified |
 | D. **Cross-pair book** (STRICT session-only train+gate) | ✅ **UP .585/DOWN .571** (both CERT) | ❌ .527/.520 | ❌ .519/.496 | `session_xpair_15m_<sess>_result.json` — NY-only again; ~matches legacy .567/.574 |
 
 ### Frequency 30m — PRIORITY 5  (base single-LGBM)
@@ -112,8 +115,10 @@ GBM/tick/xpair pipelines are NOT affected (their labels are correctly forward fr
 **beating the legacy fixed-UTC gate.** `session_xpair_10m_ny`: UP p10 **.6053** (15/15 clear), DOWN p10 **.5896**
 (15/15) — vs legacy m10xp UP .586/DOWN .568. So the certified ≥10m direction edge is REAL and STRONGER once you
 (a) use DST-correct NY and (b) train+gate strictly within the session (n=979k NY-only pooled cross-pair rows). The
-user's session discipline didn't break the edge — it sharpened it. **CONFIRMED ACROSS 10/15/30m: NY certifies BOTH
-sides at every horizon (10m .605/.590, 15m .585/.571, 30m .568/.564); LDN and Asia certify at NONE.** The certified
+user's session discipline didn't break the edge — it sharpened it. **CONFIRMED ACROSS 5/10/15/30m: NY certifies BOTH
+sides at every horizon (5m .596/.588, 10m .605/.590, 15m .585/.571, 30m .568/.564); LDN and Asia certify at NONE.**
+Notably at 5m the legacy book was UP-ONLY (.553) — strict session-only NY now certifies the DOWN side too, EXTENDING
+the two-sided certified range down to 5m. The certified
 ≥10m cross-pair DIRECTION edge is real and decisively NY-CONCENTRATED under DST-correct strict session-only training,
 matching/beating the legacy fixed-UTC gate. Magnitude was already session-robust everywhere; DIRECTION lives in NY.
 Meanwhile CORRECTED Kronos (kronos_mtf, alignment-fixed) direction is NULL at 1m (zero-shot AND fine-tuned, all sess)
