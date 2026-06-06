@@ -1,0 +1,90 @@
+{
+ "variant": "hist",
+ "breakeven": 0.541,
+ "n_groups": 8,
+ "k_test": 2,
+ "note": "frozen-CNN CPCV = OPTIMISTIC bound; a FAIL is decisive. Eligible windows are moved (ties-strict).",
+ "coverages": {
+  "cov1.0": {
+   "val_conf_thr": 0.0,
+   "n_trades": 160113,
+   "pooled_strict_acc": 0.502,
+   "block_boot_ci95": [
+    0.4995,
+    0.5044
+   ],
+   "cpcv_paths": 28,
+   "path_mean": 0.502,
+   "path_p10": 0.4991,
+   "path_min": 0.4982,
+   "frac_paths_clear_0.541": 0.0,
+   "per_year_strict": {
+    "2024": 0.4991,
+    "2025": 0.5041,
+    "2026": 0.5005
+   },
+   "CERTIFIED": false
+  },
+  "cov0.1": {
+   "val_conf_thr": 0.01731,
+   "n_trades": 16891,
+   "pooled_strict_acc": 0.502,
+   "block_boot_ci95": [
+    0.4943,
+    0.5096
+   ],
+   "cpcv_paths": 28,
+   "path_mean": 0.502,
+   "path_p10": 0.493,
+   "path_min": 0.4922,
+   "frac_paths_clear_0.541": 0.0,
+   "per_year_strict": {
+    "2024": 0.5022,
+    "2025": 0.5011,
+    "2026": 0.5036
+   },
+   "CERTIFIED": false
+  },
+  "cov0.05": {
+   "val_conf_thr": 0.01867,
+   "n_trades": 8220,
+   "pooled_strict_acc": 0.5023,
+   "block_boot_ci95": [
+    0.4914,
+    0.5131
+   ],
+   "cpcv_paths": 28,
+   "path_mean": 0.5023,
+   "path_p10": 0.4944,
+   "path_min": 0.4869,
+   "frac_paths_clear_0.541": 0.0,
+   "per_year_strict": {
+    "2024": 0.4934,
+    "2025": 0.508,
+    "2026": 0.5003
+   },
+   "CERTIFIED": false
+  },
+  "cov0.02": {
+   "val_conf_thr": 0.01999,
+   "n_trades": 2996,
+   "pooled_strict_acc": 0.511,
+   "block_boot_ci95": [
+    0.494,
+    0.5284
+   ],
+   "cpcv_paths": 28,
+   "path_mean": 0.511,
+   "path_p10": 0.4856,
+   "path_min": 0.4673,
+   "frac_paths_clear_0.541": 0.036,
+   "per_year_strict": {
+    "2024": 0.5228,
+    "2025": 0.5036,
+    "2026": 0.5142
+   },
+   "CERTIFIED": false
+  }
+ },
+ "ANY_COVERAGE_CERTIFIED": false
+}

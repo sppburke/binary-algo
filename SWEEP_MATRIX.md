@@ -111,6 +111,15 @@ falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 > **DATA GATE:** requires O/H/L — present only as `ohlc_cache/EURUSD_5m_*` + rebuildable from EURUSD ticks (`vbars.py` src);
 > **NOT computable for USDJPY (feature store keeps only `close`; no USDJPY tick/OHLC on disk)** → for USDJPY it is an
 > external-data lever. Runnable only on EURUSD. Per-key: `sweeps/USDJPY_2m_backlog.md` external frontier; `IDEAS_LOG.md`.
+> **RUN [EURUSD·60s] 2026-06-05 → KILLED (`BARCNN_SPEC.md`, `EURUSD_RESULTS.md` row 22).** Built 1m OHLCV from ticks
+> (`barcnn_bars.py`) + faithfully reimplemented the Sezer CNN-BI image-CNN (`barcnn_run.py`) on the 60s wc_ret label,
+> 3 variants: **hist** (Sezer close-histogram), **ohlc** (3ch wick+up/down-body), **gaf** (GASF+GADF). ALL null: VAL
+> dirAUC .499/.503/.502, test/oos AUC ≈.50, and **faithful CPCV (`barcnn_cpcv.py`, 28 purged paths) path_p10 .484–.499
+> with frac_paths_clear_0.541 = 0.0 at every coverage** → trips all 3 falsifier conditions. The 2-D image-conv (the last
+> non-subsumed bar sub-lever) confirms the bar geometry carries SIZE not 60s SIGN (even the GADF antisymmetric sign-field
+> is null) — sign-invariance @60s. **Bar/candlestick 2-D-image family now RUN + EXHAUSTED on-disk for EURUSD ≤60s.**
+> Kronos NOT built: its gains are RankIC/magnitude (no FX/60s/direction numbers) and fine-tune deteriorates
+> (arXiv:2511.18578) → magnitude probe, not a direction lever (deprioritized).
 
 > **Discovery-vetting outcome — USDJPY 1m (generic, 2026-06-04):** a fresh new-currency bootstrap (8-agent discovery
 > R1 + 2-agent R2) confirms the **60s/1m near-efficiency keystone is currency-GENERIC, not EURUSD-specific** — USDJPY

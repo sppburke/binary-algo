@@ -179,8 +179,14 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 
 ### 5.4 TS foundation models (Kronos zero-shot) — backlog
 - **What.** Generative finance-native foundation model, zero-shot P(up)=frac(sampled close>open).
-- **How.** `EXPERIMENT_BACKLOG.md` W2-5 (needs HF weights).
-- **STATUS.** **not yet run** (backlog, prior 8–12%).
+- **How.** `EXPERIMENT_BACKLOG.md` W2-5 (needs HF weights). Kronos (arXiv:2508.02739): BSQ tokenizer → 2 tokens/bar → decoder-only AR transformer; open checkpoints mini 4.1M / small 24.7M / base 102.3M (CPU-runnable).
+- **STATUS.** **deprioritized (researched, not built).** Reported gains are RankIC/magnitude + generative fidelity — NO FX / NO 60s / NO per-bar directional %; and off-the-shelf TSFM fine-tune *deteriorates* (arXiv:2511.18578, only from-scratch financial pretraining helps). It is a magnitude/path tool, not a ≤60s direction lever. A from-scratch Kronos-mini is CPU-feasible but mechanism-wrong for sign.
+
+### 5.5 Bar-image 2-D CNN (Sezer CNN-BI / GAF) — RUN, null at 60s
+- **What.** Render a window of OHLC bars as a 2-D image and learn LOCAL pattern detectors with a 2-D conv — the ONE bar/candlestick sub-lever NOT subsumed by the GBM's geometric feats or the 1-D GRU/CNN (5.1). Faithful to Sezer & Ozbayoglu CNN-BI (arXiv:1903.04610): 30-bar window, per-window min-max norm, MNIST-class CNN; their look-ahead 3-class slope label is REPLACED by the deriv-faithful 60s wc_ret up/down (ties-strict).
+- **How.** `barcnn_bars.py` (1m OHLCV + 60s labels from ticks) → `barcnn_run.py <variant>` → `barcnn_cpcv.py`. Variants: **hist** (Sezer close-histogram 1×30×30), **ohlc** (3ch wick+up-body+down-body 3×30×30), **gaf** (GASF+GADF 2×30×30; GADF = the antisymmetric sign-bearing field). Spec: `BARCNN_SPEC.md`.
+- **Why.** A 2-D conv over the rendered chart is a 4th model class; if any bar-pattern carried 60s sign, the image-conv (incl. GADF) would catch it.
+- **STATUS.** **null at 60s [EURUSD], RUN + EXHAUSTED on-disk** — all 3 variants VAL dirAUC ≈ .50, test/oos AUC ≈ .50; faithful CPCV (28 purged paths) **path_p10 .484–.499, 0.0 of paths clear breakeven at every coverage** (`barcnn_{hist,ohlc,gaf}_result.json` + `barcnn_cpcv_*_result.json`). Confirms bar geometry = magnitude not ≤60s sign (sign-invariance). Needs O/H/L → EURUSD-only on disk; an external-data lever for close-only pairs (USDJPY).
 
 ---
 

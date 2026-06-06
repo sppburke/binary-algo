@@ -34,6 +34,7 @@ from 2026-06-03 onward (the both-sides-symmetric DOWN/UP push).
 | B1a | I | **\|ret\|-weighted magweight retrain** POW=0.5 (retarget of 5m m5_magweight, the only lever that ever certified 5m DOWN) | min1_magweight.py | **killed** | cov.15 .45/**.522**/.495 (worse than filter) | cov.05 .513/**.507**/.512 (CI-lo<.50) | tick substrate, deriv-faithful. **best_iter=8/4000** = no learnable direction signal to weight. DOWN binding-2025 .507 < breakeven & < incumbent .522; UP worse than filter. 5m razor-thin DOWN edge does NOT transfer to more-efficient 60s | min1_magweight_result.json |
 | E-bridge | E→D | **magnitude→direction bridge** (frozen mag+dir; does direction hide on large moves?) | min1_magdir.py | **killed** | ~.50-.51 all magq | DOWN FLAT ~.50: magq0.0 .500/magq0.7 **.502**/magq0.95 **.498** (2025) | textbook sign-invariance AT THE OPERATING POINT: magnitude perfectly selects big moves (magAUC .787) but they carry ZERO direction. Conditioning DOWN on predicted-larger moves does NOT raise acc in any year. The 60s direction edge does NOT hide on large moves | min1_magdir_result.json |
 | CPCV | cert | **faithful CPCV of UP-filter + DOWN** (frozen-book, ties-strict, 28 purged-comb paths + block-boot) | min1_cpcv.py | **done** | UP pooled-strict .573, CI-lo **.530**, p10 **.524**, 75% clear, 2024 .520 — **NOT certified** | DOWN pooled .519, p10 .474, 29% clear — **NOT certified** | formal (e)-step both sides. UP = regime-dependent filter (near-miss, same as 2m .5445 FAIL), NOT a robust edge; DOWN dead. No certified 60s direction edge | min1_cpcv_result.json |
+| barimg | N (discovered) | **BAR-IMAGE 2-D CNN** (Sezer CNN-BI; the last non-subsumed bar/candlestick sub-lever) — 3 image encodings: hist/ohlc/gaf | barcnn_bars.py · barcnn_run.py · barcnn_cpcv.py | **killed** | combined VAL dirAUC hist .4992 / ohlc .5028 / gaf .5020; test/oos AUC ≈.50 (not side-split — symmetric, ≈.50 carries no UP edge) | same (≈.50, no DOWN edge) | new 4th model class (2-D conv). CPCV 28 purged paths: **path_p10 .484–.499, 0.0 paths clear 0.541 at every cov**. Bar geometry = magnitude not 60s sign (even GADF antisym sign-field null). Trips all 3 falsifier conditions. **Bar/candlestick 2-D-image family RUN + EXHAUSTED on-disk.** | barcnn_{hist,ohlc,gaf}_result.json + barcnn_cpcv_*_result.json |
 
 ### Prior-subsumed at 60s (documented, not re-run)
 - **Side-specialists** (UP/DOWN trained on subset bars): killed — subset-training destroys the confidence ranking
@@ -62,3 +63,13 @@ subsumed; round 2: 8 cross-horizon/calendar/UP-cert/recent-lit candidates subsum
 **Deriv deployability note:** 60s is NOT a deriv forex horizon (Rise/Fall forex min expiry = 15m). The deployable
 EURUSD direction books are at 15m (`EURUSD.m15xp.v1`: UP .5673 / DOWN .5742, both refit-CPCV-certified). The 1m
 work is a research-horizon characterization.
+
+**ADDENDUM 2026-06-05 — bar/candlestick 2-D-image CNN lever RUN → KILLED (closes the last non-subsumed bar
+sub-lever).** `/goal` asked specifically for the Sezer CNN-BI + Kronos bar-pattern approach. Built 1m OHLCV from
+ticks (`barcnn_bars.py`, moved up-rate ∈ [.497,.503] every yr) and faithfully reimplemented Sezer CNN-BI
+(`barcnn_run.py`, `BARCNN_SPEC.md`) on the 60s wc_ret label, 3 image encodings (close-histogram / 3ch-OHLC /
+GAF-GASF+GADF). All null: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, and faithful CPCV (`barcnn_cpcv.py`, 28 purged
+paths) **path_p10 .484–.499, 0.0 paths clear 0.541 at every coverage**. A 2-D conv (4th model class) over the
+rendered chart adds nothing the GBM/GRU missed — even the antisymmetric GADF sign-field is null → the bar-image/
+GAF lever is magnitude, not ≤60s sign. Kronos NOT built (RankIC/magnitude gains, no FX/60s/direction numbers;
+fine-tune deteriorates arXiv:2511.18578). The 60s near-efficiency keystone now holds across a 4th model class.

@@ -245,3 +245,8 @@ flow_cache/
 
 # CKS order-flow feature cache (regenerable)
 features_tick_cks/
+
+# bar-image CNN regenerable artifacts (weights + prediction arrays + logs; keep the result JSONs + scripts)
+barcnn_*.pt
+barcnn_pred_*.npz
+barcnn_*.log

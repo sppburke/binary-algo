@@ -153,4 +153,14 @@ a per-bar GBM nor a 1-D sequence net (GRU/ESN, both tested) can represent. Prior
 `ohlc_cache/EURUSD_5m_*` (+ rebuildable from EURUSD ticks via `vbars.py` source). **NOT computable for any pair whose feature
 store keeps only `close` (e.g. USDJPY) without raw tick/OHLC acquisition.** ⇒ runnable today on EURUSD; an external-data lever
 for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ breakeven falsifier, eval vs the GBM baseline.
+> **RAN it [EURUSD·60s] 2026-06-05 → NULL/KILLED (generic conclusion).** Faithful Sezer CNN-BI reimplementation
+> (`BARCNN_SPEC.md`; `barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`), 3 image encodings — Sezer close-histogram,
+> 3-channel OHLC (wick + up-body + down-body), and GAF (GASF+GADF) — each a small MNIST-class 2-D CNN on the 60s
+> wc_ret label (ties-strict, moved-bars). ALL three: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, and faithful CPCV (28
+> purged-combinatorial paths) **path_p10 .484–.499 with 0.0 of paths clearing breakeven at every coverage**.
+> **Generic lesson (adds to the sign-invariance corpus): re-rendering bars as a 2-D image does NOT create 60s
+> direction the GBM/GRU couldn't see — even the GADF *antisymmetric sign-bearing* field is null. The bar-image-CNN /
+> GAF lever is magnitude, not ≤60s sign — confirming the 60s near-efficiency keystone via a 4th model class (2-D
+> conv).** Kronos NOT built (its reported gains are RankIC/magnitude; no FX/60s/direction numbers; fine-tune
+> deteriorates, arXiv:2511.18578) — a magnitude/path foundation model, not a direction lever.
 
