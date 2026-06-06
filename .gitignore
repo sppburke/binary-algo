@@ -261,3 +261,8 @@ kronos_ft_orch.log
 models/kronos_ft_*/
 kronos_bars_chain.log
 session_xpair_chain.log
+kronos_mtf_pred_*.npz
+session_15m.log
+session_xpair_lowchain.log
+kronos_cache_build.log
+kronos_eval2_orch.log

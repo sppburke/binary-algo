@@ -143,6 +143,7 @@ def main():
     call = (Pup > 0.5).astype(int); tw = t[pick]; yw = y[pick]
     order = np.argsort(tw); tw, yw, call = tw[order], yw[order], call[order]
     win = (call == yw).astype(float)
+    np.savez(f"{ROOT}/kronos_mtf_pred_{TAG}.npz", tw=tw, yw=yw, call=call)   # for multi-TF ensemble combine
     res = {"tag": TAG, "model": MODEL, "H_min": H, "GRID_min": GRID, "H_steps": H_STEPS, "mode": ("native" if GRID == H else "fine"),
            "session": SESSION, "strict_session_input": STRICT_CTX, "L": L, "K": K, "n_eval": int(len(pick)),
            "up_rate": round(float(upr), 4), "breakeven": BREAKEVEN,

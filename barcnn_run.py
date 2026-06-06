@@ -28,6 +28,9 @@ VARIANT = sys.argv[1] if len(sys.argv) > 1 else "hist"
 W       = int(sys.argv[2]) if len(sys.argv) > 2 else 30      # window length in bars
 SUBSAMPLE = int(sys.argv[3]) if len(sys.argv) > 3 else 120_000
 EPOCHS  = int(sys.argv[4]) if len(sys.argv) > 4 else 25
+SESSION = (sys.argv[5] if len(sys.argv) > 5 else "all").lower()   # all|ny|ldn|asia — DST-correct decision-bar filter
+SUF     = "" if SESSION == "all" else f"_{SESSION}"
+from sessions import session_mask
 HPX = 30                                                     # image height in pixels (Sezer uses 30)
 BARGAP = 60                                                  # 1-min bars: contiguous window iff t_i - t_{i-W+1} == (W-1)*60
 HS, TOL = 60, 10; GAP = HS + TOL                             # 60s expiry; non-overlap block 70s
@@ -143,7 +146,10 @@ def main():
     hb(f"variant={VARIANT} W={W} subsample={SUBSAMPLE} epochs={EPOCHS} in_ch={in_ch(VARIANT)} hw={img_hw(VARIANT)}")
     tr = load("train"); va = load("val"); te = load("test"); oo = load("oos")
     etr = eligible(*tr[4:]); eva = eligible(*va[4:]); ete = eligible(*te[4:]); eoo = eligible(*oo[4:])
-    hb(f"eligible: train={len(etr):,} val={len(eva):,} test={len(ete):,} oos={len(eoo):,}")
+    if SESSION != "all":     # DST-correct: restrict decision bars (train+val+test+oos) to the session
+        etr = etr[session_mask(tr[4][etr], SESSION)]; eva = eva[session_mask(va[4][eva], SESSION)]
+        ete = ete[session_mask(te[4][ete], SESSION)]; eoo = eoo[session_mask(oo[4][eoo], SESSION)]
+    hb(f"[{SESSION}] eligible: train={len(etr):,} val={len(eva):,} test={len(ete):,} oos={len(eoo):,}")
 
     # subsample train (decorrelate 97% window overlap + cap memory); render once to uint8/float in RAM
     rng = np.random.default_rng(7)
@@ -182,13 +188,13 @@ def main():
         p = predict(model, d[0], d[1], d[2], d[3], ev, VARIANT)
         out[nm] = {"ts": d[4][ev], "y": d[5][ev], "mag": d[6][ev], "p": p}
         hb(f"pred {nm}: n={len(ev):,} AUC={roc_auc_score(d[5][ev], p):.4f}")
-    np.savez(f"{ROOT}/barcnn_pred_{VARIANT}.npz",
+    np.savez(f"{ROOT}/barcnn_pred_{VARIANT}{SUF}.npz",
              **{f"{nm}_{k}": v for nm, dd in out.items() for k, v in dd.items()})
-    torch.save(model.state_dict(), f"{ROOT}/barcnn_{VARIANT}.pt")
+    torch.save(model.state_dict(), f"{ROOT}/barcnn_{VARIANT}{SUF}.pt")
 
     # ---- VAL worst-half confidence-gate selection (NEVER val-acc-max), then per-year held-out selective ----
     pva = out["val"]["p"]; yv = out["val"]["y"]; conf_v = np.abs(pva - 0.5)
-    report = {"variant": VARIANT, "W": W, "subsample": int(min(SUBSAMPLE, len(etr))), "epochs_run": ep + 1,
+    report = {"variant": VARIANT, "session": SESSION, "W": W, "subsample": int(min(SUBSAMPLE, len(etr))), "epochs_run": ep + 1,
               "best_val_dirAUC": round(float(best_auc), 4),
               "test_AUC": round(float(roc_auc_score(out["test"]["y"], out["test"]["p"])), 4),
               "oos_AUC": round(float(roc_auc_score(out["oos"]["y"], out["oos"]["p"])), 4),
@@ -211,8 +217,8 @@ def main():
             cells[str(Y)] = {"n": int(len(sel_i)), "acc": round(float(corr.mean()), 4),
                              "ci95": [round(lo, 4), round(hi, 4)]}
         report["coverages"][f"cov{cov}"] = {"val_conf_thr": round(thr, 5), "per_year": cells}
-    json.dump(report, open(f"{ROOT}/barcnn_{VARIANT}_result.json", "w"), indent=1)
-    hb(f"WROTE barcnn_pred_{VARIANT}.npz + barcnn_{VARIANT}_result.json")
+    json.dump(report, open(f"{ROOT}/barcnn_{VARIANT}{SUF}_result.json", "w"), indent=1)
+    hb(f"WROTE barcnn_pred_{VARIANT}{SUF}.npz + barcnn_{VARIANT}{SUF}_result.json")
     print(json.dumps(report, indent=1), flush=True)
 
 

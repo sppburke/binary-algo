@@ -25,7 +25,7 @@ from sessions import session_mask, SESSIONS
 
 YEARS = list(range(2012, 2027)); N_GROUPS, K_TEST = 6, 2; SUB_FIT = 150_000
 GAP_S = HOR * 60; BE = 0.541; MIN_SIDE_N = 10
-GATE_FEAT = {10: "5m_bb_width", 15: "15m_bb_width", 30: "1h_bb_width"}[HOR]
+GATE_FEAT = {2: "1m_bb_width", 5: "5m_bb_width", 10: "5m_bb_width", 15: "15m_bb_width", 30: "1h_bb_width"}[HOR]
 LGB_JOBS = int(os.environ.get("LGB_THREADS", "20"))
 T0 = time.time()
 def hb(m): print(f"HB[{time.time()-T0:.0f}s] {m}", flush=True)
