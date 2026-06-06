@@ -147,4 +147,12 @@ def main():
 
 
 if __name__ == "__main__":
+    # DEPRECATED — this harness has a 1-bar look-forward MISALIGNMENT (predicts the bar ENDING at the entry instant
+    # and scores it vs C[i-1], but the deriv label y[i] is the FORWARD [t[i]+1,t[i]+61] window — disjoint, off by one
+    # bar). It produces a false NULL (coin flip), never a false positive. Superseded by kronos_mtf.py (corrected +
+    # multi-TF). Gated off so it cannot silently write another misaligned result. Set KRONOS_DIR_LEGACY=1 to run anyway.
+    if os.environ.get("KRONOS_DIR_LEGACY", "0") != "1":
+        print("DEPRECATED kronos_dir.py (1-bar look-forward misalignment) — use kronos_mtf.py. "
+              "Set KRONOS_DIR_LEGACY=1 to override.", flush=True)
+        sys.exit(0)
     main()

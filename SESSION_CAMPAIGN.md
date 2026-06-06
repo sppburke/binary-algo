@@ -41,7 +41,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 |---|---|---|---|---|
 | A. GBM direction (comb/UP/DOWN), session-only train+eval | ❌ p10 .504 (val .509) | ❌ p10 .502 (val .503) | ❌ p10 .500 (val .506) | `session_1m_dir_<sess>_result.json` — pooled ~.504, frac_clear 0.0 EVERY cov/side, null |
 | B. Magnitude \|ret60\|≥Q, session-only | ✅ p10 **.621**/.713 (cov10/5, frac1.0) | ✅ p10 **.635**/.705 | ✅ p10 **.603**/.683 | `session_1m_mag_<sess>_result.json` — magAUC NY .675/LDN .728/Asia .717 |
-| C. Kronos zero-shot direction (per-session via breakdown) | ❌ .493 | ❌ .503 | ❌ .506 | `kronos_dir_zeroshot_small_result.json` — pooled .501, CPCV p10 .487, null EVERY session |
+| C. Kronos zero-shot direction (CORRECTED `kronos_mtf`) | ❌ .5015 (p10 .492) | ❌ .504 (p10 .493) | ⏳ | `kronos_dir_mtf_mtf_zs_1m_<sess>_result.json` — pooled ~.50 up-rate in-band, KILLED. Legacy `kronos_dir` was 1-bar MISALIGNED (now gated); corrected confirms 60s null is REAL not an artifact |
 | D. Kronos fine-tuned direction (session-only, **GPU**) | model ✅ eval🔁 | 🔄 train | ⏳ | `kronos_ft.py` predictor FT (models/kronos_ft_<sess>); legacy in-script eval MISALIGNED→discarded, re-eval via `kronos_mtf.py` |
 | E. Bar-image CNN dir + mag (session-only) | ⏳ | ⏳ | ⏳ | `barcnn_<sess>_*_result.json` |
 
@@ -108,6 +108,18 @@ GBM/tick/xpair pipelines are NOT affected (their labels are correctly forward fr
 (a) use DST-correct NY and (b) train+gate strictly within the session (n=979k NY-only pooled cross-pair rows). The
 user's session discipline didn't break the edge — it sharpened it. LDN/Asia 10m + 15m/30m running. (Magnitude was
 already session-robust; this is the first DIRECTION cell to certify in the re-campaign.)
+
+## ✅ FULL-SUITE CORRECTNESS AUDIT (2026-06-06, user demanded "check EVERY test") — VERDICT: bug ISOLATED to Kronos
+Empirically proven (Tier-1): all 4 substrates clean — TICK feats CAUSAL (truncation max|Δ|=0.0), TICK/BAR/XPAIR labels
+forward (independent recompute 0 mismatch, corr(y,future)~.49-.99 vs corr(y,past)~0, up-rates ~.50); BAR-FEATURE
+causality in pipeline.py proven CLEAN (239-feat truncation max|Δ|=0.0). 19-agent audit swept all 308 scripts + every
+forecast-derivation script: the FM-F off-by-one exists in EXACTLY 2 legacy scripts (kronos_dir.py, kronos_ft.py), now
+gated/superseded by kronos_mtf.py. KEY: a misaligned forecast yields a false NULL, NEVER a false POSITIVE → no fake
+edge possible; corrected kronos_mtf reproduces the 60s null (KILLED). NO certified direction/magnitude book rests on a
+Kronos number or is invalidated. Real-but-bounded flags (don't invalidate any cert): barcnn_mag/regime FM-E threshold-
+on-test (MAGNITUDE, CPCV-deflated → use VAL thr); min2_mim/legsign FM-A shift(-FWD) no-contig (KILL screens, KILLED);
+superseded pre-v3 min1_v*/min2_v*/tickmodel* cohort (bar-shift label + greedy nonoverlap, NO result.json, replaced by
+*_production). Full report: workflow wk92ut0vv. Remediation: kronos_dir gated (done); P2 parity cleanups optional.
 
 ## RUN LOG (append one line per completed cell — the resumable record)
 - 2026-06-05 — campaign opened; `sessions.py` (DST-correct) built.
