@@ -22,12 +22,13 @@ re-weighting that the 5m DOWN responded to, and (2) the magnitude→direction br
    direction — textbook sign-invariance AT THE OPERATING POINT. The 60s direction edge does NOT hide on large moves.
    **Subsumes any further confidence-only / "avoid-losers" DOWN gate.**
 - ~~[both · discovered · prior LOW] BAR-IMAGE 2-D CNN (Sezer CNN-BI / GAF — last non-subsumed bar sub-lever)~~ —
-   **DONE / KILLED 2026-06-05** (`barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`, `BARCNN_SPEC.md`). 3 image
-   encodings (close-histogram / 3ch-OHLC wick+body / GAF-GASF+GADF), MNIST-class 2-D CNN, 60s wc_ret label. ALL null:
-   VAL dirAUC ≈.50, test/oos AUC ≈.50, CPCV path_p10 .484–.499 with **0.0 paths clearing 0.541** at every coverage.
-   A 4th model class (2-D conv over the rendered chart) confirms bar geometry carries magnitude not 60s sign — even
-   the antisymmetric GADF sign-field is null. **Bar/candlestick 2-D-image family RUN + EXHAUSTED on-disk.** Kronos NOT
-   built (RankIC/magnitude, no FX/60s/direction numbers; fine-tune deteriorates arXiv:2511.18578).
+   **DONE 2026-06-05: DIRECTION KILLED / MAGNITUDE clears >65%** (`barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`/
+   `barcnn_mag.py`; method `METHODS_CATALOG.md` §5.5). DIRECTION: 3 encodings (close-histogram / 3ch-OHLC / GAF), 60s
+   wc_ret label, ALL null — VAL dirAUC ≈.50, CPCV path_p10 .484–.499, **0.0 paths clear 0.541** (incl. regime-gated).
+   Even the antisymmetric GADF sign-field is null → bar geometry = magnitude not 60s sign. MAGNITUDE (sign-invariant,
+   → `MAGNITUDE_FINDINGS.md` §3, NOT a direction key): the absolute-scale OHLC image (`barcnn_mag.py ohlcabs`) hits
+   magAUC .699/.714/.686 with **all 28 CPCV paths ≥0.65 at cov≤0.2 every held-out year** — bar patterns predict move
+   SIZE at >65%. Kronos NOT built (RankIC/magnitude; fine-tune deteriorates arXiv:2511.18578).
 3. **[UP · improve · prior ~15%] |return|-weighted (POW=0.5) retrain @60s, UP-split** — same `min1_magweight.py`,
    UP head. The UP filter is the incumbent; magweight is the highest-EV improve lever not yet tried at 60s. Falsifier:
    beat UP floor .520 / OOS .613 on the worst held-out year with CI-lo clearing.

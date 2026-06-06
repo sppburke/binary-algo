@@ -64,12 +64,15 @@ subsumed; round 2: 8 cross-horizon/calendar/UP-cert/recent-lit candidates subsum
 EURUSD direction books are at 15m (`EURUSD.m15xp.v1`: UP .5673 / DOWN .5742, both refit-CPCV-certified). The 1m
 work is a research-horizon characterization.
 
-**ADDENDUM 2026-06-05 — bar/candlestick 2-D-image CNN lever RUN → KILLED (closes the last non-subsumed bar
-sub-lever).** `/goal` asked specifically for the Sezer CNN-BI + Kronos bar-pattern approach. Built 1m OHLCV from
+**ADDENDUM 2026-06-05 — bar/candlestick 2-D-image CNN lever RUN. DIRECTION → KILLED; MAGNITUDE → clears >65%
+CPCV-certified.** `/goal` asked specifically for the Sezer CNN-BI + Kronos bar-pattern approach. Built 1m OHLCV from
 ticks (`barcnn_bars.py`, moved up-rate ∈ [.497,.503] every yr) and faithfully reimplemented Sezer CNN-BI
-(`barcnn_run.py`, `BARCNN_SPEC.md`) on the 60s wc_ret label, 3 image encodings (close-histogram / 3ch-OHLC /
-GAF-GASF+GADF). All null: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, and faithful CPCV (`barcnn_cpcv.py`, 28 purged
-paths) **path_p10 .484–.499, 0.0 paths clear 0.541 at every coverage**. A 2-D conv (4th model class) over the
-rendered chart adds nothing the GBM/GRU missed — even the antisymmetric GADF sign-field is null → the bar-image/
-GAF lever is magnitude, not ≤60s sign. Kronos NOT built (RankIC/magnitude gains, no FX/60s/direction numbers;
-fine-tune deteriorates arXiv:2511.18578). The 60s near-efficiency keystone now holds across a 4th model class.
+(`barcnn_run.py`; method in `METHODS_CATALOG.md` §5.5) on the 60s wc_ret label, 3 image encodings (close-histogram /
+3ch-OHLC / GAF-GASF+GADF). **DIRECTION** all null: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, faithful CPCV
+(`barcnn_cpcv.py`, 28 purged paths) **path_p10 .484–.499, 0.0 paths clear 0.541 at every coverage** (incl.
+regime-gated, `barcnn_regime.py`). Even the antisymmetric GADF sign-field is null → the bar-image lever is magnitude,
+not ≤60s sign; 60s direction near-efficiency now holds across a 4th model class. **MAGNITUDE** (`barcnn_mag.py
+ohlcabs`, the sign-invariant Touch/Range outcome, NOT a 60s direction key): the absolute-scale bar image hits magAUC
+.699/.714/.686 and selective large-call precision .68→.80 with **all 28 CPCV paths ≥0.65 at cov≤0.2 in 2024/2025/2026**
+(`barcnn_mag_ohlcabs_result.json`, `MAGNITUDE_FINDINGS.md` §3) — bar patterns DO predict move-SIZE at >65%, just not
+sign. Kronos NOT built (RankIC/magnitude gains, no FX/60s/direction numbers; fine-tune deteriorates arXiv:2511.18578).

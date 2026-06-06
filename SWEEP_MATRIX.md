@@ -111,15 +111,19 @@ falsifier) and be logged in `IDEAS_LOG.md` with its source citation.
 > **DATA GATE:** requires O/H/L — present only as `ohlc_cache/EURUSD_5m_*` + rebuildable from EURUSD ticks (`vbars.py` src);
 > **NOT computable for USDJPY (feature store keeps only `close`; no USDJPY tick/OHLC on disk)** → for USDJPY it is an
 > external-data lever. Runnable only on EURUSD. Per-key: `sweeps/USDJPY_2m_backlog.md` external frontier; `IDEAS_LOG.md`.
-> **RUN [EURUSD·60s] 2026-06-05 → KILLED (`BARCNN_SPEC.md`, `EURUSD_RESULTS.md` row 22).** Built 1m OHLCV from ticks
+> **RUN [EURUSD·60s] 2026-06-05 → DIRECTION KILLED / MAGNITUDE clears >65% (`METHODS_CATALOG.md` §5.5, `EURUSD_RESULTS.md` row 22, `MAGNITUDE_FINDINGS.md` §3).** Built 1m OHLCV from ticks
 > (`barcnn_bars.py`) + faithfully reimplemented the Sezer CNN-BI image-CNN (`barcnn_run.py`) on the 60s wc_ret label,
 > 3 variants: **hist** (Sezer close-histogram), **ohlc** (3ch wick+up/down-body), **gaf** (GASF+GADF). ALL null: VAL
 > dirAUC .499/.503/.502, test/oos AUC ≈.50, and **faithful CPCV (`barcnn_cpcv.py`, 28 purged paths) path_p10 .484–.499
 > with frac_paths_clear_0.541 = 0.0 at every coverage** → trips all 3 falsifier conditions. The 2-D image-conv (the last
 > non-subsumed bar sub-lever) confirms the bar geometry carries SIZE not 60s SIGN (even the GADF antisymmetric sign-field
-> is null) — sign-invariance @60s. **Bar/candlestick 2-D-image family now RUN + EXHAUSTED on-disk for EURUSD ≤60s.**
-> Kronos NOT built: its gains are RankIC/magnitude (no FX/60s/direction numbers) and fine-tune deteriorates
-> (arXiv:2511.18578) → magnitude probe, not a direction lever (deprioritized).
+> is null) — sign-invariance @60s. **Bar/candlestick 2-D-image family now RUN + EXHAUSTED on-disk for EURUSD ≤60s DIRECTION.**
+> **BUT the SAME bar-image CNN pointed at the MAGNITUDE outcome CLEARS >65% CPCV-certified** (`barcnn_mag.py ohlcabs`,
+> absolute-scale OHLC image: magAUC .699/.714/.686, selective large-call precision .68→.80, **all 28 purged paths ≥0.65
+> at cov≤0.2 in 2024/2025/2026**; `barcnn_mag_ohlcabs_result.json`, `MAGNITUDE_FINDINGS.md` §3). The single cleanest
+> sign-invariance demo: one method, null on sign, >65% on size — and the key knob is preserving ABSOLUTE vol scale
+> (per-window min-max only reaches .64). Kronos NOT built: its gains are RankIC/magnitude (no FX/60s/direction numbers)
+> and fine-tune deteriorates (arXiv:2511.18578) → magnitude probe, not a direction lever (deprioritized).
 
 > **Discovery-vetting outcome — USDJPY 1m (generic, 2026-06-04):** a fresh new-currency bootstrap (8-agent discovery
 > R1 + 2-agent R2) confirms the **60s/1m near-efficiency keystone is currency-GENERIC, not EURUSD-specific** — USDJPY

@@ -153,8 +153,9 @@ a per-bar GBM nor a 1-D sequence net (GRU/ESN, both tested) can represent. Prior
 `ohlc_cache/EURUSD_5m_*` (+ rebuildable from EURUSD ticks via `vbars.py` source). **NOT computable for any pair whose feature
 store keeps only `close` (e.g. USDJPY) without raw tick/OHLC acquisition.** ⇒ runnable today on EURUSD; an external-data lever
 for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ breakeven falsifier, eval vs the GBM baseline.
-> **RAN it [EURUSD·60s] 2026-06-05 → NULL/KILLED (generic conclusion).** Faithful Sezer CNN-BI reimplementation
-> (`BARCNN_SPEC.md`; `barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`), 3 image encodings — Sezer close-histogram,
+> **RAN it [EURUSD·60s] 2026-06-05 → DIRECTION null/KILLED, MAGNITUDE clears >65% (generic conclusion).** Faithful
+> Sezer CNN-BI reimplementation (`METHODS_CATALOG.md` §5.5; `barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`/
+> `barcnn_mag.py`), image encodings — Sezer close-histogram,
 > 3-channel OHLC (wick + up-body + down-body), and GAF (GASF+GADF) — each a small MNIST-class 2-D CNN on the 60s
 > wc_ret label (ties-strict, moved-bars). ALL three: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, and faithful CPCV (28
 > purged-combinatorial paths) **path_p10 .484–.499 with 0.0 of paths clearing breakeven at every coverage**.
@@ -163,4 +164,10 @@ for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ bre
 > GAF lever is magnitude, not ≤60s sign — confirming the 60s near-efficiency keystone via a 4th model class (2-D
 > conv).** Kronos NOT built (its reported gains are RankIC/magnitude; no FX/60s/direction numbers; fine-tune
 > deteriorates, arXiv:2511.18578) — a magnitude/path foundation model, not a direction lever.
+> **The flip side — bar patterns DO predict the MAGNITUDE outcome at >65% (`barcnn_mag.py`, `MAGNITUDE_FINDINGS.md`
+> §3).** Pointing the same bar-image CNN at large-vs-small move (the deriv Touch/Range/straddle outcome) gives magAUC
+> .699/.714/.686 and selective large-call precision .68→.80 with **all 28 CPCV paths ≥0.65 at cov≤0.2 in every held-out
+> year** — but ONLY with ABSOLUTE-scale rendering (per-window min-max normalization throws away the vol scale and caps
+> at .64). **Generic lesson: a bar IMAGE is a magnitude representation; normalize it min-max and you keep shape but
+> lose the size signal — for magnitude, preserve absolute scale; for direction, neither helps (sign isn't there).**
 

@@ -170,6 +170,7 @@ confirmed a 4th independent way. Details in `m5_research_log.md` iter 8-11; lab:
 - OHLCV 239-feature ensemble (lgb+xgb+cat) at HOR 5/15/30 → AUC ~0.52; selective ~0.56–0.64.
 - Tick microstructure (order-flow imbalance, microprice) HS 1–1800s → AUC ~0.50 @30m, **~0.65 @1–5s**.
 - 1D-CNN & GRU on the raw tick path → AUC 0.525 (= GBM): **model type is not the bottleneck, the data is**.
+- **Bar-image 2-D CNN (Sezer CNN-BI / GAF, the 4th model class)** → 60s **dirAUC ≈ 0.50** across hist/ohlc/gaf images, CPCV path_p10 .484–.499, 0.0 paths clear breakeven (incl. regime-gated); even the GADF antisymmetric sign-field is null. The SAME image CNN on MAGNITUDE clears >65% (`MAGNITUDE_FINDINGS.md` §3) — cleanest single-method sign-invariance proof. Method: `METHODS_CATALOG.md` §5.5; scripts `barcnn_*.py`.
 - Cross-pair / USD-basket, external CME ES/NQ futures lead-lag (real data thru 2026) → +0 / zero 30m lead.
 - Volume & dollar bars (López de Prado information bars) → null for direction (improve normality, not AUC).
 - Sofien Kaabar's 45 custom indicators as features → 0 OOS AUC (rank high in importance, redundant OOS).
