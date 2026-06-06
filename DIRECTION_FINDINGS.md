@@ -60,8 +60,10 @@ NULL, never a false positive. **Fix = `kronos_mtf.py`:** context ends AT bar `i`
 **Corrected Kronos direction (`kronos_mtf.py`, alignment-fixed) is NULL at EVERY horizon** 1/5/10/15/30m, zero-shot AND
 fine-tuned, all sessions: pooled .50-.51, CPCV p10 .489-.500, all KILLED, up-rates in-band. Even at **NY ≥10m where cross-pair
 certifies .57-.61, Kronos reads ~.50** — it ingests only EURUSD's OWN OHLCV candles, not the 7-pair USD cross-section that
-carries the edge; fine-tuning did NOT help direction. Files `kronos_dir_mtf_*_result.json`. (FINE-mode "1m→Nm up the chain" +
-multi-TF ensembles **in progress**.)
+carries the edge; fine-tuning did NOT help direction. Files `kronos_dir_mtf_*_result.json`. **The user's two multi-TF ideas,
+tested directly, also fail:** FINE-mode "use a finer grid up the chain" (1m→2/5/10m, 5m→10m) all KILLED (pooled .490/.509/
+.495/.503, CPCV p10 .481/.499/.475/.497, frac 0.0); multi-TF vote-ensemble (`kronos_ensemble.py`) — 5m KILLED (pooled .531,
+p10 .428), 10m ABORT (only 12 common decision bars across 3 grids). Finer/combined single-pair views add no sign.
 
 ### Cross-pair book, STRICT session-only — the ≥10m direction edge is NY-only
 
@@ -71,13 +73,16 @@ Asia certify at NONE:**
 
 | Horizon | NY UP / DOWN (p10) | LDN UP / DOWN | Asia UP / DOWN | vs legacy fixed-UTC gate |
 |---|---|---|---|---|
+| 2m | **.564 / .560** | .514 / .506 | .499 / .497 | NEW — legacy EURUSD 2m was DEAD/uncertified |
+| 5m | **.596 / .588** | .526 / .516 | .510 / .504 | NEW DOWN side — legacy was UP-ONLY (.553) |
 | 10m | **.6053 / .5896** (15/15 each) | .523 / .524 | .511 / .516 | NY BEATS legacy .586/.568 |
 | 15m | **.5845 / .5712** | .527 / .520 | .519 / .496 | — |
 | 30m | **.5681 / .5639** | .520 / .514 | .487 / .509 | NY BEATS legacy .559/.553 |
 
 NY at 10m/30m **beats the legacy fixed-UTC gate** (10m legacy .586/.568, 30m legacy .559/.553) — the direction edge is not
-just present in NY, it is *stronger* when the session filter is DST-correct and strict. Files
-`session_xpair_{10,15,30}m_{sess}_result.json`. (**5m + 2m in progress.**) Discipline: the session filter restricts DECISION
+just present in NY, it is *stronger* when the session filter is DST-correct and strict. **NY now certifies BOTH sides at every
+horizon 2m→30m** (2m & 5m two-sided certs are new). Files
+`session_xpair_{2,5,10,15,30}m_{sess}_result.json`. Discipline: the session filter restricts DECISION
 ROWS in train+val+test+oos (GBM/xpair use causal-continuous features, so this is rows-only).
 
 ### Per-session base GBM — direction null/killed every session; magnitude certified every session

@@ -1,0 +1,42 @@
+{
+ "out_tag": "5m_multi",
+ "tags": [
+  "mtf_zs_fine1_5m",
+  "mtf_zs_5m_all"
+ ],
+ "n_common": 267,
+ "n_eval": 147,
+ "up_rate": 0.5306,
+ "breakeven": 0.541,
+ "falsifier": "KILL if no year CI95-lo>=0.541 OR CPCV path_p10<0.541",
+ "per_year": {
+  "2024": {
+   "n": 61,
+   "acc": 0.5574,
+   "ci95": [
+    0.4262,
+    0.6721
+   ]
+  },
+  "2025": {
+   "n": 27,
+   "acc": 0.4815,
+   "ci95": [
+    0.2963,
+    0.6667
+   ]
+  },
+  "2026": {
+   "n": 59,
+   "acc": 0.5254,
+   "ci95": [
+    0.3898,
+    0.6441
+   ]
+  }
+ },
+ "pooled_acc": 0.5306,
+ "cpcv_path_p10": 0.4277,
+ "cpcv_frac_clear_0.541": 0.429,
+ "VERDICT": "KILLED"
+}

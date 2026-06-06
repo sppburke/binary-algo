@@ -1,70 +1,70 @@
 {
- "tag": "mtf_zs_10m_all",
+ "tag": "mtf_zs_fine1_5m",
  "model": "NeoQuasar/Kronos-small",
- "H_min": 10,
- "GRID_min": 10,
- "H_steps": 1,
- "mode": "native",
+ "H_min": 5,
+ "GRID_min": 1,
+ "H_steps": 5,
+ "mode": "fine",
  "session": "all",
  "strict_session_input": false,
  "L": 256,
  "K": 20,
  "n_eval": 9000,
- "up_rate": 0.5026,
+ "up_rate": 0.502,
  "breakeven": 0.541,
  "falsifier": "KILL if no year moved-acc CI95-lo>=0.541 OR CPCV path_p10<0.541",
  "per_year": {
   "2024": {
    "n": 3000,
-   "acc": 0.506,
+   "acc": 0.5053,
    "ci95": [
-    0.4883,
-    0.5233
+    0.4873,
+    0.523
    ]
   },
   "2025": {
    "n": 3000,
-   "acc": 0.497,
+   "acc": 0.5153,
    "ci95": [
-    0.4787,
-    0.5153
+    0.4973,
+    0.5323
    ]
   },
   "2026": {
    "n": 3000,
-   "acc": 0.5067,
+   "acc": 0.5077,
    "ci95": [
-    0.4887,
-    0.5247
+    0.4897,
+    0.5253
    ]
   }
  },
- "pooled_acc": 0.5032,
- "cpcv_path_p10": 0.4916,
+ "pooled_acc": 0.5094,
+ "cpcv_path_p10": 0.499,
  "cpcv_frac_clear_0.541": 0.0,
  "per_session": {
   "ny": {
-   "n": 3353,
-   "acc": 0.5169,
+   "n": 3336,
+   "acc": 0.4964,
    "ci95": [
-    0.5001,
-    0.5339
+    0.4793,
+    0.5135
    ]
   },
   "ldn": {
-   "n": 3063,
-   "acc": 0.5149,
+   "n": 3098,
+   "acc": 0.511,
    "ci95": [
-    0.4969,
-    0.5331
+    0.4932,
+    0.5294
    ]
   },
   "asia": {
-   "n": 3362,
-   "acc": 0.4929,
+   "n": 3352,
+   "acc": 0.506,
    "ci95": [
-    0.4762,
-    0.5104
+    0.4887,
+    0.5227
    ]
   }
  },

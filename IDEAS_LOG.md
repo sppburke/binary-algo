@@ -186,7 +186,9 @@ GPU Kronos predictor fine-tune), `kronos_mtf.py` (alignment-CORRECTED multi-TF K
 The certified ≥10m cross-pair USD-common-factor SIGN edge is **decisively NY-concentrated**. STRICT session-only DST-correct
 cross-pair (`session_xpair.py`, `sessions.py`: NY=8–17 America/New_York, LDN=8–16 Europe/London, Asia=9–18 Asia/Tokyo,
 session_mask = local-tz hour applied per-day across train+val+test+oos) certifies **BOTH** sides at every horizon **only in NY**;
-LDN and Asia certify at NONE. Files `session_xpair_{10,15,30}m_{ny,ldn,asia}_result.json` (5m + 2m **in progress**):
+LDN and Asia certify at NONE. Files `session_xpair_{2,5,10,15,30}m_{ny,ldn,asia}_result.json` (COMPLETE — NY both sides 2m→30m):
+- 2m: NY UP .564 / DOWN .560; LDN .514/.506; Asia .499/.497. **NEW — legacy EURUSD 2m was DEAD/uncertified.**
+- 5m: NY UP .596 / DOWN .588; LDN .526/.516; Asia .510/.504. **NEW DOWN side — legacy was UP-ONLY (.553).**
 - 10m: NY UP .6053 / DOWN .5896 (15/15 each); LDN .523/.524; Asia .511/.516.
 - 15m: NY UP .5845 / DOWN .5712; LDN .527/.520; Asia .519/.496.
 - 30m: NY UP .5681 / DOWN .5639; LDN .520/.514; Asia .487/.509.
@@ -196,7 +198,7 @@ was a NY edge DILUTED by two near-coin-flip sessions, not a uniformly-distribute
 **every** session at every freq (tick 1m/2m GBM `session_{1m,2m}_mag_{ny,ldn,asia}_result.json` p10 .58–.71, magAUC NY .675/
 LDN .728/Asia .717; bar 5m/10m/30m `session_{5,10,30}m_mag_{sess}_result.json` p10 .72–.80). DIRECTION GBM is null/killed in
 **all** sessions at every freq (tick 1m/2m pooled ~.504/.496–.500, frac_clear 0.0; bars killed all, NY strongest e.g. 10m NY
-p10 .525 — `session_{1m,2m}_dir_*` / `session_{5,10,30}m_dir_*`). 15m base GBM **in progress**.
+p10 .525 — `session_{1m,2m}_dir_*` / `session_{5,10,30}m_dir_*`). 15m base GBM null all sessions (NY .520/LDN .515/Asia .512). Per-session bar-image CNN also null (NY .510/.503/.505, LDN .509/.499/.503, Asia .501/.506/.500).
 > **Generic lesson:** the direction-edge HORIZON gradient (none@60s→UP@5m→BOTH@≥10m) has a SESSION dimension that is just as
 > sharp — the cross-sectional USD sign is forecastable **when the US desk is the marginal price-setter (NY hours)** and decays
 > to coin-flip in LDN/Asia, while MAGNITUDE (volatility presence, the sign-invariant edge) is session-AGNOSTIC. **For any new
@@ -228,7 +230,7 @@ nonoverlap GAP = HS+TOL. Validated: forward label agrees with next-bar sign 92.3
 ### (c) Lever — single-pair foundation-model (Kronos) DIRECTION = NULL; the edge is CROSS-SECTIONAL not own-history
 With the alignment fixed, the corrected Kronos eval (`kronos_mtf.py`) reads NULL at EVERY horizon (1/5/10/15/30m), zero-shot AND
 fine-tuned, in ALL sessions (pooled .50–.51, CPCV p10 .489–.500, all KILLED, up-rates in-band). Files
-`kronos_dir_mtf_*_result.json` (FINE-mode "1m→Nm up-the-chain" + multi-TF ensembles **in progress**). The decisive observation:
+`kronos_dir_mtf_*_result.json`. Both of the user's multi-TF ideas were tested and are also null: FINE-mode "use a finer grid up the chain" (1m→2/5/10m, 5m→10m) all KILLED (pooled .490/.509/.495/.503, CPCV p10 .481/.499/.475/.497); multi-TF vote-ensemble (`kronos_ensemble.py`) — 5m KILLED (pooled .531, p10 .428), 10m ABORT (only 12 common decision bars across 3 grids → nonoverlap-chrono leaves too few shared decision instants). The decisive observation:
 even at NY≥10m where `session_xpair` certifies .57–.61, Kronos reads ~.50 — because it ingests only EURUSD's OWN OHLCV candles,
 NOT the 7-pair USD cross-section that carries the sign. Fine-tuning the predictor did NOT help direction.
 > **Generic lesson — a single-pair candlestick/K-line foundation model is a MAGNITUDE/path model, not a direction lever; the

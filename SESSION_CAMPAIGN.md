@@ -43,7 +43,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | B. Magnitude \|ret60\|≥Q, session-only | ✅ p10 **.621**/.713 (cov10/5, frac1.0) | ✅ p10 **.635**/.705 | ✅ p10 **.603**/.683 | `session_1m_mag_<sess>_result.json` — magAUC NY .675/LDN .728/Asia .717 |
 | C. Kronos zero-shot direction (CORRECTED `kronos_mtf`) | ❌ .5015 (p10 .492) | ❌ .504 (p10 .493) | ⏳ | `kronos_dir_mtf_mtf_zs_1m_<sess>_result.json` — pooled ~.50 up-rate in-band, KILLED. Legacy `kronos_dir` was 1-bar MISALIGNED (now gated); corrected confirms 60s null is REAL not an artifact |
 | D. Kronos fine-tuned direction (corrected `kronos_mtf`) | ❌ .506 (p10 .499) | ❌ .506 (p10 .502) | ❌ .500 (p10 .481) | `kronos_dir_ft_*` models re-eval'd via `kronos_mtf` (ftmtf_1m_*): all KILLED ~.50. **Fine-tuning does NOT help direction** (confirms FT-deteriorates prior) |
-| E. Bar-image CNN dir + mag (session-only) | ⏳ | ⏳ | ⏳ | `barcnn_<sess>_*_result.json` |
+| E. Bar-image CNN direction (Sezer CNN-BI, per-session) | ❌ AUC .503 | ❌ .499 | ❌ .506 | `barcnn_hist_<sess>_result.json` — VAL AUC .50-.51, per-yr ~.46-.52, all NULL (4th model class confirms 1m dir null per session) |
 
 ### Frequency 2m (120s) — PRIORITY 2
 | A. GBM direction | ❌ p10 .500 (val .508) | ❌ p10 .496 (val .503) | ❌ p10 .498 (val .509) | `session_2m_dir_<sess>_result.json` — pooled ~.505, frac 0.0 all cov/side, null |
@@ -54,13 +54,13 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 ### Frequency 5m — PRIORITY 3  (base single-LGBM, session-only; NOT the cross-pair certified book)
 | A. GBM direction comb@5% | ❌ NY p10 .518 (2024 .570) | ❌ LDN p10 .500 | ❌ Asia p10 .508 | `session_5m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.793** (frac1.0) | ✅ LDN p10 **.798** | ✅ Asia p10 **.772** | `session_5m_mag_<sess>_result.json` |
-| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 5m) | ❌ .519 | ❌ .519 | ❌ .511 | `kronos_dir_mtf_mtf_zs_5m_all_result.json` — pooled .511 p10 .500 KILLED; faint per-session whiff but sub-BE |
+| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 5m + fine 1m→5m) | ❌ .519 | ❌ .519 | ❌ .511 | native `_5m_all` pooled .511 p10 .500 KILLED; **fine 1m→5m "up the chain"** `_fine1_5m` pooled .509 p10 .499 frac0.0 KILLED (per-yr .505/.515/.508) — finer sub-horizon grid does NOT help |
 | D. **Cross-pair book** (STRICT session-only) | ✅ **UP .596/DOWN .588** (both CERT) | ❌ .526/.516 | ❌ .510/.504 | `session_xpair_5m_<sess>_result.json` — NY certifies BOTH sides at 5m; legacy was UP-ONLY (.553), so strict-session NY ADDS the DOWN side. Edge extends down to 5m, still NY-only |
 
 ### Frequency 10m — PRIORITY 4  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.790** | ✅ LDN p10 **.797** | ✅ Asia p10 **.753** | `session_10m_mag_<sess>_result.json` |
-| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 10m) | ❌ .507 | ❌ .503 | ❌ .500 | `kronos_dir_mtf_mtf_zs_10m_all_result.json` — pooled .505 p10 .495 KILLED (Kronos blind to cross-pair edge that certifies here) |
+| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 10m + fine 1m→10m & 5m→10m) | ❌ .507 | ❌ .503 | ❌ .500 | native `_10m_all` pooled .505 p10 .495 KILLED; **fine "up the chain"** `_fine1_10m` pooled .495 p10 .475, `_fine5_10m` pooled .503 p10 .497 (both frac0.0 KILLED) — Kronos blind to cross-pair edge that certifies here, at every input grid |
 | D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | ❌ .523/.524 | ❌ .511/.516 | `session_xpair_10m_<sess>_result.json` — edge NY-ONLY (where deployed book gated); LDN/Asia session-only DON'T certify. NY beats legacy .586/.568 |
 
 ### Frequency 15m — (base book + cross-pair lever)
@@ -97,6 +97,18 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
    the 7-pair USD cross-section that carries the edge. So Kronos confirms (with correct alignment now) that single-pair
    candlestick patterns don't forecast direction; the edge is cross-sectional, not in-pattern. Kronos's value remains
    magnitude/path. The earlier "Kronos null" (misaligned harness) was right-for-the-wrong-reason; now right-for-right.
+6. **The user's MULTI-TIMEFRAME ideas, tested directly, do NOT rescue Kronos direction.** (a) *"Use a finer grid to
+   predict a coarser horizon, up the chain"* — fed 1m bars to predict 2m/5m/10m and 5m bars to predict 10m
+   (`mtf_zs_fine1_{2,5,10}m`, `mtf_zs_fine5_10m`): all KILLED (pooled .490/.509/.495/.503, CPCV p10 .481/.499/.475/.497,
+   frac_clear 0.0 every case). Finer sub-horizon context adds nothing — single-pair candles carry no sign at any input
+   resolution. (b) *"Simultaneously represent different timeframes at once" (15m momentum informing 5m)* — implemented as
+   a soft-vote ensemble of the same-horizon calls at different input grids (`kronos_ensemble.py`): 5m ensemble pooled
+   .531 but CPCV p10 .428, no year CI95-lo ≥ .541 → KILLED; the 10m ensemble had only **12** common decision bars across
+   3 grids → statistically ABORTED. LIMITATION: nonoverlap-chrono sampling at different grids leaves too few shared
+   decision instants to ensemble robustly (5m n_common 267→147 usable; 10m n=12). Verdict: multi-TF representation of a
+   single pair does not create direction edge — consistent with #5 (the missing ingredient is the cross-pair section,
+   not more views of EURUSD's own candles). The bar-image CNN (4th model class) per session is also null (NY VAL .510/
+   test .503/oos .505, LDN .509/.499/.503, Asia .501/.506/.500). The session re-campaign is now COMPLETE.
 
 ## ⚠ METHODOLOGY FIX (user-caught 2026-06-06) — Kronos eval look-forward MISALIGNMENT
 `kronos_dir.py` (and the inherited `kronos_ft.py` eval) scored Kronos direction against the WRONG 60s window: at
@@ -152,6 +164,16 @@ superseded pre-v3 min1_v*/min2_v*/tickmodel* cohort (bar-shift label + greedy no
 - TODO next: read 3 FT results → 1m-D cells; Kronos zero-shot at 2/5/10/30m (GPU); cross-pair per-session book (CPU lane).
   (needs bars built at those freqs); per-session CROSS-PAIR book re-run (the certified ≥5m direction lever) — the
   highest-prior remaining direction test; bar-CNN per-session (1m E); Kronos fine-tune (selective).
+- 2026-06-06 ~08:00 — **Cross-pair per-session books DONE 2m→30m** (`session_xpair_{2,5,10,15,30}m_*`): NY certifies BOTH
+  sides at EVERY horizon 2m–30m (UP .564–.605/DOWN .560–.590); LDN/Asia certify none. NEW: 2m NY two-sided cert (legacy
+  EURUSD 2m was dead), 5m NY adds the DOWN side (legacy was UP-only). Two-sided NY cross-pair range = 2m→30m, NY-only.
+- 2026-06-06 ~11:07 — **GPU-lane TAIL COMPLETE** (`kronos_tail.log` → "TAIL DONE"). (1) Kronos zero-shot fine "up the
+  chain": 1m→2m KILLED (.490/p10.481), 1m→5m KILLED (.509/p10.499), 1m→10m KILLED (.495/p10.475), 5m→10m KILLED
+  (.503/p10.497) — finer input grid never helps. (2) Multi-TF ensemble (`kronos_ensemble.py`): 5m KILLED (pooled .531,
+  p10 .428, n_common 267→147), 10m ABORT (n_common=12 across 3 grids — too few shared decision bars). (3) bar-CNN per
+  session: NY VAL .510/test .503/oos .505, LDN .509/.499/.503, Asia .501/.506/.500 — all NULL. **SESSION RE-CAMPAIGN
+  COMPLETE: every freq × method × session tested; direction null everywhere except the cross-pair book (NY-only, ≥2m);
+  magnitude session-robustly certified everywhere; Kronos direction null at every horizon/grid/session, zero-shot+FT.**
 
 ## PRIOR-SESSION CONTEXT (what the legacy NY-gated books already say — to compare against)
 - ≥5m deployed direction books are compression×NY(fixed-UTC): 5m UP .553 (cert), 10m UP .586/DOWN .568 (cert),
