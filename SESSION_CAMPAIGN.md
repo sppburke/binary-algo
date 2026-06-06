@@ -60,7 +60,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.790** | ✅ LDN p10 **.797** | ✅ Asia p10 **.753** | `session_10m_mag_<sess>_result.json` |
 | C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_10m_zeroshot_result.json` |
-| D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | 🔄 | 🔄 | `session_xpair_10m_<sess>_result.json` — DST-correct NY strict-session BEATS legacy fixed-UTC (UP .586/.568); BOTH sides certify |
+| D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | ❌ .523/.524 | ❌ .511/.516 | `session_xpair_10m_<sess>_result.json` — edge NY-ONLY (where deployed book gated); LDN/Asia session-only DON'T certify. NY beats legacy .586/.568 |
 
 ### Frequency 15m — (base book + cross-pair lever)
 | D. **Cross-pair book** (STRICT session-only train+gate) | 🔄 | 🔄 | 🔄 | `session_xpair_15m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .567/DOWN .574 |
