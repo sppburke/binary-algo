@@ -19,9 +19,15 @@ up-rate∈[.47,.53], pre-registered falsifier, purged-combinatorial CPCV (path_p
 **Falsifier (per cell):** KILL if VAL dirAUC ≤ 0.515 OR no held-out year moved-acc CI95-lo ≥ 0.541 OR CPCV
 path_p10 < 0.541. Magnitude cell: report magAUC + selective precision; "edge" if CPCV path_p10(precision) clears.
 
-**Execution rule:** ONE heavy job at a time (OOM history — killed the box once). Serialize GBM/CNN/Kronos fits;
-Kronos zero-shot is run ONCE per (freq) all-sessions and read out per-session via the breakdown (no training →
-no need to session-filter inputs). Kronos FINE-TUNE is session-only and EXPENSIVE on CPU → selective.
+**Execution rule:** tick-substrate GBM (1m/2m feats() ~9-20G) runs ALONE (OOM history). Bar-store GBM + GPU Kronos
+are mem-light → run CONCURRENTLY (GPU lane = Kronos FT/zero-shot; CPU lane = lightgbm bar-store). Kronos zero-shot is
+run ONCE per (freq) all-sessions and read out per-session via the breakdown.
+
+**HARDWARE UPGRADE 2026-06-06 (user: "use the GPU"):** box HAS an NVIDIA RTX 5050 Laptop (8GB, Blackwell sm_120,
+driver 580/CUDA13). Swapped venv torch `2.12.0+cpu`→`2.12.0+cu130` (cleanest: same version, cu130 matches driver;
+verified sm_120 matmul). Kronos FT + inference now run on GPU (~10 steps/s, ~30 min/session vs hours on CPU). The
+official `finetune/train_predictor.py` is GPU/DDP-only (cuda hardcoded L185, torchrun-required L241) → `kronos_ft.py`
+is a single-process GPU adaptation (frozen base tokenizer, predictor FT, session-only contig stream, AMP bf16).
 
 ## Substrates
 - 1m(60s) / 2m(120s): tick store `features_tick/` (min1/min2 machinery, wc_ret on 1s ticks). OHLCV bars in `ohlc_cache/`.
@@ -33,15 +39,15 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 ### Frequency 1m (60s)  — PRIORITY 1 (do fully first)
 | method | NY | LDN | Asia | result_json prefix |
 |---|---|---|---|---|
-| A. GBM direction (comb/UP/DOWN), session-only train+eval | ⏳ | ⏳ | ⏳ | `session_1m_dir_<sess>_result.json` |
-| B. Magnitude \|ret60\|≥Q, session-only | ⏳ | ⏳ | ⏳ | `session_1m_mag_<sess>_result.json` |
+| A. GBM direction (comb/UP/DOWN), session-only train+eval | ❌ p10 .504 (val .509) | ❌ p10 .502 (val .503) | ❌ p10 .500 (val .506) | `session_1m_dir_<sess>_result.json` — pooled ~.504, frac_clear 0.0 EVERY cov/side, null |
+| B. Magnitude \|ret60\|≥Q, session-only | ✅ p10 **.621**/.713 (cov10/5, frac1.0) | ✅ p10 **.635**/.705 | ✅ p10 **.603**/.683 | `session_1m_mag_<sess>_result.json` — magAUC NY .675/LDN .728/Asia .717 |
 | C. Kronos zero-shot direction (per-session via breakdown) | ❌ .493 | ❌ .503 | ❌ .506 | `kronos_dir_zeroshot_small_result.json` — pooled .501, CPCV p10 .487, null EVERY session |
-| D. Kronos fine-tuned direction (session-only) | ⏳ | ⏳ | ⏳ | `kronos_dir_ft_<sess>_result.json` |
+| D. Kronos fine-tuned direction (session-only, **GPU**) | 🔄 training | ⏳ | ⏳ | `kronos_dir_ft_<sess>_result.json` (`kronos_ft.py`, predictor FT on session-only contig 1m stream) |
 | E. Bar-image CNN dir + mag (session-only) | ⏳ | ⏳ | ⏳ | `barcnn_<sess>_*_result.json` |
 
 ### Frequency 2m (120s) — PRIORITY 2
-| A. GBM direction | ⏳ | ⏳ | ⏳ | `session_2m_dir_<sess>_result.json` |
-| B. Magnitude | ⏳ | ⏳ | ⏳ | `session_2m_mag_<sess>_result.json` |
+| A. GBM direction | ❌ p10 .500 (val .508) | ❌ p10 .496 (val .503) | ❌ p10 .498 (val .509) | `session_2m_dir_<sess>_result.json` — pooled ~.505, frac 0.0 all cov/side, null |
+| B. Magnitude | ✅ p10 **.604**/.695 (cov10/5) | ✅ p10 **.639**/.695 | ✅ p10 **.579**/.679 | `session_2m_mag_<sess>_result.json` — magAUC NY .668/LDN .730/Asia .716, frac1.0 |
 | C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_2m_zeroshot_result.json` |
 | D. Kronos fine-tune | ⏳ | ⏳ | ⏳ | — |
 
@@ -72,15 +78,28 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
    direction; re-running the cross-pair book per-session (DST-correct) is the open higher-prior follow-up.
 3. **Kronos zero-shot 1m direction = null in EVERY session** (NY .493 / LDN .503 / overlap .501 / Asia .506; pooled
    .501, CPCV p10 .487). Session-conditioning does not rescue Kronos for 1m direction.
+4. **1m TICK GBM direction = null in EVERY session** (NY/LDN/Asia pooled ~.504, p10 <.505, frac_clear 0.0 at every
+   coverage and side). Three independent model classes now agree the 60s SIGN is session-invariantly near-efficient:
+   tick-GBM, bar-CNN, Kronos — all null in NY, LDN AND Asia. **1m MAGNITUDE certified in all three sessions** (cov≤10%
+   frac_clear 1.0; magAUC NY .675/LDN .728/Asia .717), so the sign-invariance split (size forecastable, sign not) is
+   itself session-robust. Reinforces [[binary-algo-direction-ceiling]] + [[magnitude-edge]] at the session level.
 
 ## RUN LOG (append one line per completed cell — the resumable record)
 - 2026-06-05 — campaign opened; `sessions.py` (DST-correct) built.
 - 2026-06-05 23:39 — **5m/10m/30m GBM (base lgb) dir+mag × NY/LDN/Asia DONE** (18 cells, `session_{5,10,30}m_*`),
   ran CONCURRENTLY with Kronos (bar store mem-light). Direction all KILLED (NY/LDN strongest); magnitude all ✅ certified.
 - 2026-06-05 23:41 — **Kronos zero-shot 1m DONE** (`kronos_dir_zeroshot_small_result.json`): null all sessions.
-- 2026-06-05 23:41 — **session_1m (1m tick GBM dir+mag × sessions) RUNNING ALONE** (heavy feats() transient).
-- TODO next: 1m tick results → record; then 2m tick (session_2m, TO WRITE); Kronos zero-shot at 2/5/10/30m;
-  per-session CROSS-PAIR book re-run (the certified ≥5m direction lever) — the highest-prior remaining direction test.
+- 2026-06-05 23:46 — **session_1m (1m tick GBM dir+mag × NY/LDN/Asia) DONE** (252s, mem-safe alone): DIR null all
+  sessions (p10 .500–.504, frac 0.0); MAG ✅ certified all sessions (p10 .60–.71, frac 1.0). 1m row A/B filled.
+- 2026-06-05 23:52 — **session_2m (2m tick GBM dir+mag × NY/LDN/Asia) DONE** (241s, mem-safe alone, peaked 9G used):
+  DIR null all sessions (p10 .496–.500, frac 0.0); MAG ✅ certified all sessions (p10 .58–.70, frac 1.0). 2m row A/B filled.
+  → 1m & 2m tick GBM both confirm: direction session-invariantly null, magnitude session-robustly certified.
+- 2026-06-06 00:1x — **GPU enabled** (RTX 5050, torch cu130). `kronos_ft.py` written + smoke-passed. **Kronos FT chain
+  NY→LDN→Asia (1m, predictor FT, GPU) LAUNCHED** via `kronos_ft_orch.sh` (12 ep, batch24, L256, K20, N/yr3000,
+  early-stop on 2024 val-loss). NY training first (2.4G/8G VRAM, 97% util). Concurrent CPU lane = cross-pair book re-run.
+- TODO next: read 3 FT results → 1m-D cells; Kronos zero-shot at 2/5/10/30m (GPU); cross-pair per-session book (CPU lane).
+  (needs bars built at those freqs); per-session CROSS-PAIR book re-run (the certified ≥5m direction lever) — the
+  highest-prior remaining direction test; bar-CNN per-session (1m E); Kronos fine-tune (selective).
 
 ## PRIOR-SESSION CONTEXT (what the legacy NY-gated books already say — to compare against)
 - ≥5m deployed direction books are compression×NY(fixed-UTC): 5m UP .553 (cert), 10m UP .586/DOWN .568 (cert),

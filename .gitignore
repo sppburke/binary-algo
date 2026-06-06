@@ -256,3 +256,6 @@ session_*.log
 kronos_*.log
 campaign_orch.log
 orch.log
+kronos_ft_orch.log
+# Kronos fine-tuned model artifacts (regenerable weights; keep kronos_dir_ft_*_result.json + kronos_ft.py)
+models/kronos_ft_*/
