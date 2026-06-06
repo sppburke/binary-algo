@@ -217,8 +217,15 @@ def main():
     if not train(tok, mdl):
         hb("training did not save a model — abort eval"); return
     del mdl, tok; gc.collect(); torch.cuda.empty_cache()
-    hb("=== eval fine-tuned model ===")
-    evaluate()
+    # NOTE: the legacy in-script eval has a 1-bar look-forward MISALIGNMENT (predicts the bar ENDING at the entry
+    # instant, scored vs the label's forward window AFTER the entry — disjoint). It is superseded by the corrected
+    # multi-timeframe harness kronos_mtf.py. Default: skip (just train+save the valid model); set KRONOS_FT_EVAL=1
+    # only to reproduce the legacy (misaligned) number.
+    if os.environ.get("KRONOS_FT_EVAL", "0") == "1":
+        hb("=== eval fine-tuned model (LEGACY 1-bar-MISALIGNED harness) ===")
+        evaluate()
+    else:
+        hb("=== legacy eval SKIPPED (1-bar misalignment); model saved — re-eval via corrected kronos_mtf.py ===")
 
 
 if __name__ == "__main__":

@@ -42,7 +42,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | A. GBM direction (comb/UP/DOWN), session-only train+eval | ❌ p10 .504 (val .509) | ❌ p10 .502 (val .503) | ❌ p10 .500 (val .506) | `session_1m_dir_<sess>_result.json` — pooled ~.504, frac_clear 0.0 EVERY cov/side, null |
 | B. Magnitude \|ret60\|≥Q, session-only | ✅ p10 **.621**/.713 (cov10/5, frac1.0) | ✅ p10 **.635**/.705 | ✅ p10 **.603**/.683 | `session_1m_mag_<sess>_result.json` — magAUC NY .675/LDN .728/Asia .717 |
 | C. Kronos zero-shot direction (per-session via breakdown) | ❌ .493 | ❌ .503 | ❌ .506 | `kronos_dir_zeroshot_small_result.json` — pooled .501, CPCV p10 .487, null EVERY session |
-| D. Kronos fine-tuned direction (session-only, **GPU**) | 🔄 training | ⏳ | ⏳ | `kronos_dir_ft_<sess>_result.json` (`kronos_ft.py`, predictor FT on session-only contig 1m stream) |
+| D. Kronos fine-tuned direction (session-only, **GPU**) | model ✅ eval🔁 | 🔄 train | ⏳ | `kronos_ft.py` predictor FT (models/kronos_ft_<sess>); legacy in-script eval MISALIGNED→discarded, re-eval via `kronos_mtf.py` |
 | E. Bar-image CNN dir + mag (session-only) | ⏳ | ⏳ | ⏳ | `barcnn_<sess>_*_result.json` |
 
 ### Frequency 2m (120s) — PRIORITY 2
@@ -60,11 +60,16 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.790** | ✅ LDN p10 **.797** | ✅ Asia p10 **.753** | `session_10m_mag_<sess>_result.json` |
 | C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_10m_zeroshot_result.json` |
+| D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | 🔄 | 🔄 | 🔄 | `session_xpair_10m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .586/DOWN .568 |
+
+### Frequency 15m — (base book + cross-pair lever)
+| D. **Cross-pair book** (STRICT session-only train+gate) | 🔄 | 🔄 | 🔄 | `session_xpair_15m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .567/DOWN .574 |
 
 ### Frequency 30m — PRIORITY 5  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 .504 (2024 .566/25 .558) | ⚠ LDN p10 **.538** (frac .82, near-miss) | ❌ Asia p10 .495 | `session_30m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.799** | ✅ LDN p10 **.764** | ✅ Asia p10 **.717** | `session_30m_mag_<sess>_result.json` |
 | C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_30m_zeroshot_result.json` |
+| D. **Cross-pair book** (STRICT session-only train+gate) | 🔄 | 🔄 | 🔄 | `session_xpair_30m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .559/DOWN .553 |
 
 ## KEY FINDINGS SO FAR (session split, DST-correct)
 1. **MAGNITUDE is session-ROBUST and certified >75% in ALL sessions × ALL frequencies (5/10/30m).** Selective
@@ -83,6 +88,19 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
    tick-GBM, bar-CNN, Kronos — all null in NY, LDN AND Asia. **1m MAGNITUDE certified in all three sessions** (cov≤10%
    frac_clear 1.0; magAUC NY .675/LDN .728/Asia .717), so the sign-invariance split (size forecastable, sign not) is
    itself session-robust. Reinforces [[binary-algo-direction-ceiling]] + [[magnitude-edge]] at the session level.
+
+## ⚠ METHODOLOGY FIX (user-caught 2026-06-06) — Kronos eval look-forward MISALIGNMENT
+`kronos_dir.py` (and the inherited `kronos_ft.py` eval) scored Kronos direction against the WRONG 60s window: at
+decision bar i it fed context `[i-L..i-1]`, predicted bar i, and compared `pred_close(i) > C[i-1]` — the move INTO
+t[i], window `[t[i-1],t[i]]`. But the deriv label `y[i]` (barcnn_bars.labels_at: entry t[i]+1s, exit t[i]+61s) is
+the FORWARD 60s, window `[t[i]+1,t[i]+61]`. **Disjoint, off by one bar.** So every Kronos DIRECTION result so far
+(1m zero-shot null AND the misaligned 1m-FT eval) tested "does the realized last-1m move match the next disjoint
+1m move" — NOT "can Kronos forecast the trade window." Those direction nulls are CONFOUNDED (alignment artifact vs
+sign-invariance — indistinguishable). **FIX = `kronos_mtf.py`:** context ends at the ENTRY bar (last close = entry
+ref), predict pred_len=H/F steps forward, `Pup = pred_close(+H) > C_entry`, vs the H-min deriv label. This also
+implements the user's idea: finer-TF context (1m) → predict H steps for the H-min horizon + multi-TF ensemble. The
+GBM/tick/xpair pipelines are NOT affected (their labels are correctly forward from the decision instant; Kronos-eval
+-only bug). Magnitude results unaffected. Design pass: workflow `kronos-mtf-design` (running).
 
 ## RUN LOG (append one line per completed cell — the resumable record)
 - 2026-06-05 — campaign opened; `sessions.py` (DST-correct) built.

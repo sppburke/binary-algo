@@ -24,8 +24,10 @@ L       = int(sys.argv[4]) if len(sys.argv) > 4 else 256          # lookback con
 K       = int(sys.argv[5]) if len(sys.argv) > 5 else 20           # sample_count trajectories
 N_PER_YR= int(sys.argv[6]) if len(sys.argv) > 6 else 2500         # eval windows per year (CPU budget)
 SESSION = sys.argv[7] if len(sys.argv) > 7 else "all"             # all|ny|london|overlap|asia (eval filter)
-HS, TOL, GAP = 60, 10, 70; BREAKEVEN = 0.541; BATCH = 16
+FREQ = int(os.environ.get("FREQ_MIN", "1")); HS = FREQ * 60; TOL = max(10, HS // 20); GAP = HS + TOL
+BREAKEVEN = 0.541; BATCH = 16
 import torch; torch.set_num_threads(16)
+DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 T0 = time.time()
 def hb(m): print(f"HB[{time.time()-T0:.0f}s] {m}", flush=True)
 
@@ -67,13 +69,13 @@ def cpcv(ts, win, n_groups=8, k=2):
 def main():
     hb(f"tok={TOK_ID} model={MODEL} tag={TAG} L={L} K={K} N/yr={N_PER_YR}")
     tok = KronosTokenizer.from_pretrained(TOK_ID); mdl = Kronos.from_pretrained(MODEL)
-    pred = KronosPredictor(mdl, tok, device="cpu", max_context=max(L, 256))
-    hb(f"loaded {sum(p.numel() for p in mdl.parameters())/1e6:.1f}M params on cpu")
+    pred = KronosPredictor(mdl, tok, device=DEV, max_context=max(L, 256))
+    hb(f"loaded {sum(p.numel() for p in mdl.parameters())/1e6:.1f}M params on {DEV} (FREQ={FREQ}m HS={HS}s)")
 
     # gather eligible decision bars (valid & moved) across test+oos, with full-bar context arrays
     frames = []
     for sp in ("test", "oos"):
-        b = pd.read_parquet(f"{OUT}/EURUSD_1m_{sp}.parquet"); b["sp"] = sp; frames.append(b)
+        b = pd.read_parquet(f"{OUT}/EURUSD_{FREQ}m_{sp}.parquet"); b["sp"] = sp; frames.append(b)
     B = pd.concat(frames).reset_index(drop=True)
     O = B["open"].values; Hg = B["high"].values; Lw = B["low"].values; C = B["close"].values
     V = B["vol"].values; t = B["t"].values.astype("int64"); y = B["y"].values.astype(int)
