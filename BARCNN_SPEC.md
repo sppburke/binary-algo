@@ -86,6 +86,15 @@ All three trip the pre-registered falsifier on ALL THREE conditions (VAL dirAUC 
 CI95-lo ≥ 0.541; CPCV path_p10 < 0.541). Incumbent unbeaten (60s UP 0.613 regime-filter uncertified; DOWN
 0.516 dead). >0.65 target not achieved — as the honest prior predicted at ≤5m.
 
+### 5b. "Better than we currently have?" — bar-CNN × incumbent regime gate (`barcnn_regime.py`)
+Apples-to-apples vs the 0.613 UP filter: gate the CNN to the compression-release reversion regime (the only 60s
+structure) and compare to the pure-reversion baseline (CNN ignored). Result (`barcnn_regime_*_result.json`): the
+pure-reversion baseline itself is ~0.48–0.53 / CPCV p10 .43–.47 / 0.0 paths clear on the 1-min-bar regime proxy;
+the CNN-gated policy throws scattered high pockets (ohlc 2025 .615, hist 2024 .618) that are **thin-coverage
+mirages (n=34–39/yr — leakage trap #6), inconsistent across years (2026 < .50), CPCV p10 .436–.482, frac_clear <
+0.54** → none certifies, none beats the incumbent binding-year with CI clearing, none reaches 0.65. The bar
+pattern adds nothing to the regime gate.
+
 **Bottom line:** the bar-image CNN does NOT beat the incumbent 60s book and does NOT clear breakeven — VAL
 dirAUC ≈ 0.50 and every held-out year's CI95-lower sits far below 0.541. This is the predicted outcome: the
 60s EUR/USD direction sign is near-efficient (image geometry of past bars carries magnitude, not next-60s
