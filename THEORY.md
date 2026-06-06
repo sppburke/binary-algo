@@ -21,11 +21,22 @@ evaluate it as magnitude (`|ret|≥Q`, AUC) and record in `MAGNITUDE_FINDINGS.md
 *direction* mechanism must be **sign-AWARE** (e.g. signed Hawkes up/down cross-excitation asymmetry, signed
 lead-lag / path signed-area, tail-conditional sign asymmetry) and must name which side's sign it carries.
 
+**Cleanest single-method demonstration `[EURUSD·60s]` (2026-06-05):** the SAME 2-D bar-image CNN (Sezer CNN-BI /
+GAF — a 4th model class beyond GBM/GRU/state-space) is **null on direction** (dirAUC ≈ .50, CPCV 0/28 paths clear
+0.541, even the antisymmetric GADF sign-field) yet **clears >65% on magnitude** (large-vs-small move; magAUC
+.699/.714/.686, selective precision .68→.80, all 28 CPCV paths ≥0.65 every held-out year). One representation, one
+training pipeline, opposite verdicts by target — exactly the theorem. KEY detail: a bar image must keep its
+**absolute volatility scale** to carry magnitude (per-window min-max normalization strips it → magAUC .64). See
+`MAGNITUDE_FINDINGS.md` §3, `METHODS_CATALOG.md` §5.5, `barcnn_*.py`.
+
 ## 2. The direction ceiling (horizon-dependent; magnitude is the durable edge)
 
 Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measured evidence, see `EURUSD_RESULTS.md`):
-- Sub-minute direction is **near-efficient** — AUC ≈0.50–0.51 across ~24 input channels; `>0.65` OOS-stable is
-  **not** achievable at ≤5m on clock-bar data. `[EURUSD·60s]`
+- Sub-minute direction is **near-efficient** — AUC ≈0.50–0.51 across ~24 input channels (now incl. a 2-D bar-image
+  CNN, the 4th model class — dirAUC ≈.50, CPCV 0/28 clear); `>0.65` OOS-stable is **not** achievable at ≤5m on
+  clock-bar data. The best *available* 60s direction is the regime-gated UP dip-buy filter (uncertified: pooled .573,
+  CPCV p10 .524, 2024 .520<breakeven); DOWN is dead. The only 60s edge that survives CPCV is **magnitude** (the
+  Touch/Range straddle, ~.72–.80 selective precision). `[EURUSD·60s]`
 - Short tick horizons (1–5s) carry a genuine `>0.65` directional edge but need a **tick venue** (deriv forex
   min duration is 15m — see §3). `[EURUSD·1-5s]`
 - Intermediate horizons (≈10–15m) carry a modest **regime-dependent** direction edge (~0.58 cross-era / ~0.65
