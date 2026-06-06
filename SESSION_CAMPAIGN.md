@@ -60,7 +60,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.790** | ✅ LDN p10 **.797** | ✅ Asia p10 **.753** | `session_10m_mag_<sess>_result.json` |
 | C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_10m_zeroshot_result.json` |
-| D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | 🔄 | 🔄 | 🔄 | `session_xpair_10m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .586/DOWN .568 |
+| D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | 🔄 | 🔄 | `session_xpair_10m_<sess>_result.json` — DST-correct NY strict-session BEATS legacy fixed-UTC (UP .586/.568); BOTH sides certify |
 
 ### Frequency 15m — (base book + cross-pair lever)
 | D. **Cross-pair book** (STRICT session-only train+gate) | 🔄 | 🔄 | 🔄 | `session_xpair_15m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .567/DOWN .574 |
@@ -101,6 +101,13 @@ ref), predict pred_len=H/F steps forward, `Pup = pred_close(+H) > C_entry`, vs t
 implements the user's idea: finer-TF context (1m) → predict H steps for the H-min horizon + multi-TF ensemble. The
 GBM/tick/xpair pipelines are NOT affected (their labels are correctly forward from the decision instant; Kronos-eval
 -only bug). Magnitude results unaffected. Design pass: workflow `kronos-mtf-design` (running).
+
+## 🎯 HEADLINE (2026-06-06): DST-correct STRICT session-only cross-pair book at 10m NY CERTIFIES BOTH SIDES,
+**beating the legacy fixed-UTC gate.** `session_xpair_10m_ny`: UP p10 **.6053** (15/15 clear), DOWN p10 **.5896**
+(15/15) — vs legacy m10xp UP .586/DOWN .568. So the certified ≥10m direction edge is REAL and STRONGER once you
+(a) use DST-correct NY and (b) train+gate strictly within the session (n=979k NY-only pooled cross-pair rows). The
+user's session discipline didn't break the edge — it sharpened it. LDN/Asia 10m + 15m/30m running. (Magnitude was
+already session-robust; this is the first DIRECTION cell to certify in the re-campaign.)
 
 ## RUN LOG (append one line per completed cell — the resumable record)
 - 2026-06-05 — campaign opened; `sessions.py` (DST-correct) built.
