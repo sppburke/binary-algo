@@ -48,8 +48,8 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 ### Frequency 2m (120s) — PRIORITY 2
 | A. GBM direction | ❌ p10 .500 (val .508) | ❌ p10 .496 (val .503) | ❌ p10 .498 (val .509) | `session_2m_dir_<sess>_result.json` — pooled ~.505, frac 0.0 all cov/side, null |
 | B. Magnitude | ✅ p10 **.604**/.695 (cov10/5) | ✅ p10 **.639**/.695 | ✅ p10 **.579**/.679 | `session_2m_mag_<sess>_result.json` — magAUC NY .668/LDN .730/Asia .716, frac1.0 |
-| C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_2m_zeroshot_result.json` |
-| D. Kronos fine-tune | ⏳ | ⏳ | ⏳ | — |
+| C. Kronos zero-shot (corrected `kronos_mtf`, native + fine 1m→2m) | ❌ .503 | — | — | `kronos_dir_mtf_mtf_zs_2m_all` (.5026 p10 .491 KILLED) + `_fine1_2m` (.490 KILLED) — 2m direction null |
+| E. **Cross-pair book** (STRICT session-only) | ✅ **UP .564/DOWN .560** (both CERT) | ❌ .514/.506 | ❌ .499/.497 | `session_xpair_2m_<sess>_result.json` — **NY certifies BOTH sides even at 2m** (legacy EURUSD 2m was DEAD/uncertified) → two-sided NY cross-pair range now 2m→30m, still NY-only |
 
 ### Frequency 5m — PRIORITY 3  (base single-LGBM, session-only; NOT the cross-pair certified book)
 | A. GBM direction comb@5% | ❌ NY p10 .518 (2024 .570) | ❌ LDN p10 .500 | ❌ Asia p10 .508 | `session_5m_dir_<sess>_result.json` |

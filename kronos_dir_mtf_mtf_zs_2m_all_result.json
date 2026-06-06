@@ -1,0 +1,72 @@
+{
+ "tag": "mtf_zs_2m_all",
+ "model": "NeoQuasar/Kronos-small",
+ "H_min": 2,
+ "GRID_min": 2,
+ "H_steps": 1,
+ "mode": "native",
+ "session": "all",
+ "strict_session_input": false,
+ "L": 256,
+ "K": 20,
+ "n_eval": 9000,
+ "up_rate": 0.5019,
+ "breakeven": 0.541,
+ "falsifier": "KILL if no year moved-acc CI95-lo>=0.541 OR CPCV path_p10<0.541",
+ "per_year": {
+  "2024": {
+   "n": 3000,
+   "acc": 0.4933,
+   "ci95": [
+    0.4753,
+    0.5113
+   ]
+  },
+  "2025": {
+   "n": 3000,
+   "acc": 0.5003,
+   "ci95": [
+    0.483,
+    0.5183
+   ]
+  },
+  "2026": {
+   "n": 3000,
+   "acc": 0.514,
+   "ci95": [
+    0.496,
+    0.5327
+   ]
+  }
+ },
+ "pooled_acc": 0.5026,
+ "cpcv_path_p10": 0.4906,
+ "cpcv_frac_clear_0.541": 0.0,
+ "per_session": {
+  "ny": {
+   "n": 3343,
+   "acc": 0.4969,
+   "ci95": [
+    0.4795,
+    0.5139
+   ]
+  },
+  "ldn": {
+   "n": 3112,
+   "acc": 0.5064,
+   "ci95": [
+    0.4888,
+    0.5241
+   ]
+  },
+  "asia": {
+   "n": 3383,
+   "acc": 0.5058,
+   "ci95": [
+    0.4889,
+    0.5229
+   ]
+  }
+ },
+ "VERDICT": "KILLED"
+}
