@@ -1,0 +1,64 @@
+{
+ "tag": "ftmtf_1m_asia",
+ "model": "models/kronos_ft_asia",
+ "H_min": 1,
+ "GRID_min": 1,
+ "H_steps": 1,
+ "mode": "native",
+ "session": "asia",
+ "strict_session_input": true,
+ "L": 256,
+ "K": 20,
+ "n_eval": 7543,
+ "up_rate": 0.5011,
+ "breakeven": 0.541,
+ "falsifier": "KILL if no year moved-acc CI95-lo>=0.541 OR CPCV path_p10<0.541",
+ "per_year": {
+  "2024": {
+   "n": 3000,
+   "acc": 0.5083,
+   "ci95": [
+    0.4907,
+    0.5257
+   ]
+  },
+  "2025": {
+   "n": 3000,
+   "acc": 0.4867,
+   "ci95": [
+    0.4687,
+    0.504
+   ]
+  },
+  "2026": {
+   "n": 1543,
+   "acc": 0.5087,
+   "ci95": [
+    0.4841,
+    0.534
+   ]
+  }
+ },
+ "pooled_acc": 0.4998,
+ "cpcv_path_p10": 0.4808,
+ "cpcv_frac_clear_0.541": 0.0,
+ "per_session": {
+  "ldn": {
+   "n": 2189,
+   "acc": 0.4824,
+   "ci95": [
+    0.4619,
+    0.5039
+   ]
+  },
+  "asia": {
+   "n": 7543,
+   "acc": 0.4998,
+   "ci95": [
+    0.4884,
+    0.5115
+   ]
+  }
+ },
+ "VERDICT": "KILLED"
+}

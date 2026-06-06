@@ -1,0 +1,64 @@
+{
+ "tag": "ftmtf_1m_ldn",
+ "model": "models/kronos_ft_ldn",
+ "H_min": 1,
+ "GRID_min": 1,
+ "H_steps": 1,
+ "mode": "native",
+ "session": "ldn",
+ "strict_session_input": true,
+ "L": 256,
+ "K": 20,
+ "n_eval": 9000,
+ "up_rate": 0.5013,
+ "breakeven": 0.541,
+ "falsifier": "KILL if no year moved-acc CI95-lo>=0.541 OR CPCV path_p10<0.541",
+ "per_year": {
+  "2024": {
+   "n": 3000,
+   "acc": 0.5067,
+   "ci95": [
+    0.488,
+    0.5243
+   ]
+  },
+  "2025": {
+   "n": 3000,
+   "acc": 0.5087,
+   "ci95": [
+    0.4903,
+    0.527
+   ]
+  },
+  "2026": {
+   "n": 3000,
+   "acc": 0.5023,
+   "ci95": [
+    0.4847,
+    0.5203
+   ]
+  }
+ },
+ "pooled_acc": 0.5059,
+ "cpcv_path_p10": 0.5017,
+ "cpcv_frac_clear_0.541": 0.0,
+ "per_session": {
+  "ny": {
+   "n": 7567,
+   "acc": 0.5043,
+   "ci95": [
+    0.4923,
+    0.5157
+   ]
+  },
+  "ldn": {
+   "n": 9000,
+   "acc": 0.5059,
+   "ci95": [
+    0.4959,
+    0.516
+   ]
+  }
+ },
+ "VERDICT": "KILLED"
+}

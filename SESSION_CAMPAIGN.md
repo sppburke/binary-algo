@@ -42,7 +42,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | A. GBM direction (comb/UP/DOWN), session-only train+eval | ❌ p10 .504 (val .509) | ❌ p10 .502 (val .503) | ❌ p10 .500 (val .506) | `session_1m_dir_<sess>_result.json` — pooled ~.504, frac_clear 0.0 EVERY cov/side, null |
 | B. Magnitude \|ret60\|≥Q, session-only | ✅ p10 **.621**/.713 (cov10/5, frac1.0) | ✅ p10 **.635**/.705 | ✅ p10 **.603**/.683 | `session_1m_mag_<sess>_result.json` — magAUC NY .675/LDN .728/Asia .717 |
 | C. Kronos zero-shot direction (CORRECTED `kronos_mtf`) | ❌ .5015 (p10 .492) | ❌ .504 (p10 .493) | ⏳ | `kronos_dir_mtf_mtf_zs_1m_<sess>_result.json` — pooled ~.50 up-rate in-band, KILLED. Legacy `kronos_dir` was 1-bar MISALIGNED (now gated); corrected confirms 60s null is REAL not an artifact |
-| D. Kronos fine-tuned direction (session-only, **GPU**) | model ✅ eval🔁 | 🔄 train | ⏳ | `kronos_ft.py` predictor FT (models/kronos_ft_<sess>); legacy in-script eval MISALIGNED→discarded, re-eval via `kronos_mtf.py` |
+| D. Kronos fine-tuned direction (corrected `kronos_mtf`) | ❌ .506 (p10 .499) | ❌ .506 (p10 .502) | ❌ .500 (p10 .481) | `kronos_dir_ft_*` models re-eval'd via `kronos_mtf` (ftmtf_1m_*): all KILLED ~.50. **Fine-tuning does NOT help direction** (confirms FT-deteriorates prior) |
 | E. Bar-image CNN dir + mag (session-only) | ⏳ | ⏳ | ⏳ | `barcnn_<sess>_*_result.json` |
 
 ### Frequency 2m (120s) — PRIORITY 2
@@ -54,7 +54,7 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 ### Frequency 5m — PRIORITY 3  (base single-LGBM, session-only; NOT the cross-pair certified book)
 | A. GBM direction comb@5% | ❌ NY p10 .518 (2024 .570) | ❌ LDN p10 .500 | ❌ Asia p10 .508 | `session_5m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.793** (frac1.0) | ✅ LDN p10 **.798** | ✅ Asia p10 **.772** | `session_5m_mag_<sess>_result.json` |
-| C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_5m_zeroshot_result.json` |
+| C. Kronos zero-shot direction (corrected `kronos_mtf`, native 5m) | ❌ .519 | ❌ .519 | ❌ .511 | `kronos_dir_mtf_mtf_zs_5m_all_result.json` — pooled .511 p10 .500 KILLED; faint per-session whiff but sub-BE |
 
 ### Frequency 10m — PRIORITY 4  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 **.525** (2024 .568) | ❌ LDN p10 .513 (2026 .581) | ❌ Asia p10 .486 | `session_10m_dir_<sess>_result.json` |
@@ -63,13 +63,13 @@ Legend cell = best result + verdict; full numbers in the result JSON named in th
 | D. **Cross-pair book** (STRICT session-only train+gate; the certified lever) | ✅ **UP .605/DOWN .590** (both CERT 15/15) | ❌ .523/.524 | ❌ .511/.516 | `session_xpair_10m_<sess>_result.json` — edge NY-ONLY (where deployed book gated); LDN/Asia session-only DON'T certify. NY beats legacy .586/.568 |
 
 ### Frequency 15m — (base book + cross-pair lever)
-| D. **Cross-pair book** (STRICT session-only train+gate) | 🔄 | 🔄 | 🔄 | `session_xpair_15m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .567/DOWN .574 |
+| D. **Cross-pair book** (STRICT session-only train+gate) | ✅ **UP .585/DOWN .571** (both CERT) | ❌ .527/.520 | ❌ .519/.496 | `session_xpair_15m_<sess>_result.json` — NY-only again; ~matches legacy .567/.574 |
 
 ### Frequency 30m — PRIORITY 5  (base single-LGBM)
 | A. GBM direction comb@5% | ❌ NY p10 .504 (2024 .566/25 .558) | ⚠ LDN p10 **.538** (frac .82, near-miss) | ❌ Asia p10 .495 | `session_30m_dir_<sess>_result.json` |
 | B. Magnitude sel@10% | ✅ NY p10 **.799** | ✅ LDN p10 **.764** | ✅ Asia p10 **.717** | `session_30m_mag_<sess>_result.json` |
 | C. Kronos zero-shot | ⏳ | ⏳ | ⏳ | `kronos_dir_30m_zeroshot_result.json` |
-| D. **Cross-pair book** (STRICT session-only train+gate) | 🔄 | 🔄 | 🔄 | `session_xpair_30m_<sess>_result.json` — legacy fixed-UTC NY gate certified UP .559/DOWN .553 |
+| D. **Cross-pair book** (STRICT session-only train+gate) | ✅ **UP .568/DOWN .564** (both CERT) | ❌ .520/.514 | ❌ .487/.509 | `session_xpair_30m_<sess>_result.json` — NY-only; beats legacy .559/.553 |
 
 ## KEY FINDINGS SO FAR (session split, DST-correct)
 1. **MAGNITUDE is session-ROBUST and certified >75% in ALL sessions × ALL frequencies (5/10/30m).** Selective
@@ -106,8 +106,12 @@ GBM/tick/xpair pipelines are NOT affected (their labels are correctly forward fr
 **beating the legacy fixed-UTC gate.** `session_xpair_10m_ny`: UP p10 **.6053** (15/15 clear), DOWN p10 **.5896**
 (15/15) — vs legacy m10xp UP .586/DOWN .568. So the certified ≥10m direction edge is REAL and STRONGER once you
 (a) use DST-correct NY and (b) train+gate strictly within the session (n=979k NY-only pooled cross-pair rows). The
-user's session discipline didn't break the edge — it sharpened it. LDN/Asia 10m + 15m/30m running. (Magnitude was
-already session-robust; this is the first DIRECTION cell to certify in the re-campaign.)
+user's session discipline didn't break the edge — it sharpened it. **CONFIRMED ACROSS 10/15/30m: NY certifies BOTH
+sides at every horizon (10m .605/.590, 15m .585/.571, 30m .568/.564); LDN and Asia certify at NONE.** The certified
+≥10m cross-pair DIRECTION edge is real and decisively NY-CONCENTRATED under DST-correct strict session-only training,
+matching/beating the legacy fixed-UTC gate. Magnitude was already session-robust everywhere; DIRECTION lives in NY.
+Meanwhile CORRECTED Kronos (kronos_mtf, alignment-fixed) direction is NULL at 1m (zero-shot AND fine-tuned, all sess)
+and 5m (~.51) — the Kronos direction null is GENUINE, not the old harness artifact.
 
 ## ✅ FULL-SUITE CORRECTNESS AUDIT (2026-06-06, user demanded "check EVERY test") — VERDICT: bug ISOLATED to Kronos
 Empirically proven (Tier-1): all 4 substrates clean — TICK feats CAUSAL (truncation max|Δ|=0.0), TICK/BAR/XPAIR labels
