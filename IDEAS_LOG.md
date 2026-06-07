@@ -3,6 +3,10 @@ SCOPE: GENERIC (currency/timeframe-agnostic). Idea→experiment backlog of trans
 falsifier TEMPLATES. **No per-key incumbents/numbers here** — those live in the per-key backlogs
 `sweeps/<PAIR>_<tf>_backlog.md` and results in `<PAIR>_RESULTS.md`. See `REPO_MAP.md`.
 Generic methods: `METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`; cross-key theory: `THEORY.md`.
+**Untried-methodology research (2026-06-07): `NOVEL_METHODS_RESEARCH.md`** — 110-candidate web+academic slate (raw:
+`novel_methods_candidates.json`) distilled to ranked runnable experiments + input transforms (frac-diff, information-driven
+bars, vol-time subordination, cross-pair whitening) + GARCH/HAR/semivariance/Hawkes/BOCPD/causal-PCMCI gaps. **Every item
+gated by the §6f frozen-past forward holdout + a surrogate-null** (pooled CPCV alone is insufficient — leakage trap #9).
 
 **Tested-on-keys pointers (where these levers were instantiated):**
 - EURUSD · 1m  → `sweeps/EURUSD_1m_backlog.md`  (+ `EURUSD_RESULTS.md` §60s) — **CLOSED 2026-06-03: both sides certified-or-exhausted, 2 discovery rounds DRY**

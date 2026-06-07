@@ -2,6 +2,11 @@
 
 # SWEEP MATRIX — the exhaustive permutation menu for a (currency, timeframe) strategy search
 
+**NEW UNTRIED-METHODOLOGY BACKLOG (2026-06-07): `NOVEL_METHODS_RESEARCH.md`** — ranked runnable Tier-N candidates from the
+110-candidate research slate (path-signatures/kernel, frac-diff, information-driven bars, HAR-RV-J/realized-GARCH/semivariance,
+FASCL contrastive, HAVOK/Hankel-DMD, TDA gates, causal-PCMCI lead-lag, BOCPD). Pull rows from there into per-key sweeps; each
+is gated by the frozen-past forward holdout + surrogate-null (leakage trap #9).
+
 This is the **menu** an exhaustive strategy sweep works through, variant by variant, to find the best UP and
 DOWN predictor for one `(currency, timeframe)`. It is the concrete enumeration behind `METHODS_CATALOG.md`
 (which has the how/why per method) and `MODEL_REGISTRY.md` (frozen parents to reuse). Driven by the
