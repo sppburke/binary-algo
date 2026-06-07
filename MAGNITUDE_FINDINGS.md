@@ -409,6 +409,20 @@ recorded in DIRECTION_FINDINGS.md.
 
 ---
 
+## 6e. TESTED UPGRADE — Chronos-2 forecast QUANTILE SPREAD as a forward-vol feature → small positive, **SUB-BAR (2026-06-07)**
+
+Side-result of Lever 3 (`chronos2_xpair.py`, the 7-pair cross-sectional DIRECTION test — which KILLED on direction, see
+DIRECTION_FINDINGS.md). The EURUSD forecast q90-q10 spread from Chronos-2 (conditioned on the 7-pair panel via
+group-attention) was paired-ablated as a forward-vol feature vs the rv baseline on **44,999** bars (2012-2026): ΔAUC
++0.0026/+0.0039/+0.0025/+0.0018/−0.0012 at H=1/5/10/15/30m — positive and CI95-excludes-0 at H≤15m but **all below the
++0.005 bar** → KILLED by threshold (same small-positive-sub-bar pattern as Lever 2's embedding §6d). Base AUC .74–.75
+(higher than §6c/d because this run spans the full 2012-2026). **Consistent verdict across all three Kronos/TSFM
+magnitude levers (§6c dispersion KILLED, §6d embedding small-win, §6e Chronos-2 spread sub-bar): a forward-looking model
+spread adds at most a sliver to backward rv, never enough to matter.** The real magnitude upgrade remains the cheap §7
+items (deseasonalized RV, semivariance, macro-event windows), not a TSFM. `chronos2_xpair_c2_main_result.json`.
+
+---
+
 ## 7. UNTESTED UPGRADES — magnitude-model improvement backlog
 
 These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:

@@ -70,6 +70,21 @@ learned representation carries no sign — the single-pair direction null now sp
 dispersion, AND the frozen transformer embedding. (The same embedding DOES add a small magnitude lift — see
 MAGNITUDE_FINDINGS.md §6d — confirming Kronos's value is magnitude/vol, not sign.)
 
+**Chronos-2 GROUP-ATTENTION on the 7-pair USD panel = NULL (`chronos2_xpair.py`, Lever 3, 2026-06-07).** The
+cross-sectional bet: feed the L=512 close panel of all 7 USD pairs (EURUSD,GBPUSD,AUDUSD,NZDUSD,USDJPY,USDCHF,USDCAD)
+to Chronos-2 (amazon/chronos-2, 119.5M, the only mainstream TSFM whose group-attention mixes ACROSS variates) and read
+EURUSD direction three ways on **44,999** nonoverlap bars (2012-2026, deriv-faithful, CPCV, per-session): (A) median
+forecast sign, (B) the cross-pair encoder embedding (1536-d) → GBM, (C) NY/LDN/Asia breakdown. **KILLED at every horizon
+& method:** forecast-sign acc .505–.511 / AUC .508–.514; embed→GBM acc .505–.509 / AUC .506–.513; CPCV p10 ~.50
+everywhere — far below breakeven .541 and the .52 AUC bar. **Honest nuance:** a FAINT, consistent NY tilt (NY acc
+slightly > pooled, e.g. 15m .515 vs .511) and AUC consistently a hair above .50 — directionally consistent with the
+known NY-concentrated cross-pair edge, but **nowhere near deployable**. **Conclusion:** a generic multivariate TSFM's
+learned cross-attention on raw price LEVELS does NOT recover the cross-sectional sign; the deployable edge (.57–.61 NY in
+`session_xpair`) lives in the SPECIFIC engineered features — USD-residual, basket-catchup, signed eu-equiv lead-lag
+residuals — not in what Chronos-2 extracts. (Matches arXiv:2511.18578, Tier-4: multivariate TSFMs only modestly close the
+gap to engineered/tree methods on direction.) `chronos2_xpair_c2_main_result.json`. The cross-sectional edge is
+FEATURE-engineered, not foundation-model-recoverable.
+
 ### Cross-pair book, STRICT session-only — the ≥10m direction edge is NY-only
 
 `session_xpair.py` (the certified ≥10m lever, run STRICT session-only DST-correct; gate

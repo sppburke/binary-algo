@@ -268,6 +268,24 @@ MAGNITUDE_FINDINGS.md §6d, DIRECTION_FINDINGS.md.
 > time-emb; rv30/rv120 don't) → the cheap win is §7 deseasonalized-RV, not a Kronos dependency. Decisive next-check: add
 > hour-of-day/day-of-week to the baseline and re-run; if it captures the lift, drop Kronos. Direction stays cross-sectional.
 
+### (f) Lever — Chronos-2 GROUP-ATTENTION on the 7-pair USD panel = DIRECTION NULL (2026-06-07)
+Lever 3, the cross-sectional bet — the highest-value/most-unsolved need (every single-pair model reads ~.50 on direction;
+the certified edge is the 7-pair USD common factor). amazon/chronos-2 (119.5M, the ONLY mainstream TSFM whose
+group-attention mixes across variates) fed the L=512 close panel of all 7 USD pairs; EURUSD direction read 3 ways on
+44,999 bars (`chronos2_xpair.py`): forecast-sign, embed→GBM (1536-d cross-pair representation), NY/LDN/Asia. **KILLED
+every horizon/method:** acc .505–.511, AUC .506–.514, CPCV p10 ~.50 — far below breakeven .541. A FAINT NY-tilt
+(NY acc slightly > pooled) + AUC consistently a hair above .50 means the signal is THERE but non-deployable. Forecast
+spread → magnitude sub-bar (+.002–.004, < +.005). `chronos2_xpair_c2_main_result.json`, DIRECTION_FINDINGS.md,
+MAGNITUDE_FINDINGS.md §6e.
+> **Generic lesson — a strong multivariate TSFM's learned cross-attention on raw price LEVELS does NOT recover the
+> cross-sectional direction sign.** The deployable ≥10m NY edge (.57–.61, `session_xpair`) lives in the SPECIFIC engineered
+> features (USD-residual, basket-catchup, signed eu-equiv lead-lag residuals), NOT in what a foundation model extracts from
+> the panel. The cross-sectional edge is FEATURE-engineered, not FM-recoverable (matches arXiv:2511.18578: multivariate
+> TSFMs only modestly close the gap to engineered/tree methods on direction). **All 3 web-research Kronos/TSFM levers now
+> resolved: L1 per-path dispersion KILLED, L2 decode_s1 embedding (small mag-win / dir-null), L3 Chronos-2 (dir-null).**
+> Net: Kronos/TSFMs add a sliver to MAGNITUDE (likely time-of-day, cheaper via deseasonalized RV) and NOTHING deployable
+> to DIRECTION. Frontier for direction stays EXTERNAL data (intraday rate-diff, risk-reversals); for magnitude, §7 cheap levers.
+
 **Full-suite audit verdict (generic, reinforces "no certified book invalidated"):** the FM-F bug is ISOLATED to the Kronos
 family (2 scripts), NOT systemic — across all 308 scripts + a dedicated forecast-derivation sweep, no second instance was found.
 Tier-1 empirical clean proofs on each substrate: TICK (features causal via truncation test max|full-trunc|=0.0, label forward
