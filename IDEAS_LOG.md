@@ -267,11 +267,13 @@ MAGNITUDE_FINDINGS.md §6d, DIRECTION_FINDINGS.md.
 > but ZERO sign.** The likely source of the magnitude lift is time-of-day vol seasonality (the embedding has an additive
 > time-emb; rv30/rv120 don't) → the cheap win is §7 deseasonalized-RV, not a Kronos dependency. Decisive next-check: add
 > hour-of-day/day-of-week to the baseline and re-run; if it captures the lift, drop Kronos. Direction stays cross-sectional.
-> **RESOLVED 2026-06-07 (`kronos_embed_tod.py`, 4-way ablation):** horizon-dependent. At **30m the cheap clock feature
-> STRICTLY BEATS the embedding** (+.0087 vs +.0058; emb adds nothing beyond) → for the certified 30m model, add
-> time-of-day and DROP Kronos. At **1–10m the embedding adds REAL non-clock info** (+.003–.006 beyond clock, CI excl 0,
-> strongest at H=1m) → Kronos optional if sub-15m matters. **Bonus: time-of-day is itself a free CPCV-robust magnitude
-> feature at 10m/30m → validates §7 deseasonalized-RV (PROMOTED).** MAGNITUDE_FINDINGS.md §6d resolution.
+> **RESOLVED 2026-06-07, then RETRACTED — pooled-CPCV artifact.** The 4-way ablation (pooled CPCV) suggested time-of-day
+> beats the embedding at 30m (+.0087) and the embedding adds beyond-clock info at 1–10m. **But `deseason_mag.py` (full
+> 2012-2026) + `deseason_fwd.py` (frozen-past forward holdout) KILLED it:** the +tod lift is +0.0140 on pooled CPCV but
+> decays 2024 +.020 → 2025 −.009 → 2026 −.054 forward (non-stationary seasonal shape). NOT deployable. The whole
+> tod/clock magnitude-lift family was pooled-CPCV-only; adversarial review (wwtci9slp) confirmed it's leakage-free but
+> forward-fragile. **New leakage trap #9 (pooled-CPCV non-stationary-feature memorization) recorded in METHODS_CATALOG.**
+> MAGNITUDE_FINDINGS.md §6f.
 
 ### (f) Lever — Chronos-2 GROUP-ATTENTION on the 7-pair USD panel = DIRECTION NULL (2026-06-07)
 Lever 3, the cross-sectional bet — the highest-value/most-unsolved need (every single-pair model reads ~.50 on direction;

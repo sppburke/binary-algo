@@ -410,13 +410,10 @@ Key metric ΔAUC(emb BEYOND tod) = base+tod+emb − base+tod. **Horizon-dependen
 | 15m | +0.0025         | +0.0012 [−.0012,+.0036]     | lift IS time-of-day (CI incl 0) |
 | 30m | +0.0087         | −0.0023 [−.0049,+.0006]     | **clock ALONE beats the embedding** |
 
-Two clean conclusions: **(1) At 30m (the certified flagship), plain hour-of-day is STRICTLY BETTER than the Kronos
-embedding (+0.0087 vs +0.0058) and the embedding adds nothing beyond it → for the certified 30m magnitude model, add
-time-of-day and DROP Kronos.** (2) At 1–10m the embedding carries genuine NON-clock magnitude info (+.003–.006 beyond
-the clock, CI excl 0 — strongest at H=1m where the clock barely helps): Kronos captures fine recent-bar vol-state the
-clock misses, worth the forward pass IF sub-15m magnitude matters. **Bonus (actionable): time-of-day is itself a free,
-CPCV-robust magnitude feature at 10m/30m (+.0048/+.0087, CI excl 0) — empirically validates the §7 deseasonalized-RV
-lever; promote it.** Files: `kronos_embed_tod.py`, `kronos_embed_tod_embed_main_result.json`.
+Pooled-CPCV conclusions (SUPERSEDED — see the ⚠ forward reversal below): at 30m plain hour-of-day appeared to beat the
+Kronos embedding (+.0087 vs +.0058); at 1–10m the embedding appeared to add genuine non-clock info (+.003–.006 beyond
+clock). **ALL of these were measured on POOLED combinatorial CPCV ONLY and DO NOT HOLD FORWARD — see §6f.** Files:
+`kronos_embed_tod.py`, `kronos_embed_tod_embed_main_result.json`.
 
 **DIRECTION (emb-only, ties dropped) → NULL all horizons:** CPCV AUC .502/.506/.5085/.5086/.5096, path-p10 .49–.50,
 all KILLED (bar .52). The single-pair learned representation carries no sign — consistent with every prior single-pair
@@ -435,7 +432,44 @@ group-attention) was paired-ablated as a forward-vol feature vs the rv baseline 
 (higher than §6c/d because this run spans the full 2012-2026). **Consistent verdict across all three Kronos/TSFM
 magnitude levers (§6c dispersion KILLED, §6d embedding small-win, §6e Chronos-2 spread sub-bar): a forward-looking model
 spread adds at most a sliver to backward rv, never enough to matter.** The real magnitude upgrade remains the cheap §7
-items (deseasonalized RV, semivariance, macro-event windows), not a TSFM. `chronos2_xpair_c2_main_result.json`.
+items (semivariance, macro-event windows), not a TSFM. `chronos2_xpair_c2_main_result.json`.
+
+---
+
+## 6f. ⚠ TIME-OF-DAY / DESEASONALIZED-RV — pooled-CPCV WIN that FAILS FORWARD → **NOT DEPLOYABLE (2026-06-07)**
+
+`deseason_mag.py` built the principled deseasonalized-RV upgrade on the FULL certified 2012-2026 frame (5.33M bars,
+byte-faithful to `cpcv_certify.py`: same target |ret30|≥train-Q75, [-pe,rv30,rv120], 28-path CPCV, deflation). On
+POOLED CPCV every clock arm beat base, the simplest most: **+tod** (raw `[hour,minute,dow,sin,cos]`) gave paired ΔAUC
+**+0.0140** [CI +.0119,+.016], decile lift 5.02→5.77x, deflated 0.7128→0.7274, on all 28 paths. Base reproduced the
+certified 0.744 exactly. Adversarial review (workflow wwtci9slp) confirmed it is **leakage-FREE** (tod is a pure
+function of the decision-bar timestamp; placebo with shuffled timestamps gives ΔAUC +0.0004 vs real +0.0181) and the
+intraday vol seasonality is **real** (cross-year hour-profile corr ~0.94; peak 7–10 UTC London/NY, trough 14–17 UTC).
+
+**BUT IT DOES NOT TRANSFER FORWARD** (`deseason_fwd.py`, train≤2023 → test per-year, deployment-faithful):
+
+| test year | base AUC (lift) | +tod AUC (lift) | ΔAUC (ΔLift) |
+|---|---|---|---|
+| 2024 | 0.7908 (5.14) | 0.8108 (6.35) | **+0.0200** (+1.20) |
+| 2025 | 0.7388 (4.61) | 0.7299 (4.25) | **−0.0089** (−0.35) |
+| 2026 | 0.7374 (3.80) | 0.6830 (2.95) | **−0.0544** (−0.84) |
+
+The clock lift is **non-stationary and decays to strongly NEGATIVE** (2024 +.02 → 2025 −.009 → 2026 −.054): the model
+overfits a historical intraday-vol shape that drifts (the 2025/26 profile flattened), so by 2026 the +tod model is
+materially WORSE (.683 vs .737). **Verdict: KILLED for deployment.** The base rv-magnitude edge IS forward-robust
+(.74–.79 every year); only the calendar addition fails. This RETRACTS the §6d "promote time-of-day" conclusion AND the
+prior `kronos_embed_tod` pooled-CPCV result — both were pooled-CPCV-only and never forward-tested. (The embedding's
+claimed beyond-clock 1–10m lift, §6d, was also pooled-CPCV-only → treat as UNPROVEN until forward-tested.)
+
+> **⭐ GENERIC METHODOLOGY LESSON (the durable output — also added to METHODS_CATALOG leakage traps + the strategy-eval
+> skill): pooled combinatorial CPCV does NOT catch NON-STATIONARY-FEATURE memorization.** 20/28 CPCV test folds are
+> temporally FLANKED by train folds on both sides, so a model can memorize era-LOCAL structure (intraday-vol seasonality,
+> calendar effects, slow regime features) from neighboring years and score high on held-out folds WITHOUT forward
+> transfer. CPCV purge+embargo kills label-OVERLAP leakage; deflation penalizes multiple-testing on the LEVEL; NEITHER
+> detects forward non-transfer. **Any CPCV-certified edge that leans on calendar/seasonal/slow-moving features MUST be
+> confirmed with a frozen-past forward holdout (train≤Y, test Y+1,Y+2 per-year) before any deployment claim.** This is
+> why the production books (m30_production etc.) use a frozen-past split — pooled CPCV alone is necessary, not sufficient.
+> Files: `deseason_mag.py`, `deseason_mag_30m_result.json`, `deseason_fwd.py`, `deseason_fwd_30m_result.json`.
 
 ---
 
@@ -443,13 +477,12 @@ items (deseasonalized RV, semivariance, macro-event windows), not a TSFM. `chron
 
 These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:
 
-1. **Deseasonalized realized variance.** ⭐ **PARTIALLY VALIDATED 2026-06-07 — PROMOTE.** Current rv30/rv120 mix the strong
-   FX intraday seasonality (London/NY overlap spikes, Asia lull) into the level. Divide RV by a time-of-day (and
-   day-of-week) seasonal RV profile so the model predicts *abnormal* volatility, not the clock. The §6d resolution proved
-   raw time-of-day features `[hour,minute,dow,sin,cos]` add a real CPCV-robust magnitude lift at 10m (+0.0048) and 30m
-   (+0.0087, CI excl 0) — and at 30m the cheap clock feature STRICTLY BEATS the Kronos embedding. So the clock IS
-   predictive; the principled version (deseasonalize RV rather than hand the GBM raw hour) should do at least as well,
-   for free. Build this next for the certified 30m model. Hypothesis: cleaner top-decile separation and a higher decile-lift than 5.0×.
+1. **Deseasonalized realized variance.** ❌ **TESTED & FORWARD-KILLED 2026-06-07 — DO NOT DEPLOY (see §6f).** Raw time-of-day
+   features lifted pooled-CPCV AUC (+0.014 at 30m) but the lift is NON-STATIONARY and decays to strongly negative on a
+   frozen-past forward holdout (2024 +.02 → 2026 −.054); the FX intraday-vol seasonal shape drifts, so adding the clock
+   overfits a stale pattern. The base rv30/rv120 magnitude edge is forward-robust on its own; do NOT add raw clock or a
+   fixed deseasonalization. ONLY revisit with an ADAPTIVE/rolling seasonal profile (re-estimated on a trailing window) AND
+   a per-year forward holdout as the gate — a fixed profile is forward-fragile. Lesson recorded in §6f.
 2. **Signed realized-semivariance (RS+ / RS−).** Decompose RV into upside vs downside semivariance. Even though the *target*
    is sign-invariant, the *ratio* RS−/RS+ can sharpen the |move| forecast (downside vol clusters differently). It also opens a
    path to a magnitude-conditioned *skew* product without claiming a direction edge.

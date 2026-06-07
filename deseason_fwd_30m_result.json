@@ -1,0 +1,42 @@
+{
+ "horizon_min": 30,
+ "train_max": 2023,
+ "design": "frozen-past forward holdout (deployment-faithful)",
+ "by_year": {
+  "2024": {
+   "n": 372151,
+   "base_auc": 0.7908,
+   "tod_auc": 0.8108,
+   "dAUC": 0.02,
+   "base_lift": 5.14,
+   "tod_lift": 6.35,
+   "dLift": 1.2
+  },
+  "2025": {
+   "n": 368889,
+   "base_auc": 0.7388,
+   "tod_auc": 0.7299,
+   "dAUC": -0.0089,
+   "base_lift": 4.61,
+   "tod_lift": 4.25,
+   "dLift": -0.35
+  },
+  "2026": {
+   "n": 129947,
+   "base_auc": 0.7374,
+   "tod_auc": 0.683,
+   "dAUC": -0.0544,
+   "base_lift": 3.8,
+   "tod_lift": 2.95,
+   "dLift": -0.84
+  },
+  "2024-2026": {
+   "n": 870987,
+   "base_auc": 0.7657,
+   "tod_auc": 0.7606,
+   "dAUC": -0.0052,
+   "base_lift": 5.13,
+   "tod_lift": 5.42
+  }
+ }
+}

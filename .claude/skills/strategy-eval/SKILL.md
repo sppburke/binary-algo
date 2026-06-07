@@ -71,7 +71,7 @@ Every doc is exactly one tier; keep them clean as keys multiply:
   month-by-month for tick data; the repo + data live on a flaky external USB SSD (`udisksctl mount -b
   /dev/sdb2` if it drops; builds should be idempotent/resumable).
 
-## 3. The seven recurring leakage traps (each has produced a fake edge here — check all)
+## 3. The recurring leakage traps (each has produced a fake edge here — check all)
 1. Sequence-model future-peek: HMM Viterbi/forward-backward, Kalman RTS smoother → use forward FILTER only.
 2. ffill-flat-window mirage: intersecting pairs + ffill manufactures ~50% fake-flat bars → fake AUC ~0.7
    that collapses to ~0.49 on moved bars. Keep the target pair's OWN clock; missing → 0.0, never ffill;
@@ -81,6 +81,14 @@ Every doc is exactly one tier; keep them clean as keys multiply:
 5. VAL-acc-max selection (use worst-VAL-half).
 6. Thin-coverage mirage: any n<25–50 pocket at a high number is multiple-testing noise.
 7. Ties LOSE: a ~0.50-AUC model's realized win-rate sits BELOW 0.50 once ties are charged.
+8. Forecast-derivation window misalignment (FM-F): a binary signal derived from a generative price FORECAST must
+   predict the SAME window as the label (entry ref + same forward horizon). Misalignment yields a FALSE NULL.
+9. **Pooled-CPCV non-stationary-feature memorization**: 20/28 CPCV test folds are FLANKED by train folds, so
+   calendar/seasonal/slow-regime features can memorize era-local structure and score high on held-out folds with
+   NO forward transfer. CPCV purge+embargo + deflation do NOT catch this. Worked example: raw time-of-day added a
+   clean leakage-free +0.014 pooled-CPCV magnitude ΔAUC that decayed 2024 +.02 → 2026 −.054 on a frozen-past
+   holdout. **Any CPCV edge leaning on calendar/seasonal/slow features MUST be confirmed by a per-year frozen-past
+   forward holdout (train≤Y → test Y+1,Y+2) before deployment. Pooled CPCV is necessary, not sufficient.**
 
 Also remember the **sign-invariance theorem** (arXiv:2512.15720): entropy / order-flow / complexity / HMM /
 Hurst / Kalman statistics gate move SIZE (magnitude), not SIGN. If a "direction" idea is one of these, it is

@@ -1,0 +1,131 @@
+{
+ "horizon_min": 30,
+ "n_windows": 5325985,
+ "n_paths": 28,
+ "mag_bar": 0.55,
+ "scope": "FULL 2012-2026 pooled (faithful to cpcv_certify); causal per-path seasonal profile (train-only)",
+ "falsifier": "arm beats base iff paired mean dAUC>0 with CI95 excl 0; PROMOTE best robust arm",
+ "by_arm": {
+  "base": {
+   "auc_mean": 0.7441,
+   "auc_p10": 0.7182,
+   "auc_min": 0.7064,
+   "lift_mean": 5.02,
+   "dAUC_vs_base_mean": 0.0,
+   "dAUC_vs_base_ci95": [
+    0.0,
+    0.0
+   ],
+   "beats_base": false,
+   "deflated": {
+    "path_mean": 0.7441,
+    "path_p10": 0.7182,
+    "path_min": 0.7064,
+    "deflated_expectation": 0.7128,
+    "p10_clears_bar": true,
+    "deflated_clears_bar": true
+   }
+  },
+  "+tod": {
+   "auc_mean": 0.7581,
+   "auc_p10": 0.7303,
+   "auc_min": 0.724,
+   "lift_mean": 5.768,
+   "dAUC_vs_base_mean": 0.014,
+   "dAUC_vs_base_ci95": [
+    0.0119,
+    0.016
+   ],
+   "beats_base": true,
+   "deflated": {
+    "path_mean": 0.7581,
+    "path_p10": 0.7303,
+    "path_min": 0.724,
+    "deflated_expectation": 0.7274,
+    "p10_clears_bar": true,
+    "deflated_clears_bar": true
+   }
+  },
+  "+seasonal": {
+   "auc_mean": 0.7571,
+   "auc_p10": 0.7303,
+   "auc_min": 0.7233,
+   "lift_mean": 5.655,
+   "dAUC_vs_base_mean": 0.013,
+   "dAUC_vs_base_ci95": [
+    0.011,
+    0.0147
+   ],
+   "beats_base": true,
+   "deflated": {
+    "path_mean": 0.7571,
+    "path_p10": 0.7303,
+    "path_min": 0.7233,
+    "deflated_expectation": 0.7266,
+    "p10_clears_bar": true,
+    "deflated_clears_bar": true
+   }
+  },
+  "+deseason": {
+   "auc_mean": 0.7505,
+   "auc_p10": 0.7237,
+   "auc_min": 0.7152,
+   "lift_mean": 5.272,
+   "dAUC_vs_base_mean": 0.0063,
+   "dAUC_vs_base_ci95": [
+    0.0052,
+    0.0074
+   ],
+   "beats_base": true,
+   "deflated": {
+    "path_mean": 0.7505,
+    "path_p10": 0.7237,
+    "path_min": 0.7152,
+    "deflated_expectation": 0.7205,
+    "p10_clears_bar": true,
+    "deflated_clears_bar": true
+   }
+  },
+  "+seas_des": {
+   "auc_mean": 0.756,
+   "auc_p10": 0.7292,
+   "auc_min": 0.7222,
+   "lift_mean": 5.589,
+   "dAUC_vs_base_mean": 0.0119,
+   "dAUC_vs_base_ci95": [
+    0.0099,
+    0.0136
+   ],
+   "beats_base": true,
+   "deflated": {
+    "path_mean": 0.756,
+    "path_p10": 0.7292,
+    "path_min": 0.7222,
+    "deflated_expectation": 0.7256,
+    "p10_clears_bar": true,
+    "deflated_clears_bar": true
+   }
+  },
+  "+all": {
+   "auc_mean": 0.7573,
+   "auc_p10": 0.7297,
+   "auc_min": 0.7232,
+   "lift_mean": 5.736,
+   "dAUC_vs_base_mean": 0.0132,
+   "dAUC_vs_base_ci95": [
+    0.011,
+    0.0151
+   ],
+   "beats_base": true,
+   "deflated": {
+    "path_mean": 0.7573,
+    "path_p10": 0.7297,
+    "path_min": 0.7232,
+    "deflated_expectation": 0.7266,
+    "p10_clears_bar": true,
+    "deflated_clears_bar": true
+   }
+  }
+ },
+ "best_arm": "+tod"
+}
