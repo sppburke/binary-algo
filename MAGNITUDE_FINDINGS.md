@@ -369,6 +369,46 @@ event windows, deseasonalized/semivariance RV, an external IV feed) — see §7.
 
 ---
 
+## 6d. TESTED UPGRADE — Kronos `decode_s1` 512-d HIDDEN STATE as a frozen feature → **SMALL REAL MAGNITUDE LIFT (2026-06-06)**
+
+Lever 2 of the Kronos synthesis. `decode_s1` returns the post-norm transformer hidden `[B, L, 512]` (kronos.py:305-308);
+we take `x[:, -1, :]` — the learned representation AT the decision bar (it carries time-of-day via the additive time
+embedding, kronos.py:298). `kronos_embed.py` extracts it with ONE forward pass per window (tokenize → decode_s1, no
+autoregression, no K-sampling → ~190 win/s, 150× faster than Lever 1) at **18,077** nonoverlap bars (N=4000/yr,
+2021-2026), and runs the SAME paired CPCV ablation as §6c for **both** targets per horizon.
+
+**MAGNITUDE — first lever to ADD info beyond rv** (paired ΔAUC, base `[-pe,rv30,rv120]` vs base+512emb):
+
+| H | base AUC (p10) | base+emb AUC (p10) | ΔAUC [CI95] | emb-only AUC | vs +0.005 bar |
+|---|---|---|---|---|---|
+| 1m  | .7327 (.7155) | .7394 (.7239) | **+0.0067** [+.0047,+.0088] | .6704 | **SURVIVES** |
+| 5m  | .7269 (.7099) | .7291 (.7097) | +0.0022 [+.0001,+.0042] | .6545 | positive, sub-bar |
+| 10m | .7314 (.7117) | .7390 (.7166) | **+0.0076** [+.0053,+.0099] | .6643 | **SURVIVES** |
+| 15m | .7267 (.7107) | .7291 (.7104) | +0.0024 [+.0008,+.0042] | .6605 | positive, sub-bar |
+| 30m | .7142 (.7023) | .7200 (.7093) | **+0.0058** [+.0039,+.0078] | .6519 | **SURVIVES** |
+
+**Every horizon's ΔAUC CI95 excludes 0** (vs Lever 1 which was zero/negative). The 512-d embedding is the FIRST feature
+to lift magnitude AUC over the certified backward-rv baseline — clears the pre-registered +0.005 bar at 1/10/30m,
+positive-but-small at 5/15m. The lift is MODEST (rv .73 → .74); emb-only AUC .65–.67 is a real but weaker magnitude
+predictor than rv alone. Causality is clean: the embedding is computed strictly on the context window `[i-L+1, i]`
+(no forward bars), CPCV purge+embargo handles overlap, and the lift is an OOS gain across 28 paths (overfit would
+show as ≤ base, not >).
+
+**Mechanism caveat + next-check (cheap, decisive):** unlike rv30/rv120, the embedding encodes **time-of-day** (additive
+time-emb), so the small lift is plausibly intraday-vol SEASONALITY the embedding re-derives — exactly what §7's
+deseasonalized-RV upgrade would capture without Kronos. NEXT CHECK before productionizing: add hour-of-day / day-of-week
+(or deseasonalized RV) to the baseline and re-run the paired ablation; if base+time-of-day captures the embedding's
+lift, the Kronos dependency is unnecessary and the cheap clock feature wins. Until then: a real, CPCV-robust, but small
+magnitude improvement available at the cost of a per-bar Kronos forward pass. Files: `kronos_embed.py`,
+`kronos_embed_embed_main.npz`, `kronos_embed_embed_main_result.json`.
+
+**DIRECTION (emb-only, ties dropped) → NULL all horizons:** CPCV AUC .502/.506/.5085/.5086/.5096, path-p10 .49–.50,
+all KILLED (bar .52). The single-pair learned representation carries no sign — consistent with every prior single-pair
+direction null (Kronos zero-shot/FT, dispersion, bar-CNN, GBM, ARF, RFF, GRU/ESN). The sign edge stays cross-sectional;
+recorded in DIRECTION_FINDINGS.md.
+
+---
+
 ## 7. UNTESTED UPGRADES — magnitude-model improvement backlog
 
 These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:

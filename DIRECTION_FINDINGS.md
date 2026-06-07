@@ -64,6 +64,11 @@ carries the edge; fine-tuning did NOT help direction. Files `kronos_dir_mtf_*_re
 tested directly, also fail:** FINE-mode "use a finer grid up the chain" (1m→2/5/10m, 5m→10m) all KILLED (pooled .490/.509/
 .495/.503, CPCV p10 .481/.499/.475/.497, frac 0.0); multi-TF vote-ensemble (`kronos_ensemble.py`) — 5m KILLED (pooled .531,
 p10 .428), 10m ABORT (only 12 common decision bars across 3 grids). Finer/combined single-pair views add no sign.
+**Kronos `decode_s1` 512-d hidden state as a direction feature also NULL** (`kronos_embed.py`, Lever 2): emb-only CPCV
+AUC .502/.506/.5085/.5086/.5096 at 1/5/10/15/30m (path-p10 .49–.50, all KILLED, bar .52) on 18,077 nonoverlap bars. The
+learned representation carries no sign — the single-pair direction null now spans zero-shot/FT generation, per-path
+dispersion, AND the frozen transformer embedding. (The same embedding DOES add a small magnitude lift — see
+MAGNITUDE_FINDINGS.md §6d — confirming Kronos's value is magnitude/vol, not sign.)
 
 ### Cross-pair book, STRICT session-only — the ≥10m direction edge is NY-only
 

@@ -1,0 +1,130 @@
+{
+ "tag": "embed_main",
+ "model": "NeoQuasar/Kronos-small",
+ "L": 256,
+ "N_PER_YR": 4000,
+ "n_windows": 18077,
+ "emb_d": 512,
+ "scope": "SUBSAMPLE ablation (nonoverlap, 2021-2026 1m cache) \u2014 single-pair decode_s1 feature test",
+ "falsifier_mag": "KILL unless base mean AUC>=0.60 AND paired mean dAUC>+0.005 CI95 excl 0",
+ "falsifier_dir": "KILL unless emb-alone CPCV AUC p10>0.52",
+ "mag_bar": 0.55,
+ "dir_auc_bar": 0.52,
+ "by_horizon": {
+  "1": {
+   "n_paths": 28,
+   "magnitude": {
+    "base_auc_mean": 0.7327,
+    "base_auc_p10": 0.7155,
+    "base_plus_emb_auc_mean": 0.7394,
+    "base_plus_emb_auc_p10": 0.7239,
+    "emb_only_auc_mean": 0.6704,
+    "dAUC_mean": 0.0067,
+    "dAUC_ci95": [
+     0.0047,
+     0.0088
+    ],
+    "disp_lift_mean": 4.704,
+    "VERDICT": "SURVIVES"
+   },
+   "direction": {
+    "emb_only_auc_mean": 0.502,
+    "emb_only_auc_p10": 0.4932,
+    "n_paths": 28,
+    "VERDICT": "KILLED"
+   }
+  },
+  "5": {
+   "n_paths": 28,
+   "magnitude": {
+    "base_auc_mean": 0.7269,
+    "base_auc_p10": 0.7099,
+    "base_plus_emb_auc_mean": 0.7291,
+    "base_plus_emb_auc_p10": 0.7097,
+    "emb_only_auc_mean": 0.6545,
+    "dAUC_mean": 0.0022,
+    "dAUC_ci95": [
+     0.0001,
+     0.0042
+    ],
+    "disp_lift_mean": 4.251,
+    "VERDICT": "KILLED"
+   },
+   "direction": {
+    "emb_only_auc_mean": 0.506,
+    "emb_only_auc_p10": 0.4976,
+    "n_paths": 28,
+    "VERDICT": "KILLED"
+   }
+  },
+  "10": {
+   "n_paths": 28,
+   "magnitude": {
+    "base_auc_mean": 0.7314,
+    "base_auc_p10": 0.7117,
+    "base_plus_emb_auc_mean": 0.739,
+    "base_plus_emb_auc_p10": 0.7166,
+    "emb_only_auc_mean": 0.6643,
+    "dAUC_mean": 0.0076,
+    "dAUC_ci95": [
+     0.0053,
+     0.0099
+    ],
+    "disp_lift_mean": 4.335,
+    "VERDICT": "SURVIVES"
+   },
+   "direction": {
+    "emb_only_auc_mean": 0.5085,
+    "emb_only_auc_p10": 0.4981,
+    "n_paths": 28,
+    "VERDICT": "KILLED"
+   }
+  },
+  "15": {
+   "n_paths": 28,
+   "magnitude": {
+    "base_auc_mean": 0.7267,
+    "base_auc_p10": 0.7107,
+    "base_plus_emb_auc_mean": 0.7291,
+    "base_plus_emb_auc_p10": 0.7104,
+    "emb_only_auc_mean": 0.6605,
+    "dAUC_mean": 0.0024,
+    "dAUC_ci95": [
+     0.0008,
+     0.0042
+    ],
+    "disp_lift_mean": 4.265,
+    "VERDICT": "KILLED"
+   },
+   "direction": {
+    "emb_only_auc_mean": 0.5086,
+    "emb_only_auc_p10": 0.498,
+    "n_paths": 28,
+    "VERDICT": "KILLED"
+   }
+  },
+  "30": {
+   "n_paths": 28,
+   "magnitude": {
+    "base_auc_mean": 0.7142,
+    "base_auc_p10": 0.7023,
+    "base_plus_emb_auc_mean": 0.72,
+    "base_plus_emb_auc_p10": 0.7093,
+    "emb_only_auc_mean": 0.6519,
+    "dAUC_mean": 0.0058,
+    "dAUC_ci95": [
+     0.0039,
+     0.0078
+    ],
+    "disp_lift_mean": 3.976,
+    "VERDICT": "SURVIVES"
+   },
+   "direction": {
+    "emb_only_auc_mean": 0.5096,
+    "emb_only_auc_p10": 0.5005,
+    "n_paths": 28,
+    "VERDICT": "KILLED"
+   }
+  }
+ }
+}

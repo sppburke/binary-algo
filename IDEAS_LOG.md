@@ -256,6 +256,18 @@ MAGNITUDE_FINDINGS.md §6c.
 > windows, deseasonalized/semivariance RV, an external implied-vol feed (MAGNITUDE_FINDINGS.md §7), NOT more model capacity
 > on own OHLCV. Mirrors the direction finding (d above): Kronos is blind to anything not in one pair's own candles.
 
+### (e) Lever — Kronos `decode_s1` 512-d HIDDEN STATE as a frozen feature = SMALL REAL MAGNITUDE LIFT / direction null (2026-06-06)
+Lever 2 of the synthesis. Take the post-norm transformer hidden at the decision bar (`decode_s1` returns `[B,L,512]`,
+kronos.py:305-308; one forward pass, no AR/sampling, ~190 win/s). `kronos_embed.py` paired-CPCV-ablates it on 18,077
+nonoverlap bars vs the certified rv baseline. **MAGNITUDE: the FIRST feature to beat rv** — paired ΔAUC
++.0067/+.0022/+.0076/+.0024/+.0058 (H=1/5/10/15/30m), **every CI95 excludes 0** (clears the +.005 bar at 1/10/30m); rv
+.73→.74. Real but MODEST. **DIRECTION emb-only NULL** (AUC .50–.51). `kronos_embed_embed_main_result.json`,
+MAGNITUDE_FINDINGS.md §6d, DIRECTION_FINDINGS.md.
+> **Generic lesson — a single-pair LEARNED representation carries a little magnitude info that hand-crafted rv misses,
+> but ZERO sign.** The likely source of the magnitude lift is time-of-day vol seasonality (the embedding has an additive
+> time-emb; rv30/rv120 don't) → the cheap win is §7 deseasonalized-RV, not a Kronos dependency. Decisive next-check: add
+> hour-of-day/day-of-week to the baseline and re-run; if it captures the lift, drop Kronos. Direction stays cross-sectional.
+
 **Full-suite audit verdict (generic, reinforces "no certified book invalidated"):** the FM-F bug is ISOLATED to the Kronos
 family (2 scripts), NOT systemic — across all 308 scripts + a dedicated forecast-derivation sweep, no second instance was found.
 Tier-1 empirical clean proofs on each substrate: TICK (features causal via truncation test max|full-trunc|=0.0, label forward
