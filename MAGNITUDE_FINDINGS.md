@@ -473,6 +473,37 @@ claimed beyond-clock 1–10m lift, §6d, was also pooled-CPCV-only → treat as 
 
 ---
 
+## 6g. TESTED UPGRADE — HAR / realized-measure ECONOMETRIC-VOL CANON → **REAL but SUB-BAR forward (2026-06-07)**
+
+`mag_har.py` tested the entire econometric realized-vol canon the novel-methods research flagged as the slate's biggest
+omission, as additive arms on the certified base `[-pe, rv30, rv120]`, gated by the **frozen-past FORWARD HOLDOUT**
+(train≤2023 → per-year 2024/25/26, horizons 10/15/30m, |ret_H|≥train-Q75). Realized measures over rolling W∈{30,120,480}
+on 1-min returns: multiscale **RV** (log sum-of-squares), **bipower BV / jump** (RV−BV continuous/jump split), **realized
+semivariance RS⁺/RS⁻** + signed jump (Patton-Sheppard good/bad vol), **realized quarticity** RQ → HARQ attenuation `lRV·√RQ`.
+
+**Falsifier = beat base by +0.005 AUC in ≥2 forward years AND ≥2 horizons. ALL ARMS FAIL:**
+
+| arm (added to base) | mean fwd ΔAUC | deployable horizons | verdict |
+|---|---|---|---|
+| +har (multiscale RV) | +0.0010 | 2/3 | sub-bar |
+| +jump (bipower split) | +0.0003 | 1/3 | null |
+| +semivar (RS⁺/RS⁻/signed-jump) | −0.0000 | 1/3 | null |
+| +harq (realized quarticity) | +0.0004 | 2/3 | null |
+| **+all (stacked)** | **+0.0021** | **3/3** | **sub-bar** |
+
+**Two findings.** (1) **Unlike §6f, the additions are forward-CONSISTENT, not non-stationary:** `+all` is POSITIVE in all
+9 year×horizon cells (10m +.0021/+.0022/+.0033, 15m +.0016/+.0015/+.0022, 30m +.0007/+.0022/+.0029), deployable 3/3 — so
+the HAR canon adds GENUINE forward signal, it is just economically negligible (~+0.002 AUC, well under the +0.005 bar).
+The base `[-pe, rv30, rv120]` already extracts ~all forecastable magnitude information; the bipower jump-split, semivariance
+asymmetry, and quarticity attenuation are near-redundant with 2-window rv (collinearity vs rv120: lRV120 0.89, RSp/RSm 0.70,
+HARQ terms 0.58/−0.63; only signed-jump SJ120 is orthogonal at −0.04, and it carries nothing). **Verdict: KILLED as a
+deployable upgrade; recorded as REAL-but-sub-bar (the USDJPY-2m pattern).** (2) **The run independently RE-VALIDATES the
+certified magnitude edge on a clean deployment-faithful holdout:** base AUC 0.799/0.750/0.750 (2024/25/26) at 10m,
+0.791/0.739/0.737 at 30m, decile lift 4–5.6×, **no decay** — stronger evidence than pooled CPCV that the magnitude edge
+is forward-robust. Files: `mag_har.py`, `mag_har_result.json`.
+
+---
+
 ## 7. UNTESTED UPGRADES — magnitude-model improvement backlog
 
 These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:
@@ -483,9 +514,11 @@ These are NOT yet built or tested. They follow directly from the finding that **
    overfits a stale pattern. The base rv30/rv120 magnitude edge is forward-robust on its own; do NOT add raw clock or a
    fixed deseasonalization. ONLY revisit with an ADAPTIVE/rolling seasonal profile (re-estimated on a trailing window) AND
    a per-year forward holdout as the gate — a fixed profile is forward-fragile. Lesson recorded in §6f.
-2. **Signed realized-semivariance (RS+ / RS−).** Decompose RV into upside vs downside semivariance. Even though the *target*
-   is sign-invariant, the *ratio* RS−/RS+ can sharpen the |move| forecast (downside vol clusters differently). It also opens a
-   path to a magnitude-conditioned *skew* product without claiming a direction edge.
+2. **Signed realized-semivariance (RS+ / RS−).** ❌ **TESTED & SUB-BAR 2026-06-07 (see §6g).** RS⁺/RS⁻ + signed-jump +
+   semivariance-asymmetry added to the certified base gave forward ΔAUC −0.0000 (mag) — null, near-redundant with rv120
+   (corr 0.70). As part of `+all` it contributes to a forward-consistent but sub-bar +0.0021. Magnitude path is exhausted;
+   the *direction* arm of signed-semivariance (Patton-Sheppard good/bad vol → DOWN side) is tested separately in the
+   direction campaign (D7), not here.
 3. **Macro-event-window feature.** Add a binary/decay feature for proximity to scheduled macro releases (the files already note
    news = magnitude event, `m5_news.py`). A "minutes-to-next-release" + "minutes-since-last-surprise" pair should lift predicted
    |move| precisely in the windows where straddle/touch payoffs are largest. Macro calendar source is available (MEMORY:
