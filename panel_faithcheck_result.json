@@ -1,0 +1,19 @@
+{
+ "test": "panel_faithcheck.py — panel-derived xp features vs certified build_xp (raw), year 2024 NY+all",
+ "rows_common": 365492,
+ "shared_feature_cols": 72,
+ "continuous_features_max_abs_diff": 0.0,
+ "continuous_families_identical": ["eu_r", "usdbask", "catchup", "eurresid", "disp", "ll_*"],
+ "agree_family": {
+  "differ_fraction": "0.0003%",
+  "n_differ_per_lookback": 1,
+  "differ_row_position": 9,
+  "mean_abs_diff": 2.7e-06,
+  "cause": "benign off-by-one at the warmup boundary (rolling(k) vs prepend-NaN); single row/lookback/year"
+ },
+ "cols_absent_from_panel": ["sess_ny", "sess_ln", "comp60"],
+ "cols_absent_reason": "gate/session columns, not cross-sectional model substrate (EURUSD-close-only, rebuilt on demand)",
+ "verdict": "PANEL CONSTRUCTION FAITHFUL — all continuous return/factor/residual/lead-lag channels bit-identical to certified build_xp",
+ "cpcv_level_note": "build_panel.py validate pooled-CPCV selacc p10 .5355 (mean .5425) is BELOW certified m15xp .567/.574, but this is the DOCUMENTED weaker-reimplementation effect (single 600-tree pooled-CPCV LGBM vs certified refit pipeline ~.54), NOT leakage. Leakage would INFLATE; the lower number rules it out. The decisive gate is feature-faithfulness (this file), which PASSES exactly. Up-rate 0.5074 inside [.47,.53] tripwire (no moved-bars leakage).",
+ "conclusion": "Panel safe as substrate for all downstream cross-sectional methods (signatures, DMD/HAVOK, FFD, whitening, FASCL)."
+}

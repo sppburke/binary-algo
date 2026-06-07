@@ -1,0 +1,9 @@
+{
+ "HOR": 15,
+ "n": 1958403,
+ "n_paths": 28,
+ "selacc_mean": 0.5425,
+ "selacc_p10": 0.5355,
+ "target_m15xp": "UP .567 / DOWN .574 (combined book)",
+ "reproduces": false
+}
