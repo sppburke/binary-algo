@@ -1,0 +1,140 @@
+{
+ "which": "semivar",
+ "horizon_min": 15,
+ "params": {
+  "SIG_W": 30,
+  "HV_Q": 60,
+  "HV_R": 8,
+  "HV_TREND": 30
+ },
+ "design": "frozen-past forward holdout, direction cov0.10 NY selacc; base=certified xp book + shuffle control",
+ "falsifier": "+semivar beats base selacc >=2 fwd years (no decay) AND semivaronly clears .541 AND real >> shuffle",
+ "by_arm": {
+  "base": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5361,
+    "selacc": 0.5872,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5248,
+    "selacc": 0.5532,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5164,
+    "selacc": 0.5218,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5283,
+    "selacc": 0.5622,
+    "n_sel": 32140
+   }
+  },
+  "+semivar": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5313,
+    "selacc": 0.5718,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.524,
+    "selacc": 0.5503,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.512,
+    "selacc": 0.5111,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5254,
+    "selacc": 0.5545,
+    "n_sel": 32140
+   }
+  },
+  "semivaronly": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5126,
+    "selacc": 0.5293,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5123,
+    "selacc": 0.5287,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5069,
+    "selacc": 0.5093,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5117,
+    "selacc": 0.5258,
+    "n_sel": 32140
+   }
+  },
+  "semivar_shuf": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.4989,
+    "selacc": 0.5118,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5013,
+    "selacc": 0.5094,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5015,
+    "selacc": 0.5087,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5005,
+    "selacc": 0.5113,
+    "n_sel": 32140
+   }
+  }
+ },
+ "deltas": {
+  "+semivar": {
+   "2024": -0.0154,
+   "2025": -0.0029,
+   "2026": -0.0107
+  },
+  "semivaronly": {
+   "2024": -0.0579,
+   "2025": -0.0245,
+   "2026": -0.0125
+  },
+  "semivar_shuf": {
+   "2024": -0.0754,
+   "2025": -0.0438,
+   "2026": -0.0131
+  }
+ },
+ "deployable": {
+  "+semivar": false,
+  "semivaronly": false,
+  "semivar_shuf": false
+ }
+}

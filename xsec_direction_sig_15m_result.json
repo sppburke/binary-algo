@@ -1,0 +1,140 @@
+{
+ "which": "sig",
+ "horizon_min": 15,
+ "params": {
+  "SIG_W": 30,
+  "HV_Q": 60,
+  "HV_R": 8,
+  "HV_TREND": 30
+ },
+ "design": "frozen-past forward holdout, direction cov0.10 NY selacc; base=certified xp book + shuffle control",
+ "falsifier": "+sig beats base selacc >=2 fwd years (no decay) AND sigonly clears .541 AND real >> shuffle",
+ "by_arm": {
+  "base": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5361,
+    "selacc": 0.5872,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5248,
+    "selacc": 0.5532,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5164,
+    "selacc": 0.5218,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5283,
+    "selacc": 0.5622,
+    "n_sel": 32140
+   }
+  },
+  "+sig": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5357,
+    "selacc": 0.5829,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5236,
+    "selacc": 0.5433,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5135,
+    "selacc": 0.525,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5273,
+    "selacc": 0.5566,
+    "n_sel": 32140
+   }
+  },
+  "sigonly": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5241,
+    "selacc": 0.5425,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5157,
+    "selacc": 0.5192,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5176,
+    "selacc": 0.5095,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5195,
+    "selacc": 0.5243,
+    "n_sel": 32140
+   }
+  },
+  "sig_shuf": {
+   "2024": {
+    "n": 136318,
+    "auc": 0.5223,
+    "selacc": 0.5271,
+    "n_sel": 13632
+   },
+   "2025": {
+    "n": 136172,
+    "auc": 0.5184,
+    "selacc": 0.5236,
+    "n_sel": 13618
+   },
+   "2026": {
+    "n": 48908,
+    "auc": 0.5131,
+    "selacc": 0.5234,
+    "n_sel": 4891
+   },
+   "pooled": {
+    "n": 321398,
+    "auc": 0.5191,
+    "selacc": 0.5236,
+    "n_sel": 32140
+   }
+  }
+ },
+ "deltas": {
+  "+sig": {
+   "2024": -0.0043,
+   "2025": -0.0099,
+   "2026": 0.0032
+  },
+  "sigonly": {
+   "2024": -0.0447,
+   "2025": -0.034,
+   "2026": -0.0123
+  },
+  "sig_shuf": {
+   "2024": -0.0601,
+   "2025": -0.0296,
+   "2026": 0.0016
+  }
+ },
+ "deployable": {
+  "+sig": false,
+  "sigonly": false,
+  "sig_shuf": false
+ }
+}

@@ -64,7 +64,7 @@ certified MAGNITUDE edge RE-VALIDATED on a clean forward holdout, no decay).
 | `fwd_holdout.py` | **MANDATORY gate** — frozen-past forward-holdout (train≤2023 → per-year 2024/25/26), mag-AUC/lift + dir cov-selacc modes. NOVEL §0 #1. |
 | `surrogate_null.py` | **MANDATORY gate** — phase-randomize / IAAFT surrogate-null (separates spectral re-encoding from genuine nonlinear structure). NOVEL §0 #2. |
 | `frac_diff.py` | Hand-rolled fixed-width fractional differentiation (FFD weights + ADF d*-selection): "stationarity with memory". Generic transform. |
-| `xsec_direction.py` | Unified cross-sectional DIRECTION harness on the panel (D1 lead-lag signature, D6 HAVOK; forward-holdout + shuffle controls). Harness WRITTEN, not yet run. |
+| `xsec_direction.py` + `xsec_direction_{sig,havok,semivar}_{15,30}m_result.json` (6) | Unified cross-sectional DIRECTION harness on the panel — three dependency-free families, each with a mechanism-specificity SHUFFLE control, run via forward holdout (NY cov0.10 selacc) at 15m & 30m: **D1 sig** (depth-2 lead-lag signature / Lévy area), **D6 havok** (frozen-basis Hankel-Koopman forcing), **D7 semivar** (Patton-Sheppard signed-semivariance). ALL KILLED forward; D1/D6 fail the shuffle null (not genuine), D7 PASSES its sign-flip null (real signed-vol direction content) but is sub-breakeven & decaying & non-additive to the base book. Per-key results in `EURUSD_RESULTS.md`. |
 
 `fwd_holdout.py` + `surrogate_null.py` are the two MANDATORY reusable gates every new lever must pass.
 

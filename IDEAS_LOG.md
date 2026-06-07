@@ -370,38 +370,61 @@ cross-pair edge.
 > price feeds the same cross-sectional channel that already certifies, and re-encoding it as fractionally-differenced memory
 > only adds collinear noise that anti-transfers forward. FFD direction DEAD at both 15m and 30m.
 
-### (d) QUEUED — future work (harness state + one-line rationale each)
-Resume points for the next session; all to be run under the SAME forward-holdout + surrogate-null gates. From
-`CAMPAIGN_2026-06-07_FACTS.md` DONE-vs-FUTURE summary:
-- **D1 sig** — depth-2 lead-lag SIGNATURE (iterated integrals + Lévy area, EURUSD↔each peer, 30-bar window); harness WRITTEN
-  in `xsec_direction.py`, NOT yet run. Rationale: signed lead-lag / quadratic covariation is a sign-AWARE cross-pair representation
-  the GBM doesn't access; falsifier = beats book p10 CI95 AND lead/lag-shuffle MUST degrade it.
-- **D6 havok** — frozen-basis HAVOK (Hankel-Koopman delay-embed q=60, freeze r=8 modes on TRAIN, causal forcing v_r as signed
-  precursor); harness WRITTEN, NOT yet run. Rationale: intermittent-forcing precursor is a candidate signed regime-shift signal;
-  surrogate-null control built in.
-- **D2** — untruncated signature KERNEL (needs sigkernel/KeOps GPU; sigkernel currently unbuildable). Rationale: full signature
-  similarity may carry lead-lag a depth-2 truncation drops.
-- **D4** — FASCL future-aligned contrastive (8GB GPU). Rationale: contrastive future-alignment is a non-GBM representation of the cross-section.
-- **D5** — causal lead-lag (PCMCI / Granger-FDR / structural-VAR; statsmodels present). Rationale: explicit directed cross-pair
-  causality vs the implicit lead-lag features already in the book.
-- **D7** — signed-semivariance DIRECTION. Rationale: downside vs upside realized-semivariance asymmetry as a sign tilt (mag-side semivar was null; test the signed direction use).
-- **D8** — quantile-direction baseline. Rationale: a simple sign baseline to bound what the exotic D-family must beat.
-- **T1** — information-driven bars (volume/dollar/imbalance/run bars). NOT yet built: substrate scouted (`features_tick/*_1s.parquet`
-  is EURUSD-ONLY 2021+) → cross-pair synchronization needs proxies for the other 6 pairs; DEFERRED behind T2. Rationale: event-clock
-  sampling may sharpen the cross-section, but the multi-pair tick substrate is the gate.
-- **T3** — vol-time subordination. Rationale: re-clock to a volatility business-time to normalize the path before cross-sectional reads.
-- **T4** — cross-pair whitening. Rationale: decorrelate the 7-pair panel before factor/residual construction.
-- **T5** — Hilbert transform (instantaneous phase/amplitude). Rationale: phase-based regime/precursor features.
-- **G1** — persistent-homology corr-cloud GATE (needs gudhi; currently unbuildable). Rationale: topological change as a regime-shift gate.
-- **G2** — BOCPD / HMM change-point GATE (ruptures available). Rationale: segment regimes, condition direction per regime.
-- **G3** — windowed-DMD residual GATE. Rationale: dynamic-mode residual as a low-predictability "skip" signal.
-- **M4** — magnitude TDA-Wasserstein. Rationale: distributional/topological distance as a magnitude feature (surrogate-null-gated).
-- **M5** — magnitude multiscale-ECC. Rationale: multiscale Euler-characteristic curve magnitude feature (surrogate-null-gated).
-- **M6** — magnitude MOMENT (foundation-model embedding). Rationale: a general TSFM embedding for magnitude (surrogate-null-gated;
-  note prior Kronos/Chronos-2 embeddings gave only a sliver / non-stationary tod lift).
+### (d) CROSS-SECTIONAL DIRECTION (D1 lead-lag signature, D6 HAVOK, D7 signed-semivariance) — TESTED → ALL KILLED (15m AND 30m)
+`xsec_direction.py` (+ `xsec_direction_{sig,havok}_{15,30}m_result.json`). Forward holdout, NY cov0.10 selacc; arms
+{base=certified xp book, base+fam, famonly, fam_shuffle(mechanism-specificity control)}. The certified base book ITSELF DECAYS
+forward (15m .5895/.5518/.5234; 30m .5827/.5505/.5055 — the documented refit-dependence) and NOTHING adds to it:
+- **D1 depth-2 lead-lag SIGNATURE — KILLED both horizons.** 15m: +sig DECAYS (Δ −.0043/−.0099/+.0032), sigonly pooled .5243 ≈
+  sig_shuf .5236 → NOT genuine lead-lag (rotation surrogate doesn't degrade it → **FAILS the mechanism-specificity falsifier**).
+  30m: +sig DECAYS all 3 years (−.0094/−.0043/−.0133), sigonly pooled .5283 (sub-base).
+- **D6 frozen-basis HAVOK (Koopman forcing) — KILLED both horizons.** 15m: +havok DECAYS (Δ −.003/−.0024/+.0014), havokonly
+  pooled .5148 (sub-breakeven, far below base .5624); the forcing only marginally beats its phase-randomized surrogate (.5148
+  vs .5063) and never clears .541. 30m: +havok DECAYS, havokonly pooled .5197 (sub-base).
+- **D7 realized signed-SEMIVARIANCE direction (Patton-Sheppard good/bad vol) — REAL-but-SUB-BREAKEVEN, KILLED (the distinction
+  that matters).** This is the ONLY direction shot that PASSES its mechanism null: semivaronly BEATS semivar_shuf (sign-flip
+  control) by +.015 (15m) / +.030 (30m) → the signed-vol asymmetry genuinely carries DIRECTIONAL content (NOT null-on-mechanism
+  like D1/D6). BUT weak: semivaronly pooled .5258 (15m) / .5382 (30m) — below breakeven .541 (only 2024@30m .5516 clears it),
+  DECAYS forward, and +semivar does NOT add to the base book (Δ15m −.0154/−.0029/−.0107, Δ30m −.0081/+.0062/−.0139). The
+  DIRECTION analog of magnitude's "real-but-sub-bar": genuine signed content, sub-deployable, already subsumed by the cross-pair book.
+> **Generic lesson — 4 convergent direction nulls on the deployment-faithful forward holdout (FFD/D1/D6/D7) reinforce that
+> direction beyond the engineered cross-pair book is EFFICIENT on existing data.** No cross-sectional direction family beats or
+> matches the certified book; the base book itself decays forward (refit-dependence). The signature/Koopman families fail their
+> MECHANISM-specificity null (a rotation/phase surrogate doesn't degrade them → they encode no genuine lead-lag/forcing). D7 is
+> the careful exception: signed-semivariance asymmetry DOES carry directional content (clears its sign-flip null, +.015/+.030)
+> yet is sub-breakeven, decaying, and non-additive — genuine-but-weak, already subsumed. **Distinguish "null on mechanism"
+> (D1/D6 — nothing there) from "real but sub-breakeven" (D7 — something there, undeployable); both are KILLED for deployment but
+> only the latter is evidence the channel is non-empty.** The only frontier for direction is EXTERNAL data (intraday rate-diff,
+> implied-vol/risk-reversals, EURGBP ticks).
+
+### (e) REMAINING SLATE — reasoned SCOPE DECISIONS (evidence-based skip/blocked/moot/queued; 2026-06-07)
+After 4 convergent direction nulls (FFD/D1/D6/D7) on the deployment-faithful gate, with the base book itself decaying forward,
+the remaining `NOVEL_METHODS_RESEARCH.md` §7 slate is scoped by EVIDENCE — recorded so the next session resumes deliberately,
+not blindly. From `CAMPAIGN_2026-06-07_FACTS.md` "reasoned scope decisions":
+- **D5 causal lead-lag (Granger / PCMCI / structural-VAR)** — **REASONED-SKIP.** The certified base book ALREADY contains every
+  peer's lagged lead-lag feature (`ll_<pair>k`, k∈{1,3,5,10,15,30}) which the GBM weights; D1 proved signature lead-lag content
+  does NOT survive a rotation null. A Granger feature-SELECTION on top of an already-lead-lag-saturated GBM has near-zero
+  marginal prior. Re-open only with EXTERNAL leaders (rate-diff), not more EURUSD-panel selection.
+- **D2 untruncated signature kernel / D4 FASCL contrastive** — **BLOCKED:** sigkernel/KeOps + the FASCL encoder need GPU and (for
+  sigkernel) a C-extension build that fails here (no `Python.h`). Deferred to a GPU+headers environment; LOW prior given D1
+  (signatures) already null.
+- **D8 quantile-direction baseline** — **SKIP:** a CONTROL, not an edge candidate; only needed to ablate a TSFM-quantile claim,
+  which this campaign does not make.
+- **Phase 5 gates G1 (TDA corr-cloud, needs gudhi=unbuildable) / G2 (BOCPD, ruptures available) / G3 (windowed-DMD)** — **MOOT:**
+  a gate conditions a SURVIVING signal; no direction signal survived the forward holdout, so there is nothing to gate. Re-open
+  only if a future (external-data) signal clears breakeven first.
+- **T1 information-driven bars** — **BLOCKED on external data:** needs per-pair 1s/tick data; only EURUSD 1s on disk (2021+). The
+  cross-pair-synchronization value (the whole point) requires the other 6 pairs' ticks = external acquisition.
+- **T3 vol-time subordination / T4 cross-pair whitening / T5 Hilbert phase** — **QUEUED, LOW prior:** T4/T5 are direction
+  transforms (direction shown efficient); T3 is a magnitude transform but `mag_har` showed base rv already extracts ~all
+  magnitude. Catalogued; not run this campaign.
+- **Magnitude exotica M4 (TDA-Wasserstein, gudhi-blocked) / M5 (multiscale-ECC) / M6 (MOMENT)** — **QUEUED, LOW prior:** after the
+  HAR canon (§6g) showed the realized-vol family adds only a forward-consistent sliver over base rv. M4 also gudhi-blocked.
 > **Durable campaign lesson — the forward-holdout is now the MANDATORY gate; a pooled-CPCV p10 alone certifies NOTHING (trap
 > #9, pooled-CPCV non-stationary-feature memorization, recorded in `METHODS_CATALOG`).** Two reusable gates now exist
-> (`fwd_holdout.py`, `surrogate_null.py`) and the faithfulness-certified 7-pair `build_panel.py` substrate; every QUEUED item
-> above runs through both gates. So far this campaign: magnitude exhausted on-disk (re-validated, no decay), FFD direction dead,
-> direction frontier still EXTERNAL data.
+> (`fwd_holdout.py`, `surrogate_null.py`) and the faithfulness-certified 7-pair `build_panel.py` substrate. Campaign net: 4
+> convergent direction nulls (FFD/D1/D6/D7) on the forward holdout reinforce that direction beyond the cross-pair book is
+> EFFICIENT — the signature/Koopman families carry no genuine mechanism, signed-semivariance carries real-but-sub-breakeven
+> content, and the base book itself decays forward. Magnitude exhausted on-disk (re-validated, no decay). Nothing new
+> certified; UP/DOWN leaderboard UNCHANGED. The only frontier for direction is EXTERNAL data; remaining items are scoped
+> skip/blocked/moot/queued above, not blindly queued.
 

@@ -31,6 +31,7 @@ HOR = int(sys.argv[2]) if len(sys.argv) > 2 else 15
 YEARS = list(range(2012, 2027)); TRAIN_MAX = 2023
 SIG_W = 30                                                          # signature window (bars)
 HV_Q = 60; HV_R = 8; HV_TREND = 30                                 # HAVOK: delays, modes, factor-trend window
+SV_W = 30                                                           # D7 semivariance window (bars)
 T0 = time.time()
 def hb(m): print(f"[{time.time()-T0:.0f}s] {m}", flush=True)
 
@@ -110,6 +111,28 @@ def havok_features(P, q=HV_Q, r=HV_R, trend=HV_TREND, train_mask=None, phase_ran
     return pd.DataFrame(feats)
 
 
+# ---------------------------------------------------------------- D7: realized signed-semivariance direction (Patton-Sheppard)
+def semivar_features(P, W=SV_W, shuffle=False, seed=0):
+    """Realized SEMIVARIANCE direction features. Per pair, rolling RS⁺=Σr²·1(r>0), RS⁻=Σr²·1(r<0) over W; signed
+    asymmetry (RS⁺−RS⁻)/(RS⁺+RS⁻) — the 'good/bad vol' component with documented DIRECTIONAL content, matched to the dead
+    DOWN side. Cross-pair: each eu-equiv pair's asymmetry + the USD-factor asymmetry. shuffle = randomly flip each return's
+    SIGN (preserve |r|, destroy the up/down asymmetry) → mechanism-specificity null."""
+    n = len(P); rng = np.random.default_rng(seed); feats = {}; asyms = []
+    for p in ["EURUSD"] + NONEU:
+        r = P[f"r_{p}"].values.astype(np.float64)
+        if shuffle: r = np.abs(r) * rng.choice([-1.0, 1.0], size=n)     # kill up/down asymmetry, keep magnitude
+        r2 = r * r
+        rsp = pd.Series(np.where(r > 0, r2, 0.0)).rolling(W).sum().values
+        rsm = pd.Series(np.where(r < 0, r2, 0.0)).rolling(W).sum().values
+        asym = (rsp - rsm) / (rsp + rsm + 1e-18)
+        feats[f"sv_asym_{p}"] = asym.astype(np.float32); asyms.append(asym)
+        if p == "EURUSD":
+            feats["sv_rsp_eur"] = rsp.astype(np.float32); feats["sv_rsm_eur"] = rsm.astype(np.float32)
+    feats["sv_fac_asym"] = np.nanmean(np.vstack(asyms), axis=0).astype(np.float32)   # USD-factor signed asymmetry
+    feats["sv_resid_asym_eur"] = (feats["sv_asym_EURUSD"] - feats["sv_fac_asym"]).astype(np.float32)
+    return pd.DataFrame(feats)
+
+
 def base_xp_features():
     """Certified base xp features + _ts + sess_ny + _fwd, concatenated across years, deduped — aligned to panel order."""
     MX.HOR = HOR; MX.GAP_S = HOR * 60
@@ -141,8 +164,10 @@ def main():
         trmask = pd.to_datetime(t, unit="s", utc=True).year.values <= TRAIN_MAX
         F = havok_features(P, train_mask=trmask)
         Fsh = havok_features(P, train_mask=trmask, phase_rand=True, seed=1)
+    elif WHICH == "semivar":
+        F = semivar_features(P, SV_W); Fsh = semivar_features(P, SV_W, shuffle=True, seed=1)
     else:
-        raise SystemExit("which must be sig|havok")
+        raise SystemExit("which must be sig|havok|semivar")
     Xf = F.values.astype(np.float32); Xfsh = Fsh.values.astype(np.float32)
     hb(f"family feats={Xf.shape[1]} (+shuffle control)")
 

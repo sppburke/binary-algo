@@ -107,10 +107,19 @@ these are *mechanism-matched* to the engineered lead-lag edge.
   between pair i's *lead* and pair j's *lag* directly encode signed lead-lag / quadratic-covariation. Cheapest cross-sectional
   shot, `iisignature` (CPU). *Falsifier:* beat residual book p10 CI95; AND a lead/lag-shuffle permutation MUST degrade it
   (else it's not using lead-lag → kill).
+  > **D1 OUTCOME (2026-06-07): TESTED → KILLED both horizons** (`xsec_direction.py`, `xsec_direction_sig_{15,30}m_result.json`;
+  > iisignature won't compile (no Python.h) → depth-2 iterated integrals S^{ij}=∫∫dX^i dX^j + Lévy area A^{ij}=½(S^{ij}−S^{ji})
+  > computed pure-numpy via cumsum over trailing 30-bar windows). Forward holdout, NY cov0.10 selacc. **15m:** +sig DECAYS
+  > (Δ −.0043/−.0099/+.0032), sigonly pooled .5243 ≈ sig_shuf .5236 → FAILS the mechanism-specificity falsifier (the lead/lag
+  > rotation surrogate does NOT degrade it → not genuine lead-lag content). **30m:** +sig DECAYS all 3 years
+  > (−.0094/−.0043/−.0133), sigonly pooled .5283 (sub-base). Killed: adds nothing to the certified book, fails its own null.
 - **D2 ⭐ Untruncated SIGNATURE KERNEL on the cross-pair NY path** (synthesis #1-sig, Goursat-PDE, `sigkernel`+KeOps-GPU) —
   categorically new vs the killed single-pair Lévy-area (`m30_sig.py`); applied where the edge lives. Kernel-SVM (sign) +
   KRR (rank). *Falsifier:* beat residual book p10 CI95; ablate vs depth-1 RBF to prove the lift is signature-specific.
   Pair with T1 information bars for best shot.
+  > **D2 OUTCOME (2026-06-07): BLOCKED — not run.** `sigkernel`/KeOps need a GPU and a C-extension build that fails in this
+  > env (no `Python.h` dev headers). Deferred to a GPU+headers environment; LOW prior given D1 (signatures, same family)
+  > already null on its mechanism falsifier.
 - **D3 Randomized signatures** (synthesis #4, Cuchiero ~256-d frozen-random CDE state) — sidesteps the factorial blowup of
   true depth-3 sigs on d=8 channels (why prior work stalled at level-2). *Falsifier:* must beat BOTH the Lévy-area null
   (~.51) AND the ESN/GRU reservoir null (~.49–.52), else the signature framing adds nothing.
@@ -118,21 +127,53 @@ these are *mechanism-matched* to the engineered lead-lag edge.
   embedding geometry with FORWARD cross-sectional co-movement `S_ij = corr(fwd-return_i, fwd-return_j)` (purge t+H), fixing
   the exact sign-blindness that nulled Kronos/Chronos-2. Small dilated-conv encoder, 8GB GPU. *Falsifier:* (residual+FASCL)
   beats residual-only CI95; standalone must beat .52 (not the Chronos-2 null) and not be corr>0.9 with USD-residual.
+  > **D4 OUTCOME (2026-06-07): BLOCKED — not run.** The FASCL dilated-conv encoder needs an 8GB GPU not available in this
+  > env. Deferred to a GPU environment.
 - **D5 Causal-discovery lead-lag** (critic gap): PCMCI/PCMCI+, Granger-with-FDR, **structural-VAR with sign restrictions** —
   prune SPURIOUS contemporaneous correlation to isolate *which* pair causally leads under the USD factor. Arguably more
   on-target than any signature variant since the certified edge IS lead-lag. *Falsifier:* causal-pruned lead-lag features
   beat the associative residual book p10.
+  > **D5 OUTCOME (2026-06-07): REASONED-SKIP — not run.** The certified base book ALREADY contains every peer's lagged
+  > lead-lag feature (`ll_<pair><k>`, k∈{1,3,5,10,15,30}) which the GBM weights; D1 just proved signature lead-lag content
+  > does NOT survive a rotation null. A Granger/PCMCI feature-SELECTION on top of an already-lead-lag-saturated GBM has
+  > near-zero marginal prior. Re-open ONLY with EXTERNAL leaders (rate-diff), not more EURUSD-panel selection.
 - **D6 HAVOK intermittent-forcing / Hankel-DMD mode-phases** (synthesis #9/#16) — a *signed* dynamic precursor (unlike the
   null CCM/perm-entropy): `v_r` forcing leads regime-changing moves; complex mode-phase angles = continuous lead-lag. An
   explicit global linear operator where Chronos-2 attention failed. *Falsifier:* signed-v_r beats .541 AND book gating lifts
   p10 ≥0.5pp, up-rate∈[.47,.53], surrogate-null.
+  > **D6 OUTCOME (2026-06-07): TESTED → KILLED both horizons** (`xsec_direction.py`, `xsec_direction_havok_{15,30}m_result.json`;
+  > frozen-basis HAVOK / Hankel-Koopman: delay-embed q=60 the USD-factor trend, SVD on TRAIN → freeze r=8 modes, causally
+  > project to v1..v7 + intermittent forcing v_r + leading phase). Forward holdout, NY cov0.10 selacc. **15m:** +havok DECAYS
+  > (Δ −.003/−.0024/+.0014), havokonly pooled .5148 — SUB-BREAKEVEN (far below base .5624), only marginally beats its
+  > phase-randomized surrogate (.5148 vs .5063) and NEVER clears .541. **30m:** +havok DECAYS, havokonly pooled .5197
+  > (sub-base). Killed: the signed Koopman forcing carries no deployable direction content.
 - **D7 Realized signed-semivariance direction** (= M2's direction arm) + **D8 quantile-direction baseline** (critic): a plain
   **LightGBM-quantile / quantile-regression-forest** emitting `P(ret>0)` from the 239 features — the cheapest probabilistic-
   direction control, and the necessary fair-ablation partner before ANY TSFM-quantile claim (Sundial #15, Lag-Llama) is credible.
+  > **D7 OUTCOME (2026-06-07): TESTED → REAL-but-SUB-BREAKEVEN, KILLED (non-deployable)** (`xsec_direction.py`; Patton-Sheppard
+  > good/bad realized signed-semivariance). The ONLY direction shot that PASSES its mechanism null: semivaronly beats
+  > semivar_shuf (sign-flip control) by **+.015 (15m) / +.030 (30m)** → the signed-vol asymmetry GENUINELY carries DIRECTIONAL
+  > content (distinct from D1/D6, which fail their nulls). BUT weak and non-deployable: semivaronly pooled **.5258 (15m) /
+  > .5382 (30m)** — below breakeven .541 (only 2024@30m .5516 clears it), DECAYS forward, and +semivar does NOT add to the
+  > base book (Δ15m −.0154/−.0029/−.0107, Δ30m −.0081/+.0062/−.0139). The DIRECTION analog of magnitude's "real-but-sub-bar":
+  > genuine content, sub-deployable, already subsumed by the cross-pair book. **NOTHING CERTIFIED; leaderboard UNCHANGED.**
+  > **D8 quantile-direction baseline OUTCOME (2026-06-07): CONTROL-SKIP — not run.** D8 is a CONTROL to ablate a TSFM-quantile
+  > claim (Sundial/Lag-Llama), which this campaign does not make. Skip.
+
+> **§3 CONVERGENT VERDICT (2026-06-07):** FFD (T2) + signature lead-lag (D1) + HAVOK (D6) + signed-semivariance (D7) ALL
+> killed forward — NO cross-sectional direction family beats/matches the certified book. The base cross-pair book itself
+> DECAYS forward (15m .5895/.5518/.5234; 30m .5827/.5505/.5055 — documented refit-dependence). D7 confirms genuine-but-weak
+> signed-vol direction content exists (clears its null) yet is sub-breakeven and subsumed. Corroborates the standing program
+> conclusion: **direction beyond the engineered cross-pair book is EFFICIENT on existing data; the only frontier is EXTERNAL
+> data (rate-diff / vol / EURGBP ticks).** Nothing certified; UP/DOWN leaderboard UNCHANGED.
 
 ---
 
 ## 4. GATE / REGIME — condition the certified NY book (attacks the documented refit/regime-dependence)
+
+> **§4 OUTCOME (2026-06-07): G1/G2/G3 MOOT — none built.** A gate conditions a SURVIVING signal; no direction signal
+> survived the forward holdout (§3 all killed), so there is nothing to gate. G1 also needs `gudhi` (unbuildable here, no
+> Python.h); G2 (`ruptures`) and G3 are available. Re-open ONLY if a future (external-data) signal clears breakeven first.
 
 - **G1 Persistent homology of the rolling 7-pair correlation cloud** (synthesis #8, Gidea-Katz landscape norm) — the canonical
   cross-sectional TDA regime detector; gate the m*xp trade on a benign-norm band. (7 points → shallow H1; enrich with crosses
@@ -182,7 +223,10 @@ these are *mechanism-matched* to the engineered lead-lag edge.
    KILLED for direction at 15m & 30m (see §1 T2 outcome); T1 info-bars substrate scouted but NOT built — PENDING.**
 4. **Cross-sectional direction shots** (mechanism-matched, on the new panel/clock): lead-lag signature cross-terms (D1) →
    signature kernel (D2) → FASCL (D4) / causal lead-lag (D5) → HAVOK/Hankel-DMD (D6). Each must BEAT the m*xp book p10, clear
-   surrogate-null, and survive the forward holdout. **⏳ HARNESS WRITTEN (2026-06-07): `xsec_direction.py` ready to run D1
-   (depth-2 lead-lag signature + Lévy area, pure-numpy since iisignature won't compile) and D6 (frozen-basis HAVOK), each
-   with shuffle/surrogate controls. NOT yet run. Remaining slate D2/D4/D5/D7/D8 not built.**
-5. **Gates** if a cross-sectional signal survives: TDA-corr-cloud (G1) / BOCPD (G2). **PENDING (none built).**
+   surrogate-null, and survive the forward holdout. **✅ DONE for the tractable families (2026-06-07): `xsec_direction.py` RAN
+   D1 (depth-2 lead-lag signature + Lévy area, pure-numpy), D6 (frozen-basis HAVOK), and D7 (signed-semivariance), each with
+   shuffle/surrogate controls — ALL KILLED forward (D1 & D6 fail their mechanism null; D7 REAL-but-sub-breakeven, passes its
+   null yet non-deployable). See §3 D1/D6/D7 outcomes + the §3 convergent verdict. D2/D4 BLOCKED (GPU/headers), D5
+   REASONED-SKIP (book already lead-lag-saturated), D8 control-skip — none built.**
+5. **Gates** if a cross-sectional signal survives: TDA-corr-cloud (G1) / BOCPD (G2). **MOOT (2026-06-07): none built — no
+   direction signal survived step 4 to gate (§4 outcome). Re-open only if a future external-data signal clears breakeven.**

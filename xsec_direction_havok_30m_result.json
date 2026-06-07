@@ -1,0 +1,140 @@
+{
+ "which": "havok",
+ "horizon_min": 30,
+ "params": {
+  "SIG_W": 30,
+  "HV_Q": 60,
+  "HV_R": 8,
+  "HV_TREND": 30
+ },
+ "design": "frozen-past forward holdout, direction cov0.10 NY selacc; base=certified xp book + shuffle control",
+ "falsifier": "+havok beats base selacc >=2 fwd years (no decay) AND havokonly clears .541 AND real >> shuffle",
+ "by_arm": {
+  "base": {
+   "2024": {
+    "n": 136065,
+    "auc": 0.5365,
+    "selacc": 0.5827,
+    "n_sel": 13607
+   },
+   "2025": {
+    "n": 135353,
+    "auc": 0.524,
+    "selacc": 0.5505,
+    "n_sel": 13536
+   },
+   "2026": {
+    "n": 48952,
+    "auc": 0.5063,
+    "selacc": 0.5055,
+    "n_sel": 4896
+   },
+   "pooled": {
+    "n": 320370,
+    "auc": 0.5267,
+    "selacc": 0.5585,
+    "n_sel": 32037
+   }
+  },
+  "+havok": {
+   "2024": {
+    "n": 136065,
+    "auc": 0.5337,
+    "selacc": 0.5709,
+    "n_sel": 13607
+   },
+   "2025": {
+    "n": 135353,
+    "auc": 0.525,
+    "selacc": 0.5527,
+    "n_sel": 13536
+   },
+   "2026": {
+    "n": 48952,
+    "auc": 0.5062,
+    "selacc": 0.5022,
+    "n_sel": 4896
+   },
+   "pooled": {
+    "n": 320370,
+    "auc": 0.5259,
+    "selacc": 0.5529,
+    "n_sel": 32037
+   }
+  },
+  "havokonly": {
+   "2024": {
+    "n": 136065,
+    "auc": 0.5042,
+    "selacc": 0.5102,
+    "n_sel": 13607
+   },
+   "2025": {
+    "n": 135353,
+    "auc": 0.5103,
+    "selacc": 0.5329,
+    "n_sel": 13536
+   },
+   "2026": {
+    "n": 48952,
+    "auc": 0.5126,
+    "selacc": 0.5016,
+    "n_sel": 4896
+   },
+   "pooled": {
+    "n": 320370,
+    "auc": 0.5082,
+    "selacc": 0.5197,
+    "n_sel": 32037
+   }
+  },
+  "havok_shuf": {
+   "2024": {
+    "n": 136065,
+    "auc": 0.497,
+    "selacc": 0.5074,
+    "n_sel": 13607
+   },
+   "2025": {
+    "n": 135353,
+    "auc": 0.5016,
+    "selacc": 0.5078,
+    "n_sel": 13536
+   },
+   "2026": {
+    "n": 48952,
+    "auc": 0.5082,
+    "selacc": 0.5196,
+    "n_sel": 4896
+   },
+   "pooled": {
+    "n": 320370,
+    "auc": 0.5006,
+    "selacc": 0.5094,
+    "n_sel": 32037
+   }
+  }
+ },
+ "deltas": {
+  "+havok": {
+   "2024": -0.0118,
+   "2025": 0.0022,
+   "2026": -0.0033
+  },
+  "havokonly": {
+   "2024": -0.0725,
+   "2025": -0.0176,
+   "2026": -0.0039
+  },
+  "havok_shuf": {
+   "2024": -0.0753,
+   "2025": -0.0427,
+   "2026": 0.0141
+  }
+ },
+ "deployable": {
+  "+havok": false,
+  "havokonly": false,
+  "havok_shuf": false
+ }
+}
