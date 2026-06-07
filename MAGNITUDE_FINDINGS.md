@@ -394,13 +394,29 @@ predictor than rv alone. Causality is clean: the embedding is computed strictly 
 (no forward bars), CPCV purge+embargo handles overlap, and the lift is an OOS gain across 28 paths (overfit would
 show as ≤ base, not >).
 
-**Mechanism caveat + next-check (cheap, decisive):** unlike rv30/rv120, the embedding encodes **time-of-day** (additive
-time-emb), so the small lift is plausibly intraday-vol SEASONALITY the embedding re-derives — exactly what §7's
-deseasonalized-RV upgrade would capture without Kronos. NEXT CHECK before productionizing: add hour-of-day / day-of-week
-(or deseasonalized RV) to the baseline and re-run the paired ablation; if base+time-of-day captures the embedding's
-lift, the Kronos dependency is unnecessary and the cheap clock feature wins. Until then: a real, CPCV-robust, but small
-magnitude improvement available at the cost of a per-bar Kronos forward pass. Files: `kronos_embed.py`,
-`kronos_embed_embed_main.npz`, `kronos_embed_embed_main_result.json`.
+**Mechanism caveat:** unlike rv30/rv120, the embedding encodes **time-of-day** (additive time-emb), so part of the lift
+is plausibly intraday-vol SEASONALITY the embedding re-derives. Files: `kronos_embed.py`, `kronos_embed_embed_main.npz`,
+`kronos_embed_embed_main_result.json`.
+
+**RESOLUTION — the time-of-day decomposition (`kronos_embed_tod.py`, 2026-06-07).** 4-way paired CPCV ablation reusing
+the same npz: base / base+tod / base+emb / base+tod+emb, where tod = `[hour, minute_of_day, dow, sin(t), cos(t)]` (UTC).
+Key metric ΔAUC(emb BEYOND tod) = base+tod+emb − base+tod. **Horizon-dependent answer:**
+
+| H | ΔAUC(+tod−base) | ΔAUC(emb BEYOND tod) [CI95] | resolution |
+|---|---|---|---|
+| 1m  | +0.0011 (ns)    | **+0.0057** [+.0038,+.0078] | emb adds REAL non-clock info |
+| 5m  | −0.0000 (none)  | **+0.0032** [+.0005,+.0062] | emb adds REAL non-clock info |
+| 10m | +0.0048         | **+0.0028** [+.0010,+.0049] | emb adds a bit beyond clock |
+| 15m | +0.0025         | +0.0012 [−.0012,+.0036]     | lift IS time-of-day (CI incl 0) |
+| 30m | +0.0087         | −0.0023 [−.0049,+.0006]     | **clock ALONE beats the embedding** |
+
+Two clean conclusions: **(1) At 30m (the certified flagship), plain hour-of-day is STRICTLY BETTER than the Kronos
+embedding (+0.0087 vs +0.0058) and the embedding adds nothing beyond it → for the certified 30m magnitude model, add
+time-of-day and DROP Kronos.** (2) At 1–10m the embedding carries genuine NON-clock magnitude info (+.003–.006 beyond
+the clock, CI excl 0 — strongest at H=1m where the clock barely helps): Kronos captures fine recent-bar vol-state the
+clock misses, worth the forward pass IF sub-15m magnitude matters. **Bonus (actionable): time-of-day is itself a free,
+CPCV-robust magnitude feature at 10m/30m (+.0048/+.0087, CI excl 0) — empirically validates the §7 deseasonalized-RV
+lever; promote it.** Files: `kronos_embed_tod.py`, `kronos_embed_tod_embed_main_result.json`.
 
 **DIRECTION (emb-only, ties dropped) → NULL all horizons:** CPCV AUC .502/.506/.5085/.5086/.5096, path-p10 .49–.50,
 all KILLED (bar .52). The single-pair learned representation carries no sign — consistent with every prior single-pair
@@ -427,9 +443,13 @@ items (deseasonalized RV, semivariance, macro-event windows), not a TSFM. `chron
 
 These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:
 
-1. **Deseasonalized realized variance.** Current rv30/rv120 mix the strong FX intraday seasonality (London/NY overlap spikes,
-   Asia lull) into the level. Divide RV by a time-of-day (and day-of-week) seasonal RV profile so the model predicts
-   *abnormal* volatility, not the clock. Hypothesis: cleaner top-decile separation and a higher decile-lift than 5.0×.
+1. **Deseasonalized realized variance.** ⭐ **PARTIALLY VALIDATED 2026-06-07 — PROMOTE.** Current rv30/rv120 mix the strong
+   FX intraday seasonality (London/NY overlap spikes, Asia lull) into the level. Divide RV by a time-of-day (and
+   day-of-week) seasonal RV profile so the model predicts *abnormal* volatility, not the clock. The §6d resolution proved
+   raw time-of-day features `[hour,minute,dow,sin,cos]` add a real CPCV-robust magnitude lift at 10m (+0.0048) and 30m
+   (+0.0087, CI excl 0) — and at 30m the cheap clock feature STRICTLY BEATS the Kronos embedding. So the clock IS
+   predictive; the principled version (deseasonalize RV rather than hand the GBM raw hour) should do at least as well,
+   for free. Build this next for the certified 30m model. Hypothesis: cleaner top-decile separation and a higher decile-lift than 5.0×.
 2. **Signed realized-semivariance (RS+ / RS−).** Decompose RV into upside vs downside semivariance. Even though the *target*
    is sign-invariant, the *ratio* RS−/RS+ can sharpen the |move| forecast (downside vol clusters differently). It also opens a
    path to a magnitude-conditioned *skew* product without claiming a direction edge.

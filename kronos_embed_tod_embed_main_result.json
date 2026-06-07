@@ -1,0 +1,122 @@
+{
+ "src": "embed_main",
+ "n_windows": 18077,
+ "note": "4-way: does decode_s1 embedding add beyond time-of-day?",
+ "by_horizon": {
+  "1": {
+   "n_paths": 28,
+   "auc_base": 0.7327,
+   "auc_base_tod": 0.7338,
+   "auc_base_emb": 0.7394,
+   "auc_base_tod_emb": 0.7395,
+   "dAUC_tod_over_base": 0.0011,
+   "dAUC_tod_ci": [
+    -0.001,
+    0.0029
+   ],
+   "dAUC_emb_over_base": 0.0067,
+   "dAUC_emb_ci": [
+    0.0047,
+    0.0088
+   ],
+   "dAUC_emb_beyond_tod": 0.0057,
+   "dAUC_emb_beyond_tod_ci": [
+    0.0038,
+    0.0078
+   ],
+   "VERDICT": "EMB ADDS BEYOND CLOCK"
+  },
+  "5": {
+   "n_paths": 28,
+   "auc_base": 0.7269,
+   "auc_base_tod": 0.7269,
+   "auc_base_emb": 0.7291,
+   "auc_base_tod_emb": 0.7301,
+   "dAUC_tod_over_base": -0.0,
+   "dAUC_tod_ci": [
+    -0.003,
+    0.0024
+   ],
+   "dAUC_emb_over_base": 0.0022,
+   "dAUC_emb_ci": [
+    0.0001,
+    0.0042
+   ],
+   "dAUC_emb_beyond_tod": 0.0032,
+   "dAUC_emb_beyond_tod_ci": [
+    0.0005,
+    0.0062
+   ],
+   "VERDICT": "EMB ADDS BEYOND CLOCK"
+  },
+  "10": {
+   "n_paths": 28,
+   "auc_base": 0.7314,
+   "auc_base_tod": 0.7362,
+   "auc_base_emb": 0.739,
+   "auc_base_tod_emb": 0.739,
+   "dAUC_tod_over_base": 0.0048,
+   "dAUC_tod_ci": [
+    0.0014,
+    0.0076
+   ],
+   "dAUC_emb_over_base": 0.0076,
+   "dAUC_emb_ci": [
+    0.0053,
+    0.0099
+   ],
+   "dAUC_emb_beyond_tod": 0.0028,
+   "dAUC_emb_beyond_tod_ci": [
+    0.001,
+    0.0049
+   ],
+   "VERDICT": "EMB ADDS BEYOND CLOCK"
+  },
+  "15": {
+   "n_paths": 28,
+   "auc_base": 0.7267,
+   "auc_base_tod": 0.7292,
+   "auc_base_emb": 0.7291,
+   "auc_base_tod_emb": 0.7304,
+   "dAUC_tod_over_base": 0.0025,
+   "dAUC_tod_ci": [
+    -0.0005,
+    0.0051
+   ],
+   "dAUC_emb_over_base": 0.0024,
+   "dAUC_emb_ci": [
+    0.0008,
+    0.0042
+   ],
+   "dAUC_emb_beyond_tod": 0.0012,
+   "dAUC_emb_beyond_tod_ci": [
+    -0.0012,
+    0.0036
+   ],
+   "VERDICT": "LIFT IS TIME-OF-DAY (drop Kronos)"
+  },
+  "30": {
+   "n_paths": 28,
+   "auc_base": 0.7142,
+   "auc_base_tod": 0.7229,
+   "auc_base_emb": 0.72,
+   "auc_base_tod_emb": 0.7206,
+   "dAUC_tod_over_base": 0.0087,
+   "dAUC_tod_ci": [
+    0.0033,
+    0.0127
+   ],
+   "dAUC_emb_over_base": 0.0058,
+   "dAUC_emb_ci": [
+    0.0039,
+    0.0078
+   ],
+   "dAUC_emb_beyond_tod": -0.0023,
+   "dAUC_emb_beyond_tod_ci": [
+    -0.0049,
+    0.0006
+   ],
+   "VERDICT": "LIFT IS TIME-OF-DAY (drop Kronos)"
+  }
+ }
+}

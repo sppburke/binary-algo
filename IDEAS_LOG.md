@@ -267,6 +267,11 @@ MAGNITUDE_FINDINGS.md §6d, DIRECTION_FINDINGS.md.
 > but ZERO sign.** The likely source of the magnitude lift is time-of-day vol seasonality (the embedding has an additive
 > time-emb; rv30/rv120 don't) → the cheap win is §7 deseasonalized-RV, not a Kronos dependency. Decisive next-check: add
 > hour-of-day/day-of-week to the baseline and re-run; if it captures the lift, drop Kronos. Direction stays cross-sectional.
+> **RESOLVED 2026-06-07 (`kronos_embed_tod.py`, 4-way ablation):** horizon-dependent. At **30m the cheap clock feature
+> STRICTLY BEATS the embedding** (+.0087 vs +.0058; emb adds nothing beyond) → for the certified 30m model, add
+> time-of-day and DROP Kronos. At **1–10m the embedding adds REAL non-clock info** (+.003–.006 beyond clock, CI excl 0,
+> strongest at H=1m) → Kronos optional if sub-15m matters. **Bonus: time-of-day is itself a free CPCV-robust magnitude
+> feature at 10m/30m → validates §7 deseasonalized-RV (PROMOTED).** MAGNITUDE_FINDINGS.md §6d resolution.
 
 ### (f) Lever — Chronos-2 GROUP-ATTENTION on the 7-pair USD panel = DIRECTION NULL (2026-06-07)
 Lever 3, the cross-sectional bet — the highest-value/most-unsolved need (every single-pair model reads ~.50 on direction;
