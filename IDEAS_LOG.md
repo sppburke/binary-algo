@@ -312,3 +312,96 @@ cohort (`min1_v*`/`min2_v*`/`tickmodel*`/`tick5s_final`/`tick_ensemble`, no resu
 > up-rate in-band), and classify every other forecast-derivation script as aligned-or-not by the same FM-F test.** FM-F (false
 > NULL) and FM-E (selective-threshold on test, false POSITIVE) are the two recurring forecast/threshold traps to screen.
 
+---
+
+## 2026-06-07 — NOVEL-METHODS campaign (execute ALL of `NOVEL_METHODS_RESEARCH.md` §7), by-experiment status
+
+Verified-facts source of truth: `CAMPAIGN_2026-06-07_FACTS.md`. Every item below is gated by the deployment-faithful
+**FROZEN-PAST FORWARD HOLDOUT** (train≤2023 → per-year 2024/25/26), NOT pooled CPCV (leakage trap #9). Campaign certified
+NOTHING new — every tested lever is KILLED or REAL-but-SUB-BAR. The ONE positive: the certified MAGNITUDE edge RE-VALIDATED
+on a clean forward holdout with NO decay.
+
+### (a) DELIVERED infra — two NEW reusable validation GATES + the cross-pair PANEL (committed 051e525)
+Phase-1 substrate for all path-based cross-sectional methods, plus the two mandatory gates `NOVEL §0` requires:
+- **`fwd_holdout.py`** — reusable frozen-past forward-holdout gate (magnitude AUC+lift / direction cov-selacc modes). The
+  MANDATORY deployment gate. Self-checked: DEPLOYS a stationary signal (+0.10/yr), REJECTS a trap-#9 non-stationary feature
+  (decays to −0.015) — the exact deseason-+tod failure mode it exists to catch.
+- **`surrogate_null.py`** — phase-randomize / IAAFT surrogate-null gate. Self-checked: linear lag-1 autocorr → NOT
+  significant (real .6959 ≈ null_p95 .6961, spectrum preserved); nonlinear |.| vol-clustering → significant (real .0883 ≫
+  null_p95 .0199). Separates spectral re-encoding from genuine nonlinear structure.
+- **`build_panel.py`** → `features/panel_<year>.parquet` — the clean 7-pair USD return panel (5,345,437 bars 2012-2026;
+  per-row `r_<PAIR>` eu-equiv 1-min log-returns, `fac` USD common factor, `e_<PAIR>` residual, `c_eur` raw close). DELIVERED
+  + FAITHFULNESS-CERTIFIED via `panel_faithcheck.py`: all continuous channels (`eu_r/usdbask/catchup/eurresid/disp/ll_*`)
+  BIT-IDENTICAL (max_abs 0.0) vs certified `build_xp`; only `agree*` differs at 1 row/lookback (warmup off-by-one). Pooled-CPCV
+  repro read selacc p10 .5355 / mean .5425 vs certified m15xp .567/.574 — the DOCUMENTED weaker-reimplementation effect (single
+  600-tree pooled LGBM vs certified refit), NOT leakage (which would INFLATE); up-rate .5074 inside [.47,.53] tripwire.
+  VERDICT: CONSTRUCTION-FAITHFUL, safe for all downstream.
+> **Generic lesson — pooled CPCV ALONE is insufficient (leakage trap #9): it can MEMORIZE a non-stationary feature and report
+> a clean p10 that DECAYS forward.** The frozen-past forward holdout (`fwd_holdout.py`) is now the MANDATORY gate before any
+> "deployable" claim, paired with `surrogate_null.py` to separate genuine nonlinear structure from spectral re-encoding. Both
+> are reusable across keys/horizons; build the panel/feature substrate, prove it BIT-IDENTICAL to the certified builder, THEN run.
+
+### (b) MAGNITUDE HAR / realized-vol canon — TESTED → REAL-but-SUB-BAR / KILLED as upgrade (committed 7d45bf8)
+`mag_har.py` + `mag_har_result.json`. Arms added to certified base `[-pe,rv30,rv120]`, forward holdout, horizons 10/15/30m,
+target |ret_H|≥train-Q75; falsifier = +0.005 AUC in ≥2 forward years AND ≥2 horizons. **ALL ARMS FAIL:** +har (multiscale RV)
+mean fwd ΔAUC +0.0010, 2/3 deployable — sub-bar; +jump (bipower split) +0.0003, 1/3 — null; +semivar (RS⁺/RS⁻/signed-jump)
+−0.0000, 1/3 — null; +harq (realized quarticity) +0.0004, 2/3 — null; **+all (stacked) +0.0021, 3/3 deployable (no decay) —
+forward-CONSISTENT but economically negligible.** Base rv already extracts ~all magnitude (collinearity vs rv120: lRV120 .89,
+RS .70, HARQ .58/−.63; only signed-jump SJ120 orthogonal −.04 and carries nothing). **THE positive: RE-VALIDATES the certified
+magnitude edge on a clean deployment-faithful holdout** — base AUC .799/.750/.750 (10m) .791/.739/.737 (30m), 4–5.6× decile
+lift, NO decay. VERDICT: KILLED as deployable upgrade; magnitude path EXHAUSTED on-disk.
+> **Generic lesson — HAR/jump/semivar/quarticity decompositions add only a forward-consistent SLIVER (+.002) over plain
+> rolling rv because rolling rv already captures ~all the realized-vol magnitude signal; only signed-jump is orthogonal and it
+> carries nothing.** Magnitude gains must come from inputs rv CAN'T see (macro-event windows, external implied-vol feed), not
+> finer functions of own realized vol.
+
+### (c) FRACTIONAL DIFFERENTIATION (FFD) direction — TESTED → KILLED (15m AND 30m)
+`frac_diff.py` (hand-rolled FFD, fixed-width weights + ADF d*-selection; self-check: random walk needs d*=0.1 to pass ADF while
+retaining 98.8% level-memory vs 0.9% for plain returns) + `frac_direction.py`. FFD USD factor/residual/lead-lag into the certified
+direction book, forward holdout, NY cov0.10 selacc; per-pair d* 0.1–0.2 (windows ~500 bars), thresh 1e-4.
+- **15m KILLED** (`frac_direction_15m_result.json`): base selacc 2024 .5900 / 2025 .5520 / 2026 .5254 (pooled .5642); +ffd
+  .5792/.5301/.5403 (pooled .5537) → DECAYS (Δ −0.0108/−0.0219/+0.0149), deployable=false; ffdonly pooled .5001 (coin flip).
+- **30m ALSO KILLED, harder** (`frac_direction_30m_result.json`): base 2024 .5842 / 2025 .5483 / 2026 .5007 (pooled .5558);
+  +ffd .5546/.5135/.5064 (pooled .5308) → DECAYS (Δ −0.0296/−0.0348/+0.0057), deployable=false; ffdonly pooled .4958 (below coin flip).
+Note the base book ITSELF decays over forward years (.59→.55→.525), consistent with the documented refit-dependence of the
+cross-pair edge.
+> **Generic lesson — FFD level-memory adds NOTHING to direction and HURTS recent years; "stationarity-with-memory" is a
+> magnitude/level transform, not a sign creator.** Genuinely-untried ≠ promising: a level-preserving stationary transform of
+> price feeds the same cross-sectional channel that already certifies, and re-encoding it as fractionally-differenced memory
+> only adds collinear noise that anti-transfers forward. FFD direction DEAD at both 15m and 30m.
+
+### (d) QUEUED — future work (harness state + one-line rationale each)
+Resume points for the next session; all to be run under the SAME forward-holdout + surrogate-null gates. From
+`CAMPAIGN_2026-06-07_FACTS.md` DONE-vs-FUTURE summary:
+- **D1 sig** — depth-2 lead-lag SIGNATURE (iterated integrals + Lévy area, EURUSD↔each peer, 30-bar window); harness WRITTEN
+  in `xsec_direction.py`, NOT yet run. Rationale: signed lead-lag / quadratic covariation is a sign-AWARE cross-pair representation
+  the GBM doesn't access; falsifier = beats book p10 CI95 AND lead/lag-shuffle MUST degrade it.
+- **D6 havok** — frozen-basis HAVOK (Hankel-Koopman delay-embed q=60, freeze r=8 modes on TRAIN, causal forcing v_r as signed
+  precursor); harness WRITTEN, NOT yet run. Rationale: intermittent-forcing precursor is a candidate signed regime-shift signal;
+  surrogate-null control built in.
+- **D2** — untruncated signature KERNEL (needs sigkernel/KeOps GPU; sigkernel currently unbuildable). Rationale: full signature
+  similarity may carry lead-lag a depth-2 truncation drops.
+- **D4** — FASCL future-aligned contrastive (8GB GPU). Rationale: contrastive future-alignment is a non-GBM representation of the cross-section.
+- **D5** — causal lead-lag (PCMCI / Granger-FDR / structural-VAR; statsmodels present). Rationale: explicit directed cross-pair
+  causality vs the implicit lead-lag features already in the book.
+- **D7** — signed-semivariance DIRECTION. Rationale: downside vs upside realized-semivariance asymmetry as a sign tilt (mag-side semivar was null; test the signed direction use).
+- **D8** — quantile-direction baseline. Rationale: a simple sign baseline to bound what the exotic D-family must beat.
+- **T1** — information-driven bars (volume/dollar/imbalance/run bars). NOT yet built: substrate scouted (`features_tick/*_1s.parquet`
+  is EURUSD-ONLY 2021+) → cross-pair synchronization needs proxies for the other 6 pairs; DEFERRED behind T2. Rationale: event-clock
+  sampling may sharpen the cross-section, but the multi-pair tick substrate is the gate.
+- **T3** — vol-time subordination. Rationale: re-clock to a volatility business-time to normalize the path before cross-sectional reads.
+- **T4** — cross-pair whitening. Rationale: decorrelate the 7-pair panel before factor/residual construction.
+- **T5** — Hilbert transform (instantaneous phase/amplitude). Rationale: phase-based regime/precursor features.
+- **G1** — persistent-homology corr-cloud GATE (needs gudhi; currently unbuildable). Rationale: topological change as a regime-shift gate.
+- **G2** — BOCPD / HMM change-point GATE (ruptures available). Rationale: segment regimes, condition direction per regime.
+- **G3** — windowed-DMD residual GATE. Rationale: dynamic-mode residual as a low-predictability "skip" signal.
+- **M4** — magnitude TDA-Wasserstein. Rationale: distributional/topological distance as a magnitude feature (surrogate-null-gated).
+- **M5** — magnitude multiscale-ECC. Rationale: multiscale Euler-characteristic curve magnitude feature (surrogate-null-gated).
+- **M6** — magnitude MOMENT (foundation-model embedding). Rationale: a general TSFM embedding for magnitude (surrogate-null-gated;
+  note prior Kronos/Chronos-2 embeddings gave only a sliver / non-stationary tod lift).
+> **Durable campaign lesson — the forward-holdout is now the MANDATORY gate; a pooled-CPCV p10 alone certifies NOTHING (trap
+> #9, pooled-CPCV non-stationary-feature memorization, recorded in `METHODS_CATALOG`).** Two reusable gates now exist
+> (`fwd_holdout.py`, `surrogate_null.py`) and the faithfulness-certified 7-pair `build_panel.py` substrate; every QUEUED item
+> above runs through both gates. So far this campaign: magnitude exhausted on-disk (re-validated, no decay), FFD direction dead,
+> direction frontier still EXTERNAL data.
+

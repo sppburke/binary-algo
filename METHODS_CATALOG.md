@@ -133,6 +133,13 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 - **How.** `f1_compound.py`.
 - **STATUS.** **null** — single-call decays 0.52@3s→0.50@900s; net of spread strongly negative.
 
+### 3.7 Depth-2 lead-lag SIGNATURE cross-terms / Lévy area (pure-numpy, harness written, not yet run)
+- **What.** The cross-pair / cross-sectional version of the path-signature idea (cf. the single-pair seconds Lévy area, Family 5.3): for EURUSD and each of the 6 peers, compute the level-2 iterated integrals `S^{ij}=∫∫ dX^i dX^j` and the antisymmetric Lévy area `A^{ij}=½(S^{ij}−S^{ji})` over a trailing window, which encode SIGNED lead-lag and quadratic covariation between the legs — a sign-aware cross-section feature feeding the certified direction book.
+- **How.** `xsec_direction.py` arm **D1 sig** (unified cross-sectional harness on the certified 7-pair panel). Depth-2 lead-lag signature between EURUSD and each peer over a trailing 30-bar window; **iisignature can't compile (no `Python.h`) → computed in PURE NUMPY via cumsum** (dependency-free). **Forward holdout** (Family 9.6), direction NY cov0.10, arms {base, base+fam, famonly, fam_shuffle}. Falsifier: must beat book p10 CI95 AND a lead/lag-shuffle MUST degrade it (mechanism-specificity control).
+- **Why.** Lead-lag rotation between currency legs is signed structure the concurrent cross-pair features (Family 3.2) and the GBM do not directly encode; a genuinely sign-aware probe of whether one leg's move leads EURUSD's next move.
+- **Process notes (leakage / discipline).** Causal trailing windows only; the lead/lag-shuffle is the pre-registered mechanism-specificity control (if the edge survives shuffling the lead-lag ordering, it is not actually lead-lag). Not yet run — no result JSON. The pure-numpy cumsum implementation is the reusable artifact (no `iisignature`/`sigkernel`/GPU needed).
+- **STATUS.** **harness written, NOT run** — `xsec_direction.py` ready; awaiting execution. `CAMPAIGN_2026-06-07_FACTS.md` (Phase 4). (HAVOK / Hankel-Koopman is the sibling D6 arm in the same harness — see Family 4.6.)
+
 ---
 
 ## Family 4 — State-space & dynamical-systems
@@ -160,7 +167,21 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 ### 4.4 Singular-spectrum / fractional-diff / particle-filter / reservoir (backlog)
 - **What.** SSA causal decomposition, fractional differentiation (stationary memory-preserving), particle-filter latent regime, Echo State Network.
 - **How.** `IDEAS_LOG.md` E.19–22 / `EXPERIMENT_BACKLOG.md` W2-7; reservoir redirected to magnitude.
-- **STATUS.** **not yet run** (backlog).
+- **STATUS.** **not yet run** (backlog). NOTE: fractional differentiation is now BUILT + TESTED — see 4.5 (this backlog row covers only SSA / particle-filter / reservoir).
+
+### 4.5 Fractional differentiation / FFD ("stationarity with memory")
+- **What.** Fixed-width fractional differencing (de Prado AFML ch5): apply the fractional-order `(1−B)^d` operator with fixed-width weights and choose the MINIMUM `d*` that passes an ADF stationarity test, so the transformed series is stationary while RETAINING most of the level/long-memory the integer-1 difference (plain returns) throws away. Tried as a feature transform feeding the certified cross-pair direction book (USD factor / residual / lead-lag, fractionally differenced instead of differenced to returns).
+- **How.** `frac_diff.py` — hand-rolled FFD (fixed-width weights + ADF d*-selection). `frac_direction.py` (+ `frac_direction_15m_result.json` / `frac_direction_30m_result.json`) folds per-pair FFD channels into the direction book, **frozen-past forward holdout** (Family 9.6), NY cov0.10 selacc, arms {base, +ffd, ffdonly}. Per-pair d*: EURUSD/NZD/CHF = 0.1, GBP/AUD/JPY/CAD = 0.2 (windows ~500 bars), thresh 1e-4.
+- **Why.** Plain returns destroy level memory; if a fractionally-differenced series keeps long memory AND is stationary it could expose a slow directional signal the return-space book misses.
+- **Process notes (leakage / discipline).** d* and the ADF selection are TRAIN-only; FFD windows are causal fixed-width. MUST be judged on the forward holdout, not pooled CPCV — a memory-preserving transform of a globally-drifting factor is exactly a **leakage trap #9** candidate (could memorize era-local level under pooling). Self-check on a random walk: needs d*=0.1 to pass ADF (p .019) while retaining 98.8% level-memory vs 0.9% for plain returns — confirms "stationarity with memory" works as intended.
+- **STATUS.** **TESTED — KILLED at BOTH 15m and 30m.** 15m: base selacc 2024 .5900 / 2025 .5520 / 2026 .5254 (pooled .5642); +ffd .5792/.5301/.5403 (pooled .5537) → DECAYS (Δ 2024 −0.0108, 2025 −0.0219, 2026 +0.0149), deployable=false; ffdonly pooled .5001 (coin flip). 30m harder: base 2024 .5842 / 2025 .5483 / 2026 .5007 (pooled .5558); +ffd .5546/.5135/.5064 (pooled .5308) → DECAYS (Δ 2024 −0.0296, 2025 −0.0348, 2026 +0.0057), deployable=false; ffdonly pooled .4958 (below coin flip). FFD level-memory adds nothing to direction and HURTS recent years. Note: the base cross-pair book itself decays over forward years (.59→.55→.525), consistent with the documented refit-dependence of the cross-pair edge. `CAMPAIGN_2026-06-07_FACTS.md`. (T1 information-driven bars — the AFML companion to FFD — NOT yet built: tick substrate is EURUSD-only and 2021+, so cross-pair synchronization needs proxies for the other 6 pairs; DEFERRED behind this.)
+
+### 4.6 Frozen-basis HAVOK / Hankel-Koopman direction (harness written, not yet run)
+- **What.** HAVOK (Hankel Alternative View Of Koopman, Brunton 2017): delay-embed a scalar driver into a Hankel matrix, SVD it to get a linear Koopman-like coordinate system plus an intermittent FORCING term whose bursts mark regime transitions; use the signed forcing precursor as a directional feature behind the cross-pair book. Implemented as a frozen-basis variant: fit the SVD basis on TRAIN only, then causally project later bars onto it (no future leakage from re-fitting the basis).
+- **How.** `xsec_direction.py` arm **D6 havok** (unified cross-sectional harness on the certified 7-pair panel). Delay-embed (q=60) the USD-factor trend, SVD on TRAIN → freeze r=8 modes, causally project to coords v1..v7 + intermittent forcing v_r (signed precursor) + leading phase; **forward holdout** (Family 9.6), direction NY cov0.10, arms {base, base+fam, famonly, fam_shuffle}. Falsifier: the signed feature must beat .541, book-gating must lift p10, AND it must clear the **phase-randomized surrogate-null** (Family 9.7, control built into the harness).
+- **Why.** A dynamical-systems decomposition whose forcing term is explicitly a SIGNED transition precursor — the kind of structure the sign-invariance theorem does not forbid and the GBM/CNN families do not encode.
+- **Process notes (leakage / discipline).** Freezing the SVD basis on TRAIN is the leakage firewall (re-fitting per fold would peek). Paired with a mechanism-specificity shuffle control and the surrogate-null so a positive is not just spectral re-encoding (trap-#9-adjacent). Not yet run — no result JSON.
+- **STATUS.** **harness written, NOT run** — `xsec_direction.py` ready; awaiting execution. `CAMPAIGN_2026-06-07_FACTS.md` (Phase 4).
 
 ---
 
@@ -306,6 +327,13 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 - **How.** `vbars.py` (`build` / `model V` / `model D`).
 - **STATUS.** **null for direction** — AUC 0.509–0.516; improves return normality, not directional AUC.
 
+### 8.5 HAR / realized-measure vol family (bipower jump split · realized semivariance RS± · realized quarticity / HARQ · signed jump)
+- **What.** The canonical realized-volatility decomposition family layered on the certified magnitude model. **Multiscale HAR** (daily/weekly/monthly RV cascade, Corsi 2009); **bipower-variation JUMP split** (Barndorff-Nielsen-Shephard: separate the continuous diffusion from discontinuous jumps); **realized SEMIVARIANCE** RS⁺/RS⁻ + signed-jump (up- vs down-variation, the directional decomposition of RV); **realized QUARTICITY / HARQ** (Bollerslev-Patton-Quaedvlieg: scale the HAR persistence by the noise in the RV estimate itself). Each is an ARM added to the certified base magnitude features `[-pe, rv30, rv120]`.
+- **How.** `mag_har.py` + `mag_har_result.json`. Arms {+har, +jump, +semivar, +harq, +all-stacked} on base `[-pe,rv30,rv120]`; **frozen-past forward holdout** (Family 9.6), horizons 10/15/30m, target `|ret_H| ≥ train-Q75`. Falsifier = +0.005 AUC in ≥2 forward years AND ≥2 horizons. Retarget via the standard `MX_HOR` / threshold knobs.
+- **Why.** These are the textbook realized-measure upgrades to a pure-RV magnitude model; test whether jump/semivariance/quarticity carry magnitude signal ORTHOGONAL to the trailing RV the base already uses.
+- **Process notes (leakage / discipline).** Judged on the forward holdout, NOT pooled CPCV, because seasonal/slow vol structure is a **leakage trap #9** risk. Collinearity audit vs rv120: lRV120 .89, RS .70, HARQ .58/−.63 — all heavily collinear; only signed-jump SJ120 is orthogonal (−.04) and it carries nothing. Read the forward-consistency of the arm across all year×horizon cells, not the pooled mean.
+- **STATUS.** **TESTED — KILLED as a deployable upgrade (REAL-but-SUB-BAR); magnitude path EXHAUSTED on-disk.** Per-arm mean fwd ΔAUC: +har +0.0010 (deployable 2/3 — sub-bar); +jump +0.0003 (1/3 — null); +semivar −0.0000 (1/3 — null); +harq +0.0004 (2/3 — null); **+all stacked +0.0021, 3/3 deployable (no decay) — forward-CONSISTENT (positive in all 9 year×horizon cells) but economically negligible.** Two findings: (1) UNLIKE the §6f time-of-day trap, the additions are forward-CONSISTENT — genuine but tiny; base RV already extracts ~all magnitude. (2) **RE-VALIDATES the certified magnitude edge on a clean deployment-faithful holdout** — base AUC .799/.750/.750 (10m), .791/.739/.737 (30m), 4–5.6× decile lift, **NO decay**: the one positive of the campaign. `mag_har_result.json`, MAGNITUDE_FINDINGS.md §6g, `CAMPAIGN_2026-06-07_FACTS.md`.
+
 ---
 
 ## Family 9 — Validation methodology
@@ -337,6 +365,20 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 - **How.** `EXPERIMENT_BACKLOG.md` #8.
 - **STATUS.** **not yet run** (backlog; tighter CI, not new signal).
 
+### 9.6 Frozen-past FORWARD-HOLDOUT gate (the mandatory deployment-faithful falsifier)
+- **What.** The deployment gate that catches what CPCV cannot: train on a FROZEN past (≤ year Y) and judge per-year on each later held-out year (Y+1, Y+2, …), so the model is scored ONLY on a future it never touched. This is the necessary complement to CPCV — pooled CPCV purge+embargo kills label-OVERLAP leakage but **does not detect forward NON-transfer**, the exact failure of a locally-stationary / globally-drifting calendar/seasonal/slow-regime feature (**leakage trap #9**, below). An edge that wins clean under pooled CPCV but DECAYS across forward years is a trap-#9 mirage, not a deployable edge.
+- **How.** `fwd_holdout.py` — reusable gate with magnitude (AUC + decile-lift) and direction (cov-selacc) modes; train ≤2023 → per-year 2024 / 2025 / 2026. Used by `mag_har.py` (Family 8.5), `frac_direction.py` (Family 4.5), and the whole 2026-06-07 novel-methods campaign. Falsifier convention: require the arm to clear its bar in ≥2 forward years AND ≥2 horizons (no single-year luck).
+- **Why.** Production books already use a frozen-past split for this reason; this gate makes the discipline a first-class, self-checking tool any new lever must pass before it can be called deployable. CPCV is necessary, NOT sufficient.
+- **Process notes.** Self-checked at build time: it DEPLOYS a stationary injected signal (+0.10/yr) and REJECTS a deliberately trap-#9 non-stationary feature (decays to −0.015) — i.e. the deseason-+time-of-day failure mode it exists to catch. Read forward-year deltas, not the pooled mean: a positive pooled number with a negative forward slope = FAIL. Cross-reference **leakage trap #9** for the worked deseasonalized-RV example (clean pooled-CPCV ΔAUC +0.0140, all 28 paths positive, yet forward 2024 +.020 → 2025 −.009 → 2026 −.054).
+- **STATUS.** **TESTED (BUILT + self-checked)** — gate committed `051e525` (NOVEL §0 #1); both injected controls behaved as designed (stationary deploys, non-stationary rejected). The campaign's positive finding is delivered THROUGH this gate: it RE-VALIDATED the certified magnitude edge on a clean deployment-faithful holdout (base AUC .799/.750/.750 @10m, .791/.739/.737 @30m, 4–5.6× decile lift, NO decay — see Family 8.5). `CAMPAIGN_2026-06-07_FACTS.md`.
+
+### 9.7 Phase-randomized / IAAFT SURROGATE-NULL gate
+- **What.** A statistical null that asks whether a candidate signal is genuine NONLINEAR structure or merely a re-encoding of the series' linear spectrum. Generate surrogate series that PRESERVE the power spectrum (and, for IAAFT, the amplitude distribution) while destroying nonlinear phase structure; compute the discriminating statistic on real vs many surrogates; the signal is real only if the real statistic exceeds the surrogate null band (e.g. p95).
+- **How.** `surrogate_null.py` — phase-randomize / IAAFT surrogate-null gate (NOVEL §0 #2). Intended as the pre-registered null for any nonlinear path/complexity lever (HAVOK forcing, signature, dynamical-systems direction methods — its phase-randomized control is built into the `xsec_direction.py` D6 falsifier, Family 4.6).
+- **Why.** Many "nonlinear" features (entropy, signature, manifold coords) can score above a naive shuffle purely because they re-read the autocorrelation/spectrum the surrogate also has. This gate separates spectral re-encoding from genuine structure so a method is not credited for linear information already covered elsewhere.
+- **Process notes.** Self-checked at build time: a LINEAR lag-1-autocorr statistic comes back NOT significant (real .6959 ≈ null_p95 .6961 — spectrum preserved, so the surrogate matches it), while a NONLINEAR |·| vol-clustering statistic comes back significant (real .0883 ≫ null_p95 .0199). I.e. it correctly fails to flag the linear quantity and correctly flags the nonlinear one.
+- **STATUS.** **TESTED (BUILT + self-checked)** — gate committed `051e525`; both self-check arms behaved as designed. Pre-registered for the not-yet-run cross-sectional direction slate (Family 4.6, D6 HAVOK). `CAMPAIGN_2026-06-07_FACTS.md`.
+
 ---
 
 ## Cross-cutting leakage traps (apply to every family)
@@ -353,6 +395,10 @@ All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-01 
 ---
 
 ## Family 9 — EDGE-IMPROVEMENT levers & MODEL COMBINATIONS (apply to every certified edge; the new incumbent)
+> ⚠ NUMBERING NOTE: this is a SECOND "Family 9" (its 9.1–9.6 are edge-improvement levers). It is DISTINCT from the
+> "Family 9 — Validation methodology" section above (whose 9.6 = forward-holdout gate, 9.7 = surrogate-null). Campaign
+> entries that cite "Family 9.6/9.7" mean the VALIDATION ones and always name the method (forward-holdout / surrogate-null)
+> alongside the label. (Collision predates the 2026-06-07 campaign; left as-is to avoid renumbering live cross-refs.)
 **A certified book is the START. Run these ON it and evaluate COMBINATIONS — the incumbent at a new (currency,
 timeframe) is the best COMBINATION in `books/INDEX.json`, not the old base GBM.** Info-bound caps raw AUC, so
 score these on **binding-year win-rate, coverage, and CPCV path-clear-rate**. Saved lit-review + papers:

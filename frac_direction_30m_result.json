@@ -1,0 +1,111 @@
+{
+ "horizon_min": 30,
+ "design": "frozen-past forward holdout, direction cov0.10 selacc, NY; base=certified xp book",
+ "d_star": {
+  "EURUSD": 0.1,
+  "GBPUSD": 0.2,
+  "AUDUSD": 0.2,
+  "NZDUSD": 0.1,
+  "USDJPY": 0.2,
+  "USDCHF": 0.1,
+  "USDCAD": 0.2
+ },
+ "thresh": 0.0001,
+ "falsifier": "+ffd beats base selacc in >=2 forward years AND mean dSelacc>0 (no decay); ffdonly must clear .541",
+ "by_arm": {
+  "base": {
+   "2024": {
+    "n": 135798,
+    "auc": 0.5357,
+    "selacc": 0.5842,
+    "n_sel": 13580
+   },
+   "2025": {
+    "n": 135060,
+    "auc": 0.5238,
+    "selacc": 0.5483,
+    "n_sel": 13506
+   },
+   "2026": {
+    "n": 48922,
+    "auc": 0.5046,
+    "selacc": 0.5007,
+    "n_sel": 4893
+   },
+   "pooled": {
+    "n": 319780,
+    "auc": 0.526,
+    "selacc": 0.5558,
+    "n_sel": 31978
+   }
+  },
+  "+ffd": {
+   "2024": {
+    "n": 135798,
+    "auc": 0.515,
+    "selacc": 0.5546,
+    "n_sel": 13580
+   },
+   "2025": {
+    "n": 135060,
+    "auc": 0.5065,
+    "selacc": 0.5135,
+    "n_sel": 13506
+   },
+   "2026": {
+    "n": 48922,
+    "auc": 0.5009,
+    "selacc": 0.5064,
+    "n_sel": 4893
+   },
+   "pooled": {
+    "n": 319780,
+    "auc": 0.51,
+    "selacc": 0.5308,
+    "n_sel": 31978
+   }
+  },
+  "ffdonly": {
+   "2024": {
+    "n": 135798,
+    "auc": 0.4932,
+    "selacc": 0.5284,
+    "n_sel": 13580
+   },
+   "2025": {
+    "n": 135060,
+    "auc": 0.4988,
+    "selacc": 0.4852,
+    "n_sel": 13513
+   },
+   "2026": {
+    "n": 48922,
+    "auc": 0.4922,
+    "selacc": 0.5044,
+    "n_sel": 4895
+   },
+   "pooled": {
+    "n": 319780,
+    "auc": 0.4998,
+    "selacc": 0.4958,
+    "n_sel": 31980
+   }
+  }
+ },
+ "deltas": {
+  "+ffd": {
+   "2024": -0.0296,
+   "2025": -0.0348,
+   "2026": 0.0057
+  },
+  "ffdonly": {
+   "2024": -0.0558,
+   "2025": -0.0631,
+   "2026": 0.0037
+  }
+ },
+ "deployable": {
+  "+ffd": false,
+  "ffdonly": false
+ }
+}

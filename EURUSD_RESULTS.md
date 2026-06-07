@@ -8,7 +8,7 @@
 
 A note on "combined / symmetric" books: most models trade BOTH sides and report a single pooled accuracy. That pooled number is shown per timeframe as **context only** (labelled `COMBINED`); it is decomposed into its UP-side and DOWN-side accuracy ONLY where that decomposition was actually run (so far: 60s only). A pooled number does NOT populate the UP or DOWN key.
 
-**Conventions.** Deriv-faithful settlement (mid-to-mid, next-tick entry +1s, ties LOSE), breakeven **0.541**. Splits: bars train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026; tick train 2021-23 / val 2024-H1 / test 2024.09-2025.11 / oos 2026. Selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS)=−0.54`). Moved-bars-only; per-year CI95. Deriv EURUSD forex Rise/Fall **minimum expiry = 15m** → 1s/1m/2m/5m/10m are research/synthetic-index horizons; 15m/30m are deriv-tradeable. Last updated 2026-06-06 (DST-correct **session segmentation**: the certified ≥10m cross-pair direction edge is decisively **NY-session-concentrated** — strict session-only NY recertifies BOTH sides at 10m/15m/30m and BEATS the legacy fixed-UTC gate, while LDN/Asia certify at NONE; corrected Kronos is NULL at every horizon/session; full-suite audit found the Kronos look-forward bug ISOLATED to 2 scripts and invalidates NO certified book. See the 2026-06-06 dated section below. Prior 2026-06-04 entry: 30m two-sided certification — cross-pair keystone CERTIFIES BOTH 30m sides, refit-CPCV UP p10 .5588 / DOWN p10 .5525, 15/15, `EURUSD.m30xp.v1`; refit-dependent. Gradient now none@60s→UP@5m→BOTH@10m,15m,30m).
+**Conventions.** Deriv-faithful settlement (mid-to-mid, next-tick entry +1s, ties LOSE), breakeven **0.541**. Splits: bars train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026; tick train 2021-23 / val 2024-H1 / test 2024.09-2025.11 / oos 2026. Selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS)=−0.54`). Moved-bars-only; per-year CI95. Deriv EURUSD forex Rise/Fall **minimum expiry = 15m** → 1s/1m/2m/5m/10m are research/synthetic-index horizons; 15m/30m are deriv-tradeable. Last updated 2026-06-07 (**Novel-methods campaign**: HAR/realized-vol magnitude canon tested as additive arms on the certified base — REAL-but-SUB-BAR, all arms <+0.005 fwd, best +all +0.0021 3/3 deployable but economically negligible; the certified base magnitude edge RE-VALIDATED on a clean forward holdout with NO decay; fractional-differentiation (FFD, T2) direction into the cross-pair book KILLED at 15m AND 30m. **No leader unseated.** See the 2026-06-07 dated section below. Prior 2026-06-06 entry: DST-correct **session segmentation** — the certified ≥10m cross-pair direction edge is decisively **NY-session-concentrated** — strict session-only NY recertifies BOTH sides at 10m/15m/30m and BEATS the legacy fixed-UTC gate, while LDN/Asia certify at NONE; corrected Kronos is NULL at every horizon/session; full-suite audit found the Kronos look-forward bug ISOLATED to 2 scripts and invalidates NO certified book. Prior 2026-06-04 entry: 30m two-sided certification — cross-pair keystone CERTIFIES BOTH 30m sides, refit-CPCV UP p10 .5588 / DOWN p10 .5525, 15/15, `EURUSD.m30xp.v1`; refit-dependent. Gradient now none@60s→UP@5m→BOTH@10m,15m,30m).
 
 ---
 
@@ -44,6 +44,42 @@ Robustness caveats on the single 2026 number (the program selects on per-year+CI
 *Provenance of the OOS numbers:* 60s UP/DOWN — `min1_research_log.md:104-113` (2026 column). 5m 0.571 — `m5_research_log.md` (m5_stack2 q0.98 oos n163). 10m 0.594 — `m10_freeze_honest.py` / `m10_research_log.md`. 15m 0.663 — `m15_production` 2026 (`DIRECTION_FINDINGS.md:15`, `m15_walkforward.py` frozen map). 30m 0.546 — `m30_production.py` (`m30_research_log.md`). 1–5s ~0.65 — `m_tick_prod.py:4-5` (no 2026-only split on disk; TEST+OOS-robust).
 
 **Magnitude** (|ret|≥Q) is sign-invariant by construction → it has NO up/down key. It is the size edge (AUC 0.71–0.81), tracked separately in `MAGNITUDE_FINDINGS.md`, not here.
+
+---
+
+## 2026-06-07 — Novel-methods campaign (HAR/realized-vol magnitude canon + fractional-differentiation direction)
+
+This session executed the magnitude HAR/realized-vol canon and the fractional-differentiation (FFD) direction transform from NOVEL_METHODS_RESEARCH §7, every arm gated by the deployment-faithful FROZEN-PAST FORWARD HOLDOUT (train≤2023 → per-year 2024/25/26), NOT pooled CPCV. **Nothing new certifies; no leader moves.** The one positive: the certified base MAGNITUDE edge was RE-VALIDATED on a clean forward holdout with NO decay. New reusable infra committed: `build_panel.py` (clean 7-pair USD return panel, construction-faithful vs certified `build_xp`), `fwd_holdout.py` (the mandatory forward-holdout gate), `surrogate_null.py` (phase-randomize/IAAFT gate). Full verified facts: `CAMPAIGN_2026-06-07_FACTS.md`.
+
+### MAGNITUDE — HAR/realized-vol canon as additive arms on the certified base (REAL-but-SUB-BAR; base RE-VALIDATED, no decay)
+`mag_har.py` + `mag_har_result.json` (recorded `MAGNITUDE_FINDINGS.md` §6g). Arms added to the certified base `[-pe,rv30,rv120]`, forward holdout, horizons 10/15/30m, target |ret_H|≥train-Q75. Falsifier = +0.005 AUC in ≥2 forward years AND ≥2 horizons. **ALL ARMS FAIL — none clears +0.005:**
+| Arm | mean fwd ΔAUC | deployable | verdict |
+|---|---|---|---|
+| +har (multiscale RV) | +0.0010 | 2/3 | sub-bar |
+| +jump (bipower split) | +0.0003 | 1/3 | null |
+| +semivar (RS⁺/RS⁻/signed-jump) | −0.0000 | 1/3 | null |
+| +harq (realized quarticity) | +0.0004 | 2/3 | null |
+| **+all (stacked)** | **+0.0021** | **3/3 (no decay)** | forward-CONSISTENT but economically negligible |
+
+Two findings: (1) UNLIKE the §6f time-of-day arm, the stacked additions are forward-CONSISTENT (+all positive in all 9 year×horizon cells) — genuine but tiny; base rv already extracts ~all magnitude (signed-jump SJ120 is the only orthogonal channel and carries nothing). (2) **RE-VALIDATES the certified magnitude edge on a clean deployment-faithful holdout: base AUC .799/.750/.750 (10m) and .791/.739/.737 (30m), 4–5.6× decile lift, NO decay.** VERDICT: KILLED as a deployable upgrade; magnitude path EXHAUSTED on-disk. (Magnitude is sign-invariant → NO up/down key; recorded here as context only, full detail in `MAGNITUDE_FINDINGS.md`.)
+
+### DIRECTION — fractional differentiation (T2) into the cross-pair book (KILLED at 15m AND 30m)
+`frac_diff.py` (hand-rolled FFD, fixed-width weights + ADF d*-selection; self-check: random walk needs d*=0.1 to pass ADF while retaining 98.8% level-memory) + `frac_direction.py`. FFD USD factor/residual/lead-lag fed into the certified cross-pair direction book, forward holdout, NY cov0.10 selacc. Per-pair d*: EURUSD/NZD/CHF=0.1, GBP/AUD/JPY/CAD=0.2; thresh 1e-4. Arms {base, +ffd, ffdonly}:
+| Horizon | base selacc 2024/2025/2026 (pooled) | +ffd selacc 2024/2025/2026 (pooled) | +ffd deployable | ffdonly | verdict |
+|---|---|---|---|---|---|
+| **15m** | .5900 / .5520 / .5254 (.5642) | .5792 / .5301 / .5403 (.5537) | false (DECAYS Δ −0.0108/−0.0219/+0.0149) | pooled .5001 = coin flip | ❌ KILLED (`frac_direction_15m_result.json`) |
+| **30m** | .5842 / .5483 / .5007 (.5558) | .5546 / .5135 / .5064 (.5308) | false (DECAYS Δ −0.0296/−0.0348/+0.0057) | pooled .4958 (below coin flip) | ❌ KILLED (harder) (`frac_direction_30m_result.json`) |
+
+FFD level-memory adds nothing to direction and HURTS the recent years; standalone FFD is a coin flip. **Note (consistent with documented refit-dependence):** the base cross-pair book's own per-year forward selacc DECAYS **.59 → .55 → .525** at 15m (and .584 → .548 → .501 at 30m) — this is the known non-stationarity of the cross-pair USD-factor edge (frozen-2021 forward decays by the OOS year), exactly why the `EURUSD.m{15,30}xp.v1` certs are flagged REFIT-DEPENDENT (deploy with periodic retrain). FFD direction is DEAD at BOTH 15m and 30m.
+
+### Remaining slate (queued, harness state)
+- **Phase 3 / T1 information-driven bars** — NOT built. Substrate scouted (`features_tick/*_1s.parquet` is EURUSD-only, 2021+) → cross-pair sync needs proxies for the other 6 pairs. DEFERRED behind T2.
+- **Phase 4 cross-sectional direction** — harness WRITTEN, NOT yet run: `xsec_direction.py` with D1 lead-lag SIGNATURE (depth-2 iterated integrals + Lévy area, pure-numpy) and D6 frozen-basis HAVOK (Hankel-Koopman delay-embed + forcing precursor), each with mechanism-shuffle controls via forward holdout. REMAINING (not built): D2 signature-kernel, D4 FASCL, D5 causal lead-lag, D7 signed-semivariance, D8 quantile-direction baseline.
+- **Phase 5 gates** — NOT built: G1 persistent-homology (needs gudhi, unbuildable here), G2 BOCPD/HMM (ruptures available), G3 windowed-DMD residual.
+- **Magnitude exotica** — NOT built: M4 TDA-Wasserstein, M5 multiscale-ECC, M6 MOMENT (all surrogate-null-gated). Transforms T3 vol-time-subordination / T4 whitening / T5 Hilbert also open.
+
+### Leaderboard impact
+**No leader changes — the UP/DOWN LEADERBOARD is UNCHANGED; nothing was unseated.** Every tested lever this campaign is KILLED or REAL-but-SUB-BAR: the HAR/RV magnitude arms are sub-bar (best +all +0.0021, economically negligible) and FFD direction is KILLED at 15m and 30m. The certified direction keys (10m UP .586/DOWN .568, 15m UP .5673/DOWN .5742, 30m UP .5588/DOWN .5525) and the certified magnitude edge all STAND; magnitude was additionally re-validated forward with no decay. No new deployable edge was created.
 
 ---
 

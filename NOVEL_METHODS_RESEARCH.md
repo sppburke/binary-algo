@@ -17,6 +17,13 @@ the actionable distillation. Pointers in IDEAS_LOG.md / SWEEP_MATRIX.md.
    structure), N=300 surrogates, recompute the OOS metric → null distribution. A candidate that doesn't exceed the 95th
    surrogate percentile is autocorrelation, not signal. `surrogate_null.py`: numpy FFT, ~50 lines, gates #1/#6/#8/#9/#18/#20.
 
+**§0 OUTCOME (2026-06-07): BOTH GATES BUILT + SELF-CHECKED.** (1) `fwd_holdout.py` — reusable frozen-past forward-holdout
+gate (magnitude AUC+lift / direction cov-selacc modes); self-check DEPLOYS a stationary signal (+0.10/yr) and REJECTS a
+trap-#9 non-stationary deseason-+tod feature (decays to −0.015) — the exact failure mode it exists to catch. (2)
+`surrogate_null.py` — phase-randomize/IAAFT null; self-check finds linear lag-1 autocorr NOT significant (real .6959 ≈
+null_p95 .6961, spectrum preserved) while nonlinear |.| vol-clustering IS significant (real .0883 ≫ null_p95 .0199).
+Both committed (051e525). Now MANDATORY on every item below.
+
 Honest priors (repo-grounded): **MAGNITUDE** quick-wins are likeliest to certify (it's the one robust edge); **DIRECTION**
 is ~efficient single-pair and the only edge is engineered cross-pair lead-lag — generic models (Kronos, Chronos-2) read
 ~.50, so cross-sectional shots are low-probability / high-payoff and must BEAT the certified `m*xp` residual book p10 by
@@ -39,6 +46,20 @@ the substrate and unlock many downstream methods at once. Do these before boltin
 | #2 ✅ | **Build the full 7-pair return panel + frozen USD-factor/residual** (foundation infra) | `crosspair.py` merges only ~10 peer cols — the clean 7-pair panel + residual is NOT yet built. This is the substrate for ALL cross-sectional methods. | `build_panel.py` → `features/panel_<year>.parquet` (7 returns + factor + 7 residuals + lagged factor). **Validation = reproduce the certified m15xp p10 ~.567**; if it doesn't, the panel is leaky — fix before trusting anything downstream. | #3,#4,#8,#11,#16,T2,T4 |
 | | **#2 OUTCOME (2026-06-07): BUILT + FAITHFULNESS-CERTIFIED.** 5,345,437 bars 2012-2026, 7 eu-equiv returns + USD factor + 7 residuals + raw EURUSD close. The pooled-CPCV reproduction read p10 **.5355** (mean .5425), BELOW the .567 target — but the decisive gate is feature-faithfulness, not the absolute level under a weaker harness: `panel_faithcheck.py` proves all continuous channels (`eu_r/usdbask/catchup/eurresid/disp/ll_*`) are **BIT-IDENTICAL** to certified `build_xp` (max_abs 0.0); only `agree*` differs at 1 row/lookback (0.0003%, warmup off-by-one). The lower CPCV level is the DOCUMENTED weaker-reimplementation effect (single 600-tree pooled LGBM vs certified refit ~.54), NOT leakage (which would INFLATE). Up-rate .5074 inside the moved-bars tripwire. **Panel SAFE for all downstream.** Record: `panel_faithcheck_result.json`, `build_panel_validate_15m.json`. | |
 
+**T2 OUTCOME (2026-06-07): TESTED → KILLED for direction.** `frac_diff.py` (hand-rolled FFD, fixed-width weights + ADF
+d*-selection; self-check: random walk needs d*=0.1 to pass ADF p .019 while keeping 98.8% level-memory vs 0.9% for plain
+returns — "stationarity with memory", genuinely untried). `frac_direction.py` folds FFD USD factor/residual/lead-lag into
+the certified direction book (forward holdout, NY cov0.10 selacc). Per-pair d*: EURUSD/NZD/CHF=0.1, GBP/AUD/JPY/CAD=0.2.
+**15m KILLED** (`frac_direction_15m_result.json`): base selacc .5900/.5520/.5254 (pooled .5642); +ffd .5792/.5301/.5403
+(pooled .5537) → DECAYS, deployable=false; ffdonly pooled .5001 = coin flip. **30m ALSO KILLED, harder**
+(`frac_direction_30m_result.json`): base .5842/.5483/.5007 (pooled .5558); +ffd .5546/.5135/.5064 (pooled .5308) → DECAYS,
+deployable=false; ffdonly pooled .4958 below coin flip. FFD level-memory adds nothing to direction and hurts recent years.
+(Note: base book itself decays .59→.55→.525 across forward years — consistent with documented refit-dependence.)
+
+**T1 OUTCOME (2026-06-07): SUBSTRATE SCOUTED → DEFERRED behind T2.** `features_tick/{train,val,test,oos}_1s.parquet` holds
+EURUSD 1s bars (cols mid/imb/micro/spread/nt/tsz) but is **EURUSD-ONLY and 2021+**, so cross-pair synchronization on an
+information clock needs proxies for the other 6 pairs (NOVEL T1 anticipated this). NOT yet built — DEFERRED.
+
 ---
 
 ## 2. MAGNITUDE — likeliest to certify (the robust edge). Each must beat forward-robust base-rv on a per-year holdout (§0).
@@ -55,6 +76,16 @@ instead of the workhorses). These are forward-robust by construction (within-win
   direction must clear .541 NY.
 - **M3 HARQ realized-quarticity** (synthesis #7) — `RQ = (N/3)Σr⁴` per bar; add `rv·√RQ` attenuation interaction. Trivial
   pandas. *Falsifier:* +0.005 forward AND not collinear with rv (|corr|<0.9, SHAP>rv120).
+
+**M1/M2/M3 OUTCOME (2026-06-07): TESTED → REAL-but-SUB-BAR; magnitude on-disk EXHAUSTED.** `mag_har.py` +
+`mag_har_result.json` (recorded MAGNITUDE_FINDINGS §6g). Arms added to certified base `[-pe,rv30,rv120]`, forward holdout,
+horizons 10/15/30m, target |ret_H|≥train-Q75. Falsifier = +0.005 AUC in ≥2 forward years AND ≥2 horizons. **ALL ARMS FAIL:**
++har (multiscale RV) mean fwd ΔAUC +0.0010 (2/3 — sub-bar); +jump (bipower) +0.0003 (1/3 — null); +semivar (RS⁺/RS⁻/
+signed-jump) −0.0000 (1/3 — null); +harq (realized quarticity) +0.0004 (2/3 — null); **+all (stacked) +0.0021, 3/3
+deployable, NO decay — forward-CONSISTENT but economically negligible.** Base rv already extracts ~all magnitude
+(collinearity vs rv120: lRV120 .89, RS .70, HARQ .58/−.63; only signed-jump SJ120 orthogonal −.04 and carries nothing).
+**The one positive:** RE-VALIDATES the certified magnitude edge on a clean deployment-faithful holdout — base AUC
+.799/.750/.750 (10m) .791/.739/.737 (30m), 4–5.6× decile lift, NO decay. VERDICT: KILLED as deployable upgrade.
 - **M4 Wasserstein-between-consecutive-persistence-diagrams** (synthesis #1, "Topological Tail Dependence") — Takens cloud
   per window → Rips diagram → `W(D_t,D_{t-1})` scalar; published lift concentrates in turbulent regimes. *Falsifier:*
   +0.005 forward, clears surrogate-null (T0 #2), SHAP>rv120.
@@ -141,12 +172,17 @@ these are *mechanism-matched* to the engineered lead-lag edge.
 ## 7. RECOMMENDED EXECUTION ORDER
 
 1. **Infra first** (unlocks + de-risks everything): surrogate-null gate (§0 #2) · per-year forward-holdout (§0 #1, exists) ·
-   the full 7-pair panel + frozen residual (#2, validate by reproducing m15xp .567).
+   the full 7-pair panel + frozen residual (#2, validate by reproducing m15xp .567). **✅ DONE (2026-06-07):** both gates
+   built+self-checked (`fwd_holdout.py`, `surrogate_null.py`); panel BUILT + faithfulness-certified (see §0 / §1 #2 outcomes).
 2. **Cheap magnitude workhorses** (likeliest to certify): HAR-RV-J / realized-GARCH (M1) · realized semivariance RS±/HARQ
-   (M2/M3) — all forward-robust, on-disk, hours of CPU.
+   (M2/M3) — all forward-robust, on-disk, hours of CPU. **✅ DONE (2026-06-07): all REAL-but-SUB-BAR / KILLED as upgrade;
+   base magnitude re-validated, NO decay (see §2 M1/M2/M3 outcome). Magnitude on-disk EXHAUSTED.**
 3. **The two highest-leverage INPUT transforms** (the user's theme): information-driven bars (T1) · fractional differencing
-   (T2) — rebar/retransform, then re-run the certified books on the new substrate.
+   (T2) — rebar/retransform, then re-run the certified books on the new substrate. **⏳ PARTIAL (2026-06-07): T2 FFD DONE →
+   KILLED for direction at 15m & 30m (see §1 T2 outcome); T1 info-bars substrate scouted but NOT built — PENDING.**
 4. **Cross-sectional direction shots** (mechanism-matched, on the new panel/clock): lead-lag signature cross-terms (D1) →
    signature kernel (D2) → FASCL (D4) / causal lead-lag (D5) → HAVOK/Hankel-DMD (D6). Each must BEAT the m*xp book p10, clear
-   surrogate-null, and survive the forward holdout.
-5. **Gates** if a cross-sectional signal survives: TDA-corr-cloud (G1) / BOCPD (G2).
+   surrogate-null, and survive the forward holdout. **⏳ HARNESS WRITTEN (2026-06-07): `xsec_direction.py` ready to run D1
+   (depth-2 lead-lag signature + Lévy area, pure-numpy since iisignature won't compile) and D6 (frozen-basis HAVOK), each
+   with shuffle/surrogate controls. NOT yet run. Remaining slate D2/D4/D5/D7/D8 not built.**
+5. **Gates** if a cross-sectional signal survives: TDA-corr-cloud (G1) / BOCPD (G2). **PENDING (none built).**
