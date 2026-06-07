@@ -29,6 +29,18 @@ training pipeline, opposite verdicts by target — exactly the theorem. KEY deta
 **absolute volatility scale** to carry magnitude (per-window min-max normalization strips it → magAUC .64). See
 `MAGNITUDE_FINDINGS.md` §3, `METHODS_CATALOG.md` §5.5, `barcnn_*.py`.
 
+**Empirical test of the SIGN-AWARE candidates (2026-06-07, `xsec_direction.py` forward holdout):** the theorem predicts
+sign-aware constructs (line above) *can* carry sign where sign-invariant gauges cannot. Two of the named candidates were
+tested with their own mechanism-specificity nulls: **(a) path signed-area / depth-2 lead-lag SIGNATURE (D1)** — FAILED its
+rotation null (signature cross-terms pooled .5243 ≈ rotation-shuffle .5236 → the "lead-lag" content is spurious, not real
+signed-area). **(b) tail-conditional sign asymmetry = realized signed-SEMIVARIANCE (D7, RS⁺−RS⁻)** — PASSED its sign-flip
+null (semivaronly beats sign-shuffle by +.015/+.030) → it carries a **genuine sliver of SIGN content**, exactly as the
+theorem allows for a sign-aware construct. BUT the content is sub-breakeven (pooled .526/.538 < .541) and non-additive to
+the cross-pair book → real, not deployable. **Refinement of the working law:** sign-awareness is NECESSARY but not
+SUFFICIENT — a sign-aware feature can clear the placebo yet still be too weak to trade. The certified cross-pair lead-lag
+book remains the only sign-aware construct strong enough to deploy. (HAVOK forcing D6 = sign-aware precursor, also
+sub-breakeven.) See `DIRECTION_FINDINGS.md` 2026-06-07, `MAGNITUDE_FINDINGS.md` §6g.
+
 ## 2. The direction ceiling (horizon-dependent; magnitude is the durable edge)
 
 Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measured evidence, see `EURUSD_RESULTS.md`):

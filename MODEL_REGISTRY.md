@@ -91,7 +91,7 @@ Each frozen book is tagged `book/<id>` at the commit that contains it, so `git c
 
 ## Scope
 
-Only the **frozen deliverable books** (the survivors referenced in `EURUSD_RESULTS.md`) are registered. The ~50 killed/null experiments are NOT — they are adequately captured by their `*_result.json` + pre-registered falsifiers and do not need verbatim recreation.
+Only the **frozen deliverable books** (the survivors referenced in `EURUSD_RESULTS.md`) are registered. The ~50 killed/null experiments are NOT — they are adequately captured by their `*_result.json` + pre-registered falsifiers and do not need verbatim recreation. **The 2026-06-07 novel-methods campaign added NO new books** (HAR magnitude sub-bar; FFD/D1/D6/D7 direction all killed forward) — see `CAMPAIGN_2026-06-07_FACTS.md` / `EXPERIMENT_LEDGER.md` #156-160.
 
 ## Provenance caveat
 

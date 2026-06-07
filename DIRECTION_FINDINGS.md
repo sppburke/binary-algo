@@ -23,7 +23,10 @@ windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_re
 
 **A >75% (or even >65%) DIRECTIONAL edge does not exist at 5m/15m/30m on EURUSD.** Direction at ≥5 minutes is the
 efficient-market part: ~0.50–0.52 AUC, ~0.515 unconditional (mild mean-reversion). The only place a >0.65 *directional*
-edge is real is the **seconds scale**, and it decays to noise by ~60s.
+edge is real is the **seconds scale**, and it decays to noise by ~60s. **Reinforced 2026-06-07** (see dated section below):
+four more cross-sectional families (FFD, lead-lag signatures, HAVOK/Koopman, signed-semivariance) all die on a frozen-past
+forward holdout — the engineered cross-pair book stays the only direction edge, and it is refit-dependent. External data is
+the only remaining frontier.
 
 ## The genuine positive result: MAGNITUDE is forecastable, DIRECTION is not
 
@@ -36,6 +39,39 @@ This is backed by a sign-invariance **theorem** (arXiv:2512.15720, Dec 2025): or
 invariant under sign permutation, so complexity/entropy measures detect the *presence/size* of informed moves
 (magnitude), **not the sign**. That is *why* every complexity/regime/gate approach was null for direction — they gate
 volatility, not direction. Magnitude is tradeable on **Touch/No-Touch, Range/Boundary, straddle** products (not up/down).
+
+## 2026-06-07 — Novel cross-sectional DIRECTION campaign (NOVEL_METHODS_RESEARCH §3/§4) — 4 convergent NULLS
+
+Ran the cross-sectional direction slate from the 110-method research synthesis against the certified cross-pair book, all
+on a **frozen-past FORWARD HOLDOUT** (train ≤2023 → per-year 2024/25/26, NY cov0.10 selective accuracy) — the
+deployment-faithful gate, NOT pooled CPCV (leakage trap #9). Substrate = the new faithfulness-certified 7-pair panel
+(`build_panel.py`; all continuous channels bit-identical to the certified `build_xp`, `panel_faithcheck_result.json`).
+Unified harness `xsec_direction.py` runs arms {base xp book, base+family, family-only, family-SHUFFLE} where the shuffle is
+a mechanism-specificity null (rotation surrogate for lead-lag / sign-flip for semivariance / phase-randomize for HAVOK).
+**Every family is KILLED forward; none beats or even matches the certified book, which itself DECAYS forward (selacc
+.5895→.5518→.5234 @15m) — the documented refit-dependence.** Tier-1 result JSONs on disk:
+
+| Family (mechanism) | result | verdict |
+|---|---|---|
+| **T2 Fractional differentiation** (FFD USD factor/residual/lead-lag, per-pair d* 0.1–0.2) | +ffd decays vs base (Δ15m −.011/−.022/+.015; Δ30m −.030/−.035/+.006); ffdonly pooled ~.50 | KILLED both hor (`frac_direction_*`) |
+| **D1 depth-2 lead-lag SIGNATURE** (Lévy area, pure-numpy) | +sig decays; sigonly pooled .5243 ≈ sig_shuf .5236 → rotation null does NOT degrade it = **NOT genuine lead-lag** (fails its falsifier) | KILLED both hor (`xsec_direction_sig_*`) |
+| **D6 frozen-basis HAVOK** (Hankel-Koopman forcing, signed precursor) | +havok decays; havokonly pooled .5148/.5197 (sub-breakeven), forcing only marginally beats phase-rand surrogate (.5148 vs .5063), never clears .541 | KILLED both hor (`xsec_direction_havok_*`) |
+| **D7 realized signed-SEMIVARIANCE** (Patton-Sheppard good/bad vol) | the ONLY shot that PASSES its mechanism null — semivaronly beats sign-flip shuffle by +.015 (15m)/+.030 (30m) → **genuine signed-vol DIRECTION content exists** — but pooled .5258/.5382 < breakeven .541 (only 2024@30m .5516 clears), decays, +semivar non-additive | **REAL-but-SUB-BREAKEVEN** (`xsec_direction_semivar_*`) |
+
+**D7 is the notable nuance:** unlike every prior complexity/regime null (which gate SIZE not SIGN per the sign-invariance
+theorem), signed-semivariance asymmetry carries a *genuine sliver of sign content* (clears its own null) — but it is too
+weak to deploy (sub-breakeven, decaying) and is already subsumed by the cross-pair book. This is the DIRECTION analog of
+the magnitude "real-but-sub-bar" pattern, and the first direction signal in a while to clear a proper mechanism null —
+worth revisiting only if EXTERNAL data raises the floor.
+
+**Convergent verdict:** four direction families (FFD/D1/D6/D7) die forward; the engineered cross-pair book remains the only
+direction edge and it is refit-dependent. **Direction beyond the engineered cross-pair book is EFFICIENT on existing data;
+the only frontier is EXTERNAL data** (intraday DE–US rate differential, implied-vol/risk-reversal, EURGBP/EURJPY ticks).
+Reasoned scope for the rest (`CAMPAIGN_2026-06-07_FACTS.md`): D5 causal lead-lag SKIP (base book already lead-lag-saturated;
+D1 showed the content is spurious), D2 signature-kernel / D4 FASCL BLOCKED (need GPU + `Python.h`, absent), D8 = control,
+Phase-5 gates G1/G2/G3 MOOT (no signal survived to gate), T1 info-bars need per-pair external ticks. The ONE positive of
+the whole campaign was on the magnitude side (certified edge re-validated forward, no decay — see MAGNITUDE_FINDINGS §6g).
+New reusable infra: `fwd_holdout.py` + `surrogate_null.py` (the two mandatory gates), `xsec_direction.py`, `frac_diff.py`.
 
 ## 2026-06-06 — DST-correct session re-campaign + Kronos look-forward fix + full-suite audit
 
