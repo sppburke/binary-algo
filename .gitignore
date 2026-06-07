@@ -266,3 +266,7 @@ session_15m.log
 session_xpair_lowchain.log
 kronos_cache_build.log
 kronos_eval2_orch.log
+
+# deriv latency-arb lead-probe live captures (large, machine-specific)
+captures/
+deriv_lead_probe_result.*
