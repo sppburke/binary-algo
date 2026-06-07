@@ -241,6 +241,21 @@ NOT the 7-pair USD cross-section that carries the sign. Fine-tuning the predicto
 > cross-pair NY gate at the same (horizon, session), the edge is NOT purely cross-sectional for that key — re-open the own-history
 > channel. (Consistent with the bar-image-CNN/Kronos magnitude finding above: Kronos's reported gains are RankIC/magnitude.)
 
+### (d) Lever — Kronos per-path DISPERSION as a forward-vol MAGNITUDE feature = KILLED (2026-06-06)
+Tested the top "run-first" lever from the Kronos web-research synthesis: tap the K sample paths Kronos generates and
+discards (`kronos.py:467` mean-collapses them), turn their dispersion into 6 forward-looking vol features, and ask if
+they beat the certified backward-rv magnitude baseline `[-pe,rv30,rv120]`. `kronos_disp.py` ran a paired CPCV ablation
+on 15,041 nonoverlap bars (K=24, pred_len=30, all horizons 1/5/10/15/30m, cpcv_certify's exact target/model/deflation).
+**KILLED everywhere:** paired ΔAUC = −.0003 (H=1, zero effect) → −.0070 (H=30, hurts); CI95 excludes 0 below for H≥5.
+The dispersion features ARE used by the GBM (non-trivial gain) but correlate .46–.83 with rv30 — a noisier Monte-Carlo
+restatement of realized vol that backward rolling-std already captures cleanly. `kronos_disp_disp_main_result.json`,
+MAGNITUDE_FINDINGS.md §6c.
+> **Generic lesson — a single-pair generative path forecast adds NO magnitude info orthogonal to cheap trailing realized
+> vol.** Kronos's per-path spread ≈ predicted forward vol ≈ a re-derivation of rv30/rv120, just with Monte-Carlo noise and
+> (at long H) compounding error that anti-transfers. Magnitude gains must come from inputs rv CAN'T see — macro-event
+> windows, deseasonalized/semivariance RV, an external implied-vol feed (MAGNITUDE_FINDINGS.md §7), NOT more model capacity
+> on own OHLCV. Mirrors the direction finding (d above): Kronos is blind to anything not in one pair's own candles.
+
 **Full-suite audit verdict (generic, reinforces "no certified book invalidated"):** the FM-F bug is ISOLATED to the Kronos
 family (2 scripts), NOT systemic — across all 308 scripts + a dedicated forecast-derivation sweep, no second instance was found.
 Tier-1 empirical clean proofs on each substrate: TICK (features causal via truncation test max|full-trunc|=0.0, label forward

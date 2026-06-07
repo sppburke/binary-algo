@@ -331,6 +331,44 @@ implied-vol feed that does not currently exist in the repo.
 
 ---
 
+## 6c. TESTED UPGRADE — Kronos per-path DISPERSION as a forward-vol feature → **KILLED (2026-06-06)**
+
+The highest-EV lever from the Kronos web-research synthesis ("run first"): Kronos already samples K OHLCV paths per
+window and discards the dispersion (`kronos.py:467` mean-collapses the `sample_count` paths before they reach us).
+`kronos_disp.py` taps the per-path tensor BEFORE the collapse (copied `auto_regressive_inference` un-collapsed;
+denormalized PER-SAMPLE in price space — the collapse happens in normalized space, which would corrupt the stats),
+turns its dispersion into 6 FORWARD-looking vol features (terminal-return std / abs-mean / q90-q10 / IQR, predicted
+path high-low range, within-path realized vol), and runs a paired ablation: baseline `[-pe, rv30, rv120]` vs
+`baseline + dispersion`, on the SAME 28 CPCV paths, with cpcv_certify's exact target (`|ret_H| ≥ train-Q75`), LGBM
+(`mk_lgb` 600), purge+embargo. Scope: a NONOVERLAPPING SUBSAMPLE of **15,041** decision bars (N=3000/yr, gap=30m,
+2021-2026 1-min cache), K=24, pred_len=30 → dispersion derived for every sub-horizon from one generation. ~9h GPU.
+
+**Pre-registered falsifier:** KILL horizon H unless base path-mean AUC ≥ 0.60 AND paired mean ΔAUC(+disp − base) >
++0.005 with bootstrap CI95 excluding 0 AND no path-p10 regression.
+
+**Result — KILLED at every horizon** (`kronos_disp_disp_main_result.json`):
+
+| H | base AUC (p10) | +disp AUC (p10) | paired ΔAUC mean [CI95] | verdict |
+|---|---|---|---|---|
+| 1m  | .7323 (.7138) | .7321 (.7128) | **−0.0003** [−.0019, +.0015] | KILLED (no effect) |
+| 5m  | .7350 (.7170) | .7335 (.7133) | **−0.0015** [−.0026, −.0004] | KILLED (hurts) |
+| 10m | .7268 (.7083) | .7253 (.7077) | **−0.0015** [−.0030, −.0000] | KILLED (hurts) |
+| 15m | .7313 (.7103) | .7255 (.7039) | **−0.0058** [−.0076, −.0040] | KILLED (hurts) |
+| 30m | .7187 (.7030) | .7117 (.6981) | **−0.0070** [−.0089, −.0052] | KILLED (hurts) |
+
+The baseline reproduces the certified edge at subsample scale (sanity ✓). Adding Kronos dispersion adds nothing at
+H=1 and significantly HURTS at H≥5 (CI strictly below 0). **Mechanism (not a power problem):** the GBM *does* split on
+the dispersion features (gain: `range_mean` ~8–11k, `term_*` ~5–7k) but they correlate **0.46–0.83 with rv30** — they
+are a noisier Monte-Carlo restatement of the realized volatility that `rv30`/`rv120` already measure directly and more
+cleanly from the backward window. No magnitude information orthogonal to backward rv; at longer H the compounding
+forecast noise anti-transfers (TRAIN-overfit → OOS-worse). Escalation (more K, full 2012-2026 span) would NOT change
+this — the issue is collinearity, not estimation noise. **Generic lesson:** a single-pair generative path forecast does
+not improve magnitude over cheap trailing realized-vol; the win, if any, must come from inputs rv can't see (macro
+event windows, deseasonalized/semivariance RV, an external IV feed) — see §7. Files: `kronos_disp.py`,
+`kronos_disp_disp_main.npz`, `kronos_disp_disp_main_result.json`.
+
+---
+
 ## 7. UNTESTED UPGRADES — magnitude-model improvement backlog
 
 These are NOT yet built or tested. They follow directly from the finding that **realized vol carries the signal and PE is inert on FX**:

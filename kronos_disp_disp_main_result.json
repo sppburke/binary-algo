@@ -1,0 +1,342 @@
+{
+ "tag": "disp_main",
+ "model": "NeoQuasar/Kronos-small",
+ "K": 24,
+ "L": 256,
+ "N_PER_YR": 3000,
+ "H_MAX": 30,
+ "n_windows": 15041,
+ "disp_names": [
+  "term_std",
+  "term_absmean",
+  "term_q9010",
+  "term_iqr",
+  "range_mean",
+  "wpv_mean"
+ ],
+ "bar": 0.55,
+ "scope": "SUBSAMPLE ablation (nonoverlap, 2021-2026 1m cache) \u2014 lever test, NOT a full re-certification",
+ "falsifier": "KILL horizon H unless base path-mean AUC>=0.60 AND paired mean dAUC>+0.005 with CI95 excl 0 AND +disp p10>=base p10",
+ "by_horizon": {
+  "1": {
+   "n_paths": 28,
+   "base_auc_mean": 0.7323,
+   "base_auc_p10": 0.7138,
+   "disp_auc_mean": 0.7321,
+   "disp_auc_p10": 0.7128,
+   "dAUC_mean": -0.0003,
+   "dAUC_ci95": [
+    -0.0019,
+    0.0015
+   ],
+   "dAUC_min": -0.0084,
+   "dAUC_max": 0.0109,
+   "disp_lift_mean": 4.998,
+   "base_deflated": {
+    "headline": 0.7323108079335025,
+    "bar": 0.55,
+    "path_mean": 0.7323,
+    "path_p10": 0.7138,
+    "path_min": 0.6955,
+    "path_max": 0.7638,
+    "emax_inflation": 0.0477,
+    "neg_corr_penalty": 0.0258,
+    "deflated_expectation": 0.7066,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "disp_deflated": {
+    "headline": 0.7320599123007999,
+    "bar": 0.55,
+    "path_mean": 0.7321,
+    "path_p10": 0.7128,
+    "path_min": 0.696,
+    "path_max": 0.7748,
+    "emax_inflation": 0.0509,
+    "neg_corr_penalty": 0.0275,
+    "deflated_expectation": 0.7046,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "feature_gain": {
+    "neg_pe": 7726.1,
+    "rv30": 26318.4,
+    "rv120": 13499.5,
+    "term_std": 6259.7,
+    "term_absmean": 5604.4,
+    "term_q9010": 7236.7,
+    "term_iqr": 7131.3,
+    "range_mean": 10900.9,
+    "wpv_mean": 3160.2
+   },
+   "disp_corr_rv30": {
+    "term_std": 0.762,
+    "term_absmean": 0.602,
+    "term_q9010": 0.748,
+    "term_iqr": 0.701,
+    "range_mean": 0.829,
+    "wpv_mean": 0.602
+   },
+   "cond_base_real": true,
+   "cond_dAUC_positive": false,
+   "cond_no_p10_regress": false,
+   "VERDICT": "KILLED"
+  },
+  "5": {
+   "n_paths": 28,
+   "base_auc_mean": 0.735,
+   "base_auc_p10": 0.717,
+   "disp_auc_mean": 0.7335,
+   "disp_auc_p10": 0.7133,
+   "dAUC_mean": -0.0015,
+   "dAUC_ci95": [
+    -0.0026,
+    -0.0004
+   ],
+   "dAUC_min": -0.0064,
+   "dAUC_max": 0.0057,
+   "disp_lift_mean": 4.715,
+   "base_deflated": {
+    "headline": 0.7350341296955157,
+    "bar": 0.55,
+    "path_mean": 0.735,
+    "path_p10": 0.717,
+    "path_min": 0.7009,
+    "path_max": 0.7533,
+    "emax_inflation": 0.039,
+    "neg_corr_penalty": 0.021,
+    "deflated_expectation": 0.714,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "disp_deflated": {
+    "headline": 0.7335034945059952,
+    "bar": 0.55,
+    "path_mean": 0.7335,
+    "path_p10": 0.7133,
+    "path_min": 0.6996,
+    "path_max": 0.7546,
+    "emax_inflation": 0.0413,
+    "neg_corr_penalty": 0.0223,
+    "deflated_expectation": 0.7112,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "feature_gain": {
+    "neg_pe": 6972.0,
+    "rv30": 26479.5,
+    "rv120": 15421.2,
+    "term_std": 5909.2,
+    "term_absmean": 5768.5,
+    "term_q9010": 5846.1,
+    "term_iqr": 6392.2,
+    "range_mean": 8927.1,
+    "wpv_mean": 7579.5
+   },
+   "disp_corr_rv30": {
+    "term_std": 0.731,
+    "term_absmean": 0.701,
+    "term_q9010": 0.718,
+    "term_iqr": 0.676,
+    "range_mean": 0.801,
+    "wpv_mean": 0.77
+   },
+   "cond_base_real": true,
+   "cond_dAUC_positive": false,
+   "cond_no_p10_regress": false,
+   "VERDICT": "KILLED"
+  },
+  "10": {
+   "n_paths": 28,
+   "base_auc_mean": 0.7268,
+   "base_auc_p10": 0.7083,
+   "disp_auc_mean": 0.7253,
+   "disp_auc_p10": 0.7077,
+   "dAUC_mean": -0.0015,
+   "dAUC_ci95": [
+    -0.003,
+    -0.0
+   ],
+   "dAUC_min": -0.0091,
+   "dAUC_max": 0.007,
+   "disp_lift_mean": 4.267,
+   "base_deflated": {
+    "headline": 0.7267633191581906,
+    "bar": 0.55,
+    "path_mean": 0.7268,
+    "path_p10": 0.7083,
+    "path_min": 0.6869,
+    "path_max": 0.756,
+    "emax_inflation": 0.044,
+    "neg_corr_penalty": 0.0238,
+    "deflated_expectation": 0.703,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "disp_deflated": {
+    "headline": 0.7252583742369296,
+    "bar": 0.55,
+    "path_mean": 0.7253,
+    "path_p10": 0.7077,
+    "path_min": 0.6932,
+    "path_max": 0.7552,
+    "emax_inflation": 0.0426,
+    "neg_corr_penalty": 0.023,
+    "deflated_expectation": 0.7023,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "feature_gain": {
+    "neg_pe": 7032.4,
+    "rv30": 26385.9,
+    "rv120": 14634.2,
+    "term_std": 5462.7,
+    "term_absmean": 6429.5,
+    "term_q9010": 6070.2,
+    "term_iqr": 6463.7,
+    "range_mean": 8634.8,
+    "wpv_mean": 7494.2
+   },
+   "disp_corr_rv30": {
+    "term_std": 0.684,
+    "term_absmean": 0.69,
+    "term_q9010": 0.674,
+    "term_iqr": 0.638,
+    "range_mean": 0.779,
+    "wpv_mean": 0.777
+   },
+   "cond_base_real": true,
+   "cond_dAUC_positive": false,
+   "cond_no_p10_regress": false,
+   "VERDICT": "KILLED"
+  },
+  "15": {
+   "n_paths": 28,
+   "base_auc_mean": 0.7313,
+   "base_auc_p10": 0.7103,
+   "disp_auc_mean": 0.7255,
+   "disp_auc_p10": 0.7039,
+   "dAUC_mean": -0.0058,
+   "dAUC_ci95": [
+    -0.0076,
+    -0.004
+   ],
+   "dAUC_min": -0.014,
+   "dAUC_max": 0.0045,
+   "disp_lift_mean": 4.341,
+   "base_deflated": {
+    "headline": 0.7312861326806731,
+    "bar": 0.55,
+    "path_mean": 0.7313,
+    "path_p10": 0.7103,
+    "path_min": 0.6979,
+    "path_max": 0.7687,
+    "emax_inflation": 0.0522,
+    "neg_corr_penalty": 0.0282,
+    "deflated_expectation": 0.7031,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "disp_deflated": {
+    "headline": 0.7254599128529768,
+    "bar": 0.55,
+    "path_mean": 0.7255,
+    "path_p10": 0.7039,
+    "path_min": 0.6856,
+    "path_max": 0.7647,
+    "emax_inflation": 0.0532,
+    "neg_corr_penalty": 0.0287,
+    "deflated_expectation": 0.6967,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "feature_gain": {
+    "neg_pe": 6815.2,
+    "rv30": 26777.3,
+    "rv120": 15179.8,
+    "term_std": 5998.8,
+    "term_absmean": 5742.5,
+    "term_q9010": 6481.2,
+    "term_iqr": 6513.0,
+    "range_mean": 8019.1,
+    "wpv_mean": 7078.4
+   },
+   "disp_corr_rv30": {
+    "term_std": 0.638,
+    "term_absmean": 0.664,
+    "term_q9010": 0.626,
+    "term_iqr": 0.591,
+    "range_mean": 0.764,
+    "wpv_mean": 0.764
+   },
+   "cond_base_real": true,
+   "cond_dAUC_positive": false,
+   "cond_no_p10_regress": false,
+   "VERDICT": "KILLED"
+  },
+  "30": {
+   "n_paths": 28,
+   "base_auc_mean": 0.7187,
+   "base_auc_p10": 0.703,
+   "disp_auc_mean": 0.7117,
+   "disp_auc_p10": 0.6981,
+   "dAUC_mean": -0.007,
+   "dAUC_ci95": [
+    -0.0089,
+    -0.0052
+   ],
+   "dAUC_min": -0.0178,
+   "dAUC_max": 0.0041,
+   "disp_lift_mean": 3.976,
+   "base_deflated": {
+    "headline": 0.7187193691332149,
+    "bar": 0.55,
+    "path_mean": 0.7187,
+    "path_p10": 0.703,
+    "path_min": 0.6916,
+    "path_max": 0.7551,
+    "emax_inflation": 0.0436,
+    "neg_corr_penalty": 0.0235,
+    "deflated_expectation": 0.6952,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "disp_deflated": {
+    "headline": 0.711684805117003,
+    "bar": 0.55,
+    "path_mean": 0.7117,
+    "path_p10": 0.6981,
+    "path_min": 0.6901,
+    "path_max": 0.7433,
+    "emax_inflation": 0.0394,
+    "neg_corr_penalty": 0.0213,
+    "deflated_expectation": 0.6904,
+    "p10_clears_bar": true,
+    "deflated_exp_clears_bar": true
+   },
+   "feature_gain": {
+    "neg_pe": 7556.9,
+    "rv30": 25844.9,
+    "rv120": 14250.4,
+    "term_std": 5810.8,
+    "term_absmean": 6445.5,
+    "term_q9010": 5939.7,
+    "term_iqr": 6232.9,
+    "range_mean": 7769.0,
+    "wpv_mean": 6940.4
+   },
+   "disp_corr_rv30": {
+    "term_std": 0.51,
+    "term_absmean": 0.616,
+    "term_q9010": 0.496,
+    "term_iqr": 0.466,
+    "range_mean": 0.731,
+    "wpv_mean": 0.717
+   },
+   "cond_base_real": true,
+   "cond_dAUC_positive": false,
+   "cond_no_p10_regress": false,
+   "VERDICT": "KILLED"
+  }
+ }
+}
