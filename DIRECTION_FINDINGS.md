@@ -73,6 +73,30 @@ Phase-5 gates G1/G2/G3 MOOT (no signal survived to gate), T1 info-bars need per-
 the whole campaign was on the magnitude side (certified edge re-validated forward, no decay — see MAGNITUDE_FINDINGS §6g).
 New reusable infra: `fwd_holdout.py` + `surrogate_null.py` (the two mandatory gates), `xsec_direction.py`, `frac_diff.py`.
 
+## 2026-06-07 — BRIER-ADVANTAGE AUDIT of the 4 certified cross-pair books (calibration-vs-ranking check)
+
+Imported the one transferable lever from the 11-repo Polymarket scour (evan-kolberg/prediction-market-backtesting):
+**probabilistic-skill scoring**. Our certs rank on AUC + deriv-faithful selective accuracy (both reward RANKING, not
+CALIBRATION) — a book can clear the 0.541 win-rate yet still be a worse probability forecast than a naive baseline.
+Verified Tier-1 the metric was absent (`brier` token nowhere in-repo; `fwd_holdout.py` emitted only AUC+selacc). Added
+opt-in Brier-advantage to `fwd_holdout.py` (observability-safe trailing-persistence baseline + train-only OOF-isotonic
+calibration; self-checked: +0.026/yr for a real-skill feature, −0.0002/yr for noise) and ran `brier_audit.py` over
+EURUSD.m5xp/m10xp/m15xp/m30xp — certified gate config `mk_lgb(600)`, train≤2023, NY, per forward year 2024/25/26.
+
+**Result — every book PASSES the pre-registered falsifier:** `badv_persist > 0` in EVERY forward year, all-bars AND
+bet-tail, CALIBRATED AND RAW — so **none of the 4 direction certifications is "ranking-only"**; each carries genuine
+probabilistic skill over a naive persistence baseline (Brier-advantage grows with horizon: 5m ~+0.002 → 30m ~+0.012,
+mirroring the cross-pair gradient). **Honest nuance the audit surfaced:** the persistence baseline is itself *worse than
+flat-0.5* (persist_brier 0.252–0.262 > 0.25 → intraday EURUSD direction is mildly ANTI-persistent), so much of the
+persistence-advantage is the model avoiding persistence's mistake. Against the harsher **flat-0.5** baseline the all-bars
+edge is razor-thin (`badv_flat` ≤ +0.0013 in 2024, shrinking in 2025, slightly NEGATIVE in 2026 for m15xp −0.00003 /
+m30xp −0.00057). The genuine skill is **concentrated in the selective bet-tail** (`badv_persist_sel` +0.005…+0.017) —
+exactly where the books operate via their confidence gate; all-bars Brier dilutes tail-skill with the no-skill bulk.
+**Conclusion:** certifications survive (not ranking-only) but the audit *confirms* — it can only tighten, never inflate —
+that these are THIN, TAIL-CONCENTRATED, refit-dependent edges whose full-distribution margin over a trivial forecast is
+~0 and decaying by 2026 at the long horizons. No cert downgraded; interpretation tightened. `brier_audit_result.json`,
+`brier_audit.py`, `fwd_holdout.py` (`brier=True`). Audit-only — cannot create alpha, only audit it.
+
 ## 2026-06-06 — DST-correct session re-campaign + Kronos look-forward fix + full-suite audit
 
 Re-ran the direction question **segmented by trading session** (DST-correct: NY 8-17 America/New_York, LDN 8-16

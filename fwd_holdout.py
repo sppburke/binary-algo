@@ -44,8 +44,40 @@ def _sel_acc(pp, yy, cov):
     return float(((pp[sel] > 0.5).astype(int) == yy[sel]).mean()), int(sel.sum())
 
 
+def _persistence_prob(ts, up, keep, gap_s, win_s=86400.0, min_n=50):
+    """NAIVE trailing up-rate baseline forecast, OBSERVABILITY-SAFE. A past decision bar at s predicted [s, s+gap_s], whose
+    outcome is only KNOWN at s+gap_s; so at decision time t it may contribute to the baseline iff s+gap_s <= t (s <= t-gap_s).
+    prob[t] = mean of those observable past outcomes within a trailing window of win_s seconds (gap_s = horizon seconds).
+    Returns an array aligned to `up` (NaN off-`keep`). O(n log n) via cumsum + searchsorted on the ts-sorted kept rows."""
+    ts = np.asarray(ts, "float64"); up = np.asarray(up, "float64")
+    ks = np.where(keep)[0]
+    order = ks[np.argsort(ts[ks], kind="mergesort")]           # kept-row indices, sorted by time
+    tss = ts[order]; ups = up[order]
+    cum = np.concatenate([[0.0], np.cumsum(ups)])
+    right = np.searchsorted(tss, tss - gap_s, side="right")    # last bar observable by t (outcome known)
+    left = np.searchsorted(tss, tss - gap_s - win_s, side="left")
+    cnt = right - left; psum = cum[right] - cum[left]
+    pr = np.where(cnt >= min_n, psum / np.maximum(cnt, 1), 0.5)
+    out = np.full(len(up), np.nan); out[order] = pr
+    return out
+
+
+def _oof_isotonic(X, y, mk_model, k=3):
+    """Out-of-fold isotonic calibrator fit on TRAIN ONLY (non-leaky): k positional folds -> OOF model probs -> isotonic map.
+    Returned map is applied to the deployed model's forward-year probs so Brier does not penalise a well-ranked-but-
+    miscalibrated model unfairly (the synthesizer's caveat). Fit on honest OOF preds, never on rows the calibrator saw."""
+    from sklearn.isotonic import IsotonicRegression
+    n = len(y); folds = np.array_split(np.arange(n), k); oof = np.empty(n, float)
+    for j in range(k):
+        te = folds[j]; tr = np.concatenate([folds[t] for t in range(k) if t != j])
+        mm = mk_model(); mm.fit(X[tr], y[tr]); oof[te] = mm.predict_proba(X[te])[:, 1]
+    iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0); iso.fit(oof, y)
+    return iso
+
+
 def forward_holdout(arms, target, ts, *, mode="magnitude", train_max=2023, test_years=(2024, 2025, 2026),
-                    base_key="base", thr_q=0.75, cov=0.10, mk_model=mk_lgb, tol=0.0, verbose=True):
+                    base_key="base", thr_q=0.75, cov=0.10, mk_model=mk_lgb, tol=0.0, verbose=True,
+                    brier=False, calibrate=True, cal_k=3, persist_gap_s=None, persist_win_s=86400.0, persist_min_n=50):
     """Freeze <= train_max, score each future year. `arms` = {name: X[n,d]} sharing one row order with target/ts.
     target: magnitude -> |fwd_ret| (>=0); direction -> SIGNED fwd_ret (ties==0 dropped). ts: epoch-seconds int array.
     Returns dict with per-arm per-year metrics + delta-vs-base + a `deployable` flag (delta>=-tol every forward year)."""
@@ -63,15 +95,25 @@ def forward_holdout(arms, target, ts, *, mode="magnitude", train_max=2023, test_
         print(f"[fwd] mode={mode} train(<= {train_max}) n={trk.sum():,} up/big-rate={label[trk].mean():.4f}"
               + (f" thr={thr:.6g}" if thr is not None else ""))
 
+    do_brier = bool(brier) and mode == "direction"
+    persist = None
+    if do_brier:
+        gap_s = float(persist_gap_s) if persist_gap_s is not None else 900.0
+        persist = _persistence_prob(ts, label, keep, gap_s, persist_win_s, persist_min_n)
+        if verbose: print(f"[fwd] brier: persistence baseline gap={gap_s:.0f}s win={persist_win_s:.0f}s "
+                          f"(mean={np.nanmean(persist):.4f}) calibrate={calibrate}")
+
     fitted = {}
     for nm, X in arms.items():
-        X = np.asarray(X, np.float32); m = mk_model(); m.fit(X[trk], label[trk]); fitted[nm] = (m, X)
-        if verbose: print(f"[fwd] fit {nm} ({X.shape[1]} feats)")
+        X = np.asarray(X, np.float32); m = mk_model(); m.fit(X[trk], label[trk])
+        iso = _oof_isotonic(X[trk], label[trk], mk_model, cal_k) if (do_brier and calibrate) else None
+        fitted[nm] = (m, X, iso)
+        if verbose: print(f"[fwd] fit {nm} ({X.shape[1]} feats)" + (" +isotonic" if iso is not None else ""))
 
     out = {"mode": mode, "train_max": train_max, "thr_q": thr_q if mode == "magnitude" else None,
            "cov": cov if mode == "direction" else None, "by_arm": {}, "deltas": {}, "deployable": {}}
     years = list(test_years) + ["pooled"]
-    for nm, (m, X) in fitted.items():
+    for nm, (m, X, iso) in fitted.items():
         peryr = {}
         for Y in years:
             te = (yr >= test_years[0]) & keep if Y == "pooled" else (yr == Y) & keep
@@ -84,6 +126,21 @@ def forward_holdout(arms, target, ts, *, mode="magnitude", train_max=2023, test_
                 rec["lift"] = round(_decile_lift(pp, a), 3)
             else:
                 sa, nsel = _sel_acc(pp, yy, cov); rec["selacc"] = round(sa, 4); rec["n_sel"] = nsel
+            if do_brier and Y != "pooled":
+                pc = iso.predict(pp) if iso is not None else pp        # calibrated probs (deployed model, train-only map)
+                pb = persist[te]                                       # naive trailing up-rate baseline
+                bm = float(np.mean((pc - yy) ** 2)); bmr = float(np.mean((pp - yy) ** 2))
+                bf = float(np.mean((0.5 - yy) ** 2)); bp = float(np.mean((pb - yy) ** 2))
+                rec["brier"] = round(bm, 5); rec["brier_raw"] = round(bmr, 5)
+                rec["brier_flat"] = round(bf, 5); rec["brier_persist"] = round(bp, 5)
+                rec["badv_flat"] = round(bf - bm, 5)                   # >0 => model beats flat-0.5 (resolution)
+                rec["badv_persist"] = round(bp - bm, 5)               # >0 => CALIBRATED model beats persistence (skill)
+                rec["badv_persist_raw"] = round(bp - bmr, 5)         # uncalibrated, conservative
+                conf = np.abs(pp - 0.5); thr2 = np.quantile(conf, 1 - cov); s2 = conf >= thr2   # the bet tail
+                if s2.sum() >= 25:
+                    rec["badv_persist_sel"] = round(float(np.mean((pb[s2] - yy[s2]) ** 2)
+                                                          - np.mean((pc[s2] - yy[s2]) ** 2)), 5)
+                    rec["n_sel_brier"] = int(s2.sum())
             peryr[str(Y)] = rec
         out["by_arm"][nm] = peryr
 
@@ -108,6 +165,14 @@ def forward_holdout(arms, target, ts, *, mode="magnitude", train_max=2023, test_
             verdict = "" if nm == base_key else ("DEPLOY" if out["deployable"][nm] else "DECAYS") \
                 + " " + " ".join(f"{Y}{d:+.4f}" for Y, d in out["deltas"][nm].items())
             print(f"{nm:>14} | {cells} | {verdict}")
+        if do_brier:
+            print("[brier] badv_persist (calibrated model Brier minus persistence Brier; >0 = real probabilistic skill):")
+            for nm, peryr in out["by_arm"].items():
+                cells = " ".join(f"{peryr[str(y)]['badv_persist']:>+8.4f}" if str(y) in peryr and "badv_persist" in peryr[str(y)]
+                                 else f"{'--':>8}" for y in test_years)
+                sel = " ".join(f"{peryr[str(y)].get('badv_persist_sel', float('nan')):>+8.4f}" if str(y) in peryr else f"{'--':>8}"
+                               for y in test_years)
+                print(f"{nm:>14} | all {cells} | bet-tail {sel}")
     return out
 
 
@@ -131,5 +196,25 @@ def _selfcheck():
           "| signal deployable (want True):", r["deployable"]["+signal"])
 
 
+def _selfcheck_brier():
+    """The Brier-advantage must be POSITIVE for a feature with genuine sign skill and ~<=0 for a noise-only base, on a
+    frozen-past forward holdout — proving the metric credits real probabilistic skill over the naive persistence baseline."""
+    rng = np.random.default_rng(1); n = 80000
+    ts = (np.arange(n) * 2400 + 1325376000).astype("int64")        # ~6y span (2012-2017) so train_max=2014 has fwd years
+    sig = rng.standard_normal(n)
+    fwd = 0.5 * sig + rng.standard_normal(n)                        # signed return; its SIGN is partly driven by sig
+    base = rng.standard_normal((n, 2)).astype(np.float32)          # uninformative
+    arms = {"base": base, "+signal": np.column_stack([base, sig]).astype(np.float32)}
+    r = forward_holdout(arms, target=fwd, ts=ts, mode="direction", train_max=2014, test_years=(2015, 2016, 2017),
+                        cov=0.2, brier=True, persist_gap_s=2400.0, persist_win_s=2400.0 * 2000, verbose=True)
+    yrs = [y for y in ("2015", "2016", "2017") if y in r["by_arm"]["+signal"]]
+    sb = [r["by_arm"]["+signal"][y]["badv_persist"] for y in yrs]
+    bb = [r["by_arm"]["base"][y]["badv_persist"] for y in yrs]
+    print("brier selfcheck: +signal badv_persist", [round(x, 4) for x in sb], "(want all >0) | base",
+          [round(x, 4) for x in bb], "(want ~<=0)")
+
+
 if __name__ == "__main__":
     _selfcheck()
+    print("\n" + "=" * 80 + "\n[brier self-check]\n")
+    _selfcheck_brier()

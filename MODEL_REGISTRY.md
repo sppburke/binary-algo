@@ -91,7 +91,7 @@ Each frozen book is tagged `book/<id>` at the commit that contains it, so `git c
 
 ## Scope
 
-Only the **frozen deliverable books** (the survivors referenced in `EURUSD_RESULTS.md`) are registered. The ~50 killed/null experiments are NOT — they are adequately captured by their `*_result.json` + pre-registered falsifiers and do not need verbatim recreation. **The 2026-06-07 novel-methods campaign added NO new books** (HAR magnitude sub-bar; FFD/D1/D6/D7 direction all killed forward) — see `CAMPAIGN_2026-06-07_FACTS.md` / `EXPERIMENT_LEDGER.md` #156-160.
+Only the **frozen deliverable books** (the survivors referenced in `EURUSD_RESULTS.md`) are registered. The ~50 killed/null experiments are NOT — they are adequately captured by their `*_result.json` + pre-registered falsifiers and do not need verbatim recreation. **The 2026-06-07 novel-methods campaign added NO new books** (HAR magnitude sub-bar; FFD/D1/D6/D7 direction all killed forward) — see `CAMPAIGN_2026-06-07_FACTS.md` / `EXPERIMENT_LEDGER.md` #156-160. **The 2026-06-07 post-campaign Brier-advantage audit (`brier_audit.py`, EXPERIMENT_LEDGER #161) added no books either but VALIDATED the 4 cross-pair direction books** (`EURUSD.m{5,10,15,30}xp.v1`): each beats a naive persistence baseline in calibrated Brier score in every forward year 2024/25/26 (all-bars + bet-tail) → none is "ranking-only". Audit-only, no artifact/cert changed; honest caveat = the flat-0.5 margin is razor-thin and the skill is tail-concentrated (see `brier_audit_result.json` `verdict`).
 
 ## Provenance caveat
 

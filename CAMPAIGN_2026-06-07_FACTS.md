@@ -126,9 +126,27 @@ forward, the remaining slate is scoped by evidence — recorded so the next sess
 - Background launches: `run_in_background:true` with the python command in the FOREGROUND (no `nohup &`, which gets reaped).
   NEVER `pkill -f <script>.py` from a shell whose own command line contains that name (self-kill, exit 144).
 
+## POST-CAMPAIGN AUDIT — BRIER-ADVANTAGE (probabilistic-skill-vs-ranking) of the 4 certified books (2026-06-07)
+Imported lever from the 11-repo Polymarket scour (`evan-kolberg/prediction-market-backtesting`) — the ONLY transferable
+item (memory `polymarket-repos-scour-outcome`). Tier-1 verified the metric was absent (`brier` token nowhere in-repo;
+`fwd_holdout.py` emitted only AUC+selacc). Added opt-in `brier=True` to `fwd_holdout.py` (observability-safe
+trailing-persistence baseline shifted by the horizon + train-only OOF-isotonic calibration; self-check: +0.026/yr real
+skill, −0.0002/yr noise). Driver `brier_audit.py` → `brier_audit_result.json`. Model = certified gate config mk_lgb(600),
+train≤2023, NY, per forward year (NOT the exact frozen 3000-tree artifact — caveat in JSON).
+- **ALL 4 books PASS the pre-registered falsifier:** `badv_persist > 0` in EVERY forward year 2024/25/26, all-bars AND
+  bet-tail, CALIBRATED AND RAW → none is ranking-only; each carries genuine probabilistic skill over a naive persistence
+  baseline. Per-book all-bars badv_persist: m5xp +0.0031/+0.0022/+0.0023; m10xp +0.0052/+0.0042/+0.0041; m15xp
+  +0.0073/+0.0063/+0.0056; m30xp +0.0128/+0.0122/+0.0118 (grows with horizon, mirrors cross-pair gradient).
+- **HONEST NUANCE:** persistence baseline is itself worse-than-flat-0.5 (persist_brier 0.252-0.262 > 0.25 → intraday EURUSD
+  mildly ANTI-persistent). Vs harsher flat-0.5 the all-bars edge is razor-thin (`badv_flat` ≤ +0.0013 in 2024, slightly
+  NEGATIVE 2026 at m15xp −0.00003 / m30xp −0.00057). Genuine skill CONCENTRATED in the selective bet-tail
+  (`badv_persist_sel` +0.005…+0.017). VERDICT: certs survive (not ranking-only); audit tightened interpretation to
+  thin/tail-concentrated/refit-dependent; no downgrade. Audit can only tighten, never inflate. EXPERIMENT_LEDGER #161,
+  DIRECTION_FINDINGS §2026-06-07, METHODS_CATALOG validation 9.8.
+
 ## DONE-vs-FUTURE SUMMARY
 - DONE+committed: Phase 1 infra (panel+faithcheck+2 gates), Phase 2 magnitude HAR (killed/sub-bar), Phase 3 T2 FFD-direction
-  15m AND 30m (both KILLED). All forward-holdout-gated.
+  15m AND 30m (both KILLED), post-campaign Brier-advantage audit (all 4 books PASS, not ranking-only). All forward-holdout-gated.
 - FUTURE: fold FFD-30m; run Phase 4 (D1 sig, D6 havok — harness ready); build T1 info-bars; remaining direction slate
   (D2/D4/D5/D7/D8); Phase 5 gates (G1/G2/G3); transforms T3 vol-time-subordination / T4 whitening / T5 Hilbert; magnitude
   exotica M4 TDA-Wasserstein / M5 multiscale-ECC / M6 MOMENT (all surrogate-null-gated).

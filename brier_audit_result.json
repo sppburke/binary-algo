@@ -1,0 +1,264 @@
+{
+ "design": "Brier-advantage audit of certified cross-pair direction books. model=certified gate config mk_lgb(600) trained once <=2023, NY, cov0.10; calibration=OOF isotonic fit on train only; baselines=flat-0.5 & observability-safe trailing persistence up-rate (gap=horizon). POSITIVE badv = model Brier beats baseline.",
+ "falsifier": "a certified book carries genuine probabilistic skill iff badv_persist>0 in EVERY forward year 2024/25/26; any year <=0 => the AUC/selacc edge is ranking-only and the cert downgrades to ranking/calibration-dependent. Audit can only tighten, never inflate, a certification.",
+ "caveat": "uses the forward-holdout gate model mk_lgb(600) \u2014 the same proxy the campaign's deployability calls used \u2014 NOT the exact frozen 3000-tree book artifact; persistence baseline is a naive trailing up-rate; bet-tail Brier-advantage selects bars by MODEL confidence so it is informative but mildly model-favoring.",
+ "results": {
+  "5m": {
+   "book": "EURUSD.m5xp.v1",
+   "n_feats": 75,
+   "n_bars": 1946787,
+   "by_year": {
+    "2024": {
+     "n": 134792,
+     "auc": 0.5326,
+     "selacc": 0.5728,
+     "n_sel": 13480,
+     "brier": 0.24904,
+     "brier_raw": 0.24917,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25212,
+     "badv_flat": 0.00096,
+     "badv_persist": 0.00308,
+     "badv_persist_raw": 0.00295,
+     "badv_persist_sel": 0.00824,
+     "n_sel_brier": 13480
+    },
+    "2025": {
+     "n": 135986,
+     "auc": 0.5188,
+     "selacc": 0.536,
+     "n_sel": 13599,
+     "brier": 0.24981,
+     "brier_raw": 0.25042,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25206,
+     "badv_flat": 0.00019,
+     "badv_persist": 0.00224,
+     "badv_persist_raw": 0.00164,
+     "badv_persist_sel": 0.0038,
+     "n_sel_brier": 13599
+    },
+    "2026": {
+     "n": 48687,
+     "auc": 0.5195,
+     "selacc": 0.5303,
+     "n_sel": 4869,
+     "brier": 0.2498,
+     "brier_raw": 0.25028,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25209,
+     "badv_flat": 0.0002,
+     "badv_persist": 0.00229,
+     "badv_persist_raw": 0.00181,
+     "badv_persist_sel": 0.00451,
+     "n_sel_brier": 4869
+    }
+   },
+   "badv_persist_by_year": {
+    "2024": 0.00308,
+    "2025": 0.00224,
+    "2026": 0.00229
+   },
+   "badv_persist_sel_by_year": {
+    "2024": 0.00824,
+    "2025": 0.0038,
+    "2026": 0.00451
+   },
+   "probabilistic_skill_vs_persistence_allbars": true,
+   "probabilistic_skill_vs_persistence_bettail": true
+  },
+  "10m": {
+   "book": "EURUSD.m10xp.v1",
+   "n_feats": 75,
+   "n_bars": 1957367,
+   "by_year": {
+    "2024": {
+     "n": 136065,
+     "auc": 0.5337,
+     "selacc": 0.5755,
+     "n_sel": 13607,
+     "brier": 0.2489,
+     "brier_raw": 0.24906,
+     "brier_flat": 0.25,
+     "brier_persist": 0.2541,
+     "badv_flat": 0.0011,
+     "badv_persist": 0.0052,
+     "badv_persist_raw": 0.00504,
+     "badv_persist_sel": 0.00891,
+     "n_sel_brier": 13607
+    },
+    "2025": {
+     "n": 136322,
+     "auc": 0.5221,
+     "selacc": 0.546,
+     "n_sel": 13633,
+     "brier": 0.24964,
+     "brier_raw": 0.25026,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25381,
+     "badv_flat": 0.00036,
+     "badv_persist": 0.00417,
+     "badv_persist_raw": 0.00355,
+     "badv_persist_sel": 0.00516,
+     "n_sel_brier": 13633
+    },
+    "2026": {
+     "n": 48792,
+     "auc": 0.5194,
+     "selacc": 0.5369,
+     "n_sel": 4880,
+     "brier": 0.2498,
+     "brier_raw": 0.25042,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25392,
+     "badv_flat": 0.0002,
+     "badv_persist": 0.00411,
+     "badv_persist_raw": 0.0035,
+     "badv_persist_sel": 0.00762,
+     "n_sel_brier": 4880
+    }
+   },
+   "badv_persist_by_year": {
+    "2024": 0.0052,
+    "2025": 0.00417,
+    "2026": 0.00411
+   },
+   "badv_persist_sel_by_year": {
+    "2024": 0.00891,
+    "2025": 0.00516,
+    "2026": 0.00762
+   },
+   "probabilistic_skill_vs_persistence_allbars": true,
+   "probabilistic_skill_vs_persistence_bettail": true
+  },
+  "15m": {
+   "book": "EURUSD.m15xp.v1",
+   "n_feats": 75,
+   "n_bars": 1957972,
+   "by_year": {
+    "2024": {
+     "n": 136318,
+     "auc": 0.5361,
+     "selacc": 0.5872,
+     "n_sel": 13632,
+     "brier": 0.24875,
+     "brier_raw": 0.24876,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25607,
+     "badv_flat": 0.00125,
+     "badv_persist": 0.00731,
+     "badv_persist_raw": 0.00731,
+     "badv_persist_sel": 0.01293,
+     "n_sel_brier": 13632
+    },
+    "2025": {
+     "n": 136172,
+     "auc": 0.5248,
+     "selacc": 0.5532,
+     "n_sel": 13618,
+     "brier": 0.24945,
+     "brier_raw": 0.25005,
+     "brier_flat": 0.25,
+     "brier_persist": 0.2557,
+     "badv_flat": 0.00055,
+     "badv_persist": 0.00625,
+     "badv_persist_raw": 0.00566,
+     "badv_persist_sel": 0.0098,
+     "n_sel_brier": 13618
+    },
+    "2026": {
+     "n": 48908,
+     "auc": 0.5164,
+     "selacc": 0.5218,
+     "n_sel": 4891,
+     "brier": 0.25003,
+     "brier_raw": 0.25081,
+     "brier_flat": 0.25,
+     "brier_persist": 0.25565,
+     "badv_flat": -3e-05,
+     "badv_persist": 0.00562,
+     "badv_persist_raw": 0.00484,
+     "badv_persist_sel": 0.00501,
+     "n_sel_brier": 4891
+    }
+   },
+   "badv_persist_by_year": {
+    "2024": 0.00731,
+    "2025": 0.00625,
+    "2026": 0.00562
+   },
+   "badv_persist_sel_by_year": {
+    "2024": 0.01293,
+    "2025": 0.0098,
+    "2026": 0.00501
+   },
+   "probabilistic_skill_vs_persistence_allbars": true,
+   "probabilistic_skill_vs_persistence_bettail": true
+  },
+  "30m": {
+   "book": "EURUSD.m30xp.v1",
+   "n_feats": 75,
+   "n_bars": 1950093,
+   "by_year": {
+    "2024": {
+     "n": 136065,
+     "auc": 0.5365,
+     "selacc": 0.5826,
+     "n_sel": 13607,
+     "brier": 0.24869,
+     "brier_raw": 0.24882,
+     "brier_flat": 0.25,
+     "brier_persist": 0.26146,
+     "badv_flat": 0.00131,
+     "badv_persist": 0.01277,
+     "badv_persist_raw": 0.01264,
+     "badv_persist_sel": 0.0171,
+     "n_sel_brier": 13607
+    },
+    "2025": {
+     "n": 135353,
+     "auc": 0.5255,
+     "selacc": 0.5497,
+     "n_sel": 13536,
+     "brier": 0.24934,
+     "brier_raw": 0.24996,
+     "brier_flat": 0.25,
+     "brier_persist": 0.26153,
+     "badv_flat": 0.00066,
+     "badv_persist": 0.01219,
+     "badv_persist_raw": 0.01158,
+     "badv_persist_sel": 0.01719,
+     "n_sel_brier": 13536
+    },
+    "2026": {
+     "n": 48952,
+     "auc": 0.503,
+     "selacc": 0.5106,
+     "n_sel": 4896,
+     "brier": 0.25057,
+     "brier_raw": 0.25179,
+     "brier_flat": 0.25,
+     "brier_persist": 0.26236,
+     "badv_flat": -0.00057,
+     "badv_persist": 0.01178,
+     "badv_persist_raw": 0.01057,
+     "badv_persist_sel": 0.00576,
+     "n_sel_brier": 4896
+    }
+   },
+   "badv_persist_by_year": {
+    "2024": 0.01277,
+    "2025": 0.01219,
+    "2026": 0.01178
+   },
+   "badv_persist_sel_by_year": {
+    "2024": 0.0171,
+    "2025": 0.01719,
+    "2026": 0.00576
+   },
+   "probabilistic_skill_vs_persistence_allbars": true,
+   "probabilistic_skill_vs_persistence_bettail": true
+  }
+ },
+ "verdict": "ALL 4 certified cross-pair direction books (m5xp/m10xp/m15xp/m30xp) PASS the pre-registered falsifier: badv_persist>0 in EVERY forward year 2024/25/26, all-bars AND bet-tail, CALIBRATED AND RAW -> none is ranking-only; each carries genuine probabilistic skill over a naive trailing-persistence baseline, so no certification downgrades. NUANCE (honest): the persistence baseline is itself WORSE than flat-0.5 (persist_brier 0.252-0.262 > 0.25 => intraday EURUSD direction is mildly ANTI-PERSISTENT), so much of the persistence-advantage is the model avoiding persistence's mistake. Against the HARSHER flat-0.5 baseline the all-bars edge is razor-thin: badv_flat <= +0.0013 (2024 best), shrinks in 2025, and goes slightly NEGATIVE in 2026 for m15xp (-0.00003) and m30xp (-0.00057). The genuine skill is CONCENTRATED IN THE SELECTIVE BET-TAIL (badv_persist_sel +0.005..+0.017), exactly where the books operate via their confidence gate; all-bars Brier dilutes tail skill with the no-skill bulk. Brier-advantage GROWS with horizon (5m ~+0.002 -> 30m ~+0.012 vs persistence), mirroring the known cross-pair edge gradient. CONCLUSION: certifications survive the audit (not ranking-only) but it confirms these are THIN, TAIL-CONCENTRATED, refit-dependent edges; the flat-0.5 margin is ~0 and decaying by 2026 at the long horizons. Audit-only: tightens interpretation, cannot create alpha."
+}
