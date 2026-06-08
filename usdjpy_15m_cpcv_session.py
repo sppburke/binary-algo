@@ -26,7 +26,9 @@ SESSION=sys.argv[1] if len(sys.argv)>1 and sys.argv[1] in ("ny","ldn","asia","al
 def _arg(i,d,cast):
     rest=[a for a in sys.argv[2:]]
     return cast(rest[i]) if len(rest)>i else d
-STRIDE=_arg(0,2,int); COV=_arg(1,0.03,float); NSEED=_arg(2,1,int)
+STRIDE=_arg(0,2,int)
+_covarg=_arg(1,"0.03",str); COVS=[float(x) for x in str(_covarg).split(",")]
+NSEED=_arg(2,1,int)
 
 def build_pair_ties(pair, stride):
     Xs=[]; fwds=[]; tss=[]
@@ -77,8 +79,8 @@ def summ(a):
 
 def main():
     t0=time.time()
-    RESULT=f"usdjpy_15m_cpcv_session_{SESSION}_cov{COV}_result.json"
-    print(f"[cpcv-sess/{SESSION}] building USDJPY (stride {STRIDE}) cov{COV}...", flush=True)
+    RESULT=f"usdjpy_15m_cpcv_session_{SESSION}_multicov_result.json"
+    print(f"[cpcv-sess/{SESSION}] building USDJPY (stride {STRIDE}) covs={COVS}...", flush=True)
     X,fwd,ts=build_pair_ties(TARGET, STRIDE)
     o=np.argsort(ts); X=X[o]; fwd=fwd[o]; ts=ts[o]
     sess=session_mask(ts, SESSION)
@@ -90,14 +92,17 @@ def main():
     groups=[(int(bnds[g]), int(bnds[g+1])) for g in range(N_GROUPS)]
     print(f"[cpcv-sess/{SESSION}] groups: {[(pd.to_datetime(a,unit='s').date().isoformat(), pd.to_datetime(b,unit='s').date().isoformat()) for a,b in groups]}", flush=True)
 
-    res={"model":f"OWN-PAIR base-GBM @15m, SESSION={SESSION}, TIES-STRICT per-fold-REFIT CPCV","key":"USDJPY.15m","breakeven":BE,
-         "session":SESSION,"stride":STRIDE,"cov":COV,"n_groups":N_GROUPS,"k_test":K_TEST,"nseed":NSEED,
+    res={"model":f"OWN-PAIR base-GBM @15m, SESSION={SESSION}, TIES-STRICT per-fold-REFIT CPCV (multi-cov)","key":"USDJPY.15m","breakeven":BE,
+         "session":SESSION,"stride":STRIDE,"covs":COVS,"n_groups":N_GROUPS,"k_test":K_TEST,"nseed":NSEED,
          "CERT_RULE":"side CERTIFIED iff p10>=0.541 AND frac_clear_BE>=0.80",
          "falsifier":{"registered_utc":"pre-paths","KILL_if":"each side: p10<0.541 OR frac_clear_BE<0.80"}}
     json.dump(res, open(RESULT,"w"), indent=2)
 
     rng=np.random.default_rng(13)
-    paths={"UP":[],"DOWN":[],"COMBINED":[]}; aucs=[]; uprates=[]; pathinfo=[]
+    # paths[cov][side] = list of per-path win-rates; also track per-path n at each cov
+    paths={c:{"UP":[],"DOWN":[],"COMBINED":[]} for c in COVS}
+    npaths={c:{"UP":[],"DOWN":[],"COMBINED":[]} for c in COVS}
+    aucs=[]; uprates=[]; pathinfo=[]
     for fi,testg in enumerate(combinations(range(N_GROUPS), K_TEST)):
         tblocks=[groups[g] for g in testg]
         tin=np.zeros(len(ts),bool)
@@ -118,34 +123,44 @@ def main():
                   callbacks=[lgb.early_stopping(80), lgb.log_evaluation(0)])
             pval+=L.predict_proba(X[val_idx])[:,1]; ptst+=L.predict_proba(X[test_mask])[:,1]
         pval/=NSEED; ptst/=NSEED
-        vconf=np.abs(pval-0.5); thr=float(np.quantile(vconf, 1-COV))
+        vconf=np.abs(pval-0.5)
         ftst=fwd[test_mask]; ttst=ts[test_mask]
         oo=np.argsort(ttst); ptst=ptst[oo]; ftst=ftst[oo]; ttst=ttst[oo]
         mv=ftst!=0
         auc=float(roc_auc_score((ftst[mv]>0).astype(int), ptst[mv])) if mv.sum()>20 else float("nan")
         uprate=float((ftst[mv]>0).mean()) if mv.sum()>0 else float("nan")
-        nC,wC=side_wr(ptst,ftst,ttst,thr,"COMBINED"); nU,wU=side_wr(ptst,ftst,ttst,thr,"UP"); nD,wD=side_wr(ptst,ftst,ttst,thr,"DOWN")
-        if nC>=25: paths["COMBINED"].append(wC)
-        if nU>=25: paths["UP"].append(wU)
-        if nD>=25: paths["DOWN"].append(wD)
         aucs.append(auc); uprates.append(uprate)
-        pathinfo.append({"fold":list(testg),"auc":round(auc,4),"up_rate":round(uprate,4),
-                         "UP":[nU,round(wU,4)],"DOWN":[nD,round(wD,4)],"COMBINED":[nC,round(wC,4)],"thr":round(thr,4)})
-        print(f"  path {fi+1}/15 g{list(testg)} AUC={auc:.4f} up={uprate:.4f} | UP n{nU} {wU:.4f} | DOWN n{nD} {wD:.4f} | COMB n{nC} {wC:.4f} ({time.time()-t0:.0f}s)", flush=True)
+        rowinfo={"fold":list(testg),"auc":round(auc,4),"up_rate":round(uprate,4),"bycov":{}}
+        for c in COVS:
+            thr=float(np.quantile(vconf, 1-c))
+            nC,wC=side_wr(ptst,ftst,ttst,thr,"COMBINED"); nU,wU=side_wr(ptst,ftst,ttst,thr,"UP"); nD,wD=side_wr(ptst,ftst,ttst,thr,"DOWN")
+            if nC>=25: paths[c]["COMBINED"].append(wC); npaths[c]["COMBINED"].append(nC)
+            if nU>=25: paths[c]["UP"].append(wU); npaths[c]["UP"].append(nU)
+            if nD>=25: paths[c]["DOWN"].append(wD); npaths[c]["DOWN"].append(nD)
+            rowinfo["bycov"][f"{c}"]={"UP":[nU,round(wU,4)],"DOWN":[nD,round(wD,4)],"COMBINED":[nC,round(wC,4)],"thr":round(thr,4)}
+        pathinfo.append(rowinfo)
+        bc=rowinfo["bycov"][f"{COVS[0]}"]
+        print(f"  path {fi+1}/15 g{list(testg)} AUC={auc:.4f} up={uprate:.4f} | @cov{COVS[0]}: UP n{bc['UP'][0]} {bc['UP'][1]} | DOWN n{bc['DOWN'][0]} {bc['DOWN'][1]} | COMB n{bc['COMBINED'][0]} {bc['COMBINED'][1]} ({time.time()-t0:.0f}s)", flush=True)
 
     res["paths"]=pathinfo
     res["auc_summary"]={"mean":round(float(np.nanmean(aucs)),4),"min":round(float(np.nanmin(aucs)),4),"max":round(float(np.nanmax(aucs)),4)}
     res["uprate_tripwire_ok"]=bool(np.all([(0.45<=u<=0.55) for u in uprates if np.isfinite(u)]))
-    res["summary"]={s:summ(paths[s]) for s in ("UP","DOWN","COMBINED")}
-    verdict={}
-    for s in ("UP","DOWN","COMBINED"):
-        sm=res["summary"][s]; p10=sm.get("p10",float("nan")); fc=sm.get("frac_clear_BE",0.0)
-        verdict[s]={"p10":p10,"frac_clear_BE":fc,"CERTIFIED":bool(np.isfinite(p10) and p10>=BE and fc>=0.80)}
-    res["verdict"]=verdict
+    res["bycov"]={}
+    for c in COVS:
+        sm={s:summ(paths[c][s]) for s in ("UP","DOWN","COMBINED")}
+        med_n={s:(int(np.median(npaths[c][s])) if npaths[c][s] else 0) for s in ("UP","DOWN","COMBINED")}
+        vd={}
+        for s in ("UP","DOWN","COMBINED"):
+            p10=sm[s].get("p10",float("nan")); fc=sm[s].get("frac_clear_BE",0.0)
+            vd[s]={"p10":p10,"frac_clear_BE":fc,"med_n_per_path":med_n[s],"CERTIFIED":bool(np.isfinite(p10) and p10>=BE and fc>=0.80)}
+        res["bycov"][f"{c}"]={"summary":sm,"verdict":vd}
     json.dump(res, open(RESULT,"w"), indent=2)
-    print(f"\n[cpcv-sess/{SESSION}] === SUMMARY (cov{COV}) ===", flush=True)
-    for s in ("UP","DOWN","COMBINED"):
-        print(f"  {s}: {res['summary'][s]} -> CERT={verdict[s]['CERTIFIED']}", flush=True)
+    print(f"\n[cpcv-sess/{SESSION}] === MULTI-COV SUMMARY ===", flush=True)
+    for c in COVS:
+        print(f" cov{c}:", flush=True)
+        for s in ("UP","DOWN","COMBINED"):
+            v=res["bycov"][f"{c}"]["verdict"][s]; sm=res["bycov"][f"{c}"]["summary"][s]
+            print(f"   {s}: p10={v['p10']} mean={sm.get('mean')} frac={v['frac_clear_BE']} med_n={v['med_n_per_path']} -> CERT={v['CERTIFIED']}", flush=True)
     print(f"  AUC {res['auc_summary']} trip={res['uprate_tripwire_ok']}  done {time.time()-t0:.0f}s -> {RESULT}", flush=True)
 
 if __name__=="__main__":

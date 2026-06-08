@@ -31,6 +31,7 @@
 | G1-base | validation | **per-fold-REFIT CPCV of OWN-PAIR base** (CERTIFY) | stride4 cov0.03 | usdjpy_15m_cpcv_base.py 4 0.03 1 | D | cert | **done** | **p10 .5516 (14/15)** | **p10 .5582 (15/15) ✓CERT** | p10 .5381 (10/15) | ✅ **UP CERTIFIED** (p10 .558≥BE, ALL folds clear); COMBINED certified (p10 .552, 14/15); DOWN real-but-sub-BE (p10 .538, 10/15). AUC mean .526, trip OK. | usdjpy_15m_cpcv_base_result.json |
 | G1-pool | validation | per-fold-REFIT CPCV of POOLED (moot) | — | usdjpy_15m_cpcv.py | D | cert | **subsumed** | — | — | — | Pooling lost to own-pair base (A6 diluted binding yrs); own-pair CPCV is the cert of record. Skip pooled CPCV. | — |
 | A9 | session | **NY/LDN/Asia session-concentrated own-pair base** | ny\|ldn\|asia s6/l127 | usdjpy_15m_session.py | D | **HIGH** | **done** | NY .599/.587/.553 | NY .589/.579/.580 | NY .663/.629/.455 | ✅ **NY SURVIVED** (VAL-AUC .544>all-sess .531; COMB clears 2024+2025; UP stable ~.58 all yrs incl 2026). LDN+Asia KILLED. **Direction edge is NY-concentrated (EURUSD precedent confirmed).** NY-CPCV cert running. | usdjpy_15m_session_{ny,ldn,asia}_s6_l127_result.json |
+| **G1-NY** | validation | **★★ NY-session per-fold-REFIT CPCV (CERT of record)** | ny stride2 cov0.03 | usdjpy_15m_cpcv_session.py ny 2 0.03 | D | cert | **done** | **p10 .580 (15/15)** | **p10 .586 (15/15) ✅CERT** | **p10 .572 (15/15) ✅CERT** | ✅✅ **BOTH SIDES CERTIFIED** — NY lifts AUC .526→.539, rescues DOWN (.538→.572). The two-sided cert of record. multicov run probing >0.70. | usdjpy_15m_cpcv_session_ny_cov0.03_result.json |
 | A2 | gate | compression × session × coverage gate sweep | comp-q × session × cov | usdjpy_15m_regime.py (clone usdjpy_2m_regime) | G+D | med | pending | — | — | — | — | usdjpy_15m_regime_result.json |
 | A3 | gate | compression-release × reversion specialist | rel_tighten + w_spec | usdjpy_15m_regime.py spec | D | med | pending | — | — | — | — | usdjpy_15m_regime_spec_result.json |
 | A5 | cross-horizon | parent (30m/60m) → 15m front-load stack | soft/hard q-gate | usdjpy_15m_stack.py (new) | D | med | pending | — | — | — | — | usdjpy_15m_stack_result.json |
@@ -60,6 +61,16 @@
 | N17 | anti-contemporaneous lead-lag + transfer-entropy gate + RFF | Sirignano-Cont + Schreiber + Kelly-Malamud-Zhou | directed-info lead carries sign | ~13% | pending |
 
 ---
+
+## TWO-SIDED LEADERBOARD (current best certified, by refit-CPCV p10)
+| side | leader | refit-CPCV p10 | mean | paths clear | cov | status |
+|---|---|---|---|---|---|---|
+| **UP** | own-pair base GBM · **NY-session** · cov3% (`usdjpy_15m_session.py ny` + `usdjpy_15m_cpcv_session.py ny`) | **.586** | .602 | 15/15 | 0.03 | ✅ CERTIFIED |
+| **DOWN** | own-pair base GBM · **NY-session** · cov3% (same model, down-preds) | **.572** | .597 | 15/15 | 0.03 | ✅ CERTIFIED |
+| _(ref) UP all-session_ | own-pair base, all-session | .558 | .568 | 15/15 | 0.03 | superseded by NY |
+| _(ref) DOWN all-session_ | own-pair base, all-session | .538 | .555 | 10/15 | 0.03 | sub-BE (NY rescues) |
+
+Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the binding (worst) path with the discipline. Stretch: push toward >0.70 (multicov NY-CPCV in progress) — honest ceiling ~.58–.62.
 
 ## RUN ORDER (first-to-run queue)
 1. **A1** base s6/l127 (RUNNING) — floor + up-rate tripwire.
