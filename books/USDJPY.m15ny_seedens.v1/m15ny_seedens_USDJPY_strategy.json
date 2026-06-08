@@ -1,0 +1,104 @@
+{
+  "book": "USDJPY.m15ny_seedens.v1",
+  "pair": "USDJPY",
+  "timeframe": "15m",
+  "horizon_min": 15,
+  "session": "ny",
+  "seed_ensemble_K": 3,
+  "label": "sign(close[t+15]-close[t]), ties LOSE",
+  "settlement": "bar-close, gap=900s nonoverlap",
+  "gate": {
+    "cov": 0.02,
+    "conf_thr": 0.12624352649499532,
+    "rule": "avg of K seed models; trade |p-0.5|>=thr AND ts in NY session"
+  },
+  "breakeven": 0.541,
+  "val_ny_auc": 0.544169150056866,
+  "cert": "NY seed-ens(K=3) per-fold-refit CPCV: UP p10 .6005 / DOWN p10 .5738 / COMB p10 .5962 @cov2% (15/15) \u2014 usdjpy_15m_cpcv_session_ny_seedens3_result.json",
+  "deploy_note": "Best certified config. Refit-dependent (retrain periodically; size on refit floor). UP robust frozen-forward; DOWN refit-dependent.",
+  "frozen_forward": {
+    "test24": {
+      "COMBINED": {
+        "n": 591,
+        "wr": 0.6074,
+        "ci": [
+          0.5668,
+          0.6464
+        ]
+      },
+      "UP": {
+        "n": 466,
+        "wr": 0.5901,
+        "ci": [
+          0.5451,
+          0.6352
+        ]
+      },
+      "DOWN": {
+        "n": 125,
+        "wr": 0.672,
+        "ci": [
+          0.584,
+          0.752
+        ]
+      }
+    },
+    "test25": {
+      "COMBINED": {
+        "n": 593,
+        "wr": 0.5717,
+        "ci": [
+          0.5312,
+          0.6105
+        ]
+      },
+      "UP": {
+        "n": 448,
+        "wr": 0.5781,
+        "ci": [
+          0.5312,
+          0.6228
+        ]
+      },
+      "DOWN": {
+        "n": 145,
+        "wr": 0.5517,
+        "ci": [
+          0.469,
+          0.6276
+        ]
+      }
+    },
+    "oos": {
+      "COMBINED": {
+        "n": 256,
+        "wr": 0.4844,
+        "ci": [
+          0.4258,
+          0.5469
+        ]
+      },
+      "UP": {
+        "n": 182,
+        "wr": 0.4945,
+        "ci": [
+          0.4231,
+          0.5659
+        ]
+      },
+      "DOWN": {
+        "n": 74,
+        "wr": 0.4595,
+        "ci": [
+          0.3514,
+          0.5676
+        ]
+      }
+    }
+  },
+  "models": [
+    "models/m15ny_seedens_USDJPY_s0_lgb.txt",
+    "models/m15ny_seedens_USDJPY_s1_lgb.txt",
+    "models/m15ny_seedens_USDJPY_s2_lgb.txt"
+  ]
+}

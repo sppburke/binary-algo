@@ -1,0 +1,165 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "USDJPY.m15ny_seedens.v1",
+  "content_id": "d83d35964a145328",
+  "currency": "USDJPY",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "USDJPY 15m NY-session own-pair seed-ensemble(K=3) GBM; BOTH sides certified NY refit-CPCV (UP p10 .6005 / DOWN .5738 @cov2%, 15/15). Best USDJPY 15m direction config. NY-concentrated + USDJPY-specific.",
+  "metrics": {
+    "up_refit_cpcv_p10": 0.6005,
+    "down_refit_cpcv_p10": 0.5738,
+    "comb_refit_cpcv_p10": 0.5962,
+    "up_mean": 0.617,
+    "down_mean": 0.616,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "session": "ny",
+    "seed_K": 3,
+    "val_ny_auc": 0.5442,
+    "frozen_forward": {
+      "test24": {
+        "COMBINED": {
+          "n": 591,
+          "wr": 0.6074,
+          "ci": [
+            0.5668,
+            0.6464
+          ]
+        },
+        "UP": {
+          "n": 466,
+          "wr": 0.5901,
+          "ci": [
+            0.5451,
+            0.6352
+          ]
+        },
+        "DOWN": {
+          "n": 125,
+          "wr": 0.672,
+          "ci": [
+            0.584,
+            0.752
+          ]
+        }
+      },
+      "test25": {
+        "COMBINED": {
+          "n": 593,
+          "wr": 0.5717,
+          "ci": [
+            0.5312,
+            0.6105
+          ]
+        },
+        "UP": {
+          "n": 448,
+          "wr": 0.5781,
+          "ci": [
+            0.5312,
+            0.6228
+          ]
+        },
+        "DOWN": {
+          "n": 145,
+          "wr": 0.5517,
+          "ci": [
+            0.469,
+            0.6276
+          ]
+        }
+      },
+      "oos": {
+        "COMBINED": {
+          "n": 256,
+          "wr": 0.4844,
+          "ci": [
+            0.4258,
+            0.5469
+          ]
+        },
+        "UP": {
+          "n": 182,
+          "wr": 0.4945,
+          "ci": [
+            0.4231,
+            0.5659
+          ]
+        },
+        "DOWN": {
+          "n": 74,
+          "wr": 0.4595,
+          "ci": [
+            0.3514,
+            0.5676
+          ]
+        }
+      }
+    }
+  },
+  "source": {
+    "script": "usdjpy_15m_cpcv_session.py ny ... 3 (cert) + usdjpy_15m_freeze_ny_seedens.py (freeze)",
+    "git_sha": "c3ea0ecec95738d3998be75509bc084ff0db5511",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 127,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 3000,
+    "K": 3,
+    "tr_stride": 6
+  },
+  "artifacts": [
+    {
+      "file": "m15ny_seedens_USDJPY_s0_lgb.txt",
+      "bytes": 3491108,
+      "sha256": "4a731bee95e29abf7d11779be03637ad3d41c2d3f4e45837ad1cede4a29b7c02"
+    },
+    {
+      "file": "m15ny_seedens_USDJPY_s1_lgb.txt",
+      "bytes": 2199652,
+      "sha256": "8a90fef0099a506678ef4e057847524fa098362473b7b652f19ef812e7fb9a5b"
+    },
+    {
+      "file": "m15ny_seedens_USDJPY_s2_lgb.txt",
+      "bytes": 4531347,
+      "sha256": "1e2b340b162d8cd893a3d001cfbcb6d506ea142cfe46428ec868b7c914219315"
+    }
+  ],
+  "strategy_json": "models/m15ny_seedens_USDJPY_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/home/sean/git/binary-algo/features",
+    "patterns": [
+      "USDJPY_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1420449410,
+    "sha256_of_listing": "0c8d3bb202d7e86cd2c7f47d14288e98815aacf7bdc339e9b491ce5dad9c467d"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "seed-ensemble avg of K=3; cov2% gate frozen on VAL NY worst-half; NY=America/New_York 08-17 DST-correct. DOWN refit-dependent.",
+  "created_utc": "2026-06-08"
+}

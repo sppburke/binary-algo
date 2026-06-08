@@ -453,6 +453,27 @@
       "manifest": "books/USDJPY.m15ny.v1.manifest.json",
       "summary": "First certified USDJPY direction book. NY-session own-pair base GBM; BOTH sides refit-CPCV certified (UP p10 .586/.599, DOWN .572). Edge is NY-concentrated + USDJPY-specific (pooling dilutes); DOWN refit-dependent.",
       "depends_on": null
+    },
+    {
+      "id": "USDJPY.m15ny_seedens.v1",
+      "currency": "USDJPY",
+      "timeframe": "15m",
+      "side": "combined",
+      "role": "direction",
+      "script": "usdjpy_15m_cpcv_session.py ny (cert) + usdjpy_15m_freeze_ny_seedens.py (freeze)",
+      "metrics": {
+        "up_refit_cpcv_p10": 0.6005,
+        "down_refit_cpcv_p10": 0.5738,
+        "comb_refit_cpcv_p10": 0.5962,
+        "breakeven": 0.541,
+        "cov": 0.02,
+        "session": "ny",
+        "seed_K": 3,
+        "content_id": "d83d35964a145328"
+      },
+      "manifest": "books/USDJPY.m15ny_seedens.v1.manifest.json",
+      "summary": "BEST USDJPY 15m direction: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .6005/DOWN .5738 @cov2%). REFIT-DEPENDENT (frozen-2012 vintage decays by 2026; retrain periodically, size on refit floor).",
+      "depends_on": null
     }
   ]
 }

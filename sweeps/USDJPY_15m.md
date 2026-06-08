@@ -39,7 +39,7 @@
 | A2 | gate | compression×session×coverage gate | 1m_bb_width low-half × NY | usdjpy_15m_spec.py | G+D | med | **done — no lift** | .584/.565/.535 | — | — | RAN: compression-regime gate on NY symmetric model does NOT lift win-rate vs all-NY. `usdjpy_15m_spec_result.json` |
 | C5 | state-space | online-ARF keystone (efficiency control) | river ARF+ADWIN | usdjpy_15m_statespace.py (new) | D(control) | keystone | pending | — | — | — | — | usdjpy_15m_arf_result.json |
 | C2 | state-space | Kalman forward-filter drift sign | channel/velocity | usdjpy_15m_statespace.py kalman | D | ~null | pending | — | — | — | — | usdjpy_15m_kalman_result.json |
-| D1 | sequence/DL | GRU/1D-CNN on path | window 20/40/80 | usdjpy_15m_dl.py | D | ~null (info-bound) | pending | — | — | — | — | usdjpy_15m_dl_result.json |
+| D1 | sequence/DL | GRU on raw return path (W=32) | NY | usdjpy_15m_gru.py 32 8 | D | ~null (info-bound) | **done — KILLED** | .525/.492/.536 | — | — | RAN: VAL-AUC .5164 < GBM .539 (raw path weaker than engineered TA feats); held-out moved-AUC ~.50. DL-class null reproduced (EURUSD 84-arm kill + info-bound). `usdjpy_15m_gru_result.json` |
 | E2 | mag→dir | direction-conditioned-on-magnitude | mag-quartile gate | usdjpy_15m_magdir.py | D | ~null (sign-invariant) | pending | — | — | — | — | usdjpy_15m_magdir_result.json |
 | B/F | micro/exo | tick microstructure, OFI, news, x-asset | — | — | D | n/a | n/a (no USDJPY tick cache; bar-only) | — | — | — | DATA-BLOCKED (Tier B tick) / low-prior (Tier F) | — |
 
