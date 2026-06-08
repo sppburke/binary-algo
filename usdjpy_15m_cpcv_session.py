@@ -79,7 +79,8 @@ def summ(a):
 
 def main():
     t0=time.time()
-    RESULT=f"usdjpy_15m_cpcv_session_{SESSION}_multicov_result.json"
+    RESULT=(f"usdjpy_15m_cpcv_session_{SESSION}_multicov_result.json" if NSEED==1
+            else f"usdjpy_15m_cpcv_session_{SESSION}_seedens{NSEED}_result.json")
     print(f"[cpcv-sess/{SESSION}] building USDJPY (stride {STRIDE}) covs={COVS}...", flush=True)
     X,fwd,ts=build_pair_ties(TARGET, STRIDE)
     o=np.argsort(ts); X=X[o]; fwd=fwd[o]; ts=ts[o]
