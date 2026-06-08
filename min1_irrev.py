@@ -27,7 +27,7 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import min1_production as M
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 WINDOWS = (15, 30, 60, 90)
 DIMS = (3, 4)
 SUBSAMPLE = 100_000

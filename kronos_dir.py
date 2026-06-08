@@ -16,7 +16,7 @@ from itertools import combinations
 sys.path.insert(0, "/home/sean/git/Kronos")
 from model import Kronos, KronosTokenizer, KronosPredictor
 
-ROOT = "/media/sean/CORSAIR/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
 TOK_ID  = sys.argv[1] if len(sys.argv) > 1 else "NeoQuasar/Kronos-Tokenizer-base"
 MODEL   = sys.argv[2] if len(sys.argv) > 2 else "NeoQuasar/Kronos-small"
 TAG     = sys.argv[3] if len(sys.argv) > 3 else "zeroshot_small"

@@ -14,7 +14,7 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
 
-FEAT="/media/sean/CORSAIR/binary-algo/features"
+FEAT="/home/sean/git/binary-algo/features"
 PAIRS=["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCHF","USDCAD"]
 USD_BASE={"USDJPY","USDCHF","USDCAD"}
 NONEU=[p for p in PAIRS if p!="EURUSD"]
@@ -106,7 +106,7 @@ def xp_cols(df):
 OF_COLS=['OF_of_norm_1','OF_of_sum_1','OF_of_norm_3','OF_of_sum_3','OF_of_norm_5','OF_of_sum_5','OF_of_norm_10',
     'OF_of_sum_10','OF_of_norm_15','OF_of_sum_15','OF_of_norm_30','OF_of_sum_30','OF_of_uptick_5','OF_of_uptick_15',
     'OF_kyle_5','OF_kyle_15','OF_of_accel','OF_of_persist']
-OFDIR="/media/sean/CORSAIR/binary-algo/features_of"
+OFDIR="/home/sean/git/binary-algo/features_of"
 
 def _read_years(dirpath, pair, years, cols):
     parts=[]

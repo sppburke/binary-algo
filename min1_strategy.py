@@ -12,7 +12,7 @@ THE strategy (all components pre-committed; nothing tuned on the evaluation peri
 Reports TEST 2024-25, OOS 2026 (+ halves) with bootstrap CIs, and the binary-payout economics.
 """
 import numpy as np, pandas as pd, time
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 def feats(b):
     mid=b["mid"]; r1=mid.pct_change(); X=pd.DataFrame(index=b.index)
     X["bbw1800"]=r1.rolling(1800).std()*np.sqrt(1800); X["bbw300"]=r1.rolling(300).std()*np.sqrt(300)

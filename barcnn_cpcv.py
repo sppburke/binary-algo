@@ -12,7 +12,7 @@ Run: ~/binary-algo-venv/bin/python barcnn_cpcv.py <variant>   (default loops his
 import sys, os, json, numpy as np, pandas as pd
 from itertools import combinations
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 HS, TOL = 60, 10; GAP = HS + TOL
 N_GROUPS, K_TEST, BREAKEVEN = 8, 2, 0.541
 

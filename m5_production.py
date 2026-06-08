@@ -23,7 +23,7 @@ from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 import harness as H
 
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 HOR=5; GAP_S=HOR*60; PAIR="EURUSD"
 base=list(H.feature_cols("EURUSD"))
 SPL={"train":[str(y) for y in range(2012,2022)],"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}

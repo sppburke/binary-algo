@@ -34,7 +34,7 @@ R.H_GAP = GAP
 
 from m5_xpair import (SPL, augment, feat_cols, xp_cols, nonoverlap_chrono)
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 OUT = f"{ROOT}/m10_residlabel_down_h10_result.json"
 BREAKEVEN = 0.541
 INCUMBENT_XPAIR_DOWN_P10 = 0.5683  # EURUSD.m10xp.v1 refit-CPCV DOWN p10 (the bar to beat at 10m)

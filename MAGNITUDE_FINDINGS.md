@@ -278,7 +278,7 @@ ensemble is the correct follow-up.
 ### 5f. Reproduce commands
 ```bash
 # PRIMARY — the certified 30m magnitude result (regenerates cpcv_certify_result.json):
-~/binary-algo-venv/bin/python /media/sean/CORSAIR/binary-algo/cpcv_certify.py
+~/binary-algo-venv/bin/python /home/sean/git/binary-algo/cpcv_certify.py
 
 # SECONDARY single-split magnitude scripts — print to STDOUT ONLY, no result file written.
 # To PROMOTE their LOG-RECORDED numbers to VERIFIED, redirect stdout to a result file and cite it:

@@ -29,7 +29,7 @@ from sklearn.metrics import roc_auc_score
 import m5_xpair as MX, m5_xpair_production as XP
 import harness as H
 
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541
+ROOT="/home/sean/git/binary-algo"; BE=0.541
 FEAT=H.FEAT_DIR; HOR=5
 import re
 MAGF=[c for c in H.feature_cols("EURUSD") if re.search(r"rv|bb_width|atr|rangepos|_std|semivar|range", c, re.I)]

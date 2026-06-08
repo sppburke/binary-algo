@@ -15,7 +15,7 @@ from m30_lab import HOR, nonoverlap_chrono, boot
 
 WINDOWS={"train":[str(y) for y in range(2012,2022)],"val":["2022","2023"],
          "test24":["2024"],"test25":["2025"],"oos":["2026"]}
-FEAT="/media/sean/CORSAIR/binary-algo/features"
+FEAT="/home/sean/git/binary-algo/features"
 
 def load_close(years):
     parts=[]

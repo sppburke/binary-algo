@@ -8,7 +8,7 @@ import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 
-ROOT="/media/sean/CORSAIR/binary-algo"; TICK=f"{ROOT}/features_tick"; MODELS=f"{ROOT}/models"
+ROOT="/home/sean/git/binary-algo"; TICK=f"{ROOT}/features_tick"; MODELS=f"{ROOT}/models"
 HS, GAP = 120, 120
 TRSTRIDE = 5
 VASTRIDE = 1

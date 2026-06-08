@@ -19,7 +19,7 @@ from catboost import CatBoostClassifier
 import harness as H
 import m10_production as M10
 
-FEAT = "/media/sean/CORSAIR/binary-algo/features"
+FEAT = "/home/sean/git/binary-algo/features"
 base = list(H.feature_cols("EURUSD"))
 HOR = 10
 N_GROUPS, K_TEST = 6, 2

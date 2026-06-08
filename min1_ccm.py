@@ -27,7 +27,7 @@ from scipy.stats import spearmanr
 import min1_production as P
 from min1_production import wc_ret, boot, nonoverlap_chrono, HS, TOL_S, ENTRY_LAG_S, GAP
 
-ROOT   = "/media/sean/CORSAIR/binary-algo"
+ROOT   = "/home/sean/git/binary-algo"
 TICK   = f"{ROOT}/features_tick"          # EURUSD micro bars (mid, imb, micro, spread, nt, tsz) = trading clock
 CKS    = f"{ROOT}/features_tick_cks"      # EURUSD signed CKS OFI (cks_e)
 XOFI   = f"{ROOT}/features_tick_xofi"     # cross-pair signed CKS OFI

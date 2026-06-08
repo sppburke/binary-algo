@@ -16,7 +16,7 @@ import os, sys; sys.argv = ["x"]
 import json, time, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT = "/media/sean/CORSAIR/binary-algo"; BE = 0.541; R = 0.85
+ROOT = "/home/sean/git/binary-algo"; BE = 0.541; R = 0.85
 EV = (("test24", 2024), ("test25", 2025), ("oos", 2026))
 PIP = 0.0001 / 1.16; SPREADS_PIP = [0.1, 0.2, 0.4]
 P10_FLOOR = 0.5441   # certified DOWN cov0.05 refit p10 (m5_magweight_cpcv_result.json)

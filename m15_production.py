@@ -29,7 +29,7 @@ from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 import harness as H
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 HOR = 15; STRIDE = 3
 PAIR = "EURUSD"                   # set via CLI: `python m15_production.py train GBPUSD`
 base = list(H.feature_cols("EURUSD"))   # 239 feature names (identical across majors)

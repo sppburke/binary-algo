@@ -10,7 +10,7 @@ def load_mod(path, name):
     spec.loader.exec_module(m)
     return m
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 
 def run(mod, gate_rel_key):
     p, L, G, C, S = mod._load()

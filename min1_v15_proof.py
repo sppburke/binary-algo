@@ -7,7 +7,7 @@ A) argmax-VAL pick:   all-bars dir, rel re-tightened to p90, rev300, cov0.05
 B) robust large-n:    0.5*all-bars + 0.5*specialist, rel p80, rev300, cov0.05  (3.7x the OOS trades)
 """
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"; GAP=60
+MODELS="/home/sean/git/binary-algo/models"; GAP=60
 Z=np.load(f"{MODELS}/probs_min1_v15.npz",allow_pickle=True)
 BQ=float(Z["bq"]); RQ=float(Z["rq"])
 def get(sp): return {k:Z[f"{sp}_{k}"] for k in ["pall","pspec","p2m","mag","y","ts","bbw1800","rel","ret300","month"]}

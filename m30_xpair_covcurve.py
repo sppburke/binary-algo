@@ -13,7 +13,7 @@ import json, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 GATE_FEAT = "1h_bb_width"
 BE = 0.541
 COVS = [0.02, 0.03, 0.05, 0.08, 0.10, 0.15, 0.20]

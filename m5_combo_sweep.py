@@ -41,7 +41,7 @@ import sys, os, json, time, gc, warnings
 warnings.filterwarnings("ignore")
 import numpy as np
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 MODELS = f"{ROOT}/models"
 PAIR = "EURUSD"
 BE = 0.541                      # deriv breakeven win-rate

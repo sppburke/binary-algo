@@ -4,7 +4,7 @@ import os; os.environ["MX_HOR"]="10"
 import json, numpy as np, lightgbm as lgb
 from sklearn.isotonic import IsotonicRegression
 import m5_xpair as MX
-B="/media/sean/CORSAIR/binary-algo/books/EURUSD.m10xp.v1"
+B="/home/sean/git/binary-algo/books/EURUSD.m10xp.v1"
 s=json.load(open(f"{B}/m10xp_EURUSD_strategy.json")); cols=s["primary_feats"]; GATE=s["gate_feat"]; bthr=s["bb_width_thr"]; cov=0.10
 P=lgb.Booster(model_file=f"{B}/m10xp_EURUSD_primary_lgb.txt")
 def frame(w):

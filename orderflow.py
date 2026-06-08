@@ -5,7 +5,7 @@ Cached separately in features_of/ and merged on demand."""
 import os, numpy as np, pandas as pd
 import pipeline as P
 
-OF_DIR="/media/sean/CORSAIR/binary-algo/features_of"
+OF_DIR="/home/sean/git/binary-algo/features_of"
 os.makedirs(OF_DIR, exist_ok=True)
 
 def of_1m(df10):

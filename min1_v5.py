@@ -7,7 +7,7 @@ breakout/alignment trigger on top of compression, with clean WITHIN-SETUP covera
 threshold, TEST (large n) + OOS + OOS H1/H2 + bootstrap CI. Honest non-overlapping (60s-gap) eval.
 """
 import numpy as np, pandas as pd, time
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 
 def feats(b):
     mid=b["mid"]; imb=b["imb"].fillna(0); micro=b["micro"]; r1=mid.pct_change()

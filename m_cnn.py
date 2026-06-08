@@ -14,7 +14,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.metrics import roc_auc_score
 from min1_production import wc_ret, nonoverlap_chrono, boot, load_split, set_pair
 set_pair("EURUSD")
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"
+TICK="/home/sean/git/binary-algo/features_tick"
 HS=int(sys.argv[1]) if len(sys.argv)>1 else 5
 W=int(sys.argv[2]) if len(sys.argv)>2 else 60
 ARCH=sys.argv[3] if len(sys.argv)>3 else "cnn"   # cnn | gru

@@ -62,7 +62,7 @@ from sklearn.metrics import roc_auc_score
 import m5_xpair as MX
 import m5_xpair_production as XP
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 RESULT = f"{ROOT}/m5_leadlag_te_rff_result.json"
 BE = 0.541                      # deriv breakeven, mid-to-mid ties-lose
 COV = 0.05                      # selective coverage (== m5_lossbatch / optuna)

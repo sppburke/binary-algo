@@ -15,7 +15,7 @@ import lightgbm as lgb
 import m5_xpair as MX
 import manifest as MAN
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 COV = float(os.environ.get("COV", "0.10"))
 BE = 0.541
 GATE_FEAT = "1h_bb_width"

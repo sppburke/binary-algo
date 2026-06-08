@@ -2,7 +2,7 @@
 model iterations are fast. Broad date coverage to improve generalization (close the TEST gap)."""
 import glob, time, os, numpy as np, pandas as pd, calendar
 RAW="/media/sean/CORSAIR/tick_data/raw"; PAIR="EURUSD"
-OUT="/media/sean/CORSAIR/binary-algo/features_tick"; os.makedirs(OUT, exist_ok=True)
+OUT="/home/sean/git/binary-algo/features_tick"; os.makedirs(OUT, exist_ok=True)
 def mo(y,ms):
     out=[]
     for m in ms: out+=[f"{y}-{m:02d}-{d:02d}" for d in range(1,calendar.monthrange(y,m)[1]+1)]

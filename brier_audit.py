@@ -91,7 +91,7 @@ def main():
                   "used — NOT the exact frozen 3000-tree book artifact; persistence baseline is a naive trailing up-rate; "
                   "bet-tail Brier-advantage selects bars by MODEL confidence so it is informative but mildly model-favoring.",
         "results": allres}
-    json.dump(out, open("/media/sean/CORSAIR/binary-algo/brier_audit_result.json", "w"), indent=1)
+    json.dump(out, open("/home/sean/git/binary-algo/brier_audit_result.json", "w"), indent=1)
     hb("DONE -> brier_audit_result.json")
 
 

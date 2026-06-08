@@ -16,7 +16,7 @@ import os, sys; sys.argv=["x"]
 import json, time, numpy as np, pandas as pd
 import lightgbm as lgb
 import harness as H
-ROOT="/media/sean/CORSAIR/binary-algo"; FEAT=H.FEAT_DIR; BE=0.541; HOR=5
+ROOT="/home/sean/git/binary-algo"; FEAT=H.FEAT_DIR; BE=0.541; HOR=5
 PAIRS=["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCHF","USDCAD"]
 FEATS=list(H.feature_cols("EURUSD")); TRAIN=range(2012,2022)
 def boot(c,nb=2500,seed=7):

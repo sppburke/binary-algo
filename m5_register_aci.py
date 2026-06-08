@@ -6,7 +6,7 @@ win-rate. Metrics recorded honestly (within-experiment vs fixed; pending CPCV-va
 import json, os, time
 import manifest
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 m5xp = json.load(open(f"{ROOT}/models/m5xp_EURUSD_strategy.json"))
 conf = json.load(open(f"{ROOT}/m5_conformal_result.json"))
 aci57 = conf["ACI"]["wstar_0.57"]; fixed = conf["FIXED"]

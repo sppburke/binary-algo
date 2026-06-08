@@ -13,7 +13,7 @@ import os, sys, time, numpy as np, pandas as pd
 H = int(sys.argv[1]) if len(sys.argv) > 1 else 5            # LABEL horizon (minutes) — forward deriv outcome
 SPLITS = (sys.argv[2].split(",") if len(sys.argv) > 2 else ["test", "oos"])
 GRID = int(sys.argv[3]) if len(sys.argv) > 3 else H         # context BAR grid (minutes); GRID<H => "fine" cache
-ROOT = "/media/sean/CORSAIR/binary-algo"; TICK = f"{ROOT}/features_tick"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; TICK = f"{ROOT}/features_tick"; OUT = f"{ROOT}/ohlc_cache"
 HS = H * 60; TOL = max(10, HS // 20); LAG = 1
 NAME = f"EURUSD_{H}m" if GRID == H else f"EURUSD_g{GRID}_h{H}"
 

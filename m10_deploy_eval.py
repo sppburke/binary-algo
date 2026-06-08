@@ -19,7 +19,7 @@ import json, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX
 
-BOOK = "/media/sean/CORSAIR/binary-algo/books/EURUSD.m10xp.v1"
+BOOK = "/home/sean/git/binary-algo/books/EURUSD.m10xp.v1"
 BE = 0.541; R = 0.85
 COVS = (0.02, 0.05, 0.10, 0.15, 0.20)
 WSTARS = (0.55, 0.57, 0.59)

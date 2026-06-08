@@ -3,7 +3,7 @@ Train+Val years only (2012-2023). Reports fade accuracy & coverage vs stretch th
 import glob, os
 import numpy as np, pandas as pd
 
-FEAT_DIR="/media/sean/CORSAIR/binary-algo/features"
+FEAT_DIR="/home/sean/git/binary-algo/features"
 YEARS=[str(y) for y in range(2012,2024)]
 bb=[f"{tf}_bb_pctb" for tf in ["1m","5m","15m","30m","1h"]]
 rsi=[f"{tf}_rsi" for tf in ["1m","5m","15m","30m","1h"]]

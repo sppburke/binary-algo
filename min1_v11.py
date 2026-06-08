@@ -9,7 +9,7 @@ Saves magnitude probs. Honest non-overlapping eval + bootstrap CI + 2026 halves.
 import time, numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 
 def feats(b):
     mid=b["mid"]; imb=b["imb"].fillna(0); micro=b["micro"]; r1=mid.pct_change()

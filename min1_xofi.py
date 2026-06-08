@@ -50,7 +50,7 @@ import numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 RAW  = "/media/sean/CORSAIR/tick_data/raw"
 TICK = f"{ROOT}/features_tick"                 # EURUSD 1s micro cache (mid, imb, ...) == the trading clock
 CKS  = f"{ROOT}/features_tick_cks"             # cached EURUSD CKS (cks_e, cks_nev) from min1_cksofi.py

@@ -14,7 +14,7 @@ import os, sys; sys.argv=["x"]
 import json, time, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541; N_TRIALS=20; STRIDE=8; COV=0.05
+ROOT="/home/sean/git/binary-algo"; BE=0.541; N_TRIALS=20; STRIDE=8; COV=0.05
 def boot(c,nb=2500,seed=7):
     c=np.asarray(c,float)
     if len(c)<5: return (float("nan"),float("nan"))

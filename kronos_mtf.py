@@ -43,7 +43,7 @@ H_STEPS = H // GRID; STEP = GRID * 60
 HS = H * 60; TOL = max(10, HS // 20); GAP = HS + TOL; BREAKEVEN = 0.541; BATCH = 16
 CACHE = f"EURUSD_{H}m" if GRID == H else f"EURUSD_g{GRID}_h{H}"
 TOK_ID = "NeoQuasar/Kronos-Tokenizer-base"
-ROOT = "/media/sean/CORSAIR/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
 import torch; torch.set_num_threads(16)
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"
 STRICT_CTX = SESSION != "all"

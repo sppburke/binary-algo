@@ -13,7 +13,9 @@ EURUSD and mapped the full **accuracy-vs-horizon frontier** across 17 strategy v
 
 > **Data:** 10-second OHLCV bars + raw sub-second ticks (bid/ask + quote sizes), 2012-01-02 →
 > 2026-05-08, 7 USD pairs (EURUSD, GBPUSD, AUDUSD, NZDUSD, USDCAD, USDCHF, USDJPY).
-> Source dir (read-only): `/media/sean/CORSAIR/tick_data/{processed,raw}`.
+> Source dir: processed 10s bars at `/home/sean/git/processed/{PAIR}/` (migrated 2026-06-07 from the
+> retired `CORSAIR` drive). ⚠️ Raw sub-second ticks (old `tick_data/raw`) are **not currently on disk** —
+> the 13 tick-level scripts that read them are dormant until raw ticks are restored.
 > **Splits:** TRAIN 2012–2021 · VAL 2022–2023 · TEST 2024–2025 · **OOS 2026 (held out everywhere)**.
 
 ---

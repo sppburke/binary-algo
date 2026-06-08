@@ -17,7 +17,7 @@ n>=150) UP-gated win CI95-lo > 0.53 (comparable to EURUSD's certified .553 floor
 import os, sys; sys.argv = ["x"]
 import json, time, numpy as np, pandas as pd
 import lightgbm as lgb
-ROOT = "/media/sean/CORSAIR/binary-algo"; FEAT = f"{ROOT}/features"; BE = 0.541; COV = 0.05; STRIDE = 6
+ROOT = "/home/sean/git/binary-algo"; FEAT = f"{ROOT}/features"; BE = 0.541; COV = 0.05; STRIDE = 6
 PAIRS = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDJPY", "USDCHF", "USDCAD"]
 USD_BASE = {"USDJPY", "USDCHF", "USDCAD"}
 LB = [1, 3, 5, 10, 15, 30]; HOR = 5

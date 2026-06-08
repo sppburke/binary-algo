@@ -17,7 +17,7 @@ from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 import harness as H
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 HOR = 10; STRIDE = 3
 PAIR = "EURUSD"
 base = list(H.feature_cols("EURUSD"))

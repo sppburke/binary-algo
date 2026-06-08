@@ -29,7 +29,7 @@ Usage: ~/binary-algo-venv/bin/python min1_drl.py            # runs A then B, pri
 """
 import sys, os, time, json, gc, numpy as np, pandas as pd
 import torch, torch.nn as nn, torch.nn.functional as F
-sys.path.insert(0, "/media/sean/CORSAIR/binary-algo")
+sys.path.insert(0, "/home/sean/git/binary-algo")
 import min1_production as M
 
 torch.manual_seed(7); np.random.seed(7)

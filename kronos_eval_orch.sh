@@ -2,7 +2,7 @@
 # Corrected Kronos direction eval sweep (kronos_mtf.py). Waits for the FT chain (GPU free) + caches, then runs
 # the prioritized run plan: P0 corrected-1m-all -> P1 strict per-session zero-shot -> P2 re-eval the 3 FT models
 # -> P4 native higher-TF zero-shot. All on GPU, serial (one model on the 8GB card at a time).
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 echo "$(date +%H:%M:%S) waiting for FT chain (GPU free)..."
 while ! grep -q "ALL FT DONE" kronos_ft_orch.log 2>/dev/null; do sleep 30; done

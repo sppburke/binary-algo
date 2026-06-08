@@ -11,7 +11,7 @@ from sklearn.metrics import roc_auc_score
 import harness as H
 from m10_production import _load, _dirproba, nonoverlap_chrono, boot
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"; PAIR = "EURUSD"; HOR = 10; STRIDE = 3
+MODELS = "/home/sean/git/binary-algo/models"; PAIR = "EURUSD"; HOR = 10; STRIDE = 3
 base = list(H.feature_cols("EURUSD"))
 SPL = {"train": [str(y) for y in range(2012, 2022)], "val": ["2022", "2023"], "test24": ["2024"], "test25": ["2025"], "oos": ["2026"]}
 

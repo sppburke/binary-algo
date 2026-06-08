@@ -20,7 +20,7 @@ USD_BASE = {"USDJPY", "USDCHF", "USDCAD"}
 WINDOWS = [1, 2, 5, 15]
 FWD = 5                       # 5 one-min bars = 300s
 YEARS = [2022, 2023, 2024, 2025, 2026]
-OFDIR = "/media/sean/CORSAIR/binary-algo/features_of"
+OFDIR = "/home/sean/git/binary-algo/features_of"
 
 
 def loadclose(p):

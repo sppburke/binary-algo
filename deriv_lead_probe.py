@@ -36,7 +36,7 @@ box (e.g. an OANDA-practice or cTrader-FIX stream) for a clean live-vs-live cros
 import sys, os, json, time, argparse, struct, lzma, urllib.request
 import numpy as np, pandas as pd
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 WS_URL = "wss://ws.derivws.com/websockets/v3?app_id=1089"      # app_id 1089 = no auth/account needed (verified)
 SYMBOL = "frxEURUSD"
 DUKA_SYMBOL = "EURUSD"; DUKA_POINT = 1e5                        # EURUSD is 5-decimal -> raw int price / 1e5

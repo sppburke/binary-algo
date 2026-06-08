@@ -9,7 +9,7 @@ import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 import harness as H, m5_xpair as MX
 from m5_xpair_production import meta_feats as xp_meta_feats, _Xmeta, art as art5
-MODELS="/media/sean/CORSAIR/binary-algo/models"; PAIR="EURUSD"
+MODELS="/home/sean/git/binary-algo/models"; PAIR="EURUSD"
 base=list(H.feature_cols("EURUSD"))
 SPL={"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}
 

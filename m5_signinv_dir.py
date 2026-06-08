@@ -61,7 +61,7 @@ import min1_hmm as HM
 import min1_kalman as KAL
 from hmmlearn.hmm import GaussianHMM
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 BE = 0.541
 STRIDE = 6          # m5_lossbatch STRIDE
 COV = 0.05          # selective coverage (m5_lossbatch)

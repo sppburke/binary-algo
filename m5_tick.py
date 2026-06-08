@@ -18,7 +18,7 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 from min1_production import feats, wc_ret, nonoverlap_chrono, boot, load_split, set_pair
 
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 HS=300; TOL=10; GAP=HS+TOL; LAG=1      # deriv-style 5-min; next-tick entry negligible
 set_pair("EURUSD")
 

@@ -342,7 +342,7 @@ def main():
         print(f"   deflated_expectation={v['deflated_expectation']} (mean - |corr|*E[max-{N_TRIALS}])  clears_bar={v['deflated_exp_clears_bar']}")
         print(f"   p10_path_clears_bar={v['p10_clears_bar']}  prob_typical_path_clears_bar={v['prob_typical_path_clears_bar']}")
 
-    json.dump(out, open("/media/sean/CORSAIR/binary-algo/cpcv_certify_result.json","w"), indent=2)
+    json.dump(out, open("/home/sean/git/binary-algo/cpcv_certify_result.json","w"), indent=2)
     print(f"\n[ALL DONE {time.time()-T0:.0f}s] -> cpcv_certify_result.json", flush=True)
     return out
 

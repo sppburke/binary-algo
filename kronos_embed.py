@@ -30,7 +30,7 @@ import numpy as np, pandas as pd
 warnings.filterwarnings("ignore")
 sys.path.insert(0, "/home/sean/git/Kronos")
 
-ROOT = "/media/sean/CORSAIR/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
 N_PER_YR = int(sys.argv[1]) if len(sys.argv) > 1 else 4000
 L        = int(sys.argv[2]) if len(sys.argv) > 2 else 256
 MODEL    = sys.argv[3] if len(sys.argv) > 3 else "NeoQuasar/Kronos-small"

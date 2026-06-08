@@ -15,7 +15,7 @@ import os, sys; sys.argv=["x"]
 import json, time, numpy as np
 from sklearn.isotonic import IsotonicRegression
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541
+ROOT="/home/sean/git/binary-algo"; BE=0.541
 YEARS=(("val","VAL"),("test24","2024"),("test25","2025"),("oos","2026"))
 def boot(c,nb=3000,seed=7):
     c=np.asarray(c,float)

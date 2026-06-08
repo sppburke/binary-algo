@@ -12,7 +12,7 @@ CAUSALITY: forward Kalman recursion only — state at t uses observations <= t. 
 import os, numpy as np, pandas as pd, time
 import harness as H
 
-FEAT = "/media/sean/CORSAIR/binary-algo/features"
+FEAT = "/home/sean/git/binary-algo/features"
 PAIRS = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDJPY", "USDCHF", "USDCAD"]
 USD_BASE = {"USDJPY", "USDCHF", "USDCAD"}
 NONEU = [p for p in PAIRS if p != "EURUSD"]

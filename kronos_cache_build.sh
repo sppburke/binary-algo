@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 $PY kronos_bars.py 2 test,oos       # native 2m  -> EURUSD_2m
 $PY kronos_bars.py 2 test,oos 1     # fine 1m->2m -> EURUSD_g1_h2

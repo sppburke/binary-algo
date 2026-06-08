@@ -27,7 +27,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 import min1_production as M
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 RAW  = "/media/sean/CORSAIR/tick_data/raw/EURUSD"
 FLOWDIR = f"{ROOT}/flow_cache"
 TOL_S = M.TOL_S            # 10s settlement tolerance (matches production)

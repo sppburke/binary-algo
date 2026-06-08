@@ -32,7 +32,7 @@ WIN      = L + 2                                                   # train windo
 STEPS_PER_EPOCH = int(os.environ.get("STEPS_PER_EPOCH", "1200")); PATIENCE = 3; EVAL_BATCH = 16
 VAL_CAP = int(os.environ.get("VAL_CAP", "400"))                    # val batches cap (smoke override)
 HS, TOL, GAP = 60, 10, 70; BREAKEVEN = 0.541
-ROOT = "/media/sean/CORSAIR/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
 TOK_ID = "NeoQuasar/Kronos-Tokenizer-base"; BASE = "NeoQuasar/Kronos-small"
 SAVE = f"{ROOT}/models/kronos_ft_{SESSION}"
 DEV = "cuda:0" if torch.cuda.is_available() else "cpu"

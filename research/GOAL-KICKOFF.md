@@ -11,8 +11,8 @@ below is a **decision gate**, not a model to ship — ~1 day each, all on data i
 **before** funding E1/E2/E3/E4. Any one can redirect the whole project.
 
 ## Standing context (already true)
-- Data (read-only): `/media/sean/CORSAIR/tick_data/{processed,raw}` — 10s OHLCV + raw bid/ask ticks w/ sizes,
-  7 USD pairs, 2012-01-02 → 2026-05-08. venv: `~/binary-algo-venv/bin/python`.
+- Data: 10s OHLCV bars at `/home/sean/git/processed/{PAIR}/` (7 USD pairs, 2012-01-02 → 2026-05-08).
+  ⚠️ Raw bid/ask ticks w/ sizes (old `tick_data/raw`) are not currently on disk. venv: `~/binary-algo-venv/bin/python`.
 - Splits: TRAIN 2012–21 · VAL 2022–23 · TEST 2024–25 · **OOS 2026 locked**.
 - Verified 3s edge exists: `models/probs_tickens_H3.npz` (TEST 0.756 / OOS 0.809 @0.05% cov).
 - Best 15m so far: ~0.632 OOS @0.2% coverage (selective). AUC current best level ~0.527.

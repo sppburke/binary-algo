@@ -20,7 +20,7 @@ from sklearn.metrics import roc_auc_score
 import m5_xpair as MX
 import harness as H
 
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 PAIR="EURUSD"; MODE="xpof"
 SPL=MX.SPL
 def art(n): return f"{MODELS}/m5xp_{PAIR}_{n}"

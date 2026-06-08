@@ -7,7 +7,7 @@ OOS 2026 are both held out from selection. Honest non-overlapping (60s-gap) eval
 2026 halves + bootstrap CI. Reuses global v3 ensemble probs (no peeking-driven retrain).
 """
 import numpy as np, pandas as pd, time
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 
 def feats(b):
     mid=b["mid"]; r1=mid.pct_change(); X=pd.DataFrame(index=b.index)

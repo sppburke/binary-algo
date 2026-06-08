@@ -37,7 +37,7 @@ YEARS = list(range(2012, 2027))
 HOR = int(sys.argv[1]) if len(sys.argv) > 1 else 30
 RNG = np.random.default_rng(7); SUBSAMPLE = 100_000
 N_GROUPS = 8; K_TEST = 2; N_TRIALS = 70; CORR_VAL_OOS = -0.54; MAG_BAR = 0.55
-RES = f"/media/sean/CORSAIR/binary-algo/deseason_mag_{HOR}m_result.json"
+RES = f"/home/sean/git/binary-algo/deseason_mag_{HOR}m_result.json"
 T0 = time.time()
 def hb(m): print(f"HB[{time.time()-T0:.0f}s] {m}", flush=True)
 

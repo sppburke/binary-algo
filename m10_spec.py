@@ -19,7 +19,7 @@ import m5_xpair as MX
 
 MODE = "xpof"; SPL = MX.SPL; GAP = 600; BE = 0.541
 GATE = "5m_bb_width"
-OUT = "/media/sean/CORSAIR/binary-algo/m10_spec_result.json"
+OUT = "/home/sean/git/binary-algo/m10_spec_result.json"
 INC = {"UP_2025": 0.605, "DOWN_2025": 0.574}
 
 

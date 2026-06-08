@@ -16,7 +16,7 @@ import m5_xpair_production as XP
 import m5_cpcv_refit as RF
 import manifest
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 STRIDE = 6
 POW = 0.5
 ALL_YEARS = [str(y) for y in range(2012, 2027)]
@@ -105,7 +105,7 @@ def main():
     print(f"[magw-freeze] strategy -> {strat_path}", flush=True)
 
     # Build and freeze manifest
-    feat_dir = "/media/sean/CORSAIR/binary-algo/features"
+    feat_dir = "/home/sean/git/binary-algo/features"
     fp = manifest.dir_fingerprint(feat_dir, ("EURUSD_*.parquet",))
     m = manifest.build(
         book_id=BOOK_ID,

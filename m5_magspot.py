@@ -23,7 +23,7 @@ import os, sys; sys.argv = ["x"]
 import json, time, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT = "/media/sean/CORSAIR/binary-algo"; PIP = 0.0001 / 1.16
+ROOT = "/home/sean/git/binary-algo"; PIP = 0.0001 / 1.16
 SPREADS = [0.1, 0.2, 0.4]; QS = [0.0, 0.3, 0.5, 0.7]   # mag-gate: keep top (1-q) by predicted move-size
 WINDOWS = (("val", "VAL"), ("test24", 2024), ("test25", 2025), ("oos", 2026))
 def boot(c, nb=2500, seed=7):

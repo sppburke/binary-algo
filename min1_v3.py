@@ -12,7 +12,7 @@ import time, numpy as np, pandas as pd
 import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"
+TICK="/home/sean/git/binary-algo/features_tick"
 HS=60; TRSTRIDE=5
 
 def feats(b):

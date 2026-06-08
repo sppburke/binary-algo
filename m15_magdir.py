@@ -22,7 +22,7 @@ HOR = 15
 base = list(H.feature_cols("EURUSD"))
 SUB = 150_000
 BE = 0.541
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 
 
 def load_mag(years, stride=1):

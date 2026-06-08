@@ -184,7 +184,7 @@ def main():
            "design": "frozen-past forward holdout, direction cov0.10 NY selacc; base=certified xp book + shuffle control",
            "falsifier": f"+{WHICH} beats base selacc >=2 fwd years (no decay) AND {WHICH}only clears .541 AND real >> shuffle",
            "by_arm": res["by_arm"], "deltas": res["deltas"], "deployable": res["deployable"]}
-    json.dump(out, open(f"/media/sean/CORSAIR/binary-algo/xsec_direction_{WHICH}_{HOR}m_result.json", "w"), indent=1)
+    json.dump(out, open(f"/home/sean/git/binary-algo/xsec_direction_{WHICH}_{HOR}m_result.json", "w"), indent=1)
     hb(f"DONE -> xsec_direction_{WHICH}_{HOR}m_result.json")
 
 

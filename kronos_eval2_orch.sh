@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 run(){ echo "===== $(date +%H:%M:%S) kronos_mtf $* ====="; $PY kronos_mtf.py "$@"; }
 # NATIVE (2m new; re-run 5m/10m so they save per-bar npz for the ensemble)

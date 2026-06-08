@@ -14,7 +14,7 @@ Run:  ~/binary-algo-venv/bin/python barcnn_bars.py
 """
 import os, time, numpy as np, pandas as pd
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 TICK = f"{ROOT}/features_tick"
 OUT  = f"{ROOT}/ohlc_cache"
 HS, TOL, LAG = 60, 10, 1          # 60s expiry, 10s settlement tolerance, +1s deriv entry lag (T&C 2.2.3.1)

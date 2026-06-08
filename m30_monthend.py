@@ -9,7 +9,7 @@ Usage: python m30_monthend.py
 """
 import os, json, numpy as np, pandas as pd
 from scipy import stats
-FEAT = "/media/sean/CORSAIR/binary-algo/features"
+FEAT = "/home/sean/git/binary-algo/features"
 HOR = 30
 STRIDE = 3  # cap memory; estimating an up-rate bias does not need every bar
 

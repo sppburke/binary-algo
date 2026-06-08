@@ -19,7 +19,7 @@ positive only at tight (<=0.2 pip) spreads (avg move ~2 pips, ~.55 edge), DOWN n
 import os, sys; sys.argv = ["x"]
 import json, time, numpy as np
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 EV = (("test24", 2024), ("test25", 2025), ("oos", 2026))
 SCORE_COLS = ["ts", "y5", "fwd5", "sess_ny", "pxp", "mxp"]
 PIP = 0.0001 / 1.16            # ~8.62e-5 return units per pip at EURUSD~1.16

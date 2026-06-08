@@ -5,7 +5,7 @@ Rule: price stretched (multi-TF bb%b extreme) AND order-flow opposing the move
 We DEVELOP the rule on TRAIN+VAL (2012-2023), then VALIDATE on TEST(2024-25)+OOS(2026)."""
 import os, numpy as np, pandas as pd
 import orderflow as OF
-FEAT_DIR="/media/sean/CORSAIR/binary-algo/features"; OF_DIR=OF.OF_DIR
+FEAT_DIR="/home/sean/git/binary-algo/features"; OF_DIR=OF.OF_DIR
 
 bb=[f"{tf}_bb_pctb" for tf in ["1m","5m","15m","30m","1h"]]
 need=["y","valid","fwd_ret","5m_rv_24","15m_rv_24","5m_ret_1","15m_ret_1"]+bb

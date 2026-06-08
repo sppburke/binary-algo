@@ -51,7 +51,7 @@ import torch.nn as nn
 import m5_xpair as MX
 import m5_xpair_production as XP
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 BE = 0.541; STRIDE = 6; COV = 0.05; HOR_S = 300
 DEV = "cpu"
 SEED = 0

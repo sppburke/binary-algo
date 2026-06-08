@@ -3,7 +3,7 @@ Uses only TRAIN+VAL years (2012-2023) to avoid peeking at TEST/OOS."""
 import glob, os
 import numpy as np, pandas as pd
 
-FEAT_DIR = "/media/sean/CORSAIR/binary-algo/features"
+FEAT_DIR = "/home/sean/git/binary-algo/features"
 YEARS = [str(y) for y in range(2012, 2024)]
 cols = ["y","fwd_ret","valid","close","hour_sin","hour_cos",
         "1m_ret_1","5m_ret_1","15m_ret_1","1h_ret_1",

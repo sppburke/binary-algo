@@ -9,7 +9,7 @@ import os, time, numpy as np, pandas as pd
 import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
-ROOT="/media/sean/CORSAIR/binary-algo"; TICK=f"{ROOT}/features_tick"; MODELS=f"{ROOT}/models"
+ROOT="/home/sean/git/binary-algo"; TICK=f"{ROOT}/features_tick"; MODELS=f"{ROOT}/models"
 HS=120; TRSTRIDE=3
 from min2_v1 import feats, prep   # reuse 62-feature builder + 120s prep
 

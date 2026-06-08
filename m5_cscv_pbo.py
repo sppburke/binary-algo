@@ -24,7 +24,7 @@ from scipy.stats import norm
 import m5_xpair as MX
 import m5_xpair_production as XP
 
-ROOT="/media/sean/CORSAIR/binary-algo"
+ROOT="/home/sean/git/binary-algo"
 BE=0.541; R=0.85                  # deriv: win +0.85, loss/tie -1; breakeven win-rate 0.541
 GAMMA=0.5772156649
 S_BLOCKS=16                       # CSCV blocks (C(16,8)=12870 symmetric splits)

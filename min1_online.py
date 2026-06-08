@@ -15,7 +15,7 @@ import os, sys, time, json, numpy as np, pandas as pd
 import harness as H
 from river import forest, drift, preprocessing, linear_model, optim
 
-FEAT = "/media/sean/CORSAIR/binary-algo/features"; PAIR = "EURUSD"
+FEAT = "/home/sean/git/binary-algo/features"; PAIR = "EURUSD"
 STRIDE = int(os.environ.get("ON_STRIDE", "5"))     # prequential over every STRIDE-th bar (throughput)
 MODELKIND = os.environ.get("ON_MODEL", "arf")      # arf | logreg
 # compact, causal feature subset (REAL base cols) — multi-TF momentum/vol/range/trend/session

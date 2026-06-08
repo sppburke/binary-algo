@@ -41,7 +41,7 @@ import json, time, numpy as np, pandas as pd
 import lightgbm as lgb
 import m5_xpair as MX, m5_xpair_production as XP
 
-ROOT="/media/sean/CORSAIR/binary-algo"; FEAT=MX.FEAT
+ROOT="/home/sean/git/binary-algo"; FEAT=MX.FEAT
 BE=0.541; STRIDE=6; COV=0.05
 INCUMBENT_UP=0.577        # incumbent UP binding-2025 headline (refit floor .553); beat by >1SE
 MAGWEIGHT_DOWN=0.5441     # magweight POW=0.5 DOWN cov0.05 p10; beat by >1SE

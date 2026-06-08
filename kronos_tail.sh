@@ -1,6 +1,6 @@
 #!/bin/bash
 # Fast tail of GPU lane 2 after killing the slow fine1_10m: small-N fine runs + multi-TF ensembles + per-session bar-CNN.
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 echo "== $(date +%H:%M:%S) fine1_10m (fast N=800) =="; $PY kronos_mtf.py 10 all 1 256 20 800 NeoQuasar/Kronos-small mtf_zs_fine1_10m
 echo "== $(date +%H:%M:%S) fine5_10m =="; $PY kronos_mtf.py 10 all 5 256 20 3000 NeoQuasar/Kronos-small mtf_zs_fine5_10m

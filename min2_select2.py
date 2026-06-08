@@ -4,7 +4,7 @@ Adds richer regimes (comp x mag, comp x rel x mag) and reports bootstrap 95% CI 
 Selection rule pre-committed: argmax VAL non-overlap accuracy subject to nVA>=NFLOOR. Judge TEST+OOS once.
 """
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 GAP=120
 NFLOOR=int(sys.argv[1]) if len(sys.argv)>1 else 250
 Z=np.load(f"{MODELS}/probs_min2_v1.npz",allow_pickle=True)

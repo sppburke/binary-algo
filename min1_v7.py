@@ -6,7 +6,7 @@ cell with OOS>=0.75 at the LARGEST n with TEST>=0.73 and both 2026 halves stable
 honest non-overlapping eval + bootstrap CI. No retrain (reuses models/probs_min1_v3.npz).
 """
 import numpy as np, pandas as pd, time
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 
 def feats(b):
     mid=b["mid"]; r1=mid.pct_change(); X=pd.DataFrame(index=b.index)

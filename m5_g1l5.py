@@ -17,7 +17,7 @@ PRE-REGISTERED FALSIFIER: KILL G1/L5 unless it BEATS the raw-conf accuracy-selec
 import os, sys; sys.argv=["x"]
 import json, time, numpy as np
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541; COV=0.10
+ROOT="/home/sean/git/binary-algo"; BE=0.541; COV=0.10
 def boot(c,nb=2000,seed=7):
     c=np.asarray(c,float)
     if len(c)<5: return (float("nan"),float("nan"))

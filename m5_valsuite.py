@@ -18,7 +18,7 @@ import os, sys; sys.argv=["x"]
 import json, time, math, numpy as np
 from scipy import stats
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541; R=0.85; COV=0.05
+ROOT="/home/sean/git/binary-algo"; BE=0.541; R=0.85; COV=0.05
 def yr(ts): return (np.asarray(ts,dtype="datetime64[s]").astype("datetime64[Y]").astype(int)+1970)
 
 def up_trades():

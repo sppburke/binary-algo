@@ -20,7 +20,7 @@ Run: ~/binary-algo-venv/bin/python kronos_embed_tod.py [src_tag=embed_main]
 import sys, os, json, math, itertools, time, warnings
 import numpy as np, pandas as pd
 warnings.filterwarnings("ignore")
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 SRC = sys.argv[1] if len(sys.argv) > 1 else "embed_main"
 NPZ = f"{ROOT}/kronos_embed_{SRC}.npz"; RES = f"{ROOT}/kronos_embed_tod_{SRC}_result.json"
 RNG = np.random.default_rng(7); T0 = time.time()

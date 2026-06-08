@@ -1,6 +1,6 @@
 """2-min final combine: v1(all-bars) + v4(tuned LGBM specialist) direction probs; trend/regime cols from v3 npz."""
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"; GAP=120
+MODELS="/home/sean/git/binary-algo/models"; GAP=120
 NFLOOR=int(sys.argv[1]) if len(sys.argv)>1 else 350
 W=float(sys.argv[2]) if len(sys.argv)>2 else 0.3
 Z1=np.load(f"{MODELS}/probs_min2_v1.npz",allow_pickle=True)

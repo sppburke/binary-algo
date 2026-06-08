@@ -11,7 +11,7 @@ import time, numpy as np, pandas as pd
 import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 T0=time.time()
 def hb(m): print(f"HB[{time.time()-T0:.0f}s] {m}",flush=True)
 

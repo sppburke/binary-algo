@@ -9,7 +9,7 @@ Pre-committed config (no peeking at OOS to choose any of these):
                      sub-filter; argmax VAL accuracy s.t. nVA>=350  ->  rev300, reltight 0, cov 0.03.
 """
 import numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"; GAP=120; W=0.5
+MODELS="/home/sean/git/binary-algo/models"; GAP=120; W=0.5
 Z1=np.load(f"{MODELS}/probs_min2_v1.npz",allow_pickle=True)
 Z3=np.load(f"{MODELS}/probs_min2_v3.npz",allow_pickle=True)
 Z4=np.load(f"{MODELS}/probs_min2_v4.npz",allow_pickle=True)

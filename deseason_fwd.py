@@ -55,5 +55,5 @@ rows["2024-2026"] = dict(n=int(te.sum()), base_auc=round(ab, 4), tod_auc=round(a
 print(f"{'24-26':>6} | {te.sum():>9,} | {ab:>8.4f} {lift(pb,a):>5.2f} | {at:>8.4f} {lift(pt,a):>5.2f} | {at-ab:>+8.4f}")
 import json
 json.dump({"horizon_min": HOR, "train_max": TRAIN_MAX, "design": "frozen-past forward holdout (deployment-faithful)",
-           "by_year": rows}, open(f"/media/sean/CORSAIR/binary-algo/deseason_fwd_{HOR}m_result.json", "w"), indent=1)
+           "by_year": rows}, open(f"/home/sean/git/binary-algo/deseason_fwd_{HOR}m_result.json", "w"), indent=1)
 hb("DONE")

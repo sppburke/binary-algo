@@ -4,8 +4,8 @@ EURUSD drifts in the surprise direction. Rule (no training): predict dir = sign(
 hold H min. Measure accuracy per year (2024/2025/2026 held-out), CI95, vs surprise magnitude, entry delay, hold horizon.
 """
 import sys, numpy as np, pandas as pd
-FEAT="/media/sean/CORSAIR/binary-algo/features"
-CAL="/media/sean/CORSAIR/binary-algo/macro_calendar.parquet"
+FEAT="/home/sean/git/binary-algo/features"
+CAL="/home/sean/git/binary-algo/macro_calendar.parquet"
 
 def load_closes(years):
     parts=[]

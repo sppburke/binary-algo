@@ -2,7 +2,7 @@
 name: strategy-eval
 description: >
   Evaluate or reverse-engineer a binary up/down direction (or magnitude) strategy in THIS repo
-  (/media/sean/CORSAIR/binary-algo) and record the result correctly. Use whenever the task is to test a
+  (/home/sean/git/binary-algo) and record the result correctly. Use whenever the task is to test a
   model/methodology at a (currency, timeframe, side); retarget an existing method to a new horizon or
   currency; reference/load/freeze a model from the registry (books/); or write a result into a
   <PAIR>_RESULTS.md. Enforces the deriv-faithful evaluation discipline and the unique-key results schema so

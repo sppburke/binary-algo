@@ -30,7 +30,7 @@ import m5_xpair as MX
 from m5_xpair import (FEAT, PAIRS, USD_BASE, NONEU, LB, SPL,
                       eu_equiv_sign, nonoverlap_chrono, boot, augment, xp_cols, feat_cols)
 
-OUT = "/media/sean/CORSAIR/binary-algo/min1_residtarget_result.json"
+OUT = "/home/sean/git/binary-algo/min1_residtarget_result.json"
 RAW_XPAIR_BASELINE = 0.534      # the binding 2025 raw-direction number to beat
 BREAKEVEN = 0.541               # deriv mid-to-mid ties-lose breakeven
 TRAIN_CAP = 120_000             # subsample cap per memory-safety

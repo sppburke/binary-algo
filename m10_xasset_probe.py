@@ -8,7 +8,7 @@ clearly positive). Read-only on the external LEAN repo. Usage: python m10_xasset
 import os, io, zipfile, glob, numpy as np, pandas as pd
 
 ESDIR = "/home/sean/git/reverse-engineered-trading/lean/data/future/cme/minute/es"
-FEAT = "/media/sean/CORSAIR/binary-algo/features"
+FEAT = "/home/sean/git/binary-algo/features"
 YEARS = ["2023", "2024", "2025", "2026"]
 LB = [1, 3, 5, 10]   # ES lookback minutes
 HOR = 10

@@ -15,7 +15,7 @@ import os, sys; sys.argv=["x"]
 import json, time, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX, m5_xpair_production as XP
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541; K=4; POW=0.5; COVS=[0.03,0.05,0.10]
+ROOT="/home/sean/git/binary-algo"; BE=0.541; K=4; POW=0.5; COVS=[0.03,0.05,0.10]
 def magw(fwd):
     a=np.abs(fwd).astype(float); med=np.median(a[a>0]) or 1e-9
     return np.clip((a/med)**POW,0.1,10.0)

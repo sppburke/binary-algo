@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 # wait for HOR=10 to finish all 3 sessions
 while [ ! -f session_xpair_10m_asia_result.json ]; do sleep 30; done
 sleep 5

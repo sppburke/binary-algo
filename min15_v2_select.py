@@ -4,7 +4,7 @@ Baseline V27: comp(15m_bb_width<=q)xNY all-bars → 0.642 combined (2024 .691/20
 Selection: pre-committed argmax VAL acc s.t. nVA>=NFLOOR; report TEST + OOS + combined (V27 metric) + per-year.
 """
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 NFLOOR=int(sys.argv[1]) if len(sys.argv)>1 else 150
 Z=np.load(f"{MODELS}/probs_min15_v2.npz",allow_pickle=True)
 BQ=float(Z["bq"])

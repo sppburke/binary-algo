@@ -6,7 +6,7 @@ import sys, numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H, m5_xpair as MX
-CAL="/media/sean/CORSAIR/binary-algo/macro_calendar.parquet"
+CAL="/home/sean/git/binary-algo/macro_calendar.parquet"
 SPL={"train":[str(y) for y in range(2012,2022)],"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}
 WIN=30  # minutes a release stays "active"
 

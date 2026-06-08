@@ -258,7 +258,7 @@ precision with explicit guarantees — attractive given our tiny-n selective reg
 
 | Need | Why | Source | Cost / fidelity |
 |---|---|---|---|
-| Our existing 10s OHLCV + tick bid/ask + sizes (already have) | Triple-barrier needs intrabar path + true spread for cost-accurate meta-labels | `/media/sean/CORSAIR/tick_data/{processed,raw}` | Free, in-hand. Dukascopy-grade; tick spread is the key extra vs OHLCV. |
+| Our existing 10s OHLCV + tick bid/ask + sizes (already have) | Triple-barrier needs intrabar path + true spread for cost-accurate meta-labels | 10s bars `/home/sean/git/processed/`; raw ticks (old `tick_data/raw`) currently offline | Free, in-hand. Dukascopy-grade; tick spread is the key extra vs OHLCV. |
 | Realized-vol estimate per 15m | Barrier scaling | Derive from our 10s bars (Parkinson/Garman-Klass or rolling σ) | Free, in-hand. |
 | USD-basket / cross-pair levels for fracdiff residuals | New long-memory feature source | Our 7 USD pairs | Free, in-hand. |
 | (Optional) economic-calendar release timestamps | Conditioning meta-model on event windows (we found event-timing redundant, but *meta-conditioning* differs) | Forex Factory / Econoday scrape; investpy | Free–cheap; low fidelity timestamps. Low priority given prior finding. |

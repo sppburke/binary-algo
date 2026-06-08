@@ -6,7 +6,7 @@ import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 import harness as H
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"
+TICK="/home/sean/git/binary-algo/features_tick"
 def make(b, HS):
     mid=b["mid"]; imb=b["imb"].fillna(0); micro=b["micro"]; X=pd.DataFrame(index=b.index); X["imb"]=imb
     for w in (2,3,5,8,13,21,34): X[f"imb_ema{w}"]=imb.ewm(span=w).mean(); X[f"ret{w}"]=mid.pct_change(w)

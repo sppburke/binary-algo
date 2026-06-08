@@ -20,7 +20,7 @@ clears breakeven 0.541 at usable coverage (nâ‰¥100/yr), AND VAL worst-half acc â
 import os, sys; sys.argv=["x"]
 import json, time, numpy as np, pandas as pd
 import harness as H
-ROOT="/media/sean/CORSAIR/binary-algo"; FEAT=H.FEAT_DIR; BE=0.541; HOR=5
+ROOT="/home/sean/git/binary-algo"; FEAT=H.FEAT_DIR; BE=0.541; HOR=5
 PAIRS=["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCHF","USDCAD"]; OTH=PAIRS[1:]
 TRAIN=range(2012,2022); VAL=[2022,2023]
 def boot(c,nb=2000,seed=7):

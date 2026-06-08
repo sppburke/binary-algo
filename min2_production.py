@@ -46,7 +46,7 @@ from catboost import CatBoostClassifier
 import joblib
 from sklearn.metrics import roc_auc_score
 
-ROOT="/media/sean/CORSAIR/binary-algo"; MODELS=f"{ROOT}/models"
+ROOT="/home/sean/git/binary-algo"; MODELS=f"{ROOT}/models"
 PAIR="EURUSD"
 HS = 120                                 # 120-SECOND fixed wall-clock expiry (a real binary option expiry)
 TOL_S = 10                               # settlement/entry matched within 10s of the exact instant, else the

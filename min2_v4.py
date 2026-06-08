@@ -6,7 +6,7 @@ lower lr, more data (stride 2) to squeeze the small in-regime direction signal.
 import os, time, numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
-ROOT="/media/sean/CORSAIR/binary-algo"; TICK=f"{ROOT}/features_tick"; MODELS=f"{ROOT}/models"
+ROOT="/home/sean/git/binary-algo"; TICK=f"{ROOT}/features_tick"; MODELS=f"{ROOT}/models"
 from min2_v1 import feats, prep
 HS=120; TRSTRIDE=2
 def main():

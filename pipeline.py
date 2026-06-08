@@ -18,8 +18,8 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
-DATA_ROOT = "/media/sean/CORSAIR/tick_data/processed"
-FEAT_DIR = "/media/sean/CORSAIR/binary-algo/features"
+DATA_ROOT = "/home/sean/git/processed"
+FEAT_DIR = "/home/sean/git/binary-algo/features"
 os.makedirs(FEAT_DIR, exist_ok=True)
 
 HORIZON = 5  # minutes ahead for the binary label

@@ -31,7 +31,7 @@ import sys, os, json, time, math, itertools, warnings
 import numpy as np, pandas as pd
 warnings.filterwarnings("ignore")
 
-ROOT = "/media/sean/CORSAIR/binary-algo"; FEAT = f"{ROOT}/features"
+ROOT = "/home/sean/git/binary-algo"; FEAT = f"{ROOT}/features"
 PAIRS = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDJPY", "USDCHF", "USDCAD"]   # EURUSD = variate 0
 N_PER_YR = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
 L        = int(sys.argv[2]) if len(sys.argv) > 2 else 512

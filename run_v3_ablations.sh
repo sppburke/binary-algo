@@ -1,6 +1,6 @@
 #!/bin/bash
 # V3 signal-attribution ablations. Each isolates one signal block.
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 echo "waiting for base feature gen..."
 until [ -f features/USDJPY_2026.parquet ]; do sleep 8; done

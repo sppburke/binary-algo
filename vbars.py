@@ -11,8 +11,8 @@ event-bar sampling reveals predictability the time bars hide, AUC/selective shou
 import os, sys, glob, time, numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
-RAW="/media/sean/CORSAIR/tick_data/processed/EURUSD"
-CACHE="/media/sean/CORSAIR/binary-algo/vbar_cache"; os.makedirs(CACHE,exist_ok=True)
+RAW="/home/sean/git/processed/EURUSD"
+CACHE="/home/sean/git/binary-algo/vbar_cache"; os.makedirs(CACHE,exist_ok=True)
 HOR_S=1800
 V_THR=1.0e9   # ~5-min-equivalent volume per bar (median 10s vol ~3.5e7 * ~30)
 D_THR=1.5e9   # ~5-min-equivalent dollar per bar

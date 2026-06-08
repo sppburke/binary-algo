@@ -1,6 +1,6 @@
 """2-min v3 selector: specialist probs + trend alignment. Pre-committed argmax VAL acc s.t. nVA>=NFLOOR."""
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"; GAP=120
+MODELS="/home/sean/git/binary-algo/models"; GAP=120
 NFLOOR=int(sys.argv[1]) if len(sys.argv)>1 else 300
 Z=np.load(f"{MODELS}/probs_min2_v3.npz",allow_pickle=True)
 BQ=float(Z["bq"]); RQ=float(Z["rq"])

@@ -117,7 +117,7 @@ data (the documented >0.75 route), Deriv synthetic indices, or news-event condit
 ### Setup notes
 - venv: `~/binary-algo-venv` (uv-managed). Libs: pandas 3.0.3, numpy 2.4, pyarrow, polars,
   scikit-learn 1.8, xgboost 3.2, lightgbm 4.6, catboost 1.2.10, scipy, matplotlib.
-- Workspace: `/media/sean/CORSAIR/binary-algo`. Data (read-only): `/media/sean/CORSAIR/tick_data/processed/{PAIR}/`.
+- Workspace: `/home/sean/git/binary-algo`. Data (read-only): `/home/sean/git/processed/{PAIR}/`.
 - Data quality: 24h coverage, zero-volume (flat) bars 3–24% depending on year; duplicate/loose
   timestamps possible → dedup + reindex to regular grid in loader.
 

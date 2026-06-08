@@ -12,7 +12,7 @@ import lightgbm as lgb, xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 import harness as H
-MODELS="/media/sean/CORSAIR/binary-algo/models"; HOR=15; STRIDE=3
+MODELS="/home/sean/git/binary-algo/models"; HOR=15; STRIDE=3
 base=list(H.feature_cols("EURUSD")); PAIR="EURUSD"
 
 def load(years, stride=1):

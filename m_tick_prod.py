@@ -14,7 +14,7 @@ from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 from min1_production import feats, wc_ret, nonoverlap_chrono, boot, load_split, set_pair
 set_pair("EURUSD")
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 HS=5; LAG=1
 def TOL(hs): return max(2, hs//30+1)
 def art(n): return f"{MODELS}/mtick{HS}_EURUSD_{n}"

@@ -19,9 +19,9 @@ import lightgbm as lgb
 import m5_xpair as MX
 
 GAP = 600; BE = 0.541; R = 0.85
-B10 = "/media/sean/CORSAIR/binary-algo/books/EURUSD.m10xp.v1"
-B15 = "/media/sean/CORSAIR/binary-algo/books/EURUSD.m15xp.v1"
-OUT = "/media/sean/CORSAIR/binary-algo/m10_xhorizon_blend_result.json"
+B10 = "/home/sean/git/binary-algo/books/EURUSD.m10xp.v1"
+B15 = "/home/sean/git/binary-algo/books/EURUSD.m15xp.v1"
+OUT = "/home/sean/git/binary-algo/m10_xhorizon_blend_result.json"
 INC = {"UP_2025": 0.605, "DOWN_2025": 0.574}
 
 

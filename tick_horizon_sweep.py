@@ -12,7 +12,7 @@ import sys, time, numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"
+TICK="/home/sean/git/binary-algo/features_tick"
 
 HORIZONS=[int(x) for x in (sys.argv[1:] or [3,5,8,13,21,34,55,89,144,233,300])]
 

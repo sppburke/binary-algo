@@ -6,7 +6,7 @@ USDJPY/USDCHF/USDCAD = USD is BASE (pair up => USD up). USD-basket return exclud
 EURUSD instantaneous move implied by USD = -USD_basket_ret.
 """
 import sys, numpy as np, pandas as pd
-FEAT="/media/sean/CORSAIR/binary-algo/features"
+FEAT="/home/sean/git/binary-algo/features"
 PAIRS=["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCHF","USDCAD"]
 USD_BASE={"USDJPY","USDCHF","USDCAD"}            # +ret contributes to USD strength
 HOR=5

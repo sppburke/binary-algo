@@ -155,7 +155,7 @@ def main():
         if nm == "+harq": passes = passes and abs(collin["rvQ120"]) < 0.9 and abs(collin["sqRQ120"]) < 0.9
         verdict[nm] = dict(deployable_horizons=depl, mean_fwd_dAUC=mean_d, PASSES=passes)
     result["verdict"] = verdict
-    json.dump(result, open(f"/media/sean/CORSAIR/binary-algo/mag_har_result.json", "w"), indent=1)
+    json.dump(result, open(f"/home/sean/git/binary-algo/mag_har_result.json", "w"), indent=1)
     hb("VERDICT: " + " | ".join(f"{k} {v['mean_fwd_dAUC']:+.4f} depl{v['deployable_horizons']}/3 {'PASS' if v['PASSES'] else 'kill'}" for k, v in verdict.items()))
     hb("DONE -> mag_har_result.json")
 

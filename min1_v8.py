@@ -7,7 +7,7 @@ Reuses global v3 probs. Reports TEST(large n)+OOS+halves+CI per confirmation lev
 cell: pick the (setup,coverage) maximizing VAL+TEST accuracy, then report OOS once (honest proof).
 """
 import numpy as np, pandas as pd, time
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 
 def feats(b):
     mid=b["mid"]; micro=b["micro"]; r1=mid.pct_change(); X=pd.DataFrame(index=b.index)

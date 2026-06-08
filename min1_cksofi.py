@@ -34,7 +34,7 @@ import numpy as np, pandas as pd
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 RAW  = "/media/sean/CORSAIR/tick_data/raw"
 PAIR = "EURUSD"
 TICK = f"{ROOT}/features_tick"                 # existing 1s micro cache (mid, imb, ...)

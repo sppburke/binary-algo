@@ -20,7 +20,7 @@ from itertools import combinations
 import torch, torch.nn as nn
 from sklearn.metrics import roc_auc_score
 
-ROOT = "/media/sean/CORSAIR/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
 VARIANT = sys.argv[1] if len(sys.argv) > 1 else "ohlc"
 W = int(sys.argv[2]) if len(sys.argv) > 2 else 30
 SUBSAMPLE = int(sys.argv[3]) if len(sys.argv) > 3 else 80_000

@@ -4,7 +4,7 @@ Each candidate = (regime mask def, confidence coverage). We freeze on VAL (max V
 n>=NMIN), then report TEST + OOS non-overlapping accuracy + per-month breakdown. Non-overlap gap=120s.
 """
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"
+MODELS="/home/sean/git/binary-algo/models"
 GAP=120; NMIN_VAL=120; NMIN_REPORT=20
 Z=np.load(f"{MODELS}/probs_min2_v1.npz",allow_pickle=True)
 

@@ -22,7 +22,7 @@ import os, sys; sys.argv = ["x"]
 import json, time, numpy as np
 import lightgbm as lgb
 import m5_xpair as MX
-ROOT = "/media/sean/CORSAIR/binary-algo"; BE = 0.541
+ROOT = "/home/sean/git/binary-algo"; BE = 0.541
 INCUMBENT = {"UP": 0.577, "DOWN": 0.5441}
 SPLITS = ("train", "val", "test24", "test25", "oos")
 YEAR = {"test24": 2024, "test25": 2025, "oos": 2026}

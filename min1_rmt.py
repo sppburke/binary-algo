@@ -23,7 +23,7 @@ PRE-REGISTERED FALSIFIER: if cleaned-residual 2025 acc <= raw-xpair 0.534, RMT a
 """
 import sys, numpy as np, pandas as pd
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 PAIRS = ["AUDUSD","EURUSD","GBPUSD","NZDUSD","USDCAD","USDCHF","USDJPY"]
 TARGET = "EURUSD"
 FEAT = lambda p,y: f"{ROOT}/features/{p}_{y}.parquet"

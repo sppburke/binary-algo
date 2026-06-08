@@ -20,7 +20,7 @@ import lightgbm as lgb
 import m5_xpair as MX
 
 MODE = "xpof"; SPL = MX.SPL; GAP = 600; COV = 0.05; BE = 0.541
-OUT = "/media/sean/CORSAIR/binary-algo/m10_signedpayoff_gmadl_result.json"
+OUT = "/home/sean/git/binary-algo/m10_signedpayoff_gmadl_result.json"
 INC = {"UP_2025": 0.605, "DOWN_2025": 0.574}
 
 

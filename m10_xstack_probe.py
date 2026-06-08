@@ -13,7 +13,7 @@ from sklearn.metrics import roc_auc_score
 import harness as H
 import m5_xpair as MX
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"; PAIR = "EURUSD"
+MODELS = "/home/sean/git/binary-algo/models"; PAIR = "EURUSD"
 base = list(H.feature_cols("EURUSD"))
 SPL = {"val": ["2022", "2023"], "test24": ["2024"], "test25": ["2025"], "oos": ["2026"]}
 GAP = 600  # 10-min independence window

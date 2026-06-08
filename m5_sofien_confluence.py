@@ -4,7 +4,7 @@ combos (trend-filtered Connors RSI2, BB+RSI reversion, pullback-in-trend). Hones
 non-overlap 300s, CI95. Direction predicted by the rule vs sign(close(t+5m)-close(t)).
 """
 import numpy as np, pandas as pd
-FEAT="/media/sean/CORSAIR/binary-algo/features"; HOR=5
+FEAT="/home/sean/git/binary-algo/features"; HOR=5
 def rsi(c,n):
     d=np.diff(c,prepend=c[0]); up=np.where(d>0,d,0.0); dn=np.where(d<0,-d,0.0)
     ru=pd.Series(up).ewm(alpha=1/n,adjust=False).mean().values; rd=pd.Series(dn).ewm(alpha=1/n,adjust=False).mean().values

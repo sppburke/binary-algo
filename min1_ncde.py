@@ -36,7 +36,7 @@ Fallback: if torchcde import fails, fall back to a plain torch GRU on (Δt,signe
 import sys, os, time, glob, calendar, json
 import numpy as np, pandas as pd
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 RAW  = "/media/sean/CORSAIR/tick_data/raw/EURUSD"
 PAIR = "EURUSD"
 

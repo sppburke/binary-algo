@@ -12,7 +12,7 @@ Run: ~/binary-algo-venv/bin/python barcnn_regime.py [variant=ohlc]
 """
 import sys, json, numpy as np, pandas as pd
 from barcnn_cpcv import cpcv_side, nonoverlap_chrono
-ROOT = "/media/sean/CORSAIR/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
+ROOT = "/home/sean/git/binary-algo"; OUT = f"{ROOT}/ohlc_cache"
 VARIANT = sys.argv[1] if len(sys.argv) > 1 else "ohlc"
 BREAKEVEN, TARGET = 0.541, 0.65
 

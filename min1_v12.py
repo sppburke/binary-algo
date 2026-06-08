@@ -7,7 +7,7 @@ holds across BOTH held-out periods (2024-25 and 2026), the honest robust number.
 2026-only pre-committed best for context. Honest non-overlapping eval + bootstrap CIs.
 """
 import numpy as np, pandas as pd, time
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60
 
 def feats(b):
     mid=b["mid"]; r1=mid.pct_change(); X=pd.DataFrame(index=b.index)

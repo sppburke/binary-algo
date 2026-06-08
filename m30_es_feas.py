@@ -10,7 +10,7 @@ Run per year so any signal must be stable. No look-ahead: all ES features use in
 import os, sys, glob, zipfile, io, time, numpy as np, pandas as pd
 
 LEAN="/home/sean/git/reverse-engineered-trading/lean/data/future/cme/minute"
-FEAT="/media/sean/CORSAIR/binary-algo/features"
+FEAT="/home/sean/git/binary-algo/features"
 
 def load_future_minute(sym, year):
     """Front-contract minute close, UTC-indexed, for one symbol+year. Front = contract CSV with most rows that day."""

@@ -4,7 +4,7 @@ Averaging two near-independent direction models (different training distribution
 in-regime direction signal. Uses v3's regime cols + trend cols. Pre-committed argmax VAL acc s.t. nVA>=NFLOOR.
 """
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"; GAP=120
+MODELS="/home/sean/git/binary-algo/models"; GAP=120
 NFLOOR=int(sys.argv[1]) if len(sys.argv)>1 else 300
 W=float(sys.argv[2]) if len(sys.argv)>2 else 0.5     # weight on v3 specialist
 Z1=np.load(f"{MODELS}/probs_min2_v1.npz",allow_pickle=True)

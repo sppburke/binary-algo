@@ -12,7 +12,7 @@ import os, time, numpy as np, pandas as pd
 import harness as H
 
 HOR=30; GAP_S=HOR*60
-CACHE="/media/sean/CORSAIR/binary-algo/ohlc_cache"
+CACHE="/home/sean/git/binary-algo/ohlc_cache"
 WINDOWS={"train":[str(y) for y in range(2016,2022)],"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}
 TFS={"30m":"30min","1h":"1h","4h":"4h","1D":"1D"}
 

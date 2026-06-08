@@ -18,7 +18,7 @@ from sklearn.metrics import roc_auc_score
 import m5_xpair as MX
 import manifest as MAN
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 BE = 0.541
 GATE_FEAT = "5m_bb_width"
 YEARS = (("test24", "2024"), ("test25", "2025"), ("oos", "2026"))

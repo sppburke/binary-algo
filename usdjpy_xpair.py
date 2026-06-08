@@ -21,7 +21,7 @@ from sklearn.metrics import roc_auc_score
 import harness as H
 from usdjpy_1m_base import nonoverlap_chrono, boot, side_eval, covcurve, mk_lgb
 
-FEAT = H.FEAT_DIR; OFDIR = "/media/sean/CORSAIR/binary-algo/features_of"
+FEAT = H.FEAT_DIR; OFDIR = "/home/sean/git/binary-algo/features_of"
 TARGET = "USDJPY"; HOR = 1; GAP = 60; BE = 0.541
 PAIRS = ["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCHF","USDCAD"]
 USD_BASE = {"USDJPY","USDCHF","USDCAD"}

@@ -6,7 +6,7 @@ import sys, json, time, urllib.request, numpy as np, pandas as pd
 import event_signs as ES
 BASE="https://calendar-api.fxstreet.com/en/api/v1/eventDates"
 HDR={"Referer":"https://www.fxstreet.com/","User-Agent":"Mozilla/5.0"}
-OUT="/media/sean/CORSAIR/binary-algo/macro_calendar.parquet"
+OUT="/home/sean/git/binary-algo/macro_calendar.parquet"
 
 def fetch_year(y):
     url=f"{BASE}/{y}-01-01T00:00:00Z/{y}-12-31T23:59:59Z"

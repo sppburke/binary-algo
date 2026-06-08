@@ -16,7 +16,7 @@ from catboost import CatBoostClassifier
 import harness as H
 import m15_production as M15
 
-FEAT = "/media/sean/CORSAIR/binary-algo/features"
+FEAT = "/home/sean/git/binary-algo/features"
 base = list(H.feature_cols("EURUSD"))
 HOR = 15                      # 15 one-minute bars
 N_GROUPS, K_TEST = 6, 2       # C(6,2)=15 purged-combinatorial paths

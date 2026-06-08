@@ -15,7 +15,7 @@ import json, time, numpy as np, optuna
 import lightgbm as lgb
 import m5_xpair as MX, m5_xpair_production as XP
 optuna.logging.set_verbosity(optuna.logging.WARNING)
-ROOT="/media/sean/CORSAIR/binary-algo"; BE=0.541; STRIDE=8; COV=0.05; N_DOWN=40; N_UP=30
+ROOT="/home/sean/git/binary-algo"; BE=0.541; STRIDE=8; COV=0.05; N_DOWN=40; N_UP=30
 def boot(c,nb=2500,seed=7):
     c=np.asarray(c,float)
     if len(c)<5: return (float("nan"),float("nan"))

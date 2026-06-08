@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 until grep -q "V4 DONE" /tmp/v4.log 2>/dev/null; do sleep 15; done
 echo "### V4 done -> running V5 (event specialist) ###"

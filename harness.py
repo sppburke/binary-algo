@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
-FEAT_DIR = "/media/sean/CORSAIR/binary-algo/features"
+FEAT_DIR = "/home/sean/git/binary-algo/features"
 META_COLS = ["y", "fwd_ret", "valid", "close"]
 
 SPLITS = {

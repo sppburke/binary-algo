@@ -6,7 +6,7 @@ introduces no lookahead."""
 import os
 import numpy as np, pandas as pd
 
-FEAT_DIR="/media/sean/CORSAIR/binary-algo/features"
+FEAT_DIR="/home/sean/git/binary-algo/features"
 ALL_PAIRS=["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDCAD","USDCHF","USDJPY"]
 PEER_COLS=["1m_ret_1","1m_ret_3","5m_ret_1","5m_ret_3","15m_ret_1",
            "1m_bb_pctb","5m_bb_pctb","1m_dist_ema20","5m_rv_24","1m_autocorr_10"]

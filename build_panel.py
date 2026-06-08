@@ -20,7 +20,7 @@ Run:  ~/binary-algo-venv/bin/python build_panel.py build      # emit panel_<year
 """
 import sys, os, time, json, itertools, math
 import numpy as np, pandas as pd
-ROOT = "/media/sean/CORSAIR/binary-algo"; FEAT = f"{ROOT}/features"
+ROOT = "/home/sean/git/binary-algo"; FEAT = f"{ROOT}/features"
 PAIRS = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDJPY", "USDCHF", "USDCAD"]
 USD_BASE = {"USDJPY", "USDCHF", "USDCAD"}
 NONEU = [p for p in PAIRS if p != "EURUSD"]

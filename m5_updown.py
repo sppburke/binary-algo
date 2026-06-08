@@ -55,7 +55,7 @@ def split_m5stack():
     fwd is all-moved by construction (build_xp drops fwd==0), so a ones placeholder is faithful for the
     moved-mask; out_up_rate is computed from y (the realized 5-min sign), not fwd."""
     import lightgbm as lgb, json as _j
-    MODELS = "/media/sean/CORSAIR/binary-algo/models"
+    MODELS = "/home/sean/git/binary-algo/models"
     sp = _j.load(open(f"{MODELS}/m5stack_EURUSD_strategy.json"))
     THR = sp["meta_thr"]
     M = lgb.Booster(model_file=f"{MODELS}/m5stack_EURUSD_meta_lgb.txt")

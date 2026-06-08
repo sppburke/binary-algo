@@ -13,7 +13,7 @@ Run: ~/binary-algo-venv/bin/python kronos_ensemble.py <out_tag> <pred_tag1> <pre
 """
 import sys, json, numpy as np, pandas as pd
 from itertools import combinations
-ROOT = "/media/sean/CORSAIR/binary-algo"; BREAKEVEN = 0.541
+ROOT = "/home/sean/git/binary-algo"; BREAKEVEN = 0.541
 OUT_TAG = sys.argv[1]; TAGS = sys.argv[2:]
 assert len(TAGS) >= 2, "need >=2 prediction tags to ensemble"
 

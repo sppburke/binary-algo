@@ -10,7 +10,7 @@ Levers (each toggled in the sweep):
 Baseline to beat: TEST 0.682 (n759) / OOS 0.780 (n50, April-heavy).
 """
 import sys, numpy as np
-MODELS="/media/sean/CORSAIR/binary-algo/models"; GAP=60
+MODELS="/home/sean/git/binary-algo/models"; GAP=60
 NFLOOR=int(sys.argv[1]) if len(sys.argv)>1 else 120
 Z=np.load(f"{MODELS}/probs_min1_v15.npz",allow_pickle=True)
 BQ=float(Z["bq"]); RQ=float(Z["rq"])

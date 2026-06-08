@@ -118,7 +118,7 @@ def main():
            "d_star": dstars, "thresh": THRESH,
            "falsifier": "+ffd beats base selacc in >=2 forward years AND mean dSelacc>0 (no decay); ffdonly must clear .541",
            "by_arm": res["by_arm"], "deltas": res["deltas"], "deployable": res["deployable"]}
-    json.dump(out, open(f"/media/sean/CORSAIR/binary-algo/frac_direction_{HOR}m_result.json", "w"), indent=1)
+    json.dump(out, open(f"/home/sean/git/binary-algo/frac_direction_{HOR}m_result.json", "w"), indent=1)
     hb(f"DONE -> frac_direction_{HOR}m_result.json")
 
 

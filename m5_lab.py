@@ -17,7 +17,7 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
 
-MODELS = "/media/sean/CORSAIR/binary-algo/models"
+MODELS = "/home/sean/git/binary-algo/models"
 HOR = 5; GAP_S = HOR*60
 PAIR = "EURUSD"
 base = list(H.feature_cols(PAIR))

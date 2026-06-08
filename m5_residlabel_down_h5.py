@@ -99,7 +99,7 @@ R.H_GAP = GAP                      # _sel_acc in min1_residtarget reads the modu
 
 from m5_xpair import (SPL, augment, feat_cols, xp_cols, nonoverlap_chrono)
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 OUT = f"{ROOT}/m5_residlabel_down_h5_result.json"
 BREAKEVEN = 0.541
 INCUMBENT_MAGW_DOWN_P10 = 0.5441   # EURUSD.m5xp_magw_down.v1 refit-CPCV cov0.05 p10 (the bar to beat)

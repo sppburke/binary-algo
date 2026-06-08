@@ -16,8 +16,8 @@ Setups (from sofien corpus deep-mine):
 """
 import os, glob, numpy as np, pandas as pd, time
 
-RAW="/media/sean/CORSAIR/tick_data/processed/EURUSD"
-CACHE="/media/sean/CORSAIR/binary-algo/ohlc_cache"; os.makedirs(CACHE,exist_ok=True)
+RAW="/home/sean/git/processed/EURUSD"
+CACHE="/home/sean/git/binary-algo/ohlc_cache"; os.makedirs(CACHE,exist_ok=True)
 WINDOWS={"train":[str(y) for y in range(2016,2022)],"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}
 
 def build_5m(year):

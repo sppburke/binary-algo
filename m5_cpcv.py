@@ -39,7 +39,7 @@ def collect_up_m5xp():
 
 def collect_up_m5stack():
     import lightgbm as lgb, json as _j, m5_stack2 as S2
-    MODELS = "/media/sean/CORSAIR/binary-algo/models"
+    MODELS = "/home/sean/git/binary-algo/models"
     sp = _j.load(open(f"{MODELS}/m5stack_EURUSD_strategy.json")); THR = sp["meta_thr"]
     Mm = lgb.Booster(model_file=f"{MODELS}/m5stack_EURUSD_meta_lgb.txt")
     _p, L15, G15, C15 = S2.load15(); s5, P5 = S2.load5()

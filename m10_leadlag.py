@@ -17,14 +17,14 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import m5_xpair as MX
 
-FEAT = "/media/sean/CORSAIR/binary-algo/features"
+FEAT = "/home/sean/git/binary-algo/features"
 PAIRS = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDJPY", "USDCHF", "USDCAD"]
 USD_BASE = {"USDJPY", "USDCHF", "USDCAD"}
 NONEU = [p for p in PAIRS if p != "EURUSD"]
 LAGS = [1, 2, 5, 10, 15, 30]   # minute-bar lags L; feature = return over [t-2L, t-L] (ends strictly before t)
 HOR = 10; GAP = HOR * 60; BE = 0.541; COV = 0.05
 SPL = MX.SPL
-OUT = "/media/sean/CORSAIR/binary-algo/m10_leadlag_result.json"
+OUT = "/home/sean/git/binary-algo/m10_leadlag_result.json"
 INC = {"UP_2025": 0.605, "DOWN_2025": 0.574}
 
 

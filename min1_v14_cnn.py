@@ -9,7 +9,7 @@ import time, numpy as np, pandas as pd
 import torch, torch.nn as nn
 from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.metrics import roc_auc_score
-TICK="/media/sean/CORSAIR/binary-algo/features_tick"; HS=60; W=60
+TICK="/home/sean/git/binary-algo/features_tick"; HS=60; W=60
 torch.set_num_threads(20); T0=time.time()
 def hb(m): print(f"HB[{time.time()-T0:.0f}s] {m}",flush=True)
 

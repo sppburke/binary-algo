@@ -13,7 +13,7 @@ from sklearn.metrics import roc_auc_score
 import harness as H
 from usdjpy_1m_base import nonoverlap_chrono, boot, side_eval, covcurve, mk_lgb
 
-PAIR="USDJPY"; FEAT=H.FEAT_DIR; OFDIR="/media/sean/CORSAIR/binary-algo/features_of"; BASE=H.feature_cols(PAIR); BE=0.541
+PAIR="USDJPY"; FEAT=H.FEAT_DIR; OFDIR="/home/sean/git/binary-algo/features_of"; BASE=H.feature_cols(PAIR); BE=0.541
 PAIRS=["EURUSD","GBPUSD","AUDUSD","NZDUSD","USDJPY","USDCHF","USDCAD"]; USD_BASE={"USDJPY","USDCHF","USDCAD"}
 OTHERS=[p for p in PAIRS if p!=PAIR]
 OWN_OF=['OF_of_norm_1','OF_of_sum_1','OF_of_norm_3','OF_of_sum_3','OF_of_norm_5','OF_of_sum_5','OF_of_norm_10',

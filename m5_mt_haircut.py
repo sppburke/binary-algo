@@ -29,7 +29,7 @@ import os, re, json, glob, math
 import numpy as np
 from scipy.stats import norm
 
-ROOT = "/media/sean/CORSAIR/binary-algo"
+ROOT = "/home/sean/git/binary-algo"
 BE   = 0.541                 # deriv 15m/5m breakeven win-rate at payout R~1.85
 GAMMA = 0.5772156649         # Euler-Mascheroni (Lopez de Prado E[max] approx)
 ALPHA = 0.05

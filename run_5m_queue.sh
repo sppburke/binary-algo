@@ -1,6 +1,6 @@
 #!/bin/bash
 # Serial execution of the remaining 5m must-run rows + tight-cov UP refit. ONE heavy job at a time (OOM safety).
-cd /media/sean/CORSAIR/binary-algo
+cd /home/sean/git/binary-algo
 PY=~/binary-algo-venv/bin/python
 echo "=== QUEUE START $(date +%H:%M:%S) ==="
 echo "### B3a CKS-OFI @300s ###"; $PY m5_cksofi300.py            > q_b3a.log 2>&1; echo "B3a exit=$?"
