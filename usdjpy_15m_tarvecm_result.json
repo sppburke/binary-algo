@@ -1,0 +1,66 @@
+{
+  "key": "USDJPY.15m",
+  "model": "TAR-VECM cointegration-velocity sign (Engle-Granger z_t of USDJPY vs 6-major basket)",
+  "basket": [
+    "EURUSD",
+    "GBPUSD",
+    "AUDUSD",
+    "NZDUSD",
+    "USDCHF",
+    "USDCAD"
+  ],
+  "eval": "deriv-faithful fixed-15m sign, ties LOSE, BE 0.541",
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "ADF on train z not stationary OR standalone sign(-z) held-out moved-AUC <= 0.51 OR base+z VAL-AUC <= .539 (no lift)"
+  },
+  "beta": {
+    "const": -0.10964177069005239,
+    "EURUSD": -0.12135993933511177,
+    "GBPUSD": 0.5568432767054035,
+    "AUDUSD": -1.1356179657513858,
+    "NZDUSD": 1.0190605187074098,
+    "USDCHF": 0.4274762014765177,
+    "USDCAD": 0.4136556916643713
+  },
+  "band_c": 0.034391120355818934,
+  "adf_train": {
+    "stat": -3.751985914899012,
+    "pvalue": 0.00343858640330905,
+    "stationary_5pct": true
+  },
+  "ecm_gamma": -1.085065324218117e-05,
+  "standalone": {
+    "test24": {
+      "n": 137484,
+      "auc": 0.4897,
+      "gated_n": 137484,
+      "gated_wr": 0.4912
+    },
+    "test25": {
+      "n": 137071,
+      "auc": 0.4895,
+      "gated_n": 137071,
+      "gated_wr": 0.4974
+    },
+    "oos": {
+      "n": 48838,
+      "auc": 0.5016,
+      "gated_n": 48838,
+      "gated_wr": 0.4817
+    }
+  },
+  "integration_val_ny_auc": 0.5427,
+  "integration_beats_base": true,
+  "z_feat_gain_pct": {
+    "cvecm_z": 1.221,
+    "cvecm_absz": 0.939,
+    "cvecm_regime": 0.015,
+    "cvecm_ecvel": 0.897
+  },
+  "verdict": {
+    "KILLED": false,
+    "standalone_max_auc": 0.5016,
+    "note": "directional iff standalone sign(-z) AUC>.51 OR integration lifts VAL-AUC>.539"
+  }
+}

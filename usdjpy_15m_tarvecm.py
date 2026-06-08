@@ -39,7 +39,9 @@ def load_close(pair):
         s=pd.Series(np.log(d["close"].values.astype(float)),
                     index=d.index.values.astype("datetime64[s]").astype("int64"))
         ss.append(s)
-    return pd.concat(ss)
+    s=pd.concat(ss)
+    s=s[~s.index.duplicated(keep="last")]   # year-boundary overlap can dup epoch-s; reindex needs unique labels
+    return s.sort_index()
 
 def build_usdjpy_bars(years):
     """USDJPY 15m candidate bars: ts, fwd_ret (fixed-15m), moved, plus the 239 base feats df indexed by ts."""

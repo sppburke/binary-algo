@@ -1,0 +1,23 @@
+{
+  "key": "USDJPY.15m.ny",
+  "check": "label-shuffle leakage control (train labels permuted, eval REAL)",
+  "shuffle": {
+    "test24": {
+      "shuffle_auc": 0.503,
+      "shuffle_cov3_COMB_wr": 0.5259,
+      "shuffle_cov3_UP_wr": 0.5259
+    },
+    "test25": {
+      "shuffle_auc": 0.5036,
+      "shuffle_cov3_COMB_wr": 0.5096,
+      "shuffle_cov3_UP_wr": 0.5096
+    },
+    "oos": {
+      "shuffle_auc": 0.5117,
+      "shuffle_cov3_COMB_wr": 0.563,
+      "shuffle_cov3_UP_wr": 0.563
+    }
+  },
+  "shuffle_passes": true,
+  "verdict": "LEAKAGE-CLEAN: shuffle collapses to ~.50, real edge confirmed not a harness artifact"
+}

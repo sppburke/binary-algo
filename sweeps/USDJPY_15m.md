@@ -55,9 +55,10 @@
 ### Tier-N discovered/novel (append as vetted; see backlog for mechanisms + priors)
 | id | candidate | source | mechanism (direction sign) | prior | status |
 |---|---|---|---|---|---|
-| N16 | triple-barrier / trend-scan TRAIN labels | López de Prado AFML | relabels train target; may sharpen sign | ~20% | pending |
+| N16/TN1 | triple-barrier / **avg-horizon** TRAIN labels | López de Prado AFML; Prata 2024 | relabels train target; may sharpen sign | ~20% | **done — no lift** (avg: VAL fixed-15m AUC .5319 ≈ base .531; 2026 COMB collapses .499). AUC ceiling is label-independent. `usdjpy_15m_tblabel_avg_s6_l127_result.json` |
 | N2 | triangular JPY-cross residual (EURJPY=EURUSD·USDJPY) | arXiv:0812.0913 | dislocation reversion carries sign | ~15% | pending (needs EURJPY — DATA-CHECK) |
-| N10 | TAR-VECM error-correction speed-of-adjustment sign | threshold-VECM | cointegration velocity = directional | ~15% | pending |
+| N10/TN4 | TAR-VECM error-correction speed-of-adjustment sign | threshold-VECM | cointegration velocity = directional | ~15% | **done — NULL.** z cointegrated (ADF p=.003) but ECM γ̂≈−1e-5 (no reversion @15m); standalone sign(−z) AUC .490/.490/.502 (coin-flip); integration +.0037 VAL = overfit noise. `usdjpy_15m_tarvecm_result.json` |
+| N11/TN2 | pairwise/listwise RANKING-LOSS over 7 majors | DeltaLag/ListNet/Feng | cross-section sign-ranking | ~13% | **subsumed (Tier-1)** — ranking loss is invariant to monotonic per-bar target transforms → predicts RELATIVE (USDJPY-vs-basket) rank, not own 15m sign; the own-pair pairwise form ≡ BCE (=base). A6 cross-pair POOLING already showed cross-pair structure DILUTES USDJPY own-sign at 15m (Tier-1). Logged not-run; reopen only if a new own-sign mechanism appears. |
 | N17 | anti-contemporaneous lead-lag + transfer-entropy gate + RFF | Sirignano-Cont + Schreiber + Kelly-Malamud-Zhou | directed-info lead carries sign | ~13% | pending |
 
 ---
