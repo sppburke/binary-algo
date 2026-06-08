@@ -474,6 +474,29 @@
       "manifest": "books/USDJPY.m15ny_seedens.v1.manifest.json",
       "summary": "BEST USDJPY 15m direction: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .6005/DOWN .5738 @cov2%). REFIT-DEPENDENT (frozen-2012 vintage decays by 2026; retrain periodically, size on refit floor).",
       "depends_on": null
+    },
+    {
+      "id": "USDJPY.m15ny_tbft_seedens.v1",
+      "currency": "USDJPY",
+      "timeframe": "15m",
+      "side": "combined",
+      "role": "direction",
+      "script": "usdjpy_15m_cpcv_tbfirsttouch.py 2 0.01,0.02,0.03 3 (cert) + usdjpy_15m_freeze_ny_tbft_seedens.py (freeze)",
+      "metrics": {
+        "up_refit_cpcv_p10": 0.6052,
+        "down_refit_cpcv_p10": 0.58,
+        "comb_refit_cpcv_p10": 0.5953,
+        "breakeven": 0.541,
+        "cov": 0.02,
+        "session": "ny",
+        "seed_K": 3,
+        "tb_k": 2.0,
+        "content_id": "002dd2f2abb322e5",
+        "adversarial_verdict": "SUSPECT_not_an_improvement_over_seedens"
+      },
+      "manifest": "books/USDJPY.m15ny_tbft_seedens.v1.manifest.json",
+      "summary": "ALTERNATIVE certified config (NOT the leader): NY own-pair seed-ens(K=3) GBM trained on a triple-barrier first-touch label (k=2; eval UNCHANGED deriv fixed-15m sign). Certified at the SAME LEVEL as the seed-ens book (UP p10 .6052/DOWN .58 @cov2%, 15/15) but ADVERSARIAL VERIFICATION (2026-06-08) found it does NOT robustly beat USDJPY.m15ny_seedens.v1: paired per-path lift over the matched K=3 base is within CPCV-path noise (cov2% UP +.0067 t.91, DOWN -.0093 t-.89 mean-regresses; cov3% COMB +.0093 t2.73 on CORRELATED paths). Kept for the record; NOT a deliverable upgrade.",
+      "depends_on": null
     }
   ]
 }

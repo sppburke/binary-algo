@@ -1,0 +1,165 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "USDJPY.m15ny_tbft_seedens.v1",
+  "content_id": "002dd2f2abb322e5",
+  "currency": "USDJPY",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "USDJPY 15m NY-session own-pair seed-ens(K=3) GBM with triple-barrier first-touch TRAIN label (k=2.0); EVAL deriv-faithful fixed-15m. BEST USDJPY 15m direction config \u2014 improves base+seed-ens on both sides (DOWN beats prior seed-ens book). NY-concentrated + USDJPY-specific.",
+  "metrics": {
+    "up_refit_cpcv_p10": 0.6052,
+    "down_refit_cpcv_p10": 0.58,
+    "comb_refit_cpcv_p10": 0.5953,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "session": "ny",
+    "seed_K": 3,
+    "tb_k": 2.0,
+    "val_ny_auc": 0.5435,
+    "frozen_forward": {
+      "test24": {
+        "COMBINED": {
+          "n": 564,
+          "wr": 0.6117,
+          "ci": [
+            0.5709,
+            0.6507
+          ]
+        },
+        "UP": {
+          "n": 509,
+          "wr": 0.5972,
+          "ci": [
+            0.554,
+            0.6405
+          ]
+        },
+        "DOWN": {
+          "n": 55,
+          "wr": 0.7455,
+          "ci": [
+            0.6364,
+            0.8545
+          ]
+        }
+      },
+      "test25": {
+        "COMBINED": {
+          "n": 571,
+          "wr": 0.5709,
+          "ci": [
+            0.5306,
+            0.6112
+          ]
+        },
+        "UP": {
+          "n": 480,
+          "wr": 0.5813,
+          "ci": [
+            0.5374,
+            0.625
+          ]
+        },
+        "DOWN": {
+          "n": 91,
+          "wr": 0.5165,
+          "ci": [
+            0.4176,
+            0.6154
+          ]
+        }
+      },
+      "oos": {
+        "COMBINED": {
+          "n": 236,
+          "wr": 0.5297,
+          "ci": [
+            0.4661,
+            0.5932
+          ]
+        },
+        "UP": {
+          "n": 185,
+          "wr": 0.5351,
+          "ci": [
+            0.4649,
+            0.6054
+          ]
+        },
+        "DOWN": {
+          "n": 51,
+          "wr": 0.5098,
+          "ci": [
+            0.3725,
+            0.6471
+          ]
+        }
+      }
+    }
+  },
+  "source": {
+    "script": "usdjpy_15m_cpcv_tbfirsttouch.py 2 ...,0.02,... 3 (cert) + usdjpy_15m_freeze_ny_tbft_seedens.py (freeze)",
+    "git_sha": "78e4192f4e9efe2bfb2b3fd83921b925697a3a2e",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 127,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 3000,
+    "K": 3,
+    "tr_stride": 6,
+    "tb_k": 2.0
+  },
+  "artifacts": [
+    {
+      "file": "m15ny_tbft_seedens_USDJPY_s0_lgb.txt",
+      "bytes": 1656220,
+      "sha256": "c113ddd045ec80b031a55d3a87b98add109e7003fbd6bad6f568fb441a6da8e2"
+    },
+    {
+      "file": "m15ny_tbft_seedens_USDJPY_s1_lgb.txt",
+      "bytes": 2198911,
+      "sha256": "d8de6710d51fb65f436386e574f96d50aa8c26207a9aa3737e05f2c6daa0838e"
+    },
+    {
+      "file": "m15ny_tbft_seedens_USDJPY_s2_lgb.txt",
+      "bytes": 3372265,
+      "sha256": "2a8dd59463bf6da940b0b57be615d1223ad98f20f7c442cd591a7eb62598aef7"
+    }
+  ],
+  "strategy_json": "models/m15ny_tbft_seedens_USDJPY_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/home/sean/git/binary-algo/features",
+    "patterns": [
+      "USDJPY_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1420449410,
+    "sha256_of_listing": "0c8d3bb202d7e86cd2c7f47d14288e98815aacf7bdc339e9b491ce5dad9c467d"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "seed-ens avg K=3; TB first-touch train label k=2.0 (eval label UNCHANGED deriv-faithful); cov2% gate frozen on VAL NY worst-half; NY=America/New_York 08-17 DST-correct. Refit-dependent.",
+  "created_utc": "2026-06-08"
+}

@@ -1,0 +1,127 @@
+{
+  "book": "USDJPY.m15ny_tbft_seedens.v1",
+  "pair": "USDJPY",
+  "timeframe": "15m",
+  "horizon_min": 15,
+  "session": "ny",
+  "seed_ensemble_K": 3,
+  "train_label": "triple-barrier first-touch k=2.0 (upper/lower=+/-k*sigma_t, vertical=15m timeout->endpoint sign)",
+  "eval_label": "sign(close[t+15]-close[t]), ties LOSE (deriv-faithful; UNCHANGED)",
+  "settlement": "bar-close, gap=900s nonoverlap",
+  "gate": {
+    "cov": 0.02,
+    "conf_thr": 0.10524394366576979,
+    "rule": "avg of K seed models; trade |p-0.5|>=thr AND ts in NY session"
+  },
+  "breakeven": 0.541,
+  "val_ny_auc": 0.543467772351247,
+  "cert_cpcv": {
+    "UP": {
+      "p10": 0.6052,
+      "frac_clear_BE": 1.0,
+      "med_n_per_path": 528,
+      "CERTIFIED": true,
+      "IMPROVES_base": true
+    },
+    "DOWN": {
+      "p10": 0.58,
+      "frac_clear_BE": 1.0,
+      "med_n_per_path": 317,
+      "CERTIFIED": true,
+      "IMPROVES_base": true
+    },
+    "COMBINED": {
+      "p10": 0.5953,
+      "frac_clear_BE": 1.0,
+      "med_n_per_path": 736,
+      "CERTIFIED": true,
+      "IMPROVES_base": true
+    }
+  },
+  "deploy_note": "BEST USDJPY 15m config. TB first-touch label denoises the sign target -> tighter high-conf win-rate. Refit-dependent (retrain periodically; size on refit floor).",
+  "frozen_forward": {
+    "test24": {
+      "COMBINED": {
+        "n": 564,
+        "wr": 0.6117,
+        "ci": [
+          0.5709,
+          0.6507
+        ]
+      },
+      "UP": {
+        "n": 509,
+        "wr": 0.5972,
+        "ci": [
+          0.554,
+          0.6405
+        ]
+      },
+      "DOWN": {
+        "n": 55,
+        "wr": 0.7455,
+        "ci": [
+          0.6364,
+          0.8545
+        ]
+      }
+    },
+    "test25": {
+      "COMBINED": {
+        "n": 571,
+        "wr": 0.5709,
+        "ci": [
+          0.5306,
+          0.6112
+        ]
+      },
+      "UP": {
+        "n": 480,
+        "wr": 0.5813,
+        "ci": [
+          0.5374,
+          0.625
+        ]
+      },
+      "DOWN": {
+        "n": 91,
+        "wr": 0.5165,
+        "ci": [
+          0.4176,
+          0.6154
+        ]
+      }
+    },
+    "oos": {
+      "COMBINED": {
+        "n": 236,
+        "wr": 0.5297,
+        "ci": [
+          0.4661,
+          0.5932
+        ]
+      },
+      "UP": {
+        "n": 185,
+        "wr": 0.5351,
+        "ci": [
+          0.4649,
+          0.6054
+        ]
+      },
+      "DOWN": {
+        "n": 51,
+        "wr": 0.5098,
+        "ci": [
+          0.3725,
+          0.6471
+        ]
+      }
+    }
+  },
+  "models": [
+    "models/m15ny_tbft_seedens_USDJPY_s0_lgb.txt",
+    "models/m15ny_tbft_seedens_USDJPY_s1_lgb.txt",
+    "models/m15ny_tbft_seedens_USDJPY_s2_lgb.txt"
+  ]
+}
