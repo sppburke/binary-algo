@@ -1,0 +1,105 @@
+{
+  "key": "USDJPY.30m",
+  "model": "single-pair base GBM (A5 parent)",
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "falsifier": {
+    "KILL_if": "VAL moved-AUC<=.515 OR (as a standalone edge) no held-out year CI-lo clears .541"
+  },
+  "val_auc": 0.5290407398301606,
+  "years": {
+    "test24": {
+      "moved_auc": 0.5225289503006183,
+      "all_cov3": {
+        "COMBINED": [
+          1039,
+          0.5775
+        ],
+        "UP": [
+          829,
+          0.5802
+        ],
+        "DOWN": [
+          210,
+          0.5667
+        ]
+      },
+      "ny_cov3": {
+        "COMBINED": [
+          604,
+          0.5993
+        ],
+        "UP": [
+          480,
+          0.6125
+        ],
+        "DOWN": [
+          124,
+          0.5484
+        ]
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5116643740043997,
+      "all_cov3": {
+        "COMBINED": [
+          981,
+          0.5341
+        ],
+        "UP": [
+          749,
+          0.5394
+        ],
+        "DOWN": [
+          232,
+          0.5172
+        ]
+      },
+      "ny_cov3": {
+        "COMBINED": [
+          540,
+          0.5537
+        ],
+        "UP": [
+          426,
+          0.5587
+        ],
+        "DOWN": [
+          114,
+          0.5351
+        ]
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5129605521125814,
+      "all_cov3": {
+        "COMBINED": [
+          260,
+          0.5577
+        ],
+        "UP": [
+          204,
+          0.5588
+        ],
+        "DOWN": [
+          56,
+          0.5536
+        ]
+      },
+      "ny_cov3": {
+        "COMBINED": [
+          161,
+          0.559
+        ],
+        "UP": [
+          131,
+          0.5725
+        ],
+        "DOWN": [
+          30,
+          0.5
+        ]
+      }
+    }
+  }
+}

@@ -45,7 +45,7 @@
 ### Tier-I edge-improvement levers (apply ON the best edge found, evaluate COMBINATIONS)
 | id | lever | script | status | note |
 |---|---|---|---|---|
-| I1 | adaptive-conformal (ACI) gate | usdjpy_15m_improve.py aci | pending | EURUSD-5m WINNER; retarget to 15m best combo |
+| I1 | adaptive-conformal (ACI) gate + I4 calib | usdjpy_15m_aci.py | **done — NO clean win** | ACI trades ~2× but LOWER wr in 2025 (.539 vs fixed .570); "binding improves" is a thin frozen-2026 artifact. EURUSD-5m ACI advantage does NOT transfer (NY edge already regime-stable). Calibration applied (honest gate, no ranking change). `usdjpy_15m_aci_result.json` |
 | I2 | seed-ensemble (K=3) on NY cert | usdjpy_15m_cpcv_session.py ny 2 0.03,0.02,0.01 3 | **done — LIFTS p10** | UP cov2% p10 .582→**.6005**, DOWN .554→**.5738** (both 15/15). Best certified config. `usdjpy_15m_cpcv_session_ny_seedens3_result.json` |
 | I3 | \|ret\|-weighted / GMADL loss | usdjpy_15m_loss.py | pending | USDJPY-2m KILLED on pooled; re-test @15m |
 | I4 | calibration + selective threshold | wrap best book | pending | nearly-free wrapper |
