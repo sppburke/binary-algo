@@ -1,0 +1,225 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "E2 direction-conditioned-on-magnitude (base NY dir GBM x magnitude-quartile bucketing)",
+  "model": "base direction = mk_lgb on NY MOVED bars (239 base feats, 15m own-clock sign label); magnitude = mk_lgb predicting P(|ret_15m| >= train-Q75); held-out NY moved bars bucketed by PREDICTED-magnitude quartile, direction moved-AUC + cov3% side_eval reported per quartile",
+  "settlement": "deriv-faithful sign(close[t+15]-close[t]); ties (move==0) LOSE; BE=0.541; gap=900s nonoverlap",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "mag_target_quantile": 0.75,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "direction moved-AUC is FLAT across predicted-magnitude quartiles (HIGH-mag Q4 NOT more sign-predictable than LOW-mag Q1) \u2014 concretely: in fewer than 2 of {test24,test25,oos} does the Q4(HIGH-mag) NY direction moved-AUC exceed BOTH (a) the Q1(LOW-mag) AUC by >0.010 AND (b) ~0.539 (incumbent NY signal AUC) \u2014 AND no year's Q4 cov3% win-rate CI95-lower clears 0.541 in >=2 years",
+    "expected": "NULL per sign-invariance theorem arXiv:2512.15720 (magnitude gates SIZE not SIGN); flat direction-AUC across mag quartiles => KILL. RUN it; let the number decide.",
+    "incumbent": {
+      "ny_signal_auc": 0.539,
+      "ny_winrate": "0.58-0.60",
+      "BE": 0.541
+    }
+  },
+  "years": {
+    "test24": {
+      "auc": 0.5317477796683678,
+      "moved_up_rate": 0.5088072434490677,
+      "tripwire_ok": true,
+      "mag_auc": 0.7904326036792335,
+      "cov3_wr": 0.6130952380952381,
+      "cov3_n": 672,
+      "cov3_ci": [
+        0.5773809523809523,
+        0.6502976190476191
+      ],
+      "quartiles": {
+        "Q1_low": {
+          "n_moved": 44708,
+          "dir_moved_auc": 0.5411522959328674,
+          "sel_wr": 0.5351773902585688,
+          "sel_n": 1663,
+          "sel_ci": [
+            0.5111244738424534,
+            0.5586289837642814
+          ]
+        },
+        "Q2": {
+          "n_moved": 29980,
+          "dir_moved_auc": 0.5476077071813608,
+          "sel_wr": 0.5440771349862259,
+          "sel_n": 1452,
+          "sel_ci": [
+            0.5179063360881543,
+            0.5702479338842975
+          ]
+        },
+        "Q3": {
+          "n_moved": 30243,
+          "dir_moved_auc": 0.5163319892136022,
+          "sel_wr": 0.5270903010033445,
+          "sel_n": 1495,
+          "sel_ci": [
+            0.5023411371237458,
+            0.5518394648829431
+          ]
+        },
+        "Q4_high": {
+          "n_moved": 32683,
+          "dir_moved_auc": 0.5209195668529849,
+          "sel_wr": 0.5206225680933853,
+          "sel_n": 1285,
+          "sel_ci": [
+            0.4926070038910506,
+            0.5478599221789884
+          ]
+        }
+      }
+    },
+    "test25": {
+      "auc": 0.5221203252679887,
+      "moved_up_rate": 0.5025702635794379,
+      "tripwire_ok": true,
+      "mag_auc": 0.6970140673095587,
+      "cov3_wr": 0.5793304221251819,
+      "cov3_n": 687,
+      "cov3_ci": [
+        0.5414847161572053,
+        0.6157205240174672
+      ],
+      "quartiles": {
+        "Q1_low": {
+          "n_moved": 17734,
+          "dir_moved_auc": 0.5226612733946194,
+          "sel_wr": 0.5575117370892019,
+          "sel_n": 852,
+          "sel_ci": [
+            0.5234741784037559,
+            0.5915492957746479
+          ]
+        },
+        "Q2": {
+          "n_moved": 41129,
+          "dir_moved_auc": 0.5318329440905836,
+          "sel_wr": 0.5398550724637681,
+          "sel_n": 1932,
+          "sel_ci": [
+            0.5175983436853002,
+            0.5615942028985508
+          ]
+        },
+        "Q3": {
+          "n_moved": 40741,
+          "dir_moved_auc": 0.5200742788087175,
+          "sel_wr": 0.5307459677419355,
+          "sel_n": 1984,
+          "sel_ci": [
+            0.5090725806451613,
+            0.5529233870967742
+          ]
+        },
+        "Q4_high": {
+          "n_moved": 37736,
+          "dir_moved_auc": 0.5124758008224144,
+          "sel_wr": 0.5097915350600126,
+          "sel_n": 1583,
+          "sel_ci": [
+            0.4845230574857865,
+            0.5338123815540111
+          ]
+        }
+      }
+    },
+    "oos": {
+      "auc": 0.5070162603409765,
+      "moved_up_rate": 0.518346369630206,
+      "tripwire_ok": true,
+      "mag_auc": 0.6569094274075273,
+      "cov3_wr": 0.5393258426966292,
+      "cov3_n": 267,
+      "cov3_ci": [
+        0.4794007490636704,
+        0.599250936329588
+      ],
+      "quartiles": {
+        "Q1_low": {
+          "n_moved": 9979,
+          "dir_moved_auc": 0.49555916076210604,
+          "sel_wr": 0.4989010989010989,
+          "sel_n": 455,
+          "sel_ci": [
+            0.45494505494505494,
+            0.5428571428571428
+          ]
+        },
+        "Q2": {
+          "n_moved": 16248,
+          "dir_moved_auc": 0.515698906692045,
+          "sel_wr": 0.5112781954887218,
+          "sel_n": 798,
+          "sel_ci": [
+            0.47619047619047616,
+            0.5463659147869674
+          ]
+        },
+        "Q3": {
+          "n_moved": 13592,
+          "dir_moved_auc": 0.5029687309883801,
+          "sel_wr": 0.49928263988522237,
+          "sel_n": 697,
+          "sel_ci": [
+            0.4619799139167862,
+            0.5365853658536586
+          ]
+        },
+        "Q4_high": {
+          "n_moved": 9019,
+          "dir_moved_auc": 0.512911820997413,
+          "sel_wr": 0.4777227722772277,
+          "sel_n": 404,
+          "sel_ci": [
+            0.4282178217821782,
+            0.5272277227722773
+          ]
+        }
+      }
+    }
+  },
+  "val_or_signal_auc": 0.5435554894465056,
+  "val_mag_auc": 0.7661287343840674,
+  "mag_quartile_edges_val": [
+    0.1469354942080511,
+    0.2767066327927064,
+    0.43365725543364075
+  ],
+  "verdict": {
+    "KILLED": true,
+    "beats_base_auc": false,
+    "q4_beats_q1_and_base_years": [],
+    "q4_cov_wr_clears_BE_years": [],
+    "full_ny_auc_beats_base_years": [],
+    "note": "E2 sign-invariance test: HIGH-magnitude-quartile bars are NOT more sign-predictable than LOW-magnitude bars. FLAT direction-AUC across magnitude quartiles (null confirmed). Expected NULL per theorem arXiv:2512.15720 (magnitude gates SIZE not SIGN). SURVIVES only if Q4 dir-AUC beats Q1+0.010 AND >0.539 in >=2 yrs, OR Q4 cov-WR CI-lo clears 0.541 in >=2 yrs."
+  }
+}

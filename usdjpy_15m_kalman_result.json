@@ -1,0 +1,166 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "C2 Kalman forward-FILTER (local-level+slope), CAUSAL; DIRECTION = sign/magnitude of filtered slope (UP if slope>0)",
+  "settlement": "deriv-faithful fixed-15m sign(close[t+15]-close[t]), ties LOSE, BE=0.541, gap=900 nonoverlap (via side_eval); DECISION rows = NY session only",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "q_grid": [
+    [
+      1e-08,
+      1e-10,
+      1e-06
+    ],
+    [
+      1e-07,
+      1e-09,
+      1e-06
+    ],
+    [
+      1e-06,
+      1e-08,
+      1e-06
+    ],
+    [
+      1e-07,
+      1e-10,
+      1e-05
+    ]
+  ],
+  "incumbent": "certified NY own-pair GBM signal AUC ~.539 / win-rate ~.58-.60",
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "held-out moved-AUC <= 0.51 (trend dead -> filter anti-predictive or flat)",
+    "SURVIVE_if": "held-out moved-AUC > ~0.539 OR cov3% win-rate CI95-lower clears 0.541 in >=2 held-out years",
+    "anti_predictive_note": "if moved-AUC < 0.50 the slope is the WRONG sign at 15m => 15m is mean-reverting, lever should be inverted (reversion), still report as KILLED for the trend direction tested"
+  },
+  "selected_qidx": 0,
+  "selected_q": [
+    1e-08,
+    1e-10,
+    1e-06
+  ],
+  "signal_scale": 3.0010304515998625e-05,
+  "val_or_signal_auc": 0.4816830279833013,
+  "years": {
+    "test24": {
+      "auc": 0.48293841374357427,
+      "n_moved_ny": 137674,
+      "moved_up_rate": 0.5087670874674957,
+      "tripwire_ok": true,
+      "cov3_thr": 0.36952617778006325,
+      "cov3_wr": 0.4439,
+      "cov3_n": 428,
+      "cov3_ci": [
+        0.3972,
+        0.4907
+      ],
+      "cov3_UP": {
+        "n": 202,
+        "wr": 0.4752,
+        "ci": [
+          0.4059,
+          0.5446
+        ]
+      },
+      "cov3_DOWN": {
+        "n": 226,
+        "wr": 0.4159,
+        "ci": [
+          0.354,
+          0.4823
+        ]
+      }
+    },
+    "test25": {
+      "auc": 0.4933230629910085,
+      "n_moved_ny": 137385,
+      "moved_up_rate": 0.5024274848054737,
+      "tripwire_ok": true,
+      "cov3_thr": 0.38246559289730286,
+      "cov3_wr": 0.4596,
+      "cov3_n": 433,
+      "cov3_ci": [
+        0.4134,
+        0.5081
+      ],
+      "cov3_UP": {
+        "n": 188,
+        "wr": 0.4947,
+        "ci": [
+          0.4202,
+          0.5691
+        ]
+      },
+      "cov3_DOWN": {
+        "n": 245,
+        "wr": 0.4327,
+        "ci": [
+          0.3714,
+          0.4898
+        ]
+      }
+    },
+    "oos": {
+      "auc": 0.5009316384754743,
+      "n_moved_ny": 48838,
+      "moved_up_rate": 0.518346369630206,
+      "tripwire_ok": true,
+      "cov3_thr": 0.34015588607426905,
+      "cov3_wr": 0.4451,
+      "cov3_n": 164,
+      "cov3_ci": [
+        0.372,
+        0.5244
+      ],
+      "cov3_UP": {
+        "n": 63,
+        "wr": 0.381,
+        "ci": [
+          0.2698,
+          0.5079
+        ]
+      },
+      "cov3_DOWN": {
+        "n": 101,
+        "wr": 0.4851,
+        "ci": [
+          0.3861,
+          0.5842
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "KILLED": true,
+    "beats_base_auc": false,
+    "min_holdout_auc": 0.4829,
+    "cov3_CIlo_clears_BE_years": [],
+    "anti_predictive": true,
+    "note": "ANTI-PREDICTIVE: held-out moved-AUC<0.50 => 15m slope/trend is the WRONG sign (mean-reverting). min held-out moved-AUC=0.4829 (incumbent ~.539); cov3% CI-lo clears 0.541 in years []. KILLED the trend-direction test."
+  }
+}

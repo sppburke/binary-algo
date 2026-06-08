@@ -1,0 +1,82 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "river ARFClassifier(n_models=5,max_depth=12,grace=300)+ADWIN, prequential predict-then-learn, compact causal 33-feat subset, NY decision rows",
+  "engine": "river-arf",
+  "method": "C5 online adaptive forest (efficiency keystone / ceiling confirmator)",
+  "settlement": "deriv-faithful 15m sign label, ties LOSE, BE 0.541, gap=900s nonoverlap_chrono; NY decision rows",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "tr_stride": 6,
+  "on_stride": 1,
+  "n_compact_feats": 33,
+  "compact_feats": [
+    "1m_ret_1",
+    "1m_ret_3",
+    "1m_ret_6",
+    "5m_ret_1",
+    "5m_ret_3",
+    "15m_ret_1",
+    "1m_rsi",
+    "5m_rsi",
+    "15m_rsi",
+    "1m_bb_width",
+    "5m_bb_width",
+    "15m_bb_width",
+    "1m_atr_pct",
+    "5m_atr_pct",
+    "1m_dist_ema20",
+    "5m_dist_ema20",
+    "1m_rangepos_24",
+    "5m_rangepos_24",
+    "1m_autocorr_10",
+    "5m_autocorr_10",
+    "1m_macd_hist",
+    "5m_macd_hist",
+    "1m_bb_pctb",
+    "5m_bb_pctb",
+    "mtf_trend_align",
+    "mtf_rsi_mean",
+    "vol_z",
+    "sess_ny",
+    "sess_london",
+    "sess_overlap",
+    "hour_sin",
+    "hour_cos",
+    "gap_prev"
+  ],
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "held-out moved-AUC <= 0.51 in EVERY year (the efficiency/null reading) OR it fails to beat the certified incumbent: no held-out year moved-AUC > 0.539 AND NY cov3% win-rate CI95-lower clears 0.541 in < 2 years",
+    "SURVIVE_if": "held-out moved-AUC > ~0.539 in a year, OR NY cov3% WR CI-lo >= 0.541 in >=2 years",
+    "rationale": "1m online sibling -> AUC ~.50 (efficiency). USDJPY 15m IS certified (own-pair NY GBM ~.539 AUC, WR ~.58-.60), so an online forest here CONFIRMS THE CEILING, not total efficiency: matching ~.50 just bounds the online learner's residual. Sign-invariance note (arXiv:2512.15720): state/vol gates move SIZE not SIGN \u2014 but we RUN the direction test faithfully and let AUC<=.51 falsify if it is only a magnitude signal."
+  },
+  "incumbent": {
+    "certified_ny_gbm_auc": 0.539,
+    "certified_ny_gbm_wr": "~.58-.60"
+  }
+}

@@ -1,0 +1,317 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "C3 RMT eigen-residual reversion: 7 USD-major close-only return panel inner-joined on the USDJPY 15m NY decision clock; standardize on TRAIN; rolling correlation matrix; Marchenko-Pastur isolates the leading eigen-mode (USD basket / market factor, eigenvalue >> lambda+); remove it; USDJPY residual -> reversion direction signal (predict UP if residual<0). Operator (mu,sd,leading eigenvector,resid-std) fit TRAIN-only, applied frozen.",
+  "settlement": "deriv-faithful label sign(close[t+15]-close[t]); ties LOSE; require ts[t+15]-ts[t]==900; NY decision rows only; gap=900 nonoverlap_chrono via side_eval; BE=0.541.",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "incumbent_auc": 0.539,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "signal/val moved-AUC <= 0.51 (direction falsifier)",
+    "SURVIVE_if": "a held-out moved-AUC exceeds ~0.539 (incumbent NY own-pair GBM) OR NY cov3% win-rate CI95-lower clears 0.541 in >=2 years",
+    "rationale": "RMT is a state/volatility gate; arXiv:2512.15720 predicts it gates move SIZE not SIGN, so direction-AUC is expected at/near 0.50. Run the direction test faithfully and let AUC<=0.51 decide."
+  },
+  "tripwire": "NY moved up-rate must be ~0.47-0.53 (else flag the leakage/mirage).",
+  "rmt": {
+    "lambda_plus": 1.0027427855659503,
+    "leading_eig": 3.2191574512076233,
+    "k_above": 2,
+    "eigvals_desc": [
+      3.2191574512076233,
+      1.1477078239574763,
+      0.8023869866559613,
+      0.6380793915166115,
+      0.5606402473370704,
+      0.3459660740323699,
+      0.28606202529288705
+    ],
+    "leading_eigenvector": {
+      "AUDUSD": -0.43727173602557423,
+      "EURUSD": -0.4344592984541069,
+      "GBPUSD": -0.36279496621392593,
+      "NZDUSD": -0.42193575706467873,
+      "USDCAD": 0.37025110209606693,
+      "USDCHF": 0.35931978265609743,
+      "USDJPY": 0.21021891315640778
+    },
+    "q_NoverT": 1.878143374782169e-06,
+    "T": 3727085,
+    "N": 7
+  },
+  "val_or_signal_auc": 0.5103018453247391,
+  "years": {
+    "test24": {
+      "auc": 0.5072470691020758,
+      "n_moved_ny": 137462,
+      "moved_up_rate": 0.5088606305742678,
+      "tripwire_ok": true,
+      "cov3_wr": 0.5208581644815257,
+      "cov3_n": 1678,
+      "cov3_ci": [
+        0.4970202622169249,
+        0.5458879618593564
+      ],
+      "cov3_UP": {
+        "n": 915,
+        "wr": 0.5234972677595628,
+        "ci": [
+          0.4907103825136612,
+          0.5573770491803278
+        ]
+      },
+      "cov3_DOWN": {
+        "n": 763,
+        "wr": 0.5176933158584535,
+        "ci": [
+          0.48099606815203144,
+          0.5530799475753604
+        ]
+      },
+      "cov3_thr": 0.40139751500658677,
+      "covcurve": {
+        "0.30": {
+          "thr": NaN
+        },
+        "0.20": {
+          "thr": NaN
+        },
+        "0.10": {
+          "thr": NaN
+        },
+        "0.05": {
+          "thr": NaN
+        },
+        "0.03": {
+          "thr": NaN
+        },
+        "0.02": {
+          "thr": NaN
+        },
+        "0.01": {
+          "thr": NaN
+        }
+      }
+    },
+    "test25": {
+      "auc": 0.505797071694382,
+      "n_moved_ny": 136601,
+      "moved_up_rate": 0.5031002701297941,
+      "tripwire_ok": true,
+      "cov3_wr": 0.5268264840182648,
+      "cov3_n": 1752,
+      "cov3_ci": [
+        0.502283105022831,
+        0.5496575342465754
+      ],
+      "cov3_UP": {
+        "n": 902,
+        "wr": 0.5210643015521065,
+        "ci": [
+          0.48891352549889133,
+          0.5543237250554324
+        ]
+      },
+      "cov3_DOWN": {
+        "n": 850,
+        "wr": 0.5329411764705883,
+        "ci": [
+          0.4988235294117647,
+          0.5658823529411765
+        ]
+      },
+      "cov3_thr": 0.4050874081402683,
+      "covcurve": {
+        "0.30": {
+          "thr": NaN
+        },
+        "0.20": {
+          "thr": NaN
+        },
+        "0.10": {
+          "thr": NaN
+        },
+        "0.05": {
+          "thr": NaN
+        },
+        "0.03": {
+          "thr": NaN
+        },
+        "0.02": {
+          "thr": NaN
+        },
+        "0.01": {
+          "thr": NaN
+        }
+      }
+    },
+    "oos": {
+      "auc": 0.503763994827441,
+      "n_moved_ny": 48838,
+      "moved_up_rate": 0.518346369630206,
+      "tripwire_ok": true,
+      "cov3_wr": 0.5170731707317073,
+      "cov3_n": 615,
+      "cov3_ci": [
+        0.47804878048780486,
+        0.5560975609756098
+      ],
+      "cov3_UP": {
+        "n": 351,
+        "wr": 0.5470085470085471,
+        "ci": [
+          0.49572649572649574,
+          0.6011396011396012
+        ]
+      },
+      "cov3_DOWN": {
+        "n": 264,
+        "wr": 0.4772727272727273,
+        "ci": [
+          0.4166666666666667,
+          0.5378787878787878
+        ]
+      },
+      "cov3_thr": 0.360993300330384,
+      "covcurve": {
+        "0.30": {
+          "thr": 0.14663601981455207,
+          "COMBINED": {
+            "n": 2653,
+            "wr": 0.5104
+          },
+          "UP": {
+            "n": 1357,
+            "wr": 0.538
+          },
+          "DOWN": {
+            "n": 1296,
+            "wr": 0.4815
+          }
+        },
+        "0.20": {
+          "thr": 0.18812459267392836,
+          "COMBINED": {
+            "n": 2270,
+            "wr": 0.515
+          },
+          "UP": {
+            "n": 1140,
+            "wr": 0.5395
+          },
+          "DOWN": {
+            "n": 1130,
+            "wr": 0.4903
+          }
+        },
+        "0.10": {
+          "thr": 0.25521625531118897,
+          "COMBINED": {
+            "n": 1551,
+            "wr": 0.5029
+          },
+          "UP": {
+            "n": 809,
+            "wr": 0.529
+          },
+          "DOWN": {
+            "n": 742,
+            "wr": 0.4744
+          }
+        },
+        "0.05": {
+          "thr": 0.3170773450083549,
+          "COMBINED": {
+            "n": 944,
+            "wr": 0.5138
+          },
+          "UP": {
+            "n": 533,
+            "wr": 0.5328
+          },
+          "DOWN": {
+            "n": 411,
+            "wr": 0.4891
+          }
+        },
+        "0.03": {
+          "thr": 0.360993300330384,
+          "COMBINED": {
+            "n": 615,
+            "wr": 0.5171
+          },
+          "UP": {
+            "n": 351,
+            "wr": 0.547
+          },
+          "DOWN": {
+            "n": 264,
+            "wr": 0.4773
+          }
+        },
+        "0.02": {
+          "thr": 0.39109243032116076,
+          "COMBINED": {
+            "n": 428,
+            "wr": 0.521
+          },
+          "UP": {
+            "n": 256,
+            "wr": 0.5508
+          },
+          "DOWN": {
+            "n": 172,
+            "wr": 0.4767
+          }
+        },
+        "0.01": {
+          "thr": 0.43749416252979745,
+          "COMBINED": {
+            "n": 206,
+            "wr": 0.5049
+          },
+          "UP": {
+            "n": 117,
+            "wr": 0.5043
+          },
+          "DOWN": {
+            "n": 89,
+            "wr": 0.5056
+          }
+        }
+      }
+    }
+  },
+  "verdict": {
+    "KILLED": true,
+    "beats_base_auc": false,
+    "auc_beats_incumbent_years": [],
+    "cov3_wr_CIlo_clears_BE_years": [],
+    "val_signal_auc_le_051": false,
+    "note": "C3 RMT eigen-residual reversion lever. VAL signal AUC=0.5103; held-out NY moved-AUC { test24:0.5072, test25:0.5058, oos:0.5038 }; AUC>incumbent(.539) in none; cov3% WR CIlo>=BE in none. KILLED: no held-out AUC beats .539 and <2 years clear BE win-rate"
+  }
+}

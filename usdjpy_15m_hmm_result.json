@@ -1,0 +1,147 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "C1 Gaussian HMM regime (K=3, cov=full) on CAUSAL emission feats ['15m_ret_6', '15m_rv_12', '15m_rangepos_24']; filtered FORWARD-ONLY posterior -> hard state; signal = TRAIN state-conditional next-15m up-rate. Decision rows = NY session; eval label = deriv-faithful fixed-15m sign (ties lose).",
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "held-out moved-AUC <= 0.51 in the (test24,test25,oos) median (states are vol regimes, carry no sign)",
+    "SURVIVE_if": "held-out moved-AUC > 0.539 (incumbent NY own-pair GBM) in >=2 years, OR NY cov3% win-rate CI95-lower clears 0.541 in >=2 years",
+    "rationale": "HMM/vol-state gates partition move SIZE not SIGN (arXiv:2512.15720). If the states have directional content the state up-rate departs from 0.5 and moved-AUC>.51; the test decides. EURUSD neural+spectral DIRECTION sweep at every tf was ALL KILLED."
+  },
+  "tr_stride": 6,
+  "K": 3,
+  "cov": "full",
+  "emit": [
+    "15m_ret_6",
+    "15m_rv_12",
+    "15m_rangepos_24"
+  ],
+  "cov3": 0.03,
+  "incumbent_auc": 0.539,
+  "backend": "hmmlearn.GaussianHMM(cov=full)",
+  "state_profile": {
+    "0": {
+      "train_moved_n": 253086,
+      "train_share": 0.41277968151582345,
+      "train_uprate": 0.5052669843452423
+    },
+    "1": {
+      "train_moved_n": 253640,
+      "train_share": 0.4115783108244306,
+      "train_uprate": 0.5063988329916417
+    },
+    "2": {
+      "train_moved_n": 108478,
+      "train_share": 0.17564200765974602,
+      "train_uprate": 0.5066926012647726
+    }
+  },
+  "state_uprate": [
+    0.5052669843452423,
+    0.5063988329916417,
+    0.5066926012647726
+  ],
+  "val_or_signal_auc": 0.5071724152689369,
+  "cov3_conf_thr": 0.0066926012647725575,
+  "val_ny_moved_uprate": 0.5115410244366035,
+  "years": {
+    "test24": {
+      "auc": 0.49661060349325936,
+      "moved_up_rate": 0.5088072434490677,
+      "tripwire_ok": true,
+      "cov3_wr": 0.49649941656942825,
+      "cov3_n": 1714,
+      "cov3_ci": [
+        0.47316219369894985,
+        0.5198366394399067
+      ],
+      "cov3_sides": {
+        "UP": {
+          "n": 1714,
+          "wr": 0.49649941656942825,
+          "ci": [
+            0.47316219369894985,
+            0.5198366394399067
+          ]
+        },
+        "DOWN": {
+          "n": 0,
+          "wr": NaN,
+          "ci": [
+            NaN,
+            NaN
+          ]
+        }
+      },
+      "beats_incumbent_auc": false
+    },
+    "test25": {
+      "auc": 0.49525065251163203,
+      "moved_up_rate": 0.5025702635794379,
+      "tripwire_ok": true,
+      "cov3_wr": 0.4901222953904045,
+      "cov3_n": 2126,
+      "cov3_ci": [
+        0.46942615239887114,
+        0.5112888052681092
+      ],
+      "cov3_sides": {
+        "UP": {
+          "n": 2126,
+          "wr": 0.4901222953904045,
+          "ci": [
+            0.46942615239887114,
+            0.5112888052681092
+          ]
+        },
+        "DOWN": {
+          "n": 0,
+          "wr": NaN,
+          "ci": [
+            NaN,
+            NaN
+          ]
+        }
+      },
+      "beats_incumbent_auc": false
+    },
+    "oos": {
+      "auc": 0.5001433084570454,
+      "moved_up_rate": 0.518346369630206,
+      "tripwire_ok": true,
+      "cov3_wr": 0.5032119914346895,
+      "cov3_n": 467,
+      "cov3_ci": [
+        0.4582441113490364,
+        0.550321199143469
+      ],
+      "cov3_sides": {
+        "UP": {
+          "n": 467,
+          "wr": 0.5032119914346895,
+          "ci": [
+            0.4582441113490364,
+            0.550321199143469
+          ]
+        },
+        "DOWN": {
+          "n": 0,
+          "wr": NaN,
+          "ci": [
+            NaN,
+            NaN
+          ]
+        }
+      },
+      "beats_incumbent_auc": false
+    }
+  },
+  "median_heldout_auc": 0.49661060349325936,
+  "verdict": {
+    "KILLED": true,
+    "beats_base_auc": false,
+    "beats_incumbent_auc_years": [],
+    "cov3_wr_CIlo_clears_BE_years": [],
+    "median_heldout_auc": 0.49661060349325936,
+    "note": "HMM regime as a 15m DIRECTION lever on USDJPY NY. SURVIVE needs moved-AUC>0.539 in >=2 yrs OR cov3% WR CI-lo>=0.541 in >=2 yrs. Expectation (arXiv:2512.15720): vol-state gates carry SIZE not SIGN -> median AUC ~.50, falsifier fires."
+  }
+}

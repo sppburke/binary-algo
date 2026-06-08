@@ -1,0 +1,30 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "E4 information bars (volume-clock sampling; AFML ch2; ref vbars.py)",
+  "settlement": "deriv-faithful fixed-15m label sign(close[t+15]-close[t]), ties LOSE, breakeven 0.541, gap=900s nonoverlap; DECISION rows NY-session (America/New_York 08-17)",
+  "incumbent": {
+    "ny_ownpair_gbm_auc": 0.539,
+    "ny_ownpair_gbm_wr": "~0.58-0.60"
+  },
+  "falsifier": {
+    "registered_utc": "pre-held-out",
+    "KILL_if": "DATA-LIMITED (no raw volume column on disk -> information bars not constructible) OR held-out moved-AUC <= 0.539 in every year (no lift vs certified NY incumbent) AND NY cov3% win-rate CI95-lower clears 0.541 in < 2 held-out years (AUC<=.51 = pure magnitude)",
+    "rationale": "Volume bars need a cumulative non-negative arrival quantity. SIGN-INVARIANCE (arXiv:2512.15720): state/complexity/vol gates target move SIZE not SIGN, so this is run faithfully and the number decides. But on current disk USDJPY ships NO raw volume \u2014 only EURUSD has the 10s OHLCV cache vbars.py consumes \u2014 so the bars cannot be built honestly."
+  },
+  "val_or_signal_auc": null,
+  "years": {},
+  "data_check": {
+    "checked": "/home/sean/git/binary-algo/features/USDJPY_2012.parquet",
+    "n_cols": 243,
+    "vol_like_cols": [
+      "vol_z",
+      "zero_vol"
+    ],
+    "raw_volume_candidates": []
+  },
+  "verdict": {
+    "KILLED": false,
+    "beats_base_auc": false,
+    "note": "DATA-LIMITED: no volume on disk; information bars not constructible. USDJPY feature parquet has no raw volume/tick_volume column (vol-like cols are derived: ['vol_z', 'zero_vol']); the repo's raw OHLCV+volume cache exists for EURUSD only (vbars.py). A volume clock needs a cumulative non-negative arrival quantity, which is absent \u2014 not fabricating one."
+  }
+}

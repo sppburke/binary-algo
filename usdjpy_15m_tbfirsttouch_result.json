@@ -1,0 +1,564 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "triple-barrier FIRST-TOUCH train label (vectorized cummax/cummin); barriers +/-k*sigma_t (trailing realized vol), vertical=15m timeout->endpoint sign; k frozen on VAL fixed-15m AUC. EVAL=UNCHANGED deriv-faithful fixed-15m sign, ties LOSE; DECISION rows restricted to NY session.",
+  "model": "single-pair base GBM (239 feats), TRAIN-LABEL=tb-first-touch, EVAL=fixed-15m deriv label",
+  "settlement": "EVAL=bar-close fixed-15m, ties LOSE, BE 0.541, gap=900s nonoverlap_chrono; NY decision rows",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "session": "ny",
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "vol_win": 900,
+  "k_grid": [
+    0.5,
+    0.75,
+    1.0,
+    1.5,
+    2.0
+  ],
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "VAL fixed-15m moved-AUC <= 0.5313 (no lift over base) OR moved up-rate drifts outside [0.47,0.53] in any held-out year (leaked to magnitude / mirage). SURVIVE only if held-out moved-AUC > ~.539 OR NY cov3% win-rate CI-lower clears 0.541 in >=2 years.",
+    "incumbent": "certified NY own-pair GBM signal AUC ~.539 / win-rate ~.58-.60 (base .539/.58)",
+    "rationale": "raw-endpoint base AUC capped ~.531. Path-aware first-touch train label may denoise the sign target. EVAL stays deriv-faithful fixed-15m on NY decision rows; only a held-out fixed-15m lift counts. Sign-invariance note (arXiv:2512.15720): vol-scaled barriers may gate SIZE not SIGN; let the AUC decide."
+  },
+  "k_scores": {
+    "0.5": {
+      "val_fixed15m_auc": 0.5364441802894828,
+      "best_iter": 198,
+      "train_decision": 228433
+    },
+    "0.75": {
+      "val_fixed15m_auc": 0.538744554404706,
+      "best_iter": 515,
+      "train_decision": 228433
+    },
+    "1.0": {
+      "val_fixed15m_auc": 0.541397009940265,
+      "best_iter": 278,
+      "train_decision": 228433
+    },
+    "1.5": {
+      "val_fixed15m_auc": 0.541727769753942,
+      "best_iter": 160,
+      "train_decision": 228433
+    },
+    "2.0": {
+      "val_fixed15m_auc": 0.5439049785392387,
+      "best_iter": 194,
+      "train_decision": 228433
+    }
+  },
+  "chosen_k": 2.0,
+  "val_or_signal_auc": 0.5439049785392387,
+  "gate": {
+    "cov": 0.02,
+    "conf_thr": 0.1169145238084695,
+    "val_worst_half_wr": 0.5854545454545454,
+    "val_half_wrs": [
+      0.6374695863746959,
+      0.5854545454545454
+    ]
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5321256896254342,
+      "moved_up_rate": 0.5088072434490677,
+      "n_ny_moved": 137614,
+      "gate": {
+        "COMBINED": {
+          "n": 601,
+          "wr": 0.6222961730449251,
+          "ci": [
+            0.5840266222961731,
+            0.6605657237936772
+          ]
+        },
+        "UP": {
+          "n": 512,
+          "wr": 0.595703125,
+          "ci": [
+            0.55078125,
+            0.638671875
+          ]
+        },
+        "DOWN": {
+          "n": 89,
+          "wr": 0.7752808988764045,
+          "ci": [
+            0.6853932584269663,
+            0.8651685393258427
+          ]
+        }
+      },
+      "cov3": {
+        "thr": 0.11407875737129115,
+        "COMBINED": {
+          "n": 675,
+          "wr": 0.6133
+        },
+        "UP": {
+          "n": 563,
+          "wr": 0.5915
+        },
+        "DOWN": {
+          "n": 112,
+          "wr": 0.7232
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.05265513918685154,
+          "COMBINED": {
+            "n": 5105,
+            "wr": 0.542
+          },
+          "UP": {
+            "n": 2726,
+            "wr": 0.5492
+          },
+          "DOWN": {
+            "n": 2379,
+            "wr": 0.5338
+          }
+        },
+        "0.20": {
+          "thr": 0.06463352943175642,
+          "COMBINED": {
+            "n": 3664,
+            "wr": 0.5469
+          },
+          "UP": {
+            "n": 2018,
+            "wr": 0.556
+          },
+          "DOWN": {
+            "n": 1646,
+            "wr": 0.5358
+          }
+        },
+        "0.10": {
+          "thr": 0.08332548698691383,
+          "COMBINED": {
+            "n": 1962,
+            "wr": 0.578
+          },
+          "UP": {
+            "n": 1221,
+            "wr": 0.579
+          },
+          "DOWN": {
+            "n": 741,
+            "wr": 0.5762
+          }
+        },
+        "0.05": {
+          "thr": 0.10159333801789873,
+          "COMBINED": {
+            "n": 1015,
+            "wr": 0.597
+          },
+          "UP": {
+            "n": 756,
+            "wr": 0.5833
+          },
+          "DOWN": {
+            "n": 259,
+            "wr": 0.6371
+          }
+        },
+        "0.03": {
+          "thr": 0.11407875737129115,
+          "COMBINED": {
+            "n": 675,
+            "wr": 0.6133
+          },
+          "UP": {
+            "n": 563,
+            "wr": 0.5915
+          },
+          "DOWN": {
+            "n": 112,
+            "wr": 0.7232
+          }
+        },
+        "0.02": {
+          "thr": 0.12349866825254634,
+          "COMBINED": {
+            "n": 463,
+            "wr": 0.6307
+          },
+          "UP": {
+            "n": 416,
+            "wr": 0.6058
+          },
+          "DOWN": {
+            "n": 47,
+            "wr": 0.8511
+          }
+        },
+        "0.01": {
+          "thr": 0.13833446667671576,
+          "COMBINED": {
+            "n": 273,
+            "wr": 0.6374
+          },
+          "UP": {
+            "n": 264,
+            "wr": 0.6288
+          },
+          "DOWN": {
+            "n": 9,
+            "wr": 0.8889
+          }
+        }
+      },
+      "tripwire_ok": true
+    },
+    "test25": {
+      "moved_auc": 0.5229094184626855,
+      "moved_up_rate": 0.5025702635794379,
+      "n_ny_moved": 137340,
+      "gate": {
+        "COMBINED": {
+          "n": 634,
+          "wr": 0.5851735015772871,
+          "ci": [
+            0.5457413249211357,
+            0.6230283911671924
+          ]
+        },
+        "UP": {
+          "n": 520,
+          "wr": 0.5846153846153846,
+          "ci": [
+            0.5442307692307692,
+            0.6269230769230769
+          ]
+        },
+        "DOWN": {
+          "n": 114,
+          "wr": 0.5877192982456141,
+          "ci": [
+            0.5,
+            0.6754385964912281
+          ]
+        }
+      },
+      "cov3": {
+        "thr": 0.11493559570334559,
+        "COMBINED": {
+          "n": 676,
+          "wr": 0.574
+        },
+        "UP": {
+          "n": 549,
+          "wr": 0.5756
+        },
+        "DOWN": {
+          "n": 127,
+          "wr": 0.5669
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.054587165216183675,
+          "COMBINED": {
+            "n": 5229,
+            "wr": 0.5211
+          },
+          "UP": {
+            "n": 2755,
+            "wr": 0.5267
+          },
+          "DOWN": {
+            "n": 2474,
+            "wr": 0.515
+          }
+        },
+        "0.20": {
+          "thr": 0.06659464459545172,
+          "COMBINED": {
+            "n": 3781,
+            "wr": 0.5332
+          },
+          "UP": {
+            "n": 2044,
+            "wr": 0.5372
+          },
+          "DOWN": {
+            "n": 1737,
+            "wr": 0.5285
+          }
+        },
+        "0.10": {
+          "thr": 0.08531365453441553,
+          "COMBINED": {
+            "n": 2056,
+            "wr": 0.5589
+          },
+          "UP": {
+            "n": 1231,
+            "wr": 0.5735
+          },
+          "DOWN": {
+            "n": 825,
+            "wr": 0.537
+          }
+        },
+        "0.05": {
+          "thr": 0.10269712041574164,
+          "COMBINED": {
+            "n": 1077,
+            "wr": 0.5645
+          },
+          "UP": {
+            "n": 767,
+            "wr": 0.5698
+          },
+          "DOWN": {
+            "n": 310,
+            "wr": 0.5516
+          }
+        },
+        "0.03": {
+          "thr": 0.11493559570334559,
+          "COMBINED": {
+            "n": 676,
+            "wr": 0.574
+          },
+          "UP": {
+            "n": 549,
+            "wr": 0.5756
+          },
+          "DOWN": {
+            "n": 127,
+            "wr": 0.5669
+          }
+        },
+        "0.02": {
+          "thr": 0.12430393867545093,
+          "COMBINED": {
+            "n": 476,
+            "wr": 0.5966
+          },
+          "UP": {
+            "n": 417,
+            "wr": 0.5971
+          },
+          "DOWN": {
+            "n": 59,
+            "wr": 0.5932
+          }
+        },
+        "0.01": {
+          "thr": 0.13964772855924124,
+          "COMBINED": {
+            "n": 260,
+            "wr": 0.5769
+          },
+          "UP": {
+            "n": 249,
+            "wr": 0.5783
+          },
+          "DOWN": {
+            "n": 11,
+            "wr": 0.5455
+          }
+        }
+      },
+      "tripwire_ok": true
+    },
+    "oos": {
+      "moved_auc": 0.5124131391476703,
+      "moved_up_rate": 0.518346369630206,
+      "n_ny_moved": 48838,
+      "gate": {
+        "COMBINED": {
+          "n": 276,
+          "wr": 0.5434782608695652,
+          "ci": [
+            0.4855072463768116,
+            0.6015398550724624
+          ]
+        },
+        "UP": {
+          "n": 205,
+          "wr": 0.5707317073170731,
+          "ci": [
+            0.5024390243902439,
+            0.6390243902439025
+          ]
+        },
+        "DOWN": {
+          "n": 71,
+          "wr": 0.4647887323943662,
+          "ci": [
+            0.352112676056338,
+            0.5774647887323944
+          ]
+        }
+      },
+      "cov3": {
+        "thr": 0.11789156926233464,
+        "COMBINED": {
+          "n": 267,
+          "wr": 0.5431
+        },
+        "UP": {
+          "n": 202,
+          "wr": 0.5644
+        },
+        "DOWN": {
+          "n": 65,
+          "wr": 0.4769
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.05650078311603504,
+          "COMBINED": {
+            "n": 1879,
+            "wr": 0.5056
+          },
+          "UP": {
+            "n": 956,
+            "wr": 0.523
+          },
+          "DOWN": {
+            "n": 923,
+            "wr": 0.4875
+          }
+        },
+        "0.20": {
+          "thr": 0.06942068138002633,
+          "COMBINED": {
+            "n": 1363,
+            "wr": 0.5238
+          },
+          "UP": {
+            "n": 708,
+            "wr": 0.5565
+          },
+          "DOWN": {
+            "n": 655,
+            "wr": 0.4885
+          }
+        },
+        "0.10": {
+          "thr": 0.08913098853320274,
+          "COMBINED": {
+            "n": 740,
+            "wr": 0.5297
+          },
+          "UP": {
+            "n": 424,
+            "wr": 0.5542
+          },
+          "DOWN": {
+            "n": 316,
+            "wr": 0.4968
+          }
+        },
+        "0.05": {
+          "thr": 0.10617278987448421,
+          "COMBINED": {
+            "n": 419,
+            "wr": 0.537
+          },
+          "UP": {
+            "n": 280,
+            "wr": 0.5607
+          },
+          "DOWN": {
+            "n": 139,
+            "wr": 0.4892
+          }
+        },
+        "0.03": {
+          "thr": 0.11789156926233464,
+          "COMBINED": {
+            "n": 267,
+            "wr": 0.5431
+          },
+          "UP": {
+            "n": 202,
+            "wr": 0.5644
+          },
+          "DOWN": {
+            "n": 65,
+            "wr": 0.4769
+          }
+        },
+        "0.02": {
+          "thr": 0.12725993011375844,
+          "COMBINED": {
+            "n": 176,
+            "wr": 0.5227
+          },
+          "UP": {
+            "n": 146,
+            "wr": 0.5342
+          },
+          "DOWN": {
+            "n": 30,
+            "wr": 0.4667
+          }
+        },
+        "0.01": {
+          "thr": 0.14124431096021714,
+          "COMBINED": {
+            "n": 94,
+            "wr": 0.5106
+          },
+          "UP": {
+            "n": 87,
+            "wr": 0.5517
+          },
+          "DOWN": {
+            "n": 7,
+            "wr": 0.0
+          }
+        }
+      },
+      "tripwire_ok": true
+    }
+  },
+  "verdict": {
+    "KILLED": false,
+    "beats_base_auc": true,
+    "val_auc_le_0p5313": false,
+    "tripwire_fail_years": [],
+    "auc_beats_incumbent_years": [],
+    "cov3_COMBINED_CIlo_clears_BE_years": [
+      "test24",
+      "test25"
+    ],
+    "note": "SURVIVED: held-out moved-AUC>.539 and/or cov3% CI-lo clears BE in >=2yr"
+  }
+}
