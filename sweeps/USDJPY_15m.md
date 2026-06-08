@@ -97,7 +97,7 @@ Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the 
 7. Discovery rounds (Tier-N) until K=2 dry.
 
 ## SWEEP CLOSURE (2026-06-08) — both sides CERTIFIED; loops dry
-**Outcome:** ✅ BOTH sides certified via NY refit-CPCV (UP p10 .586 cov3% / .599 cov1%, DOWN p10 .572 cov3%, 15/15 paths). Frozen book `USDJPY.m15ny.v1` (tag `book/USDJPY.m15ny.v1`). Adversarial shuffle-control PASSES. >0.70 shown unreachable as a certified floor (AUC ~.539 cap).
+**Outcome:** ✅ BOTH sides certified via NY refit-CPCV. **Best = seed-ensemble (K=3): UP p10 .6005 / DOWN p10 .5738 @cov2% (15/15)** → frozen book `USDJPY.m15ny_seedens.v1` (tag `book/USDJPY.m15ny_seedens.v1`); single-model sibling `USDJPY.m15ny.v1` (UP .586/DOWN .572 @cov3%). Adversarial shuffle-control PASSES. REFIT-DEPENDENT (frozen vintage decays 2026; deploy with periodic retrain). >0.70 unreachable as a certified floor (AUC ~.539 cap, confirmed across 6 lever classes). Thoroughness pass: every Tier-I + Tier A-F lever RUN-or-subsumed (seed-ens only lift; ACI/A2/A3/A5/A8/D1-GRU all null).
 
 **Run-or-subsume status of remaining Tier rows** (coverage rule; AUC ceiling ~.531/.539 confirmed across data/capacity/pooling/avg-label/cointegration → the cap is a directional info bound):
 - **A2 compression×session gate / A3 reversion specialist** — SUBSUMED: A9 session-filter IS the winning gate (NY); USDJPY-2m compression-regime (D1) was KILLED; the session-concentrated base already captures the best regime. Compression gates redistribute the same .539-AUC signal, can't exceed it.
