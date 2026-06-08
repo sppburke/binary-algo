@@ -1,0 +1,310 @@
+{
+ "date": "2026-06-08",
+ "key_space": "EURUSD direction 1/2/5/10/15/30m",
+ "gate": "frozen-past forward holdout, per-year 2024/25/26, selacc@cov0.10, ties-dropped, moved-bars, breakeven 0.541, 2026 OOS",
+ "falsifier": "KILL if VAL dirAUC<=0.515 OR no held-out year selacc CI95-lo>=0.541",
+ "families": [
+  {
+   "family": "nbeats_nhits",
+   "desc": "N-BEATS/N-HiTS path-forecast->sign (single+xpair)",
+   "inventory_row": "CORPUS_LEVER_INVENTORY.md:356-357",
+   "by_horizon": {
+    "1m": {
+     "n_arms": 4,
+     "valAUC_max": 0.5035,
+     "best_heldout_selacc": {
+      "acc": 0.5071,
+      "ci_lo": 0.5019,
+      "n": 35014,
+      "yr": "2025",
+      "arch": "nhits",
+      "input": "single",
+      "readout": null
+     },
+     "survivors": 0
+    },
+    "2m": {
+     "n_arms": 4,
+     "valAUC_max": 0.508,
+     "best_heldout_selacc": {
+      "acc": 0.5123,
+      "ci_lo": 0.5072,
+      "n": 35506,
+      "yr": "2025",
+      "arch": "nbeats",
+      "input": "single",
+      "readout": null
+     },
+     "survivors": 0
+    },
+    "5m": {
+     "n_arms": 4,
+     "valAUC_max": 0.5073,
+     "best_heldout_selacc": {
+      "acc": 0.5126,
+      "ci_lo": 0.5076,
+      "n": 35935,
+      "yr": "2025",
+      "arch": "nhits",
+      "input": "single",
+      "readout": null
+     },
+     "survivors": 0
+    },
+    "10m": {
+     "n_arms": 4,
+     "valAUC_max": 0.5057,
+     "best_heldout_selacc": {
+      "acc": 0.5143,
+      "ci_lo": 0.509,
+      "n": 35977,
+      "yr": "2025",
+      "arch": "nbeats",
+      "input": "single",
+      "readout": null
+     },
+     "survivors": 0
+    },
+    "15m": {
+     "n_arms": 4,
+     "valAUC_max": 0.5069,
+     "best_heldout_selacc": {
+      "acc": 0.5153,
+      "ci_lo": 0.5102,
+      "n": 35985,
+      "yr": "2025",
+      "arch": "nhits",
+      "input": "xpair",
+      "readout": null
+     },
+     "survivors": 0
+    },
+    "30m": {
+     "n_arms": 4,
+     "valAUC_max": 0.5055,
+     "best_heldout_selacc": {
+      "acc": 0.5123,
+      "ci_lo": 0.5039,
+      "n": 12728,
+      "yr": "2026",
+      "arch": "nbeats",
+      "input": "single",
+      "readout": null
+     },
+     "survivors": 0
+    }
+   },
+   "verdict": "KILLED-all-horizons",
+   "result_jsons": [
+    "nbeats_nhits_dir_1m_result.json",
+    "nbeats_nhits_dir_2m_result.json",
+    "nbeats_nhits_dir_5m_result.json",
+    "nbeats_nhits_dir_10m_result.json",
+    "nbeats_nhits_dir_15m_result.json",
+    "nbeats_nhits_dir_30m_result.json"
+   ]
+  },
+  {
+   "family": "decomp_tft",
+   "desc": "DLinear/Autoformer/FEDformer-freq/TFT-quantile (single+xpair)",
+   "inventory_row": "CORPUS_LEVER_INVENTORY.md:333,359",
+   "by_horizon": {
+    "1m": {
+     "n_arms": 8,
+     "valAUC_max": 0.509,
+     "best_heldout_selacc": {
+      "acc": 0.5229,
+      "ci_lo": 0.5144,
+      "n": 12334,
+      "yr": "2026",
+      "arch": "tft_quantile",
+      "input": "xpair",
+      "readout": "quantile_fan"
+     },
+     "survivors": 0
+    },
+    "2m": {
+     "n_arms": 8,
+     "valAUC_max": 0.5126,
+     "best_heldout_selacc": {
+      "acc": 0.5137,
+      "ci_lo": 0.5084,
+      "n": 35490,
+      "yr": "2025",
+      "arch": "dlinear",
+      "input": "single",
+      "readout": "forecast_sign"
+     },
+     "survivors": 0
+    },
+    "5m": {
+     "n_arms": 8,
+     "valAUC_max": 0.5168,
+     "best_heldout_selacc": {
+      "acc": 0.5237,
+      "ci_lo": 0.5184,
+      "n": 35853,
+      "yr": "2025",
+      "arch": "autoformer",
+      "input": "single",
+      "readout": "forecast_sign"
+     },
+     "survivors": 0
+    },
+    "10m": {
+     "n_arms": 8,
+     "valAUC_max": 0.5193,
+     "best_heldout_selacc": {
+      "acc": 0.533,
+      "ci_lo": 0.5244,
+      "n": 12681,
+      "yr": "2026",
+      "arch": "tft_quantile",
+      "input": "single",
+      "readout": "quantile_fan"
+     },
+     "survivors": 0
+    },
+    "15m": {
+     "n_arms": 8,
+     "valAUC_max": 0.5193,
+     "best_heldout_selacc": {
+      "acc": 0.5281,
+      "ci_lo": 0.5194,
+      "n": 12702,
+      "yr": "2026",
+      "arch": "tft_quantile",
+      "input": "single",
+      "readout": "quantile_fan"
+     },
+     "survivors": 0
+    },
+    "30m": {
+     "n_arms": 8,
+     "valAUC_max": 0.5151,
+     "best_heldout_selacc": {
+      "acc": 0.5275,
+      "ci_lo": 0.5186,
+      "n": 12691,
+      "yr": "2026",
+      "arch": "tft_quantile",
+      "input": "single",
+      "readout": "quantile_fan"
+     },
+     "survivors": 0
+    }
+   },
+   "verdict": "KILLED-all-horizons",
+   "result_jsons": [
+    "decomp_dir_1m_result.json",
+    "decomp_dir_2m_result.json",
+    "decomp_dir_5m_result.json",
+    "decomp_dir_10m_result.json",
+    "decomp_dir_15m_result.json",
+    "decomp_dir_30m_result.json"
+   ]
+  },
+  {
+   "family": "dwt_ssa",
+   "desc": "causal DWT/SSA band-split->recombine->sign",
+   "inventory_row": "CORPUS_LEVER_INVENTORY.md (spectral, prior 0.03)",
+   "by_horizon": {
+    "1m": {
+     "n_arms": 2,
+     "valAUC_max": 0.5045,
+     "best_heldout_selacc": {
+      "acc": 0.5213,
+      "ci_lo": 0.4872,
+      "n": 823,
+      "yr": "2026",
+      "arch": null,
+      "input": null,
+      "readout": "GBM_recombine"
+     },
+     "survivors": 0
+    },
+    "2m": {
+     "n_arms": 2,
+     "valAUC_max": 0.5155,
+     "best_heldout_selacc": {
+      "acc": 0.524,
+      "ci_lo": 0.4904,
+      "n": 834,
+      "yr": "2026",
+      "arch": null,
+      "input": null,
+      "readout": "GBM_recombine"
+     },
+     "survivors": 0
+    },
+    "5m": {
+     "n_arms": 2,
+     "valAUC_max": 0.5038,
+     "best_heldout_selacc": {
+      "acc": 0.5243,
+      "ci_lo": 0.4923,
+      "n": 845,
+      "yr": "2026",
+      "arch": null,
+      "input": null,
+      "readout": "GBM_recombine"
+     },
+     "survivors": 0
+    },
+    "10m": {
+     "n_arms": 2,
+     "valAUC_max": 0.5081,
+     "best_heldout_selacc": {
+      "acc": 0.5455,
+      "ci_lo": 0.5112,
+      "n": 847,
+      "yr": "2026",
+      "arch": null,
+      "input": null,
+      "readout": "GBM_recombine"
+     },
+     "survivors": 0
+    },
+    "15m": {
+     "n_arms": 2,
+     "valAUC_max": 0.4996,
+     "best_heldout_selacc": {
+      "acc": 0.5144,
+      "ci_lo": 0.4955,
+      "n": 2434,
+      "yr": "2024",
+      "arch": null,
+      "input": null,
+      "readout": "literal_SSA_recombine"
+     },
+     "survivors": 0
+    },
+    "30m": {
+     "n_arms": 2,
+     "valAUC_max": 0.5043,
+     "best_heldout_selacc": {
+      "acc": 0.5162,
+      "ci_lo": 0.4965,
+      "n": 2431,
+      "yr": "2024",
+      "arch": null,
+      "input": null,
+      "readout": "GBM_recombine"
+     },
+     "survivors": 0
+    }
+   },
+   "verdict": "KILLED-all-horizons",
+   "result_jsons": [
+    "spectral_dir_1m_result.json",
+    "spectral_dir_2m_result.json",
+    "spectral_dir_5m_result.json",
+    "spectral_dir_10m_result.json",
+    "spectral_dir_15m_result.json",
+    "spectral_dir_30m_result.json"
+   ]
+  }
+ ],
+ "TOTAL_arms": 84,
+ "TOTAL_survivors": 0
+}

@@ -7,7 +7,7 @@
 
 **Technique-centric, timeframe-agnostic.** Every methodology used in this program gets a self-contained entry: *what it is · how to use it · why to use it · process notes (leakage traps / discipline) · status*. Each entry cites its implementing file and points STATUS at where the verified result lives. For per-horizon **results** and the **up/down leaderboard**, see the companion `EURUSD_RESULTS.md`.
 
-All scripts live in `/media/sean/CORSAIR/binary-algo/`. Last updated 2026-06-07 (Phase 4 cross-sectional DIRECTION campaign: D1 lead-lag signature + D6 HAVOK both KILLED; D7 signed-semivariance REAL-but-sub-breakeven — entries 3.7/3.8/4.6/9.7).
+All scripts live in `/home/sean/git/binary-algo/`. Last updated 2026-06-08 (**Neural-forecaster + spectral DIRECTION sweep** from mining external repos `directional-prediction`/`n-hits`: N-BEATS/N-HiTS path→sign, DLinear/Autoformer/FEDformer/TFT-quantile, causal DWT/SSA band-split — run at ALL 6 EURUSD tf single+cross-pair on GPU, deriv-faithful forward-holdout; **84 arms, 0 survivors, ALL KILLED** (valAUC ≤.519, no held-out CI95-lo ≥.541); flips `CORPUS_LEVER_INVENTORY.md` 333/356/357/359 UNTESTED→killed; `nbeats_nhits_dir.py`/`decomp_dir.py`/`spectral_dir.py` + `neural_spectral_dir_sweep_result.json`; full record `EURUSD_RESULTS.md`/`DIRECTION_FINDINGS.md` §2026-06-08). Prior 2026-06-07 (Phase 4 cross-sectional DIRECTION campaign: D1 lead-lag signature + D6 HAVOK both KILLED; D7 signed-semivariance REAL-but-sub-breakeven — entries 3.7/3.8/4.6/9.7).
 
 ---
 

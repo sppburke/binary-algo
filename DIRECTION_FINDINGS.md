@@ -8,6 +8,27 @@ Master summary of the multi-day effort to build a high-accuracy EURUSD up/down b
 windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_research_log.md`, `m5_research_log.md`,
 `IDEAS_LOG.md` (orthogonal-math program), `research_log.md` (pre-audit + bias-audit history).
 
+## 2026-06-08 — Neural-forecaster + spectral DIRECTION sweep (ALL 6 tf): 84 arms, 0 survivors → ALL KILLED
+
+Ran the three "technically-uncoded" lever families surfaced by mining the external repos `directional-prediction`
+and `n-hits`, at **every** EURUSD timeframe (1/2/5/10/15/30m), on **GPU** (RTX 5050, torch cu130, AMP), under the
+deriv-faithful frozen-past forward-holdout gate (per-year 2024/2025/2026, selective-acc @cov0.10, ties-dropped,
+moved-bars, breakeven 0.541, 2026 strict OOS). Pre-registered falsifier per arm: **KILL if VAL dirAUC ≤ 0.515 OR
+no held-out year's selacc CI95-lower ≥ 0.541.** Consolidated Tier-1 artifact: `neural_spectral_dir_sweep_result.json`.
+
+| Family (scripts) | Models · input | valAUC range (all tf) | best held-out selacc | verdict |
+|---|---|---|---|---|
+| **N-BEATS / N-HiTS** `nbeats_nhits_dir.py` | path-forecast→sign · single+cross-pair | 0.5035–0.5080 | 0.5153 (15m, CI-lo .510) | KILLED all 6 tf |
+| **DLinear/Autoformer/FEDformer/TFT-q** `decomp_dir.py` | forecast→sign + quantile-fan · single+cross-pair | 0.5090–0.5193 | 0.5330 (10m, CI-lo .524) | KILLED all 6 tf |
+| **causal DWT + SSA** `spectral_dir.py` | band-split→GBM/literal recombine→sign | 0.4996–0.5155 | 0.5455 (10m/2026, n847, **CI-lo .5112**) | KILLED all 6 tf |
+
+The single flashiest point (DWT/SSA 10m 2026 = **0.5455** > breakeven) is the canonical thin-coverage mirage: its
+CI95-lower is **0.5112**, it's one year at n=847, and the binding 2024/2025 slices read ~0.50. **No arm at any
+horizon has a held-out CI95-lower clearing 0.541.** This is a clean experimental confirmation of (a) the
+sign-invariance theorem — path/spectral forecasters carry move SIZE, not SIGN — and (b) the prior `binary_alpha`
+N-HiTS@5m = acc 0.515 / AUC 0.518 null (`research_log.md:16`). `CORPUS_LEVER_INVENTORY.md` rows 333/356/357/359
+flipped UNTESTED→tested-killed. **No leader unseated; the mined external repos add nothing net-new at any timeframe.**
+
 ## TL;DR — the honest frontier
 
 | Horizon | DIRECTION (sign) — best honest OOS | Tradeable? |
