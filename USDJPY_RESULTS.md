@@ -18,7 +18,9 @@
 | USDJPY · **1m** · DOWN | **~0.51** ❌ **dead + honestly EXHAUSTED** | s6/l255 LGBM down-preds | No monotone lift; ≤.51 all covers; every gated/regime/specialist attempt OOS-collapses (<.50 in 2026: regime .495, OF-resid .480, gotobi .481). Sell-rally reversion has no OOS-stable edge. Same (a)-(e) + Tier-N exhaustion as UP. | **MEASURED, dead, EXHAUSTED** |
 | USDJPY · **2m** · UP | **CPCV mean .546 / p10 .531** ⚠ **REAL-but-sub-BE (not certified)** | best-available: cross-pair POOLED+seed-ens GBM (`usdjpy_2m_xpair.py pool` + `usdjpy_2m_cpcv.py … 5`) | Cross-pair pooling LIFTS the edge above the 1m near-efficiency floor (CPCV mean .546 vs 1m ~.52) — genuine signal gain, independently confirmed (ARF .508>.50). But seed-ens+2×data lift the mean over BE while p10 SATURATES ~.531 (~1pp sub-BE, worst regime signal-bound). Base/compression-regime/DL/loss all sub-BE-or-subsumed. Frontier = external (tick/EURJPY/rate-diff). | **MEASURED real-but-sub-BE, on-disk EXHAUSTED** |
 | USDJPY · **2m** · DOWN | **CPCV mean .546 / p10 .531** ⚠ **REAL-but-sub-BE (not certified)** | best-available: cross-pair POOLED+seed-ens GBM down-preds | Pooling lifts DOWN from 1m-dead (~.51) to a real thin edge (CPCV mean .546, p10 .531) — a genuine gain — but still ~1pp sub-BE; symmetric with UP. Subset specialists destroy ranking; regime-fade dead. Frontier = external data. | **MEASURED real-but-sub-BE, on-disk EXHAUSTED** |
-| USDJPY · 5m/10m/15m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 2m). Bar data present; bootstrap when scoped. | UNTESTED |
+| USDJPY · **15m** · UP | **cov3% .601/.566/.552** (2024/25/26) ⚠ real UP edge, cert pending | best-available: single-pair LGBM base (`usdjpy_15m_base.py 6 127`) up-preds | Real UP-tilted 15m direction edge: point-est > BE 0.541 EVERY year (own-pair base), CI-lo clears 2024 only. 15m has signal where 1m/2m did not. Cross-pair pooling DILUTES (own-pair-specific signal). Data+capacity / NY-session / refit-CPCV cert IN PROGRESS (sweep `sweeps/USDJPY_15m.md`). | **MEASURING (sweep open 2026-06-08)** |
+| USDJPY · **15m** · DOWN | **cov3% .541/.519/.520** ⚠ weak, regime-dependent | best-available: single-pair LGBM base down-preds | DOWN ~BE, weaker than UP; pool lifted 2024 (.576) but 2026 collapsed (.485). Specialist + refit-CPCV pending before exhaustion verdict. | **MEASURING (sweep open 2026-06-08)** |
+| USDJPY · 5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present; bootstrap when scoped. | UNTESTED |
 
 Provenance: `usdjpy_1m_base_result.json`, `usdjpy_2m_base_result.json`, `usdjpy_2m_base_s6_l255_result.json` (Tier-1).
 
@@ -171,6 +173,25 @@ Breakeven 0.541. **Prior: 2m is the transition horizon** (EURUSD 1m~.50 → 2m U
 3. **Intraday US–JP 2y rate differential** (carry driver) + **JPY 25-delta risk-reversal** (DOWN-enabler) — slower drift, helps longer horizons more than 2m but structurally USDJPY-specific.
 
 **Magnitude (sign-invariant, separate deliverable):** USDJPY 2m magnitude is STRONG — magAUC Q90 **.827/.772/.785**, Q75 .780/.718/.722, decile lift ~2.1–2.5× (`usdjpy_2m_magnitude_result.json`). Recorded in MAGNITUDE_FINDINGS.md. The sign-invariance signature holds (magAUC ~.78 vs dirAUC ~.52).
+
+---
+
+## USDJPY × 15m (900-second) — DERIV-FX-DEPLOYABLE floor; sweep OPEN 2026-06-08
+Breakeven 0.541. **Prior: 15m is the program's strongest direction horizon** (EURUSD 15m cross-pair certified BOTH sides refit-CPCV UP p10 .567 / DOWN p10 .574) AND the only deriv-FX-deployable one (deriv forex min expiry = 15m). Sweep ledger `sweeps/USDJPY_15m.md`, backlog `sweeps/USDJPY_15m_backlog.md`. Goal: certify best UP + best DOWN, stretch win-rate >0.70, or honestly exhaust both sides.
+
+### Combined-book / single-pair + cross-pair experiments (combined-context; per-side below)
+| # | Method (file) | Result (2024 / 2025 / 2026 moved-AUC; gate per-side wr) | Verdict |
+|---|---|---|---|
+| A1 | single-pair LGBM s6/l127, 15-min own-clock label (`usdjpy_15m_base.py 6 127`) | AUC .5252/.5131/.5166; cov3% COMB .579/.546/.538, **UP .601/.566/.552**, DOWN .541/.519/.520; up-rate .514/.505/.521 (trip OK) | ⚠ SURVIVED (2024 COMB CI-lo .557≥BE). Real UP-tilted edge, pt-est>BE all yrs; CI-lo clears 2024 only. Best-available baseline. `usdjpy_15m_base_result.json` |
+| A6/I5 | cross-pair POOLED 7-major base-GBM s42/l255 (`usdjpy_15m_xpair.py pool 42 255`) | AUC .5252/.5126/.5131; cov2% UP .584/.540/.547, DOWN .576/.517/.485 | ⚠ SURVIVED but DOES-NOT-BEAT-BASE — pooling DILUTES the binding years (2025/26 < base), DOWN 2026 collapses .485, VAL-AUC .527<base .531. **USDJPY 15m signal is OWN-PAIR-SPECIFIC (opposite of EURUSD 15m where pooling certified).** `usdjpy_15m_xpair_pool_s42_l255_result.json` |
+
+### Key results (MEASURING — best-available, cert in progress)
+| Key | Result (2024 / 2025 / 2026) | Method | Status |
+|---|---|---|---|
+| **(USDJPY, 15m, UP)** | cov3% **.601 / .566 / .552**; pt-est > BE every year | up-preds of single-pair LGBM base (`usdjpy_15m_base.py`) | ⚠ real UP edge, **best AVAILABLE, not yet certified** (CI-lo clears 2024 only). Improve (data+capacity, NY-session, tight-cov) + refit-CPCV pending |
+| **(USDJPY, 15m, DOWN)** | cov3% **.541 / .519 / .520** | down-preds of single-pair LGBM base | ⚠ weak/regime-dependent (~BE); specialist + refit-CPCV pending before exhaustion verdict |
+
+**Mechanism (v1 model of the edge):** USDJPY 15m carries a real, UP-tilted direction edge (own-pair GBM AUC .513–.525; UP win-rate .55–.60 at cov3%, > BE every year) — a clear break from the 1m near-efficiency and 2m sub-BE walls; **15m is where USDJPY direction has tradeable signal.** The signal is **USDJPY-SPECIFIC** (own-pair base BEATS cross-pair pooling on the binding years — the inverse of EURUSD 15m), consistent with USDJPY's distinct BoJ/MoF/carry microstructure. UP is the carrier; DOWN is weak/regime-dependent. The binding constraint looks like own-pair data/capacity, attacked next via more data (s3/l255), NY-session concentration, and refit-CPCV certification. Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result.json` (Tier-1).
 
 ---
 

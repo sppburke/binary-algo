@@ -1,0 +1,44 @@
+> **SCOPE: USDJPY · 15m** (key-specific EXECUTABLE BACKLOG — ranked TOP-N experiments, incumbents-to-beat, discovery rounds). Ledger/status: sweeps/USDJPY_15m.md. Generic idea bank: IDEAS_LOG.md. Opened 2026-06-08.
+
+# USDJPY × 15m — Executable Backlog & Discovery
+
+## INCUMBENTS TO BEAT (the number a challenger must clear)
+- **No USDJPY 15m book exists** — this is a fresh key. Certification is ABSOLUTE vs breakeven: per-fold-refit CPCV **p10 ≥ 0.541 AND ≥80% folds clear**.
+- **Cross-key reference points** (NOT incumbents — different pair/horizon):
+  - EURUSD 15m cross-pair POOLED (`EURUSD.m15xp.v1`): refit-CPCV UP p10 .567 / DOWN p10 .574, 15/15 paths — the recipe to retarget.
+  - EURUSD 15m base (`EURUSD.m15.v1`): refit-CPCV UP p10 .5475 / DOWN p10 .5486.
+  - USDJPY 2m cross-pair pooled: CPCV p10 .531 both sides (sub-BE) — the level 15m must beat.
+- **Stretch target (user):** selective win-rate **> 0.70**. The honest read: the program's best *certified direction* edge anywhere is ~.574 (refit-CPCV); >0.70 has only ever appeared as a per-year *slice* at tight coverage (EURUSD 15m UP good years .689–.725) or in *magnitude* (sign-invariant). Pursue >0.70 via tight-coverage NY×cross-pair stacks + Tier-N novel labels; report the honest certified floor + the wall.
+
+## FIRST-TO-RUN QUEUE (ranked by ROI)
+1. **A1 base** s6/l127 — RUNNING. Floor + up-rate tripwire sanity.
+2. **A6/I5 xpair pool** s42/l255 — keystone single-fit. Falsifier: KILL if VAL AUC ≤ .515 OR no held-out year (COMB/UP/DOWN) CI-lo ≥ .541.
+3. **G1 refit-CPCV** of pooled (stride12 cov0.03) — CERTIFY. Run only if A6 is point-above-BE in ≥2 years. Then seed-ens (nseed=5) to test if it lifts p10.
+4. **A9 NY-session × cross-pair** — highest-prior combo. Build a NY-session mask (DST-correct, exchange-tz) and re-run pool + CPCV on NY decision-rows only. EURUSD precedent: the 15m direction edge is NY-concentrated.
+5. **Coverage push to >0.70**: on the certified gate, walk cov {0.05,0.03,0.02,0.01} and read per-side per-year win-rate + CI; find the tightest coverage whose worst-year CI-lo still clears, and the cov where the point estimate reaches .70 (flag thin-n honestly).
+6. **Tier-I on best combo**: seed-ens, ACI gate (I1, EURUSD-5m winner), calibration (I4). Each pre-registered to beat the incumbent worst-year or raise CPCV path-clear.
+7. **Confirmators / controls**: C5 online-ARF (is the wall efficiency or modeling?), C2 Kalman drift (trend vs reversion), D1 GRU (info-bound), E2 mag→dir (sign-invariance check).
+8. Regime gates (A2/A3), cross-horizon stack (A5), specialists (A8).
+
+## LEARN-BETWEEN-ITERATIONS LOG (update the model of the edge BEFORE each new experiment)
+- **v0 (pre-run, from cross-key priors):** USDJPY 15m direction edge, if any, is the cross-pair USD-common-factor (pooling = noise decorrelation + 7× data), strongest in NY session, two-sided at 15m per the gradient. The 1m/2m walls were near-efficiency/data-starvation; 15m has more signal per the horizon gradient. Magnitude is the sign-invariant strong edge (separate deliverable). Attack the "sub-BE" cause via: pooling (decorrelate), NY filter (concentrate), tight coverage (select), and novel TRAIN labels (sharpen sign).
+- **v1 (2026-06-08, after A1 base + A6 pool):** A1 base (own-pair, s6/l127) UP cov3% .601/.566/.552 (>BE every yr, CI-lo clears only 2024); DOWN ~.52. A6 cross-pair pool (s42/l255) UP .584/.540/.547, DOWN .576/.517/.485 — **pooling DILUTES the binding years** (2025/26 < base), DOWN 2026 collapses. **CAUSE: the 15m signal is OWN-PAIR-SPECIFIC** (USDJPY BoJ/MoF/carry microstructure ≠ EURUSD's shared USD-factor; the cross-pair gradient that made pooling the EURUSD keystone does NOT transfer to USDJPY). UP is the carrier; DOWN weak/regime-dependent. NEXT: attack data-starvation on the OWN signal (A1b s3/l255 = 2× data+capacity, RUNNING) → then NY-session concentration (A9) → then own-pair refit-CPCV cert. Pooling is NOT the path for USDJPY; deprioritize A6b.
+- *(append a dated entry after each row: what ran, the number, the inferred CAUSE of any sub-BE — common-factor / regime / info-bound / overfit — and the next experiment designed to attack that cause.)*
+
+## DISCOVERY ROUNDS (loop until K=2 dry)
+**Round 1 — corpus mining (DONE — 2026-06-08):** scanned `_extracted_levers.json` (2050 levers; 1250 unique direction-keyworded). Vetted DIRECTION-carrying candidates (survive sign-invariance — about cross-pair sign / cointegration / lead-lag / train-label, NOT magnitude), ranked by prior, untested at USDJPY 15m:
+- **TN1 — Triple-barrier / averaged-horizon TRAIN labels** (~20%): relabel the 15m train target by which barrier {up·(1+λ), down·(1-λ), timeout} is hit first, OR average forward mids over the horizon, instead of fixed close[t+15] sign. Sources: Bujak-Michankow-Slepaczuk, Prata et al. 2024 (Eq.1-2), arXiv:2504.02249, López de Prado AFML. Mechanism: sharpens the sign target by denoising the label (path-aware) → model learns a cleaner sign map. Fast-KILL: if VAL moved-AUC under TBL labels ≤ fixed-label VAL-AUC (.531), no lift. SCRIPT: usdjpy_15m_tblabel.py.
+- **TN2 — Pairwise/listwise RANKING-LOSS objective** (~15%): swap BCE for a cross-section pairwise margin / DeltaLag monotonic log-sum-exp / ListNet listwise loss over the 7 majors per bar, so the model optimizes sign-RANKING not per-pair prob. Sources: DeltaLag arXiv, Feng Temporal-Relational-Ranking, arXiv:2012.07149/2105.10019, "On Evaluating Loss Functions for Stock R…". Mechanism: ranking loss directly targets the decision (which pair/side is more likely up) — robust to the marginal-prob miscalibration that caps BCE. Fast-KILL: if ranked-top-cov win-rate ≤ pooled-BCE gate win-rate. SCRIPT: usdjpy_15m_rankloss.py.
+- **TN3 — Triangular JPY-cross direction feature** (~15%) — **DATA-BLOCKED (confirmed 2026-06-08)**: only the 7 USD-majors are on disk (no independent EURJPY/GBPJPY feed). A synthetic EURJPY=EURUSD×USDJPY is an IDENTITY → zero dislocation by construction; the triangular edge needs an *independently-traded* JPY-cross quote to deviate from the implied cross. Requires external data acquisition (gated on user "go"). Source: Chaboud et al "Rise of the Machines".
+- **TN4 — TAR-VECM cointegration-velocity sign** (~15%): threshold-autoregressive vector-error-correction on the USD-residual; the error-correction speed-of-adjustment term is a SIGNED (directional) velocity. Source: Sezer ref [148] TAR-VEC. Mechanism: cointegration pulls residual back → sign of the gap predicts sign of the move. SCRIPT: usdjpy_15m_tarvecm.py.
+- **TN5 — Cross-pair learning-to-rank / dynamic-graph** (~10%): rank the 7 majors per bar by predicted signed 15m return, trade USDJPY only when it's a top/bottom-ranked extreme; optional multi-relational dynamic graph (correlation/triangular/lead-lag adjacency). Sources: Feng, MDGNN, Ye 2020 multi-GCGRU. Mechanism: relative cross-sectional signal stronger than absolute. Heavier (GNN) — gate on whether the simpler ranking-loss (TN2) shows life first.
+
+Seeded from SWEEP_MATRIX Tier-N (also untested at USDJPY 15m): N17 anti-contemporaneous lead-lag + transfer-entropy gate + RFF (~13%).
+
+**DATA-BLOCKED (external, gated on user "go"):** USDJPY 1s tick microstructure (no cache on disk; the structurally-right unlock for sub-15m, less critical at 15m where bar-close entry is faithful); intraday US–JP 2y/10y rate differential (carry sign — slower drift, may help 15m); EURJPY/GBPJPY triangular crosses (only 7 USD-majors on disk); JPY 25-delta risk-reversal skew (DOWN-enabler).
+
+## COMBINE-ONLY-AFTER-REASONING (candidate combos, with named mechanism + measured correlation BEFORE building)
+- **pooled × NY-filter**: mechanism = pooling decorrelates noise (raises mean), NY-filter concentrates the regime where USD-factor sign is informative (raises the conditional base-rate). Decorrelated because one acts on training rows, the other on decision rows. Expected: lifts worst-year. MEASURE NY vs all-session AUC gap first.
+- **pooled ⊕ seed-ens**: variance reduction on the pooled ranking; test if it lifts CPCV p10 (USDJPY-2m: lifted .5245→.5306 then saturated). 
+- **cross-horizon parent → 15m child**: a 30m/60m USDJPY direction model's confidence front-loads the 15m gate (longer horizon = stronger sign per gradient). Mechanism: parent carries lower-frequency drift sign. MEASURE corr(parent_conf, child_correct).
+- **mag-gate × direction**: high-|ret| bars are NOT more sign-predictable (sign-invariance theorem; EURUSD E2 null) — test once to confirm, don't assume.
