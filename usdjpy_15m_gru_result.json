@@ -1,0 +1,66 @@
+{
+  "key": "USDJPY.15m.ny",
+  "model": "GRU(24) on trailing 32 1-min returns",
+  "val_ny_auc": 0.5164,
+  "base_auc": 0.539,
+  "falsifier": {
+    "KILL_if": "VAL-AUC<=.539 (no lift over GBM)"
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5123,
+      "cov3": {
+        "COMBINED": [
+          1256,
+          0.5247
+        ],
+        "UP": [
+          1256,
+          0.5247
+        ],
+        "DOWN": [
+          0,
+          NaN
+        ]
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5076,
+      "cov3": {
+        "COMBINED": [
+          1532,
+          0.4915
+        ],
+        "UP": [
+          1532,
+          0.4915
+        ],
+        "DOWN": [
+          0,
+          NaN
+        ]
+      }
+    },
+    "oos": {
+      "moved_auc": 0.4974,
+      "cov3": {
+        "COMBINED": [
+          437,
+          0.5355
+        ],
+        "UP": [
+          437,
+          0.5355
+        ],
+        "DOWN": [
+          0,
+          NaN
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "beats_base": false,
+    "KILLED": true
+  }
+}

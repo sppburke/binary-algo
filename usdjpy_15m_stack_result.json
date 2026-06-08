@@ -1,0 +1,122 @@
+{
+  "key": "USDJPY.15m.ny",
+  "model": "A5 cross-horizon: 30m parent front-loads 15m child",
+  "thr15": 0.107,
+  "thr30": 0.0761,
+  "incumbent": "15m NY cert UP cov3% .586 / seed-ens cov2% .60",
+  "falsifier": {
+    "KILL_if": "agreement-gated binding-year wr <= 15m-alone binding-year wr (no orthogonal lift)"
+  },
+  "feature_add_val_auc": 0.5414,
+  "feature_add_beats_base": true,
+  "years": {
+    "test24": {
+      "alone_cov3": {
+        "COMBINED": [
+          815,
+          0.6025
+        ],
+        "UP": [
+          665,
+          0.588
+        ],
+        "DOWN": [
+          150,
+          0.6667
+        ]
+      },
+      "agreement_gate": {
+        "COMBINED": [
+          815,
+          0.6025,
+          [
+            0.5681,
+            0.6368
+          ]
+        ],
+        "UP": [
+          665,
+          0.588
+        ],
+        "DOWN": [
+          150,
+          0.6667
+        ]
+      }
+    },
+    "test25": {
+      "alone_cov3": {
+        "COMBINED": [
+          840,
+          0.5702
+        ],
+        "UP": [
+          663,
+          0.5747
+        ],
+        "DOWN": [
+          177,
+          0.5537
+        ]
+      },
+      "agreement_gate": {
+        "COMBINED": [
+          840,
+          0.5702,
+          [
+            0.5369,
+            0.6036
+          ]
+        ],
+        "UP": [
+          663,
+          0.5747
+        ],
+        "DOWN": [
+          177,
+          0.5537
+        ]
+      }
+    },
+    "oos": {
+      "alone_cov3": {
+        "COMBINED": [
+          363,
+          0.5152
+        ],
+        "UP": [
+          267,
+          0.5318
+        ],
+        "DOWN": [
+          96,
+          0.4688
+        ]
+      },
+      "agreement_gate": {
+        "COMBINED": [
+          363,
+          0.5152,
+          [
+            0.4628,
+            0.5675
+          ]
+        ],
+        "UP": [
+          267,
+          0.5318
+        ],
+        "DOWN": [
+          96,
+          0.4688
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "alone_binding": 0.5152,
+    "agree_binding": 0.5152,
+    "stack_improves": false,
+    "feature_add_beats_base": true
+  }
+}

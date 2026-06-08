@@ -56,28 +56,32 @@ def main():
         def __init__(s): super().__init__(); s.g=nn.GRU(1,24,batch_first=True); s.f=nn.Linear(24,1)
         def forward(s,x): o,_=s.g(x); return s.f(o[:,-1,:]).squeeze(-1)
     m=G().to(dev); opt=torch.optim.AdamW(m.parameters(),lr=1e-3,weight_decay=1e-4); loss=nn.BCEWithLogitsLoss()
+    def predict_np(arr, bs=8192):
+        out=[];
+        with torch.no_grad():
+            for b in range(0,len(arr),bs):
+                xb=torch.tensor(arr[b:b+bs]).to(dev); out.append(torch.sigmoid(m(xb)).cpu().numpy()); del xb
+        return np.concatenate(out) if out else np.array([])
     Xt=torch.tensor(Str[itr]).to(dev); yt=torch.tensor(ytr[itr].astype("float32")).to(dev)
-    Xv=torch.tensor(Sva[iva]).to(dev); yv=yva[iva]
+    Xv_np=Sva[iva]; yv=yva[iva]
     bs=4096; best=(1e9,None)
     for ep in range(EPOCHS):
         m.train(); perm=torch.randperm(len(Xt))
         for b in range(0,len(Xt),bs):
             j=perm[b:b+bs]; opt.zero_grad(); l=loss(m(Xt[j]),yt[j]); l.backward(); opt.step()
-        m.eval()
-        with torch.no_grad(): pv=torch.sigmoid(m(Xv)).cpu().numpy()
-        auc=roc_auc_score(yv,pv);
+        m.eval(); pv=predict_np(Xv_np)
+        auc=roc_auc_score(yv,pv)
         if -auc<best[0]: best=(-auc,{k:v.detach().clone() for k,v in m.state_dict().items()})
         print(f"  ep{ep} VAL moved-AUC={auc:.4f} ({time.time()-t0:.0f}s)",flush=True)
     if best[1]: m.load_state_dict(best[1])
-    m.eval()
-    with torch.no_grad(): pv=torch.sigmoid(m(Xv)).cpu().numpy()
+    m.eval(); pv=predict_np(Xv_np)
     val_auc=float(roc_auc_score(yv,pv)); thr=float(np.quantile(np.abs(pv-0.5),1-0.03))
     res={"key":"USDJPY.15m.ny","model":f"GRU(24) on trailing {W} 1-min returns","val_ny_auc":round(val_auc,4),
          "base_auc":0.539,"falsifier":{"KILL_if":"VAL-AUC<=.539 (no lift over GBM)"},"years":{}}
     print(f"[gru] VAL-AUC(NY)={val_auc:.4f} (base .539)",flush=True)
     for w in ("test24","test25","oos"):
         Sw,yw,mw,tsw,nyw=build_seq(SPL[w]); wi=np.where(nyw)[0]
-        with torch.no_grad(): pr=torch.sigmoid(m(torch.tensor(Sw[wi]).to(dev))).cpu().numpy()
+        pr=predict_np(Sw[wi])
         auc=float(roc_auc_score(yw[wi][mw[wi]],pr[mw[wi]]))
         g=side_eval(pr,yw[wi],mw[wi],tsw[wi],thr)
         res["years"][w]={"moved_auc":round(auc,4),"cov3":{k:[g[k]["n"],round(g[k]["wr"],4)] for k in ("COMBINED","UP","DOWN")} if g else None}

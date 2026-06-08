@@ -1,0 +1,169 @@
+{
+  "key": "USDJPY.15m.ny",
+  "checks": [
+    "A8 up/down separately-trained specialists",
+    "A2 compression-regime gate"
+  ],
+  "incumbent": "symmetric NY base cov3% (UP refit-p10 .586 / DOWN .572)",
+  "falsifier": {
+    "A8": "specialist same-side win-rate <= symmetric same-side => specialist KILLED (subset-train hurts)",
+    "A2": "compression-gated win-rate <= ungated => no lift"
+  },
+  "compression_feature": "1m_bb_width",
+  "years": {
+    "test24": {
+      "symmetric_cov3": {
+        "COMBINED": [
+          815,
+          0.6025
+        ],
+        "UP": [
+          665,
+          0.588
+        ],
+        "DOWN": [
+          150,
+          0.6667
+        ]
+      },
+      "A8_specialist": {
+        "UP": {
+          "n": 636,
+          "wr": 0.5991,
+          "ci": [
+            0.5613,
+            0.6368
+          ]
+        },
+        "DOWN": {
+          "n": 706,
+          "wr": 0.5722,
+          "ci": [
+            0.5368,
+            0.6091
+          ]
+        }
+      },
+      "A2_compressed_cov3": {
+        "COMBINED": [
+          569,
+          0.5835
+        ],
+        "UP": [
+          510,
+          0.5667
+        ],
+        "DOWN": [
+          59,
+          0.7288
+        ]
+      }
+    },
+    "test25": {
+      "symmetric_cov3": {
+        "COMBINED": [
+          840,
+          0.5702
+        ],
+        "UP": [
+          663,
+          0.5747
+        ],
+        "DOWN": [
+          177,
+          0.5537
+        ]
+      },
+      "A8_specialist": {
+        "UP": {
+          "n": 678,
+          "wr": 0.5767,
+          "ci": [
+            0.5398,
+            0.615
+          ]
+        },
+        "DOWN": {
+          "n": 729,
+          "wr": 0.535,
+          "ci": [
+            0.4979,
+            0.5706
+          ]
+        }
+      },
+      "A2_compressed_cov3": {
+        "COMBINED": [
+          425,
+          0.5647
+        ],
+        "UP": [
+          385,
+          0.5558
+        ],
+        "DOWN": [
+          40,
+          0.65
+        ]
+      }
+    },
+    "oos": {
+      "symmetric_cov3": {
+        "COMBINED": [
+          363,
+          0.5152
+        ],
+        "UP": [
+          267,
+          0.5318
+        ],
+        "DOWN": [
+          96,
+          0.4688
+        ]
+      },
+      "A8_specialist": {
+        "UP": {
+          "n": 246,
+          "wr": 0.5041,
+          "ci": [
+            0.443,
+            0.565
+          ]
+        },
+        "DOWN": {
+          "n": 258,
+          "wr": 0.4845,
+          "ci": [
+            0.4264,
+            0.5465
+          ]
+        }
+      },
+      "A2_compressed_cov3": {
+        "COMBINED": [
+          170,
+          0.5353
+        ],
+        "UP": [
+          138,
+          0.5652
+        ],
+        "DOWN": [
+          32,
+          0.4062
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "A8_UP_spec_beats_sym": false,
+    "A8_DOWN_spec_beats_sym": true,
+    "binding": {
+      "sym_up": 0.5318,
+      "a8_up": 0.5041,
+      "sym_dn": 0.4688,
+      "a8_dn": 0.4845
+    }
+  }
+}

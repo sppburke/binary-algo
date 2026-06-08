@@ -35,7 +35,8 @@
 | A2 | gate | compression × session × coverage gate sweep | comp-q × session × cov | usdjpy_15m_regime.py (clone usdjpy_2m_regime) | G+D | med | pending | — | — | — | — | usdjpy_15m_regime_result.json |
 | A3 | gate | compression-release × reversion specialist | rel_tighten + w_spec | usdjpy_15m_regime.py spec | D | med | pending | — | — | — | — | usdjpy_15m_regime_spec_result.json |
 | A5 | cross-horizon | parent (30m/60m) → 15m front-load stack | soft/hard q-gate | usdjpy_15m_stack.py (new) | D | med | pending | — | — | — | — | usdjpy_15m_stack_result.json |
-| A8 | side asym | UP/DOWN FILTER vs separately-trained SPECIALIST | filter / spec | usdjpy_15m_improve.py spec | U/Dn | filter med, spec ~null | pending | — | — | — | — | usdjpy_15m_improve_spec_result.json |
+| A8 | side asym | UP/DOWN FILTER vs separately-trained SPECIALIST | filter / spec | usdjpy_15m_spec.py | U/Dn | filter med, spec ~null | **done — spec NULL** | — | spec .504 < sym .532 (binding) | spec/sym both ~.47-.48 (weak frozen-2026) | RAN: separately-trained UP-spec WORSE than symmetric (subset-train destroys ranking, reproduced); symmetric NY model is best. `usdjpy_15m_spec_result.json` |
+| A2 | gate | compression×session×coverage gate | 1m_bb_width low-half × NY | usdjpy_15m_spec.py | G+D | med | **done — no lift** | .584/.565/.535 | — | — | RAN: compression-regime gate on NY symmetric model does NOT lift win-rate vs all-NY. `usdjpy_15m_spec_result.json` |
 | C5 | state-space | online-ARF keystone (efficiency control) | river ARF+ADWIN | usdjpy_15m_statespace.py (new) | D(control) | keystone | pending | — | — | — | — | usdjpy_15m_arf_result.json |
 | C2 | state-space | Kalman forward-filter drift sign | channel/velocity | usdjpy_15m_statespace.py kalman | D | ~null | pending | — | — | — | — | usdjpy_15m_kalman_result.json |
 | D1 | sequence/DL | GRU/1D-CNN on path | window 20/40/80 | usdjpy_15m_dl.py | D | ~null (info-bound) | pending | — | — | — | — | usdjpy_15m_dl_result.json |
@@ -105,7 +106,7 @@ Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the 
 - **D1 GRU/CNN, DL/spectral/foundation** — SUBSUMED (Tier-1): neural+spectral DIRECTION sweep KILLED 84/84 arms all EURUSD tf (THEORY.md); Kronos/Chronos null all horizons; info-bound caps DL at the .53 AUC.
 - **E2 mag→dir / E3 complexity / E4 info-bars** — SUBSUMED: sign-invariance theorem (magnitude ≠ sign; TAR-VECM standalone .50 reconfirmed reversion-magnitude carries no 15m sign).
 - **B/F (tick micro / OFI / news / x-asset)** — DATA-BLOCKED (no USDJPY tick cache) / low-prior bar-only.
-- **A5 cross-horizon stack (30m/60m parent → 15m child)** — **LOGGED, NOT RUN.** The one untested lever with a non-subsumed mechanism (longer-horizon drift sign could add orthogonal info). Needs a 30m USDJPY parent book first (untested key). Lower prior given the AUC ceiling holds at neighboring horizons. → `sweeps/USDJPY_15m_backlog.md` follow-up; reopen if a 30m USDJPY direction edge is found.
+- **A5 cross-horizon stack (30m parent → 15m child)** — **RUN (2026-06-08) → NULL.** Built 30m USDJPY parent (VAL-AUC .529, NY COMB ~.56) + stacked. Hard-agreement gate IDENTICAL to 15m-alone (30m always agrees on confident bars → fully collinear, both own-pair GBMs on the same 239 feats); feature-add VAL +.0024 = noise (anti-transfer). No orthogonal directional info. `usdjpy_15m_stack_result.json`, `usdjpy_30m_base_result.json`.
 
 **Discovery: 2 dry rounds** (R1: TN1 avg-label null, TN4 TAR-VECM null, TN2 ranking subsumed; R2: corpus+repo scan → every on-disk direction-carrying lever tested/killed/subsumed-by-theorem/external-blocked). Loop SATURATED.
 
