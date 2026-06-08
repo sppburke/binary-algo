@@ -1,0 +1,22 @@
+{
+  "model": "OWN-PAIR (single) base-GBM @15m, TIES-STRICT per-fold-REFIT CPCV",
+  "key": "USDJPY.15m",
+  "breakeven": 0.541,
+  "stride": 4,
+  "cov": 0.03,
+  "n_groups": 6,
+  "k_test": 2,
+  "sub_fit": 150000,
+  "nseed": 1,
+  "num_leaves": 255,
+  "incumbent_floor": {
+    "UP": 0.541,
+    "DOWN": 0.541,
+    "COMBINED": 0.541
+  },
+  "CERT_RULE": "side CERTIFIED iff p10>=0.541 AND frac_clear_BE>=0.80",
+  "falsifier": {
+    "registered_utc": "pre-paths",
+    "KILL_if": "each side: p10 < 0.541 OR frac_clear_BE < 0.80"
+  }
+}
