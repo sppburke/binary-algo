@@ -1,0 +1,76 @@
+{
+  "key": "USDJPY.15m.ny",
+  "model": "certified NY base + I1 ACI gate + I4 temp-calibration",
+  "target_cov": 0.03,
+  "eta": 0.02,
+  "temperature": 1.25,
+  "val_auc": 0.5436,
+  "fixed_thr0": 0.086,
+  "falsifier": {
+    "KILL_if": "ACI does NOT beat the fixed cov-gate binding-year win-rate at >= equal coverage"
+  },
+  "years": {
+    "test24": {
+      "fixed": {
+        "n": 815,
+        "wr": 0.6025,
+        "ci": [
+          0.5681,
+          0.6368
+        ]
+      },
+      "aci": {
+        "n": 2022,
+        "wr": 0.5401,
+        "cov": 0.0146,
+        "ci": [
+          0.5183,
+          0.5613
+        ]
+      }
+    },
+    "test25": {
+      "fixed": {
+        "n": 840,
+        "wr": 0.5702,
+        "ci": [
+          0.5369,
+          0.6036
+        ]
+      },
+      "aci": {
+        "n": 2126,
+        "wr": 0.539,
+        "cov": 0.0154,
+        "ci": [
+          0.5179,
+          0.5593
+        ]
+      }
+    },
+    "oos": {
+      "fixed": {
+        "n": 363,
+        "wr": 0.5152,
+        "ci": [
+          0.4628,
+          0.5675
+        ]
+      },
+      "aci": {
+        "n": 788,
+        "wr": 0.5216,
+        "cov": 0.016,
+        "ci": [
+          0.486,
+          0.5558
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "fixed_binding_wr": 0.5152,
+    "aci_binding_wr": 0.5216,
+    "ACI_improves": true
+  }
+}

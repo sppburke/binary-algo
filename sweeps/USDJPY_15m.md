@@ -46,7 +46,7 @@
 | id | lever | script | status | note |
 |---|---|---|---|---|
 | I1 | adaptive-conformal (ACI) gate | usdjpy_15m_improve.py aci | pending | EURUSD-5m WINNER; retarget to 15m best combo |
-| I2 | seed-ensemble ⊕ GBM stack | usdjpy_15m_cpcv.py 12 0.03 5 (nseed) + stack | pending | variance reduction; test if it lifts p10 |
+| I2 | seed-ensemble (K=3) on NY cert | usdjpy_15m_cpcv_session.py ny 2 0.03,0.02,0.01 3 | **done — LIFTS p10** | UP cov2% p10 .582→**.6005**, DOWN .554→**.5738** (both 15/15). Best certified config. `usdjpy_15m_cpcv_session_ny_seedens3_result.json` |
 | I3 | \|ret\|-weighted / GMADL loss | usdjpy_15m_loss.py | pending | USDJPY-2m KILLED on pooled; re-test @15m |
 | I4 | calibration + selective threshold | wrap best book | pending | nearly-free wrapper |
 | I6 | Optuna (worst-VAL-half objective) | usdjpy_15m_optuna.py | pending | USDJPY-2m KILLED; re-test @15m |
@@ -66,8 +66,10 @@
 ## TWO-SIDED LEADERBOARD (current best certified, by refit-CPCV p10)
 | side | leader | refit-CPCV p10 | mean | paths clear | cov | status |
 |---|---|---|---|---|---|---|
-| **UP** | own-pair base GBM · **NY-session** · cov3% (`usdjpy_15m_session.py ny` + `usdjpy_15m_cpcv_session.py ny`) | **.586** | .602 | 15/15 | 0.03 | ✅ CERTIFIED |
-| **DOWN** | own-pair base GBM · **NY-session** · cov3% (same model, down-preds) | **.572** | .597 | 15/15 | 0.03 | ✅ CERTIFIED |
+| **UP** | own-pair base GBM · **NY** · **seed-ens K=3** · cov2% (`usdjpy_15m_cpcv_session.py ny 2 0.02 3`) | **.6005** | .617 | 15/15 | 0.02 | ✅ CERTIFIED (best) |
+| **DOWN** | own-pair base GBM · **NY** · **seed-ens K=3** · cov2% (same) | **.5738** | .616 | 15/15 | 0.02 | ✅ CERTIFIED (best) |
+| _UP single-seed_ | NY · cov3% | .586 | .602 | 15/15 | 0.03 | ✅ (pre-seed-ens) |
+| _DOWN single-seed_ | NY · cov3% | .572 | .597 | 15/15 | 0.03 | ✅ (pre-seed-ens) |
 | _(ref) UP all-session_ | own-pair base, all-session | .558 | .568 | 15/15 | 0.03 | superseded by NY |
 | _(ref) DOWN all-session_ | own-pair base, all-session | .538 | .555 | 10/15 | 0.03 | sub-BE (NY rescues) |
 
