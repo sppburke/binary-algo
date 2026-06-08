@@ -205,6 +205,21 @@ Breakeven 0.541. **Prior: 15m is the program's strongest direction horizon** (EU
 
 Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result.json`, `usdjpy_15m_cpcv_base_result.json`, `usdjpy_15m_session_ny_s6_l127_result.json`, `usdjpy_15m_cpcv_session_ny_cov0.03_result.json` (Tier-1).
 
+### DEPLOYMENT SPEC — USDJPY 15m, NY-session (both sides certified)
+**Coverage→certified-p10 curve** (NY per-fold-refit CPCV, `usdjpy_15m_cpcv_session_ny_multicov_result.json`):
+
+| cov | UP p10 / mean (med n/path) | DOWN p10 / mean (frac clear) | COMBINED p10 / mean |
+|---|---|---|---|
+| 3% | .586 / .602 (937) | **.572 / .597 (1.0)** | .580 / .599 |
+| 2% | .582 / .602 (580) | .554 / .599 (1.0) | .582 / .600 |
+| 1% | **.599 / .625 (273)** | .544 / .601 (.87) | .590 / .614 |
+| 0.5% | .580 / .631 (130) | .559 / .625 (.93) | .599 / .624 |
+
+- **Best UP operating point: cov1% → certified p10 .599, mean .625** (15/15 paths). **DOWN: cov3% → p10 .572** (most robust; tighter cov thins n and drops frac<1.0).
+- **Deployable model:** own-pair base LGBM (239 feats, s6/l127), trade only **NY-session** decision bars (America/New_York 08–17, DST-correct), confidence gate at the chosen cov, ties LOSE, breakeven 0.541. Frozen book `USDJPY.m15ny.v1` (pending freeze).
+- **UP is robust frozen-forward** (~.58 all years incl 2026); **DOWN is refit-dependent** (frozen-2012-21 DOWN decays in 2026-oos thin-slice; the refit-CPCV p10 .572 is the certified floor — deploy with periodic retrain, size on the refit floor).
+- **>0.70 is NOT achievable as a certified floor** — directional AUC caps ~.539 in NY; certified win-rate tops out ~.60–.625. Beyond cov0.5% the mean rises (~.63) but p10 falls / frac<1.0 (thin-n, uncertifiable). Genuine deployable edge: **UP ~.60, DOWN ~.57**, both clearing the 0.541 deriv breakeven with margin (R≈1.85 → profitable).
+
 ---
 
 ## How to maintain this file

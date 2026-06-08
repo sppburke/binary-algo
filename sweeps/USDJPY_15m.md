@@ -70,7 +70,18 @@
 | _(ref) UP all-session_ | own-pair base, all-session | .558 | .568 | 15/15 | 0.03 | superseded by NY |
 | _(ref) DOWN all-session_ | own-pair base, all-session | .538 | .555 | 10/15 | 0.03 | sub-BE (NY rescues) |
 
-Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the binding (worst) path with the discipline. Stretch: push toward >0.70 (multicov NY-CPCV in progress) — honest ceiling ~.58–.62.
+Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the binding (worst) path with the discipline.
+
+**Coverage→certified-p10 curve (NY refit-CPCV, `usdjpy_15m_cpcv_session_ny_multicov_result.json`):**
+| cov | UP p10 / mean (med_n) | DOWN p10 / mean (frac) | COMB p10 / mean |
+|---|---|---|---|
+| 3% | .586 / .602 (937) | .572 / .597 (1.0) | .580 / .599 |
+| 2% | .582 / .602 (580) | .554 / .599 (1.0) | .582 / .600 |
+| 1.5% | .582 / .606 (423) | .554 / .603 (.93) | .575 / .603 |
+| **1%** | **.599 / .625 (273)** | .544 / .601 (.87) | .590 / .614 |
+| 0.5% | .580 / .631 (130) | .559 / .625 (.93) | .599 / .624 |
+- **Best certified UP operating point = cov1%: p10 .599, mean .625** (15/15 paths, med_n 273). DOWN most-robust at cov3% (p10 .572, 15/15). 
+- **>0.70 is NOT a certified reality** — AUC ~.539 caps the certified win-rate at ~.60–.625; beyond cov0.5% the mean rises (~.63) but p10 falls / frac<1.0 (thin-n, uncertifiable). The wall is the directional AUC ceiling. The only path past it is a higher-AUC signal (Tier-N levers tested next) or external data.
 
 ## RUN ORDER (first-to-run queue)
 1. **A1** base s6/l127 (RUNNING) — floor + up-rate tripwire.

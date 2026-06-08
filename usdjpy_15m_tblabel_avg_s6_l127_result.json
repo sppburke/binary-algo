@@ -1,0 +1,41 @@
+{
+  "key": "USDJPY.15m",
+  "model": "single-pair base GBM, TRAIN-LABEL=avg (lambda=1.0), EVAL=fixed-15m deriv label",
+  "label_mode": "avg",
+  "lambda": 1.0,
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "settlement": "EVAL=bar-close fixed-15m, ties LOSE, BE 0.541, gap=900s; TRAIN label denoised",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "VAL fixed-15m moved-AUC <= base .531 (no AUC lift from relabeling) OR no held-out year (COMB/UP) CI-lo clears 0.541",
+    "rationale": "raw-endpoint base AUC capped ~.531. Path-aware train label may denoise the sign target. EVAL stays deriv-faithful fixed-15m; only a held-out fixed-15m lift counts."
+  }
+}
