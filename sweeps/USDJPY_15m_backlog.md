@@ -37,6 +37,13 @@
 
 Seeded from SWEEP_MATRIX Tier-N (also untested at USDJPY 15m): N17 anti-contemporaneous lead-lag + transfer-entropy gate + RFF (~13%).
 
+**Recipe refinement (v1.1, 2026-06-08 — corpus subagent, sign-invariance vetted):**
+- **TN1 (avg-horizon label)** = DIRECTION-carrying (denoised sign target). Already coded `usdjpy_15m_tblabel.py`. The added nuance worth running: **trend-scan with argmax-L** (scan forward windows L, label=sign(β1) at the L maximizing |t-stat|) — repo has `m5_labels.py:lab_trend_scan` (fixed-window) to extend. **Symmetric triple-barrier leaks into MAGNITUDE** (path-touch ∝ vol) — keep the up-rate∈[.47,.53] tripwire.
+- **TN2 (ranking loss)** = RELATIVE cross-sectional, NOT own-sign. ListNet/lambdarank are invariant to monotonic per-bar target transforms → they predict "USDJPY vs basket" rank, not "USDJPY closes up". Own-pair AUC lift unproven; only the idiosyncratic (USD-neutral) component transfers. Drop-in via LGBM `objective=lambdarank`, group=[7]/bar. LOWER prior for own-pair direction. Fast-KILL: own-pair fixed-15m AUC ≤ .539.
+- **TN4 (TAR-VECM ECM-velocity)** = **the ONE intrinsically-directional NEW lever.** z_t = cointegrating residual of USDJPY-vs-6-major-basket (Engle-Granger rolling β); ECM velocity `γ̂·z_{t-1}` is signed (predicts reversion direction); band-TAR regime `1{|z|>c}`. Inputs on disk (7-major closes). Construction is econometrics-canon (no corpus paper). Likely null (majors ~random-walk, common-USD-factor dominates) but UNTESTED — run it. SCRIPT: usdjpy_15m_tarvecm.py. Fast-KILL: no stable cointegration on ≥2/3 OOS years, OR sign(−γ̂·z) AUC ≤ .51, OR γ̂≈0.
+- **Meta-labeling** = precision GATE, sign-PRESERVING (M2 never flips M1's side) → cannot create direction, only improve precision/coverage on the certified side. Useful as a Tier-I coverage lever on the certified NY book, not a new edge. Repo has `m5_combo_metagate.py`.
+- **Priority order:** TN4 (directional, untested) → TN1 trend-scan-argmax → meta-label gate on cert → TN2 (lowest own-sign prior).
+
 **DATA-BLOCKED (external, gated on user "go"):** USDJPY 1s tick microstructure (no cache on disk; the structurally-right unlock for sub-15m, less critical at 15m where bar-close entry is faithful); intraday US–JP 2y/10y rate differential (carry sign — slower drift, may help 15m); EURJPY/GBPJPY triangular crosses (only 7 USD-majors on disk); JPY 25-delta risk-reversal skew (DOWN-enabler).
 
 ## COMBINE-ONLY-AFTER-REASONING (candidate combos, with named mechanism + measured correlation BEFORE building)
