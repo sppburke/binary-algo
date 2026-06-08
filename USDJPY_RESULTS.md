@@ -227,6 +227,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 - **Settlement**: deriv-faithful fixed-15m sign, ties LOSE, `nonoverlap_chrono` gap=900s; CPCV purge+embargo=900s; gate selected on VAL worst-half (never VAL-acc-max).
 - **AUC ceiling confirmed** across 5 lever classes (data, capacity, cross-pair pooling, avg-label, cointegration ECM) → the ~.539 cap is a genuine directional information bound, not a modeling deficiency.
 
+**FINAL CONCLUSION — USDJPY 15m direction (sweep CLOSED 2026-06-08):** BOTH sides CERTIFIED and deployable on deriv (15m = FX floor). Deliverables = frozen book **`USDJPY.m15ny.v1`** (tag `book/USDJPY.m15ny.v1`): own-pair LGBM, NY-session decision rows, confidence gate. **UP** certified refit-CPCV p10 **.586** @cov3% (best **.599** @cov1%, mean .625); **DOWN** certified p10 **.572** @cov3%. The edge is NY-concentrated + USDJPY-specific (cross-pair pooling dilutes it — the inverse of EURUSD 15m). DOWN is refit-dependent (retrain periodically; size on the refit floor). **>0.70 is not achievable as a certified floor** — directional AUC caps ~.539 (confirmed across 5 lever classes + 2 dry discovery rounds); certified win-rate tops ~.60–.625. Both sides clear the 0.541 breakeven with margin (R≈1.85 → profitable). Improve+discover loops DRY; the only remaining on-disk lever is **A5 cross-horizon stack** (needs a 30m USDJPY parent — logged in `sweeps/USDJPY_15m_backlog.md`); all other frontiers require external data (USDJPY tick microstructure, US–JP rate-diff, traded JPY-crosses, risk-reversal skew).
+
 ---
 
 ## How to maintain this file

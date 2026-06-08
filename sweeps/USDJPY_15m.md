@@ -93,5 +93,19 @@ Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the 
 6. A2/A3 regime gates, A5 cross-horizon, A8 specialists; C5 ARF keystone (efficiency control); D1 DL (info-bound check).
 7. Discovery rounds (Tier-N) until K=2 dry.
 
+## SWEEP CLOSURE (2026-06-08) — both sides CERTIFIED; loops dry
+**Outcome:** ✅ BOTH sides certified via NY refit-CPCV (UP p10 .586 cov3% / .599 cov1%, DOWN p10 .572 cov3%, 15/15 paths). Frozen book `USDJPY.m15ny.v1` (tag `book/USDJPY.m15ny.v1`). Adversarial shuffle-control PASSES. >0.70 shown unreachable as a certified floor (AUC ~.539 cap).
+
+**Run-or-subsume status of remaining Tier rows** (coverage rule; AUC ceiling ~.531/.539 confirmed across data/capacity/pooling/avg-label/cointegration → the cap is a directional info bound):
+- **A2 compression×session gate / A3 reversion specialist** — SUBSUMED: A9 session-filter IS the winning gate (NY); USDJPY-2m compression-regime (D1) was KILLED; the session-concentrated base already captures the best regime. Compression gates redistribute the same .539-AUC signal, can't exceed it.
+- **A8 UP/DOWN separately-trained specialist** — SUBSUMED (Tier-1): subset-training destroys ranking at EURUSD-all-tf + USDJPY-1m/2m; the symmetric NY base certifies BOTH sides already (DOWN via confidence selection, not a separate model).
+- **C2 Kalman / C5 ARF / C1 HMM / C3 RMT / C4 CCM** — SUBSUMED: sign-invariance theorem (state/complexity gates = magnitude). ARF/Kalman moot for a CERTIFIED edge (the wall is not pure efficiency — there IS extractable NY signal). 
+- **D1 GRU/CNN, DL/spectral/foundation** — SUBSUMED (Tier-1): neural+spectral DIRECTION sweep KILLED 84/84 arms all EURUSD tf (THEORY.md); Kronos/Chronos null all horizons; info-bound caps DL at the .53 AUC.
+- **E2 mag→dir / E3 complexity / E4 info-bars** — SUBSUMED: sign-invariance theorem (magnitude ≠ sign; TAR-VECM standalone .50 reconfirmed reversion-magnitude carries no 15m sign).
+- **B/F (tick micro / OFI / news / x-asset)** — DATA-BLOCKED (no USDJPY tick cache) / low-prior bar-only.
+- **A5 cross-horizon stack (30m/60m parent → 15m child)** — **LOGGED, NOT RUN.** The one untested lever with a non-subsumed mechanism (longer-horizon drift sign could add orthogonal info). Needs a 30m USDJPY parent book first (untested key). Lower prior given the AUC ceiling holds at neighboring horizons. → `sweeps/USDJPY_15m_backlog.md` follow-up; reopen if a 30m USDJPY direction edge is found.
+
+**Discovery: 2 dry rounds** (R1: TN1 avg-label null, TN4 TAR-VECM null, TN2 ranking subsumed; R2: corpus+repo scan → every on-disk direction-carrying lever tested/killed/subsumed-by-theorem/external-blocked). Loop SATURATED.
+
 ## RESUMABILITY
 This ledger IS the state. On resume, continue from the first `pending`/`running` row; never repeat a `done` row. Update USDJPY_RESULTS.md (master table + per-tf + leaderboard) and this ledger together; commit after each row.
