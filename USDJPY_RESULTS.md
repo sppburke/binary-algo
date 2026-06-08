@@ -220,6 +220,13 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 - **UP is robust frozen-forward** (~.58 all years incl 2026); **DOWN is refit-dependent** (frozen-2012-21 DOWN decays in 2026-oos thin-slice; the refit-CPCV p10 .572 is the certified floor — deploy with periodic retrain, size on the refit floor).
 - **>0.70 is NOT achievable as a certified floor** — directional AUC caps ~.539 in NY; certified win-rate tops out ~.60–.625. Beyond cov0.5% the mean rises (~.63) but p10 falls / frac<1.0 (thin-n, uncertifiable). Genuine deployable edge: **UP ~.60, DOWN ~.57**, both clearing the 0.541 deriv breakeven with margin (R≈1.85 → profitable).
 
+**Adversarial verification (all PASS, Tier-1):**
+- **Label-shuffle leakage control** (`usdjpy_15m_verify_result.json`): NY model trained on PERMUTED labels collapses to moved-AUC **.503/.504/.512** (~.50, early-stops iter 2) → the .586 edge is NOT a harness/leakage artifact.
+- **Up-rate tripwire** ∈ [.47,.53] every fold (CPCV ~.509) → no fake-flat mirage.
+- **Frozen-forward ≈ refit-CPCV** for UP (.58 ≈ .586) → not a refit overstatement. DOWN frozen-2026 thin-slice weaker → refit-dependent (size on refit floor).
+- **Settlement**: deriv-faithful fixed-15m sign, ties LOSE, `nonoverlap_chrono` gap=900s; CPCV purge+embargo=900s; gate selected on VAL worst-half (never VAL-acc-max).
+- **AUC ceiling confirmed** across 5 lever classes (data, capacity, cross-pair pooling, avg-label, cointegration ECM) → the ~.539 cap is a genuine directional information bound, not a modeling deficiency.
+
 ---
 
 ## How to maintain this file

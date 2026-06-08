@@ -1,0 +1,153 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "USDJPY.m15ny.v1",
+  "content_id": "296ffaf6ddb3a5a4",
+  "currency": "USDJPY",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "USDJPY 15m NY-session own-pair base GBM; BOTH sides certified via NY per-fold-refit CPCV (UP p10 .586 / DOWN p10 .572, 15/15). Direction edge is NY-concentrated + USDJPY-specific (pooling dilutes).",
+  "metrics": {
+    "up_refit_cpcv_p10": 0.586,
+    "down_refit_cpcv_p10": 0.572,
+    "comb_refit_cpcv_p10": 0.58,
+    "up_refit_mean": 0.602,
+    "down_refit_mean": 0.597,
+    "breakeven": 0.541,
+    "cov": 0.03,
+    "val_ny_auc": 0.5436,
+    "frozen_forward": {
+      "test24": {
+        "COMBINED": {
+          "n": 815,
+          "wr": 0.6025,
+          "ci": [
+            0.5681,
+            0.6368
+          ]
+        },
+        "UP": {
+          "n": 665,
+          "wr": 0.588,
+          "ci": [
+            0.5504,
+            0.6241
+          ]
+        },
+        "DOWN": {
+          "n": 150,
+          "wr": 0.6667,
+          "ci": [
+            0.5933,
+            0.74
+          ]
+        }
+      },
+      "test25": {
+        "COMBINED": {
+          "n": 840,
+          "wr": 0.5702,
+          "ci": [
+            0.5369,
+            0.6036
+          ]
+        },
+        "UP": {
+          "n": 663,
+          "wr": 0.5747,
+          "ci": [
+            0.537,
+            0.6124
+          ]
+        },
+        "DOWN": {
+          "n": 177,
+          "wr": 0.5537,
+          "ci": [
+            0.4802,
+            0.6271
+          ]
+        }
+      },
+      "oos": {
+        "COMBINED": {
+          "n": 363,
+          "wr": 0.5152,
+          "ci": [
+            0.4628,
+            0.5675
+          ]
+        },
+        "UP": {
+          "n": 267,
+          "wr": 0.5318,
+          "ci": [
+            0.4682,
+            0.5918
+          ]
+        },
+        "DOWN": {
+          "n": 96,
+          "wr": 0.4688,
+          "ci": [
+            0.3646,
+            0.5628
+          ]
+        }
+      }
+    }
+  },
+  "source": {
+    "script": "usdjpy_15m_session.py (model) + usdjpy_15m_cpcv_session.py ny (cert) + usdjpy_15m_freeze_ny.py (freeze)",
+    "git_sha": "879b2f96d2b1b1124151c2b64cc0398697c5015f",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 127,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 3000,
+    "early_stop": 150,
+    "tr_stride": 6
+  },
+  "artifacts": [
+    {
+      "file": "m15ny_USDJPY_direction_lgb.txt",
+      "bytes": 2257305,
+      "sha256": "e8ba0f45552e754aca7449a7fa21f469be5b5e5d30f58f084f3b5a739991bce0"
+    }
+  ],
+  "strategy_json": "models/m15ny_USDJPY_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/home/sean/git/binary-algo/features",
+    "patterns": [
+      "USDJPY_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1420449410,
+    "sha256_of_listing": "0c8d3bb202d7e86cd2c7f47d14288e98815aacf7bdc339e9b491ce5dad9c467d"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "NY session = America/New_York 08-17 (DST-correct, sessions.py). cov3% gate frozen on VAL NY worst-half. Two-sided via confidence selection. DOWN refit-dependent.",
+  "created_utc": "2026-06-08"
+}

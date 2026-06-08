@@ -1,0 +1,99 @@
+{
+  "book": "USDJPY.m15ny.v1",
+  "pair": "USDJPY",
+  "timeframe": "15m",
+  "horizon_min": 15,
+  "session": "ny",
+  "label": "sign(close[t+15]-close[t]), ties LOSE",
+  "settlement": "bar-close, gap=900s nonoverlap_chrono",
+  "gate": {
+    "cov": 0.03,
+    "conf_thr": 0.10695747759623107,
+    "rule": "trade when |p-0.5|>=conf_thr AND ts in NY session"
+  },
+  "breakeven": 0.541,
+  "val_auc": 0.5435554894465056,
+  "best_iter": 153,
+  "cert": "NY per-fold-refit CPCV: UP p10 .586 / DOWN p10 .572 / COMB p10 .580 (15/15 paths) \u2014 usdjpy_15m_cpcv_session_ny_cov0.03_result.json",
+  "deploy_note": "UP robust frozen-forward (~.58 all yrs); DOWN refit-dependent (size on refit floor, retrain periodically). Refit-CPCV is the certified floor.",
+  "frozen_forward": {
+    "test24": {
+      "COMBINED": {
+        "n": 815,
+        "wr": 0.6025,
+        "ci": [
+          0.5681,
+          0.6368
+        ]
+      },
+      "UP": {
+        "n": 665,
+        "wr": 0.588,
+        "ci": [
+          0.5504,
+          0.6241
+        ]
+      },
+      "DOWN": {
+        "n": 150,
+        "wr": 0.6667,
+        "ci": [
+          0.5933,
+          0.74
+        ]
+      }
+    },
+    "test25": {
+      "COMBINED": {
+        "n": 840,
+        "wr": 0.5702,
+        "ci": [
+          0.5369,
+          0.6036
+        ]
+      },
+      "UP": {
+        "n": 663,
+        "wr": 0.5747,
+        "ci": [
+          0.537,
+          0.6124
+        ]
+      },
+      "DOWN": {
+        "n": 177,
+        "wr": 0.5537,
+        "ci": [
+          0.4802,
+          0.6271
+        ]
+      }
+    },
+    "oos": {
+      "COMBINED": {
+        "n": 363,
+        "wr": 0.5152,
+        "ci": [
+          0.4628,
+          0.5675
+        ]
+      },
+      "UP": {
+        "n": 267,
+        "wr": 0.5318,
+        "ci": [
+          0.4682,
+          0.5918
+        ]
+      },
+      "DOWN": {
+        "n": 96,
+        "wr": 0.4688,
+        "ci": [
+          0.3646,
+          0.5628
+        ]
+      }
+    }
+  }
+}
