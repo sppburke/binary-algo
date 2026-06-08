@@ -428,3 +428,49 @@ not blindly. From `CAMPAIGN_2026-06-07_FACTS.md` "reasoned scope decisions":
 > certified; UP/DOWN leaderboard UNCHANGED. The only frontier for direction is EXTERNAL data; remaining items are scoped
 > skip/blocked/moot/queued above, not blindly queued.
 
+---
+
+## 2026-06-08 — NEURAL + SPECTRAL forecast→sign sweep (3 lever families), by-experiment status
+
+Three "technically-uncoded" lever families (mined from external directional-prediction + n-hits repos) RUN at all 6 EURUSD
+timeframes, single-pair AND cross-pair input, GPU + deriv-faithful (TRAIN 2012-21 / VAL 22-23 / held-out per-year 2024/25/26,
+2026 strict OOS; selective-acc @cov0.10, ties-dropped, moved-bars, breakeven .541). KILL per arm: VAL dirAUC ≤ .515 OR no
+held-out year's selective-acc CI95-lower ≥ breakeven. **All KILLED — no leader unseated.** Each family converts a *generative
+PATH or SPECTRAL forecast* into a sign — i.e. is structurally exposed to the SIGN-INVARIANCE theorem (`THEORY.md`): a forecaster
+that nails move SIZE need carry no move SIGN. Tested-on-keys (no per-key numbers here): EURUSD {1,2,5,10,15,30}m → KILLED;
+numbers in `EURUSD_RESULTS.md` (§2026-06-08), consolidated `neural_spectral_dir_sweep_result.json` (+ per-horizon
+`{nbeats_nhits_dir,decomp_dir,spectral_dir}_<tf>m_result.json`). Retarget knob: env `MX_HOR=<minutes>`.
+
+### (a) Lever — N-BEATS / N-HiTS PATH-forecast → sign (`nbeats_nhits_dir.py`)
+Deep interpretable basis-expansion / hierarchical-interpolation forecasters predict the forward price PATH; derive direction
+from the sign of the forecast over the label horizon. **Mechanism / sign-invariance:** these minimize a path-reconstruction loss
+(MSE/MAE on level), so they learn the trend+seasonality DECOMPOSITION that carries magnitude, not the residual sign the regime
+erases — the same null as the prior `binary_alpha` N-HiTS@5m. **Falsifier template:** if a path-forecast → sign EVER clears VAL
+dirAUC > .515 AND a held-out year's selective-acc CI95-lower ≥ breakeven, the path model is recovering genuine forward sign for
+that key — re-open. **Tested-on-keys:** EURUSD {1,2,5,10,15,30}m, single + cross-pair → KILLED (`nbeats_nhits_dir_<tf>m_result.json`,
+`neural_spectral_dir_sweep_result.json`).
+
+### (b) Lever — DECOMPOSITION / FREQUENCY transformers DLinear/Autoformer/FEDformer + TFT-quantile fan (`decomp_dir.py`)
+Series-decomposition (trend/seasonal) linear + auto-correlation (Autoformer) + frequency-enhanced (FEDformer, FFT-domain
+attention) forecasters, plus a TFT quantile-fan whose median/spread → directional call. **Mechanism / sign-invariance:** the
+trend/seasonal/frequency split is a re-expression of the return *distribution* (magnitude/vol structure), not its *signed
+order*; the quantile fan models forecast UNCERTAINTY (a magnitude object) — sign-invariant by the same theorem as PE/entropy
+gates and the bar-image CNN. **Falsifier template:** a decomposition/freq/quantile forecaster that beats both gates above for a
+key means a frequency or quantile channel carries sign there — re-open. **Tested-on-keys:** EURUSD {1,2,5,10,15,30}m, single +
+cross-pair → KILLED (`decomp_dir_<tf>m_result.json`, `neural_spectral_dir_sweep_result.json`).
+
+### (c) Lever — causal DWT / SSA SPECTRAL band-split → per-band model → recombine → sign (`spectral_dir.py`)
+Causal discrete-wavelet-transform and Singular-Spectrum-Analysis band decomposition (no look-ahead), a GBM per frequency band,
+literal recombination → sign. **Mechanism / sign-invariance:** a SPECTRAL re-encoding preserves the power spectrum and so is the
+canonical sign-invariant transform (cf. `surrogate_null.py`: a phase-randomized surrogate matching the spectrum is direction-
+null). A flashy thin-coverage held-out cell can show a high CI-lower MIRAGE; only the pre-registered per-year CI95-lower at the
+fixed coverage certifies. **Falsifier template:** a band-split → sign that clears VAL dirAUC > .515 AND a held-out year's
+selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell) means a frequency band carries sign — re-open.
+**Tested-on-keys:** EURUSD {1,2,5,10,15,30}m, single + cross-pair → KILLED (`spectral_dir_<tf>m_result.json`,
+`neural_spectral_dir_sweep_result.json`).
+> **Generic lesson — path/spectral/quantile FORECASTERS carry move SIZE, not SIGN (sign-invariance theorem, `THEORY.md`).**
+> N-BEATS/N-HiTS (path), DLinear/Autoformer/FEDformer + TFT-quantile (decomposition/frequency), and causal DWT/SSA (spectral
+> band-split) all reduce to magnitude/distribution re-expressions of own (or cross-pair) price; none recovers the directional
+> sign at any of the 6 EURUSD horizons. This adds 3 model families to the ≥5 already at ~.50 on own-history direction and
+> confirms the prior N-HiTS@5m null. Frontier for direction stays EXTERNAL data, not a richer forecaster.
+

@@ -35,6 +35,9 @@ from 2026-06-03 onward (the both-sides-symmetric DOWN/UP push).
 | E-bridge | E→D | **magnitude→direction bridge** (frozen mag+dir; does direction hide on large moves?) | min1_magdir.py | **killed** | ~.50-.51 all magq | DOWN FLAT ~.50: magq0.0 .500/magq0.7 **.502**/magq0.95 **.498** (2025) | textbook sign-invariance AT THE OPERATING POINT: magnitude perfectly selects big moves (magAUC .787) but they carry ZERO direction. Conditioning DOWN on predicted-larger moves does NOT raise acc in any year. The 60s direction edge does NOT hide on large moves | min1_magdir_result.json |
 | CPCV | cert | **faithful CPCV of UP-filter + DOWN** (frozen-book, ties-strict, 28 purged-comb paths + block-boot) | min1_cpcv.py | **done** | UP pooled-strict .573, CI-lo **.530**, p10 **.524**, 75% clear, 2024 .520 — **NOT certified** | DOWN pooled .519, p10 .474, 29% clear — **NOT certified** | formal (e)-step both sides. UP = regime-dependent filter (near-miss, same as 2m .5445 FAIL), NOT a robust edge; DOWN dead. No certified 60s direction edge | min1_cpcv_result.json |
 | barimg | N (discovered) | **BAR-IMAGE 2-D CNN** (Sezer CNN-BI; the last non-subsumed bar/candlestick sub-lever) — 3 image encodings: hist/ohlc/gaf | barcnn_bars.py · barcnn_run.py · barcnn_cpcv.py | **killed** | combined VAL dirAUC hist .4992 / ohlc .5028 / gaf .5020; test/oos AUC ≈.50 (not side-split — symmetric, ≈.50 carries no UP edge) | same (≈.50, no DOWN edge) | new 4th model class (2-D conv). CPCV 28 purged paths: **path_p10 .484–.499, 0.0 paths clear 0.541 at every cov**. Bar geometry = magnitude not 60s sign (even GADF antisym sign-field null). Trips all 3 falsifier conditions. **Bar/candlestick 2-D-image family RUN + EXHAUSTED on-disk.** | barcnn_{hist,ohlc,gaf}_result.json + barcnn_cpcv_*_result.json |
+| FAM1 | N (discovered) | **N-BEATS / N-HiTS path-forecast→sign** (deep path forecaster, sign of forecast) | nbeats_nhits_dir.py | **killed** | combined VAL dirAUC ≤ .5035; best held-out selacc **.5071** (2025) | same (symmetric ≤.50-.51, no side edge) | path forecaster carries move SIZE not SIGN (sign-invariance theorem). VAL dirAUC ≤ breakeven floor; no held-out year clears .541 CI-lo → trips KILL. Mirrors prior binary_alpha N-HiTS@5m null (acc .515/AUC .518) | nbeats_nhits_dir_1m_result.json |
+| FAM2 | N (discovered) | **DLinear / Autoformer / FEDformer-freq / TFT-quantile-fan** (decomposition + freq forecasters) | decomp_dir.py | **killed** | combined VAL dirAUC ≈.50-.52; best held-out selacc **.5229** (tft_quantile, 2026, CI-lo .5144) | same (symmetric, no side edge) | best arm tft_quantile-fan .5229 with CI-lo .5144 < breakeven .541 → no year certifies. Decomposition/freq carry SIZE not 60s SIGN | decomp_dir_1m_result.json |
+| FAM3 | N (discovered) | **causal DWT + SSA band-split → GBM recombine → sign** (spectral band decomposition) | spectral_dir.py | **killed** | combined VAL dirAUC ≈.50-.51; best held-out selacc **.5213** (2026, CI-lo **.4872**) | same (symmetric, no side edge) | flashiest selacc .5213 but CI-lo .4872 (thin-coverage mirage, no robust lift); no year clears .541 CI-lo → trips KILL. Spectral bands = move SIZE not 60s sign | spectral_dir_1m_result.json |
 
 ### Prior-subsumed at 60s (documented, not re-run)
 - **Side-specialists** (UP/DOWN trained on subset bars): killed — subset-training destroys the confidence ranking
@@ -76,3 +79,16 @@ ohlcabs`, the sign-invariant Touch/Range outcome, NOT a 60s direction key): the 
 .699/.714/.686 and selective large-call precision .68→.80 with **all 28 CPCV paths ≥0.65 at cov≤0.2 in 2024/2025/2026**
 (`barcnn_mag_ohlcabs_result.json`, `MAGNITUDE_FINDINGS.md` §3) — bar patterns DO predict move-SIZE at >65%, just not
 sign. Kronos NOT built (RankIC/magnitude gains, no FX/60s/direction numbers; fine-tune deteriorates arXiv:2511.18578).
+
+**ADDENDUM 2026-06-08 — three neural + spectral forecaster families RUN at 1m. DIRECTION → ALL KILLED.** Part of a
+6-horizon EURUSD sweep (single- + cross-pair, GPU/AMP, deriv-faithful: TRAIN 2012-21 / VAL 22-23 / held-out per-year
+2024/2025/2026, selective-acc @cov0.10, ties-dropped, moved-bars, breakeven 0.541; KILL per arm: VAL dirAUC ≤ .515 OR
+no held-out year selacc CI95-lower ≥ .541). At 1m all three families trip the kill: **FAM1** N-BEATS / N-HiTS
+path-forecast→sign (`nbeats_nhits_dir.py`) — VAL dirAUC ≤ .5035, best held-out selacc .5071 (2025);
+**FAM2** DLinear / Autoformer / FEDformer-freq / TFT-quantile-fan (`decomp_dir.py`) — best held-out selacc .5229
+(tft_quantile, 2026, CI-lo .5144); **FAM3** causal DWT + SSA band-split→GBM-recombine→sign (`spectral_dir.py`) —
+flashiest selacc .5213 (2026) but CI-lo .4872 (thin-coverage mirage). No arm clears the .541 CI-lo gate; no leader
+unseated. Confirms the SIGN-INVARIANCE theorem — path/spectral forecasters carry move SIZE, not 60s SIGN (consistent
+with the E-bridge sign-invariance proof above and the barimg/online-ARF near-efficiency findings). Result JSONs:
+`nbeats_nhits_dir_1m_result.json`, `decomp_dir_1m_result.json`, `spectral_dir_1m_result.json` (consolidated:
+`neural_spectral_dir_sweep_result.json`). See EURUSD_RESULTS.md §2026-06-08 / EXPERIMENT_LEDGER.md #162.

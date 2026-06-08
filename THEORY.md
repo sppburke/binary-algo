@@ -41,6 +41,15 @@ SUFFICIENT — a sign-aware feature can clear the placebo yet still be too weak 
 book remains the only sign-aware construct strong enough to deploy. (HAVOK forcing D6 = sign-aware precursor, also
 sub-breakeven.) See `DIRECTION_FINDINGS.md` 2026-06-07, `MAGNITUDE_FINDINGS.md` §6g.
 
+**Strongest direct confirmation yet (2026-06-08) — path forecasters & spectral decompositions run AS direction models are
+sign-null.** A deriv-faithful sweep ran the forecasting families head-on as DIRECTION predictors at every EURUSD timeframe
+1–30m, single- and cross-pair input: **N-BEATS / N-HiTS path-forecast→sign**, **DLinear / Autoformer / FEDformer-freq /
+TFT-quantile-fan decompositions**, and **causal DWT + SSA band-split→recombine→sign** spectral models. **Every arm was
+KILLED at every horizon** (pre-registered VAL-dirAUC and held-out selective-acc CI95-lower gates), no leader unseated. This
+is the cleanest direct demonstration of the theorem: a path/spectral forecaster reconstructs move SIZE faithfully yet
+carries no SIGN — exactly the sign-invariance prediction, now shown by running the size-forecasters *as* sign models rather
+than inferring it from a gauge. `[EURUSD·1-30m]` (see `EURUSD_RESULTS.md` §2026-06-08, `neural_spectral_dir_sweep_result.json`).
+
 ## 2. The direction ceiling (horizon-dependent; magnitude is the durable edge)
 
 Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measured evidence, see `EURUSD_RESULTS.md`):

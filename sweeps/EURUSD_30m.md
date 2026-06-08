@@ -68,6 +68,18 @@ git-tag `book/EURUSD.m30xp.v1`):
 | I6 | improve | Optuna(worst-VAL-half) on cross-pair LGB | tuned hyperparams | m30_optuna (new) | both | low | pending | — | — | — | — | — |
 | D* | discover | corpus + arXiv 30m direction levers | mechanism-first, sign-carrying | (per backlog) | both | — | pending | — | — | — | loop until 2 dry rounds | — |
 
+## 2026-06-08 neural+spectral sweep (D* discover round — corpus-mined path/spectral levers, 30m)
+Three "technically-uncoded" lever families (mined from external directional-prediction + n-hits repos) RUN at 30m,
+single-pair AND cross-pair input, GPU/AMP, deriv-faithful (TRAIN 2012-21 / VAL 22-23 / held-out per-year 2024/25/26,
+selacc@cov0.10, ties-dropped, moved-bars, BE 0.541). Pre-reg KILL: VAL dirAUC<=0.515 OR no held-out year CI95-lo>=0.541.
+ALL THREE KILLED at 30m (consistent with the 84-arm sweep: 0 survivors across all 6 horizons). No leader unseated.
+Mechanism: SIGN-INVARIANCE thm — path/spectral forecasters carry move SIZE, not SIGN.
+| id | family | method | variant | script | target | prior | status | combined | UP | DOWN | verdict | result_json |
+|----|--------|--------|---------|--------|--------|-------|--------|----------|----|----|---------|-------------|
+| NS1 | discover | FAM1 N-BEATS / N-HiTS path-forecast->sign | single+cross-pair, MX_HOR=30 | nbeats_nhits_dir.py | both | low | **KILLED** | — | — | — | valAUC<=.5055; best held-out selacc .5123 (2026); no year CI-lo>=.541. Path forecast = magnitude, sign-invariant | nbeats_nhits_dir_30m_result.json |
+| NS2 | discover | FAM2 DLinear / Autoformer / FEDformer-freq / TFT-quantile-fan | single+cross-pair, MX_HOR=30 | decomp_dir.py | both | low | **KILLED** | — | — | — | best .5275 (tft_quantile, 2026, CI-lo .5186 < .541); decomposition carries size not sign | decomp_dir_30m_result.json |
+| NS3 | discover | FAM3 causal DWT + SSA band-split->GBM literal recombine->sign | single+cross-pair, MX_HOR=30 | spectral_dir.py | both | low | **KILLED** | — | — | — | best .5162 (2024, CI-lo .4965 < .541); spectral bands carry move size, not direction | spectral_dir_30m_result.json |
+
 ## RUN ORDER / NOTES
 - ONE heavy job at a time (OOM history). K1 -> K2 serialized. Improvement levers only on whichever side(s) are
   uncertified/binding after K2 (the certified ones become the incumbent to beat).

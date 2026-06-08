@@ -70,6 +70,12 @@ deriv payout-deduction EV (R ≈ 1.85, breakeven 0.541): **m15 combined +0.197**
 > backed by a sign-invariance theorem (arXiv:2512.15720): complexity measures gate move *size*, not *direction*.
 > Full record + lessons: **[`DIRECTION_FINDINGS.md`](DIRECTION_FINDINGS.md)**, `m5_research_log.md`, `IDEAS_LOG.md`.
 
+> **2026-06-08 neural-forecaster + spectral DIRECTION sweep — all KILLED.** N-BEATS/N-HiTS, Autoformer/DLinear/FEDformer/TFT,
+> and causal DWT/SSA band-split forecasters, run at **all 6 EURUSD timeframes** (single- and cross-pair): **84 arms, 0
+> survivors** — no held-out year clears CI95-lower ≥ 0.541 (pre-registered KILL). Mining external repos (directional-prediction,
+> n-hits) added **nothing net-new**; the direction frontier remains **EXTERNAL data**, not model class. Artifacts
+> `neural_spectral_dir_sweep_result.json` (+ per-horizon JSONs); see `EURUSD_RESULTS.md` / [`DIRECTION_FINDINGS.md`](DIRECTION_FINDINGS.md).
+
 #### 5-minute re-push (2026-05-31) — cross-pair + order-flow + meta-labeler + cross-horizon stack + macro-news — full record in [`m5_research_log.md`](m5_research_log.md)
 
 Goal re-set to a **5-minute >65% OOS** model. A fresh, genuinely-untried battery (19 logged iterations + two multi-agent
