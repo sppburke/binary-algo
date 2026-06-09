@@ -1,0 +1,267 @@
+{
+  "key": "AUDUSD.15m",
+  "session": "ny",
+  "model": "FROZEN 2012-21 NY-only base GBM (stride6 leaves127 nseed1)",
+  "purpose": "trap#9 frozen-past forward holdout \u2014 does the NY refit-CPCV cert transfer FORWARD (esp UP, which collapsed all-session in 2026)?",
+  "breakeven": 0.541,
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "nseed": 1,
+  "refit_cpcv_cert": {
+    "UP_p10": {
+      "cov05": 0.5713,
+      "cov03": 0.5719,
+      "cov02": 0.5833
+    },
+    "DOWN_p10": {
+      "cov05": 0.5773,
+      "cov03": 0.5972,
+      "cov02": 0.5897
+    }
+  },
+  "falsifier": {
+    "registered": "pre-OOS",
+    "note": "if a side's frozen-forward per-year win-rate at the gate is >2pp below its refit-CPCV p10 in the binding year, the refit cert OVERSTATES forward transfer for that side (regime-dependent)."
+  },
+  "val_auc": 0.5386853373876253,
+  "years": {
+    "test24": {
+      "moved_auc": 0.5439,
+      "up_rate": 0.5113,
+      "tripwire_ok": true,
+      "bycov": {
+        "0.05": {
+          "COMBINED": {
+            "n": 1235,
+            "wr": 0.6057,
+            "ci_lo": 0.5781
+          },
+          "UP": {
+            "n": 432,
+            "wr": 0.6134,
+            "ci_lo": 0.5671
+          },
+          "DOWN": {
+            "n": 803,
+            "wr": 0.6015,
+            "ci_lo": 0.5679
+          }
+        },
+        "0.03": {
+          "COMBINED": {
+            "n": 871,
+            "wr": 0.6188,
+            "ci_lo": 0.5867
+          },
+          "UP": {
+            "n": 257,
+            "wr": 0.6537,
+            "ci_lo": 0.5914
+          },
+          "DOWN": {
+            "n": 614,
+            "wr": 0.6042,
+            "ci_lo": 0.5651
+          }
+        },
+        "0.02": {
+          "COMBINED": {
+            "n": 649,
+            "wr": 0.6271,
+            "ci_lo": 0.5901
+          },
+          "UP": {
+            "n": 169,
+            "wr": 0.6509,
+            "ci_lo": 0.5799
+          },
+          "DOWN": {
+            "n": 480,
+            "wr": 0.6188,
+            "ci_lo": 0.575
+          }
+        },
+        "0.01": {
+          "COMBINED": {
+            "n": 400,
+            "wr": 0.64,
+            "ci_lo": 0.59
+          },
+          "UP": {
+            "n": 82,
+            "wr": 0.5976,
+            "ci_lo": 0.4878
+          },
+          "DOWN": {
+            "n": 318,
+            "wr": 0.6509,
+            "ci_lo": 0.6006
+          }
+        }
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5372,
+      "up_rate": 0.5078,
+      "tripwire_ok": true,
+      "bycov": {
+        "0.05": {
+          "COMBINED": {
+            "n": 1437,
+            "wr": 0.5685,
+            "ci_lo": 0.5421
+          },
+          "UP": {
+            "n": 619,
+            "wr": 0.58,
+            "ci_lo": 0.5396
+          },
+          "DOWN": {
+            "n": 818,
+            "wr": 0.5599,
+            "ci_lo": 0.5244
+          }
+        },
+        "0.03": {
+          "COMBINED": {
+            "n": 972,
+            "wr": 0.5844,
+            "ci_lo": 0.5535
+          },
+          "UP": {
+            "n": 322,
+            "wr": 0.5994,
+            "ci_lo": 0.5466
+          },
+          "DOWN": {
+            "n": 650,
+            "wr": 0.5769,
+            "ci_lo": 0.5385
+          }
+        },
+        "0.02": {
+          "COMBINED": {
+            "n": 740,
+            "wr": 0.5824,
+            "ci_lo": 0.5473
+          },
+          "UP": {
+            "n": 202,
+            "wr": 0.6139,
+            "ci_lo": 0.5446
+          },
+          "DOWN": {
+            "n": 538,
+            "wr": 0.5706,
+            "ci_lo": 0.5279
+          }
+        },
+        "0.01": {
+          "COMBINED": {
+            "n": 479,
+            "wr": 0.5783,
+            "ci_lo": 0.5344
+          },
+          "UP": {
+            "n": 91,
+            "wr": 0.5934,
+            "ci_lo": 0.4835
+          },
+          "DOWN": {
+            "n": 388,
+            "wr": 0.5747,
+            "ci_lo": 0.5258
+          }
+        }
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5139,
+      "up_rate": 0.5075,
+      "tripwire_ok": true,
+      "bycov": {
+        "0.05": {
+          "COMBINED": {
+            "n": 536,
+            "wr": 0.5317,
+            "ci_lo": 0.4888
+          },
+          "UP": {
+            "n": 217,
+            "wr": 0.53,
+            "ci_lo": 0.4654
+          },
+          "DOWN": {
+            "n": 319,
+            "wr": 0.5329,
+            "ci_lo": 0.4765
+          }
+        },
+        "0.03": {
+          "COMBINED": {
+            "n": 374,
+            "wr": 0.492,
+            "ci_lo": 0.4439
+          },
+          "UP": {
+            "n": 120,
+            "wr": 0.4667,
+            "ci_lo": 0.3831
+          },
+          "DOWN": {
+            "n": 254,
+            "wr": 0.5039,
+            "ci_lo": 0.4449
+          }
+        },
+        "0.02": {
+          "COMBINED": {
+            "n": 283,
+            "wr": 0.5053,
+            "ci_lo": 0.4452
+          },
+          "UP": {
+            "n": 77,
+            "wr": 0.4416,
+            "ci_lo": 0.3377
+          },
+          "DOWN": {
+            "n": 206,
+            "wr": 0.5291,
+            "ci_lo": 0.4612
+          }
+        },
+        "0.01": {
+          "COMBINED": {
+            "n": 195,
+            "wr": 0.5692,
+            "ci_lo": 0.5026
+          },
+          "UP": {
+            "n": 35,
+            "wr": 0.5143,
+            "ci_lo": 0.3429
+          },
+          "DOWN": {
+            "n": 160,
+            "wr": 0.5813,
+            "ci_lo": 0.5062
+          }
+        }
+      }
+    }
+  },
+  "frozen_forward_min_year": {
+    "UP_cov05": 0.53,
+    "UP_cov02": 0.4416,
+    "DOWN_cov05": 0.5329,
+    "DOWN_cov02": 0.5291
+  },
+  "verdict": {
+    "UP_forward_holds": false,
+    "DOWN_forward_holds": false,
+    "UP_overstated_by_refit": true,
+    "DOWN_overstated_by_refit": true,
+    "note": "frozen-2012-21 forward; compare per-year-min to refit-CPCV p10. UP collapsed all-session in 2026 \u2014 does NY rescue it forward?"
+  }
+}

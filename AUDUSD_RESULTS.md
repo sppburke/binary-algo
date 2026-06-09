@@ -17,8 +17,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| AUDUSD · **15m** · UP | `UNTESTED` | — | Sweep in progress (base → session → cross-pair → improve). | UNTESTED |
-| AUDUSD · **15m** · DOWN | `UNTESTED` | — | Sweep in progress. | UNTESTED |
+| AUDUSD · **15m** · UP | **NY refit-CPCV p10 .5713 @cov5 / .5833 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM base, cov-gate (`audusd_15m_cpcv_session.py ny`); freeze pending | NY-concentrated own-pair GBM; all-session UP was sub-BE, NY rescues it. p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.61→.58→.53 cov5), sub-BE by 2026 → deploy w/ periodic retrain, size on refit floor.** Improve (seed-ens/xpair) in progress. | **CERTIFIED (NY refit-CPCV), refit-dependent 2026-06-09** |
+| AUDUSD · **15m** · DOWN | **NY refit-CPCV p10 .5773 @cov5 / .5897 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM base, cov-gate (`audusd_15m_cpcv_session.py ny`); freeze pending | NY-concentrated; the more robust side (also all-session @cov1%). p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.60→.56→.53 cov5) → deploy w/ periodic retrain, size on refit floor.** | **CERTIFIED (NY refit-CPCV), refit-dependent 2026-06-09** |
 | AUDUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (AUDUSD pending).
@@ -56,8 +56,34 @@ Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry) AND 
 
 AUC mean .5213 (min .5142, max .5252), up-rate tripwire clean. **Read:** a real all-session edge but thin — **DOWN certifies at cov1%** (p10 .544, 14/15 paths; med_n 895/path), COMBINED at cov1% (p10 .542); **UP does NOT certify at any cov** (p10 saturates ~.534–.538, ~0.5–1pp sub-BE). DOWN>UP robustness (consistent with binding-2026 DOWN-only). This is the honest per-era refit floor (deployable w/ retrain). `audusd_15m_cpcv_session_all_multicov_result.json`. **NEXT levers to lift p10 to a usable coverage + rescue UP:** session concentration (A9), cross-pair pooling (A6), seed-ensemble (the USDJPY lever).
 
-### Session segmentation (A9) — `audusd_15m_cpcv_session.py {ny,ldn,asia}` (symmetric)
-_running — KEY AUDUSD-specific test: does the edge live in Asia (RBA/China/own-pair) or NY (USD-factor) or both? Does any session lift p10 over all-session's thin cov1% cert to a usable cov2–3%?_
+### Session segmentation (A9) — `audusd_15m_cpcv_session.py {ny,ldn,asia}` (symmetric refit-CPCV)
+**RESULT: NY is the carrier — and certifies BOTH sides at every coverage, 15/15 paths.** The Asia hypothesis (RBA/China own-pair info) was REFUTED for 15m DIRECTION (Asia/LDN sub-BE) → AUDUSD direction-sign rides the US-session USD flow (like EURUSD/USDJPY); the commodity/China info gates magnitude not 15m sign (sign-invariance holds).
+
+| session | UP p10 @cov5 (frac) | DOWN p10 @cov5 (frac) | COMB p10 | verdict |
+|---|---|---|---|---|
+| **NY** | **.5713 (1.0)** | **.5773 (1.0)** | **.5809 (1.0)** | ✅ BOTH CERTIFY |
+| asia | .5243 (.40) | .5259 (.53) | .5272 | ✗ sub-BE |
+| ldn | .5163 (.27) | .5162 (.67) | .5196 | ✗ sub-BE |
+
+**NY-session refit-CPCV (the deliverable), all covs, frac_clear=1.0 (all 15 paths) at every cov:**
+| cov | UP p10 (mean, min) | DOWN p10 (mean, min) | COMB p10 (mean) | med_n/path |
+|---|---|---|---|---|
+| 0.05 | .5713 (.587, .569) | .5773 (.596, .565) | .5809 (.590) | UP 1552 / DN 1286 |
+| 0.03 | .5719 (.595, .563) | .5972 (.610, .580) | .5866 (.601) | UP 909 / DN 735 |
+| 0.02 | .5833 (.605, .577) | .5897 (.617, .578) | .5915 (.610) | UP 583 / DN 494 |
+| 0.01 | .5863 (.612, .579) | .5959 (.625, .566) | .6039 (.618) | UP 301 / DN 242 |
+
+AUC mean NY .5363 (.530–.542), up-rate tripwire clean. **Both sides CERTIFIED (refit-CPCV p10 ≥ BE, 15/15 paths, every cov)** — but **REFIT-DEPENDENT** (see frozen-forward below). NY rescues the all-session UP near-miss (sub-BE → p10 .571–.586). `audusd_15m_cpcv_session_ny_multicov_result.json`.
+
+### ★ Adversarial verification — NY FROZEN-PAST forward holdout (trap#9) — `audusd_15m_ny_frozen.py`
+Train ONCE on 2012-21 NY, FREEZE, test per-year NY (deployment-faithful, NO retrain):
+| year | cov5 COMB (CI-lo) | cov5 UP | cov5 DOWN | cov2 UP | cov2 DOWN |
+|---|---|---|---|---|---|
+| 2024 | .606 (.578) | .613 | .602 | .651 | .619 |
+| 2025 | .569 (.542) | .580 | .560 | .614 | .571 |
+| **2026** | **.532 (.489)** | **.530** | **.533** | **.442** | .529 |
+
+**VERDICT: the refit-CPCV cert is REFIT-DEPENDENT, NOT a frozen-deployable edge.** The frozen-2012-21 vintage DECAYS monotonically (.606→.569→.532 COMB cov5), going **sub-BE on BOTH sides by 2026**. This is NOT trap#9 era-local memorization (that would be flat ~.50 every forward year) — the edge genuinely transfers to 2024/2025 (.60/.57) then decays, the signature of **USD-factor non-stationarity** (identical to EURUSD m15xp/m30xp + USDJPY m15ny, all flagged refit-dependent). **Honest deployment claim:** deploy NY-session-only **with periodic retraining**; the durable figure is the refit-CPCV per-era floor (UP .571–.583, DOWN .577–.590), NOT the frozen book (a stale 2021 vintage loses money in 2026). The certified floor is real with retrain; a frozen deployment is not. `audusd_15m_ny_frozen_result.json`.
 
 ### Cross-pair pooling (A6) — the EURUSD keystone, retargeted to AUDUSD
 _pending — `audusd_15m_xpair.py` (USD-common-factor residual + lead-lag, AUDUSD target); + NZDUSD-cousin variant._
@@ -65,9 +91,9 @@ _pending — `audusd_15m_xpair.py` (USD-common-factor residual + lead-lag, AUDUS
 ---
 
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
-| Side | Best certified (refit-CPCV p10) | Best available (point) | Book | Status |
+| Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | — | — | — | sweep in progress |
-| **15m DOWN** | — | — | — | sweep in progress |
+| **15m UP** | **.5713 @cov5 / .5833 @cov2** (NY, 15/15) | .587 / .605 (cov5/2) | NY own-pair base (freeze pending) | ✅ CERTIFIED (refit-CPCV); frozen-fwd verify in-flight |
+| **15m DOWN** | **.5773 @cov5 / .5897 @cov2** (NY, 15/15) | .596 / .617 (cov5/2) | NY own-pair base (freeze pending) | ✅ CERTIFIED (refit-CPCV); frozen-fwd verify in-flight |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
