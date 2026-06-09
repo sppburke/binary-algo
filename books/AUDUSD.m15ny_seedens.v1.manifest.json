@@ -1,0 +1,165 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "AUDUSD.m15ny_seedens.v1",
+  "content_id": "9b0e0ed33efd5684",
+  "currency": "AUDUSD",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "AUDUSD 15m NY-session own-pair base GBM seed-ens K=3; BOTH sides certified via NY per-fold-refit CPCV (UP p10 0.5755 / DOWN p10 0.5901 @cov0.03, 15/15). Direction edge NY-concentrated + AUDUSD-own-pair-specific (cross-pair pooling/AUDNZD/risk add nothing; Asia/LDN sub-BE). REFIT-DEPENDENT (frozen-2021 fwd decays).",
+  "metrics": {
+    "up_refit_cpcv_p10": 0.5755,
+    "down_refit_cpcv_p10": 0.5901,
+    "comb_refit_cpcv_p10": 0.5957,
+    "up_refit_mean": 0.602,
+    "down_refit_mean": 0.6177,
+    "breakeven": 0.541,
+    "cov": 0.03,
+    "val_ny_auc": 0.5394,
+    "frozen_forward": {
+      "test24": {
+        "COMBINED": {
+          "n": 878,
+          "wr": 0.6207,
+          "ci": [
+            0.5888,
+            0.6526
+          ]
+        },
+        "UP": {
+          "n": 263,
+          "wr": 0.6464,
+          "ci": [
+            0.5894,
+            0.7034
+          ]
+        },
+        "DOWN": {
+          "n": 615,
+          "wr": 0.6098,
+          "ci": [
+            0.5707,
+            0.6472
+          ]
+        }
+      },
+      "test25": {
+        "COMBINED": {
+          "n": 986,
+          "wr": 0.5923,
+          "ci": [
+            0.5629,
+            0.6227
+          ]
+        },
+        "UP": {
+          "n": 321,
+          "wr": 0.6231,
+          "ci": [
+            0.567,
+            0.676
+          ]
+        },
+        "DOWN": {
+          "n": 665,
+          "wr": 0.5774,
+          "ci": [
+            0.5398,
+            0.6135
+          ]
+        }
+      },
+      "oos": {
+        "COMBINED": {
+          "n": 366,
+          "wr": 0.5082,
+          "ci": [
+            0.4563,
+            0.5574
+          ]
+        },
+        "UP": {
+          "n": 116,
+          "wr": 0.4741,
+          "ci": [
+            0.3793,
+            0.569
+          ]
+        },
+        "DOWN": {
+          "n": 250,
+          "wr": 0.524,
+          "ci": [
+            0.46,
+            0.584
+          ]
+        }
+      }
+    },
+    "refit_dependent": true
+  },
+  "source": {
+    "script": "audusd_15m_base.py (model) + audusd_15m_cpcv_session.py ny (cert) + audusd_15m_ny_frozen.py (fwd verify) + audusd_15m_freeze_ny.py (freeze)",
+    "git_sha": "ab5c54c452746888ed5f4ab6660b949ef0cb40c5",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 127,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 3000,
+    "early_stop": 150,
+    "tr_stride": 6,
+    "nseed": 3
+  },
+  "artifacts": [
+    {
+      "file": "m15ny_AUDUSD_s0_lgb.txt",
+      "bytes": 761722,
+      "sha256": "ae49ab5bac094f588dafdb1cd1398e6bf55174061bd273672dd34d8c8a57598e"
+    },
+    {
+      "file": "m15ny_AUDUSD_s1_lgb.txt",
+      "bytes": 1538426,
+      "sha256": "419bf48828f9b3d94f7eb60510215a4e1551e4fbbf40394f8d8b849bca930c70"
+    },
+    {
+      "file": "m15ny_AUDUSD_s2_lgb.txt",
+      "bytes": 600463,
+      "sha256": "8f22a006b1e4273584ac53bf15688b55db474783ea0b6d7ed775785123d7e9a4"
+    }
+  ],
+  "strategy_json": "models/m15ny_AUDUSD_seedens_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/home/sean/git/binary-algo/features",
+    "patterns": [
+      "AUDUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1412074614,
+    "sha256_of_listing": "51ce8d97583729c00788de3c02fc51a018a148bc9f16d1df446a27e4b5b7fbad"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "NY session = America/New_York 08-17 (DST-correct, sessions.py). cov3% gate frozen on VAL NY worst-half. Two-sided via confidence selection. BOTH sides REFIT-DEPENDENT (frozen-2021 forward decays to sub-BE by 2026); deploy with periodic retrain, size on refit floor.",
+  "created_utc": "2026-06-09"
+}

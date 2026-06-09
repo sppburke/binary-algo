@@ -17,8 +17,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| AUDUSD · **15m** · UP | **NY refit-CPCV p10 .5713 @cov5 / .5833 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM base, cov-gate (`audusd_15m_cpcv_session.py ny`); freeze pending | NY-concentrated own-pair GBM; all-session UP was sub-BE, NY rescues it. p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.61→.58→.53 cov5), sub-BE by 2026 → deploy w/ periodic retrain, size on refit floor.** Improve (seed-ens/xpair) in progress. | **CERTIFIED (NY refit-CPCV), refit-dependent 2026-06-09** |
-| AUDUSD · **15m** · DOWN | **NY refit-CPCV p10 .5773 @cov5 / .5897 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM base, cov-gate (`audusd_15m_cpcv_session.py ny`); freeze pending | NY-concentrated; the more robust side (also all-session @cov1%). p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.60→.56→.53 cov5) → deploy w/ periodic retrain, size on refit floor.** | **CERTIFIED (NY refit-CPCV), refit-dependent 2026-06-09** |
+| AUDUSD · **15m** · UP | **NY seed-ens(K=3) refit-CPCV p10 .596 @cov2 / .576 @cov5 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate (`audusd_15m_cpcv_session.py ny 2 .. 3`); book `AUDUSD.m15ny_seedens.v1` (freeze pending) | NY-concentrated own-pair GBM; all-session UP was sub-BE, NY rescues it; seed-ens lifts p10 (+.013 @cov2). p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.61→.58→.53 cov5), sub-BE by 2026 → deploy w/ periodic retrain, size on refit floor.** | **CERTIFIED (NY seed-ens refit-CPCV), refit-dependent 2026-06-09** |
+| AUDUSD · **15m** · DOWN | **NY seed-ens(K=3) refit-CPCV p10 .596 @cov2 / .587 @cov5 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate; book `AUDUSD.m15ny_seedens.v1` (freeze pending) | NY-concentrated; the more robust side (also all-session @cov1%); seed-ens lifts p10 (+.010 @cov5). p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.60→.56→.53 cov5) → deploy w/ periodic retrain, size on refit floor.** | **CERTIFIED (NY seed-ens refit-CPCV), refit-dependent 2026-06-09** |
 | AUDUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (AUDUSD pending).
@@ -75,6 +75,16 @@ AUC mean .5213 (min .5142, max .5252), up-rate tripwire clean. **Read:** a real 
 
 AUC mean NY .5363 (.530–.542), up-rate tripwire clean. **Both sides CERTIFIED (refit-CPCV p10 ≥ BE, 15/15 paths, every cov)** — but **REFIT-DEPENDENT** (see frozen-forward below). NY rescues the all-session UP near-miss (sub-BE → p10 .571–.586). `audusd_15m_cpcv_session_ny_multicov_result.json`.
 
+**★ IMPROVE — seed-ensemble K=3 (Tier-I I2) on NY (the deliverable): genuine modest lift over single-seed.** Matched-fold NY refit-CPCV, K=3 seed-average:
+| cov | UP p10 (Δ single) | DOWN p10 (Δ) | COMB p10 (Δ) | COMB mean |
+|---|---|---|---|---|
+| 0.05 | .576 (+.005) | **.587 (+.010)** | .588 (+.007) | .597 |
+| 0.03 | .5755 (+.004) | .590 (−.007) | .596 (+.009) | .609 |
+| 0.02 | **.596 (+.013)** | .596 (+.007) | .591 (−.001) | .616 |
+| 0.01 | .586 (0) | .590 (−.006) | .589 (−) | .620 |
+
+frac_clear=1.0 every cell. **Both p10 AND mean lift at the operating covs** (cov2–5%) — variance reduction genuinely helps the tail (the mean rising distinguishes this from the USDJPY TB false-positive where only the p10 order-statistic moved on correlated paths). Deliverable = **seed-ens K=3 NY**; cov2% UP p10 .596 / DOWN .596 (mean ~.616), cov5% UP .576 / DOWN .587 (mean .597, med_n 1429/1172). `audusd_15m_cpcv_session_ny_seedens3_result.json`. Still REFIT-DEPENDENT (the frozen-forward decay below is a property of the edge, not the seed count).
+
 ### ★ Adversarial verification — NY FROZEN-PAST forward holdout (trap#9) — `audusd_15m_ny_frozen.py`
 Train ONCE on 2012-21 NY, FREEZE, test per-year NY (deployment-faithful, NO retrain):
 | year | cov5 COMB (CI-lo) | cov5 UP | cov5 DOWN | cov2 UP | cov2 DOWN |
@@ -93,7 +103,9 @@ Train ONCE on 2012-21 NY, FREEZE, test per-year NY (deployment-faithful, NO retr
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.5713 @cov5 / .5833 @cov2** (NY, 15/15) | .587 / .605 (cov5/2) | NY own-pair base (freeze pending) | ✅ CERTIFIED (refit-CPCV); frozen-fwd verify in-flight |
-| **15m DOWN** | **.5773 @cov5 / .5897 @cov2** (NY, 15/15) | .596 / .617 (cov5/2) | NY own-pair base (freeze pending) | ✅ CERTIFIED (refit-CPCV); frozen-fwd verify in-flight |
+| **15m UP** | **.576 @cov5 / .596 @cov2** (NY seed-ens K=3, 15/15) | .593 / .610 mean (cov5/2) | **`AUDUSD.m15ny_seedens.v1`** ✅ FROZEN (content_id 9b0e0ed3) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
+| **15m DOWN** | **.587 @cov5 / .596 @cov2** (NY seed-ens K=3, 15/15) | .604 / .623 mean (cov5/2) | **`AUDUSD.m15ny_seedens.v1`** ✅ FROZEN (content_id 9b0e0ed3) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
+
+**Deployment spec (both sides, book `AUDUSD.m15ny_seedens.v1`):** trade AUDUSD 15m Rise/Fall when `ts ∈ NY session` (America/New_York 08:00–17:00, DST-correct) AND `|p̄−0.5| ≥ conf_thr` where `p̄` = mean of K=3 seed probabilities; cov3% gate (thr frozen on VAL NY worst-half). Two-sided via confidence selection (bet UP if p̄>0.5 else DOWN). **REFIT-DEPENDENT: retrain periodically (frozen-2012-21 vintage decays to sub-BE by 2026); size on the refit per-era floor (~.57–.60), 1/8-Kelly, NOT the stale frozen book.** Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry).
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._

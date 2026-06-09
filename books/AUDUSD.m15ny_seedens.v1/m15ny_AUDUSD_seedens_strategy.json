@@ -1,0 +1,100 @@
+{
+  "book": "AUDUSD.m15ny_seedens.v1",
+  "pair": "AUDUSD",
+  "timeframe": "15m",
+  "horizon_min": 15,
+  "session": "ny",
+  "nseed": 3,
+  "label": "sign(close[t+15]-close[t]), ties LOSE",
+  "settlement": "bar-close, gap=900s nonoverlap_chrono",
+  "gate": {
+    "cov": 0.03,
+    "conf_thr": 0.06624753336867155,
+    "rule": "trade when |p-0.5|>=conf_thr AND ts in NY session (America/New_York 08-17, DST-correct)"
+  },
+  "ensemble": "mean of seed probabilities",
+  "breakeven": 0.541,
+  "val_ny_auc": 0.539383199466516,
+  "cert": "NY per-fold-refit CPCV @cov0.03: UP p10 0.5755 / DOWN p10 0.5901 / COMB p10 0.5957 (15/15 paths) \u2014 audusd_15m_cpcv_session_ny_seedens3_result.json",
+  "deploy_note": "REFIT-DEPENDENT: frozen-2021 vintage decays forward (.60->.57->.53 cov5, sub-BE by 2026). Deploy NY-only with PERIODIC RETRAINING; size on the refit per-era floor (~.57-.60), NOT this frozen artifact. Both sides own-pair-specific (pooling/AUDNZD/risk add nothing); Asia/LDN sub-BE.",
+  "frozen_forward": {
+    "test24": {
+      "COMBINED": {
+        "n": 878,
+        "wr": 0.6207,
+        "ci": [
+          0.5888,
+          0.6526
+        ]
+      },
+      "UP": {
+        "n": 263,
+        "wr": 0.6464,
+        "ci": [
+          0.5894,
+          0.7034
+        ]
+      },
+      "DOWN": {
+        "n": 615,
+        "wr": 0.6098,
+        "ci": [
+          0.5707,
+          0.6472
+        ]
+      }
+    },
+    "test25": {
+      "COMBINED": {
+        "n": 986,
+        "wr": 0.5923,
+        "ci": [
+          0.5629,
+          0.6227
+        ]
+      },
+      "UP": {
+        "n": 321,
+        "wr": 0.6231,
+        "ci": [
+          0.567,
+          0.676
+        ]
+      },
+      "DOWN": {
+        "n": 665,
+        "wr": 0.5774,
+        "ci": [
+          0.5398,
+          0.6135
+        ]
+      }
+    },
+    "oos": {
+      "COMBINED": {
+        "n": 366,
+        "wr": 0.5082,
+        "ci": [
+          0.4563,
+          0.5574
+        ]
+      },
+      "UP": {
+        "n": 116,
+        "wr": 0.4741,
+        "ci": [
+          0.3793,
+          0.569
+        ]
+      },
+      "DOWN": {
+        "n": 250,
+        "wr": 0.524,
+        "ci": [
+          0.46,
+          0.584
+        ]
+      }
+    }
+  }
+}

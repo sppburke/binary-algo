@@ -1,502 +1,526 @@
 {
-  "schema": "book-index/v1",
-  "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
-  "created_utc": "2026-06-01",
-  "env": {
-    "python": "/home/sean/binary-algo-venv/bin/python",
-    "python_version": "3.12.3",
-    "key_libs": {
-      "lightgbm": "4.6.0",
-      "xgboost": "3.2.0",
-      "catboost": "1.2.10",
-      "scikit-learn": "1.7.2",
-      "numpy": "2.3.5",
-      "pandas": "2.3.3",
-      "pyarrow": "24.0.0",
-      "scipy": "1.17.1"
-    }
+ "schema": "book-index/v1",
+ "git_sha": "984431e9f6d9f78eb29188a14833025cdf5b382c",
+ "created_utc": "2026-06-01",
+ "env": {
+  "python": "/home/sean/binary-algo-venv/bin/python",
+  "python_version": "3.12.3",
+  "key_libs": {
+   "lightgbm": "4.6.0",
+   "xgboost": "3.2.0",
+   "catboost": "1.2.10",
+   "scikit-learn": "1.7.2",
+   "numpy": "2.3.5",
+   "pandas": "2.3.3",
+   "pyarrow": "24.0.0",
+   "scipy": "1.17.1"
+  }
+ },
+ "books": [
+  {
+   "id": "EURUSD.tick3.v1",
+   "currency": "EURUSD",
+   "timeframe": "1-5s",
+   "side": "combined",
+   "role": "direction",
+   "script": "m_tick_prod.py",
+   "metrics": {
+    "oos_3s_selective": 0.657,
+    "alt_3s": 0.667,
+    "note": "TEST+OOS robust; venue floor deriv=15m"
+   },
+   "manifest": "books/EURUSD.tick3.v1.manifest.json",
+   "summary": "Tick microstructure 3s GBM ensemble (lgb+xgb+cat) \u2014 the one genuine >0.65 directional edge (needs a tick venue).",
+   "depends_on": null
   },
-  "books": [
-    {
-      "id": "EURUSD.tick3.v1",
-      "currency": "EURUSD",
-      "timeframe": "1-5s",
-      "side": "combined",
-      "role": "direction",
-      "script": "m_tick_prod.py",
-      "metrics": {
-        "oos_3s_selective": 0.657,
-        "alt_3s": 0.667,
-        "note": "TEST+OOS robust; venue floor deriv=15m"
-      },
-      "manifest": "books/EURUSD.tick3.v1.manifest.json",
-      "summary": "Tick microstructure 3s GBM ensemble (lgb+xgb+cat) \u2014 the one genuine >0.65 directional edge (needs a tick venue).",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.tick5.v1",
-      "currency": "EURUSD",
-      "timeframe": "1-5s",
-      "side": "combined",
-      "role": "direction",
-      "script": "m_tick_prod.py",
-      "metrics": {
-        "oos_5s_selective": "~0.65-0.66"
-      },
-      "manifest": "books/EURUSD.tick5.v1.manifest.json",
-      "summary": "Tick microstructure 5s GBM ensemble (lgb+xgb+cat); HS=5s chosen for OOS robustness (n=377-1124 cov0.5-2%).",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.min1.v1",
-      "currency": "EURUSD",
-      "timeframe": "60s",
-      "side": "combined",
-      "role": "direction",
-      "script": "min1_production.py",
-      "metrics": {
-        "test_2024_25": 0.539,
-        "oos_2026": 0.55,
-        "up_filter_2026": 0.613,
-        "up_filter_2025": 0.584,
-        "down_2026": 0.516,
-        "breakeven": 0.541,
-        "side_split_cpcv_2026_06_03": {
-          "harness": "min1_cpcv.py (frozen-book, ties-strict, 28 purged-comb paths + block-boot)",
-          "UP_certified": false,
-          "UP": {
-            "pooled_strict": 0.573,
-            "block_boot_ci_lo": 0.53,
-            "path_p10": 0.524,
-            "frac_paths_clear": 0.75,
-            "note": "regime-dependent up-filter, best AVAILABLE 60s UP, NOT certified (2024-strict .520 < breakeven); near-miss like 2m UP .5445"
-          },
-          "DOWN_certified": false,
-          "DOWN": {
-            "pooled_strict": 0.519,
-            "path_p10": 0.474,
-            "note": "dead + honestly exhausted on-disk; D3a/magweight/mag-bridge killed + 2 dry discovery rounds; external (risk-reversal/rate-diff) only redirect"
-          }
-        }
-      },
-      "manifest": "books/EURUSD.min1.v1.manifest.json",
-      "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key. SIDE-SPLIT 2026-06-03: UP uncertified (CPCV p10 .524, regime-dependent), DOWN dead/exhausted (p10 .474) \u2014 no certified 60s direction edge.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.min2.v1",
-      "currency": "EURUSD",
-      "timeframe": "120s",
-      "side": "combined",
-      "role": "direction",
-      "script": "min2_production.py",
-      "metrics": {
-        "test": 0.528,
-        "oos_2026": 0.539,
-        "breakeven": 0.541,
-        "note": "not a row in EURUSD_RESULTS; included for completeness",
-        "side_split_2026_06_04": {
-          "harness": "min2_xpair_cpcv.py (cross-pair ties-strict refit-CPCV) + min2_spec_cpcv.py (specialist nested-refit) + min2_rff.py",
-          "UP_certified": false,
-          "UP": {
-            "best_available_point": 0.555,
-            "ties_strict": 0.5445,
-            "frozenbook_cpcv_p10": 0.524,
-            "crosspair_refit_p10": 0.5096,
-            "rff_val_auc": 0.4997,
-            "specialist_nested_refit_p10": 0.4957,
-            "note": "uncertified, best-AVAILABLE; honestly exhausted on-disk"
-          },
-          "DOWN_certified": false,
-          "DOWN": {
-            "point": 0.54,
-            "crosspair_refit_p10": 0.5124,
-            "specialist_nested_refit_p10": 0.4912,
-            "note": "dead + honestly exhausted; sub-breakeven all years"
-          },
-          "verdict": "NO certified 2m direction edge; both sides exhausted under full (a)-(e). Cross-pair (keystone) + RFF + specialist all killed. 4 model classes ~.50-.52 AUC = genuine efficiency. Redirect=external Tier-G (gated). 120s < deriv 15m min = research horizon."
-        }
-      },
-      "manifest": "books/EURUSD.min2.v1.manifest.json",
-      "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered. SIDE-SPLIT 2026-06-04: both sides UNCERTIFIED+EXHAUSTED (cross-pair refit p10 .5096/.5124, RFF .4997, specialist nested-refit .4957/.4912) \u2014 no certified 2m direction edge.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m5_production.py",
-      "metrics": {
-        "val_auc": 0.523,
-        "oos_auc": 0.518,
-        "book_combined": "0.586-0.594"
-      },
-      "manifest": "books/EURUSD.m5.v1.manifest.json",
-      "summary": "5m base OHLCV 3-model GBM ensemble (lgb+xgb+cat) on 239 multi-TF features.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5xp.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m5_xpair_production.py",
-      "metrics": {
-        "combined": 0.583,
-        "oos_2026": 0.606,
-        "ci": [
-          0.57,
-          0.595
-        ],
-        "ev_R0.85": 0.078,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m5xp.v1.manifest.json",
-      "summary": "5m PRODUCTION freeze: cross-pair USD-residual + order-flow, primary lgb + meta-labeler lgb.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5stack.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "combined",
-      "role": "stack-meta",
-      "script": "m5_stack2.py",
-      "metrics": {
-        "oos_2026": 0.571,
-        "combined_verifiable": 0.613,
-        "thin_q0.99": 0.648,
-        "breakeven": 0.541,
-        "note": "higher COMBINED (0.613) but lower single-year OOS(2026)=0.571 than m5xp (0.606)"
-      },
-      "manifest": "books/EURUSD.m5stack.v1.manifest.json",
-      "summary": "5m BEST: cross-horizon soft stack \u2014 front-load the 15m-parent ensemble's direction into the 5m outcome, meta-gated.",
-      "depends_on": [
-        "EURUSD.m15.v1 (parent ensemble front-loaded)",
-        "EURUSD.m5.v1 (5m base)"
-      ]
-    },
-    {
-      "id": "EURUSD.m10.v1",
-      "currency": "EURUSD",
-      "timeframe": "10m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m10_freeze_honest.py",
-      "metrics": {
-        "combined": 0.602,
-        "oos_2026": 0.594,
-        "floor_2025": 0.579,
-        "ci": [
-          0.582,
-          0.621
-        ],
-        "ev_R0.85": 0.113,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m10.v1.manifest.json",
-      "summary": "10m HONEST freeze: native-10 3-model GBM ensemble, gated by 5m_bb_width x NY (cov10%).",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m15.v1",
-      "currency": "EURUSD",
-      "timeframe": "15m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m15_production.py",
-      "metrics": {
-        "combined_recent": 0.647,
-        "ci": [
-          0.612,
-          0.684
-        ],
-        "oos_2026": 0.663,
-        "test_2025": 0.582,
-        "test_2024": 0.689,
-        "cpcv_faithful_mean": 0.579,
-        "cpcv_p10": 0.557,
-        "breakeven": 0.541,
-        "side_split_certified_2026_06_03": {
-          "harness": "m15_cpcv_side.py (per-fold refit CPCV, 15 purged paths); combined reproduces min15_cpcv (mean .5787/p10 .557) -> faithful",
-          "UP": {
-            "refit_p10": 0.5475,
-            "refit_mean": 0.5771,
-            "frac_paths_clear": 0.933,
-            "median_path_n": 949,
-            "verdict": "CERTIFIED"
-          },
-          "DOWN": {
-            "refit_p10": 0.5486,
-            "refit_mean": 0.5805,
-            "frac_paths_clear": 1.0,
-            "median_path_n": 845,
-            "verdict": "CERTIFIED (first certified DOWN edge in program)"
-          },
-          "note": "BOTH sides certified (refit p10 >= .541, >=80% paths clear). Durable floors = refit p10; frozen-forward operating point .607/.559 was optimistic selection. result_json: m15_cpcv_side_result.json"
-        }
-      },
-      "manifest": "books/EURUSD.m15.v1.manifest.json",
-      "summary": "15m DELIVERABLE (best combined book in program; the ONLY deriv-deployable horizon): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective. Side-split BOTH-SIDES-CERTIFIED 2026-06-03 (UP refit-p10 .5475 / DOWN .5486) -> the (15m,UP) and (15m,DOWN) deliverables are this book's UP-bets and DOWN-bets.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m30.v1",
-      "currency": "EURUSD",
-      "timeframe": "30m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m30_production.py",
-      "metrics": {
-        "combined": 0.591,
-        "ci": [
-          0.556,
-          0.625
-        ],
-        "oos_2026": 0.546,
-        "test_2025": 0.589,
-        "test_2024": 0.623,
-        "ev_R0.85": 0.064,
-        "breakeven": 0.541
-      },
-      "manifest": "books/EURUSD.m30.v1.manifest.json",
-      "summary": "30m DELIVERABLE: 3-model GBM ensemble gated by 1h-compression x NY, conf-selective.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m30xp.v1",
-      "currency": "EURUSD",
-      "timeframe": "30m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m30_xpair_freeze.py (gate via m30_xpair_regate.py)",
-      "metrics": {
-        "up_refit_p10": 0.5588,
-        "down_refit_p10": 0.5525,
-        "frac_paths_clear_both": 1.0,
-        "deploy_cov": 0.05,
-        "breakeven": 0.541,
-        "base_floor": {
-          "UP": 0.5538,
-          "DOWN": 0.5356
-        },
-        "forward_cov5": {
-          "2024_UP": 0.6291,
-          "2024_DOWN": 0.6488,
-          "2024_COMBINED": 0.6366,
-          "2025_UP": 0.6175,
-          "2025_DOWN": 0.5641,
-          "2025_COMBINED": 0.6036,
-          "2026_UP": 0.5302,
-          "2026_DOWN": 0.5778,
-          "2026_COMBINED": 0.5412
-        },
-        "note": "BOTH sides refit-CPCV-certified (UP p10 .5588 / DOWN p10 .5525, 15/15). 30m = LONGEST deriv-tradeable horizon. REFIT-DEPENDENT: frozen-2021 fwd decays by 2026 OOS (UP .5302@cov5/.4652@cov10) -> deploy w/ retrain; durable=refit p10. Improve loop DRY (magweight hurts; seed-ens/specialist/Aa/IPCA/3-model-ensemble-on-pool/recency all subsumed); discover DRY (K=2)."
-      },
-      "manifest": "books/EURUSD.m30xp.v1.manifest.json",
-      "summary": "30m cross-pair USD-residual+OF primary (m5xp source @MX_HOR=30). NEW (30m,UP)+(30m,DOWN) leader: per-side refit-CPCV-CERTIFIED above base book (UP p10 .5588 / DOWN p10 .5525, 15/15 paths each, improves base floors .5538/.5356; DOWN rescued from near-miss). 30m IS deriv-tradeable (longest horizon). Deploy cov5% w/ retrain (REFIT-DEPENDENT). Edge = POOLED base-feat training (94% gain), not xpof factors -> improve levers subsumed. UP-bets=(30m,UP), DOWN-bets=(30m,DOWN). Base EURUSD.m30.v1 = lower combined fallback.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m5xp_aci.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "up",
-      "role": "gate",
-      "script": "m5_conformal.py",
-      "metrics": {
-        "deployable": "UP, adaptive-conformal gate w*=0.57",
-        "aci_up_per_year_2024_2025_2026": [
-          0.5784,
-          0.5838,
-          0.6471
-        ],
-        "aci_up_n_per_year": [
-          1103,
-          764,
-          17
-        ],
-        "fixed_up_per_year": [
-          0.6262,
-          0.5793,
-          0.6825
-        ],
-        "fixed_up_n_per_year": [
-          701,
-          618,
-          63
-        ],
-        "binding_2025": {
-          "aci": 0.5838,
-          "aci_n": 764,
-          "fixed": 0.5793,
-          "fixed_n": 618
-        },
-        "coverage_total": {
-          "aci": 1884,
-          "fixed": 1382
-        },
-        "breakeven": 0.541,
-        "status": "IMPROVEMENT vs fixed gate (more coverage + regime-stable; binding 2025 .584 at n764 vs fixed .579 at n618). Within-experiment comparison (m5_conformal.py); CPCV-validation of the adaptive policy is the open follow-up.",
-        "DOWNGRADED_2026-06": "ACI fails nested-refit CPCV (p10 .521-.523, <fixed); V1/V2 confirm. Durable UP = m5xp refit floor 0.553, NOT ACI .584. Forward .584 was a single-split regime artifact."
-      },
-      "manifest": "books/EURUSD.m5xp_aci.v1.manifest.json",
-      "summary": "m5xp UP book + ONLINE ADAPTIVE-CONFORMAL (ACI) gate targeting win-rate w*=0.57. Deployable improvement over the fixed meta gate: ~36% more trades + tighter cross-regime spread at a stable/slightly-better binding-year win-rate. Causal (past-outcome feedback, no look-ahead).",
-      "depends_on": [
-        "EURUSD.m5xp.v1"
-      ]
-    },
-    {
-      "id": "EURUSD.m5xp_magw_down.v1",
-      "currency": "EURUSD",
-      "timeframe": "5m",
-      "side": "down",
-      "role": "direction",
-      "script": "m5_magweight_freeze.py",
-      "metrics": {
-        "down_cov0.05_refit_p10": 0.5441,
-        "frac_folds_clear": 0.893,
-        "forward_2025_down": 0.559,
-        "forward_2025_ci_lo": 0.533,
-        "breakeven": 0.541,
-        "status": "MARGINAL \u2014 floor at breakeven, forward-2025 CI-lo grazes below; NOT robustly deployable (V1/V2 multiplicity-fragile)"
-      },
-      "manifest": "books/EURUSD.m5xp_magw_down.v1.manifest.json",
-      "summary": "POW=0.5 |return|-weighted magweight retrain, DOWN-side rescue of m5xp; the best (5m,DOWN) but razor-thin/marginal.",
-      "depends_on": "EURUSD.m5xp.v1"
-    },
-    {
-      "id": "EURUSD.m15xp.v1",
-      "currency": "EURUSD",
-      "timeframe": "15m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m15_xpair_freeze.py",
-      "metrics": {
-        "up_refit_p10": 0.5673,
-        "down_refit_p10": 0.5742,
-        "frac_paths_clear_both": 1.0,
-        "base_book_up_p10": 0.5475,
-        "base_book_down_p10": 0.5486,
-        "deploy_cov": 0.1,
-        "forward_cov10_up": [
-          0.602,
-          0.561,
-          0.539
-        ],
-        "forward_cov10_down": [
-          0.61,
-          0.531,
-          0.552
-        ],
-        "breakeven": 0.541,
-        "status": "NEW (15m,UP)+(15m,DOWN) LEADER. Per-side refit-CPCV-CERTIFIED above the base book (UP p10 .5673 / DOWN .5742, 15/15 paths both sides). BEST certified DOWN edge in program. ADVERSARIAL: edge is REFIT-DEPENDENT (USD factor non-stationary) -> frozen-2021 single-model forward is marginal in binding years; DEPLOY with periodic retrain, size on refit floor. Base book EURUSD.m15.v1 = frozen-stable lower fallback. Deriv-tradeable."
-      },
-      "manifest": "books/EURUSD.m15xp.v1.manifest.json",
-      "summary": "15m cross-pair USD-residual+OF primary (m5xp source retargeted MX_HOR=15). The (15m,UP)+(15m,DOWN) deliverable: UP-bets=(15m,UP) refit-p10 .5673, DOWN-bets=(15m,DOWN) refit-p10 .5742. Deploy gate comp(bb_width q33)xNY x cov10%.",
-      "depends_on": null
-    },
-    {
-      "id": "EURUSD.m10xp.v1",
-      "currency": "EURUSD",
-      "timeframe": "10m",
-      "side": "combined",
-      "role": "direction",
-      "script": "m10_xpair_freeze.py (gate via m10_xpair_regate.py)",
-      "metrics": {
-        "up_refit_p10": 0.5863,
-        "down_refit_p10": 0.5683,
-        "frac_paths_clear_both": 1.0,
-        "deploy_cov": 0.1,
-        "breakeven": 0.541,
-        "base_floor": {
-          "UP": 0.5611,
-          "DOWN": 0.5519
-        },
-        "forward_cov10": {
-          "2024_UP": 0.642,
-          "2024_DOWN": 0.5987,
-          "2024_COMBINED": 0.6231,
-          "2025_UP": 0.6051,
-          "2025_DOWN": 0.5739,
-          "2025_COMBINED": 0.5882,
-          "2026_UP": 0.68,
-          "2026_DOWN": 0.4762,
-          "2026_COMBINED": 0.587
-        },
-        "note": "BOTH sides refit-CPCV-certified (UP p10 .586 / DOWN p10 .568, 15/15). 10m<deriv 15m min = research horizon. Durable=refit p10; frozen-forward overstates."
-      },
-      "manifest": "books/EURUSD.m10xp.v1.manifest.json",
-      "summary": "10m cross-pair USD-residual+OF primary (m5xp source @MX_HOR=10). NEW (10m,UP)+(10m,DOWN) leader: per-side refit-CPCV-CERTIFIED above base book (UP p10 .5863 / DOWN p10 .5683, 15/15 paths each, improves base floors .561/.552). Deploy at cov10% (cov5% thin-2026). 10m<deriv 15m min = research horizon; deployable sibling EURUSD.m15xp.v1. UP-bets=(10m,UP), DOWN-bets=(10m,DOWN).",
-      "depends_on": null
-    },
-    {
-      "id": "USDJPY.m15ny.v1",
-      "currency": "USDJPY",
-      "timeframe": "15m",
-      "side": "combined",
-      "role": "direction",
-      "script": "usdjpy_15m_session.py + usdjpy_15m_cpcv_session.py ny + usdjpy_15m_freeze_ny.py",
-      "metrics": {
-        "up_refit_cpcv_p10": 0.586,
-        "down_refit_cpcv_p10": 0.572,
-        "comb_refit_cpcv_p10": 0.58,
-        "up_cov1_p10": 0.599,
-        "breakeven": 0.541,
-        "cov": 0.03,
-        "session": "ny",
-        "content_id": "296ffaf6ddb3a5a4"
-      },
-      "manifest": "books/USDJPY.m15ny.v1.manifest.json",
-      "summary": "First certified USDJPY direction book. NY-session own-pair base GBM; BOTH sides refit-CPCV certified (UP p10 .586/.599, DOWN .572). Edge is NY-concentrated + USDJPY-specific (pooling dilutes); DOWN refit-dependent.",
-      "depends_on": null
-    },
-    {
-      "id": "USDJPY.m15ny_seedens.v1",
-      "currency": "USDJPY",
-      "timeframe": "15m",
-      "side": "combined",
-      "role": "direction",
-      "script": "usdjpy_15m_cpcv_session.py ny (cert) + usdjpy_15m_freeze_ny_seedens.py (freeze)",
-      "metrics": {
-        "up_refit_cpcv_p10": 0.6005,
-        "down_refit_cpcv_p10": 0.5738,
-        "comb_refit_cpcv_p10": 0.5962,
-        "breakeven": 0.541,
-        "cov": 0.02,
-        "session": "ny",
-        "seed_K": 3,
-        "content_id": "d83d35964a145328"
-      },
-      "manifest": "books/USDJPY.m15ny_seedens.v1.manifest.json",
-      "summary": "BEST USDJPY 15m direction: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .6005/DOWN .5738 @cov2%). REFIT-DEPENDENT (frozen-2012 vintage decays by 2026; retrain periodically, size on refit floor).",
-      "depends_on": null
-    },
-    {
-      "id": "USDJPY.m15ny_tbft_seedens.v1",
-      "currency": "USDJPY",
-      "timeframe": "15m",
-      "side": "combined",
-      "role": "direction",
-      "script": "usdjpy_15m_cpcv_tbfirsttouch.py 2 0.01,0.02,0.03 3 (cert) + usdjpy_15m_freeze_ny_tbft_seedens.py (freeze)",
-      "metrics": {
-        "up_refit_cpcv_p10": 0.6052,
-        "down_refit_cpcv_p10": 0.58,
-        "comb_refit_cpcv_p10": 0.5953,
-        "breakeven": 0.541,
-        "cov": 0.02,
-        "session": "ny",
-        "seed_K": 3,
-        "tb_k": 2.0,
-        "content_id": "002dd2f2abb322e5",
-        "adversarial_verdict": "SUSPECT_not_an_improvement_over_seedens"
-      },
-      "manifest": "books/USDJPY.m15ny_tbft_seedens.v1.manifest.json",
-      "summary": "ALTERNATIVE certified config (NOT the leader): NY own-pair seed-ens(K=3) GBM trained on a triple-barrier first-touch label (k=2; eval UNCHANGED deriv fixed-15m sign). Certified at the SAME LEVEL as the seed-ens book (UP p10 .6052/DOWN .58 @cov2%, 15/15) but ADVERSARIAL VERIFICATION (2026-06-08) found it does NOT robustly beat USDJPY.m15ny_seedens.v1: paired per-path lift over the matched K=3 base is within CPCV-path noise (cov2% UP +.0067 t.91, DOWN -.0093 t-.89 mean-regresses; cov3% COMB +.0093 t2.73 on CORRELATED paths). Kept for the record; NOT a deliverable upgrade.",
-      "depends_on": null
+  {
+   "id": "EURUSD.tick5.v1",
+   "currency": "EURUSD",
+   "timeframe": "1-5s",
+   "side": "combined",
+   "role": "direction",
+   "script": "m_tick_prod.py",
+   "metrics": {
+    "oos_5s_selective": "~0.65-0.66"
+   },
+   "manifest": "books/EURUSD.tick5.v1.manifest.json",
+   "summary": "Tick microstructure 5s GBM ensemble (lgb+xgb+cat); HS=5s chosen for OOS robustness (n=377-1124 cov0.5-2%).",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.min1.v1",
+   "currency": "EURUSD",
+   "timeframe": "60s",
+   "side": "combined",
+   "role": "direction",
+   "script": "min1_production.py",
+   "metrics": {
+    "test_2024_25": 0.539,
+    "oos_2026": 0.55,
+    "up_filter_2026": 0.613,
+    "up_filter_2025": 0.584,
+    "down_2026": 0.516,
+    "breakeven": 0.541,
+    "side_split_cpcv_2026_06_03": {
+     "harness": "min1_cpcv.py (frozen-book, ties-strict, 28 purged-comb paths + block-boot)",
+     "UP_certified": false,
+     "UP": {
+      "pooled_strict": 0.573,
+      "block_boot_ci_lo": 0.53,
+      "path_p10": 0.524,
+      "frac_paths_clear": 0.75,
+      "note": "regime-dependent up-filter, best AVAILABLE 60s UP, NOT certified (2024-strict .520 < breakeven); near-miss like 2m UP .5445"
+     },
+     "DOWN_certified": false,
+     "DOWN": {
+      "pooled_strict": 0.519,
+      "path_p10": 0.474,
+      "note": "dead + honestly exhausted on-disk; D3a/magweight/mag-bridge killed + 2 dry discovery rounds; external (risk-reversal/rate-diff) only redirect"
+     }
     }
-  ]
+   },
+   "manifest": "books/EURUSD.min1.v1.manifest.json",
+   "summary": "Frozen 60s book: 3-model GBM ensemble (lgb+xgb+cat) + compression-release LGBM specialist (50/50), reversion-filtered, comp-release gated. Up-only FILTER on this = the (60s,UP) key. SIDE-SPLIT 2026-06-03: UP uncertified (CPCV p10 .524, regime-dependent), DOWN dead/exhausted (p10 .474) \u2014 no certified 60s direction edge.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.min2.v1",
+   "currency": "EURUSD",
+   "timeframe": "120s",
+   "side": "combined",
+   "role": "direction",
+   "script": "min2_production.py",
+   "metrics": {
+    "test": 0.528,
+    "oos_2026": 0.539,
+    "breakeven": 0.541,
+    "note": "not a row in EURUSD_RESULTS; included for completeness",
+    "side_split_2026_06_04": {
+     "harness": "min2_xpair_cpcv.py (cross-pair ties-strict refit-CPCV) + min2_spec_cpcv.py (specialist nested-refit) + min2_rff.py",
+     "UP_certified": false,
+     "UP": {
+      "best_available_point": 0.555,
+      "ties_strict": 0.5445,
+      "frozenbook_cpcv_p10": 0.524,
+      "crosspair_refit_p10": 0.5096,
+      "rff_val_auc": 0.4997,
+      "specialist_nested_refit_p10": 0.4957,
+      "note": "uncertified, best-AVAILABLE; honestly exhausted on-disk"
+     },
+     "DOWN_certified": false,
+     "DOWN": {
+      "point": 0.54,
+      "crosspair_refit_p10": 0.5124,
+      "specialist_nested_refit_p10": 0.4912,
+      "note": "dead + honestly exhausted; sub-breakeven all years"
+     },
+     "verdict": "NO certified 2m direction edge; both sides exhausted under full (a)-(e). Cross-pair (keystone) + RFF + specialist all killed. 4 model classes ~.50-.52 AUC = genuine efficiency. Redirect=external Tier-G (gated). 120s < deriv 15m min = research horizon."
+    }
+   },
+   "manifest": "books/EURUSD.min2.v1.manifest.json",
+   "summary": "Frozen 120s book (analog of min1 at HS=120): 3-model ensemble + specialist, reversion-filtered. SIDE-SPLIT 2026-06-04: both sides UNCERTIFIED+EXHAUSTED (cross-pair refit p10 .5096/.5124, RFF .4997, specialist nested-refit .4957/.4912) \u2014 no certified 2m direction edge.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m5_production.py",
+   "metrics": {
+    "val_auc": 0.523,
+    "oos_auc": 0.518,
+    "book_combined": "0.586-0.594"
+   },
+   "manifest": "books/EURUSD.m5.v1.manifest.json",
+   "summary": "5m base OHLCV 3-model GBM ensemble (lgb+xgb+cat) on 239 multi-TF features.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m5_xpair_production.py",
+   "metrics": {
+    "combined": 0.583,
+    "oos_2026": 0.606,
+    "ci": [
+     0.57,
+     0.595
+    ],
+    "ev_R0.85": 0.078,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m5xp.v1.manifest.json",
+   "summary": "5m PRODUCTION freeze: cross-pair USD-residual + order-flow, primary lgb + meta-labeler lgb.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5stack.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "combined",
+   "role": "stack-meta",
+   "script": "m5_stack2.py",
+   "metrics": {
+    "oos_2026": 0.571,
+    "combined_verifiable": 0.613,
+    "thin_q0.99": 0.648,
+    "breakeven": 0.541,
+    "note": "higher COMBINED (0.613) but lower single-year OOS(2026)=0.571 than m5xp (0.606)"
+   },
+   "manifest": "books/EURUSD.m5stack.v1.manifest.json",
+   "summary": "5m BEST: cross-horizon soft stack \u2014 front-load the 15m-parent ensemble's direction into the 5m outcome, meta-gated.",
+   "depends_on": [
+    "EURUSD.m15.v1 (parent ensemble front-loaded)",
+    "EURUSD.m5.v1 (5m base)"
+   ]
+  },
+  {
+   "id": "EURUSD.m10.v1",
+   "currency": "EURUSD",
+   "timeframe": "10m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m10_freeze_honest.py",
+   "metrics": {
+    "combined": 0.602,
+    "oos_2026": 0.594,
+    "floor_2025": 0.579,
+    "ci": [
+     0.582,
+     0.621
+    ],
+    "ev_R0.85": 0.113,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m10.v1.manifest.json",
+   "summary": "10m HONEST freeze: native-10 3-model GBM ensemble, gated by 5m_bb_width x NY (cov10%).",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m15.v1",
+   "currency": "EURUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m15_production.py",
+   "metrics": {
+    "combined_recent": 0.647,
+    "ci": [
+     0.612,
+     0.684
+    ],
+    "oos_2026": 0.663,
+    "test_2025": 0.582,
+    "test_2024": 0.689,
+    "cpcv_faithful_mean": 0.579,
+    "cpcv_p10": 0.557,
+    "breakeven": 0.541,
+    "side_split_certified_2026_06_03": {
+     "harness": "m15_cpcv_side.py (per-fold refit CPCV, 15 purged paths); combined reproduces min15_cpcv (mean .5787/p10 .557) -> faithful",
+     "UP": {
+      "refit_p10": 0.5475,
+      "refit_mean": 0.5771,
+      "frac_paths_clear": 0.933,
+      "median_path_n": 949,
+      "verdict": "CERTIFIED"
+     },
+     "DOWN": {
+      "refit_p10": 0.5486,
+      "refit_mean": 0.5805,
+      "frac_paths_clear": 1.0,
+      "median_path_n": 845,
+      "verdict": "CERTIFIED (first certified DOWN edge in program)"
+     },
+     "note": "BOTH sides certified (refit p10 >= .541, >=80% paths clear). Durable floors = refit p10; frozen-forward operating point .607/.559 was optimistic selection. result_json: m15_cpcv_side_result.json"
+    }
+   },
+   "manifest": "books/EURUSD.m15.v1.manifest.json",
+   "summary": "15m DELIVERABLE (best combined book in program; the ONLY deriv-deployable horizon): 3-model GBM ensemble (lgb+xgb+cat) gated by 15m compression(bb_width) x NY, conf-selective. Side-split BOTH-SIDES-CERTIFIED 2026-06-03 (UP refit-p10 .5475 / DOWN .5486) -> the (15m,UP) and (15m,DOWN) deliverables are this book's UP-bets and DOWN-bets.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m30.v1",
+   "currency": "EURUSD",
+   "timeframe": "30m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m30_production.py",
+   "metrics": {
+    "combined": 0.591,
+    "ci": [
+     0.556,
+     0.625
+    ],
+    "oos_2026": 0.546,
+    "test_2025": 0.589,
+    "test_2024": 0.623,
+    "ev_R0.85": 0.064,
+    "breakeven": 0.541
+   },
+   "manifest": "books/EURUSD.m30.v1.manifest.json",
+   "summary": "30m DELIVERABLE: 3-model GBM ensemble gated by 1h-compression x NY, conf-selective.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m30xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "30m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m30_xpair_freeze.py (gate via m30_xpair_regate.py)",
+   "metrics": {
+    "up_refit_p10": 0.5588,
+    "down_refit_p10": 0.5525,
+    "frac_paths_clear_both": 1.0,
+    "deploy_cov": 0.05,
+    "breakeven": 0.541,
+    "base_floor": {
+     "UP": 0.5538,
+     "DOWN": 0.5356
+    },
+    "forward_cov5": {
+     "2024_UP": 0.6291,
+     "2024_DOWN": 0.6488,
+     "2024_COMBINED": 0.6366,
+     "2025_UP": 0.6175,
+     "2025_DOWN": 0.5641,
+     "2025_COMBINED": 0.6036,
+     "2026_UP": 0.5302,
+     "2026_DOWN": 0.5778,
+     "2026_COMBINED": 0.5412
+    },
+    "note": "BOTH sides refit-CPCV-certified (UP p10 .5588 / DOWN p10 .5525, 15/15). 30m = LONGEST deriv-tradeable horizon. REFIT-DEPENDENT: frozen-2021 fwd decays by 2026 OOS (UP .5302@cov5/.4652@cov10) -> deploy w/ retrain; durable=refit p10. Improve loop DRY (magweight hurts; seed-ens/specialist/Aa/IPCA/3-model-ensemble-on-pool/recency all subsumed); discover DRY (K=2)."
+   },
+   "manifest": "books/EURUSD.m30xp.v1.manifest.json",
+   "summary": "30m cross-pair USD-residual+OF primary (m5xp source @MX_HOR=30). NEW (30m,UP)+(30m,DOWN) leader: per-side refit-CPCV-CERTIFIED above base book (UP p10 .5588 / DOWN p10 .5525, 15/15 paths each, improves base floors .5538/.5356; DOWN rescued from near-miss). 30m IS deriv-tradeable (longest horizon). Deploy cov5% w/ retrain (REFIT-DEPENDENT). Edge = POOLED base-feat training (94% gain), not xpof factors -> improve levers subsumed. UP-bets=(30m,UP), DOWN-bets=(30m,DOWN). Base EURUSD.m30.v1 = lower combined fallback.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m5xp_aci.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "up",
+   "role": "gate",
+   "script": "m5_conformal.py",
+   "metrics": {
+    "deployable": "UP, adaptive-conformal gate w*=0.57",
+    "aci_up_per_year_2024_2025_2026": [
+     0.5784,
+     0.5838,
+     0.6471
+    ],
+    "aci_up_n_per_year": [
+     1103,
+     764,
+     17
+    ],
+    "fixed_up_per_year": [
+     0.6262,
+     0.5793,
+     0.6825
+    ],
+    "fixed_up_n_per_year": [
+     701,
+     618,
+     63
+    ],
+    "binding_2025": {
+     "aci": 0.5838,
+     "aci_n": 764,
+     "fixed": 0.5793,
+     "fixed_n": 618
+    },
+    "coverage_total": {
+     "aci": 1884,
+     "fixed": 1382
+    },
+    "breakeven": 0.541,
+    "status": "IMPROVEMENT vs fixed gate (more coverage + regime-stable; binding 2025 .584 at n764 vs fixed .579 at n618). Within-experiment comparison (m5_conformal.py); CPCV-validation of the adaptive policy is the open follow-up.",
+    "DOWNGRADED_2026-06": "ACI fails nested-refit CPCV (p10 .521-.523, <fixed); V1/V2 confirm. Durable UP = m5xp refit floor 0.553, NOT ACI .584. Forward .584 was a single-split regime artifact."
+   },
+   "manifest": "books/EURUSD.m5xp_aci.v1.manifest.json",
+   "summary": "m5xp UP book + ONLINE ADAPTIVE-CONFORMAL (ACI) gate targeting win-rate w*=0.57. Deployable improvement over the fixed meta gate: ~36% more trades + tighter cross-regime spread at a stable/slightly-better binding-year win-rate. Causal (past-outcome feedback, no look-ahead).",
+   "depends_on": [
+    "EURUSD.m5xp.v1"
+   ]
+  },
+  {
+   "id": "EURUSD.m5xp_magw_down.v1",
+   "currency": "EURUSD",
+   "timeframe": "5m",
+   "side": "down",
+   "role": "direction",
+   "script": "m5_magweight_freeze.py",
+   "metrics": {
+    "down_cov0.05_refit_p10": 0.5441,
+    "frac_folds_clear": 0.893,
+    "forward_2025_down": 0.559,
+    "forward_2025_ci_lo": 0.533,
+    "breakeven": 0.541,
+    "status": "MARGINAL \u2014 floor at breakeven, forward-2025 CI-lo grazes below; NOT robustly deployable (V1/V2 multiplicity-fragile)"
+   },
+   "manifest": "books/EURUSD.m5xp_magw_down.v1.manifest.json",
+   "summary": "POW=0.5 |return|-weighted magweight retrain, DOWN-side rescue of m5xp; the best (5m,DOWN) but razor-thin/marginal.",
+   "depends_on": "EURUSD.m5xp.v1"
+  },
+  {
+   "id": "EURUSD.m15xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m15_xpair_freeze.py",
+   "metrics": {
+    "up_refit_p10": 0.5673,
+    "down_refit_p10": 0.5742,
+    "frac_paths_clear_both": 1.0,
+    "base_book_up_p10": 0.5475,
+    "base_book_down_p10": 0.5486,
+    "deploy_cov": 0.1,
+    "forward_cov10_up": [
+     0.602,
+     0.561,
+     0.539
+    ],
+    "forward_cov10_down": [
+     0.61,
+     0.531,
+     0.552
+    ],
+    "breakeven": 0.541,
+    "status": "NEW (15m,UP)+(15m,DOWN) LEADER. Per-side refit-CPCV-CERTIFIED above the base book (UP p10 .5673 / DOWN .5742, 15/15 paths both sides). BEST certified DOWN edge in program. ADVERSARIAL: edge is REFIT-DEPENDENT (USD factor non-stationary) -> frozen-2021 single-model forward is marginal in binding years; DEPLOY with periodic retrain, size on refit floor. Base book EURUSD.m15.v1 = frozen-stable lower fallback. Deriv-tradeable."
+   },
+   "manifest": "books/EURUSD.m15xp.v1.manifest.json",
+   "summary": "15m cross-pair USD-residual+OF primary (m5xp source retargeted MX_HOR=15). The (15m,UP)+(15m,DOWN) deliverable: UP-bets=(15m,UP) refit-p10 .5673, DOWN-bets=(15m,DOWN) refit-p10 .5742. Deploy gate comp(bb_width q33)xNY x cov10%.",
+   "depends_on": null
+  },
+  {
+   "id": "EURUSD.m10xp.v1",
+   "currency": "EURUSD",
+   "timeframe": "10m",
+   "side": "combined",
+   "role": "direction",
+   "script": "m10_xpair_freeze.py (gate via m10_xpair_regate.py)",
+   "metrics": {
+    "up_refit_p10": 0.5863,
+    "down_refit_p10": 0.5683,
+    "frac_paths_clear_both": 1.0,
+    "deploy_cov": 0.1,
+    "breakeven": 0.541,
+    "base_floor": {
+     "UP": 0.5611,
+     "DOWN": 0.5519
+    },
+    "forward_cov10": {
+     "2024_UP": 0.642,
+     "2024_DOWN": 0.5987,
+     "2024_COMBINED": 0.6231,
+     "2025_UP": 0.6051,
+     "2025_DOWN": 0.5739,
+     "2025_COMBINED": 0.5882,
+     "2026_UP": 0.68,
+     "2026_DOWN": 0.4762,
+     "2026_COMBINED": 0.587
+    },
+    "note": "BOTH sides refit-CPCV-certified (UP p10 .586 / DOWN p10 .568, 15/15). 10m<deriv 15m min = research horizon. Durable=refit p10; frozen-forward overstates."
+   },
+   "manifest": "books/EURUSD.m10xp.v1.manifest.json",
+   "summary": "10m cross-pair USD-residual+OF primary (m5xp source @MX_HOR=10). NEW (10m,UP)+(10m,DOWN) leader: per-side refit-CPCV-CERTIFIED above base book (UP p10 .5863 / DOWN p10 .5683, 15/15 paths each, improves base floors .561/.552). Deploy at cov10% (cov5% thin-2026). 10m<deriv 15m min = research horizon; deployable sibling EURUSD.m15xp.v1. UP-bets=(10m,UP), DOWN-bets=(10m,DOWN).",
+   "depends_on": null
+  },
+  {
+   "id": "USDJPY.m15ny.v1",
+   "currency": "USDJPY",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "usdjpy_15m_session.py + usdjpy_15m_cpcv_session.py ny + usdjpy_15m_freeze_ny.py",
+   "metrics": {
+    "up_refit_cpcv_p10": 0.586,
+    "down_refit_cpcv_p10": 0.572,
+    "comb_refit_cpcv_p10": 0.58,
+    "up_cov1_p10": 0.599,
+    "breakeven": 0.541,
+    "cov": 0.03,
+    "session": "ny",
+    "content_id": "296ffaf6ddb3a5a4"
+   },
+   "manifest": "books/USDJPY.m15ny.v1.manifest.json",
+   "summary": "First certified USDJPY direction book. NY-session own-pair base GBM; BOTH sides refit-CPCV certified (UP p10 .586/.599, DOWN .572). Edge is NY-concentrated + USDJPY-specific (pooling dilutes); DOWN refit-dependent.",
+   "depends_on": null
+  },
+  {
+   "id": "USDJPY.m15ny_seedens.v1",
+   "currency": "USDJPY",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "usdjpy_15m_cpcv_session.py ny (cert) + usdjpy_15m_freeze_ny_seedens.py (freeze)",
+   "metrics": {
+    "up_refit_cpcv_p10": 0.6005,
+    "down_refit_cpcv_p10": 0.5738,
+    "comb_refit_cpcv_p10": 0.5962,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "session": "ny",
+    "seed_K": 3,
+    "content_id": "d83d35964a145328"
+   },
+   "manifest": "books/USDJPY.m15ny_seedens.v1.manifest.json",
+   "summary": "BEST USDJPY 15m direction: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .6005/DOWN .5738 @cov2%). REFIT-DEPENDENT (frozen-2012 vintage decays by 2026; retrain periodically, size on refit floor).",
+   "depends_on": null
+  },
+  {
+   "id": "USDJPY.m15ny_tbft_seedens.v1",
+   "currency": "USDJPY",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "usdjpy_15m_cpcv_tbfirsttouch.py 2 0.01,0.02,0.03 3 (cert) + usdjpy_15m_freeze_ny_tbft_seedens.py (freeze)",
+   "metrics": {
+    "up_refit_cpcv_p10": 0.6052,
+    "down_refit_cpcv_p10": 0.58,
+    "comb_refit_cpcv_p10": 0.5953,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "session": "ny",
+    "seed_K": 3,
+    "tb_k": 2.0,
+    "content_id": "002dd2f2abb322e5",
+    "adversarial_verdict": "SUSPECT_not_an_improvement_over_seedens"
+   },
+   "manifest": "books/USDJPY.m15ny_tbft_seedens.v1.manifest.json",
+   "summary": "ALTERNATIVE certified config (NOT the leader): NY own-pair seed-ens(K=3) GBM trained on a triple-barrier first-touch label (k=2; eval UNCHANGED deriv fixed-15m sign). Certified at the SAME LEVEL as the seed-ens book (UP p10 .6052/DOWN .58 @cov2%, 15/15) but ADVERSARIAL VERIFICATION (2026-06-08) found it does NOT robustly beat USDJPY.m15ny_seedens.v1: paired per-path lift over the matched K=3 base is within CPCV-path noise (cov2% UP +.0067 t.91, DOWN -.0093 t-.89 mean-regresses; cov3% COMB +.0093 t2.73 on CORRELATED paths). Kept for the record; NOT a deliverable upgrade.",
+   "depends_on": null
+  },
+  {
+   "id": "AUDUSD.m15ny_seedens.v1",
+   "currency": "AUDUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "audusd_15m_cpcv_session.py ny (cert) + audusd_15m_freeze_ny.py 3 (freeze)",
+   "metrics": {
+    "up_refit_cpcv_p10": 0.5755,
+    "down_refit_cpcv_p10": 0.5901,
+    "comb_refit_cpcv_p10": 0.5957,
+    "up_refit_cpcv_p10_cov02": 0.596,
+    "down_refit_cpcv_p10_cov02": 0.5962,
+    "breakeven": 0.541,
+    "cov": 0.03,
+    "session": "ny",
+    "seed_K": 3,
+    "refit_dependent": true,
+    "content_id": "9b0e0ed33efd5684"
+   },
+   "manifest": "books/AUDUSD.m15ny_seedens.v1.manifest.json",
+   "summary": "BEST AUDUSD 15m direction: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .5755/DOWN .5901 @cov3%, .596/.596 @cov2%, 15/15 paths). Own-pair-specific (cross-pair pooling/AUDNZD/risk add nothing; Asia/LDN sub-BE). REFIT-DEPENDENT (frozen-2012-21 vintage decays to sub-BE by 2026; retrain periodically, size on refit floor).",
+   "depends_on": null
+  }
+ ]
 }
