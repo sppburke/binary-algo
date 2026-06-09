@@ -7,13 +7,13 @@ SCOPE: AUDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 ## FIRST-TO-RUN queue (on-disk, high prior, ranked) — discovery round 1 (2026-06-09)
 | # | lever | side | mechanism (1-line) | data | fast-KILL | status |
 |---|---|---|---|---|---|---|
-| 1 | **A6 cross-pair USD-residual pooling** (keystone) | BOTH | AUDUSD owes the signed USD-basket move (catchup) + residual reverts; EURUSD-certifying lever — does AUDUSD pool (EURUSD) or dilute (USDJPY)? | `audusd_15m_xpair.py` (coded) | KILL if VAL AUC ≤ .5232 OR no year CI-lo ≥ .541 OR fails to beat base cov2% on 2026 | CODED, staged |
-| 2 | **A9 Asia-vs-NY session** conditioning | BOTH | AUD idiosyncratic info (RBA/China/AU data) arrives in ASIA — unlike EUR/JPY (NY). Symmetric test asia/ny/ldn/all | `audusd_15m_cpcv_session.py` (wired) | KILL Asia hypothesis if Asia AUC ≤ all-session .5232 AND no Asia year CI-lo ≥ .541 @cov2-3% | RUNNING (all) |
+| 1 | **A6 cross-pair USD-residual pooling** (keystone) | BOTH | AUDUSD owes the signed USD-basket move (catchup) + residual reverts; EURUSD-certifying lever — does AUDUSD pool (EURUSD) or dilute (USDJPY)? | `audusd_15m_xpair.py` (coded) | KILL if VAL AUC ≤ .5232 OR no year CI-lo ≥ .541 OR fails to beat base cov2% on 2026 | ❌ DONE — NULL (VAL .5244≈base; xpair feats not in top20; own-pair-specific = USDJPY case). `audusd_15m_xpair_xpbase_result.json` |
+| 2 | **A9 Asia-vs-NY session** conditioning | BOTH | AUD idiosyncratic info (RBA/China/AU data) arrives in ASIA — unlike EUR/JPY (NY). Symmetric test asia/ny/ldn/all | `audusd_15m_cpcv_session.py` (wired) | KILL Asia hypothesis if Asia AUC ≤ all-session .5232 AND no Asia year CI-lo ≥ .541 @cov2-3% | ✅ DONE — NY carries both sides; Asia+LDN sub-BE (hypothesis REFUTED) |
 | 3 | ~~AUDNZD USD-canceling residual-difference~~ s=aud_r−nzd_r | BOTH | AUD vs NZD twin; USD factor cancels | panel/closes | — | ❌ **SUBSUMED** — A6 (not in top20) + orthochan famonly base+audnzd ΔAUC +.0002 (`audusd_15m_orthochan_result.json`) |
 | 4 | ~~Carry-unwind risk-bloc DOWN-gate~~ RISK=commod−haven | DOWN | carry unwind asymmetry | panel | — | ❌ **SUBSUMED** — orthochan famonly base+risk ΔAUC −.0009; risk feats not in A6 top20 |
 | 5 | **Seed-ensemble (K=3) + calib** | BOTH | variance-reduce the cov2-3% tail; the ONLY robust USDJPY 15m improve-lift | `audusd_15m_cpcv_session.py` nseed>1 | KILL unless seed-ens p10 > single-seed on SAME folds & ≥80% paths | ✅ **DONE — LIFTS** (p10 +.005-.013 & mean up; FROZEN `AUDUSD.m15ny_seedens.v1`) |
-| 6 | China/commodity-residual consensus (commod-bloc mean + AUD-vs-bloc gap sign) | BOTH | common idiosyncratic comp of e_AUD/e_NZD/e_CAD = panel-internal China/commodity proxy; AUD lag-completes | panel | KILL if famonly AUC<.515 OR within .005 of CAD/NZD-rotation surrogate | pending (after A6) |
-| 7 | Meta-labeling on orthogonal axes (xpair agree, AUDNZD sign, risk sign, session) | BOTH | gate symmetric primary on P(call correct); EURUSD-proven gate, untested AUDUSD | base probs + panel; m15_meta.py | KILL if meta-gated 2026 WR ≤ raw primary at ≥ n; corr(meta,primary)>.9 redundant | pending (improve) |
+| 6 | China/commodity-residual consensus (commod-bloc mean + AUD-vs-bloc gap sign) | BOTH | common idiosyncratic comp of e_AUD/e_NZD/e_CAD = panel-internal China/commodity proxy; AUD lag-completes | panel | KILL if famonly AUC<.515 OR within .005 of CAD/NZD-rotation surrogate | ❌ deferred/subsumed — orthochan risk/audnzd famonly NULL; commod-consensus same family, low prior |
+| 7 | Meta-labeling on orthogonal axes (xpair agree, AUDNZD sign, risk sign, session) | BOTH | gate symmetric primary on P(call correct); EURUSD-proven gate, untested AUDUSD | base probs + panel; m15_meta.py | KILL if meta-gated 2026 WR ≤ raw primary at ≥ n; corr(meta,primary)>.9 redundant | ❌ DONE — meta-gate NULL (meta-correctness AUC .52, audusd_15m_metagate_result.json) |
 
 ## IMPROVE levers (apply to the best certified edge; lower prior or known-pair-specific)
 | # | lever | side | note / Tier-1 status | prior |
@@ -36,13 +36,13 @@ Ranked levers to push accuracy higher on the certified NY seed-ens book (p10 .59
 | # | lever | prior | status / disposition |
 |---|---|---|---|
 | R2-1 | Per-SIDE coverage operating-point (DOWN tight / UP looser) | high | ✅ ANALYZED — no-op for the K=3 ensemble: UP peaks cov2 (.596), DOWN peaks cov2 (.5962); shared-cov2 is already per-side-optimal (the lever only helped the single-seed where DOWN peaked cov3 .5972). Deploy nuance: DOWN@cov5 .587 gives more trades (med_n 1172 vs 441) — coverage/floor tradeoff, both certified. |
-| R2-2 | True-tick-settlement VALIDATION (raw AUDUSD ticks, wc_ret) | high (hygiene) | RUNNING — `audusd_15m_ticksettle.py`; validate frozen book on real fills (USDJPY precedent caught 2 settler bugs). NOT a lever — integrity gate for the deploy claim. |
-| R2-3 | Seed-ensemble K=3→K=8 + temp calib | high | queued — cheap rerun; expect saturation (USDJPY/EURUSD saturated past K=3). Calib closed by rank-invariance (I4). |
-| R2-4 | TB first-touch TRAIN-label denoise (eval unchanged) | med | queued — fast confirm-kill (USDJPY: certified-at-level but adversarially NOT robust). |
-| R2-5 | Meta-label 'avoid-losers' gate on orthogonal axes | med | queued — FAST pre-check first (meta-correctness VAL-AUC≤.53 → KILL, as EURUSD 15m .502); then nested-refit if it clears. |
+| R2-2 | True-tick-settlement VALIDATION (raw AUDUSD ticks, wc_ret) | high (hygiene) | ✅ DONE — PRESERVED (mean tick−bar −.0035; certified WR real on traded prices). `audusd_15m_ticksettle_result.json` |
+| R2-3 | Seed-ensemble K=3→K=8 + temp calib | high | ✅ DONE — K=8 SATURATED (≈K=3, mixed ±.005-.016); K=3 retained. `audusd_15m_cpcv_session_ny_seedens8_result.json` |
+| R2-4 | TB first-touch TRAIN-label denoise (eval unchanged) | med | ✅ DONE — NOT robust (UP regresses @cov2 vs seed-ens; means+.007 p10 mixed). KILLED as improvement. |
+| R2-5 | Meta-label 'avoid-losers' gate on orthogonal axes | med | ✅ DONE — meta-correctness AUC .52 → NULL (KILLED, as EURUSD .502). |
 | R2-6 | Carry-unwind DOWN-GATE (lagged RISK<0, not a feature) | med→low | low after orthochan (risk as feature NULL); the GATE construct distinct but low EV. Deferred. |
 | R2-7 | Commodity-residual CONSENSUS (commod-bloc mean + AUD-vs-bloc gap sign) | low | famonly; distinct from risk-diff. Deferred (risk/audnzd already NULL). |
-| R2-8 | Cross-horizon STACK (30m/10m parent → 15m child) | low | corr-gate kill: USDJPY A5 collinear (.957); AUDUSD is the own-pair case. Build 30m parent + measure corr(p30,p15); kill if >.90. |
+| R2-8 | Cross-horizon STACK (30m parent → 15m child) | low→med | ✅ DONE — corr .72–.81 NOT collinear (vs USDJPY .957) → pursued; but parent equally weak (AUC≈child) → blend/agree non-additive through seed-ens K=3 (KILLED). `audusd_15m_x{horizon,hstack}_ny_result.json` |
 | R2-9 | Per-side AgACI (asymmetric conformal) | low | plain ACI killed both pairs; per-side split untried but nested-refit make-or-break. Low. |
 | R2-10 | GMADL operating-point SELECTION (not retrain) | low | may reduce to the existing cov-gate (no-op). Deferred. |
 | R2-11 | Lead-lag directed-TE + RFF (N17); DL-MLP stack; macro USD-surprise window | low | A6/CCM suggest cross-pair carries no 15m sign; DL = tail-stabilizer; macro-surprise NULL at EURUSD 5m. Deferred. |
