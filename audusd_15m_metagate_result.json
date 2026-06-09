@@ -1,0 +1,34 @@
+{
+  "key": "AUDUSD.15m.NY",
+  "n_meta_axes": 48,
+  "meta_axes": [
+    "usdbask1",
+    "catchup1",
+    "disp1",
+    "agree1",
+    "audnzd_r1",
+    "risk1",
+    "audrisk_resid1",
+    "usdbask3",
+    "catchup3",
+    "disp3",
+    "agree3",
+    "audnzd_r3",
+    "risk3",
+    "audrisk_resid3",
+    "usdbask5",
+    "catchup5",
+    "disp5",
+    "agree5",
+    "audnzd_r5",
+    "risk5"
+  ],
+  "primary_val_ny_acc": 0.5258,
+  "meta_correctness_auc_axes+conf": 0.5294,
+  "meta_correctness_auc_axesonly": 0.5197,
+  "falsifier": "KILL if meta-correctness AUC <= 0.53 (random gate, as EURUSD 15m meta .502)",
+  "verdict": {
+    "meta_gate_viable": false,
+    "note": "axes-only AUC is the test of whether orthogonal axes carry WHEN-CORRECT info (orthochan showed they carry no DIRECTION info)."
+  }
+}
