@@ -91,6 +91,8 @@ AUC mean NY .5363 (.530–.542), up-rate tripwire clean. **Both sides CERTIFIED 
 
 frac_clear=1.0 every cell. **Both p10 AND mean lift at the operating covs** (cov2–5%) — variance reduction genuinely helps the tail (the mean rising distinguishes this from the USDJPY TB false-positive where only the p10 order-statistic moved on correlated paths). Deliverable = **seed-ens K=3 NY**; cov2% UP p10 .596 / DOWN .596 (mean ~.616), cov5% UP .576 / DOWN .587 (mean .597, med_n 1429/1172). `audusd_15m_cpcv_session_ny_seedens3_result.json`. Still REFIT-DEPENDENT (the frozen-forward decay below is a property of the edge, not the seed count).
 
+**Seed-depth SATURATION — K=8 (`audusd_15m_cpcv_session_ny_seedens8_result.json`):** K=8 vs K=3 p10 is mixed within ±.005–.016, sign-inconsistent across cov/side (cov2 UP .591 vs .596 = −.005; DOWN .612 vs .596 = +.016 but mean only +.007 = worst-path order-stat; COMB .593 vs .591 = +.002). Means marginally up ~+.003–.007 but no robust two-sided lift. **Seed lever saturated past K=3** (DL-review M=8 prescription tested → diminishing returns, as USDJPY/EURUSD). **K=3 retained as the deliverable** (identical certified performance, fewer models). Improve loop CLOSED.
+
 ### ★ Adversarial verification — NY FROZEN-PAST forward holdout (trap#9) — `audusd_15m_ny_frozen.py`
 Train ONCE on 2012-21 NY, FREEZE, test per-year NY (deployment-faithful, NO retrain):
 | year | cov5 COMB (CI-lo) | cov5 UP | cov5 DOWN | cov2 UP | cov2 DOWN |
