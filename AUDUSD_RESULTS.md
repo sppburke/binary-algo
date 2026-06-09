@@ -113,6 +113,18 @@ corr(p30_NY, p15_NY) = **0.8117** (n270k) — BELOW the .90 collinearity kill-th
 
 ---
 
+## FINAL CONCLUSION (AUDUSD 15m direction) — 2026-06-09
+**BOTH sides CERTIFIED + frozen + deployable-spec'd + tick-validated.** Deliverable book `AUDUSD.m15ny_seedens.v1` (NY-session own-pair LGBM seed-ensemble K=3): UP p10 **.596** / DOWN p10 **.596** @cov2% (UP .576/DOWN .587 @cov5%), mean ~.62, 15/15 refit-CPCV paths clear at every cov; tick-settlement PRESERVED (−.0035). REFIT-DEPENDENT (deploy NY-only w/ periodic retrain, size on the refit floor).
+
+**Model of the edge (final):** AUDUSD 15m direction-sign is **NY-session-concentrated + own-pair-specific** — the AUD Asia/commodity/China information gates move MAGNITUDE not 15m sign (sign-invariance), the directional sign rides US-session USD flow. The Asia hypothesis was tested symmetrically and **REFUTED** (Asia/LDN sub-BE). It is the **USDJPY case, not the EURUSD case**: cross-pair pooling DILUTES (NULL).
+
+**The >65% target is an INFORMATION BOUND on existing on-disk data, not reached.** NY moved-AUC ceiling ~.536 → certified floor ~.57–.60, mean ~.62 at tight coverage; single forward years touch ~.65 (2024 cov2 UP .65) but that is not a floor. The bound is robust — confirmed across the full improve cross-product:
+- **LIFTS (frozen):** seed-ensemble K=3 (the one robust own-pair lever; p10 + mean both up).
+- **NULL / subsumed (run, not argued):** cross-pair pooling (own-pair-specific); AUDNZD residual-difference, commodity/safe-haven risk-bloc, signed-semivariance RS± (famonly ΔAUC≈0); meta-label gate (meta-AUC .52); triple-barrier label (UP regresses @cov2, not robust); cross-horizon stack (parent decorrelated .72 but equally weak → variance-redundant with seed-ens, non-additive); state/complexity/magnitude-bridge/symmetric-ACI/calibration (theorem-killed, subsumed from USDJPY exhaust). [xhstack seed-ens K=3 = last in-flight confirm of the cross-horizon combination.]
+- **The only frontier past the bound = EXTERNAL signed data** (intraday AU-US 2y rate differential, risk-on/off VIX/ES, commodity index iron-ore/CRB) — off-disk, acquisition TODO. On-disk discover loop (R1 corpus + R2 repo-docs) converged here.
+
+**Improve + discover loops DRY** on existing on-disk data. The deliverable is the deployable answer; >65% requires external data acquisition (the documented redirect, not a wall).
+
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
