@@ -7,13 +7,13 @@
     0.03,
     0.02
   ],
-  "nseed": 1,
+  "nseed": 3,
   "incumbent_seedensK3_cov2": {
     "UP": 0.596,
     "DOWN": 0.5962,
     "COMBINED": 0.591
   },
-  "mean_fold_corr_p15_p30": 0.7223,
+  "mean_fold_corr_p15_p30": 0.7661,
   "arms": [
     "base",
     "blend",
@@ -24,69 +24,69 @@
       "base": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.589,
-          "p10": 0.5789,
-          "min": 0.5751,
+          "mean": 0.5922,
+          "p10": 0.5809,
+          "min": 0.5776,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5944,
-          "p10": 0.5766,
-          "min": 0.5728,
+          "mean": 0.6062,
+          "p10": 0.5919,
+          "min": 0.5688,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5905,
-          "p10": 0.5799,
-          "min": 0.5746,
+          "mean": 0.597,
+          "p10": 0.5872,
+          "min": 0.5794,
           "frac_clear_BE": 1.0
         }
       },
       "blend": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.588,
-          "p10": 0.5758,
-          "min": 0.5404,
-          "frac_clear_BE": 0.933
+          "mean": 0.5966,
+          "p10": 0.5805,
+          "min": 0.5642,
+          "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6027,
-          "p10": 0.5764,
-          "min": 0.5648,
+          "mean": 0.609,
+          "p10": 0.5868,
+          "min": 0.5667,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5941,
-          "p10": 0.5783,
-          "min": 0.5574,
+          "mean": 0.6012,
+          "p10": 0.5814,
+          "min": 0.5749,
           "frac_clear_BE": 1.0
         }
       },
       "agree": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.5876,
-          "p10": 0.5743,
-          "min": 0.5741,
+          "mean": 0.5919,
+          "p10": 0.5802,
+          "min": 0.5771,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5938,
-          "p10": 0.5751,
-          "min": 0.5745,
+          "mean": 0.6061,
+          "p10": 0.5905,
+          "min": 0.5607,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5897,
-          "p10": 0.5793,
-          "min": 0.5743,
+          "mean": 0.5968,
+          "p10": 0.5875,
+          "min": 0.5749,
           "frac_clear_BE": 1.0
         }
       },
@@ -99,69 +99,69 @@
       "base": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.5924,
-          "p10": 0.5819,
-          "min": 0.5732,
+          "mean": 0.6028,
+          "p10": 0.5811,
+          "min": 0.5794,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6091,
-          "p10": 0.5879,
-          "min": 0.5637,
+          "mean": 0.618,
+          "p10": 0.5874,
+          "min": 0.5683,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5995,
-          "p10": 0.583,
-          "min": 0.5784,
+          "mean": 0.609,
+          "p10": 0.589,
+          "min": 0.5829,
           "frac_clear_BE": 1.0
         }
       },
       "blend": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.5949,
-          "p10": 0.5741,
-          "min": 0.5552,
+          "mean": 0.5977,
+          "p10": 0.5823,
+          "min": 0.5531,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6138,
-          "p10": 0.5865,
-          "min": 0.5759,
+          "mean": 0.6149,
+          "p10": 0.5786,
+          "min": 0.5737,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6034,
+          "mean": 0.6056,
           "p10": 0.5816,
-          "min": 0.5722,
+          "min": 0.5658,
           "frac_clear_BE": 1.0
         }
       },
       "agree": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.5922,
-          "p10": 0.5784,
-          "min": 0.5777,
+          "mean": 0.6018,
+          "p10": 0.584,
+          "min": 0.5759,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6061,
-          "p10": 0.5876,
-          "min": 0.5628,
+          "mean": 0.616,
+          "p10": 0.581,
+          "min": 0.5776,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5984,
-          "p10": 0.5838,
-          "min": 0.5835,
+          "mean": 0.6074,
+          "p10": 0.5871,
+          "min": 0.5812,
           "frac_clear_BE": 1.0
         }
       },
@@ -174,69 +174,69 @@
       "base": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6048,
-          "p10": 0.5853,
-          "min": 0.583,
+          "mean": 0.6093,
+          "p10": 0.5958,
+          "min": 0.5663,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.615,
-          "p10": 0.5734,
-          "min": 0.5666,
+          "mean": 0.6249,
+          "p10": 0.5927,
+          "min": 0.5774,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6093,
-          "p10": 0.5875,
-          "min": 0.5825,
+          "mean": 0.6159,
+          "p10": 0.5991,
+          "min": 0.5945,
           "frac_clear_BE": 1.0
         }
       },
       "blend": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6069,
-          "p10": 0.5847,
-          "min": 0.5714,
+          "mean": 0.6092,
+          "p10": 0.586,
+          "min": 0.5729,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6173,
-          "p10": 0.5966,
-          "min": 0.5659,
+          "mean": 0.6199,
+          "p10": 0.5789,
+          "min": 0.5714,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6118,
-          "p10": 0.5953,
-          "min": 0.5787,
+          "mean": 0.6143,
+          "p10": 0.5849,
+          "min": 0.5824,
           "frac_clear_BE": 1.0
         }
       },
       "agree": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6031,
-          "p10": 0.5856,
-          "min": 0.5848,
+          "mean": 0.6093,
+          "p10": 0.5971,
+          "min": 0.568,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6104,
-          "p10": 0.5716,
-          "min": 0.5616,
+          "mean": 0.6247,
+          "p10": 0.5904,
+          "min": 0.5827,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6066,
-          "p10": 0.5873,
-          "min": 0.5813,
+          "mean": 0.6156,
+          "p10": 0.5945,
+          "min": 0.5903,
           "frac_clear_BE": 1.0
         }
       },
