@@ -5,7 +5,7 @@ import glob, time, numpy as np, pandas as pd, calendar, joblib, os
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
-RAW="/media/sean/CORSAIR/tick_data/raw"; PAIR="EURUSD"; HS=5
+RAW="/home/sean/git/raw"; PAIR="EURUSD"; HS=5
 def months(y,ms):
     out=[]
     for m in ms: out+=[f"{y}-{m:02d}-{d:02d}" for d in range(1,calendar.monthrange(y,m)[1]+1)]

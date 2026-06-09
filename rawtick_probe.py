@@ -2,7 +2,7 @@
 Raw ticks have bid/ask + bid-vol/ask-vol (quote sizes) = order-book imbalance, the documented
 short-horizon predictor I previously lacked. Test on a sample before scaling."""
 import glob, os, numpy as np, pandas as pd
-RAW="/media/sean/CORSAIR/tick_data/raw"
+RAW="/home/sean/git/raw"
 
 def load_ticks(pair, dates):
     parts=[]

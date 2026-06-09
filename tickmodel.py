@@ -6,7 +6,7 @@ import glob, sys, time, numpy as np, pandas as pd, calendar
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
-RAW="/media/sean/CORSAIR/tick_data/raw"; PAIR="EURUSD"
+RAW="/home/sean/git/raw"; PAIR="EURUSD"
 
 def months(y, ms):
     out=[]

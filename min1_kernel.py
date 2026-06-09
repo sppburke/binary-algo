@@ -28,7 +28,7 @@ from sklearn.pipeline import make_pipeline
 import min1_production as M
 
 ROOT = "/home/sean/git/binary-algo"
-RAW  = "/media/sean/CORSAIR/tick_data/raw/EURUSD"
+RAW  = "/home/sean/git/raw/EURUSD"
 FLOWDIR = f"{ROOT}/flow_cache"
 TOL_S = M.TOL_S            # 10s settlement tolerance (matches production)
 LAG_S = M.ENTRY_LAG_S      # 1s entry lag (deriv next-tick)

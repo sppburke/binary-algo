@@ -37,7 +37,7 @@ import sys, os, time, glob, calendar, json
 import numpy as np, pandas as pd
 
 ROOT = "/home/sean/git/binary-algo"
-RAW  = "/media/sean/CORSAIR/tick_data/raw/EURUSD"
+RAW  = "/home/sean/git/raw/EURUSD"
 PAIR = "EURUSD"
 
 HS      = 60      # 60-second fixed wall-clock expiry (a real deriv Rise/Fall binary)

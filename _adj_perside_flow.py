@@ -18,7 +18,7 @@ def load_year_1s(year, months):
     """Aggregate raw EURUSD ticks to 1s: last mid, net per-side vol, tick-rule signed vol, ntick."""
     rows=[]
     for m in months:
-        fs=sorted(glob.glob(f'/media/sean/CORSAIR/tick_data/raw/EURUSD/EURUSD_{year}-{m:02d}-*'))
+        fs=sorted(glob.glob(f'/home/sean/git/raw/EURUSD/EURUSD_{year}-{m:02d}-*'))
         for f in fs:
             try: df=pd.read_parquet(f)
             except Exception: continue

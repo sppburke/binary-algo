@@ -1,0 +1,323 @@
+{
+  "model": "OWN-PAIR base-GBM @15m NY, TIES-STRICT per-fold-REFIT CPCV; Tier-I weight schemes ('control', 'ret', 'recency')",
+  "key": "USDJPY.15m",
+  "breakeven": 0.541,
+  "session": "ny",
+  "stride": 2,
+  "covs": [
+    0.02,
+    0.03
+  ],
+  "schemes": [
+    "control",
+    "ret",
+    "recency"
+  ],
+  "recency_hl_yrs": 3.0,
+  "incumbent": "base single-model NY CPCV UP p10 .586 / DOWN .572 @cov3% (== control here)",
+  "CERT_RULE": "lever IMPROVES iff side p10 > control AND >= incumbent AND frac_clear_BE>=0.80",
+  "falsifier": {
+    "registered_utc": "pre-paths",
+    "KILL_if": "no scheme's side p10 strictly exceeds control at matched cov"
+  },
+  "uprate_tripwire_ok": true,
+  "auc_mean": {
+    "control": 0.5386,
+    "ret": 0.5366,
+    "recency": 0.5354
+  },
+  "bycov": {
+    "0.02": {
+      "control": {
+        "summary": {
+          "UP": {
+            "n_paths": 15,
+            "mean": 0.6021,
+            "p10": 0.5823,
+            "p50": 0.6067,
+            "min": 0.5722,
+            "frac_clear_BE": 1.0
+          },
+          "DOWN": {
+            "n_paths": 15,
+            "mean": 0.5992,
+            "p10": 0.5539,
+            "p50": 0.5942,
+            "min": 0.544,
+            "frac_clear_BE": 1.0
+          },
+          "COMBINED": {
+            "n_paths": 15,
+            "mean": 0.5997,
+            "p10": 0.5824,
+            "p50": 0.6012,
+            "min": 0.5665,
+            "frac_clear_BE": 1.0
+          }
+        },
+        "verdict": {
+          "UP": {
+            "p10": 0.5823,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "DOWN": {
+            "p10": 0.5539,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "COMBINED": {
+            "p10": 0.5824,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          }
+        }
+      },
+      "ret": {
+        "summary": {
+          "UP": {
+            "n_paths": 15,
+            "mean": 0.6063,
+            "p10": 0.5723,
+            "p50": 0.6122,
+            "min": 0.569,
+            "frac_clear_BE": 1.0
+          },
+          "DOWN": {
+            "n_paths": 15,
+            "mean": 0.5848,
+            "p10": 0.5341,
+            "p50": 0.5812,
+            "min": 0.4271,
+            "frac_clear_BE": 0.867
+          },
+          "COMBINED": {
+            "n_paths": 15,
+            "mean": 0.6001,
+            "p10": 0.5803,
+            "p50": 0.5891,
+            "min": 0.5731,
+            "frac_clear_BE": 1.0
+          }
+        },
+        "verdict": {
+          "UP": {
+            "p10": 0.5723,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "DOWN": {
+            "p10": 0.5341,
+            "frac_clear_BE": 0.867,
+            "CERTIFIED": false,
+            "IMPROVES_control": false
+          },
+          "COMBINED": {
+            "p10": 0.5803,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          }
+        }
+      },
+      "recency": {
+        "summary": {
+          "UP": {
+            "n_paths": 15,
+            "mean": 0.5902,
+            "p10": 0.5683,
+            "p50": 0.5927,
+            "min": 0.5345,
+            "frac_clear_BE": 0.933
+          },
+          "DOWN": {
+            "n_paths": 15,
+            "mean": 0.5903,
+            "p10": 0.5515,
+            "p50": 0.5943,
+            "min": 0.5302,
+            "frac_clear_BE": 0.933
+          },
+          "COMBINED": {
+            "n_paths": 15,
+            "mean": 0.5894,
+            "p10": 0.5712,
+            "p50": 0.5954,
+            "min": 0.5327,
+            "frac_clear_BE": 0.933
+          }
+        },
+        "verdict": {
+          "UP": {
+            "p10": 0.5683,
+            "frac_clear_BE": 0.933,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "DOWN": {
+            "p10": 0.5515,
+            "frac_clear_BE": 0.933,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "COMBINED": {
+            "p10": 0.5712,
+            "frac_clear_BE": 0.933,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          }
+        }
+      }
+    },
+    "0.03": {
+      "control": {
+        "summary": {
+          "UP": {
+            "n_paths": 15,
+            "mean": 0.6022,
+            "p10": 0.586,
+            "p50": 0.6051,
+            "min": 0.578,
+            "frac_clear_BE": 1.0
+          },
+          "DOWN": {
+            "n_paths": 15,
+            "mean": 0.5967,
+            "p10": 0.5717,
+            "p50": 0.5992,
+            "min": 0.5561,
+            "frac_clear_BE": 1.0
+          },
+          "COMBINED": {
+            "n_paths": 15,
+            "mean": 0.5992,
+            "p10": 0.5803,
+            "p50": 0.5997,
+            "min": 0.5787,
+            "frac_clear_BE": 1.0
+          }
+        },
+        "verdict": {
+          "UP": {
+            "p10": 0.586,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "DOWN": {
+            "p10": 0.5717,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "COMBINED": {
+            "p10": 0.5803,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          }
+        }
+      },
+      "ret": {
+        "summary": {
+          "UP": {
+            "n_paths": 15,
+            "mean": 0.6011,
+            "p10": 0.5722,
+            "p50": 0.6023,
+            "min": 0.5607,
+            "frac_clear_BE": 1.0
+          },
+          "DOWN": {
+            "n_paths": 15,
+            "mean": 0.5882,
+            "p10": 0.5581,
+            "p50": 0.581,
+            "min": 0.547,
+            "frac_clear_BE": 1.0
+          },
+          "COMBINED": {
+            "n_paths": 15,
+            "mean": 0.596,
+            "p10": 0.5713,
+            "p50": 0.596,
+            "min": 0.5652,
+            "frac_clear_BE": 1.0
+          }
+        },
+        "verdict": {
+          "UP": {
+            "p10": 0.5722,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "DOWN": {
+            "p10": 0.5581,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "COMBINED": {
+            "p10": 0.5713,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          }
+        }
+      },
+      "recency": {
+        "summary": {
+          "UP": {
+            "n_paths": 15,
+            "mean": 0.5893,
+            "p10": 0.5761,
+            "p50": 0.5887,
+            "min": 0.5741,
+            "frac_clear_BE": 1.0
+          },
+          "DOWN": {
+            "n_paths": 15,
+            "mean": 0.5818,
+            "p10": 0.533,
+            "p50": 0.5916,
+            "min": 0.5194,
+            "frac_clear_BE": 0.8
+          },
+          "COMBINED": {
+            "n_paths": 15,
+            "mean": 0.5847,
+            "p10": 0.5662,
+            "p50": 0.5888,
+            "min": 0.5526,
+            "frac_clear_BE": 1.0
+          }
+        },
+        "verdict": {
+          "UP": {
+            "p10": 0.5761,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          },
+          "DOWN": {
+            "p10": 0.533,
+            "frac_clear_BE": 0.8,
+            "CERTIFIED": false,
+            "IMPROVES_control": false
+          },
+          "COMBINED": {
+            "p10": 0.5662,
+            "frac_clear_BE": 1.0,
+            "CERTIFIED": true,
+            "IMPROVES_control": false
+          }
+        }
+      }
+    }
+  }
+}

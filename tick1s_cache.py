@@ -1,7 +1,7 @@
 """Cache 1-second microstructure bars per split to parquet (one-time cost), so seconds-horizon
 model iterations are fast. Broad date coverage to improve generalization (close the TEST gap)."""
 import glob, time, os, numpy as np, pandas as pd, calendar
-RAW="/media/sean/CORSAIR/tick_data/raw"; PAIR="EURUSD"
+RAW="/home/sean/git/raw"; PAIR="EURUSD"
 OUT="/home/sean/git/binary-algo/features_tick"; os.makedirs(OUT, exist_ok=True)
 def mo(y,ms):
     out=[]

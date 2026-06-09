@@ -2,7 +2,7 @@
 If imbalance is real at seconds and ~0.50 at 5min, that definitively explains the 5m current best level
 even WITH order-book data. Tests imbalance-follow accuracy at horizons 1..30 bars (sec & min)."""
 import glob, numpy as np, pandas as pd, calendar
-RAW="/media/sean/CORSAIR/tick_data/raw"
+RAW="/home/sean/git/raw"
 def load_ticks(pair,dates):
     parts=[]
     for d in dates:

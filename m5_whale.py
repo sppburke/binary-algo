@@ -17,7 +17,7 @@ on the calibration year = KILL. Incumbent: m5xp UP refit floor .553; DOWN magwei
 """
 import os, sys; sys.argv=["x"]
 import json, time, glob, numpy as np, pandas as pd
-ROOT="/home/sean/git/binary-algo"; RAW="/media/sean/CORSAIR/tick_data/raw/EURUSD"; BE=0.541
+ROOT="/home/sean/git/binary-algo"; RAW="/home/sean/git/raw/EURUSD"; BE=0.541
 CACHE=f"{ROOT}/features_tick_whale"; os.makedirs(CACHE,exist_ok=True)
 HOR_S=300; CALIB=2023; EVAL=[2024,2025,2026]
 def boot(c,nb=2000,seed=7):

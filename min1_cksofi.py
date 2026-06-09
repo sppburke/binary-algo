@@ -35,7 +35,7 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 
 ROOT = "/home/sean/git/binary-algo"
-RAW  = "/media/sean/CORSAIR/tick_data/raw"
+RAW  = "/home/sean/git/raw"
 PAIR = "EURUSD"
 TICK = f"{ROOT}/features_tick"                 # existing 1s micro cache (mid, imb, ...)
 CKS  = f"{ROOT}/features_tick_cks"             # CKS 1s cache we build here
