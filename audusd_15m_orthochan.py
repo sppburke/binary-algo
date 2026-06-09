@@ -53,9 +53,13 @@ def cols_of(df, kind):
 
 def fit_eval(TR,VA,YR,cols,tag):
     ytr=TR["_y"].astype(int).values; yva=VA["_y"].astype(int).values
+    Xtr=TR[cols].astype("float32").values
+    if len(Xtr)>200_000:                       # subsample fit (memory + matches cpcv SUB_FIT)
+        rng=np.random.default_rng(7); sel=rng.choice(len(Xtr),200_000,replace=False)
+        Xtr=Xtr[sel]; ytr=ytr[sel]
     L=lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=127,min_child_samples=400,
         subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,n_estimators=2000,n_jobs=20,verbosity=-1)
-    L.fit(TR[cols].astype("float32"),ytr,eval_set=[(VA[cols].astype("float32"),yva)],eval_metric="auc",
+    L.fit(Xtr,ytr,eval_set=[(VA[cols].astype("float32").values,yva)],eval_metric="auc",
           callbacks=[lgb.early_stopping(120),lgb.log_evaluation(0)])
     pva=L.predict_proba(VA[cols].astype("float32"))[:,1]; aucv=float(roc_auc_score(yva,pva))
     confv=np.abs(pva-0.5); THR=float(np.quantile(confv,1-0.02))
@@ -74,11 +78,11 @@ def fit_eval(TR,VA,YR,cols,tag):
 def main():
     t0=time.time()
     print("[orthochan] building NY-restricted panel...",flush=True)
-    def prep(years):
-        F=build_xp_aud(years,1); F=augment(F,years,"xpbase"); F=add_semivar(F,years)
+    def prep(years,stride):
+        F=build_xp_aud(years,stride); F=augment(F,years,"xpbase"); F=add_semivar(F,years)
         m=session_mask(F["_ts"].values.astype("int64"),SESSION)
         return F.loc[m]
-    TR=prep(SPL["train"]); VA=prep(SPL["val"]); YR={w:prep(SPL[w]) for w in ("test24","test25","oos")}
+    TR=prep(SPL["train"],6); VA=prep(SPL["val"],2); YR={w:prep(SPL[w],1) for w in ("test24","test25","oos")}
     print(f"[orthochan] train_NY={len(TR):,} val_NY={len(VA):,} build={time.time()-t0:.0f}s",flush=True)
     base=cols_of(TR,"base"); audnzd=cols_of(TR,"audnzd"); risk=cols_of(TR,"risk"); semi=cols_of(TR,"semi")
     print(f"[orthochan] |base|={len(base)} |audnzd|={len(audnzd)} |risk|={len(risk)} |semi|={len(semi)}",flush=True)
