@@ -102,6 +102,7 @@ All scripts live in `/home/sean/git/binary-algo/`. Last updated 2026-06-08 (**Ne
 - **Why.** Borrow the cleaner longer-horizon signal to beat a horizon's own noise floor.
 - **Process notes.** Child asymptotes to the parent's native ceiling; front-loads weakly when child ≪ parent (60s off a 5m/15m parent ≈ 0.51). Hard agreement starves OOS coverage (n16).
 - **STATUS.** **helped/best** at 5m (0.613 verifiable / 0.648 thin, `m5stack_EURUSD_strategy.json`); **null** at 60s (0.586) and 10m.
+- **VIABILITY CORR-GATE (cheap pre-check before building the full stack).** Compute `corr(p_parent, p_child)` on VAL at the operating session/horizon. corr>~.90 ⇒ collinear, the parent is the same own-pair GBM at a coarser horizon ⇒ no orthogonal sign ⇒ SUBSUMED ([USDJPY·15m] 30m parent corr .957). corr≪.90 is necessary but **NOT sufficient**: a decorrelated parent helps only if it ALSO carries information the child lacks (higher/complementary AUC); a decorrelated-but-equally-weak parent (≈equal AUC) just reduces variance like a seed-ensemble and is REDUNDANT with seed-ens — path-means stay flat, only the p10 order-statistic moves ([AUDUSD·15m] parent corr .72, AUC ≈ child, blend non-additive vs seed-ens). See `sweeps/AUDUSD_15m_backlog.md`.
 
 ### 3.2 Cross-pair USD-residual / common-factor / lead-lag
 - **What.** Decompose EURUSD into EUR-strength − USD-strength using a sign-aligned basket of the 6 other majors; the relative-value reversion residual, per-pair lead-lag residual, catch-up residual, dispersion/agreement.
