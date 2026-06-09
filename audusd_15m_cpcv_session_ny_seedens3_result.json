@@ -1,0 +1,21 @@
+{
+  "model": "OWN-PAIR base-GBM @15m, SESSION=ny, TIES-STRICT per-fold-REFIT CPCV (multi-cov)",
+  "key": "AUDUSD.15m",
+  "breakeven": 0.541,
+  "session": "ny",
+  "stride": 2,
+  "covs": [
+    0.05,
+    0.03,
+    0.02,
+    0.01
+  ],
+  "n_groups": 6,
+  "k_test": 2,
+  "nseed": 3,
+  "CERT_RULE": "side CERTIFIED iff p10>=0.541 AND frac_clear_BE>=0.80",
+  "falsifier": {
+    "registered_utc": "pre-paths",
+    "KILL_if": "each side: p10<0.541 OR frac_clear_BE<0.80"
+  }
+}

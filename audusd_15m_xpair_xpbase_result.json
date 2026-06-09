@@ -1,0 +1,372 @@
+{
+  "key": "AUDUSD.15m",
+  "model": "cross-pair USD-residual + AUDUSD-specific (audnzd RV, risk factor), mode=xpbase",
+  "incumbent": "A1 base VAL AUC .5232, 2026 cov2% COMB .5588",
+  "breakeven": 0.541,
+  "falsifier": {
+    "registered": "pre-OOS",
+    "IMPROVES_if": "VAL moved-AUC > 0.5232 AND 2026 cov2% COMBINED wr > 0.5588 (else base stands; pooling subsumed)"
+  },
+  "val_auc": 0.5244437734025811,
+  "best_iter": 138,
+  "top20": [
+    "hour_sin",
+    "hour_cos",
+    "4h_autocorr_10",
+    "15m_autocorr_10",
+    "4h_rv_12",
+    "30m_autocorr_10",
+    "4h_dist_hi_48",
+    "1h_ret_1",
+    "4h_rv_24",
+    "4h_bb_width",
+    "1h_autocorr_10",
+    "4h_dist_lo_48",
+    "4h_slope_20",
+    "30m_ret_1",
+    "15m_rv_12",
+    "1h_dist_lo_24",
+    "1h_rv_24",
+    "1h_rv_12",
+    "4h_ret_6",
+    "30m_bb_width"
+  ],
+  "gate": {
+    "cov": 0.02,
+    "thr": 0.08150014189047682,
+    "val_worst_half": 0.5729
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5282,
+      "up_rate": 0.502,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 1335,
+          "wr": 0.6255,
+          "ci": [
+            0.599,
+            0.651
+          ]
+        },
+        "UP": {
+          "n": 345,
+          "wr": 0.6667,
+          "ci": [
+            0.617,
+            0.716
+          ]
+        },
+        "DOWN": {
+          "n": 990,
+          "wr": 0.6111,
+          "ci": [
+            0.581,
+            0.641
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.0524,
+          "COMBINED": {
+            "n": 6167,
+            "wr": 0.5611
+          },
+          "UP": {
+            "n": 3155,
+            "wr": 0.5528
+          },
+          "DOWN": {
+            "n": 3012,
+            "wr": 0.5697
+          }
+        },
+        "0.05": {
+          "thr": 0.0637,
+          "COMBINED": {
+            "n": 3382,
+            "wr": 0.5766
+          },
+          "UP": {
+            "n": 1405,
+            "wr": 0.5665
+          },
+          "DOWN": {
+            "n": 1977,
+            "wr": 0.5837
+          }
+        },
+        "0.03": {
+          "thr": 0.0721,
+          "COMBINED": {
+            "n": 2162,
+            "wr": 0.6031
+          },
+          "UP": {
+            "n": 723,
+            "wr": 0.6362
+          },
+          "DOWN": {
+            "n": 1439,
+            "wr": 0.5865
+          }
+        },
+        "0.02": {
+          "thr": 0.0788,
+          "COMBINED": {
+            "n": 1529,
+            "wr": 0.6213
+          },
+          "UP": {
+            "n": 424,
+            "wr": 0.658
+          },
+          "DOWN": {
+            "n": 1105,
+            "wr": 0.6072
+          }
+        },
+        "0.01": {
+          "thr": 0.0901,
+          "COMBINED": {
+            "n": 866,
+            "wr": 0.6351
+          },
+          "UP": {
+            "n": 176,
+            "wr": 0.733
+          },
+          "DOWN": {
+            "n": 690,
+            "wr": 0.6101
+          }
+        }
+      }
+    },
+    "test25": {
+      "moved_auc": 0.527,
+      "up_rate": 0.5068,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 1189,
+          "wr": 0.5988,
+          "ci": [
+            0.571,
+            0.627
+          ]
+        },
+        "UP": {
+          "n": 329,
+          "wr": 0.6049,
+          "ci": [
+            0.553,
+            0.66
+          ]
+        },
+        "DOWN": {
+          "n": 860,
+          "wr": 0.5965,
+          "ci": [
+            0.564,
+            0.629
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.0511,
+          "COMBINED": {
+            "n": 6249,
+            "wr": 0.554
+          },
+          "UP": {
+            "n": 3229,
+            "wr": 0.5525
+          },
+          "DOWN": {
+            "n": 3020,
+            "wr": 0.5556
+          }
+        },
+        "0.05": {
+          "thr": 0.0624,
+          "COMBINED": {
+            "n": 3389,
+            "wr": 0.5686
+          },
+          "UP": {
+            "n": 1455,
+            "wr": 0.5739
+          },
+          "DOWN": {
+            "n": 1934,
+            "wr": 0.5646
+          }
+        },
+        "0.03": {
+          "thr": 0.0706,
+          "COMBINED": {
+            "n": 2180,
+            "wr": 0.583
+          },
+          "UP": {
+            "n": 793,
+            "wr": 0.5889
+          },
+          "DOWN": {
+            "n": 1387,
+            "wr": 0.5797
+          }
+        },
+        "0.02": {
+          "thr": 0.0768,
+          "COMBINED": {
+            "n": 1538,
+            "wr": 0.604
+          },
+          "UP": {
+            "n": 469,
+            "wr": 0.5991
+          },
+          "DOWN": {
+            "n": 1069,
+            "wr": 0.6062
+          }
+        },
+        "0.01": {
+          "thr": 0.0878,
+          "COMBINED": {
+            "n": 821,
+            "wr": 0.6054
+          },
+          "UP": {
+            "n": 185,
+            "wr": 0.6649
+          },
+          "DOWN": {
+            "n": 636,
+            "wr": 0.5881
+          }
+        }
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5184,
+      "up_rate": 0.5066,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 506,
+          "wr": 0.5553,
+          "ci": [
+            0.512,
+            0.601
+          ]
+        },
+        "UP": {
+          "n": 146,
+          "wr": 0.4932,
+          "ci": [
+            0.411,
+            0.575
+          ]
+        },
+        "DOWN": {
+          "n": 360,
+          "wr": 0.5806,
+          "ci": [
+            0.531,
+            0.631
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.055,
+          "COMBINED": {
+            "n": 2102,
+            "wr": 0.5243
+          },
+          "UP": {
+            "n": 1036,
+            "wr": 0.5396
+          },
+          "DOWN": {
+            "n": 1066,
+            "wr": 0.5094
+          }
+        },
+        "0.05": {
+          "thr": 0.0667,
+          "COMBINED": {
+            "n": 1138,
+            "wr": 0.5062
+          },
+          "UP": {
+            "n": 470,
+            "wr": 0.5043
+          },
+          "DOWN": {
+            "n": 668,
+            "wr": 0.5075
+          }
+        },
+        "0.03": {
+          "thr": 0.0749,
+          "COMBINED": {
+            "n": 733,
+            "wr": 0.543
+          },
+          "UP": {
+            "n": 243,
+            "wr": 0.5309
+          },
+          "DOWN": {
+            "n": 490,
+            "wr": 0.549
+          }
+        },
+        "0.02": {
+          "thr": 0.0809,
+          "COMBINED": {
+            "n": 524,
+            "wr": 0.5515
+          },
+          "UP": {
+            "n": 154,
+            "wr": 0.4935
+          },
+          "DOWN": {
+            "n": 370,
+            "wr": 0.5757
+          }
+        },
+        "0.01": {
+          "thr": 0.0903,
+          "COMBINED": {
+            "n": 283,
+            "wr": 0.5583
+          },
+          "UP": {
+            "n": 60,
+            "wr": 0.4833
+          },
+          "DOWN": {
+            "n": 223,
+            "wr": 0.5785
+          }
+        }
+      }
+    }
+  },
+  "verdict": {
+    "val_auc_gt_base": true,
+    "oos_cov2_comb": 0.5515,
+    "oos_cov2_gt_base": false,
+    "IMPROVES_base": false,
+    "note": "if not IMPROVES, base stands; pooling subsumed at 15m (record + move to session/cert)"
+  }
+}
