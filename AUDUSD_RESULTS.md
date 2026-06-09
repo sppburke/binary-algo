@@ -46,8 +46,18 @@ Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry) AND 
 
 **Read:** monotone-in-confidence, both sides ~.57–.60 @cov2–3% in 2024/2025. **2026 (binding) is DOWN-only** — DOWN holds (.589@cov2 / .578@cov1) while UP collapses (.493@cov2 / .516@cov1). The frozen-2021 book decays forward (refit-dependent, same as EURUSD/USDJPY 15m); DOWN survives the decay, UP does not. → certify via per-fold-REFIT CPCV (recovers per-era floor); DOWN is the more deployable side; UP is regime-dependent and must be confirmed forward (trap #9).
 
-### Session segmentation (A9) — `audusd_15m_cpcv_session.py {ny,ldn,asia}`
-_pending — KEY AUDUSD-specific test: does the edge live in Asia (RBA/China/own-pair) or NY (USD-factor) or both?_
+### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `audusd_15m_cpcv_session.py all`
+| cov | UP p10 (frac_clear) | DOWN p10 (frac) | COMB p10 (frac) | CERT |
+|---|---|---|---|---|
+| 0.05 | .5371 (.87) | .5354 (.73) | .5374 (.73) | ✗ |
+| 0.03 | .5342 (.80) | .5405 (.87) | .5385 (.87) | ✗ |
+| 0.02 | .5381 (.87) | .5345 (.73) | .5371 (.73) | ✗ |
+| 0.01 | .5345 (.80) | **.544 (.93)** | **.542 (.87)** | **DOWN ✓ / COMB ✓** |
+
+AUC mean .5213 (min .5142, max .5252), up-rate tripwire clean. **Read:** a real all-session edge but thin — **DOWN certifies at cov1%** (p10 .544, 14/15 paths; med_n 895/path), COMBINED at cov1% (p10 .542); **UP does NOT certify at any cov** (p10 saturates ~.534–.538, ~0.5–1pp sub-BE). DOWN>UP robustness (consistent with binding-2026 DOWN-only). This is the honest per-era refit floor (deployable w/ retrain). `audusd_15m_cpcv_session_all_multicov_result.json`. **NEXT levers to lift p10 to a usable coverage + rescue UP:** session concentration (A9), cross-pair pooling (A6), seed-ensemble (the USDJPY lever).
+
+### Session segmentation (A9) — `audusd_15m_cpcv_session.py {ny,ldn,asia}` (symmetric)
+_running — KEY AUDUSD-specific test: does the edge live in Asia (RBA/China/own-pair) or NY (USD-factor) or both? Does any session lift p10 over all-session's thin cov1% cert to a usable cov2–3%?_
 
 ### Cross-pair pooling (A6) — the EURUSD keystone, retargeted to AUDUSD
 _pending — `audusd_15m_xpair.py` (USD-common-factor residual + lead-lag, AUDUSD target); + NZDUSD-cousin variant._
