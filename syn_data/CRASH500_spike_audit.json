@@ -1,0 +1,28 @@
+{
+  "symbol": "CRASH500",
+  "n_ticks": 86383,
+  "direction": "down(crash)",
+  "spike_thresh_logret": 1.9837504385833427e-05,
+  "median_abs_ret": 1.9837504385833427e-06,
+  "n_spikes": 168,
+  "mean_gap_ticks": 505.63473053892216,
+  "nominal_N": null,
+  "cv_gaps": 0.9982116470713763,
+  "min_gap": 8,
+  "p05_gap": 25.6,
+  "median_gap": 345.0,
+  "max_gap": 3199,
+  "gap_acf_lag1": 0.0998648445892636,
+  "gap_acf_noise_floor": 0.1516693535766908,
+  "ks_vs_geometric_p": 0.9859769259185064,
+  "spike_mag_over_median": 468.0869483369022,
+  "hazard": {
+    "hazard_slope_per_tick": 6.477108388405727e-07,
+    "hazard_slope_pval": 0.1285261771773827,
+    "mean_hazard": 0.0021606793419060863,
+    "kmax_tested": 1572
+  },
+  "timing_verdict": [
+    "MEMORYLESS timing (CV~1, flat hazard, geometric, no gap autocorr) -> spike timing UNPREDICTABLE"
+  ]
+}

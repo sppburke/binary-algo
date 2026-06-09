@@ -302,6 +302,17 @@ were read from `cpcv_certify_result.json` (Tier-1); all other AUCs are research-
 **The magnitude edge is NOT a directional product.** It forecasts |move|, so it pays on structures whose payoff depends on
 how far price travels (or doesn't), regardless of sign.
 
+> **[2026-06-09 UPDATE — live Deriv API + synthetic venue now CHECKED. See `DERIV_MAGNITUDE_MONETIZATION.md` + `SYNTHETIC_RNG_FINDINGS.md`.]**
+> The §6 product table below was written from general knowledge; the Deriv catalog has since been verified Tier-1 against a live
+> `contracts_for` snapshot (`deriv_frxEURUSD_contracts_for.json`) and the synthetic-index venue was empirically audited. Two hard
+> constraints now bind: **(1)** On FX majors, Touch/No-Touch and the In/Out ranges exist but are **DAILY-ONLY (1d–365d)** — the 60s–30m
+> edge does not apply; the only intraday FX product is 15m **sign-only** Rise/Fall. Lookbacks/Vanillas/Accumulators are **non-available
+> on FX** (synthetic-index only). **(2)** The synthetic vol indices (R_*) are IID-Gaussian constant-vol with **NO volatility clustering**,
+> so the magnitude edge does **NOT transfer** (corr(rv,future|r|) ≈ 0 vs FX ~+0.4; NIST battery 6/6 pass); engineered indices
+> (Crash/Boom/Jump) carry only *documented, priced* structure with **memoryless** spike timing. **Net: no ready Deriv product for this
+> edge.** The one live FX path is a **new 1-day magnitude model** (untested). Read the table below as the payoff-shape reference only,
+> subject to these availability/transfer facts.
+
 **Deriv constraint (from MEMORY + `DIRECTION_FINDINGS.md` L70, `EXPERIMENT_LEDGER.md` L7):**
 Deriv **forex Rise/Fall minimum expiry = 15 minutes and is DIRECTIONAL.** Anything shorter is synthetic-index only for up/down.
 A 30m magnitude horizon is *compatible* with the 15m floor in time, but Rise/Fall is the wrong payoff shape entirely.
@@ -325,9 +336,12 @@ straddle/touch/volatility plays, not up/down — FX prices the surprise within ~
   intraday US-DE rate-differential futures, full depth-10 LOB volumes, CFTC COT positioning. (Listed there as direction candidates,
   but implied-vol/skew is the natural magnitude/VRP input.)
 
-**Bottom line for a future builder:** Touch/No-Touch and Range/Boundary are buildable with on-disk data + the existing
-magnitude model (re-trained per venue's barrier/expiry). Straddle and VRP additionally require a daily (ideally intraday)
-implied-vol feed that does not currently exist in the repo.
+**Bottom line for a future builder (CORRECTED 2026-06-09 — see the update banner above + `DERIV_MAGNITUDE_MONETIZATION.md`):**
+On Deriv **FX majors**, Touch/No-Touch and Range/Boundary exist but are **daily-only (1d–365d)** — so they are NOT buildable from
+the certified 60s–30m model; they require a **new 1-day magnitude model + CPCV cert** that does not exist on disk. Straddle (vanillas)
+and the payoff-perfect Lookback High-Low are **not available on FX at all** (synthetic-index only), and the **synthetic venue is a
+tested NULL** for this edge (no vol clustering → edge does not transfer; `SYNTHETIC_RNG_FINDINGS.md`). VRP still additionally needs the
+missing implied-vol feed. **No path is deploy-ready; the only live fork is the 1-day FX model.**
 
 ---
 

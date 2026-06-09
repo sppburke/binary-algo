@@ -1,0 +1,28 @@
+{
+  "symbol": "BOOM1000",
+  "n_ticks": 86383,
+  "direction": "up(boom)",
+  "spike_thresh_logret": 9.303895751600066e-06,
+  "median_abs_ret": 9.303895751600066e-07,
+  "n_spikes": 74,
+  "mean_gap_ticks": 1168.4520547945206,
+  "nominal_N": null,
+  "cv_gaps": 0.9917088111405036,
+  "min_gap": 22,
+  "p05_gap": 40.2,
+  "median_gap": 752.0,
+  "max_gap": 4562,
+  "gap_acf_lag1": -0.1866816570643857,
+  "gap_acf_noise_floor": 0.2294006485044159,
+  "ks_vs_geometric_p": 0.6972357361866948,
+  "spike_mag_over_median": 976.2847021678715,
+  "hazard": {
+    "hazard_slope_per_tick": -2.318448159802182e-07,
+    "hazard_slope_pval": 0.3080251239147541,
+    "mean_hazard": 0.0008024236429885368,
+    "kmax_tested": 3791
+  },
+  "timing_verdict": [
+    "MEMORYLESS timing (CV~1, flat hazard, geometric, no gap autocorr) -> spike timing UNPREDICTABLE"
+  ]
+}

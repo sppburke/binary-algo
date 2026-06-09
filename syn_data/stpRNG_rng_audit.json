@@ -1,0 +1,258 @@
+{
+  "symbol": "stpRNG",
+  "n_ticks": 86381,
+  "span_days": 0.9997685185185186,
+  "dt_median_s": 1.0,
+  "dt_min_s": 1,
+  "dt_max_s": 1,
+  "dt_regular_frac": 1.0,
+  "quantization": {
+    "pip": 0.01,
+    "frac_price_on_grid": 1.0,
+    "abs_step_pips_p50": 10,
+    "abs_step_pips_p99": 10,
+    "frac_zero_step": 0.0
+  },
+  "returns": {
+    "mean": 5.503980578015211e-09,
+    "std": 1.2503347318248133e-05,
+    "skew": -0.0008798328053161668,
+    "excess_kurtosis": -1.9999954628456853,
+    "annualized_vol_implied": 0.07023899335018303,
+    "ticks_per_year": 31557600.0,
+    "ks_normal_stat": 0.3409172293573831,
+    "ks_normal_p": 0.0,
+    "jarque_bera_p": 0.0,
+    "n_zero_returns": 0
+  },
+  "autocorr": {
+    "noise_floor_iid": {
+      "max_abs_acf_r": 0.0118408331633339,
+      "max_abs_acf_r2": 0.00835219638316198
+    },
+    "returns": {
+      "acf_lag1": 0.0003492729110804565,
+      "acf_lag2": 0.002316386173243183,
+      "max_abs_acf_1to50": 0.008641207405539237,
+      "ljung_box": {
+        "1": {
+          "Q": 0.010537997485830664,
+          "p": 0.9182369889241762
+        },
+        "2": {
+          "Q": 0.4740438673346845,
+          "p": 0.7889739827349473
+        },
+        "5": {
+          "Q": 2.836389868061242,
+          "p": 0.725192027764726
+        },
+        "10": {
+          "Q": 12.044004758130885,
+          "p": 0.2821222239217834
+        },
+        "20": {
+          "Q": 27.5229212344091,
+          "p": 0.12118254957028536
+        },
+        "50": {
+          "Q": 80.28053104017584,
+          "p": 0.004219776048437825
+        }
+      }
+    },
+    "abs_returns": {
+      "acf_lag1": 0.9999525717348017,
+      "max_abs_acf_1to50": 0.9999525717348017,
+      "ljung_box": {
+        "1": {
+          "Q": 86374.80623737551,
+          "p": 0.0
+        },
+        "2": {
+          "Q": 172735.23087380928,
+          "p": 0.0
+        },
+        "5": {
+          "Q": 431730.62725165853,
+          "p": 0.0
+        },
+        "10": {
+          "Q": 863106.9322018968,
+          "p": 0.0
+        },
+        "20": {
+          "Q": 1724811.2363567045,
+          "p": 0.0
+        },
+        "50": {
+          "Q": 4301683.998765244,
+          "p": 0.0
+        }
+      }
+    },
+    "sq_returns": {
+      "acf_lag1": 0.999952578839499,
+      "max_abs_acf_1to50": 0.999952578839499,
+      "ljung_box": {
+        "1": {
+          "Q": 86374.80746476745,
+          "p": 0.0
+        },
+        "2": {
+          "Q": 172735.23527099934,
+          "p": 0.0
+        },
+        "5": {
+          "Q": 431730.6540705936,
+          "p": 0.0
+        },
+        "10": {
+          "Q": 863107.0443267138,
+          "p": 0.0
+        },
+        "20": {
+          "Q": 1724811.6978708233,
+          "p": 0.0
+        },
+        "50": {
+          "Q": 4301687.074928375,
+          "p": 0.0
+        }
+      }
+    }
+  },
+  "magnitude_transfer": {
+    "W30_H30": {
+      "W": 30,
+      "H": 30,
+      "corr_rv_future_absr": 0.062316853598133985,
+      "rv_acf_lag1": 0.9298421175651668,
+      "rv_acf_max_1to50": 0.9298421175651668
+    },
+    "W120_H30": {
+      "W": 120,
+      "H": 30,
+      "corr_rv_future_absr": 0.18749631563809732,
+      "rv_acf_lag1": 0.9822703450497152,
+      "rv_acf_max_1to50": 0.9822703450497152
+    }
+  },
+  "sign": {
+    "runs": 43175,
+    "z": -0.10882258580670713,
+    "p": 0.9133432093204951,
+    "up_fraction": 0.500219958323686
+  },
+  "nist": [
+    {
+      "stream": "return_sign_bits",
+      "n_bits": 86380,
+      "passed": 6,
+      "of": 6,
+      "tests": [
+        {
+          "test": "monobit",
+          "p": 0.8971253427356161,
+          "pass": true
+        },
+        {
+          "test": "block_frequency",
+          "p": 0.8654341291258388,
+          "pass": true,
+          "N_blocks": 4,
+          "M": 20000
+        },
+        {
+          "test": "runs",
+          "p": 0.9187431586180862,
+          "pass": true
+        },
+        {
+          "test": "dft_spectral",
+          "p": 0.9129796211481226,
+          "pass": true
+        },
+        {
+          "test": "approx_entropy",
+          "p": 0.8635971849809836,
+          "pass": true,
+          "apen": 0.6931397316002428
+        },
+        {
+          "test": "cusum",
+          "p": 0.7685771629079126,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "stream": "price_lsb_bits",
+      "n_bits": 86381,
+      "passed": 0,
+      "of": 6,
+      "tests": [
+        {
+          "test": "monobit",
+          "p": 0.0,
+          "pass": false
+        },
+        {
+          "test": "block_frequency",
+          "p": 0.0,
+          "pass": false,
+          "N_blocks": 4,
+          "M": 20000
+        },
+        {
+          "test": "runs",
+          "p": 0.0,
+          "pass": false,
+          "note": "failed monobit prereq"
+        },
+        {
+          "test": "dft_spectral",
+          "p": 0.0,
+          "pass": false
+        },
+        {
+          "test": "approx_entropy",
+          "p": 0.0,
+          "pass": false,
+          "apen": 0.0
+        },
+        {
+          "test": "cusum",
+          "p": 0.0,
+          "pass": false
+        }
+      ]
+    }
+  ],
+  "spectral_top_peaks": [
+    {
+      "period_ticks": 2.6877003018139956,
+      "power_over_median": 16.735563761316378
+    },
+    {
+      "period_ticks": 9.056405955126861,
+      "power_over_median": 15.118235462050867
+    },
+    {
+      "period_ticks": 5.2558564040158195,
+      "power_over_median": 14.728616545123383
+    },
+    {
+      "period_ticks": 6.361761673295035,
+      "power_over_median": 14.4807781944365
+    },
+    {
+      "period_ticks": 6.889456053597065,
+      "power_over_median": 13.608878440836818
+    }
+  ],
+  "verdict": [
+    "SQUARED-return autocorr 1.0000 >> IID floor 0.0084: VOL CLUSTERING",
+    "MAGNITUDE EDGE TRANSFERS: corr(rv,future|r|)=0.062 (FX is ~+0.4)"
+  ]
+}

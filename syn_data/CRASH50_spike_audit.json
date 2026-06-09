@@ -1,0 +1,29 @@
+{
+  "symbol": "CRASH50",
+  "n_ticks": 86383,
+  "direction": "down(crash)",
+  "spike_thresh_logret": 7.76541034142042e-06,
+  "median_abs_ret": 7.76541034142042e-07,
+  "n_spikes": 1445,
+  "mean_gap_ticks": 59.640581717451525,
+  "nominal_N": 50,
+  "mean_gap_over_nominal": 1.1928116343490305,
+  "cv_gaps": 0.9741988418875283,
+  "min_gap": 3,
+  "p05_gap": 5.150000000000006,
+  "median_gap": 41.0,
+  "max_gap": 460,
+  "gap_acf_lag1": 0.01554969661113343,
+  "gap_acf_noise_floor": 0.05157894736842105,
+  "ks_vs_geometric_p": 0.0005881779388680563,
+  "spike_mag_over_median": 50.668113377385524,
+  "hazard": {
+    "hazard_slope_per_tick": 8.651629722470398e-06,
+    "hazard_slope_pval": 0.7296190395993183,
+    "mean_hazard": 0.016784315998043975,
+    "kmax_tested": 176
+  },
+  "timing_verdict": [
+    "MEMORYLESS timing (CV~1, flat hazard, geometric, no gap autocorr) -> spike timing UNPREDICTABLE"
+  ]
+}

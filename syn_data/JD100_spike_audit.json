@@ -1,0 +1,28 @@
+{
+  "symbol": "JD100",
+  "n_ticks": 86385,
+  "direction": "either(jump)",
+  "spike_thresh_logret": 0.0012094092050851657,
+  "median_abs_ret": 0.00012094092050851657,
+  "n_spikes": 60,
+  "mean_gap_ticks": 1400.050847457627,
+  "nominal_N": null,
+  "cv_gaps": 0.9740304642359648,
+  "min_gap": 4,
+  "p05_gap": 38.2,
+  "median_gap": 845.0,
+  "max_gap": 5170,
+  "gap_acf_lag1": 0.16552771214622375,
+  "gap_acf_noise_floor": 0.2551702655224148,
+  "ks_vs_geometric_p": 0.7442447946998474,
+  "spike_mag_over_median": 38.561362868071214,
+  "hazard": {
+    "hazard_slope_per_tick": -3.7425867885627523e-07,
+    "hazard_slope_pval": 0.0929845139051183,
+    "mean_hazard": 0.000632707934850476,
+    "kmax_tested": 4239
+  },
+  "timing_verdict": [
+    "MEMORYLESS timing (CV~1, flat hazard, geometric, no gap autocorr) -> spike timing UNPREDICTABLE"
+  ]
+}
