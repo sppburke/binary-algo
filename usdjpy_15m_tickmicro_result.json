@@ -1,0 +1,218 @@
+{
+  "key": "USDJPY.15m.ny",
+  "lever": "tick microstructure features (OFI/microprice/spread/intensity/rv/mom) aug at NY 15m grid",
+  "tick_source": "/home/sean/git/raw/USDJPY",
+  "windows_s": [
+    60,
+    300,
+    900
+  ],
+  "tk_feats": [
+    "micro_dev",
+    "spread",
+    "imb_60",
+    "mom_60",
+    "rv_60",
+    "nt_60",
+    "flow_60",
+    "sprd_60",
+    "imb_300",
+    "mom_300",
+    "rv_300",
+    "nt_300",
+    "flow_300",
+    "sprd_300",
+    "imb_900",
+    "mom_900",
+    "rv_900",
+    "nt_900",
+    "flow_900",
+    "sprd_900"
+  ],
+  "stride": 2,
+  "covs": [
+    0.02,
+    0.03
+  ],
+  "settlement": "deriv-faithful bar label sign(close[t+15]-close[t]) ties LOSE; tick feats CAUSAL asof<=t; NY refit-CPCV purge+embargo=900s",
+  "auc_mean": {
+    "bars": 0.5386,
+    "bars+tk": 0.5406,
+    "tkonly": 0.5184
+  },
+  "uprate_tripwire_ok": true,
+  "paired_bars+tk_vs_bars": {
+    "mean_dAUC": 0.0019,
+    "median_dAUC": 0.0022,
+    "se": 0.0004,
+    "tstat_CORRELATED_paths_discount": 5.34,
+    "wins": 14,
+    "n": 15
+  },
+  "bycov": {
+    "0.02": {
+      "bars": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6021,
+          "p10": 0.5823,
+          "p50": 0.6067,
+          "min": 0.5722,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5992,
+          "p10": 0.5539,
+          "p50": 0.5942,
+          "min": 0.544,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.5997,
+          "p10": 0.5824,
+          "p50": 0.6012,
+          "min": 0.5665,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "bars+tk": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6313,
+          "p10": 0.6118,
+          "p50": 0.629,
+          "min": 0.6032,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6409,
+          "p10": 0.5985,
+          "p50": 0.6419,
+          "min": 0.5851,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6335,
+          "p10": 0.6063,
+          "p50": 0.6328,
+          "min": 0.6019,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "tkonly": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.5396,
+          "p10": 0.533,
+          "p50": 0.5384,
+          "min": 0.524,
+          "frac_clear_BE": 0.4
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5758,
+          "p10": 0.5263,
+          "p50": 0.5739,
+          "min": 0.5131,
+          "frac_clear_BE": 0.733
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.5467,
+          "p10": 0.5305,
+          "p50": 0.5464,
+          "min": 0.5238,
+          "frac_clear_BE": 0.8
+        }
+      }
+    },
+    "0.03": {
+      "bars": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6022,
+          "p10": 0.586,
+          "p50": 0.6051,
+          "min": 0.578,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5967,
+          "p10": 0.5717,
+          "p50": 0.5992,
+          "min": 0.5561,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.5992,
+          "p10": 0.5803,
+          "p50": 0.5997,
+          "min": 0.5787,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "bars+tk": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6182,
+          "p10": 0.6,
+          "p50": 0.618,
+          "min": 0.5902,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6311,
+          "p10": 0.5987,
+          "p50": 0.6353,
+          "min": 0.5778,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6212,
+          "p10": 0.5967,
+          "p50": 0.626,
+          "min": 0.5856,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "tkonly": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.5349,
+          "p10": 0.5263,
+          "p50": 0.5364,
+          "min": 0.5207,
+          "frac_clear_BE": 0.4
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5624,
+          "p10": 0.5257,
+          "p50": 0.5553,
+          "min": 0.519,
+          "frac_clear_BE": 0.6
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.5394,
+          "p10": 0.529,
+          "p50": 0.5399,
+          "min": 0.525,
+          "frac_clear_BE": 0.4
+        }
+      }
+    }
+  },
+  "verdict": {
+    "SURVIVES": false,
+    "note": "KILLED: tick microstructure does NOT lift 15m USDJPY direction beyond the ~.539 bar bound. tkonly AUC ~.50 => microstructure carries no own 15m SIGN (sign-invariance: it gates SIZE). The bar information bound holds even with full tick OFI/microprice/intensity data."
+  }
+}

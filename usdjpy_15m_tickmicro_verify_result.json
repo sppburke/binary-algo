@@ -1,0 +1,87 @@
+{
+  "key": "USDJPY.15m.ny",
+  "test": "tick-feature leakage control (lag60 + shuffle)",
+  "stride": 2,
+  "lag_s": 60,
+  "auc_mean": {
+    "bars": 0.5384,
+    "bars+tk": 0.5408,
+    "bars+tk_lag60": 0.5408,
+    "tkonly": 0.5184,
+    "tkonly_lag60": 0.5153,
+    "bars_SHUF": 0.4997
+  },
+  "paired_vs_bars": {
+    "bars+tk": {
+      "mean_dAUC": 0.0024,
+      "wins": 14,
+      "t_corr": 6.05
+    },
+    "bars+tk_lag60": {
+      "mean_dAUC": 0.0024,
+      "wins": 14,
+      "t_corr": 5.53
+    },
+    "tkonly": {
+      "mean_dAUC": -0.02,
+      "wins": 0,
+      "t_corr": -18.83
+    },
+    "tkonly_lag60": {
+      "mean_dAUC": -0.0231,
+      "wins": 0,
+      "t_corr": -19.17
+    },
+    "bars_SHUF": {
+      "mean_dAUC": -0.0388,
+      "wins": 0,
+      "t_corr": -27.86
+    }
+  },
+  "cov_p10": {
+    "bars": {
+      "0.02_COMB": 0.5823,
+      "0.03_COMB": 0.582,
+      "0.02_UP": 0.5778,
+      "0.02_DOWN": 0.5397
+    },
+    "bars+tk": {
+      "0.02_COMB": 0.6046,
+      "0.03_COMB": 0.5916,
+      "0.02_UP": 0.6087,
+      "0.02_DOWN": 0.5904
+    },
+    "bars+tk_lag60": {
+      "0.02_COMB": 0.6071,
+      "0.03_COMB": 0.5967,
+      "0.02_UP": 0.6051,
+      "0.02_DOWN": 0.5915
+    },
+    "tkonly": {
+      "0.02_COMB": 0.5342,
+      "0.03_COMB": 0.529,
+      "0.02_UP": 0.5247,
+      "0.02_DOWN": 0.5274
+    },
+    "tkonly_lag60": {
+      "0.02_COMB": 0.5268,
+      "0.03_COMB": 0.5222,
+      "0.02_UP": 0.5203,
+      "0.02_DOWN": 0.5244
+    },
+    "bars_SHUF": {
+      "0.02_COMB": 0.4889,
+      "0.03_COMB": 0.4867,
+      "0.02_UP": 0.4889,
+      "0.02_DOWN": 0.3636
+    }
+  },
+  "verdict": {
+    "fresh_lift": 0.0024,
+    "lag60_lift": 0.0024,
+    "shuffle_auc": 0.4997,
+    "LEAK_boundary": false,
+    "GENUINE_causal": true,
+    "note": "GENUINE: lag60 (strictly causal) preserves the lift -> real predictive microstructure; escalate to seed-ens+freeze."
+  }
+}

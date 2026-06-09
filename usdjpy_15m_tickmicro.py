@@ -75,26 +75,27 @@ def build_year(y):
     # build 1s micro bars day-by-day, accumulate trailing feats sampled at bar epochs
     feats_at=[]; idx_at=[]
     TK.PAIR=TARGET                                                              # ensure USDJPY (legacy default EURUSD)
-    days=_year_days(y); carry=None
+    FRESH_S=120                                                                 # drop decisions whose nearest 1s feature is >120s stale (gap/holiday)
+    days=_year_days(y)
     for d in days:
-        files=sorted(glob.glob(f"/home/sean/git/raw/{TARGET}/{TARGET}_{d}_*.parquet"))
+        # CRITICAL: tick hourly FILES are labeled in broker-local time (UTC+~8) — content of file named F is
+        # UTC [F-1 ~16:00, F ~15:59]. So UTC date d's AFTERNOON lives in file d+1. Load BOTH {d, d+1} and let
+        # the asof + UTC-day filter select correctly (earlier per-d-only load gave stale afternoon features).
+        dnext=(pd.Timestamp(d, tz="UTC")+pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        files=sorted(glob.glob(f"/home/sean/git/raw/{TARGET}/{TARGET}_{d}_*.parquet")
+                     +glob.glob(f"/home/sean/git/raw/{TARGET}/{TARGET}_{dnext}_*.parquet"))
         if not files: continue
-        b1=TK._day_1s(files)
+        b1=TK._day_1s(files)                                                    # 1s bars over ~[d-1 16:00, d+1 15:59]
         if b1 is None or len(b1)==0: continue
-        # prepend the prior day's tail (max window) so the day's early-bar lookbacks are complete
-        if carry is not None: b1=pd.concat([carry, b1])
         tm=tickmicro_from_1s(b1)
         tm_e=tm.index.values.astype("datetime64[s]").astype("int64")
-        # bar epochs falling in THIS day (UTC date d)
         d0=int(pd.Timestamp(d, tz="UTC").timestamp()); d1=d0+86400
-        sel=(bts>=d0)&(bts<d1); be=bts[sel]
+        sel=(bts>=d0)&(bts<d1); be=bts[sel]                                     # bar epochs in UTC date d
         if len(be):
-            # asof backward: most recent 1s feature row with epoch <= bar epoch
-            pos=np.searchsorted(tm_e, be, side="right")-1
-            ok=pos>=0
+            pos=np.searchsorted(tm_e, be, side="right")-1                       # asof backward (feature epoch <= bar)
+            ok=(pos>=0) & ((be-tm_e[np.clip(pos,0,len(tm_e)-1)])<=FRESH_S)      # require FRESH (<=120s) — no stale fills
             if ok.any():
                 feats_at.append(tm.iloc[pos[ok]].values); idx_at.append(be[ok])
-        carry=b1.iloc[-max(WINS):]                                              # tail for next day's lookback
     if not feats_at: print(f"[build {y}] no aligned rows",flush=True); return
     X=np.concatenate(feats_at); I=np.concatenate(idx_at)
     cols=list(tickmicro_from_1s(TK._day_1s(sorted(glob.glob(f"/home/sean/git/raw/{TARGET}/{TARGET}_{days[0]}_*.parquet"))[:1] or [])).columns) if False else None

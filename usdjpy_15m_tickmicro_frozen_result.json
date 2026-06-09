@@ -1,0 +1,224 @@
+{
+  "key": "USDJPY.15m.ny",
+  "test": "frozen-past forward holdout (trap#9) of tick lift; tick feats asof<=t-60s",
+  "K": 1,
+  "cov": 0.02,
+  "feat_sets": [
+    "bars",
+    "bars+tk"
+  ],
+  "years": {
+    "bars": {
+      "val_ny_auc": 0.5441,
+      "thr": 0.1296,
+      "years": {
+        "test24": {
+          "moved_auc": 0.5303,
+          "COMBINED": {
+            "n": 624,
+            "wr": 0.6138,
+            "ci": [
+              0.5737,
+              0.6522
+            ]
+          },
+          "UP": {
+            "n": 490,
+            "wr": 0.602,
+            "ci": [
+              0.5592,
+              0.6449
+            ]
+          },
+          "DOWN": {
+            "n": 134,
+            "wr": 0.6567,
+            "ci": [
+              0.5746,
+              0.7313
+            ]
+          }
+        },
+        "test25": {
+          "moved_auc": 0.5224,
+          "COMBINED": {
+            "n": 623,
+            "wr": 0.5714,
+            "ci": [
+              0.5313,
+              0.6083
+            ]
+          },
+          "UP": {
+            "n": 464,
+            "wr": 0.5754,
+            "ci": [
+              0.528,
+              0.6207
+            ]
+          },
+          "DOWN": {
+            "n": 159,
+            "wr": 0.5597,
+            "ci": [
+              0.4843,
+              0.6352
+            ]
+          }
+        },
+        "oos": {
+          "moved_auc": 0.5091,
+          "COMBINED": {
+            "n": 291,
+            "wr": 0.5258,
+            "ci": [
+              0.4708,
+              0.5842
+            ]
+          },
+          "UP": {
+            "n": 202,
+            "wr": 0.5198,
+            "ci": [
+              0.4505,
+              0.5891
+            ]
+          },
+          "DOWN": {
+            "n": 89,
+            "wr": 0.5393,
+            "ci": [
+              0.4382,
+              0.6404
+            ]
+          }
+        }
+      }
+    },
+    "bars+tk": {
+      "val_ny_auc": 0.5448,
+      "thr": 0.1528,
+      "years": {
+        "test24": {
+          "moved_auc": 0.5354,
+          "COMBINED": {
+            "n": 631,
+            "wr": 0.6181,
+            "ci": [
+              0.5784,
+              0.6545
+            ]
+          },
+          "UP": {
+            "n": 459,
+            "wr": 0.5969,
+            "ci": [
+              0.5512,
+              0.6427
+            ]
+          },
+          "DOWN": {
+            "n": 172,
+            "wr": 0.6744,
+            "ci": [
+              0.6047,
+              0.7442
+            ]
+          }
+        },
+        "test25": {
+          "moved_auc": 0.5261,
+          "COMBINED": {
+            "n": 446,
+            "wr": 0.6076,
+            "ci": [
+              0.5628,
+              0.6525
+            ]
+          },
+          "UP": {
+            "n": 314,
+            "wr": 0.6115,
+            "ci": [
+              0.5573,
+              0.6656
+            ]
+          },
+          "DOWN": {
+            "n": 132,
+            "wr": 0.5985,
+            "ci": [
+              0.5152,
+              0.6818
+            ]
+          }
+        },
+        "oos": {
+          "moved_auc": 0.5099,
+          "COMBINED": {
+            "n": 55,
+            "wr": 0.4909,
+            "ci": [
+              0.3636,
+              0.6182
+            ]
+          },
+          "UP": {
+            "n": 19,
+            "wr": 0.5263,
+            "ci": [
+              0.3158,
+              0.7368
+            ]
+          },
+          "DOWN": {
+            "n": 36,
+            "wr": 0.4722,
+            "ci": [
+              0.3056,
+              0.6389
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tk_importance_share": 0.0996,
+  "top_tk_feats": [
+    [
+      "sprd_900",
+      331
+    ],
+    [
+      "flow_900",
+      297
+    ],
+    [
+      "nt_900",
+      280
+    ],
+    [
+      "sprd_300",
+      279
+    ],
+    [
+      "mom_900",
+      261
+    ],
+    [
+      "spread",
+      243
+    ]
+  ],
+  "verdict": {
+    "bars_binding_COMB": 0.5258,
+    "barstk_binding_COMB": 0.4909,
+    "per_year_COMB_delta": {
+      "test24": 0.0043,
+      "test25": 0.0362,
+      "oos": -0.0349
+    },
+    "FORWARD_GENUINE": false,
+    "note": "TRAP#9 / NOT-FORWARD: the CPCV tick lift does NOT transfer to the frozen-past forward holdout (binding year not improved or a year regresses) -> era-memorization, not a deployable edge. Discard; seed-ens book stays the deliverable."
+  }
+}
