@@ -46,6 +46,9 @@ Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry) AND 
 
 **Read:** monotone-in-confidence, both sides ~.57–.60 @cov2–3% in 2024/2025. **2026 (binding) is DOWN-only** — DOWN holds (.589@cov2 / .578@cov1) while UP collapses (.493@cov2 / .516@cov1). The frozen-2021 book decays forward (refit-dependent, same as EURUSD/USDJPY 15m); DOWN survives the decay, UP does not. → certify via per-fold-REFIT CPCV (recovers per-era floor); DOWN is the more deployable side; UP is regime-dependent and must be confirmed forward (trap #9).
 
+### TB first-touch TRAIN-label (confirm-or-kill) — `audusd_15m_cpcv_tbfirsttouch.py`
+VAL k-screen picked k=2.0 (VAL fixed-15m AUC **.5389** vs base .5378 = +.0011, marginal; USDJPY was +.005). Single-seed NY CPCV certifies all sides (p10>BE, frac 1.0) but the HONEST **matched-cov** comparison (the script's `IMPROVES` flag compares cross-cov vs the cov5 incumbent — NOT matched, the USDJPY overclaim trap): TB vs single-seed base @cov2 = UP .5826 vs .5833 (−.001 flat), DOWN .5981 vs .5897 (+.008), COMB .5906 vs .5915 (−.001 flat). **vs the seed-ens K=3 DELIVERABLE: TB single-seed is BELOW on UP (.5826≪.596) and COMB (.5906<.591); DOWN ≈ (.5981 vs .5962).** → TB-label certifies-at-level but is **NOT a robust improvement** over the deliverable (only a small DOWN nudge, UP flat, VAL-AUC lift within noise) — same finding as USDJPY. Seed-ens deliverable stands. (TB+seed-ens K=3 matched test queued for the decisive confirm.) `audusd_15m_cpcv_tbfirsttouch_ny_multicov_result.json`.
+
 ### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `audusd_15m_cpcv_session.py all`
 | cov | UP p10 (frac_clear) | DOWN p10 (frac) | COMB p10 (frac) | CERT |
 |---|---|---|---|---|
@@ -107,6 +110,8 @@ Train ONCE on 2012-21 NY, FREEZE, test per-year NY (deployment-faithful, NO retr
 |---|---|---|---|---|
 | **15m UP** | **.576 @cov5 / .596 @cov2** (NY seed-ens K=3, 15/15) | .593 / .610 mean (cov5/2) | **`AUDUSD.m15ny_seedens.v1`** ✅ FROZEN (content_id 9b0e0ed3) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
 | **15m DOWN** | **.587 @cov5 / .596 @cov2** (NY seed-ens K=3, 15/15) | .604 / .623 mean (cov5/2) | **`AUDUSD.m15ny_seedens.v1`** ✅ FROZEN (content_id 9b0e0ed3) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
+
+**★ True-tick-settlement validation (integrity gate) — `audusd_15m_ticksettle.py`:** re-settled the frozen book's confident NY trades on raw AUDUSD ticks (entry = first tick ≥ bar-close+1s, exit = last tick ≤ entry+900s, mid-to-mid, ties LOSE). Same-subset bar-WR → tick-WR: 2024 .6051→.5882, 2025 .5837→.5872, 2026 .5068→.5096; **mean(tick−bar) = −0.0035 → PRESERVED** (matches USDJPY −.0036). The certified ~.59 NY win-rate is real on traded prices, NOT a bar-close/bar-shift artifact; bar-close proxy faithful at 15m. `audusd_15m_ticksettle_result.json`.
 
 **Deployment spec (both sides, book `AUDUSD.m15ny_seedens.v1`):** trade AUDUSD 15m Rise/Fall when `ts ∈ NY session` (America/New_York 08:00–17:00, DST-correct) AND `|p̄−0.5| ≥ conf_thr` where `p̄` = mean of K=3 seed probabilities; cov3% gate (thr frozen on VAL NY worst-half). Two-sided via confidence selection (bet UP if p̄>0.5 else DOWN). **REFIT-DEPENDENT: retrain periodically (frozen-2012-21 vintage decays to sub-BE by 2026); size on the refit per-era floor (~.57–.60), 1/8-Kelly, NOT the stale frozen book.** Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry).
 
