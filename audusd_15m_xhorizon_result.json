@@ -1,0 +1,13 @@
+{
+  "key": "AUDUSD.15m.NY",
+  "val_auc_15m": 0.5388,
+  "val_auc_30m": 0.5408,
+  "corr_p30_p15_valny": 0.8117,
+  "n_aligned": 270487,
+  "parent30_ny_cov2_valacc": 0.5954,
+  "falsifier": "KILL (subsumed) if corr(p30,p15) > 0.90 -> collinear, no orthogonal sign (USDJPY 30m parent .957)",
+  "verdict": {
+    "collinear_subsumed": false,
+    "note": "corr<=0.90 -> some decorrelation; a full agreement-gated stack CPCV is warranted."
+  }
+}
