@@ -97,6 +97,30 @@ Train ONCE on 2012-21 NY (seed-ens K=3), FREEZE, test per-year NY @cov2 (deploym
 ### Cross-pair pooling (A6 / R1-2) — the EUR-bloc keystone, retargeted to USDCAD (sign-aligned, USD-numerator) → **POOLING DOES NOT ADD (own-pair-specific, USDJPY/AUDUSD case)**
 `usdcad_15m_xpair.py xpbase` (cross-pair USD-residual + lead-lag + commodity-bloc/oil-proxy + risk factor, sign-aligned via aln(p)=equiv_sign(TARGET)·equiv_sign(p) so USDCAD stays in its raw USD-strength frame; all-session screen). VAL AUC **.5244** vs base .5234 (+.0010, negligible). **top-20 features are mostly own-pair base** (hour_cos/sin, 4h_autocorr, bb_width, dist_ema, rangepos, rsi, rv) — though the cross-pair lead-lag (ll_AUDUSD/GBPUSD/EURUSD), catchup1, tgtresid3, cadcommod_resid3 DO reach top-20 (more than AUDUSD where they didn't), they carry no net VAL direction and **HURT 2026**. Per-year cov2%: 2024 COMB .6006/UP .581/DOWN .628; 2025 .557/.559/.555; 2026 **.5112/UP .525/DOWN .496 (collapses, below base .537)**. **VERDICT: IMPROVES_base=False** — the GBM picks up the USD-factor pool but it doesn't carry incremental 15m sign and overfits 2026. **USDCAD is the USDJPY/AUDUSD case (own-pair-specific), NOT the EURUSD/GBPUSD case (poolable).** No escalation to NY refit-CPCV. `usdcad_15m_xpair_xpbase_result.json`. (R1-4 double-orthogonalized oil-proxy residual running as confirm — single-purge showed no DOWN lift, low EV.)
 
+### Session landscape (A9) — NY is the UNIQUE carrier — `usdcad_15m_cpcv_session.py {ldn,asia}`
+| session | UP p10 @cov5 (frac) | DOWN p10 @cov5 (frac) | COMB p10 | verdict |
+|---|---|---|---|---|
+| **NY** | **.5831 (1.0)** | **.5694 (1.0)** | **.5817 (1.0)** | ✅ BOTH CERTIFY (every cov) |
+| asia | .5175 (.47) | .4978 (.13) | .5107 | ✗ sub-BE |
+| ldn | .5047 (.33) | .4977 (.20) | .5044 | ✗ sub-BE |
+
+All-session itself was sub-BE (efficient). **Read:** NY-restriction is the rescue; LDN (despite the oil/early-NY overlap) and Asia are both dead — direction-sign rides the US-session flow. Identical to AUDUSD/USDJPY. `usdcad_15m_cpcv_session_{ldn,asia}_multicov_result.json`.
+
+### Improve cross-product (on the certified NY book) — all NULL/subsumed (the AUDUSD outcome)
+| lever | file | result | verdict |
+|---|---|---|---|
+| seed-ens K=3 | `usdcad_15m_cpcv_session.py ny ..3` | ~parity (lifts cov5+means, flat cov2-3 p10) | ✅ FROZEN deliverable (robustness) |
+| seed-ens K=8 | `usdcad_15m_cpcv_session.py ny ..8` | _running (chain3)_ | _expect saturation (K=3 already ~parity; 239-feat saturated on AUDUSD+USDJPY)_ |
+| cross-pair pooling (A6/R1-2) | `usdcad_15m_xpair.py xpbase` | VAL .5244≈base; 2026 collapses | ❌ own-pair-specific (USDJPY/AUDUSD case) |
+| double-ortho oil-proxy (R1-4) | `usdcad_15m_xpair.py dblortho` | VAL .5243≈base; 2026 DOWN .495 | ❌ no on-disk oil substitute |
+| two-speed sign-agreement (R1-1) | `usdcad_15m_twospeed.py` | Δ-.0005, no ts_ in top20 | ❌ base mtf already captures |
+| kNN regime-matcher (R1-3) | `usdcad_15m_knn.py` | kNN AUC .507≪GBM .543; blend Δ-.0175 | ❌ decorrelated-but-weak → dilutes |
+| signed-OFI direction (R1-5) | `usdcad_15m_ofi.py` | _running (chain3)_ | _expect KILL (USDJPY/EURUSD 15m + sign-invariance: OF gates SIZE, sign at seconds)_ |
+| meta-gate avoid-losers | `usdcad_15m_metagate.py` | _running (chain3)_ | _expect KILL (EURUSD .502/AUDUSD .529 NULL)_ |
+| TB first-touch label | ⊘ cite-subsumed | Tier-1: USDJPY+AUDUSD certified-at-level but adversarially NOT robust (p10=noisy order-stat) | ⊘ SUBSUMED (generic, not re-run) |
+| cross-horizon 30m→15m stack | ⊘ cite-subsumed | Tier-1: AUDUSD decorrelated-but-equally-weak parent → redundant w/ seed-ens; USDJPY collinear | ⊘ SUBSUMED (generic, not re-run) |
+| \|ret\|-weight / GMADL / ACI / calibration | ⊘ cite-subsumed | Tier-1: \|ret\|-retrain KILLED 3 pairs (2026 UP-collapse); ACI KILLED 3 pairs; sign-invariance | ⊘ SUBSUMED (generic, not re-run) |
+
 _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` for status of record)_
 
 ---

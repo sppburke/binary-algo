@@ -1,0 +1,21 @@
+{
+  "key": "USDCAD.15m",
+  "model": "kNN regime-matcher (K=100, top20 Z-space) NY screen",
+  "session": "ny",
+  "breakeven": 0.541,
+  "falsifier": {
+    "registered": "pre-OOS",
+    "KILL_if": "kNN VAL AUC < GBM VAL AUC AND blend AUC <= GBM AUC + 0.003 (no edge + no blend lift = redundant)"
+  },
+  "gbm_val_auc": 0.5433,
+  "knn_val_auc": 0.5068,
+  "corr_knn_gbm": 0.211,
+  "blend_val_auc": 0.5257,
+  "blend_lift": -0.0175,
+  "K": 100,
+  "nref": 80000,
+  "verdict": {
+    "KILLED": true,
+    "note": "if KILLED, kNN redundant (no standalone edge + no blend lift; AUDUSD decorrelated-but-equally-weak lesson). If blend lifts -> escalate NY refit-CPCV blend."
+  }
+}

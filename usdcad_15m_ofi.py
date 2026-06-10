@@ -28,10 +28,12 @@ def load_of(years):
     for y in years:
         p=f"{OFDIR}/{PAIR}_{y}.parquet"
         if not os.path.exists(p): continue
-        d=pd.read_parquet(p); d=d[~d.index.duplicated(keep="last")]
+        d=pd.read_parquet(p)
         d.index=d.index.values.astype("datetime64[s]").astype("int64")
+        d=d[~d.index.duplicated(keep="last")]          # dedup AT second-resolution (post-conversion)
         parts.append(d.astype("float32"))
-    return pd.concat(parts) if parts else None
+    if not parts: return None
+    out=pd.concat(parts); return out[~out.index.duplicated(keep="last")]
 
 def align_of(of_all, ts):
     """Reindex OF to the base rows' epoch seconds (ts). Missing -> NaN (LGBM-native)."""
