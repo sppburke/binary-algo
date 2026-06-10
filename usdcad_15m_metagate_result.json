@@ -1,0 +1,34 @@
+{
+  "key": "USDCAD.15m.NY",
+  "n_meta_axes": 45,
+  "meta_axes": [
+    "usdbask1",
+    "catchup1",
+    "tgtresid1",
+    "disp1",
+    "agree1",
+    "risk1",
+    "cadcommod_resid1",
+    "usdbask3",
+    "catchup3",
+    "tgtresid3",
+    "disp3",
+    "agree3",
+    "risk3",
+    "cadcommod_resid3",
+    "usdbask5",
+    "catchup5",
+    "tgtresid5",
+    "disp5",
+    "agree5",
+    "risk5"
+  ],
+  "primary_val_ny_acc": 0.5274,
+  "meta_correctness_auc_axes+conf": 0.5374,
+  "meta_correctness_auc_axesonly": 0.5298,
+  "falsifier": "KILL if meta-correctness axes-only AUC <= 0.53 (random gate, as EURUSD .502 / AUDUSD .5294)",
+  "verdict": {
+    "meta_gate_viable": false,
+    "note": "axes-only AUC tests whether orthogonal axes carry WHEN-CORRECT info (xpair A6 showed they carry no DIRECTION info)."
+  }
+}

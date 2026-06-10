@@ -123,6 +123,31 @@ All-session itself was sub-BE (efficient). **Read:** NY-restriction is the rescu
 
 _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` for status of record)_
 
+### Other improve levers (NY screens) → NULL
+- **Signed order-flow (OFI/Kyle) direction (R1-5)** — `usdcad_15m_ofi.py`: base NY VAL AUC .5433 → base+OF .5434 (**Δ+0.0002**). The 18 on-disk OF features (OF_kyle_5/15, OF_of_norm_30, OF_of_uptick_15) DO reach top-20 at 100% coverage, but carry **no net incremental 15m direction** → KILLED. Confirms order-flow imbalance gates move SIZE not 15m SIGN (sign-invariance; directional sign lives at SECONDS, the 900s label is too far out) — the USDJPY (tickmicro fwd 2026 −.035) + EURUSD (cross-impact .5015) 15m precedent holds at USDCAD. `usdcad_15m_ofi_result.json`.
+- **Meta-label 'avoid-losers' gate** — `usdcad_15m_metagate.py`: orthogonal-axes (cross-pair/risk/agree/session) meta-correctness AUC **.5298 ≤ .53** (axes+conf .5374) → viable=False, KILLED. The axes carry no incremental WHEN-CORRECT info, same as EURUSD (.502) / AUDUSD (.5294). `usdcad_15m_metagate_result.json`.
+- **Two-speed momentum sign-agreement (R1-1)** — `usdcad_15m_twospeed.py`: NY base+twospeed VAL AUC Δ−0.0005, no ts_ feature in top-20 → KILLED (the base's `mtf_trend_align` + multi-tf ret/ema/macd already capture it). `usdcad_15m_twospeed_result.json`.
+- **kNN regime-matcher (R1-3)** — `usdcad_15m_knn.py`: kNN VAL AUC .5068 ≪ GBM .5433; corr(kNN,GBM) .211 (decorrelated) but 50/50 blend Δ−0.0175 → KILLED (decorrelated-but-equally-weak → dilutes; the AUDUSD cross-horizon-stack lesson). `usdcad_15m_knn_result.json`.
+- **K=8 seed-ens saturation** — running (last completeness item; K=3 already ~parity → expect saturation per AUDUSD/USDJPY 239-feat precedent).
+
+---
+
+## FINAL CONCLUSION (USDCAD 15m direction) — 2026-06-10
+**BOTH sides CERTIFIED + frozen + deployable-spec'd.** Deliverable book `USDCAD.m15ny_seedens.v1` (content_id ddb4a78c, NY-session own-pair LGBM seed-ensemble K=3): refit-CPCV **UP p10 .5968 / DOWN .5791 @cov2** (UP .604@cov1, DOWN .5814@cov5, COMB .6025@cov2), mean ~.62, 15/15 paths clear every cov (DOWN cov1 14/15). REFIT-DEPENDENT (deploy NY-only w/ periodic retrain, size on the refit floor). No USDCAD tick data on disk → bar-close proxy trusted (USDJPY/AUDUSD tick-validated −.0035).
+
+**Model of the edge (final):** USDCAD 15m direction-sign is **NY-session-concentrated + own-pair-specific** — the most North-American pair, so the sign rides US-session USD/CAD flow (BoC+Fed+US/CA data+oil in the LDN/NY window). All-session is EFFICIENT (sub-BE refit floor); NY-restriction rescues it (the **USDJPY pattern**). Cross-pair pooling DILUTES (the USDJPY/AUDUSD case, NOT the EUR-bloc EURUSD/GBPUSD case). **UP (= USD-strength / risk-off / oil-down) is the more robust side** on both the refit floor (UP .604 vs DOWN .579 @cov2) and the frozen-forward (UP survives to 2026 .5714 > BE; DOWN sub-BE .5258) — vindicating the v0 mechanistic prediction (the frozen-book's early DOWN-lead was a 2024-regime artifact the per-fold refit removes).
+
+**The >65% target is an INFORMATION BOUND on existing on-disk data, not reached.** NY moved-AUC ceiling ~.532 → certified floor ~.58–.60, mean ~.62 at tight coverage; single forward years touch ~.65–.75 (2024 cov2 DOWN .749) but that is not a floor. The bound is robust — confirmed across the full improve cross-product + 2 dry discovery rounds:
+- **LIFTS / deliverable:** seed-ensemble K=3 (~parity vs single-seed — lifts cov5 + means; frozen for deployment robustness).
+- **NULL / subsumed (run, not argued):** cross-pair pooling + double-orthogonalized oil-proxy (own-pair-specific); two-speed momentum (base mtf captures it); kNN regime-matcher (decorrelated-but-weak); signed-OFI/Kyle order-flow (gates SIZE not SIGN); meta-gate (axes carry no when-correct info); LDN+Asia sessions (sub-BE, NY unique carrier). Cite-subsumed by Tier-1 cross-pair: TB-label, cross-horizon stack, |ret|-weight/GMADL retrain, ACI/calibration (all killed on ≥2 prior pairs + sign-invariance).
+- **The only frontier past the bound = EXTERNAL signed data** (intraday WTI/CL crude oil — the dominant signed CAD driver, **genuinely absent on disk: NYMEX minute empty**; US-CA 2y/10y rate-differential; VIX / FX 25d risk-reversal) — off-disk, acquisition TODO, each trap-#9 frozen-forward-gated. The on-disk ES/NQ cross-asset proxy carries a null prior (ES→FX lead-lag already null at EURUSD).
+
+**Improve + discover loops DRY** on existing on-disk data (2 consecutive dry discovery rounds). The deliverable is the deployable answer; >65% as a floor requires external data acquisition (the documented redirect, not a wall).
+
+**Deployment spec (both sides, book `USDCAD.m15ny_seedens.v1`):** trade USDCAD 15m Rise/Fall when `ts ∈ NY session` (America/New_York 08:00–17:00, DST-correct) AND `|p̄−0.5| ≥ conf_thr` where `p̄` = mean of K=3 seed probabilities; cov2% gate (thr frozen on VAL NY worst-half). Two-sided via confidence selection (bet UP if p̄>0.5 else DOWN); UP is the more robust side. **REFIT-DEPENDENT: retrain periodically (frozen-2012-21 vintage decays — UP holds to 2026 .571, DOWN goes sub-BE .526); size on the refit per-era floor (~.58–.60), 1/8-Kelly, NOT the stale frozen book.** Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry).
+
+_Provenance: every number traces to a `*_result.json` (Tier-1). K=8 saturation pending (deliverable unaffected if saturated, as expected)._
+
 ---
 
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)

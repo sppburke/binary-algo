@@ -1,0 +1,50 @@
+{
+  "key": "USDCAD.15m",
+  "model": "signed order-flow (OFI/Kyle) NY direction screen",
+  "session": "ny",
+  "breakeven": 0.541,
+  "incumbent": "NY base VAL AUC ~.532 (cpcv mean); NY-certified base UP p10 .6044/DOWN .5791",
+  "falsifier": {
+    "registered": "pre-OOS",
+    "KILL_if": "base+OF NY VAL AUC <= base NY VAL AUC + 0.003 OR no OF_ feat in top-20"
+  },
+  "base_val_auc": 0.5433,
+  "aug_val_auc": 0.5434,
+  "lift": 0.0002,
+  "of_coverage": {
+    "train": 1.0,
+    "val": 1.0
+  },
+  "of_in_top20": [
+    "OF_kyle_5",
+    "OF_of_norm_30",
+    "OF_of_uptick_15",
+    "OF_kyle_15"
+  ],
+  "top20": [
+    "hour_cos",
+    "hour_sin",
+    "4h_autocorr_10",
+    "4h_rv_24",
+    "4h_dist_lo_24",
+    "1h_autocorr_10",
+    "30m_autocorr_10",
+    "4h_dist_hi_48",
+    "1h_ret_1",
+    "OF_kyle_5",
+    "4h_dist_lo_48",
+    "4h_atr_pct",
+    "OF_of_norm_30",
+    "OF_of_uptick_15",
+    "4h_rv_12",
+    "4h_slope_20",
+    "4h_dist_ema100",
+    "5m_autocorr_10",
+    "OF_kyle_15",
+    "15m_rv_12"
+  ],
+  "verdict": {
+    "KILLED": true,
+    "note": "if KILLED, signed-OF direction subsumed at 15m (USDJPY/EURUSD precedent + sign-invariance: OF gates SIZE, sign lives at seconds). If SURVIVES -> escalate NY refit-CPCV."
+  }
+}
