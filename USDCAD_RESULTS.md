@@ -110,7 +110,7 @@ All-session itself was sub-BE (efficient). **Read:** NY-restriction is the rescu
 | lever | file | result | verdict |
 |---|---|---|---|
 | seed-ens K=3 | `usdcad_15m_cpcv_session.py ny ..3` | ~parity (lifts cov5+means, flat cov2-3 p10) | ✅ FROZEN deliverable (robustness) |
-| seed-ens K=8 | `usdcad_15m_cpcv_session.py ny ..8` | _running (chain3)_ | _expect saturation (K=3 already ~parity; 239-feat saturated on AUDUSD+USDJPY)_ |
+| seed-ens K=8 | `usdcad_15m_cpcv_session.py ny ..8` | SATURATED — K8 vs K3 mixed ±.002-.008, sign-inconsistent (cov2 COMB .6047/UP .5963/DOWN .5806, all 15/15) | ❌ no robust lift; K=3 retained (parsimony) — 239-feat own-pair saturates at K=3 |
 | cross-pair pooling (A6/R1-2) | `usdcad_15m_xpair.py xpbase` | VAL .5244≈base; 2026 collapses | ❌ own-pair-specific (USDJPY/AUDUSD case) |
 | double-ortho oil-proxy (R1-4) | `usdcad_15m_xpair.py dblortho` | VAL .5243≈base; 2026 DOWN .495 | ❌ no on-disk oil substitute |
 | two-speed sign-agreement (R1-1) | `usdcad_15m_twospeed.py` | Δ-.0005, no ts_ in top20 | ❌ base mtf already captures |
@@ -128,7 +128,7 @@ _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` 
 - **Meta-label 'avoid-losers' gate** — `usdcad_15m_metagate.py`: orthogonal-axes (cross-pair/risk/agree/session) meta-correctness AUC **.5298 ≤ .53** (axes+conf .5374) → viable=False, KILLED. The axes carry no incremental WHEN-CORRECT info, same as EURUSD (.502) / AUDUSD (.5294). `usdcad_15m_metagate_result.json`.
 - **Two-speed momentum sign-agreement (R1-1)** — `usdcad_15m_twospeed.py`: NY base+twospeed VAL AUC Δ−0.0005, no ts_ feature in top-20 → KILLED (the base's `mtf_trend_align` + multi-tf ret/ema/macd already capture it). `usdcad_15m_twospeed_result.json`.
 - **kNN regime-matcher (R1-3)** — `usdcad_15m_knn.py`: kNN VAL AUC .5068 ≪ GBM .5433; corr(kNN,GBM) .211 (decorrelated) but 50/50 blend Δ−0.0175 → KILLED (decorrelated-but-equally-weak → dilutes; the AUDUSD cross-horizon-stack lesson). `usdcad_15m_knn_result.json`.
-- **K=8 seed-ens saturation** — running (last completeness item; K=3 already ~parity → expect saturation per AUDUSD/USDJPY 239-feat precedent).
+- **K=8 seed-ens saturation** — `usdcad_15m_cpcv_session.py ny ..8`: K=8 vs K=3 p10 mixed ±.002-.008, sign-inconsistent across cov/side (cov2 COMB .6047 marginally best, cov5 DOWN/COMB slightly worse) — within CPCV-path noise → **SATURATED**, K=3 retained for parsimony. 239-feat own-pair saturates at K=3 (AUDUSD/USDJPY pattern; only GBPUSD's 340-feat xpair lifted at K=8). `usdcad_15m_cpcv_session_ny_seedens8_result.json`.
 
 ---
 
@@ -146,7 +146,7 @@ _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` 
 
 **Deployment spec (both sides, book `USDCAD.m15ny_seedens.v1`):** trade USDCAD 15m Rise/Fall when `ts ∈ NY session` (America/New_York 08:00–17:00, DST-correct) AND `|p̄−0.5| ≥ conf_thr` where `p̄` = mean of K=3 seed probabilities; cov2% gate (thr frozen on VAL NY worst-half). Two-sided via confidence selection (bet UP if p̄>0.5 else DOWN); UP is the more robust side. **REFIT-DEPENDENT: retrain periodically (frozen-2012-21 vintage decays — UP holds to 2026 .571, DOWN goes sub-BE .526); size on the refit per-era floor (~.58–.60), 1/8-Kelly, NOT the stale frozen book.** Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry).
 
-_Provenance: every number traces to a `*_result.json` (Tier-1). K=8 saturation pending (deliverable unaffected if saturated, as expected)._
+_Provenance: every number traces to a `*_result.json` (Tier-1). K=8 saturation confirmed (mixed ±.002-.008, K=3 retained) — deliverable unchanged. SWEEP CLOSED 2026-06-10._
 
 ---
 
