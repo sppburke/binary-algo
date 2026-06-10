@@ -32,4 +32,26 @@ SCOPE: USDCAD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 | T1 | (no USDCAD tick data on disk) | tick-settlement validation N/A; bar-close proxy validated on USDJPY/AUDUSD (mean tick−bar −.0035, PRESERVED) → trust at 15m |
 
 ## Discovery rounds
-- **R1 (2026-06-10):** queue above instantiated from the AUDUSD/USDJPY/GBPUSD ledgers + SWEEP_MATRIX, deduplicated by Tier-1 dispositions (don't re-run what's subsumed across all 3 prior pairs). Key USDCAD-SPECIFIC mechanisms to test (not in prior ledgers): oil/WTI-bloc residual (#5, petrocurrency), the UP-side-more-forecastable asymmetry prediction, most-NA NY-concentration. Corpus deep-mine pending (workflow) — focus: petrocurrency / oil lead-lag / BoC-Fed differential / commodity-FX direction papers in academic-papers/.
+- **R1 (2026-06-10) — workflow `usdcad-15m-discovery-r1` (corpus _extracted_levers.json + FX-direction papers + web arXiv/SSRN 2021-26 + 4-pair subsumption map; sign-invariance-filtered, deduped).** 16 levers vetted. **Honest synthesis:** every on-disk family caps directional AUC ~.539 and certified WR ~.60-.625 across all 5 pairs studied → the ONLY credible path past the ~.60 floor to >65% is OFF-DISK (oil/rate-diff/VIX), each trap-#9-gated by frozen-past forward holdout. On-disk USDCAD order-flow (features_of/, features_tick_xofi/) EXISTS but signed-OFI direction was run-and-killed at 15m on USDJPY (tickmicro fwd 2026 −.035) + EURUSD (sign lives at seconds, 900s too far) → low-prior confirm-once.
+
+### R1 RUN queue (new on-disk/panel direction levers, ranked) — apply to certified NY base, refit-CPCV cov2
+| # | lever | side | mechanism (sign) | data | prior | fast-KILL | status |
+|---|---|---|---|---|---|---|---|
+| R1-1 | **Two-speed momentum SIGN-agreement** (slow 1h/4h × fast 5m/15m sign-agree as a DIRECTION feature) | BOTH | agreed sign IS the predicted direction; disagreement=correction/rebound (no edge). Never run as a sign-agreement feature on any pair; NY window is where BoC/Fed/oil align the speeds | on-disk | **med** | KILL if both sides p10 ≤ NY base (UP .6044/DOWN .5791) AND agreement feat outside top-20 SHAP | pending |
+| R1-2 | **Cross-pair USD-residual pooling** (panel e_USDCAD/fac, sign-aligned: USD in NUMERATOR → residual sign inverts vs AUD/NZD) | BOTH | EUR-bloc certifying keystone; does USDCAD pool (EURUSD/GBPUSD) or dilute (USDJPY/AUDUSD)? | panel | low | KILL if neither side p10 beats NY base AND VAL AUC ≤ .5319+.003 (expect dilute, run-don't-argue) | pending (=ledger A6) |
+| R1-3 | **kNN regime-matcher** in Z-scored state space (instance-based, orthogonal to GBM partition) | BOTH | signal = sign(mean subsequent 15m ret of K nearest NY bars in top-20-feat space); free ensemble member if it decorrelates from GBM | on-disk | low | KILL if standalone p10 < BE both sides AND kNN-GBM blend ≤ seed-ens K=3 (AUDUSD xhstack standard: variance-only = redundant) | pending |
+| R1-4 | **Double-orthogonalization residual** (purge USD fac AND commodity-bloc mean(e_AUD,e_NZD) → CAD-idiosyncratic = on-disk OIL PROXY) | DOWN | isolates oil-driven CAD flow w/o oil data; the predicted more-forecastable DOWN side | panel | low | KILL if DOWN p10 ≤ single-purge xpair (R1-2). Run only if R1-2 shows any DOWN signal | pending (contingent on R1-2) |
+| R1-5 | **Signed-OFI / cks1s order-flow direction** (confirm-once; on-disk features_of/ + features_tick_xofi/) | BOTH | signed order-flow residual as direction feat | on-disk | low | KILL if p10 ≤ NY base both sides (expect KILL: USDJPY/EURUSD 15m precedent + sign-invariance, sign lives at seconds). Run only after R1-1..4 + before declaring on-disk dry | pending |
+
+### R1 DEFER — OFF-DISK frontier (the honest path to >65%; data-acquisition TODO, each trap-#9 frozen-fwd-gated)
+| # | lever | side | mechanism | acquire |
+|---|---|---|---|---|
+| X1 | **Intraday WTI/oil** (return + realized-skew; LLM oil sentiment) | DOWN | WTI↓⇒CAD weak⇒USDCAD↑; the USDCAD analog of AUDUSD's iron-ore frontier. **Highest-value next action** | WTI/Brent intraday series |
+| X2 | **US-CA 2y/10y rate-differential** lead-lag | UP | widening Fed-BoC spread⇒USD-strength⇒USDCAD↑; most tractable rate-diff pair (both legs liquid NA) | US+CA 2y/10y intraday |
+| X3 | **VIX / FX 25d risk-reversal** risk-off gate | UP | risk-off⇒USD-strength⇒USDCAD↑ (inverse of AUDUSD, USD-numerator) | VIX + FX RR series |
+
+### R1 SUBSUMED (run-and-killed across ≥2 prior pairs — DO NOT re-run; Tier-1 rationale)
+Order-flow/OFI direction (USDJPY+EURUSD 15m, sign-invariance) [kept as R1-5 confirm-once since on-disk]; Fourier/seasonal decomposition→sign (EURUSD FAM2, sign-invariance carries SIZE); pinball/quantile & ranking loss (gate-only, TFT-fan killed); time-of-day positional (trap-#9 forward-decay; base already has hour_sin/cos + NY restriction is the certified timing lever); cross-horizon 15m×30m stack (AUDUSD: decorrelated-but-equally-weak → redundant w/ seed-ens); meta-gate orthogonal-axes (EURUSD .502 / AUDUSD .529 < .53 bar); neural/attention/CNN/VAR-FNN direction (84-arm campaign 0 survivors, info-bound); RL/MtM state features (D4-D5 info-bound capped).
+
+### Earlier R1 cross-pair-transfer queue (pre-corpus, superseded by the above)
+Original FIRST-TO-RUN queue (NY session ✅done, all-session ✅done, seed-ens running) retained in the FIRST-TO-RUN table at top.
