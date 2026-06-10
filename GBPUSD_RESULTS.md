@@ -16,8 +16,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| GBPUSD · **15m** · UP | **NY refit-CPCV p10 .6039 @cov2 / .6192 @cov1 (15/15 every cov)** ✅ CERTIFIED, REFIT-DEPENDENT | NY own-pair LGBM s2/l255, cov-gate (`gbpusd_15m_cpcv_session.py ny 2`); book not yet frozen — seed-ens/pooling lift tests running | Strongest 15m cert in the 4-pair family (single-seed beats AUD seed-ens). All-session also certifies (.5532@cov2 — first sibling to do so) but NY lifts +.04–.06. Frozen-2021 book dead by 2026 → deploy w/ periodic retrain. | ✅ CERTIFIED (NY refit-CPCV) 2026-06-09; lift tests in progress |
-| GBPUSD · **15m** · DOWN | **NY refit-CPCV p10 .5937 @cov2 / .5977 @cov3 (15/15 every cov)** ✅ CERTIFIED, REFIT-DEPENDENT | same harness/book as UP | NY rescues the all-session DOWN tail-sensitivity (all-session cov5/cov1 dropped out; NY certifies everywhere). | ✅ CERTIFIED (NY refit-CPCV) 2026-06-09; lift tests in progress |
+| GBPUSD · **15m** · UP | **xpair-NY K=3 refit-CPCV p10 .6209 @cov2 / .647 @cov1 (15/15 every cov); means .6496 / .6787** ✅ CERTIFIED, REFIT-DEPENDENT | `GBPUSD.m15ny_xpair_seedens.v1` · `df279204d247f618` (340 feats, K=3 seed-ens, NY session, cov-gate .01); `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json`; frozen `books/GBPUSD.m15ny_xpair_seedens.v1/` | Borderline-65% floor: seed-config order-stat band .647–.6515 → honest claim .647–.6515 p10 / mean .68. EUR-bloc discriminator resolved (pooling wins at GBPUSD, same as EURUSD, not JPY/AUD). Refit-dependent confirmed (frozen-2021 dead by 2026); deploy with periodic retrain; tick haircut ~1pp (bar-proxy faithful). | ✅ CERTIFIED + FROZEN (xpair-NY K=3 refit-CPCV) 2026-06-10 |
+| GBPUSD · **15m** · DOWN | **xpair-NY K=3 refit-CPCV p10 .6154 @cov2 / .6323 @cov1 (15/15 every cov); means .6407 / .6624** ✅ CERTIFIED, REFIT-DEPENDENT | same book as UP: `GBPUSD.m15ny_xpair_seedens.v1` · `df279204d247f618`; `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json` | K=3 genuinely lifts DOWN vs K=1 (+.005–.010 p10 AND mean +.010). >65% floor open (mean .66; refit-p10 .6323 — recent-regime era binds; more signal would require net-new 2024+ features). Orthochan ALL ADDS=False → improve loop exhausted. | ✅ CERTIFIED + FROZEN (xpair-NY K=3 refit-CPCV) 2026-06-10 |
 | GBPUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (GBPUSD pending).
@@ -95,9 +95,9 @@ Falsifier: ADDS iff ΔVal-AUC > .005 AND 2026 cov2 > base (.4892). None pass eit
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.647–.6515 @cov1 (K3/K1; borderline-65% floor) / .6209 @cov2** (xpair-NY, 15/15 every cov) | .6787 / .6496 mean (K3) | not yet frozen (adversarial running) | ✅ CERTIFIED (xpair-NY refit-CPCV); UP @cov1 floor borderline-65% (seed-config order-stat .647 vs .6515), means .68 |
-| **15m DOWN** | **.6323 @cov1 / .6154 @cov2** (xpair-NY seed-ens K=3, 15/15 every cov) | .6624 / .6407 mean | not yet frozen (adversarial running) | ✅ CERTIFIED (xpair-NY K=3 refit-CPCV); >65% floor open (mean .66) |
-| _(superseded)_ own-pair NY | UP .6039 / DOWN .5937 @cov2 (15/15) | .629 / .623 | — | subsumed by xpair-NY (same harness, +.007–.032 p10 every cell) |
-| _(superseded)_ all-session own-pair | UP .5532 / DOWN .5527 @cov2 (14/15) | .568 / .567 | — | subsumed by NY (same harness) |
+| **15m UP** | **.647 @cov1 (K3) / .6209 @cov2** (xpair-NY K=3, 15/15 every cov) | .6787 @cov1 / .6496 @cov2 | `GBPUSD.m15ny_xpair_seedens.v1` `df279204d247f618` | ✅ CERTIFIED + FROZEN (2026-06-10); floor borderline-65% (seed-config band .647–.6515, means .68); tick haircut ~1pp; deploy w/ periodic retrain |
+| **15m DOWN** | **.6323 @cov1 / .6154 @cov2** (xpair-NY K=3, 15/15 every cov) | .6624 @cov1 / .6407 @cov2 | same: `GBPUSD.m15ny_xpair_seedens.v1` | ✅ CERTIFIED + FROZEN (2026-06-10); >65% floor open (mean .66; improve loop exhausted — orthochan all ADDS=False) |
+| _(superseded)_ own-pair NY K=1 | UP .6039 / DOWN .5937 @cov2 (15/15) | .629 / .623 | — | subsumed by xpair-NY (+.007–.032 p10 every cell) |
+| _(superseded)_ all-session own-pair | UP .5532 / DOWN .5527 @cov2 (14/15) | .568 / .567 | — | subsumed by NY |
 
-_Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
+_Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-06-10 (sweep closed)._
