@@ -1,0 +1,226 @@
+{
+  "key": "USDCAD.15m.ny",
+  "lever": "E2 direction-conditioned-on-magnitude (base NY dir GBM x magnitude-quartile bucketing); petrocurrency angle",
+  "settlement": "deriv-faithful sign(close[t+15]-close[t]); ties LOSE; BE=0.541; gap=900s nonoverlap",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "mag_target_quantile": 0.75,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "in fewer than 2 of {test24,test25,oos} does Q4(HIGH-mag) NY dir moved-AUC exceed BOTH (a) Q1(LOW-mag) by >0.010 AND (b) ~0.532 (USDCAD NY incumbent AUC) \u2014 AND no year's Q4 cov3% win-rate CI95-lower clears 0.541 in >=2 years",
+    "expected": "NULL per sign-invariance (mag gates SIZE not SIGN) UNLESS the petrocurrency/oil angle holds (oil-driven big moves carry cleaner sign) \u2014 then Q4 lifts. RUN it; let the number decide.",
+    "incumbent": {
+      "ny_signal_auc": 0.532,
+      "ny_winrate": "0.58-0.60",
+      "BE": 0.541
+    }
+  },
+  "years": {
+    "test24": {
+      "auc": 0.5414701407146165,
+      "moved_up_rate": 0.4925080101888142,
+      "tripwire_ok": true,
+      "mag_auc": 0.7511788997663693,
+      "cov3_wr": 0.66991643454039,
+      "cov3_n": 718,
+      "cov3_ci": [
+        0.6350974930362117,
+        0.7047353760445683
+      ],
+      "quartiles": {
+        "Q1_low": {
+          "n_moved": 86340,
+          "dir_moved_auc": 0.5502555353582825,
+          "sel_wr": 0.5493212669683258,
+          "sel_n": 3315,
+          "sel_ci": [
+            0.5327224736048265,
+            0.5668174962292609
+          ]
+        },
+        "Q2": {
+          "n_moved": 34353,
+          "dir_moved_auc": 0.5297765450248122,
+          "sel_wr": 0.5442139737991266,
+          "sel_n": 1832,
+          "sel_ci": [
+            0.5212882096069869,
+            0.5665938864628821
+          ]
+        },
+        "Q3": {
+          "n_moved": 11891,
+          "dir_moved_auc": 0.5260458337942193,
+          "sel_wr": 0.5308483290488432,
+          "sel_n": 778,
+          "sel_ci": [
+            0.49611182519280206,
+            0.5668380462724936
+          ]
+        },
+        "Q4_high": {
+          "n_moved": 4429,
+          "dir_moved_auc": 0.5257856103333546,
+          "sel_wr": 0.5522388059701493,
+          "sel_n": 268,
+          "sel_ci": [
+            0.4925373134328358,
+            0.6082089552238806
+          ]
+        }
+      }
+    },
+    "test25": {
+      "auc": 0.5283291280413214,
+      "moved_up_rate": 0.4962540526331162,
+      "tripwire_ok": true,
+      "mag_auc": 0.7173253998252455,
+      "cov3_wr": 0.5625841184387618,
+      "cov3_n": 743,
+      "cov3_ci": [
+        0.5275908479138627,
+        0.5989232839838493
+      ],
+      "quartiles": {
+        "Q1_low": {
+          "n_moved": 68270,
+          "dir_moved_auc": 0.5181490520225974,
+          "sel_wr": 0.5268236202238518,
+          "sel_n": 2591,
+          "sel_ci": [
+            0.5075260517174836,
+            0.54612118873022
+          ]
+        },
+        "Q2": {
+          "n_moved": 34258,
+          "dir_moved_auc": 0.5383236454303838,
+          "sel_wr": 0.5361609570418706,
+          "sel_n": 1839,
+          "sel_ci": [
+            0.5133088635127787,
+            0.55899945622621
+          ]
+        },
+        "Q3": {
+          "n_moved": 19201,
+          "dir_moved_auc": 0.5458689566520825,
+          "sel_wr": 0.5582722086389568,
+          "sel_n": 1227,
+          "sel_ci": [
+            0.5297473512632437,
+            0.5859820700896495
+          ]
+        },
+        "Q4_high": {
+          "n_moved": 15219,
+          "dir_moved_auc": 0.5309222205756958,
+          "sel_wr": 0.5349127182044888,
+          "sel_n": 802,
+          "sel_ci": [
+            0.5012468827930174,
+            0.5673316708229427
+          ]
+        }
+      }
+    },
+    "oos": {
+      "auc": 0.51426669770239,
+      "moved_up_rate": 0.49357790635643645,
+      "tripwire_ok": true,
+      "mag_auc": 0.6969858265563739,
+      "cov3_wr": 0.5364238410596026,
+      "cov3_n": 302,
+      "cov3_ci": [
+        0.48344370860927155,
+        0.5927152317880795
+      ],
+      "quartiles": {
+        "Q1_low": {
+          "n_moved": 25463,
+          "dir_moved_auc": 0.5161479645753864,
+          "sel_wr": 0.5139557266602502,
+          "sel_n": 1039,
+          "sel_ci": [
+            0.48315688161693937,
+            0.5437921077959577
+          ]
+        },
+        "Q2": {
+          "n_moved": 13005,
+          "dir_moved_auc": 0.5193207826071532,
+          "sel_wr": 0.5402455661664393,
+          "sel_n": 733,
+          "sel_ci": [
+            0.504774897680764,
+            0.5757162346521146
+          ]
+        },
+        "Q3": {
+          "n_moved": 6853,
+          "dir_moved_auc": 0.5141493634684488,
+          "sel_wr": 0.5258620689655172,
+          "sel_n": 464,
+          "sel_ci": [
+            0.48060344827586204,
+            0.5711206896551724
+          ]
+        },
+        "Q4_high": {
+          "n_moved": 3417,
+          "dir_moved_auc": 0.5002552713095676,
+          "sel_wr": 0.5125628140703518,
+          "sel_n": 199,
+          "sel_ci": [
+            0.44221105527638194,
+            0.5829145728643216
+          ]
+        }
+      }
+    }
+  },
+  "val_or_signal_auc": 0.5432709598121259,
+  "val_mag_auc": 0.7371810199142215,
+  "mag_quartile_edges_val": [
+    0.1373039974285091,
+    0.24753864324770733,
+    0.3579094038701618
+  ],
+  "verdict": {
+    "KILLED": true,
+    "beats_base_auc": false,
+    "q4_beats_q1_and_base_years": [],
+    "q4_cov_wr_clears_BE_years": [],
+    "full_ny_auc_beats_base_years": [
+      "test24"
+    ],
+    "note": "E2: petrocurrency angle = does the HIGH-mag (oil-driven) bucket carry cleaner sign? SURVIVES if Q4 dir-AUC beats Q1+.010 & >.532 in >=2yr OR Q4 cov-WR CI-lo clears BE in >=2yr."
+  }
+}
