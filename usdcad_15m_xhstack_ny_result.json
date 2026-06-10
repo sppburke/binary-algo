@@ -7,13 +7,13 @@
     0.03,
     0.02
   ],
-  "nseed": 1,
+  "nseed": 3,
   "incumbent_seedensK3_cov2": {
     "UP": 0.5968,
     "DOWN": 0.577,
     "COMBINED": 0.6025
   },
-  "mean_fold_corr_p15_p30": 0.7088,
+  "mean_fold_corr_p15_p30": 0.7527,
   "arms": [
     "base",
     "blend",
@@ -24,219 +24,144 @@
       "base": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6055,
-          "p10": 0.5838,
-          "min": 0.5695,
+          "mean": 0.6082,
+          "p10": 0.5839,
+          "min": 0.5799,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5844,
-          "p10": 0.5656,
-          "min": 0.5616,
+          "mean": 0.5944,
+          "p10": 0.5777,
+          "min": 0.5718,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5938,
-          "p10": 0.5845,
-          "min": 0.5788,
+          "mean": 0.6003,
+          "p10": 0.5927,
+          "min": 0.5875,
           "frac_clear_BE": 1.0
         }
       },
       "blend": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6124,
-          "p10": 0.5963,
-          "min": 0.589,
+          "mean": 0.6179,
+          "p10": 0.6004,
+          "min": 0.5993,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5909,
-          "p10": 0.5675,
-          "min": 0.5634,
+          "mean": 0.5982,
+          "p10": 0.5742,
+          "min": 0.5669,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6009,
-          "p10": 0.5918,
-          "min": 0.5872,
+          "mean": 0.6075,
+          "p10": 0.5959,
+          "min": 0.5929,
           "frac_clear_BE": 1.0
         }
       },
       "agree": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6022,
-          "p10": 0.5793,
-          "min": 0.5674,
+          "mean": 0.6075,
+          "p10": 0.5861,
+          "min": 0.5801,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5831,
-          "p10": 0.5627,
-          "min": 0.5572,
+          "mean": 0.5941,
+          "p10": 0.5786,
+          "min": 0.5759,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.5915,
-          "p10": 0.5811,
-          "min": 0.5756,
+          "mean": 0.5995,
+          "p10": 0.5909,
+          "min": 0.5883,
           "frac_clear_BE": 1.0
         }
       },
-      "blend_beats_base_arm": true,
+      "blend_beats_base_arm": false,
       "blend_beats_seedens_inc": false,
-      "agree_beats_base_arm": false,
+      "agree_beats_base_arm": true,
       "agree_beats_seedens_inc": false
     },
     "0.03": {
       "base": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6138,
-          "p10": 0.5849,
-          "min": 0.5702,
+          "mean": 0.6222,
+          "p10": 0.5928,
+          "min": 0.5848,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5956,
-          "p10": 0.5681,
-          "min": 0.5582,
+          "mean": 0.6067,
+          "p10": 0.5804,
+          "min": 0.5756,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.604,
-          "p10": 0.5848,
-          "min": 0.5833,
+          "mean": 0.6144,
+          "p10": 0.5997,
+          "min": 0.5811,
           "frac_clear_BE": 1.0
         }
       },
       "blend": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.6278,
-          "p10": 0.6041,
-          "min": 0.5908,
+          "mean": 0.6312,
+          "p10": 0.6085,
+          "min": 0.6025,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.5989,
-          "p10": 0.5737,
-          "min": 0.5527,
+          "mean": 0.6103,
+          "p10": 0.5827,
+          "min": 0.574,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6134,
-          "p10": 0.5977,
-          "min": 0.5901,
+          "mean": 0.6206,
+          "p10": 0.6084,
+          "min": 0.6049,
           "frac_clear_BE": 1.0
         }
       },
       "agree": {
         "UP": {
           "n_paths": 15,
-          "mean": 0.612,
-          "p10": 0.5841,
-          "min": 0.58,
-          "frac_clear_BE": 1.0
-        },
-        "DOWN": {
-          "n_paths": 15,
-          "mean": 0.5953,
-          "p10": 0.5705,
-          "min": 0.5567,
-          "frac_clear_BE": 1.0
-        },
-        "COMBINED": {
-          "n_paths": 15,
-          "mean": 0.6028,
-          "p10": 0.5867,
-          "min": 0.5848,
-          "frac_clear_BE": 1.0
-        }
-      },
-      "blend_beats_base_arm": true,
-      "blend_beats_seedens_inc": false,
-      "agree_beats_base_arm": false,
-      "agree_beats_seedens_inc": false
-    },
-    "0.02": {
-      "base": {
-        "UP": {
-          "n_paths": 15,
-          "mean": 0.6227,
-          "p10": 0.6006,
+          "mean": 0.6189,
+          "p10": 0.5883,
           "min": 0.5811,
           "frac_clear_BE": 1.0
         },
         "DOWN": {
           "n_paths": 15,
-          "mean": 0.6094,
-          "p10": 0.5815,
-          "min": 0.561,
+          "mean": 0.604,
+          "p10": 0.5823,
+          "min": 0.5745,
           "frac_clear_BE": 1.0
         },
         "COMBINED": {
           "n_paths": 15,
-          "mean": 0.6155,
-          "p10": 0.5981,
-          "min": 0.5853,
-          "frac_clear_BE": 1.0
-        }
-      },
-      "blend": {
-        "UP": {
-          "n_paths": 15,
-          "mean": 0.645,
-          "p10": 0.626,
-          "min": 0.5971,
-          "frac_clear_BE": 1.0
-        },
-        "DOWN": {
-          "n_paths": 15,
-          "mean": 0.6113,
-          "p10": 0.5857,
-          "min": 0.5424,
-          "frac_clear_BE": 1.0
-        },
-        "COMBINED": {
-          "n_paths": 15,
-          "mean": 0.6292,
-          "p10": 0.6104,
-          "min": 0.5947,
-          "frac_clear_BE": 1.0
-        }
-      },
-      "agree": {
-        "UP": {
-          "n_paths": 15,
-          "mean": 0.6205,
-          "p10": 0.6001,
-          "min": 0.5778,
-          "frac_clear_BE": 1.0
-        },
-        "DOWN": {
-          "n_paths": 15,
-          "mean": 0.606,
-          "p10": 0.5719,
-          "min": 0.5685,
-          "frac_clear_BE": 1.0
-        },
-        "COMBINED": {
-          "n_paths": 15,
-          "mean": 0.6131,
-          "p10": 0.5991,
-          "min": 0.5929,
+          "mean": 0.611,
+          "p10": 0.5966,
+          "min": 0.5772,
           "frac_clear_BE": 1.0
         }
       },
@@ -244,6 +169,81 @@
       "blend_beats_seedens_inc": true,
       "agree_beats_base_arm": false,
       "agree_beats_seedens_inc": false
+    },
+    "0.02": {
+      "base": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6305,
+          "p10": 0.6077,
+          "min": 0.5915,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6223,
+          "p10": 0.5877,
+          "min": 0.5631,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.627,
+          "p10": 0.6105,
+          "min": 0.5949,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6471,
+          "p10": 0.6175,
+          "min": 0.5876,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6158,
+          "p10": 0.5905,
+          "min": 0.5599,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.632,
+          "p10": 0.6044,
+          "min": 0.5995,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "agree": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6285,
+          "p10": 0.6038,
+          "min": 0.5876,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6213,
+          "p10": 0.5877,
+          "min": 0.5728,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6253,
+          "p10": 0.606,
+          "min": 0.591,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend_beats_base_arm": true,
+      "blend_beats_seedens_inc": true,
+      "agree_beats_base_arm": false,
+      "agree_beats_seedens_inc": true
     }
   },
   "IMPROVES_over_seedens": true
