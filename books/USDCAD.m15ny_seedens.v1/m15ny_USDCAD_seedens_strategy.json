@@ -1,0 +1,100 @@
+{
+  "book": "USDCAD.m15ny_seedens.v1",
+  "pair": "USDCAD",
+  "timeframe": "15m",
+  "horizon_min": 15,
+  "session": "ny",
+  "nseed": 3,
+  "label": "sign(close[t+15]-close[t]), ties LOSE",
+  "settlement": "bar-close, gap=900s nonoverlap_chrono",
+  "gate": {
+    "cov": 0.02,
+    "conf_thr": 0.06189305393772768,
+    "rule": "trade when |p-0.5|>=conf_thr AND ts in ny session"
+  },
+  "ensemble": "mean of seed probabilities",
+  "breakeven": 0.541,
+  "val_auc": 0.5442211234333351,
+  "cert": "ny per-fold-refit CPCV @cov0.02: UP p10 0.5968 / DOWN p10 0.577 / COMB p10 0.6025 \u2014 usdcad_15m_cpcv_session_ny_seedens3_result.json",
+  "deploy_note": "REFIT-DEPENDENT (program-wide 15m signature): frozen-2021 vintage decays forward. Deploy session-only with PERIODIC RETRAINING; size on the refit per-era floor, NOT this frozen artifact.",
+  "frozen_forward": {
+    "test24": {
+      "COMBINED": {
+        "n": 606,
+        "wr": 0.6931,
+        "ci": [
+          0.6568,
+          0.7294
+        ]
+      },
+      "UP": {
+        "n": 407,
+        "wr": 0.6658,
+        "ci": [
+          0.6192,
+          0.7125
+        ]
+      },
+      "DOWN": {
+        "n": 199,
+        "wr": 0.7487,
+        "ci": [
+          0.6884,
+          0.809
+        ]
+      }
+    },
+    "test25": {
+      "COMBINED": {
+        "n": 876,
+        "wr": 0.5696,
+        "ci": [
+          0.5377,
+          0.6027
+        ]
+      },
+      "UP": {
+        "n": 553,
+        "wr": 0.5606,
+        "ci": [
+          0.5208,
+          0.6022
+        ]
+      },
+      "DOWN": {
+        "n": 323,
+        "wr": 0.5851,
+        "ci": [
+          0.5356,
+          0.6378
+        ]
+      }
+    },
+    "oos": {
+      "COMBINED": {
+        "n": 453,
+        "wr": 0.5519,
+        "ci": [
+          0.5055,
+          0.5982
+        ]
+      },
+      "UP": {
+        "n": 259,
+        "wr": 0.5714,
+        "ci": [
+          0.5097,
+          0.6332
+        ]
+      },
+      "DOWN": {
+        "n": 194,
+        "wr": 0.5258,
+        "ci": [
+          0.4588,
+          0.5928
+        ]
+      }
+    }
+  }
+}

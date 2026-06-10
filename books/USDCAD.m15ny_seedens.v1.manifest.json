@@ -1,0 +1,166 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "USDCAD.m15ny_seedens.v1",
+  "content_id": "ddb4a78c7ea95439",
+  "currency": "USDCAD",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "USDCAD 15m ny-session own-pair base GBM seed-ens K=3; BOTH sides certified via ny per-fold-refit CPCV (UP p10 0.5968 / DOWN p10 0.577 @cov0.02). USDCAD = most-NA pair; direction edge session-concentrated + own-pair-specific. REFIT-DEPENDENT.",
+  "metrics": {
+    "up_refit_cpcv_p10": 0.5968,
+    "down_refit_cpcv_p10": 0.577,
+    "comb_refit_cpcv_p10": 0.6025,
+    "up_refit_mean": 0.6294,
+    "down_refit_mean": 0.6204,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "session": "ny",
+    "val_auc": 0.5442,
+    "frozen_forward": {
+      "test24": {
+        "COMBINED": {
+          "n": 606,
+          "wr": 0.6931,
+          "ci": [
+            0.6568,
+            0.7294
+          ]
+        },
+        "UP": {
+          "n": 407,
+          "wr": 0.6658,
+          "ci": [
+            0.6192,
+            0.7125
+          ]
+        },
+        "DOWN": {
+          "n": 199,
+          "wr": 0.7487,
+          "ci": [
+            0.6884,
+            0.809
+          ]
+        }
+      },
+      "test25": {
+        "COMBINED": {
+          "n": 876,
+          "wr": 0.5696,
+          "ci": [
+            0.5377,
+            0.6027
+          ]
+        },
+        "UP": {
+          "n": 553,
+          "wr": 0.5606,
+          "ci": [
+            0.5208,
+            0.6022
+          ]
+        },
+        "DOWN": {
+          "n": 323,
+          "wr": 0.5851,
+          "ci": [
+            0.5356,
+            0.6378
+          ]
+        }
+      },
+      "oos": {
+        "COMBINED": {
+          "n": 453,
+          "wr": 0.5519,
+          "ci": [
+            0.5055,
+            0.5982
+          ]
+        },
+        "UP": {
+          "n": 259,
+          "wr": 0.5714,
+          "ci": [
+            0.5097,
+            0.6332
+          ]
+        },
+        "DOWN": {
+          "n": 194,
+          "wr": 0.5258,
+          "ci": [
+            0.4588,
+            0.5928
+          ]
+        }
+      }
+    },
+    "refit_dependent": true
+  },
+  "source": {
+    "script": "usdcad_15m_base.py (model) + usdcad_15m_cpcv_session.py ny (cert) + usdcad_15m_freeze.py (freeze)",
+    "git_sha": "40763b32eac55b500f452ad8c6c7a2fdcecd16f2",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 127,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 3000,
+    "early_stop": 150,
+    "tr_stride": 6,
+    "nseed": 3
+  },
+  "artifacts": [
+    {
+      "file": "m15ny_USDCAD_s0_lgb.txt",
+      "bytes": 733383,
+      "sha256": "e68111b654b64314b293607317751c05346eb0acdf1af862d9fa41b3cbcc951b"
+    },
+    {
+      "file": "m15ny_USDCAD_s1_lgb.txt",
+      "bytes": 1290720,
+      "sha256": "14c98f58c5803df478ae42ba91aa894b9ef84e45d008126c2c51fd948e8bf4c7"
+    },
+    {
+      "file": "m15ny_USDCAD_s2_lgb.txt",
+      "bytes": 484095,
+      "sha256": "3b002e5f5633e667656193c7f23c76fc0e7613d86b765b88369cce3b678ba868"
+    }
+  ],
+  "strategy_json": "models/m15ny_USDCAD_seedens_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/home/sean/git/binary-algo/features",
+    "patterns": [
+      "USDCAD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1414713011,
+    "sha256_of_listing": "0a2d41b715ed054ea3ba6d9c389138e1182ebba1a93e3b11bea7fe1b6d34d706"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "ny session (sessions.py, DST-correct). cov0.02 gate frozen on VAL ny worst-half. Two-sided via confidence selection. REFIT-DEPENDENT; deploy with periodic retrain, size on refit floor.",
+  "created_utc": "2026-06-10"
+}

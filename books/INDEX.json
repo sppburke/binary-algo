@@ -586,6 +586,38 @@
    "manifest": "books/AUDUSD.m15ny_seedens.v1.manifest.json",
    "summary": "BEST AUDUSD 15m direction: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .5755/DOWN .5901 @cov3%, .596/.596 @cov2%, 15/15 paths). Own-pair-specific (cross-pair pooling/AUDNZD/risk add nothing; Asia/LDN sub-BE). REFIT-DEPENDENT (frozen-2012-21 vintage decays to sub-BE by 2026; retrain periodically, size on refit floor).",
    "depends_on": null
+  },
+  {
+   "id": "USDCAD.m15ny_seedens.v1",
+   "currency": "USDCAD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "usdcad_15m_base.py (model) + usdcad_15m_cpcv_session.py ny (cert) + usdcad_15m_freeze.py 3 ny 0.02 (freeze)",
+   "metrics": {
+    "up_refit_cpcv_p10_cov2": 0.5968,
+    "down_refit_cpcv_p10_cov2": 0.577,
+    "up_refit_cpcv_p10_cov1": 0.604,
+    "down_refit_cpcv_p10_cov5": 0.5814,
+    "comb_refit_cpcv_p10_cov2": 0.6025,
+    "up_refit_mean_cov2": 0.6294,
+    "down_refit_mean_cov2": 0.6204,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "session": "ny",
+    "seed_K": 3,
+    "refit_dependent": true,
+    "content_id": "ddb4a78c7ea95439",
+    "frozen_forward_cov2": {
+     "2024": {"UP": 0.6658, "DOWN": 0.7487, "COMB": 0.6931},
+     "2025": {"UP": 0.5606, "DOWN": 0.5851, "COMB": 0.5696},
+     "2026": {"UP": 0.5714, "DOWN": 0.5258, "COMB": 0.5519}
+    },
+    "note": "First certified USDCAD direction book. All-session is EFFICIENT (sub-BE refit floor); NY-session restriction RESCUES it (USDJPY pattern; USDCAD=most-NA pair). Seed-ens K=3 ~PARITY vs single-seed (lifts cov5 + means, flat/slightly-down cov2-3 p10); chosen for deployment robustness. UP is the more robust side on the refit floor AND frozen-forward (UP survives to 2026 .5714, DOWN sub-BE .5258) -> vindicates the USD-strength/risk-off prediction. K=8 deferred (saturation evident at K=3). >65% NOT reached as a floor on-disk (AUC ceiling ~.539) -> off-disk oil/WTI + US-CA rate-diff frontier."
+   },
+   "manifest": "books/USDCAD.m15ny_seedens.v1.manifest.json",
+   "summary": "FIRST certified USDCAD 15m direction book: NY-session own-pair seed-ensemble(K=3) GBM. BOTH sides certified NY refit-CPCV (UP p10 .5968/DOWN .577 @cov2%, UP .604@cov1, DOWN .5814@cov5, 15/15 paths). All-session efficient -> NY-concentrated (USDCAD=most-NA pair, USDJPY pattern); own-pair (pooling pending test, low prior). UP the more robust side (vindicates USD-strength/risk-off prediction). REFIT-DEPENDENT (frozen-2012-21 decays; UP survives to 2026 .5714, DOWN sub-BE; retrain periodically, size on refit floor). No USDCAD ticks on disk; bar-close proxy trusted (USDJPY/AUDUSD validated).",
+   "depends_on": null
   }
  ]
 }

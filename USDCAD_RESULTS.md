@@ -19,8 +19,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| USDCAD · **15m** · UP | **NY single-seed refit-CPCV p10 .6044 @cov2 / .5972 @cov3 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** (seed-ens improve running) | NY own-pair LGBM, cov-gate (`usdcad_15m_cpcv_session.py ny`); book pending freeze | NY-concentrated own-pair GBM; all-session sub-BE, NY rescues (USDJPY pattern). UP is the stronger side on the refit floor (vindicates v0 USD-strength/risk-off prediction; frozen DOWN-lead was a 2024 artifact). REFIT-DEPENDENT. | **CERTIFIED (NY refit-CPCV) 2026-06-10; improving** |
-| USDCAD · **15m** · DOWN | **NY single-seed refit-CPCV p10 .5858 @cov3 / .5791 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** (seed-ens improve running) | NY own-pair LGBM, cov-gate; book pending freeze | NY-concentrated; certifies every cov (cov1 14/15). Slightly below UP on the refit floor. REFIT-DEPENDENT. | **CERTIFIED (NY refit-CPCV) 2026-06-10; improving** |
+| USDCAD · **15m** · UP | **NY seed-ens K=3 refit-CPCV p10 .5968 @cov2 / .604 @cov1 / .5891 @cov3 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate (`usdcad_15m_cpcv_session.py ny 2 .. 3`); book `USDCAD.m15ny_seedens.v1` ✅ FROZEN (content_id ddb4a78c) | NY-concentrated own-pair GBM; all-session sub-BE, NY rescues (USDJPY pattern). UP is the stronger side on the refit floor (vindicates v0 USD-strength/risk-off prediction; frozen DOWN-lead was a 2024 artifact). Seed-ens ~parity vs single-seed (single-seed peak UP .6044@cov2). REFIT-DEPENDENT. | **CERTIFIED (NY seed-ens refit-CPCV) 2026-06-10** |
+| USDCAD · **15m** · DOWN | **NY seed-ens K=3 refit-CPCV p10 .5814 @cov5 / .5805 @cov3 / .577 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate; book `USDCAD.m15ny_seedens.v1` ✅ FROZEN (content_id ddb4a78c) | NY-concentrated; certifies every cov (cov1 14/15). DOWN peaks at wider cov (cov5 .5814) vs UP at tight cov — slightly below UP on the refit floor. REFIT-DEPENDENT. | **CERTIFIED (NY seed-ens refit-CPCV) 2026-06-10** |
 | USDCAD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (USDCAD pending).
@@ -71,7 +71,28 @@ AUC mean .516 (min .5119, max .5185), up-rate tripwire clean. **Read: NO side ce
 | 0.02 | **.6044 (.6286)** | .5791 (.6178) | **.601 (.6228)** | 510/422/1009 | ✅ both |
 | 0.01 | .5999 (.6373) | .5727 (.6269, .933) | .5987 (.6306) | 255/191/506 | ✅ both |
 
-AUC mean NY .5319 (.527–.535), up-rate tripwire clean. **Both sides CERTIFIED (refit-CPCV p10 ≥ BE, 15/15 paths, every cov)** — REFIT-DEPENDENT (program-wide 15m signature; frozen-forward verification pending). **UP is the stronger side on the refit floor** (UP p10 .6044 vs DOWN .5791 @cov2) — VINDICATING the v0 mechanistic prediction (UP = USD-strength/risk-off the more forecastable side); the frozen-book coverage curve's DOWN-lead was a 2024-regime artifact the per-fold refit removes. Strong vs neighbors (UP .604 > AUDUSD .596 / USDJPY UP .60). Operating cov2% (best UP+COMB p10). `usdcad_15m_cpcv_session_ny_multicov_result.json`. **Improve: seed-ensemble K=3 running (the deliverable lever).**
+AUC mean NY .5319 (.527–.535), up-rate tripwire clean. **Both sides CERTIFIED (refit-CPCV p10 ≥ BE, 15/15 paths, every cov)** — REFIT-DEPENDENT (program-wide 15m signature; frozen-forward verification pending). **UP is the stronger side on the refit floor** (UP p10 .6044 vs DOWN .5791 @cov2) — VINDICATING the v0 mechanistic prediction (UP = USD-strength/risk-off the more forecastable side); the frozen-book coverage curve's DOWN-lead was a 2024-regime artifact the per-fold refit removes. Strong vs neighbors (UP .604 > AUDUSD .596 / USDJPY UP .60). Operating cov2% (best UP+COMB p10). `usdcad_15m_cpcv_session_ny_multicov_result.json`.
+
+### ★ IMPROVE — seed-ensemble K=3 on NY (Tier-I I2) — ~PARITY (FROZEN as deliverable for robustness)
+Matched-fold NY refit-CPCV, K=3 seed-average vs single-seed. **p10 deltas mixed; means uniformly slightly up:**
+| cov | UP p10 (Δ K1) | DOWN p10 (Δ) | COMB p10 (Δ) | COMB mean (Δ) |
+|---|---|---|---|---|
+| 0.05 | .5902 (+.0071) | .5814 (+.0120) | .5925 (+.0108) | .6015 (+.008) |
+| 0.03 | .5891 (−.0081) | .5805 (−.0053) | .5928 (−.0014) | .6119 (+.003) |
+| 0.02 | .5968 (−.0076) | .5770 (−.0021) | .6025 (+.0015) | .6240 (+.001) |
+| 0.01 | .6040 (+.0041) | .5536 (−.0191, .933) | .5929 (−.0058) | .6303 (−.000) |
+
+frac_clear=1.0 every cell (DOWN cov1 .933). **Read:** seed-ens LIFTS at cov5 (all sides p10+mean) but is flat-to-slightly-down at the tight cov2-3 operating points (cov2 UP p10 .597 vs single-seed .604); all path-MEANS rise +.001..+.009 (except cov1 DOWN). This is **WEAKER than AUDUSD's clean seed-ens lift** — the p10 wiggles sit within CPCV-path noise; the means are uniformly marginally up. **Verdict: ~PARITY** — not a robust p10 improvement at the tight operating point, but a genuine small variance-reduction (means + cov5). **FROZEN as the deliverable** (`USDCAD.m15ny_seedens.v1`) for deployment robustness (seed-average is not seed-luck-dependent) + program consistency; reported honestly as marginal. `usdcad_15m_cpcv_session_ny_seedens3_result.json`. **K=8 DEFERRED low-EV** (saturation already evident at K=3; 239-feat own-pair saturated at K=3 on AUDUSD+USDJPY; only GBPUSD's 340-feat xpair lifted at K=8). Improve cross-product continues: cross-pair (R1-2), two-speed (R1-1), kNN/double-ortho (R1-3/4) below.
+
+### ★ Adversarial verification — NY FROZEN-PAST forward holdout (trap#9) — `usdcad_15m_freeze.py` (book `USDCAD.m15ny_seedens.v1`, content_id ddb4a78c7ea95439)
+Train ONCE on 2012-21 NY (seed-ens K=3), FREEZE, test per-year NY @cov2 (deployment-faithful, NO retrain):
+| year | cov2 COMB (CI-lo) | cov2 UP | cov2 DOWN |
+|---|---|---|---|
+| 2024 | .6931 (.657) | .6658 | .7487 |
+| 2025 | .5696 (.538) | .5606 | .5851 |
+| **2026** | **.5519 (.506)** | **.5714** | .5258 |
+
+**VERDICT: the refit-CPCV cert is REFIT-DEPENDENT, NOT a frozen-deployable edge** (program-wide 15m signature). The frozen-2012-21 vintage DECAYS forward (.693→.570→.552 COMB) — but this is **NOT trap#9 era-local memorization** (that would be flat ~.50 every year): the edge transfers to 2024 (.69) and 2025 (.57) then decays = USD/oil-factor non-stationarity (identical to EURUSD/USDJPY/AUDUSD 15m). **USDCAD's frozen forward is BETTER than AUDUSD's** (which went sub-BE on both sides by 2026): USDCAD **UP survives frozen to 2026 (.5714 > BE)** and COMB clears marginally (.5519), only DOWN goes sub-BE (.5258) — again confirming UP is the more robust side. The frozen-forward (.571/.526) sits BELOW the refit-CPCV p10 (.597/.581), confirming the cert = the per-era refit floor. **Honest deployment:** deploy NY-only **with periodic retraining**; size on the refit per-era floor (UP ~.59-.60, DOWN ~.58), NOT the frozen book. No USDCAD tick data on disk → true-tick-settlement validation N/A; bar-close proxy validated on USDJPY/AUDUSD (mean tick−bar −.0035, PRESERVED) → trusted at 15m.
 
 _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` for status of record)_
 
@@ -80,7 +101,7 @@ _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` 
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.6044 @cov2 / .5972 @cov3** (NY single-seed, 15/15) | .6286 / .6131 mean (cov2/3) | book pending freeze (seed-ens improve running) | ✅ CERTIFIED (NY refit-CPCV); REFIT-DEPENDENT |
-| **15m DOWN** | **.5858 @cov3 / .5791 @cov2** (NY single-seed, 15/15) | .6057 / .6178 mean (cov3/2) | book pending freeze (seed-ens improve running) | ✅ CERTIFIED (NY refit-CPCV); REFIT-DEPENDENT |
+| **15m UP** | **.5968 @cov2 / .604 @cov1 / .5891 @cov3** (NY seed-ens K=3, 15/15) | .6294 / .6380 mean (cov2/1) | **`USDCAD.m15ny_seedens.v1`** ✅ FROZEN (content_id ddb4a78c) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
+| **15m DOWN** | **.5814 @cov5 / .5805 @cov3 / .577 @cov2** (NY seed-ens K=3, 15/15) | .5972 / .6092 mean (cov5/3) | **`USDCAD.m15ny_seedens.v1`** ✅ FROZEN (content_id ddb4a78c) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
