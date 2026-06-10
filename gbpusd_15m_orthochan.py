@@ -82,7 +82,9 @@ def add_semivar(F, years):
         d = pd.read_parquet(p, columns=["close"]); d = d[~d.index.duplicated(keep="last")]
         parts.append(d)
     if not parts: return F
-    c = pd.concat(parts); lr = np.log(c["close"].values); r1 = np.concatenate([[np.nan], np.diff(lr)])
+    F = F[~F.index.duplicated(keep="last")]
+    c = pd.concat(parts); c = c[~c.index.duplicated(keep="last")]
+    lr = np.log(c["close"].values); r1 = np.concatenate([[np.nan], np.diff(lr)])
     s = pd.Series(r1, index=c.index)
     feats = {}
     for k in (15, 30, 60):
@@ -119,7 +121,11 @@ def add_carryrank(F, years):
             d = pd.read_parquet(fp, columns=["close"]); d = d[~d.index.duplicated(keep="last")]
             parts[p].append(d)
     if not present_years: return F
-    cl = {p: pd.concat(parts[p])["close"] for p in PAIRS}
+    F = F[~F.index.duplicated(keep="last")]
+    cl = {}
+    for p in PAIRS:
+        s = pd.concat(parts[p])["close"]
+        cl[p] = s[~s.index.duplicated(keep="last")]
     df = pd.DataFrame(cl).dropna()
     idx = df.index
     lr = {p: np.log(df[p].values) for p in PAIRS}
