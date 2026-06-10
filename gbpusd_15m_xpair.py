@@ -50,8 +50,10 @@ BASE_2026_COV2_COMB=float(_base["years"]["oos"]["covcurve"]["0.02"]["COMBINED"][
 
 def equiv_sign(p): return -1.0 if p in USD_BASE else +1.0
 
-def build_xp_gbp(years, stride=1):
-    """Cross-pair (GBPUSD-target) + GBPUSD-specific features + label _y, _ts, _fwd. Ties excluded."""
+def build_xp_gbp(years, stride=1, keep_ties=False):
+    """Cross-pair (GBPUSD-target) + GBPUSD-specific features + label _y, _ts, _fwd. Ties excluded by
+    default (screen behavior); keep_ties=True retains fwd==0 rows so a cert harness can charge them
+    as losses (deriv-faithful ties-LOSE)."""
     out=[]
     for y in years:
         cl={}; ok=True
@@ -109,7 +111,7 @@ def build_xp_gbp(years, stride=1):
             fr=lr[TARGET][HOR:]-lr[TARGET][:-HOR]
             fwd[:n-HOR]=np.where(contig,fr,np.nan)
         F=pd.DataFrame(feats,index=idx); F["_y"]=(fwd>0).astype(float); F["_ts"]=secs; F["_fwd"]=fwd
-        valid=np.isfinite(fwd)&(fwd!=0)
+        valid=np.isfinite(fwd) if keep_ties else (np.isfinite(fwd)&(fwd!=0))
         F=F.loc[valid]
         if stride>1: F=F.iloc[::stride]
         out.append(F)
