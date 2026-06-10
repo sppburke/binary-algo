@@ -1,0 +1,66 @@
+{
+  "key": "USDCAD.15m.ny",
+  "model": "GRU(24) on trailing 32 1-min returns",
+  "val_ny_auc": 0.5203,
+  "base_auc": 0.5433,
+  "falsifier": {
+    "KILL_if": "VAL-AUC<=.5433 (no lift over GBM)"
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5202,
+      "cov3": {
+        "COMBINED": [
+          531,
+          0.5932
+        ],
+        "UP": [
+          420,
+          0.6071
+        ],
+        "DOWN": [
+          111,
+          0.5405
+        ]
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5166,
+      "cov3": {
+        "COMBINED": [
+          1096,
+          0.5438
+        ],
+        "UP": [
+          836,
+          0.5275
+        ],
+        "DOWN": [
+          260,
+          0.5962
+        ]
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5097,
+      "cov3": {
+        "COMBINED": [
+          417,
+          0.5827
+        ],
+        "UP": [
+          351,
+          0.5869
+        ],
+        "DOWN": [
+          66,
+          0.5606
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "beats_base": false,
+    "KILLED": true
+  }
+}
