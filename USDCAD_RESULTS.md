@@ -19,8 +19,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| USDCAD · **15m** · UP | `UNTESTED` | — | Sweep in progress (2026-06-10). Predicted more-forecastable side (risk-off/oil-down/USD-strength). | UNTESTED |
-| USDCAD · **15m** · DOWN | `UNTESTED` | — | Sweep in progress (2026-06-10). | UNTESTED |
+| USDCAD · **15m** · UP | **NY single-seed refit-CPCV p10 .6044 @cov2 / .5972 @cov3 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** (seed-ens improve running) | NY own-pair LGBM, cov-gate (`usdcad_15m_cpcv_session.py ny`); book pending freeze | NY-concentrated own-pair GBM; all-session sub-BE, NY rescues (USDJPY pattern). UP is the stronger side on the refit floor (vindicates v0 USD-strength/risk-off prediction; frozen DOWN-lead was a 2024 artifact). REFIT-DEPENDENT. | **CERTIFIED (NY refit-CPCV) 2026-06-10; improving** |
+| USDCAD · **15m** · DOWN | **NY single-seed refit-CPCV p10 .5858 @cov3 / .5791 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** (seed-ens improve running) | NY own-pair LGBM, cov-gate; book pending freeze | NY-concentrated; certifies every cov (cov1 14/15). Slightly below UP on the refit floor. REFIT-DEPENDENT. | **CERTIFIED (NY refit-CPCV) 2026-06-10; improving** |
 | USDCAD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (USDCAD pending).
@@ -60,6 +60,19 @@ n@cov2 (COMB/UP/DOWN): 2024 1248/953/295, 2025 1142/829/313, 2026 413/300/113 (c
 
 AUC mean .516 (min .5119, max .5185), up-rate tripwire clean. **Read: NO side certifies at any coverage** — every p10 sub-BE (.519–.533). All-session USDCAD 15m direction is essentially **efficient on-disk** (the per-era refit floor doesn't clear breakeven). This is the **USDJPY case** (all-session weak → needs NY-session restriction), NOT the AUDUSD case (whose DOWN certified all-session @cov1). **On the per-era REFIT floor UP ≥ DOWN** (UP p10 .527–.533 vs DOWN .519–.524) — REVERSING the frozen-book coverage curve where DOWN led; the frozen DOWN-strength was partly a 2024-regime artifact (refit removes it). `usdcad_15m_cpcv_session_all_multicov_result.json`. **NEXT: NY-session restriction** (USDCAD = most-NA pair → strongest concentration prior of any pair; running).
 
+### Session segmentation (A9) — `usdcad_15m_cpcv_session.py ny` (symmetric refit-CPCV)
+**RESULT: NY is the carrier — and certifies BOTH sides at every coverage, 15/15 paths.** All-session was sub-BE (efficient); NY-restriction rescues it (USDJPY pattern). USDCAD = most-NA pair (BoC+Fed+US/CA data+oil in the LDN/NY window), so the direction-sign rides US-session flow. (LDN/asia session-landscape confirmation pending.)
+
+**NY-session refit-CPCV (the deliverable, single-seed), all covs, frac_clear=1.0 (15/15) every cov (DOWN cov1 14/15):**
+| cov | UP p10 (mean) | DOWN p10 (mean) | COMB p10 (mean) | med_n/path (UP/DN/CB) | CERT |
+|---|---|---|---|---|---|
+| 0.05 | .5831 (.5985) | .5694 (.5898) | .5817 (.5933) | 1333/1163/2608 | ✅ both |
+| 0.03 | .5972 (.6131) | **.5858 (.6057)** | .5942 (.6092) | 776/647/1526 | ✅ both |
+| 0.02 | **.6044 (.6286)** | .5791 (.6178) | **.601 (.6228)** | 510/422/1009 | ✅ both |
+| 0.01 | .5999 (.6373) | .5727 (.6269, .933) | .5987 (.6306) | 255/191/506 | ✅ both |
+
+AUC mean NY .5319 (.527–.535), up-rate tripwire clean. **Both sides CERTIFIED (refit-CPCV p10 ≥ BE, 15/15 paths, every cov)** — REFIT-DEPENDENT (program-wide 15m signature; frozen-forward verification pending). **UP is the stronger side on the refit floor** (UP p10 .6044 vs DOWN .5791 @cov2) — VINDICATING the v0 mechanistic prediction (UP = USD-strength/risk-off the more forecastable side); the frozen-book coverage curve's DOWN-lead was a 2024-regime artifact the per-fold refit removes. Strong vs neighbors (UP .604 > AUDUSD .596 / USDJPY UP .60). Operating cov2% (best UP+COMB p10). `usdcad_15m_cpcv_session_ny_multicov_result.json`. **Improve: seed-ensemble K=3 running (the deliverable lever).**
+
 _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` for status of record)_
 
 ---
@@ -67,7 +80,7 @@ _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` 
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | `UNTESTED` | — | — | sweep in progress |
-| **15m DOWN** | `UNTESTED` | — | — | sweep in progress |
+| **15m UP** | **.6044 @cov2 / .5972 @cov3** (NY single-seed, 15/15) | .6286 / .6131 mean (cov2/3) | book pending freeze (seed-ens improve running) | ✅ CERTIFIED (NY refit-CPCV); REFIT-DEPENDENT |
+| **15m DOWN** | **.5858 @cov3 / .5791 @cov2** (NY single-seed, 15/15) | .6057 / .6178 mean (cov3/2) | book pending freeze (seed-ens improve running) | ✅ CERTIFIED (NY refit-CPCV); REFIT-DEPENDENT |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
