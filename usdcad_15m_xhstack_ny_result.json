@@ -1,0 +1,250 @@
+{
+  "key": "USDCAD.15m.NY.xhstack",
+  "breakeven": 0.541,
+  "stride": 2,
+  "covs": [
+    0.05,
+    0.03,
+    0.02
+  ],
+  "nseed": 1,
+  "incumbent_seedensK3_cov2": {
+    "UP": 0.5968,
+    "DOWN": 0.577,
+    "COMBINED": 0.6025
+  },
+  "mean_fold_corr_p15_p30": 0.7088,
+  "arms": [
+    "base",
+    "blend",
+    "agree"
+  ],
+  "bycov": {
+    "0.05": {
+      "base": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6055,
+          "p10": 0.5838,
+          "min": 0.5695,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5844,
+          "p10": 0.5656,
+          "min": 0.5616,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.5938,
+          "p10": 0.5845,
+          "min": 0.5788,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6124,
+          "p10": 0.5963,
+          "min": 0.589,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5909,
+          "p10": 0.5675,
+          "min": 0.5634,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6009,
+          "p10": 0.5918,
+          "min": 0.5872,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "agree": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6022,
+          "p10": 0.5793,
+          "min": 0.5674,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5831,
+          "p10": 0.5627,
+          "min": 0.5572,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.5915,
+          "p10": 0.5811,
+          "min": 0.5756,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend_beats_base_arm": true,
+      "blend_beats_seedens_inc": false,
+      "agree_beats_base_arm": false,
+      "agree_beats_seedens_inc": false
+    },
+    "0.03": {
+      "base": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6138,
+          "p10": 0.5849,
+          "min": 0.5702,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5956,
+          "p10": 0.5681,
+          "min": 0.5582,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.604,
+          "p10": 0.5848,
+          "min": 0.5833,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6278,
+          "p10": 0.6041,
+          "min": 0.5908,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5989,
+          "p10": 0.5737,
+          "min": 0.5527,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6134,
+          "p10": 0.5977,
+          "min": 0.5901,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "agree": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.612,
+          "p10": 0.5841,
+          "min": 0.58,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.5953,
+          "p10": 0.5705,
+          "min": 0.5567,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6028,
+          "p10": 0.5867,
+          "min": 0.5848,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend_beats_base_arm": true,
+      "blend_beats_seedens_inc": false,
+      "agree_beats_base_arm": false,
+      "agree_beats_seedens_inc": false
+    },
+    "0.02": {
+      "base": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6227,
+          "p10": 0.6006,
+          "min": 0.5811,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6094,
+          "p10": 0.5815,
+          "min": 0.561,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6155,
+          "p10": 0.5981,
+          "min": 0.5853,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.645,
+          "p10": 0.626,
+          "min": 0.5971,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.6113,
+          "p10": 0.5857,
+          "min": 0.5424,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6292,
+          "p10": 0.6104,
+          "min": 0.5947,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "agree": {
+        "UP": {
+          "n_paths": 15,
+          "mean": 0.6205,
+          "p10": 0.6001,
+          "min": 0.5778,
+          "frac_clear_BE": 1.0
+        },
+        "DOWN": {
+          "n_paths": 15,
+          "mean": 0.606,
+          "p10": 0.5719,
+          "min": 0.5685,
+          "frac_clear_BE": 1.0
+        },
+        "COMBINED": {
+          "n_paths": 15,
+          "mean": 0.6131,
+          "p10": 0.5991,
+          "min": 0.5929,
+          "frac_clear_BE": 1.0
+        }
+      },
+      "blend_beats_base_arm": true,
+      "blend_beats_seedens_inc": true,
+      "agree_beats_base_arm": false,
+      "agree_beats_seedens_inc": false
+    }
+  },
+  "IMPROVES_over_seedens": true
+}
