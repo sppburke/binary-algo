@@ -8,8 +8,8 @@
 
 ## FIRST-TO-RUN QUEUE (strict order; one heavy job at a time)
 1. ~~A1 base all-session~~ ✅ DONE (SURVIVED via 2024; 2026 frozen-dead → refit arbiter).
-2. **A9 refit-CPCV `all`** (RUNNING) — honest all-session per-era floor, multicov .05/.03/.02/.01.
-3. **A9 refit-CPCV `ny`, `ldn`, `asia`** — which session carries it. LDN is GBP's own-news session (first sibling where LDN has a real mechanism); NY carried 3/3 siblings.
+2. ~~A9 refit-CPCV `all`~~ ✅ DONE — **BOTH SIDES CERTIFIED @cov2+cov3** (UP .5532/.5531, DOWN .5527/.5483). The bar all lift levers must now beat: cov2 UP p10 .5532 / DOWN .5527.
+3. **A9 refit-CPCV `ny`** (RUNNING), then `ldn`, `asia` — does concentration LIFT the certified floor (AUD NY lifted +.03-.05) or does GBP's LDN info make restriction lose power?
 4. **A6 xpair pooled/xpbase screen** (fork audusd_15m_xpair.py: USD-residual + lead-lag + **EURGBP RV** + risk factor) — EUR-bloc pooling discriminator. If VAL-AUC ≫ base → pooled refit-CPCV.
 5. **N2 EURGBP triangular USD-canceling residual** (gbpusd_15m_trigresid.py, new) — resid-sign/velocity features; uniquely on-disk here (needs EURUSD+GBPUSD only). Falsifier: famonly ΔVAL-AUC ≤ +.002 → subsumed-by-base.
 6. **I2 seed-ens K=3** on the best of {best session, pooled} → the deliverable candidate.

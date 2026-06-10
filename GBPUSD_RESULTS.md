@@ -16,8 +16,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| GBPUSD · **15m** · UP | `UNTESTED` | — | Sweep in progress (`sweeps/GBPUSD_15m.md`) | UNTESTED |
-| GBPUSD · **15m** · DOWN | `UNTESTED` | — | Sweep in progress (`sweeps/GBPUSD_15m.md`) | UNTESTED |
+| GBPUSD · **15m** · UP | **all-session refit-CPCV p10 .5532 @cov2 / .5531 @cov3 (14/15)** ✅ CERTIFIED, REFIT-DEPENDENT | all-session own-pair LGBM s2/l255, cov-gate (`gbpusd_15m_cpcv_session.py all 2`); book not yet frozen — session/pooling LIFT tests running | First sibling to certify BOTH sides all-session. Frozen-2021 book dead by 2026 → deploy w/ periodic retrain. | ✅ CERTIFIED (all-session refit-CPCV) 2026-06-09; lift tests in progress |
+| GBPUSD · **15m** · DOWN | **all-session refit-CPCV p10 .5527 @cov2 / .5483 @cov3 (14/15, cov3 15/15)** ✅ CERTIFIED, REFIT-DEPENDENT | same harness/book as UP | Confidence-tail-sensitive (cov5/cov1 drop out); certifies cov2-3. | ✅ CERTIFIED (all-session refit-CPCV) 2026-06-09; lift tests in progress |
 | GBPUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (GBPUSD pending).
@@ -45,10 +45,20 @@ Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry) AND 
 
 **Read:** monotone-in-confidence and SYMMETRIC across sides in 2024/2025 (both ~.58–.66 @cov2–3%); 2024 is the strongest base year any sibling has shown (cov1 UP .720, n385). The frozen-2021 book decays to coin-flip by 2026 at every coverage — pure refit-dependence (USD-factor non-stationarity, same as EURUSD/USDJPY/AUDUSD 15m). → certify via per-fold-REFIT CPCV; session + pooling are the rescue levers.
 
+### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `gbpusd_15m_cpcv_session.py all 2`
+| cov | UP p10 (frac_clear) | DOWN p10 (frac) | COMB p10 (frac) | CERT |
+|---|---|---|---|---|
+| 0.05 | **.5507 (.93)** | .5391 (.73) | **.5443 (.93)** | **UP ✓ / COMB ✓** |
+| 0.03 | **.5531 (.93)** | **.5483 (1.0)** | **.5517 (.93)** | **BOTH ✓ / COMB ✓** |
+| 0.02 | **.5532 (.93)** | **.5527 (.93)** | **.5557 (.93)** | **BOTH ✓ / COMB ✓** |
+| 0.01 | **.5482 (.93)** | .5392 (.80) | **.552 (1.0)** | **UP ✓ / COMB ✓** |
+
+AUC mean .5243 (min .5176, max .529), up-rate tripwire clean, med_n/path cov2: UP 2053 / DOWN 1893 / COMB 4007 (well-powered). **Read: BOTH SIDES CERTIFIED ALL-SESSION at cov2 AND cov3** — the strongest all-session 15m floor of the four pairs (AUDUSD all-session was DOWN-only @cov1 thin; USDJPY UP-only; EURUSD needed pooling). Means run ~.555–.569 (cov2 COMB mean .567). DOWN is confidence-tail-sensitive (drops out at cov5/cov1); UP certifies everywhere probed. The refit floor (~.55) vs the dead frozen-2026 book (~.50) confirms refit-dependence. Session concentration + pooling are LIFT levers on an already-certified floor. `gbpusd_15m_cpcv_session_all_multicov_result.json`.
+
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | — | — | — | UNTESTED |
-| **15m DOWN** | — | — | — | UNTESTED |
+| **15m UP** | **.5532 @cov2 / .5531 @cov3** (all-session own-pair, 14/15) | .568 / .561 mean | not yet frozen (session/pooling lift tests running) | ✅ CERTIFIED (all-session refit-CPCV), refit-dependent |
+| **15m DOWN** | **.5527 @cov2 / .5483 @cov3** (all-session own-pair, 14/15, cov3 15/15) | .567 / .563 mean | not yet frozen (session/pooling lift tests running) | ✅ CERTIFIED (all-session refit-CPCV), refit-dependent |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
