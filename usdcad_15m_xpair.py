@@ -57,6 +57,7 @@ def build_xp(years, stride=1, mode="xpbase"):
             cl[p]=d["close"]
         if not ok: continue
         df=pd.DataFrame(cl).dropna()
+        df=df[~df.index.duplicated(keep="last")]   # dedup (prevents join-explosion / OOM)
         if len(df)<100: continue
         idx=df.index; secs=idx.values.astype("datetime64[s]").astype("int64"); n=len(df)
         lr={p:np.log(df[p].values) for p in PAIRS}
@@ -96,7 +97,7 @@ def build_xp(years, stride=1, mode="xpbase"):
             contig=(secs[HOR:]-secs[:-HOR])==HOR*60
             fr=lr[TARGET][HOR:]-lr[TARGET][:-HOR]
             fwd[:n-HOR]=np.where(contig,fr,np.nan)
-        F=pd.DataFrame(feats,index=idx); F["_y"]=(fwd>0).astype(float); F["_ts"]=secs; F["_fwd"]=fwd
+        F=pd.DataFrame(feats,index=idx).astype("float32"); F["_y"]=(fwd>0).astype("float32"); F["_ts"]=secs.astype("int64"); F["_fwd"]=fwd.astype("float64")
         valid=np.isfinite(fwd)&(fwd!=0)
         F=F.loc[valid]
         if stride>1: F=F.iloc[::stride]
@@ -106,15 +107,20 @@ def build_xp(years, stride=1, mode="xpbase"):
 def xp_cols(df): return [c for c in df.columns if c not in ("_y","_ts","_fwd","hour")]
 
 def augment(F, years, mode):
+    """Join base 239 feats — MEMORY-FRUGAL: reindex each year's base to ONLY F's (strided) rows
+    before concat, so we never hold the full-res base matrix (the OOM cause)."""
     if mode in ("xpbase","dblortho"):
-        cols=list(H.feature_cols(TARGET))
-        parts=[]
+        cols=[c for c in H.feature_cols(TARGET) if c not in F.columns]
+        idx=F.index; parts=[]
         for y in years:
             p=f"{FEAT}/{TARGET}_{y}.parquet"
             if not os.path.exists(p): continue
-            d=pd.read_parquet(p,columns=cols); d=d[~d.index.duplicated(keep="last")]; parts.append(d)
-        B=pd.concat(parts) if parts else None
-        if B is not None: F=F.join(B[[c for c in B.columns if c not in F.columns]],how="left")
+            d=pd.read_parquet(p,columns=cols); d=d[~d.index.duplicated(keep="last")]
+            keep=idx.intersection(d.index)
+            if len(keep): parts.append(d.reindex(keep).astype("float32"))
+            del d
+        if parts:
+            B=pd.concat(parts); F=F.join(B,how="left"); del B
     return F
 
 def feat_cols(mode, df, xpc):
@@ -171,7 +177,7 @@ def main(mode="xpbase", stride=4):
     Xtr=TR[cols].astype("float32"); Xva=VA[cols].astype("float32")
     print(f"[xpair USDCAD] train={len(TR):,} val={len(VA):,} feats={len(cols)} build={time.time()-t0:.0f}s",flush=True)
     L=lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=127,min_child_samples=400,
-        subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,n_estimators=3000,n_jobs=20,verbosity=-1)
+        subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,n_estimators=3000,n_jobs=12,verbosity=-1)
     L.fit(Xtr,ytr,eval_set=[(Xva,yva)],eval_metric="auc",callbacks=[lgb.early_stopping(150),lgb.log_evaluation(0)])
     pva=L.predict_proba(Xva)[:,1]; aucv=float(roc_auc_score(yva,pva))
     imp=sorted(zip(cols,L.feature_importances_),key=lambda z:-z[1])[:20]
