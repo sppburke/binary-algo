@@ -1,0 +1,73 @@
+{
+  "key": "USDCAD.15m.ny.tbseedens",
+  "tb_k": 2.0,
+  "nseed": 3,
+  "cov": 0.02,
+  "val_ny_auc": 0.544,
+  "frozen_forward": {
+    "2024": {
+      "COMBINED": {
+        "n": 598,
+        "wr": 0.6957
+      },
+      "UP": {
+        "n": 423,
+        "wr": 0.6619
+      },
+      "DOWN": {
+        "n": 175,
+        "wr": 0.7771
+      }
+    },
+    "2025": {
+      "COMBINED": {
+        "n": 909,
+        "wr": 0.5633
+      },
+      "UP": {
+        "n": 576,
+        "wr": 0.5538
+      },
+      "DOWN": {
+        "n": 333,
+        "wr": 0.5796
+      }
+    },
+    "2026": {
+      "COMBINED": {
+        "n": 469,
+        "wr": 0.5416
+      },
+      "UP": {
+        "n": 282,
+        "wr": 0.5355
+      },
+      "DOWN": {
+        "n": 187,
+        "wr": 0.5508
+      }
+    }
+  },
+  "base_frozen_forward": {
+    "2024": {
+      "UP": 0.6658,
+      "DOWN": 0.7487,
+      "COMB": 0.6931
+    },
+    "2025": {
+      "UP": 0.5606,
+      "DOWN": 0.5851,
+      "COMB": 0.5696
+    },
+    "2026": {
+      "UP": 0.5714,
+      "DOWN": 0.5258,
+      "COMB": 0.5519
+    }
+  },
+  "refit_cpcv": "TB+K3 UP p10 .6135@cov2 vs base .5968 (+.017, all covs, mean-confirmed) \u2014 usdcad_15m_cpcv_tbfirsttouch_ny_seedens3_result.json",
+  "verdict": {
+    "UP_fwd_beats_base_binding_2025_2026": false,
+    "note": "PROMOTE TB to UP leader + freeze iff UP fwd >= base UP fwd in BOTH binding years. Else refit-CPCV-only lift (record, keep base deliverable)."
+  }
+}
