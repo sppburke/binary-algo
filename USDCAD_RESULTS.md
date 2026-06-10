@@ -50,6 +50,16 @@ n@cov2 (COMB/UP/DOWN): 2024 1248/953/295, 2025 1142/829/313, 2026 413/300/113 (c
 
 **Read:** monotone-in-confidence (real edge), thin (AUC ~.52). 2024 very strong (DOWN .709@cov2 / .750@cov1). **Binding years 2025/2026 hover at/just-below BE frozen** (COMB cov1 .560/.556) — refit-dependent decay (frozen-2021 vintage, same signature as EURUSD/USDJPY/AUDUSD 15m). **Side-asymmetry: DOWN is the stronger side at tight cov in ALL THREE years** (cov1 DOWN .750/.608/.654 vs UP .644/.550/.545) — this **REVERSES the v0 prediction (UP)**. Mechanistic update: USDCAD's forecastable side is **CAD-strength (oil-up / USDCAD-down)**, not USD-strength — plausibly the USD-strength side is shared/diluted across all USD-majors while CAD-strength is oil-idiosyncratic. → certify via per-fold-REFIT CPCV (recovers per-era floor); DOWN looks the more deployable side; confirm both forward (trap#9). Next levers: session concentration (A9, NY strong prior), seed-ensemble, cross-pair (low prior).
 
+### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `usdcad_15m_cpcv_session.py all`
+| cov | UP p10 (frac_clear) | DOWN p10 (frac) | COMB p10 (frac) | CERT |
+|---|---|---|---|---|
+| 0.05 | .5295 (.40) | .5240 (.00) | .5290 (.13) | ✗ |
+| 0.03 | .5325 (.53) | .5231 (.13) | .5298 (.33) | ✗ |
+| 0.02 | .5278 (.73) | .5202 (.27) | .5305 (.67) | ✗ |
+| 0.01 | .5277 (.67) | .5191 (.67) | .5329 (.80) | ✗ |
+
+AUC mean .516 (min .5119, max .5185), up-rate tripwire clean. **Read: NO side certifies at any coverage** — every p10 sub-BE (.519–.533). All-session USDCAD 15m direction is essentially **efficient on-disk** (the per-era refit floor doesn't clear breakeven). This is the **USDJPY case** (all-session weak → needs NY-session restriction), NOT the AUDUSD case (whose DOWN certified all-session @cov1). **On the per-era REFIT floor UP ≥ DOWN** (UP p10 .527–.533 vs DOWN .519–.524) — REVERSING the frozen-book coverage curve where DOWN led; the frozen DOWN-strength was partly a 2024-regime artifact (refit removes it). `usdcad_15m_cpcv_session_all_multicov_result.json`. **NEXT: NY-session restriction** (USDCAD = most-NA pair → strongest concentration prior of any pair; running).
+
 _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` for status of record)_
 
 ---
