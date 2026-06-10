@@ -4,7 +4,7 @@
 
 ## INCUMBENTS TO BEAT (cross-key references; the GBPUSD bar is set by its own best once certified)
 - Sibling certified 15m floors (refit-CPCV p10 @cov2): EURUSD pooled UP .567/DOWN .574 · USDJPY NY own-pair UP .586/DOWN .572 · AUDUSD NY seed-ens K=3 UP .596/DOWN .596 (mean ~.62).
-- **GBPUSD INCUMBENT (2026-06-10): `GBPUSD.m15ny_xpair_seedens.v1` (df279204d247f618)** — UP p10 .6209 @cov2 / .647 @cov1 (mean .68); DOWN p10 .6154 @cov2 / .6323 @cov1 (mean .66). Any future lever must beat these numbers at matched cov on BOTH sides to unseat.
+- **GBPUSD INCUMBENT (2026-06-10, FINAL): `GBPUSD.m15ny_xpair_seedens8.v1`** — UP p10 .6251 @cov2 / .6552 @cov1 (mean .6535/.6874); DOWN p10 .6255 @cov2 / .6395 @cov1 (mean .6449/.6660). Supersedes K=3 book `df279204d247f618` (+.0042/.0082 UP; +.0101/.0072 DOWN @cov2/cov1). Any future lever must beat these numbers at matched cov on BOTH sides to unseat. **SWEEP CLOSED — no further improve/discover rounds active.**
 
 ## FIRST-TO-RUN QUEUE (strict order; one heavy job at a time)
 1. ~~A1 base all-session~~ ✅ DONE (SURVIVED via 2024; 2026 frozen-dead → refit arbiter).

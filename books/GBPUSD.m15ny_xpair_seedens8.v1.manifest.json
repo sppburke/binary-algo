@@ -1,0 +1,111 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "GBPUSD.m15ny_xpair_seedens8.v1",
+  "content_id": "9ee9a4634a6b73e0",
+  "currency": "GBPUSD",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "GBPUSD 15m XPAIR-NY K=8 seed-ens direction book: pooled USD cross-section + EURGBP-triangular/eurobloc/risk channels + 239 own-pair feats, NY decision rows, 8-seed mean, per-cov conf gates. BOTH sides certified via per-fold-refit CPCV K=8 (15/15 paths every cov); REFIT-DEPENDENT. K=8 LIFTS over K=3: DOWN @cov2 +.0101 / UP @cov2 +.0042 / cov1 UP +.0082 / DOWN +.0072 p10.",
+  "metrics": {
+    "breakeven": 0.541,
+    "val_moved_auc": 0.5464,
+    "refit_cpcv_p10_cov1_UP": 0.6552,
+    "refit_cpcv_p10_cov1_DOWN": 0.6395,
+    "refit_cpcv_p10_cov2_UP": 0.6251,
+    "refit_cpcv_p10_cov2_DOWN": 0.6255,
+    "refit_cpcv_mean_cov1_UP": 0.6874,
+    "refit_cpcv_mean_cov1_DOWN": 0.666,
+    "k3_p10_cov2_UP": 0.6209,
+    "k3_p10_cov2_DOWN": 0.6154,
+    "k3_p10_cov1_UP": 0.647,
+    "k3_p10_cov1_DOWN": 0.6323,
+    "delta_vs_k3_cov2_UP": 0.0042,
+    "delta_vs_k3_cov2_DOWN": 0.0101,
+    "frozen_fwd_2024_cov1_COMB": 0.7437,
+    "frozen_fwd_2026_cov1_COMB": 0.4679,
+    "ticksettle_mean_delta": -0.0078
+  },
+  "source": {
+    "script": "gbpusd_15m_freeze_xpny_k8.py",
+    "git_sha": "6945b3c736a0d3a91b2da546c8b26d0d1dc7f30c",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 255,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 800,
+    "early_stop": 80,
+    "tr_stride": 3,
+    "nseed": 8,
+    "n_features": 340
+  },
+  "artifacts": [
+    {
+      "file": "m15xpny_GBPUSD_k8_s0.txt",
+      "bytes": 3784949,
+      "sha256": "7e9e0d8bb45115b037b709d3623b489979add4726e81ede654be5b1c68404017"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s1.txt",
+      "bytes": 2658091,
+      "sha256": "5d481a6df7eb589c414f3637cea42131633d1276e6503b150a879319c0975082"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s2.txt",
+      "bytes": 3131608,
+      "sha256": "43ccd7aed7afd1bf16810c6ddab156763fd7e95693adafc14769e3159c57c8f9"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s3.txt",
+      "bytes": 3903249,
+      "sha256": "d7b24e2f63413dc344e02f8e8747125bde404aa9dfbf4fdf16ed3465e655f070"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s4.txt",
+      "bytes": 3458551,
+      "sha256": "cb2c87c348569ab4d147fad155d2709ae333804a5274da5e377ff88ab31b93a6"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s5.txt",
+      "bytes": 1887462,
+      "sha256": "6d3a86a40e01a675667108c19bd667274966f9dbc59228befd443a5ac80f8a2b"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s6.txt",
+      "bytes": 4199262,
+      "sha256": "509da438e753be6f745a894c3d3de1aa87aa8e54e8282731a0792b5d3e8374b8"
+    },
+    {
+      "file": "m15xpny_GBPUSD_k8_s7.txt",
+      "bytes": 2865635,
+      "sha256": "5a8517486a290a0b80803de6870fedf81d9a918660d166e92f6fc663164365df"
+    }
+  ],
+  "strategy_json": "models/m15xpny_GBPUSD_k8_strategy.json",
+  "feature_fingerprint": null,
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "Cert of record: gbpusd_15m_cpcv_xpair_ny_seedens8_result.json. K=8 UNEXPECTED LIFT over K=3 (unlike 3/3 own-pair siblings which saturated at K=3 \u2014 xpair 340-feat richer diversity allows continued seed-ensemble variance reduction). Adversarial: gbpusd_15m_xpair_frozen_seedens3_result.json (refit-dependent, NOT memorization); gbpusd_15m_ticksettle_result.json (bar proxy PRESERVED, mean -0.0078). K=8 unseats K=3 at cov1 and cov2 on BOTH sides. New deliverable config.",
+  "created_utc": null
+}

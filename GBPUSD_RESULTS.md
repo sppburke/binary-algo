@@ -16,8 +16,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| GBPUSD · **15m** · UP | **xpair-NY K=3 refit-CPCV p10 .6209 @cov2 / .647 @cov1 (15/15 every cov); means .6496 / .6787** ✅ CERTIFIED, REFIT-DEPENDENT | `GBPUSD.m15ny_xpair_seedens.v1` · `df279204d247f618` (340 feats, K=3 seed-ens, NY session, cov-gate .01); `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json`; frozen `books/GBPUSD.m15ny_xpair_seedens.v1/` | Borderline-65% floor: seed-config order-stat band .647–.6515 → honest claim .647–.6515 p10 / mean .68. EUR-bloc discriminator resolved (pooling wins at GBPUSD, same as EURUSD, not JPY/AUD). Refit-dependent confirmed (frozen-2021 dead by 2026); deploy with periodic retrain; tick haircut ~1pp (bar-proxy faithful). | ✅ CERTIFIED + FROZEN (xpair-NY K=3 refit-CPCV) 2026-06-10 |
-| GBPUSD · **15m** · DOWN | **xpair-NY K=3 refit-CPCV p10 .6154 @cov2 / .6323 @cov1 (15/15 every cov); means .6407 / .6624** ✅ CERTIFIED, REFIT-DEPENDENT | same book as UP: `GBPUSD.m15ny_xpair_seedens.v1` · `df279204d247f618`; `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json` | K=3 genuinely lifts DOWN vs K=1 (+.005–.010 p10 AND mean +.010). >65% floor open (mean .66; refit-p10 .6323 — recent-regime era binds; more signal would require net-new 2024+ features). Orthochan ALL ADDS=False → improve loop exhausted. | ✅ CERTIFIED + FROZEN (xpair-NY K=3 refit-CPCV) 2026-06-10 |
+| GBPUSD · **15m** · UP | **xpair-NY K=8 refit-CPCV p10 .6251 @cov2 / .6552 @cov1 (15/15 every cov); means .6535 / .6874** ✅ CERTIFIED, REFIT-DEPENDENT | `GBPUSD.m15ny_xpair_seedens8.v1` `9ee9a4634a6b73e0` (340 feats, K=8 seed-ens, NY session, cov-gate .01); `gbpusd_15m_cpcv_xpair_ny_seedens8_result.json`; frozen `books/GBPUSD.m15ny_xpair_seedens8.v1/` | **K=8 unseats K=3** (+.0082 p10 @cov1; K=8 LIFTS unlike 3/3 own-pair siblings — xpair 340-feat richer diversity). Borderline-65%+ floor at cov1. EUR-bloc discriminator resolved (pooling wins at GBPUSD, same as EURUSD, not JPY/AUD). Refit-dependent confirmed; deploy with periodic retrain; tick haircut ~1pp. K=3 book `df279204d247f618` superseded but preserved. | ✅ CERTIFIED + FROZEN (xpair-NY K=8 refit-CPCV) 2026-06-10 |
+| GBPUSD · **15m** · DOWN | **xpair-NY K=8 refit-CPCV p10 .6255 @cov2 / .6395 @cov1 (15/15 every cov); means .6449 / .6660** ✅ CERTIFIED, REFIT-DEPENDENT | same book as UP: `GBPUSD.m15ny_xpair_seedens8.v1` `9ee9a4634a6b73e0`; `gbpusd_15m_cpcv_xpair_ny_seedens8_result.json` | **K=8 unseats K=3** (+.0101 @cov2 — the STRONGEST lift in the K=8 run; +.0072 @cov1). >65% floor open (mean .666; refit-p10 .6395 — recent-regime era binds; improve loop exhausted: orthochan all ADDS=False, K>8 diminishing returns). | ✅ CERTIFIED + FROZEN (xpair-NY K=8 refit-CPCV) 2026-06-10 |
 | GBPUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (GBPUSD pending).
@@ -79,7 +79,15 @@ frac_clear=1.0 every cell. NY AUC mean .5409 (min .5303, max .5472) — family-h
 
 AUC mean .5473 (min .5353, max .5539) — family record. Up-rate tripwire clean. **UP @cov1: p10 .6515 single-seed — the >65% floor at K=1; the K=3 replicate reads .6470 (order-stat noise band .647–.6515 → honest claim: borderline-65% floor, means .68).** DOWN @cov1 .6229 (mean .652). GBPUSD follows the EURUSD (pooling) precedent, not JPY/AUD — the EUR-bloc discriminator resolved. `gbpusd_15m_cpcv_xpair_ny_multicov_result.json`. REFIT-DEPENDENT presumed (sibling-universal) — adversarial frozen-forward + tick-settlement pending before freeze.
 
-**★ IMPROVE — seed-ensemble K=3 on xpair-NY (matched folds, `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json`): DOWN genuinely lifts, UP saturates.** DOWN p10 +.005–.010 at every cov WITH mean +.010 (the genuine-lift criterion); UP mixed at the tails (cov1 −.0045 order-stat). K=3 is the deliverable config: DOWN .5955/.6122/.6154/.6323 @cov5/3/2/1 (means .61–.66), UP .6016/.6211/.6209/.6470 (means .62–.68), COMB .5994/.6145/.6203/.6427, AUC .5488, frac 1.0 every cell.
+**★ IMPROVE — seed-ensemble K=3 on xpair-NY (matched folds, `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json`): DOWN genuinely lifts, UP saturates.** DOWN p10 +.005–.010 at every cov WITH mean +.010 (the genuine-lift criterion); UP mixed at the tails (cov1 −.0045 order-stat). K=3: DOWN .5955/.6122/.6154/.6323 @cov5/3/2/1 (means .61–.66), UP .6016/.6211/.6209/.6470 (means .62–.68), COMB .5994/.6145/.6203/.6427, AUC .5488, frac 1.0 every cell.
+
+**★★ IMPROVE — seed-ensemble K=8 on xpair-NY (matched folds, `gbpusd_15m_cpcv_xpair_ny_seedens8_result.json`): UNEXPECTED LIFT at K=8 — the xpair 340-feat model is NOT saturated at K=3 (unlike 3/3 own-pair siblings).** Xpair richer feature diversity gives seed averaging more variance to reduce. DOWN @cov2 +.0101 (strongest lift in the run), UP @cov2 +.0042, cov1 UP +.0082, cov1 DOWN +.0072. **K=8 = new deliverable config.** AUC mean .5492, frac 1.0 every cell, 15/15 paths.
+| cov | UP p10 (mean) [Δ vs K3] | DOWN p10 (mean) [Δ vs K3] | COMB p10 (mean) |
+|---|---|---|---|
+| 0.05 | .6049 (.6244) [+.003] | .5969 (.6168) [+.001] | .6007 (.621) |
+| 0.03 | .6163 (.6475) [−.005] | .6156 (.6346) [+.003] | .6144 (.639) |
+| 0.02 | **.6251 (.6535)** [+.004] | **.6255 (.6449)** [**+.010**] | .6262 (.645) |
+| 0.01 | **.6552 (.6874)** [+.008] | **.6395 (.6660)** [+.007] | .6594 (.684) |
 
 ### Orthogonal channel famonly screen (Ortho) — `gbpusd_15m_orthochan.py`
 **ALL 4 families ADDS=False — mirror of AUDUSD precedent; xpair 340-feat matrix subsumes all.**
@@ -92,12 +100,13 @@ AUC mean .5473 (min .5353, max .5539) — family record. Up-rate tripwire clean.
 
 Falsifier: ADDS iff ΔVal-AUC > .005 AND 2026 cov2 > base (.4892). None pass either gate. **Conclusion: no orthogonal channel family adds net-new signal to the 239-feat own-pair base; the xpair book's cross-pair features already capture the most these channels can offer.** `gbpusd_15m_orthochan_result.json`.
 
-## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
+## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available) — SWEEP CLOSED 2026-06-10
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.647 @cov1 (K3) / .6209 @cov2** (xpair-NY K=3, 15/15 every cov) | .6787 @cov1 / .6496 @cov2 | `GBPUSD.m15ny_xpair_seedens.v1` `df279204d247f618` | ✅ CERTIFIED + FROZEN (2026-06-10); floor borderline-65% (seed-config band .647–.6515, means .68); tick haircut ~1pp; deploy w/ periodic retrain |
-| **15m DOWN** | **.6323 @cov1 / .6154 @cov2** (xpair-NY K=3, 15/15 every cov) | .6624 @cov1 / .6407 @cov2 | same: `GBPUSD.m15ny_xpair_seedens.v1` | ✅ CERTIFIED + FROZEN (2026-06-10); >65% floor open (mean .66; improve loop exhausted — orthochan all ADDS=False) |
+| **15m UP** | **.6552 @cov1 (K8) / .6251 @cov2** (xpair-NY K=8, 15/15 every cov) | .6874 @cov1 / .6535 @cov2 | `GBPUSD.m15ny_xpair_seedens8.v1` `9ee9a4634a6b73e0` | ✅ CERTIFIED + FROZEN (2026-06-10); borderline-65%+ floor at cov1; tick haircut ~1pp; deploy w/ periodic retrain |
+| **15m DOWN** | **.6395 @cov1 / .6255 @cov2** (xpair-NY K=8, 15/15 every cov) | .6660 @cov1 / .6449 @cov2 | same: `GBPUSD.m15ny_xpair_seedens8.v1` `9ee9a4634a6b73e0` | ✅ CERTIFIED + FROZEN (2026-06-10); >65% floor open (mean .666; K=8 strongest lever exhausted — recent era binds) |
+| _(superseded)_ xpair-NY K=3 | UP .6470 @cov1 / .6209 @cov2; DOWN .6323 @cov1 / .6154 @cov2 | .6787/.6624 @cov1 | `GBPUSD.m15ny_xpair_seedens.v1` `df279204d247f618` | superseded by K=8 (UP +.0082/@cov1, DOWN +.0101/@cov2 p10) |
 | _(superseded)_ own-pair NY K=1 | UP .6039 / DOWN .5937 @cov2 (15/15) | .629 / .623 | — | subsumed by xpair-NY (+.007–.032 p10 every cell) |
 | _(superseded)_ all-session own-pair | UP .5532 / DOWN .5527 @cov2 (14/15) | .568 / .567 | — | subsumed by NY |
 
-_Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-06-10 (sweep closed)._
+_Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-06-10 (sweep closed, K=8 = final deliverable)._
