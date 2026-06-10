@@ -1,0 +1,73 @@
+{
+  "key": "USDCAD.15m.ny.xhblend",
+  "nseed": 3,
+  "cov": 0.02,
+  "val_ny_blend_auc": 0.5369,
+  "frozen_forward": {
+    "2024": {
+      "COMBINED": {
+        "n": 546,
+        "wr": 0.6355
+      },
+      "UP": {
+        "n": 344,
+        "wr": 0.6424
+      },
+      "DOWN": {
+        "n": 202,
+        "wr": 0.6238
+      }
+    },
+    "2025": {
+      "COMBINED": {
+        "n": 688,
+        "wr": 0.5407
+      },
+      "UP": {
+        "n": 429,
+        "wr": 0.5594
+      },
+      "DOWN": {
+        "n": 259,
+        "wr": 0.5097
+      }
+    },
+    "2026": {
+      "COMBINED": {
+        "n": 298,
+        "wr": 0.5537
+      },
+      "UP": {
+        "n": 178,
+        "wr": 0.5674
+      },
+      "DOWN": {
+        "n": 120,
+        "wr": 0.5333
+      }
+    }
+  },
+  "base_frozen_forward": {
+    "2024": {
+      "UP": 0.6658,
+      "DOWN": 0.7487,
+      "COMB": 0.6931
+    },
+    "2025": {
+      "UP": 0.5606,
+      "DOWN": 0.5851,
+      "COMB": 0.5696
+    },
+    "2026": {
+      "UP": 0.5714,
+      "DOWN": 0.5258,
+      "COMB": 0.5519
+    }
+  },
+  "refit_cpcv": "single-seed blend beat seed-ens-K3 @cov2 (UP .626/DOWN .5857/COMB .6104); matched-seedens K3 = usdcad_15m_xhstack_ny_result.json (nseed3 run)",
+  "verdict": {
+    "COMB_fwd_beats_base_binding": false,
+    "UP_fwd_beats_base_binding": false,
+    "note": "PROMOTE+freeze iff COMB fwd >= base COMB in BOTH binding years (2025&2026). Else refit-CPCV-only (keep base)."
+  }
+}
