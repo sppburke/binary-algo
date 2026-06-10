@@ -1,0 +1,372 @@
+{
+  "key": "USDCAD.15m",
+  "model": "cross-pair USD-residual (sign-aligned, USD-numerator) + USDCAD-specific (commod-bloc/oil-proxy, risk), mode=dblortho",
+  "incumbent": "A1 base VAL AUC .5234, 2026 cov2% COMB .537; NY-certified base UP p10 .6044/DOWN .5791",
+  "breakeven": 0.541,
+  "falsifier": {
+    "registered": "pre-OOS",
+    "IMPROVES_if": "VAL moved-AUC > 0.5234 AND 2026 cov2% COMBINED wr > 0.537 (else base stands; pooling subsumed = USDJPY/AUDUSD case). If screen lifts -> escalate to NY refit-CPCV."
+  },
+  "val_auc": 0.5243070465687958,
+  "best_iter": 150,
+  "top20": [
+    "hour_sin",
+    "hour_cos",
+    "4h_autocorr_10",
+    "1h_autocorr_10",
+    "4h_dist_hi_48",
+    "15m_autocorr_10",
+    "4h_rv_12",
+    "30m_autocorr_10",
+    "4h_ret_24",
+    "4h_rv_24",
+    "ll_AUDUSD1",
+    "4h_bb_width",
+    "4h_dist_lo_48",
+    "ll_GBPUSD30",
+    "4h_slope_20",
+    "1h_rv_24",
+    "ll_EURUSD10",
+    "4h_rangepos_48",
+    "ll_AUDUSD30",
+    "usdbask30"
+  ],
+  "gate": {
+    "cov": 0.02,
+    "thr": 0.07313521931070441,
+    "val_worst_half": 0.6025
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5239,
+      "up_rate": 0.5008,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 1548,
+          "wr": 0.6253,
+          "ci": [
+            0.601,
+            0.649
+          ]
+        },
+        "UP": {
+          "n": 1033,
+          "wr": 0.6079,
+          "ci": [
+            0.578,
+            0.639
+          ]
+        },
+        "DOWN": {
+          "n": 515,
+          "wr": 0.6602,
+          "ci": [
+            0.619,
+            0.701
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.0441,
+          "COMBINED": {
+            "n": 7980,
+            "wr": 0.5504
+          },
+          "UP": {
+            "n": 4027,
+            "wr": 0.5481
+          },
+          "DOWN": {
+            "n": 3953,
+            "wr": 0.5527
+          }
+        },
+        "0.05": {
+          "thr": 0.054,
+          "COMBINED": {
+            "n": 4442,
+            "wr": 0.5705
+          },
+          "UP": {
+            "n": 2354,
+            "wr": 0.5769
+          },
+          "DOWN": {
+            "n": 2088,
+            "wr": 0.5632
+          }
+        },
+        "0.03": {
+          "thr": 0.062,
+          "COMBINED": {
+            "n": 2724,
+            "wr": 0.5936
+          },
+          "UP": {
+            "n": 1575,
+            "wr": 0.5835
+          },
+          "DOWN": {
+            "n": 1149,
+            "wr": 0.6075
+          }
+        },
+        "0.02": {
+          "thr": 0.069,
+          "COMBINED": {
+            "n": 1849,
+            "wr": 0.6036
+          },
+          "UP": {
+            "n": 1199,
+            "wr": 0.5888
+          },
+          "DOWN": {
+            "n": 650,
+            "wr": 0.6308
+          }
+        },
+        "0.01": {
+          "thr": 0.0823,
+          "COMBINED": {
+            "n": 1023,
+            "wr": 0.653
+          },
+          "UP": {
+            "n": 724,
+            "wr": 0.6312
+          },
+          "DOWN": {
+            "n": 299,
+            "wr": 0.7057
+          }
+        }
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5226,
+      "up_rate": 0.4994,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 1911,
+          "wr": 0.5625,
+          "ci": [
+            0.541,
+            0.585
+          ]
+        },
+        "UP": {
+          "n": 1091,
+          "wr": 0.5582,
+          "ci": [
+            0.528,
+            0.588
+          ]
+        },
+        "DOWN": {
+          "n": 820,
+          "wr": 0.5683,
+          "ci": [
+            0.534,
+            0.602
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.0457,
+          "COMBINED": {
+            "n": 7805,
+            "wr": 0.5321
+          },
+          "UP": {
+            "n": 3761,
+            "wr": 0.5281
+          },
+          "DOWN": {
+            "n": 4044,
+            "wr": 0.5359
+          }
+        },
+        "0.05": {
+          "thr": 0.0569,
+          "COMBINED": {
+            "n": 4295,
+            "wr": 0.5478
+          },
+          "UP": {
+            "n": 2074,
+            "wr": 0.541
+          },
+          "DOWN": {
+            "n": 2221,
+            "wr": 0.5543
+          }
+        },
+        "0.03": {
+          "thr": 0.0659,
+          "COMBINED": {
+            "n": 2725,
+            "wr": 0.56
+          },
+          "UP": {
+            "n": 1431,
+            "wr": 0.5618
+          },
+          "DOWN": {
+            "n": 1294,
+            "wr": 0.558
+          }
+        },
+        "0.02": {
+          "thr": 0.0734,
+          "COMBINED": {
+            "n": 1892,
+            "wr": 0.5629
+          },
+          "UP": {
+            "n": 1083,
+            "wr": 0.5559
+          },
+          "DOWN": {
+            "n": 809,
+            "wr": 0.5723
+          }
+        },
+        "0.01": {
+          "thr": 0.0866,
+          "COMBINED": {
+            "n": 1040,
+            "wr": 0.5788
+          },
+          "UP": {
+            "n": 674,
+            "wr": 0.5608
+          },
+          "DOWN": {
+            "n": 366,
+            "wr": 0.612
+          }
+        }
+      }
+    },
+    "oos": {
+      "moved_auc": 0.512,
+      "up_rate": 0.5005,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 829,
+          "wr": 0.5308,
+          "ci": [
+            0.497,
+            0.565
+          ]
+        },
+        "UP": {
+          "n": 399,
+          "wr": 0.5489,
+          "ci": [
+            0.499,
+            0.596
+          ]
+        },
+        "DOWN": {
+          "n": 430,
+          "wr": 0.514,
+          "ci": [
+            0.467,
+            0.56
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.0474,
+          "COMBINED": {
+            "n": 2692,
+            "wr": 0.5241
+          },
+          "UP": {
+            "n": 1227,
+            "wr": 0.5183
+          },
+          "DOWN": {
+            "n": 1465,
+            "wr": 0.529
+          }
+        },
+        "0.05": {
+          "thr": 0.0594,
+          "COMBINED": {
+            "n": 1544,
+            "wr": 0.5214
+          },
+          "UP": {
+            "n": 680,
+            "wr": 0.4971
+          },
+          "DOWN": {
+            "n": 864,
+            "wr": 0.5405
+          }
+        },
+        "0.03": {
+          "thr": 0.0682,
+          "COMBINED": {
+            "n": 1013,
+            "wr": 0.5271
+          },
+          "UP": {
+            "n": 458,
+            "wr": 0.5284
+          },
+          "DOWN": {
+            "n": 555,
+            "wr": 0.5261
+          }
+        },
+        "0.02": {
+          "thr": 0.0752,
+          "COMBINED": {
+            "n": 745,
+            "wr": 0.5235
+          },
+          "UP": {
+            "n": 371,
+            "wr": 0.5526
+          },
+          "DOWN": {
+            "n": 374,
+            "wr": 0.4947
+          }
+        },
+        "0.01": {
+          "thr": 0.0868,
+          "COMBINED": {
+            "n": 438,
+            "wr": 0.5023
+          },
+          "UP": {
+            "n": 245,
+            "wr": 0.502
+          },
+          "DOWN": {
+            "n": 193,
+            "wr": 0.5026
+          }
+        }
+      }
+    }
+  },
+  "verdict": {
+    "val_auc_gt_base": true,
+    "oos_cov2_comb": 0.5235,
+    "oos_cov2_gt_base": false,
+    "IMPROVES_base": false,
+    "note": "if not IMPROVES, base stands; pooling subsumed at 15m (USDJPY/AUDUSD case). If IMPROVES -> escalate to NY refit-CPCV."
+  }
+}

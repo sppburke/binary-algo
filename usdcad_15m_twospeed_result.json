@@ -1,0 +1,41 @@
+{
+  "key": "USDCAD.15m",
+  "model": "two-speed sign-agreement screen (NY)",
+  "session": "ny",
+  "breakeven": 0.541,
+  "incumbent": "NY base VAL AUC .5319 (cpcv mean); NY-certified base UP p10 .6044/DOWN .5791",
+  "falsifier": {
+    "registered": "pre-OOS",
+    "KILL_if": "base+twospeed NY VAL AUC <= base NY VAL AUC + 0.003 OR no ts_ feature in top-20 SHAP"
+  },
+  "base_val_auc": 0.5433,
+  "aug_val_auc": 0.5428,
+  "lift": -0.0005,
+  "ts_in_top20": [],
+  "top20": [
+    "hour_sin",
+    "hour_cos",
+    "30m_autocorr_10",
+    "1m_dist_ema20",
+    "1h_autocorr_10",
+    "4h_dist_lo_48",
+    "4h_dist_hi_48",
+    "vol_z",
+    "1h_rv_12",
+    "4h_ret_1",
+    "4h_rangepos_24",
+    "15m_rv_12",
+    "4h_rangepos_48",
+    "4h_ret_24",
+    "4h_atr_pct",
+    "4h_autocorr_10",
+    "1m_dist_ema50",
+    "30m_ret_3",
+    "30m_ret_6",
+    "30m_bb_width"
+  ],
+  "verdict": {
+    "KILLED": true,
+    "note": "if KILLED, two-speed subsumed by base mtf_trend_align+multi-tf feats (run-don't-argue). If SURVIVES -> escalate to NY refit-CPCV."
+  }
+}
