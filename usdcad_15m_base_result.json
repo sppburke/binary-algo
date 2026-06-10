@@ -1,0 +1,474 @@
+{
+  "key": "USDCAD.15m",
+  "model": "single-pair LGBM baseline (239 base feats, 15-min own-clock label)",
+  "settlement": "bar-close approx, ties LOSE, breakeven 0.541, gap=900s nonoverlap_chrono",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "VAL moved-AUC <= 0.515  OR  no held-out year COMBINED win-rate CI95-lower clears 0.541",
+    "rationale": "USDCAD is a USD-base/CAD-quote major (USD common factor -> cross-pair pooling candidate, but USDJPY+AUDUSD analogs were own-pair-specific = strong NULL prior) AND a petrocurrency (oil/WTI = dominant signed driver, OFF-DISK) AND the most North-American pair (NY-session concentration = strongest prior of any pair). Side-asymmetry prediction: USDCAD UP (=USD-strength/risk-off/oil-down) is the more forecastable side (inverse of AUDUSD, whose USD sits in the denominator). Measure the SINGLE-PAIR all-session base floor + moved-AUC ceiling first; session + pooling are the levers tested next. 15m = deriv-FX floor + program's best direction horizon."
+  },
+  "val_auc": 0.5234455058360612,
+  "best_iter": 97,
+  "gate": {
+    "cov": 0.02,
+    "conf_thr": 0.05572526928410781,
+    "val_worst_half_wr": 0.5910727141828653,
+    "val_half_wrs": [
+      0.5910727141828653,
+      0.6457229371688115
+    ]
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5228894359582168,
+      "moved_up_rate": 0.5008311584236688,
+      "gate": {
+        "COMBINED": {
+          "n": 1153,
+          "wr": 0.6496097137901128,
+          "ci": [
+            0.6218560277536861,
+            0.6773633998265395
+          ]
+        },
+        "UP": {
+          "n": 881,
+          "wr": 0.6242905788876277,
+          "ci": [
+            0.5925085130533485,
+            0.656072644721907
+          ]
+        },
+        "DOWN": {
+          "n": 272,
+          "wr": 0.7316176470588235,
+          "ci": [
+            0.6800551470588236,
+            0.7830882352941176
+          ]
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.024240174994777097,
+          "COMBINED": {
+            "n": 14325,
+            "wr": 0.5228
+          },
+          "UP": {
+            "n": 7210,
+            "wr": 0.5252
+          },
+          "DOWN": {
+            "n": 7115,
+            "wr": 0.5203
+          }
+        },
+        "0.20": {
+          "thr": 0.029943554105824943,
+          "COMBINED": {
+            "n": 10537,
+            "wr": 0.5315
+          },
+          "UP": {
+            "n": 5565,
+            "wr": 0.5296
+          },
+          "DOWN": {
+            "n": 4972,
+            "wr": 0.5336
+          }
+        },
+        "0.10": {
+          "thr": 0.038005179380681764,
+          "COMBINED": {
+            "n": 5934,
+            "wr": 0.5517
+          },
+          "UP": {
+            "n": 3527,
+            "wr": 0.5566
+          },
+          "DOWN": {
+            "n": 2407,
+            "wr": 0.5447
+          }
+        },
+        "0.05": {
+          "thr": 0.045133979659181124,
+          "COMBINED": {
+            "n": 3121,
+            "wr": 0.5783
+          },
+          "UP": {
+            "n": 2098,
+            "wr": 0.5729
+          },
+          "DOWN": {
+            "n": 1023,
+            "wr": 0.5894
+          }
+        },
+        "0.03": {
+          "thr": 0.050078295926434646,
+          "COMBINED": {
+            "n": 1913,
+            "wr": 0.6205
+          },
+          "UP": {
+            "n": 1367,
+            "wr": 0.6057
+          },
+          "DOWN": {
+            "n": 546,
+            "wr": 0.6575
+          }
+        },
+        "0.02": {
+          "thr": 0.054790071960209956,
+          "COMBINED": {
+            "n": 1248,
+            "wr": 0.6386
+          },
+          "UP": {
+            "n": 953,
+            "wr": 0.617
+          },
+          "DOWN": {
+            "n": 295,
+            "wr": 0.7085
+          }
+        },
+        "0.01": {
+          "thr": 0.06612411662579311,
+          "COMBINED": {
+            "n": 628,
+            "wr": 0.6608
+          },
+          "UP": {
+            "n": 528,
+            "wr": 0.6439
+          },
+          "DOWN": {
+            "n": 100,
+            "wr": 0.75
+          }
+        }
+      },
+      "tripwire_ok": true
+    },
+    "test25": {
+      "moved_auc": 0.5223024738877392,
+      "moved_up_rate": 0.4991909605504737,
+      "gate": {
+        "COMBINED": {
+          "n": 1486,
+          "wr": 0.5518169582772544,
+          "ci": [
+            0.5269010767160162,
+            0.5760598923283982
+          ]
+        },
+        "UP": {
+          "n": 1016,
+          "wr": 0.5452755905511811,
+          "ci": [
+            0.514763779527559,
+            0.5757874015748031
+          ]
+        },
+        "DOWN": {
+          "n": 470,
+          "wr": 0.5659574468085107,
+          "ci": [
+            0.5212765957446809,
+            0.6106382978723405
+          ]
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.02483216556893798,
+          "COMBINED": {
+            "n": 14140,
+            "wr": 0.5199
+          },
+          "UP": {
+            "n": 6749,
+            "wr": 0.522
+          },
+          "DOWN": {
+            "n": 7391,
+            "wr": 0.5179
+          }
+        },
+        "0.20": {
+          "thr": 0.030849068687158403,
+          "COMBINED": {
+            "n": 10327,
+            "wr": 0.5301
+          },
+          "UP": {
+            "n": 5075,
+            "wr": 0.5342
+          },
+          "DOWN": {
+            "n": 5252,
+            "wr": 0.5261
+          }
+        },
+        "0.10": {
+          "thr": 0.03945383858924566,
+          "COMBINED": {
+            "n": 5724,
+            "wr": 0.526
+          },
+          "UP": {
+            "n": 3048,
+            "wr": 0.5335
+          },
+          "DOWN": {
+            "n": 2676,
+            "wr": 0.5176
+          }
+        },
+        "0.05": {
+          "thr": 0.047283116400337166,
+          "COMBINED": {
+            "n": 2969,
+            "wr": 0.5409
+          },
+          "UP": {
+            "n": 1768,
+            "wr": 0.543
+          },
+          "DOWN": {
+            "n": 1201,
+            "wr": 0.5379
+          }
+        },
+        "0.03": {
+          "thr": 0.05379422941112759,
+          "COMBINED": {
+            "n": 1744,
+            "wr": 0.5522
+          },
+          "UP": {
+            "n": 1147,
+            "wr": 0.5571
+          },
+          "DOWN": {
+            "n": 597,
+            "wr": 0.5427
+          }
+        },
+        "0.02": {
+          "thr": 0.06017260746141542,
+          "COMBINED": {
+            "n": 1142,
+            "wr": 0.5534
+          },
+          "UP": {
+            "n": 829,
+            "wr": 0.5428
+          },
+          "DOWN": {
+            "n": 313,
+            "wr": 0.5815
+          }
+        },
+        "0.01": {
+          "thr": 0.07278829274060461,
+          "COMBINED": {
+            "n": 618,
+            "wr": 0.5599
+          },
+          "UP": {
+            "n": 511,
+            "wr": 0.5499
+          },
+          "DOWN": {
+            "n": 107,
+            "wr": 0.6075
+          }
+        }
+      },
+      "tripwire_ok": true
+    },
+    "oos": {
+      "moved_auc": 0.5158296791908601,
+      "moved_up_rate": 0.5005791580829478,
+      "gate": {
+        "COMBINED": {
+          "n": 706,
+          "wr": 0.5453257790368272,
+          "ci": [
+            0.5084985835694051,
+            0.5807719546742205
+          ]
+        },
+        "UP": {
+          "n": 432,
+          "wr": 0.5462962962962963,
+          "ci": [
+            0.5,
+            0.5949074074074074
+          ]
+        },
+        "DOWN": {
+          "n": 274,
+          "wr": 0.5437956204379562,
+          "ci": [
+            0.4854014598540146,
+            0.6021897810218978
+          ]
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.025542758976883406,
+          "COMBINED": {
+            "n": 4856,
+            "wr": 0.5157
+          },
+          "UP": {
+            "n": 2264,
+            "wr": 0.5141
+          },
+          "DOWN": {
+            "n": 2592,
+            "wr": 0.517
+          }
+        },
+        "0.20": {
+          "thr": 0.031948172203529634,
+          "COMBINED": {
+            "n": 3586,
+            "wr": 0.5181
+          },
+          "UP": {
+            "n": 1737,
+            "wr": 0.5181
+          },
+          "DOWN": {
+            "n": 1849,
+            "wr": 0.5181
+          }
+        },
+        "0.10": {
+          "thr": 0.041331595775241065,
+          "COMBINED": {
+            "n": 1985,
+            "wr": 0.533
+          },
+          "UP": {
+            "n": 1058,
+            "wr": 0.517
+          },
+          "DOWN": {
+            "n": 927,
+            "wr": 0.5512
+          }
+        },
+        "0.05": {
+          "thr": 0.05035947386703862,
+          "COMBINED": {
+            "n": 1032,
+            "wr": 0.5552
+          },
+          "UP": {
+            "n": 605,
+            "wr": 0.5488
+          },
+          "DOWN": {
+            "n": 427,
+            "wr": 0.5644
+          }
+        },
+        "0.03": {
+          "thr": 0.05808542028914647,
+          "COMBINED": {
+            "n": 617,
+            "wr": 0.5446
+          },
+          "UP": {
+            "n": 390,
+            "wr": 0.541
+          },
+          "DOWN": {
+            "n": 227,
+            "wr": 0.5507
+          }
+        },
+        "0.02": {
+          "thr": 0.0654692678594068,
+          "COMBINED": {
+            "n": 413,
+            "wr": 0.5375
+          },
+          "UP": {
+            "n": 300,
+            "wr": 0.5467
+          },
+          "DOWN": {
+            "n": 113,
+            "wr": 0.5133
+          }
+        },
+        "0.01": {
+          "thr": 0.07746261303526088,
+          "COMBINED": {
+            "n": 239,
+            "wr": 0.5565
+          },
+          "UP": {
+            "n": 213,
+            "wr": 0.5446
+          },
+          "DOWN": {
+            "n": 26,
+            "wr": 0.6538
+          }
+        }
+      },
+      "tripwire_ok": true
+    }
+  },
+  "verdict": {
+    "val_auc_le_0515": false,
+    "years_COMBINED_CIlo_clears_BE": [
+      "test24"
+    ],
+    "KILLED": false,
+    "note": "baseline as a standalone tradeable edge"
+  }
+}
