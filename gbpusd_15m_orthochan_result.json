@@ -1,0 +1,553 @@
+{
+  "key": "GBPUSD.15m.NY",
+  "breakeven": 0.541,
+  "falsifier": {
+    "registered": "pre-OOS",
+    "ADDS_if": "base+block VAL-AUC > base_VAL_AUC+0.005 AND 2026 cov2 COMB > base 2026 cov2",
+    "KILLS_if": "delta_auc <= 0.005 OR 2026 cov2 COMB <= base OR base+block val_auc not reproducible at refit-CPCV",
+    "note": "falsifier registered before any held-out evaluation; screen metric = famonly \u0394VAL-AUC"
+  },
+  "arms": {
+    "base": {
+      "val_auc": 0.5401,
+      "n_feats": 239,
+      "years": {
+        "test24": {
+          "auc": 0.5441,
+          "cov2": {
+            "COMBINED": {
+              "n": 718,
+              "wr": 0.6811
+            },
+            "UP": {
+              "n": 317,
+              "wr": 0.6972
+            },
+            "DOWN": {
+              "n": 401,
+              "wr": 0.6683
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5292,
+          "cov2": {
+            "COMBINED": {
+              "n": 1040,
+              "wr": 0.5788
+            },
+            "UP": {
+              "n": 597,
+              "wr": 0.5729
+            },
+            "DOWN": {
+              "n": 443,
+              "wr": 0.5869
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.508,
+          "cov2": {
+            "COMBINED": {
+              "n": 462,
+              "wr": 0.4892
+            },
+            "UP": {
+              "n": 268,
+              "wr": 0.4963
+            },
+            "DOWN": {
+              "n": 194,
+              "wr": 0.4794
+            }
+          }
+        }
+      }
+    },
+    "eurgbp_only": {
+      "val_auc": 0.5314,
+      "n_feats": 8,
+      "years": {
+        "test24": {
+          "auc": 0.5373,
+          "cov2": {
+            "COMBINED": {
+              "n": 771,
+              "wr": 0.6057
+            },
+            "UP": {
+              "n": 671,
+              "wr": 0.5991
+            },
+            "DOWN": {
+              "n": 100,
+              "wr": 0.65
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5151,
+          "cov2": {
+            "COMBINED": {
+              "n": 1468,
+              "wr": 0.5436
+            },
+            "UP": {
+              "n": 1256,
+              "wr": 0.5446
+            },
+            "DOWN": {
+              "n": 212,
+              "wr": 0.5377
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.5017,
+          "cov2": {
+            "COMBINED": {
+              "n": 563,
+              "wr": 0.5098
+            },
+            "UP": {
+              "n": 470,
+              "wr": 0.4979
+            },
+            "DOWN": {
+              "n": 93,
+              "wr": 0.5699
+            }
+          }
+        }
+      }
+    },
+    "base+eurgbp": {
+      "val_auc": 0.5447,
+      "n_feats": 247,
+      "years": {
+        "test24": {
+          "auc": 0.5494,
+          "cov2": {
+            "COMBINED": {
+              "n": 901,
+              "wr": 0.7003
+            },
+            "UP": {
+              "n": 438,
+              "wr": 0.7055
+            },
+            "DOWN": {
+              "n": 463,
+              "wr": 0.6955
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5322,
+          "cov2": {
+            "COMBINED": {
+              "n": 1127,
+              "wr": 0.5927
+            },
+            "UP": {
+              "n": 616,
+              "wr": 0.5942
+            },
+            "DOWN": {
+              "n": 511,
+              "wr": 0.591
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.5068,
+          "cov2": {
+            "COMBINED": {
+              "n": 567,
+              "wr": 0.5362
+            },
+            "UP": {
+              "n": 282,
+              "wr": 0.5461
+            },
+            "DOWN": {
+              "n": 285,
+              "wr": 0.5263
+            }
+          }
+        }
+      }
+    },
+    "risk_only": {
+      "val_auc": 0.533,
+      "n_feats": 18,
+      "years": {
+        "test24": {
+          "auc": 0.5457,
+          "cov2": {
+            "COMBINED": {
+              "n": 919,
+              "wr": 0.6442
+            },
+            "UP": {
+              "n": 578,
+              "wr": 0.654
+            },
+            "DOWN": {
+              "n": 341,
+              "wr": 0.6276
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5242,
+          "cov2": {
+            "COMBINED": {
+              "n": 1208,
+              "wr": 0.5588
+            },
+            "UP": {
+              "n": 800,
+              "wr": 0.5475
+            },
+            "DOWN": {
+              "n": 408,
+              "wr": 0.5809
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.5053,
+          "cov2": {
+            "COMBINED": {
+              "n": 477,
+              "wr": 0.522
+            },
+            "UP": {
+              "n": 331,
+              "wr": 0.5468
+            },
+            "DOWN": {
+              "n": 146,
+              "wr": 0.4658
+            }
+          }
+        }
+      }
+    },
+    "base+risk": {
+      "val_auc": 0.5426,
+      "n_feats": 257,
+      "years": {
+        "test24": {
+          "auc": 0.5495,
+          "cov2": {
+            "COMBINED": {
+              "n": 902,
+              "wr": 0.6907
+            },
+            "UP": {
+              "n": 419,
+              "wr": 0.7112
+            },
+            "DOWN": {
+              "n": 483,
+              "wr": 0.6729
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5319,
+          "cov2": {
+            "COMBINED": {
+              "n": 1141,
+              "wr": 0.5618
+            },
+            "UP": {
+              "n": 659,
+              "wr": 0.5615
+            },
+            "DOWN": {
+              "n": 482,
+              "wr": 0.5622
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.508,
+          "cov2": {
+            "COMBINED": {
+              "n": 479,
+              "wr": 0.5282
+            },
+            "UP": {
+              "n": 249,
+              "wr": 0.506
+            },
+            "DOWN": {
+              "n": 230,
+              "wr": 0.5522
+            }
+          }
+        }
+      }
+    },
+    "semi_only": {
+      "val_auc": 0.5258,
+      "n_feats": 3,
+      "years": {
+        "test24": {
+          "auc": 0.5298,
+          "cov2": {
+            "COMBINED": {
+              "n": 810,
+              "wr": 0.5543
+            },
+            "UP": {
+              "n": 796,
+              "wr": 0.5565
+            },
+            "DOWN": {
+              "n": 14,
+              "wr": 0.4286
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5196,
+          "cov2": {
+            "COMBINED": {
+              "n": 769,
+              "wr": 0.5254
+            },
+            "UP": {
+              "n": 761,
+              "wr": 0.5269
+            },
+            "DOWN": {
+              "n": 8,
+              "wr": 0.375
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.5085,
+          "cov2": {
+            "COMBINED": {
+              "n": 259,
+              "wr": 0.4942
+            },
+            "UP": {
+              "n": 258,
+              "wr": 0.4922
+            },
+            "DOWN": {
+              "n": 1,
+              "wr": 1.0
+            }
+          }
+        }
+      }
+    },
+    "base+semi": {
+      "val_auc": 0.5408,
+      "n_feats": 242,
+      "years": {
+        "test24": {
+          "auc": 0.5444,
+          "cov2": {
+            "COMBINED": {
+              "n": 756,
+              "wr": 0.6653
+            },
+            "UP": {
+              "n": 359,
+              "wr": 0.6574
+            },
+            "DOWN": {
+              "n": 397,
+              "wr": 0.6725
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5313,
+          "cov2": {
+            "COMBINED": {
+              "n": 1119,
+              "wr": 0.5764
+            },
+            "UP": {
+              "n": 642,
+              "wr": 0.5732
+            },
+            "DOWN": {
+              "n": 477,
+              "wr": 0.5807
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.5073,
+          "cov2": {
+            "COMBINED": {
+              "n": 521,
+              "wr": 0.5259
+            },
+            "UP": {
+              "n": 280,
+              "wr": 0.5429
+            },
+            "DOWN": {
+              "n": 241,
+              "wr": 0.5062
+            }
+          }
+        }
+      }
+    },
+    "carryrank_only": {
+      "val_auc": 0.5375,
+      "n_feats": 12,
+      "years": {
+        "test24": {
+          "auc": 0.5474,
+          "cov2": {
+            "COMBINED": {
+              "n": 1296,
+              "wr": 0.6397
+            },
+            "UP": {
+              "n": 1089,
+              "wr": 0.641
+            },
+            "DOWN": {
+              "n": 207,
+              "wr": 0.6329
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5229,
+          "cov2": {
+            "COMBINED": {
+              "n": 1227,
+              "wr": 0.5746
+            },
+            "UP": {
+              "n": 935,
+              "wr": 0.5775
+            },
+            "DOWN": {
+              "n": 292,
+              "wr": 0.5651
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.4997,
+          "cov2": {
+            "COMBINED": {
+              "n": 410,
+              "wr": 0.5098
+            },
+            "UP": {
+              "n": 305,
+              "wr": 0.5311
+            },
+            "DOWN": {
+              "n": 105,
+              "wr": 0.4476
+            }
+          }
+        }
+      }
+    },
+    "base+carryrank": {
+      "val_auc": 0.5442,
+      "n_feats": 251,
+      "years": {
+        "test24": {
+          "auc": 0.5531,
+          "cov2": {
+            "COMBINED": {
+              "n": 1068,
+              "wr": 0.6723
+            },
+            "UP": {
+              "n": 519,
+              "wr": 0.6859
+            },
+            "DOWN": {
+              "n": 549,
+              "wr": 0.6594
+            }
+          }
+        },
+        "test25": {
+          "auc": 0.5314,
+          "cov2": {
+            "COMBINED": {
+              "n": 1300,
+              "wr": 0.5708
+            },
+            "UP": {
+              "n": 701,
+              "wr": 0.5606
+            },
+            "DOWN": {
+              "n": 599,
+              "wr": 0.5826
+            }
+          }
+        },
+        "oos": {
+          "auc": 0.5042,
+          "cov2": {
+            "COMBINED": {
+              "n": 580,
+              "wr": 0.4914
+            },
+            "UP": {
+              "n": 293,
+              "wr": 0.4983
+            },
+            "DOWN": {
+              "n": 287,
+              "wr": 0.4843
+            }
+          }
+        }
+      }
+    }
+  },
+  "verdict": {
+    "eurgbp": {
+      "base+block_val_auc": 0.5447,
+      "delta_auc": 0.0046,
+      "block_2026_cov2": 0.5362,
+      "ADDS": false
+    },
+    "risk": {
+      "base+block_val_auc": 0.5426,
+      "delta_auc": 0.0025,
+      "block_2026_cov2": 0.5282,
+      "ADDS": false
+    },
+    "semi": {
+      "base+block_val_auc": 0.5408,
+      "delta_auc": 0.0007,
+      "block_2026_cov2": 0.5259,
+      "ADDS": false
+    },
+    "carryrank": {
+      "base+block_val_auc": 0.5442,
+      "delta_auc": 0.0041,
+      "block_2026_cov2": 0.4914,
+      "ADDS": false
+    }
+  },
+  "base_val_auc": 0.5401,
+  "base_2026_cov2": 0.4892
+}

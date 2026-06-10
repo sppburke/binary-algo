@@ -81,6 +81,17 @@ AUC mean .5473 (min .5353, max .5539) — family record. Up-rate tripwire clean.
 
 **★ IMPROVE — seed-ensemble K=3 on xpair-NY (matched folds, `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json`): DOWN genuinely lifts, UP saturates.** DOWN p10 +.005–.010 at every cov WITH mean +.010 (the genuine-lift criterion); UP mixed at the tails (cov1 −.0045 order-stat). K=3 is the deliverable config: DOWN .5955/.6122/.6154/.6323 @cov5/3/2/1 (means .61–.66), UP .6016/.6211/.6209/.6470 (means .62–.68), COMB .5994/.6145/.6203/.6427, AUC .5488, frac 1.0 every cell.
 
+### Orthogonal channel famonly screen (Ortho) — `gbpusd_15m_orthochan.py`
+**ALL 4 families ADDS=False — mirror of AUDUSD precedent; xpair 340-feat matrix subsumes all.**
+| Family | base VAL AUC | base+block VAL AUC | ΔVal AUC | 2026 cov2 COMB | ADDS |
+|---|---|---|---|---|---|
+| eurgbp (8 feats) | .5401 | .5447 | +.0046 | .5362 | ❌ |
+| risk+eurobloc (18 feats) | .5401 | .5426 | +.0025 | .5282 | ❌ |
+| RS± semivar (3 feats) | .5401 | .5408 | +.0007 | .5259 | ❌ |
+| carryrank (12 feats) | .5401 | .5442 | +.0041 | .4914 | ❌ |
+
+Falsifier: ADDS iff ΔVal-AUC > .005 AND 2026 cov2 > base (.4892). None pass either gate. **Conclusion: no orthogonal channel family adds net-new signal to the 239-feat own-pair base; the xpair book's cross-pair features already capture the most these channels can offer.** `gbpusd_15m_orthochan_result.json`.
+
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
