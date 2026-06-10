@@ -1,0 +1,171 @@
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:74: RuntimeWarning: Mean of empty slice
+  basket=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in NONGBP]),axis=0)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:88: RuntimeWarning: Mean of empty slice
+  eurobloc=np.nanmean(np.vstack([rets["EURUSD"][k], equiv_sign("USDCHF")*rets["USDCHF"][k]]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:91: RuntimeWarning: Mean of empty slice
+  commod=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in COMMOD]),axis=0)
+/home/sean/git/binary-algo/gbpusd_15m_xpair.py:92: RuntimeWarning: Mean of empty slice
+  safeh=np.nanmean(np.vstack([equiv_sign(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)
+[freeze xpny] rows=1,776,577 train=456,335 val=91,347 feats=340 build=28s
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Early stopping, best iteration is:
+[127]	valid_0's auc: 0.545035
+[freeze xpny] seed 0 best_iter=127 saved models/m15xpny_GBPUSD_s0.txt (58s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Early stopping, best iteration is:
+[89]	valid_0's auc: 0.546373
+[freeze xpny] seed 1 best_iter=89 saved models/m15xpny_GBPUSD_s1.txt (83s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Early stopping, best iteration is:
+[105]	valid_0's auc: 0.544748
+[freeze xpny] seed 2 best_iter=105 saved models/m15xpny_GBPUSD_s2.txt (116s)
+[freeze xpny] VAL moved-AUC=0.5462 gates={'0.05': 0.0956, '0.03': 0.1073, '0.02': 0.1168, '0.01': 0.1326}
+[freeze xpny] FROZEN GBPUSD.m15ny_xpair_seedens.v1 content_id=df279204d247f618 -> /home/sean/git/binary-algo/books/GBPUSD.m15ny_xpair_seedens.v1.manifest.json  (117s)

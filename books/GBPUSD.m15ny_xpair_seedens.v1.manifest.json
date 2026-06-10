@@ -1,0 +1,81 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "GBPUSD.m15ny_xpair_seedens.v1",
+  "content_id": "df279204d247f618",
+  "currency": "GBPUSD",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "GBPUSD 15m XPAIR-NY seed-ens direction book: pooled USD cross-section + EURGBP-triangular/eurobloc/risk channels + 239 own-pair feats, NY decision rows, K-seed mean, per-cov conf gates. BOTH sides certified via per-fold-refit CPCV (15/15 paths every cov); REFIT-DEPENDENT.",
+  "metrics": {
+    "breakeven": 0.541,
+    "val_moved_auc": 0.5462,
+    "refit_cpcv_p10_cov1_UP": 0.647,
+    "refit_cpcv_p10_cov1_DOWN": 0.6323,
+    "refit_cpcv_p10_cov2_UP": 0.6209,
+    "refit_cpcv_p10_cov2_DOWN": 0.6154,
+    "refit_cpcv_mean_cov1_UP": 0.6787,
+    "refit_cpcv_mean_cov1_DOWN": 0.6624,
+    "singleseed_cov1_UP_p10": 0.6515,
+    "frozen_fwd_2024_cov1_COMB": 0.7437,
+    "frozen_fwd_2026_cov1_COMB": 0.4679,
+    "ticksettle_mean_delta": -0.0078
+  },
+  "source": {
+    "script": "gbpusd_15m_freeze_xpny.py",
+    "git_sha": "5071984e3c5fa93ca9ee4daee8a7bd280a6eb535",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 255,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 800,
+    "early_stop": 80,
+    "tr_stride": 3,
+    "nseed": 3,
+    "n_features": 340
+  },
+  "artifacts": [
+    {
+      "file": "m15xpny_GBPUSD_s0.txt",
+      "bytes": 3784949,
+      "sha256": "7e9e0d8bb45115b037b709d3623b489979add4726e81ede654be5b1c68404017"
+    },
+    {
+      "file": "m15xpny_GBPUSD_s1.txt",
+      "bytes": 2658091,
+      "sha256": "5d481a6df7eb589c414f3637cea42131633d1276e6503b150a879319c0975082"
+    },
+    {
+      "file": "m15xpny_GBPUSD_s2.txt",
+      "bytes": 3131608,
+      "sha256": "43ccd7aed7afd1bf16810c6ddab156763fd7e95693adafc14769e3159c57c8f9"
+    }
+  ],
+  "strategy_json": "models/m15xpny_GBPUSD_strategy.json",
+  "feature_fingerprint": null,
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "Cert of record: gbpusd_15m_cpcv_xpair_ny_seedens3_result.json (+ single-seed multicov). Adversarial: gbpusd_15m_xpair_frozen_seedens3_result.json (refit-dependent, NOT memorization); gbpusd_15m_ticksettle_result.json (bar proxy PRESERVED, mean -0.0078). UP cov1 floor borderline-65% (.647 K3 / .6515 K1); DOWN cov1 .6323. p10 binds on recent era (g5) both sides.",
+  "created_utc": null
+}

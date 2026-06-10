@@ -499,6 +499,36 @@
    "depends_on": null
   },
   {
+   "id": "GBPUSD.m15ny_xpair_seedens.v1",
+   "currency": "GBPUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "gbpusd_15m_cpcv_xpair.py (cert) + gbpusd_15m_freeze_xpny.py 3 (freeze)",
+   "metrics": {
+    "up_refit_cpcv_p10_cov1": 0.647,
+    "down_refit_cpcv_p10_cov1": 0.6323,
+    "up_refit_cpcv_p10_cov2": 0.6209,
+    "down_refit_cpcv_p10_cov2": 0.6154,
+    "up_refit_cpcv_mean_cov1": 0.6787,
+    "down_refit_cpcv_mean_cov1": 0.6624,
+    "singleseed_up_p10_cov1": 0.6515,
+    "val_moved_auc": 0.5462,
+    "breakeven": 0.541,
+    "cov": 0.01,
+    "session": "ny",
+    "seed_K": 3,
+    "n_features": 340,
+    "refit_dependent": true,
+    "content_id": "df279204d247f618",
+    "tick_haircut": -0.0078,
+    "note": "Best 15m direction book in the 4-pair family. UP @cov1 p10 .647 = borderline-65% certified floor (single-seed K1 .6515); DOWN .6323 @cov1 (mean .662). EUR-bloc case: xpair 340-feat cross-section + EURGBP/eurobloc/risk channels beat own-pair-NY on both sides at every cov. REFIT-DEPENDENT (frozen-2021 vintage decays sub-BE by 2026 — confirmed adversarially); deploy with periodic retrain, size on refit p10 minus tick haircut. Tick-settle bar-proxy PRESERVED (mean Δ −.0078)."
+   },
+   "manifest": "books/GBPUSD.m15ny_xpair_seedens.v1.manifest.json",
+   "summary": "BEST GBPUSD 15m direction: NY-session xpair seed-ensemble(K=3) GBM; 340-feat cross-pair USD-residual + EURGBP/eurobloc/risk + 239 own-pair base, NY decision rows, per-cov conf gates. BOTH sides certified NY refit-CPCV (UP p10 .647/DOWN .6323 @cov1%, UP .6209/DOWN .6154 @cov2%, 15/15 paths). UP @cov1 borderline-65% floor (single-seed K1 .6515; means .679). EUR-bloc pooling case confirmed. REFIT-DEPENDENT; retrain periodically, size on refit floor minus tick haircut −.0078.",
+   "depends_on": null
+  },
+  {
    "id": "AUDUSD.m15ny_seedens.v1",
    "currency": "AUDUSD",
    "timeframe": "15m",
