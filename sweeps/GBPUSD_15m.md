@@ -1,0 +1,45 @@
+> **SCOPE: GBPUSD · 15m** (key-specific SWEEP LEDGER — resumable row-by-row state of the exhaustive direction sweep). Generic menu: `SWEEP_MATRIX.md`. Methods: `METHODS_CATALOG.md`. Results of record: `GBPUSD_RESULTS.md`. Backlog/discovery: `sweeps/GBPUSD_15m_backlog.md`. Opened 2026-06-09.
+
+# GBPUSD × 15m — Direction Sweep Ledger (UP & DOWN, symmetric)
+
+**Goal:** certify the best 15m UP and best 15m DOWN GBPUSD binary-direction predictor (deriv-faithful, ties LOSE, breakeven 0.541), OOS-verified; stretch target win-rate >0.65. Two deliverables, each certified-or-honestly-exhausted. Don't stop until both sides certified-or-exhausted and the improve+discover loops are dry.
+
+**Why GBPUSD 15m is a strong prospect (mechanistic priors from 3 closed sibling sweeps):**
+- 15m is the **deriv-FX-deployable minimum** expiry AND the program's strongest direction horizon: EURUSD 15m cross-pair POOLED certified BOTH sides (UP p10 .567 / DOWN .574); USDJPY 15m NY own-pair certified BOTH (.586/.572); AUDUSD 15m NY own-pair seed-ens K=3 certified BOTH (.596/.596).
+- **GBPUSD is the EUR-bloc test of the pooling split**: pooling won at EURUSD, diluted at USDJPY+AUDUSD. GBPUSD = tightest EURUSD correlate among untested majors → pooling prior genuinely OPEN (run, don't argue).
+- **EURGBP triangular residual (N2)** is uniquely on-disk-runnable here (EURUSD/GBPUSD share the USD leg → USD factor algebraically cancelled; immune to the USD-factor sign-inversion that killed RMT/xpair elsewhere).
+- **Session:** direction edge was NY-concentrated at ALL 3 siblings (LDN/Asia null every time) — but GBP idiosyncratic info (BoE/UK data) is LDN-morning → tested symmetrically, not assumed.
+
+**Discipline (every row):** deriv-faithful settlement (bar-close approx at 15m, ties LOSE), `nonoverlap_chrono` gap=900s, train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026, selection on VAL worst-half (never VAL-acc-max), moved-bars only + up-rate tripwire ∈ [0.47,0.53], pre-registered falsifier in result JSON BEFORE OOS, COMBINED + UP + DOWN per-year with CI95. Certify ONLY via per-fold-refit CPCV at the operating gate (p10 ≥ 0.541 AND ≥80% of 15 paths clear). One heavy fit at a time. Commit after each row.
+
+**Retarget mechanics:** clones of the proven `audusd_15m_*` templates with PAIR=GBPUSD: `gbpusd_15m_base.py [stride] [leaves]`, `gbpusd_15m_xpair.py`, `gbpusd_15m_cpcv_session.py {all,ny,ldn,asia} [stride] [covs] [nseed]`. Feature set = 239 base feats (`H.feature_cols("GBPUSD")`).
+
+## STATUS LEGEND
+`pending` → `running` → `done` / `killed` / `subsumed` (subsumed ONLY with Tier-1 citation). Never repeat a `done` row.
+
+## MODEL OF THE EDGE (updated each iteration — THE ENGINE; read before designing the next row)
+- **2026-06-09 (A1 base):** GBPUSD 15m all-session own-pair edge EXISTS and is confidence-concentrated (cov10 .556 → cov2 .649 → cov1 .686 in 2024) with the sibling-universal frozen-decay (.649→.558→.505 across 2024/25/26 @cov2) — refit-dependent like all 3 siblings, NOT a frozen-deployable edge. VAL moved-AUC .5285 (between JPY .531 and AUD-allsess .523); best_iter only 33 (signal is shallow-tree-extractable, fast saturation — capacity is NOT the constraint). 2024 is anomalously strong vs siblings (.649 vs AUD .604/JPY .538 @cov2) and SYMMETRIC (UP .651 ≈ DOWN .647); 2026 frozen is dead BOTH sides (UP .492/DOWN .521) — no side-asymmetry signal yet. → The arbiter is per-fold-refit CPCV (running); then session split (does NY rescue 2026 as at all 3 siblings, or does LDN — GBP's own-news session — carry it?); then pooling (EUR-bloc discriminator).
+- **2026-06-09 (bootstrap):** No GBPUSD-specific measurements yet. Inherited model: 15m direction edge at USD majors is (i) confidence-concentrated (top ~2-5% coverage), (ii) NY-session-concentrated (3/3 siblings), (iii) refit-dependent (frozen-2021 vintages decay to sub-BE by 2026 at all 3 siblings — USD-factor non-stationarity), (iv) carried by either own-pair feats (JPY, AUD) or the pooled USD cross-section (EUR) — bloc-dependent, GBPUSD is the discriminating test. Moved-AUC ceilings: ~.531 (JPY), ~.536 (AUD NY), EURUSD higher via pooling. >65% was an info bound at JPY/AUD; EURUSD recent .647. Open questions, in test order: (1) all-session own-pair floor + AUC ceiling (A1); (2) NY vs LDN concentration (A9 — GBP is the first sibling whose own news is LDN-morning); (3) pooling vs own-pair (A6 — EUR-bloc discriminator); (4) EURGBP triangular residual (N2 — novel, only runnable here).
+
+## LEDGER — Tier A → F (ROI-ordered), then Tier-I improve, then Tier-N discovered
+
+| id | family | method | variant | script | target | prior | status | combined_oos | up_oos | down_oos | verdict | result_json |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | baseline | single-pair LGBM | 239 feats, 15m label, all-session, s6/l127 | gbpusd_15m_base.py 6 127 | floor+AUC ceiling | med-high (AUD survived, JPY 2024-only) | **done** | .6489/.5582/.5052 @cov2 (24/25/26) | .6507/.5608/.4917 | .6468/.5543/.5212 | ✅ SURVIVED (2024 CI-lo .624 clears BE — strongest sibling-family 2024 base; 2025 point .558>BE, CI-lo .536 misses; 2026 FROZEN-dead ~.50 both sides = sibling-universal refit-dependence). VAL-AUC .5285, up-rates .504/.505/.498 clean. cov1 2024 UP .720! | gbpusd_15m_base_result.json |
+| A9 | session | own-pair session-restricted refit-CPCV | all / ny / ldn / asia (multicov .05/.03/.02/.01) | gbpusd_15m_cpcv_session.py | which session carries the edge | HIGH (NY 3/3 siblings; LDN = GBP's own-news session, first real LDN test) | **running (all)** | — | — | — | — | gbpusd_15m_cpcv_session_{all,ny,ldn,asia}_multicov_result.json |
+| A6 | cross-pair | pooled USD cross-section / USD-residual / lead-lag / EURGBP-RV / risk factor | xpbase, all-session screen | gbpusd_15m_xpair.py | pooling helps? (EUR-bloc discriminator) | OPEN-HIGH (won at EURUSD, diluted at JPY+AUD) | pending | — | — | — | — | gbpusd_15m_xpair_xpbase_result.json |
+| N2 | discovered | **EURGBP triangular USD-canceling residual** (EUR-vs-GBP relative value) | resid-sign + resid-velocity feats on base | gbpusd_15m_trigresid.py | signed reversion w/ USD leg cancelled | ~15% (top Tier-N; uniquely on-disk here) | pending | — | — | — | — | gbpusd_15m_trigresid_result.json |
+| I2 | improve | seed-ensemble K=3 | on best session/pool book | gbpusd_15m_cpcv_session.py <best> s 3 | variance↓ p10↑ | high (lifted AUD; JPY lever) | pending | — | — | — | — | — |
+| I2b | improve | seed-ensemble K=8 saturation | on deliverable | gbpusd_15m_cpcv_session.py <best> s 8 | depth check | med (saturated K=3 at AUD/JPY/EUR) | pending | — | — | — | — | — |
+| A-tb | label | triple-barrier first-touch train-label | k-screen → K=3 matched | clone audusd_15m_cpcv_tbfirsttouch.py | label denoise | low (NOT robust at JPY+AUD; fast-KILL matched-cov) | pending | — | — | — | — | — |
+| Ortho | improve | orthogonal channels: EURGBP-diff / risk-bloc / RS± famonly | famonly ΔAUC screen | clone audusd_15m_orthochan.py | net-new VAL signal? | low (ALL ADDS=False at AUD) — but EURGBP-diff ≠ AUDNZD-diff, EUR-bloc | pending | — | — | — | — | — |
+| Meta | improve | meta-label 'avoid-losers' gate | orthogonal axes | clone audusd_15m_metagate.py | sharper gate | low (NULL .52 at AUD, .502 at EUR) | pending | — | — | — | — | — |
+| Xhor | improve | cross-horizon 30m-parent stack | corr-screen → stack if <.90 | clone audusd_15m_xhorizon.py | decorrelated parent? | low (redundant w/ seed-ens at AUD; subsumed at JPY .957 collinear) | pending | — | — | — | — | — |
+| Adv | cert | adversarial frozen-past forward (trap#9) + tick-settlement validation | frozen-2012-21 per-year + true-tick re-settle | clone audusd_15m_ny_frozen.py + audusd_15m_ticksettle.py | refit-dependence + bar-proxy integrity | cert (mandatory on any positive) | pending | — | — | — | — | — |
+| A2 | gate | compression × session × coverage gate | comp-q × vol-window | exp_15m_v5_gates.py pattern | G+D | low-med | pending | — | — | — | — | — |
+| A8 | side | FILTER vs purpose-built SPECIALIST per side | filter / subset-refit | side pipeline | U/Dn | filter med; spec ~null (subset-training kills ranking at EUR+JPY — needs Tier-1 cite or run) | pending | — | — | — | — | — |
+| B/C/D/E/F | tiers B-F | tick-micro / state-space / DL / magnitude / exogenous | per SWEEP_MATRIX | various | D/M/G | ~null (generic Tier-1 kills at EUR; coverage rule = run-or-cite per family) | pending | — | — | — | — | — |
+
+## Run log (newest first)
+- 2026-06-09: A1 DONE (88s): SURVIVED via test24 (cov2 COMB .6489 CI-lo .624; cov1 UP .720 n385). 2026 frozen book dead (.505) → refit-CPCV is the arbiter. Launched A9 `all` refit-CPCV multicov (bg).
+- 2026-06-09: Ledger opened. A1 baseline launched (`gbpusd_15m_base.py 6 127`, bg job). Data verified: features/GBPUSD_2012..2026.parquet (244 cols, ~370k rows/yr, 2026 partial→May), ticks /home/sean/git/processed/GBPUSD (10s, 2012-01→2026-06-05, 3763 files).
