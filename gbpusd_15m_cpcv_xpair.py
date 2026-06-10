@@ -66,9 +66,23 @@ def main():
     print(f"[cpcv-xpair/ny] building xpbase matrix (stride {STRIDE}) covs={COVS} nseed={NSEED}...", flush=True)
     F=XP.build_xp_gbp(ALL_YEARS, STRIDE, keep_ties=True)
     xpc=XP.xp_cols(F)
-    F=XP.augment(F, ALL_YEARS, "xpbase")
-    cols=XP.feat_cols("xpbase", F, xpc)
-    X=F[cols].astype("float32").values
+    # memory-sane augment: per-year float32 aligned join of the 239 base feats onto F's strided
+    # joint-clock index (XP.augment concats 15yr of UNSTRIDED float64 parquets ~10GB -> OOM-killed).
+    import harness as H
+    base_cols=[c for c in H.feature_cols("GBPUSD") if c not in F.columns]
+    idx=F.index; yr_arr=idx.year.values
+    Xb=np.full((len(F), len(base_cols)), np.nan, dtype="float32")
+    for y in ALL_YEARS:
+        msk=yr_arr==int(y)
+        if not msk.any(): continue
+        p=f"{XP.FEAT}/GBPUSD_{y}.parquet"
+        if not os.path.exists(p): continue
+        d=pd.read_parquet(p, columns=base_cols); d=d[~d.index.duplicated(keep="last")]
+        Xb[np.where(msk)[0]]=d.reindex(idx[msk]).values.astype("float32")
+        del d
+    cols=list(xpc)+base_cols
+    X=np.concatenate([F[xpc].values.astype("float32"), Xb], axis=1)
+    del Xb
     fwd=F["_fwd"].values; ts=F["_ts"].values.astype("int64")
     del F
     o=np.argsort(ts); X=X[o]; fwd=fwd[o]; ts=ts[o]
