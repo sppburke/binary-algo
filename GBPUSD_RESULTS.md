@@ -77,13 +77,15 @@ frac_clear=1.0 every cell. NY AUC mean .5409 (min .5303, max .5472) — family-h
 | 0.02 | .6206 (.6477) [+.017] | .6052 (.6309) [+.012] | .6186 | 1497 / 1176 |
 | 0.01 | **.6515 (.6766)** [+.032] | **.6229 (.652)** [+.025] | .6408 | 800 / 612 |
 
-AUC mean .5473 (min .5353, max .5539) — family record. Up-rate tripwire clean. **UP @cov1: p10 .6515 — the >65% target is MET as a certified p10 floor (not a mean), 15/15 paths, well-powered.** DOWN @cov1 .6229 (mean .652). GBPUSD follows the EURUSD (pooling) precedent, not JPY/AUD — the EUR-bloc discriminator resolved. `gbpusd_15m_cpcv_xpair_ny_multicov_result.json`. REFIT-DEPENDENT presumed (sibling-universal) — adversarial frozen-forward + tick-settlement pending before freeze.
+AUC mean .5473 (min .5353, max .5539) — family record. Up-rate tripwire clean. **UP @cov1: p10 .6515 single-seed — the >65% floor at K=1; the K=3 replicate reads .6470 (order-stat noise band .647–.6515 → honest claim: borderline-65% floor, means .68).** DOWN @cov1 .6229 (mean .652). GBPUSD follows the EURUSD (pooling) precedent, not JPY/AUD — the EUR-bloc discriminator resolved. `gbpusd_15m_cpcv_xpair_ny_multicov_result.json`. REFIT-DEPENDENT presumed (sibling-universal) — adversarial frozen-forward + tick-settlement pending before freeze.
+
+**★ IMPROVE — seed-ensemble K=3 on xpair-NY (matched folds, `gbpusd_15m_cpcv_xpair_ny_seedens3_result.json`): DOWN genuinely lifts, UP saturates.** DOWN p10 +.005–.010 at every cov WITH mean +.010 (the genuine-lift criterion); UP mixed at the tails (cov1 −.0045 order-stat). K=3 is the deliverable config: DOWN .5955/.6122/.6154/.6323 @cov5/3/2/1 (means .61–.66), UP .6016/.6211/.6209/.6470 (means .62–.68), COMB .5994/.6145/.6203/.6427, AUC .5488, frac 1.0 every cell.
 
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.6515 @cov1 / .6206 @cov2** (xpair-NY single-seed, 15/15 every cov) — **>65% floor MET @cov1** | .6766 / .6477 mean | not yet frozen (seed-ens K=3 running; adversarial pending) | ✅ CERTIFIED (xpair-NY refit-CPCV), refit-dependent presumed |
-| **15m DOWN** | **.6229 @cov1 / .6052 @cov2** (xpair-NY single-seed, 15/15 every cov) | .652 / .6309 mean | not yet frozen (seed-ens K=3 running; adversarial pending) | ✅ CERTIFIED (xpair-NY refit-CPCV), refit-dependent presumed |
+| **15m UP** | **.647–.6515 @cov1 (K3/K1; borderline-65% floor) / .6209 @cov2** (xpair-NY, 15/15 every cov) | .6787 / .6496 mean (K3) | not yet frozen (adversarial running) | ✅ CERTIFIED (xpair-NY refit-CPCV); UP @cov1 floor borderline-65% (seed-config order-stat .647 vs .6515), means .68 |
+| **15m DOWN** | **.6323 @cov1 / .6154 @cov2** (xpair-NY seed-ens K=3, 15/15 every cov) | .6624 / .6407 mean | not yet frozen (adversarial running) | ✅ CERTIFIED (xpair-NY K=3 refit-CPCV); >65% floor open (mean .66) |
 | _(superseded)_ own-pair NY | UP .6039 / DOWN .5937 @cov2 (15/15) | .629 / .623 | — | subsumed by xpair-NY (same harness, +.007–.032 p10 every cell) |
 | _(superseded)_ all-session own-pair | UP .5532 / DOWN .5527 @cov2 (14/15) | .568 / .567 | — | subsumed by NY (same harness) |
 
