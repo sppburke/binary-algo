@@ -16,8 +16,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| GBPUSD · **15m** · UP | **all-session refit-CPCV p10 .5532 @cov2 / .5531 @cov3 (14/15)** ✅ CERTIFIED, REFIT-DEPENDENT | all-session own-pair LGBM s2/l255, cov-gate (`gbpusd_15m_cpcv_session.py all 2`); book not yet frozen — session/pooling LIFT tests running | First sibling to certify BOTH sides all-session. Frozen-2021 book dead by 2026 → deploy w/ periodic retrain. | ✅ CERTIFIED (all-session refit-CPCV) 2026-06-09; lift tests in progress |
-| GBPUSD · **15m** · DOWN | **all-session refit-CPCV p10 .5527 @cov2 / .5483 @cov3 (14/15, cov3 15/15)** ✅ CERTIFIED, REFIT-DEPENDENT | same harness/book as UP | Confidence-tail-sensitive (cov5/cov1 drop out); certifies cov2-3. | ✅ CERTIFIED (all-session refit-CPCV) 2026-06-09; lift tests in progress |
+| GBPUSD · **15m** · UP | **NY refit-CPCV p10 .6039 @cov2 / .6192 @cov1 (15/15 every cov)** ✅ CERTIFIED, REFIT-DEPENDENT | NY own-pair LGBM s2/l255, cov-gate (`gbpusd_15m_cpcv_session.py ny 2`); book not yet frozen — seed-ens/pooling lift tests running | Strongest 15m cert in the 4-pair family (single-seed beats AUD seed-ens). All-session also certifies (.5532@cov2 — first sibling to do so) but NY lifts +.04–.06. Frozen-2021 book dead by 2026 → deploy w/ periodic retrain. | ✅ CERTIFIED (NY refit-CPCV) 2026-06-09; lift tests in progress |
+| GBPUSD · **15m** · DOWN | **NY refit-CPCV p10 .5937 @cov2 / .5977 @cov3 (15/15 every cov)** ✅ CERTIFIED, REFIT-DEPENDENT | same harness/book as UP | NY rescues the all-session DOWN tail-sensitivity (all-session cov5/cov1 dropped out; NY certifies everywhere). | ✅ CERTIFIED (NY refit-CPCV) 2026-06-09; lift tests in progress |
 | GBPUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
 **Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (GBPUSD pending).
@@ -55,10 +55,22 @@ Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry) AND 
 
 AUC mean .5243 (min .5176, max .529), up-rate tripwire clean, med_n/path cov2: UP 2053 / DOWN 1893 / COMB 4007 (well-powered). **Read: BOTH SIDES CERTIFIED ALL-SESSION at cov2 AND cov3** — the strongest all-session 15m floor of the four pairs (AUDUSD all-session was DOWN-only @cov1 thin; USDJPY UP-only; EURUSD needed pooling). Means run ~.555–.569 (cov2 COMB mean .567). DOWN is confidence-tail-sensitive (drops out at cov5/cov1); UP certifies everywhere probed. The refit floor (~.55) vs the dead frozen-2026 book (~.50) confirms refit-dependence. Session concentration + pooling are LIFT levers on an already-certified floor. `gbpusd_15m_cpcv_session_all_multicov_result.json`.
 
+### Session segmentation (A9) — `gbpusd_15m_cpcv_session.py ny` (symmetric refit-CPCV)
+**NY-session refit-CPCV: BOTH SIDES CERTIFIED at EVERY coverage, all 15 paths — the strongest 15m certified result in the 4-pair family (single-seed).**
+| cov | UP p10 (mean) | DOWN p10 (mean) | COMB p10 (mean) | med_n/path (UP/DN) |
+|---|---|---|---|---|
+| 0.05 | .5874 (.612) | .5840 (.6031) | .5870 (.6064) | 1880 / 1372 |
+| 0.03 | .5953 (.6206) | .5977 (.6196) | .5993 (.619) | 1131 / 823 |
+| 0.02 | **.6039 (.629)** | **.5937 (.6227)** | .6013 (.6254) | 752 / 539 |
+| 0.01 | **.6192 (.6452)** | .5978 (.6318) | .6089 (.6387) | 374 / 251 |
+
+frac_clear=1.0 every cell. NY AUC mean .5409 (min .5303, max .5472) — family-high (AUD NY .5363). Up-rate tripwire clean. NY lift over the certified all-session floor: +.04–.06 p10 (concentration, not dilution — 4th consecutive sibling). Single-seed NY already beats AUDUSD's seed-ens K=3 deliverable (.596@cov2). `gbpusd_15m_cpcv_session_ny_multicov_result.json`. REFIT-DEPENDENT (frozen-2021 forward decays — adversarial frozen-forward validation queued before freeze).
+
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.5532 @cov2 / .5531 @cov3** (all-session own-pair, 14/15) | .568 / .561 mean | not yet frozen (session/pooling lift tests running) | ✅ CERTIFIED (all-session refit-CPCV), refit-dependent |
-| **15m DOWN** | **.5527 @cov2 / .5483 @cov3** (all-session own-pair, 14/15, cov3 15/15) | .567 / .563 mean | not yet frozen (session/pooling lift tests running) | ✅ CERTIFIED (all-session refit-CPCV), refit-dependent |
+| **15m UP** | **.6039 @cov2 / .6192 @cov1** (NY own-pair single-seed, 15/15 every cov) | .629 / .645 mean (cov2/1) | not yet frozen (LDN/asia/pooling/seed-ens tests running) | ✅ CERTIFIED (NY refit-CPCV), refit-dependent |
+| **15m DOWN** | **.5937 @cov2 / .5977 @cov3** (NY own-pair single-seed, 15/15 every cov) | .623 / .620 mean (cov2/3) | not yet frozen (LDN/asia/pooling/seed-ens tests running) | ✅ CERTIFIED (NY refit-CPCV), refit-dependent |
+| _(superseded)_ 15m UP/DOWN all-session | UP .5532 / DOWN .5527 @cov2 (14/15) | .568 / .567 | — | subsumed by NY (same harness, NY p10 +.04–.05) |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
