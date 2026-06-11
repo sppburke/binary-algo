@@ -9,7 +9,7 @@
 **Cert rule:** per-side p10≥0.541 AND ≥80% of 15 CPCV paths clear 0.541
 **Selection:** VAL worst-half stability (NEVER VAL-acc-max; corr(VAL,OOS)=−0.54)
 **Key files:** `sweeps/NZDUSD_15m.md` (ledger) · `sweeps/NZDUSD_15m_backlog.md` (queue) · `books/` (frozen)
-**Sweep status:** OPEN — both sides CERTIFIED+FROZEN; improve+discover loops still running (Asia completeness check + Antipodean pooling pending)
+**Sweep status:** OPEN — both sides CERTIFIED+FROZEN; improve+discover loops running (Asia KILLED; Antipodean pooling pending)
 
 ---
 
@@ -149,6 +149,36 @@ Result JSON: `nzdusd_15m_cpcv_session_ny_seedens3_result.json`
 
 ---
 
+## A9 — Session CPCV (Asia) — ❌ KILLED (completeness check)
+
+`nzdusd_15m_cpcv_session.py asia 2 0.03,0.02,0.01 1` | N_GROUPS=6 K_TEST=2 | AUC mean≈.519 | **KILLED 2026-06-11**
+
+Result JSON: `nzdusd_15m_cpcv_session_asia_multicov_result.json`
+
+### Kill summary
+
+| cov | side | p10 | mean | frac_clear_BE | med_n | CERTIFIED |
+|-----|------|-----|------|---------------|-------|-----------|
+| 3% | UP | .5154 | .5431 | 0.60 (9/15) | 461 | ❌ |
+| 3% | DOWN | .5199 | .5509 | 0.60 (9/15) | 507 | ❌ |
+| 3% | COMB | .5230 | .5472 | 0.60 (9/15) | 955 | ❌ |
+| 2% | UP | .5109 | .5390 | 0.40 (6/15) | 283 | ❌ |
+| 2% | DOWN | .5245 | .5516 | 0.733 (11/15) | 334 | ❌ |
+| 2% | COMB | .5206 | .5463 | 0.733 (11/15) | 589 | ❌ |
+| 1% | UP | .5137 | .5491 | 0.60 (9/15) | 134 | ❌ |
+| 1% | DOWN | .5143 | .5521 | 0.667 (10/15) | 170 | ❌ |
+| 1% | COMB | .5272 | .5509 | 0.733 (11/15) | 273 | ❌ |
+
+**Kill reasons:** p10 max=.5245 (all below BE=.541); frac_clear max=0.733 (below 0.80 threshold). Both sides fail all cov levels.
+
+**Key reads:**
+- AUC mean≈.519 vs NY mean=.531 — Asia carries substantially less USD-factor/risk-flow content.
+- Paths 10–14 (recent era 2019–2026) are weakest: UP .491/.543/.533/.534 — systematic drift downward in recent eras.
+- Own-pair family pattern confirmed for 4th time: Asia KILLED for AUDUSD, USDJPY, USDCAD, now NZDUSD. NY is the exclusive carrier.
+- RBNZ 02:00 UTC + China proximity do not produce tradeable binary edge at 15m horizon.
+
+---
+
 ## Books
 
 | book | status | UP p10@cov | DOWN p10@cov | frozen-fwd COMB | frozen-fwd UP | frozen-fwd DOWN |
@@ -158,11 +188,11 @@ Result JSON: `nzdusd_15m_cpcv_session_ny_seedens3_result.json`
 ### Freeze artifact details (NZDUSD.m15ny_seedens.v1)
 `nzdusd_15m_freeze_ny.py nseed=3` | VAL(NY) AUC=0.5362 | cov2% thr=0.0835 | content_id=f599708e8a9c3e3f | 120s
 
-| split | COMB wr | n | UP wr | n | DOWN wr | n |
-|-------|---------|---|-------|---|---------|---|
-| test24 | .6219 | 402 | .5652 | 253 | .7181 | 149 |
-| test25 | .6019 | 525 | .5699 | 286 | .6402 | 239 |
-| oos (2026) | .5194 | 283 | .4965 | 141 | .5423 | 142 |
+| split | COMB wr (CI95) | n | UP wr (CI95) | n | DOWN wr (CI95) | n |
+|-------|----------------|---|--------------|---|-----------------|---|
+| test24 | .6219 [.575,.669] | 402 | .5652 [.506,.624] | 253 | .7181 [.644,.792] | 149 |
+| test25 | .6019 [.560,.642] | 525 | .5699 [.514,.626] | 286 | .6402 [.582,.699] | 239 |
+| oos (2026) | .5194 [.463,.576] | 283 | .4965 [.418,.575] | 141 | .5423 [.465,.620] | 142 |
 
 **Key reads:**
 - **DOWN frozen-forward STRONG:** .718 → .640 → .542 — DOWN retains >64% through 2025 but falls below BE in 2026 (frozen-2021 vintage decay). This is the expected pattern for refit-dependent books.
@@ -181,3 +211,4 @@ Result JSON: `nzdusd_15m_cpcv_session_ny_seedens3_result.json`
 | A1 all-session base | KILLED (val_auc=.5219; no CI-lo clears BE; 2026 .5099) | 2026-06-11 |
 | A9-ny single-seed | ✅ CERTIFIED — UP p10=.574@cov2, DOWN p10=.572@cov2 — 15/15 paths both sides | 2026-06-11 |
 | I2 seed-ens K=3 | ✅ SUPERSEDES single-seed — mean lifts both sides all 3 covs; UP p10=.5749, DOWN p10=.5803 @cov2; incumbent book NZDUSD.m15ny_seedens.v1 | 2026-06-11 |
+| A9-asia | KILLED — UP p10=.5154 frac=0.60; DOWN p10=.5245 frac=0.733. Both sides fail all 3 covs. AUC mean≈.519 vs NY .531. Own-pair Asia pattern confirmed (4th major). | 2026-06-11 |
