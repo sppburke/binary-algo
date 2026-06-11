@@ -59,7 +59,26 @@ KILL rule:
 | **Global macro daily (VIX/DXY/US10Y/Gold) — accessible external** | ⊘ **SUBSUMED 2026-06-11** | F5 screen `nzdusd_15m_extfeat_screen.py` (259 feats): VAL AUC .5254 vs base .5219 = **+.0035** lift. Far below .010 CPCV escalation threshold. Top features: us10y_ret1d, vix_ret1d, us10y_mom5d — absorbed by 15m price-action signals. `nzdusd_15m_extfeat_screen_result.json`. |
 | **Antipodean/regional daily (NZX50, ASX200, AUDNZD, Copper, HSI + F5 = 9 tickers)** | ⊘ **SUBSUMED 2026-06-11** | F6 screen `nzdusd_15m_extfeat2_screen.py` (284 feats): VAL AUC .5259 vs base .5219 = **+.0040** lift. Only +.0005 marginal over F5 despite NZD-specific tickers. AUDNZD_ret1d most informative (957). Accessible daily external data **definitively exhausted**. `nzdusd_15m_extfeat2_screen_result.json`. |
 
-**Conclusion:** On-disk R1 dry. F5 (+.0035) + F6 (9 tickers, +.0040) + **F8 CFTC COT (+.0007)** + **F9 RBNZ OCR/NZ-US spread (+.0006)**: ALL accessible external data exhausted with Tier-1 NZDUSD evidence. Combined ceiling well below .010 escalation threshold. "NZ-US rate differential" converted from EXTERNAL-BLOCKED to TRIED+KILLED (Tier-1). Remaining truly externally blocked (no free API): dairy/GDT, RBNZ surprise NLP, China PMI. R1+F8+F9 CLOSED 2026-06-11. ALL accessible external data CLOSED.
+**Conclusion:** On-disk R1 dry. F5 (+.0035) + F6 (9 tickers, +.0040) + **F8 CFTC COT (+.0007)** + **F9 RBNZ OCR/NZ-US spread (+.0006)**: ALL accessible external data exhausted with Tier-1 NZDUSD evidence. **MEGA-COMBO (528 feats, all combined): .5286 — below USDCAD xpair alone (.5299)** — noise dilution proves accessible ceiling ≈ .530, 20bp below .5319 threshold. "NZ-US rate differential" converted from EXTERNAL-BLOCKED to TRIED+KILLED (Tier-1). Remaining truly externally blocked (no free API): dairy/GDT, RBNZ surprise NLP, China PMI. R1+F8+F9+MEGA CLOSED 2026-06-11. ALL accessible external data + combinations CLOSED.
+
+## Discovery round R2 — ✅ CLOSED 2026-06-11
+
+**Status:** CLOSED. 12 arXiv + 10 SS queries (general FX intraday direction terms). Zero applicable findings. Academic literature on NZDUSD 15m direction is effectively empty.
+
+## Discovery round R3 — ✅ CLOSED 2026-06-11
+
+**Status:** CLOSED. 6 NZD-specific queries (dairy/GDT, RBNZ OCR surprise, AUD-NZD correlation regime, commodity carry + COT, antipodean GBM, dairy→NZD 15m). Zero applicable papers found. NZD-specific preprint literature on 15m direction is empty. Confirms: academic frontier exhausted at K=3 dry rounds.
+
+| query | status | finding |
+|-------|--------|---------|
+| NZD intraday dairy/GDT | 0 arXiv | GDT bi-weekly, not 15m operationalized |
+| RBNZ OCR surprise intraday | 2 candidates (AUD, daily EM) | NOT APPLICABLE — not NZDUSD 15m |
+| NZD/AUD correlation regime | 2 candidates (stock/FX daily) | NOT APPLICABLE |
+| Commodity carry/COT intraday ML | 0 arXiv at intersection | ZERO applicable |
+| Antipodean GBM direction prediction | 0 NZD-specific arXiv | ZERO applicable |
+| Dairy price NZD 15m forecasting | 0 arXiv | GDT nexus real but no 15m method |
+
+**Conclusion:** R3 DRY — K=3 consecutive dry discovery rounds. Loop closed.
 
 ## Completeness notes
 

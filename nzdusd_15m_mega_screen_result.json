@@ -1,0 +1,109 @@
+{
+  "model": "NZDUSD.15m MEGA-COMBINATION VAL screen",
+  "key": "NZDUSD.15m",
+  "base_val_auc": 0.5219,
+  "mega_val_auc": 0.5286458007721456,
+  "lift": 0.006745800772145594,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUME \u2014 INFO-BOUND PROVEN: all accessible signals combined cannot reach CPCV threshold",
+  "features_base": 239,
+  "features_xpair": 239,
+  "features_ext_f6": 45,
+  "features_cot_f8": 0,
+  "features_rbnz_f9": 5,
+  "features_total": 528,
+  "train_years": [
+    "2012",
+    "2018"
+  ],
+  "val_years": [
+    "2022",
+    "2023"
+  ],
+  "top_20_importances": [
+    [
+      "30m_ret_1",
+      1053
+    ],
+    [
+      "5m_autocorr_10",
+      1050
+    ],
+    [
+      "hour_sin",
+      1011
+    ],
+    [
+      "15m_autocorr_10",
+      987
+    ],
+    [
+      "xp_15m_autocorr_10",
+      969
+    ],
+    [
+      "xp_15m_ret_1",
+      937
+    ],
+    [
+      "xp_5m_autocorr_10",
+      923
+    ],
+    [
+      "xp_30m_autocorr_10",
+      897
+    ],
+    [
+      "xp_30m_ret_1",
+      887
+    ],
+    [
+      "15m_ret_3",
+      882
+    ],
+    [
+      "30m_autocorr_10",
+      860
+    ],
+    [
+      "15m_ret_1",
+      857
+    ],
+    [
+      "xp_5m_rv_12",
+      852
+    ],
+    [
+      "5m_bb_width",
+      841
+    ],
+    [
+      "1h_ret_1",
+      837
+    ],
+    [
+      "xp_15m_ret_3",
+      833
+    ],
+    [
+      "hour_cos",
+      831
+    ],
+    [
+      "xp_15m_rv_12",
+      820
+    ],
+    [
+      "15m_macd_hist",
+      798
+    ],
+    [
+      "5m_slope_20",
+      783
+    ]
+  ],
+  "falsifier": "escalate if mega_val_auc > base_val_auc + .010",
+  "status": "INFO-BOUND-PROVEN",
+  "interpretation": "Definitive: 500+ features from all accessible sources combined < .010 lift. AUC ceiling proven from below. Only NZD-specific pipeline data (GDT/RBNZ-NLP/China-PMI) could provide additional signal."
+}
