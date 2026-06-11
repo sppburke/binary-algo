@@ -33,6 +33,14 @@ SCOPE: USDCHF · 15m — EXECUTABLE backlog (TOP-N queue / incumbents-to-beat / 
 - **SNB weekly sight-deposit Δ** as signed official-flow regime gate (rising deposits = SNB selling CHF → USDCHF UP bias). Weekly granularity vs 15m label. Prior low.
 - **Triangular-DISLOCATION residual (TRADED vs implied EURCHF), CHF leg (Chaboud)** — needs independently-traded EURCHF + EURGBP feed (Dukascopy 1m). Unconstructable on disk (implied-vs-implied ≡ 0). Prior low. NB: the on-disk synthetic-EURCHF LEVEL band IS testable now = lever #3.
 
+## ★ >65% TARGET IS IN REACH AT cov1 (path-variance, not info-bound) — Tier-1 analysis
+NY own-pair cov1 per-path distribution (`usdchf_15m_cpcv_session_ny_multicov_result.json`, 15 paths):
+- **UP cov1**: p10 .641, median .674, mean .678, std .031, **frac paths ≥.65 = 0.87 (13/15)**
+- **DOWN cov1**: p10 .636, median .712, mean .695, std .036, **frac ≥.65 = 0.80 (12/15)**
+- **COMB cov1**: p10 .639, mean .684, **frac ≥.65 = 0.80**
+
+**Read:** 80–87% of paths ALREADY clear 65%; p10 sits at .64 only because the worst 1–2 paths dip to ~.62. The p10→mean gap (.04) is PATH VARIANCE. **seed-ens K=3 (variance reduction, std~.03) is the precise tool to lift the worst paths → p10 over .65** → USDCHF could be the FIRST major to CERTIFY p10≥.65 at cov1. **>65% PURSUIT PLAN:** (1) seed-ens K=3 (compress worst paths); (2) EUR-bloc pooling if it lifts (running); (3) cov0.005 probe (already added to xpair-CPCV run); (4) ECM orthogonal signal; (5) combos. NOT an information bound at cov1 — actively reachable.
+
 ## Post-discovery experiment queue (after session landscape → carrier)
 1. **A6 xpair xpbase** (cand #1, EUR-bloc pooling keystone) — ready, queued for heavy slot.
 2. **A6b xpair dblortho** (cand #2, SNB-proxy resid).
