@@ -1,0 +1,63 @@
+{
+  "model": "NZDUSD.15m CFTC COT NZD net-speculative VAL screen (F8)",
+  "key": "NZDUSD.15m",
+  "base_val_auc": 0.5219,
+  "cot_val_auc": 0.5225884675303454,
+  "lift": 0.0006884675303453491,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUME \u2014 COT lift < .010 (Tier-1 closure)",
+  "cot_rows_loaded": 579,
+  "cot_years_attempted": [
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "cot_daily_rows": 4047,
+  "cot_coverage_train": 0.995227679459137,
+  "cot_coverage_val": 1.0,
+  "cot_importances": [
+    [
+      "cot_chg13w",
+      1158
+    ],
+    [
+      "cot_z52w",
+      1140
+    ],
+    [
+      "cot_mom4w",
+      1057
+    ],
+    [
+      "cot_net_prev",
+      1011
+    ],
+    [
+      "cot_chg4w",
+      959
+    ]
+  ],
+  "train_years": [
+    "2012",
+    "2018"
+  ],
+  "val_years": [
+    "2022",
+    "2023"
+  ],
+  "falsifier": "escalate if cot_val_auc > base_val_auc + .010",
+  "status": "SUBSUMED"
+}
