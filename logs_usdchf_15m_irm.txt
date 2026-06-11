@@ -1,4 +1,4 @@
-[xpair USDCHF] mode=dblortho stride=4 HOR=15
+[irm] building xpair matrix (stride 3)...
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
   basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
@@ -95,13 +95,6 @@
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-[xpair USDCHF] train=920,279 val=735,730 feats=343 build=43s
-Training until validation scores don't improve for 150 rounds
-Early stopping, best iteration is:
-[55]	valid_0's auc: 0.532896
-[xpair USDCHF] best_iter=55 VAL AUC=0.5329 (base 0.5301)
-  top20: hour_sin, hour_cos, ll_USDJPY30, 1m_dist_ema100, ll_EURUSD30, 4h_atr_pct, 1m_dist_ema50, ll_USDJPY15, ll_USDJPY5, ll_EURUSD1, 4h_dist_ema100, ll_USDJPY10, 4h_autocorr_10, 4h_dist_hi_48, ll_EURUSD15, 1h_autocorr_10, 4h_rv_12, eurcatch30, 4h_bb_width, 1h_atr_pct
-[xpair USDCHF] gate cov2% thr=0.0698 VAL worst-half=0.6465
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
   basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
@@ -110,8 +103,6 @@ Early stopping, best iteration is:
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-=== test24 === AUC=0.5296 up=0.5034 | gate cov2% COMB n1468 wr=0.6444 CI[0.62, 0.669]
-    cov2%: COMB {'n': 1567, 'wr': 0.6382} UP {'n': 861, 'wr': 0.6086} DOWN {'n': 706, 'wr': 0.6742}
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
   basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
@@ -120,8 +111,6 @@ Early stopping, best iteration is:
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-=== test25 === AUC=0.5218 up=0.4995 | gate cov2% COMB n1657 wr=0.5963 CI[0.573, 0.62]
-    cov2%: COMB {'n': 1511, 'wr': 0.6056} UP {'n': 831, 'wr': 0.5897} DOWN {'n': 680, 'wr': 0.625}
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
   basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
@@ -130,7 +119,4 @@ Early stopping, best iteration is:
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-=== oos === AUC=0.5162 up=0.5042 | gate cov2% COMB n724 wr=0.4917 CI[0.454, 0.529]
-    cov2%: COMB {'n': 576, 'wr': 0.5087} UP {'n': 288, 'wr': 0.5069} DOWN {'n': 288, 'wr': 0.5104}
-
-[xpair USDCHF] VERDICT IMPROVES_base=False (VAL 0.5329 vs 0.5301; 2026 cov2 COMB 0.5087 vs 0.5103) -> usdchf_15m_xpair_dblortho_result.json 185s
+[irm] rows=1,776,577 train=454,198 val=91,347 feats=337 build=39s

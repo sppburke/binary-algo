@@ -1,0 +1,16 @@
+{
+  "key": "USDCHF.15m",
+  "model": "R2-1 IRM env-invariant feature-stability filter on xpair-NY frozen book",
+  "n_env": 6,
+  "eps": 0.004,
+  "full337_frozen_2026_cov1": {
+    "COMBINED": 0.4775,
+    "UP": 0.6296,
+    "DOWN": 0.4286
+  },
+  "falsifier": {
+    "registered": "pre-eval",
+    "SURVIVES_if": "prune_frac>=0.10 AND invariant-subset frozen 2026 cov1 COMB >= full-337 +0.02 on BOTH sides",
+    "KILL_if": "prune<10% OR no material 2026 decay reduction (recent weakness = genuine signal/info-bound)"
+  }
+}
