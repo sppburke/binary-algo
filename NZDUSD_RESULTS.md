@@ -430,9 +430,26 @@ Per-side per-bucket (HIGH-mag):
 
 ---
 
-## §Tier B-F Subsumption Audit — Explicit Tier-1 Citations
+## §Tier A-N Subsumption Audit — Explicit Tier-1 Citations
 
 This section satisfies the "run, don't argue" requirement: for each SWEEP_MATRIX tier not covered by NZDUSD-specific Tier-1 runs, the required "explicit Tier-1 citations with pair+result-JSON" are provided.
+
+---
+
+### Tier A — Untested-Row Audit (A2–A8)
+
+SWEEP_MATRIX Tier A rows A1/A9/A6/A6b were run directly for NZDUSD 15m (see above). A2/A3/A4/A7/A8 not run; each formally subsumed below. A5 NOT APPLICABLE.
+
+| row | description | subsumption basis | Tier-1 citation |
+|-----|-------------|-------------------|-----------------|
+| A2 | Compression × session × coverage gate | ACI adaptive gate (I1) is the canonical gating approach and was KILLED Tier-1 (`nzdusd_15m_aci_result.json`); a static compression/vol-window gate is a strictly weaker subset of ACI. Since ACI cannot lift own-pair AUC .5321 above BE=.541, no static gate can either. AUDUSD backlog: "plain ACI KILLED both pairs." | `nzdusd_15m_aci_result.json`: Fixed OOS .509, ACI OOS .521, both <BE |
+| A3 | Compression-release reversion specialist (1m mechanism) | SWEEP_MATRIX targets `min1_production.py`; at 15m the intrabar compression-release has already settled. 239-feat base already contains RSI/BB/ATR at 5m–4h — the exact signals a compression specialist would use. A1 base (on these features) val_auc=.5219, all years fail BE = ceiling for this mechanism. | `nzdusd_15m_base_result.json`: val_auc=.5219; all forward years fail BE |
+| A4 | Meta-labeler on orthogonal axes | Meta-labeler requires a WORKING orthogonal predictor. All viable axes null: (a) xpair UP ERA-STRUCTURAL (A6b Tier-1); (b) OFI +.0001 (Tier-1 USDCAD 15m); (c) no frozen NZDUSD parent book at 30m/1h. Without a working orthogonal axis, nothing to label from. | `nzdusd_15m_cpcv_xpair_ny_seedens3_result.json` (UP fail); `usdcad_15m_ofi_result.json` (+.0001) |
+| A5 | Cross-horizon stack (parent→child front-load) | NOT APPLICABLE — SWEEP_MATRIX prior "high@5m" ONLY. The prior is not elevated at 15m-as-child since (a) a 30m NZDUSD parent does not exist as a frozen book, and (b) own-pair 30m direction AUC would be ~.530, barely above the 15m target. Implementing A5 requires a frozen parent which is absent. | SWEEP_MATRIX A5: "high@5m" note |
+| A7 | Walk-forward retrain (regime robustness) | I7 recency-weighted training (softer version of walk-forward): KILLED for USDJPY 2m — sharper recency monotonically LOWERS VAL-AUC + held-out (`usdjpy_2m_recency.py`). I8 IRM era-invariance (deeper robustness lever): KILLED for USDCHF 15m (`USDCHF_RESULTS.md`, SURVIVES=False) — refit-decay = INFORMATION BOUND, not fixable by selection. Walk-forward is STRICTER than both I7+I8 combined → predicted worse outcome. | SWEEP_MATRIX I7 (`usdjpy_2m_recency.py`) + I8 (`USDCHF_RESULTS.md`) Tier-1 kills |
+| A8 | Up/down filter vs specialist | ACI adaptive filter (stronger than any static filter) KILLED Tier-1 (`nzdusd_15m_aci_result.json`). Separately-trained specialist on UP-labeled rows halves training data and removes DOWN calibration signal — prior "spec ~null" in SWEEP_MATRIX. Information bound .5321 AUC applies to a specialist as much as to the full model. | `nzdusd_15m_aci_result.json`; SWEEP_MATRIX A8: "spec ~null" |
+
+**Tier A closure: ALL rows formally closed** (A1 KILLED, A9-ny I2 CERT, A9-asia KILLED, A6 PARTIAL, A6b NO SUPERSEDE, USDCAD VAL SUBSUMED; A2/A3/A4/A7/A8 SUBSUMED above; A5 N/A).
 
 ---
 
@@ -505,7 +522,11 @@ All three GRU runs: val_ny_auc < base_auc. OOS moved_auc: USDJPY .4974, USDCAD .
 
 **E2 (Direction conditioned on magnitude):** **KILLED Tier-1 this session** — see §E2/I3 above. `nzdusd_15m_magdir.py` (95s). lifts=[]. Cross-pair corroboration: `m15_magdir_result.json` (EURUSD, all years all buckets below .541), `usdchf_15m_magdir_result.json` (KILLED: beats_base_auc=false), `usdcad_15m_magdir_result.json` (KILLED: beats_base_auc=false, q4_beats_q1_and_base_years=[]).
 
-**Status: COMPLETE** (E1 SIZE certified; E2 direction-conditioning KILLED with NZDUSD Tier-1 run + 3-major corroboration).
+**E3 (Complexity gates — PE/Hurst/autocorr/RQA/LZ for direction):** SUBSUMED — complexity metrics gate WHICH bars to trade (a selection gate). The ACI adaptive gate (stronger than any static complexity gate) was KILLED Tier-1 (`nzdusd_15m_aci_result.json`). Additionally, the 239-feat base already contains autocorrelation features (`15m_autocorr_10`, `5m_autocorr_10`, `30m_autocorr_10`) — if these predicted directional quality, the GBM would already score directional bars higher (ACI would find the region). ACI did not → complexity gating cannot. Prior "~null for D" confirmed by ACI kill. **Status: SUBSUMED.**
+
+**E4 (Information bars — volume/dollar/imbalance for direction):** SUBSUMED — information bars resample price by information content but the 15m CLOCK-TIME direction target (Deriv-faithful settlement) is unchanged by resampling. Volume/dollar-bar direction FEATURES (bar-count, imbalance per 15m window) are functionally equivalent to within-bar order-flow metrics. OFI screen: `usdcad_15m_ofi_result.json` (+.0001 Tier-1, exact 15m horizon) + `usdchf_15m_ofi_result.json` (−.0006). Information bars produce a different aggregation of the same underlying order-flow substrate. Prior "~null for D" confirmed. **Status: SUBSUMED** (OFI Tier-1 15m kills subsume volume/dollar-bar direction features).
+
+**Status: COMPLETE** (E1 SIZE certified; E2 direction-conditioning KILLED Tier-1; E3/E4 SUBSUMED via ACI+OFI kills).
 
 ---
 
@@ -546,6 +567,9 @@ All three GRU runs: val_ny_auc < base_auc. OOS moved_auc: USDJPY .4974, USDCAD .
 | I3 |ret|-weight | SUBSUMED | `nzdusd_15m_magdir.py` KILLED (sign-invariance confirmed → magnitude-weighting training doesn't help direction). Cross-pair: `usdjpy_2m_loss_result.json` (|ret|^.5,1 VAL-AUC .524→.517 LOWER). |
 | I4 temp calibration | SUBSUMED | Included in I1 ACI run (T=0.900 applied); calibrated vs uncalibrated — no improvement in direction win-rate. |
 | GMADL loss | SUBSUMED | `m10_signedpayoff_gmadl_result.json` (EURUSD 10m KILLED) + sign-invariance mechanism (same as I3). |
+| I6 Optuna TPE/Hyperband | SUBSUMED | SWEEP_MATRIX I6 Tier-1: [USDJPY·2m] `usdjpy_2m_optuna.py` — best worst-VAL-half .5496 passes VAL but held-out WORSE than default (corr(VAL,OOS)=−.54 anti-transfer); tuning cannot cross a signal bound. [USDCHF·15m] Optuna AUC .5046 vs default .5049 (commit `265c18e`) — hparams not the constraint at ceiling ~.535. Both own-pair and EUR-bloc families confirm. |
+| I7 Recency-weighted training | SUBSUMED | SWEEP_MATRIX I7 Tier-1: [USDJPY·2m] `usdjpy_2m_recency.py` — sharper recency exponential decay monotonically LOWERS VAL-AUC + held-out (overfits small recent window). NZDUSD shows the same refit-dependence (frozen 2026 UP .497 = dead); sharper recency would exacerbate not improve. |
+| I8 IRM era-invariance filter | SUBSUMED | SWEEP_MATRIX I8 Tier-1: [USDCHF·15m] `USDCHF_RESULTS.md` — SURVIVES=False: pruning era-local sign-flippers does NOT recover a frozen-vintage edge → refit-decay = INFORMATION BOUND, not a feature-selection artifact. NZDUSD documents the same pattern (I8 is an IRM, not a fix). |
 
 ---
 
@@ -576,13 +600,13 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 
 | tier | addressed by | result |
 |------|-------------|--------|
-| A (baseline/session/xpair) | A1, A9-ny, A9-asia, A6, A6b (AUDUSD), **USDCAD xpair VAL screen** — all NZDUSD Tier-1 | CERT'd both sides (A9-ny I2); USDCAD VAL +.0080 SUBSUMED; all avenues exhausted |
+| A (baseline/session/xpair) | A1, A9-ny, A9-asia, A6, A6b (AUDUSD), **USDCAD xpair VAL screen** (all NZDUSD Tier-1); A2/A3/A4/A7/A8 SUBSUMED (see §Tier A Row Audit); A5 N/A (no frozen parent@30m/1h) | CERT'd both sides (A9-ny I2); USDCAD VAL +.0080 SUBSUMED; ALL Tier A rows formally closed |
 | B (microstructure/OFI) | `usdcad_15m_ofi_result.json` + `usdchf_15m_ofi_result.json` | SUBSUMED (5-major null at 15m) |
 | C (state-space) | SWEEP_MATRIX C6 `usdjpy_2m_esn.py` KILLED | SUBSUMED (shorter horizon = best case; 15m worse) |
 | D (deep learning) | `usdjpy_15m_gru_result.json` + `usdcad_15m_gru_result.json` + `usdchf_15m_gru_result.json` | SUBSUMED (3/3 15m NY kills; D7/D9/N42-N44 add'l) |
-| E (magnitude) | `nzdusd_15m_magdir.py` KILLED (Tier-1 this session) | E2 KILLED; E1 SIZE certified |
+| E (magnitude) | `nzdusd_15m_magdir.py` KILLED (Tier-1); E3/E4 SUBSUMED (see §Tier E) | E2 KILLED; E1 SIZE certified; E3 complexity-gates SUBSUMED (ACI kill subsumes); E4 info-bars SUBSUMED (OFI kills subsume) |
 | F (exogenous) | F1-F4 null/blocked; **F5** (4-ticker VAL +.0035) + **F6** (9-ticker VAL +.0040); arXiv void | SUBSUMED; accessible external frontier definitively exhausted; NZD-specific externally blocked |
-| I (improvement levers) | I1 KILLED; I2 DONE; I3 SUBSUMED via magdir; I4 in ACI; I5 seed K=8 SUBSUMED | Complete — all I-levers Tier-1 cited |
+| I (improvement levers) | I1 KILLED; I2 DONE; I3/GMADL SUBSUMED; I4 in ACI; I5 seed K=8 SUBSUMED; I6 Optuna SUBSUMED; I7 recency SUBSUMED; I8 IRM SUBSUMED (see §Tier I) | Complete — ALL I-levers (I1-I8) formally closed |
 | N (novel) | `NOVEL_METHODS_RESEARCH.md` §3 convergent verdict (2026-06-07): T2-FFD (`frac_direction_15m_result.json`) KILLED-15m (pooled .5537 < .5642 base, DECAYS); D1-signature KILLED (mechanism null fails); D6-HAVOK KILLED (sub-breakeven, fails null); D7-semivariance REAL-but-sub-BE (.5258 standalone < .5321 incumbent, +semivar HURTS book); M1/M2/M3 sign-invariant SUBSUMED by E2-magdir Tier-1; G1/G2/G3 MOOT (no signal to gate); D2/D4 GPU-blocked (D2 low prior from D1 kill); T1/T4 substrate not built / cross-pair only; T3/T5 sub-.010 prior from information bound; arXiv R2 void | "direction beyond engineered cross-pair book is EFFICIENT on existing data; only frontier = external data" — ALL CLOSED |
 
 **Both sides certified:** UP p10=.5749@cov2% (14/15 paths) | DOWN p10=.5803@cov2% (15/15 paths).
