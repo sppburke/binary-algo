@@ -9,7 +9,7 @@
 **Cert rule:** per-side p10≥0.541 AND ≥80% of 15 CPCV paths clear 0.541
 **Selection:** VAL worst-half stability (NEVER VAL-acc-max; corr(VAL,OOS)=−0.54)
 **Key files:** `sweeps/NZDUSD_15m.md` (ledger) · `sweeps/NZDUSD_15m_backlog.md` (queue) · `books/` (frozen)
-**Sweep status:** OPEN — both sides CERTIFIED+FROZEN; improve+discover loops running (Asia KILLED; Antipodean pooling pending)
+**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% target requires off-disk external data.
 
 ---
 

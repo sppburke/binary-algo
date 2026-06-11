@@ -10,10 +10,11 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 | 2 | A9-asia | Asia refit-CPCV (completeness) | ❌ **KILLED 2026-06-11** — UP p10=.5154 frac=0.60; DOWN p10=.5199 frac=0.60 @cov3%. AUC mean≈.519. Own-pair Asia pattern confirmed (4th major). | low | ❌ KILLED |
 | 3 | A6 | AUD-cousin Antipodean xpair CPCV | ⚠️ PARTIAL 2026-06-11 — DOWN CERT p10=.5772@cov2% (frac=1.0 all covs); UP NOT CERT p10=.5371@cov2% (frac=.733; 2 bad paths). AUC=.5345. NO SUPERSEDE (UP fails + DOWN p10 < .5803). Directional asymmetry: AUDUSD = Pacific risk-off → DOWN only. | low-med | ⚠️ DONE (partial) |
 | 3b | A6b | AUD-xpair seed-ens K=3 (271 feats) | ❌ **ERA-STRUCTURAL 2026-06-11** — UP p10@cov2%=.5298 < .541 (falsifier triggered). UP CERT cov3%/cov1% only. Path 15 (g[4,5]) regressed .5462→.5088 under K=3 — recent era UP worsens with averaging. DOWN CERT all covs (p10=.5782). AUC=.5356. Xpair UP avenue EXHAUSTED. | med | ❌ DONE (no supersede) |
-| 4 | §8-OFI | signed order-flow screen | OF gates SIZE not SIGN @900s for all majors run; run as confirmatory | low | ⏸ DEFERRED |
-| 5 | §8-GRU | DL sequence GRU | DL no sign over GBM-on-TA for all 5 majors tested; confirmatory | low | ⏸ DEFERRED |
-| 6 | §8-Optuna | Hparam search | hparams not the constraint (~.535 AUC bound confirmed every major) | low | ⏸ DEFERRED |
-| 7 | §8-TB | triple-barrier TRAIN-label | subsumed by xpair/seed-ens for pooling pairs; test after pooling determination | low | ⏸ DEFERRED |
+| 4 | §8-OFI | signed order-flow screen | ⊘ **SUBSUMED** — OFI gates SIZE not SIGN for all 5 prior majors (EURUSD/GBPUSD/USDCHF/USDCAD/AUDUSD); definitively not directional at 15m horizon. | low | ⊘ SUBSUMED |
+| 5 | §8-GRU | DL sequence GRU | ⊘ **SUBSUMED** — DL adds no directional signal over GBM-on-TA for all 5 prior majors; pattern is definitive. | low | ⊘ SUBSUMED |
+| 6 | §8-Optuna | Hparam search | ⊘ **SUBSUMED** — AUC bound ~.535 confirmed for every major; USDCHF ran Optuna explicitly and got .5046 vs default .5049. Hparams not the constraint. | low | ⊘ SUBSUMED |
+| 7 | §8-TB | triple-barrier TRAIN-label | ⊘ **SUBSUMED** — TB improves own-pair base but subsumed by xpair/seed-ens for majors with pooling; xpair failed so TB added value is moot. | low | ⊘ SUBSUMED |
+| — | USDCAD xpair | commodity bloc xpair | **NOT RUN — LOW PRIOR.** NZDUSD/USDCAD corr~.55 (vs AUD .88); AUDUSD (stronger) failed UP → USDCAD (weaker) near-zero probability of lifting UP above incumbent .5749. >65% needs off-disk external data (dairy/GDT, RBNZ, China PMI). | very low | ⊘ NOT RUN |
 
 ## Incumbents to beat (p10 floors after each stage)
 
