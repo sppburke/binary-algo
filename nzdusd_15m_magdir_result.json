@@ -1,0 +1,165 @@
+{
+  "key": "NZDUSD.15m.ny.magdir",
+  "mag_train_median": 0.00032859575778121375,
+  "mag_val_auc": 0.6636,
+  "conf_thr": 0.0835073173947228,
+  "lever": "E2 direction-conditioned-on-magnitude (own-pair NY seed-ens K=3 x HIGH/LOW magnitude buckets)",
+  "falsifier": {
+    "KILL_if": "HIGH-mag bucket does NOT lift binding-year UP or DOWN CI95-lo above incumbent floor by >0.02",
+    "incumbent_ci_lo": {
+      "test24": {
+        "UP": 0.5059,
+        "DOWN": 0.6443
+      },
+      "test25": {
+        "UP": 0.514,
+        "DOWN": 0.5816
+      },
+      "oos": {
+        "UP": 0.4184,
+        "DOWN": 0.4646
+      }
+    }
+  },
+  "years": {
+    "test24": {
+      "n_gated": 402,
+      "wr_all": 0.6219,
+      "HIGH": {
+        "n": 150,
+        "wr": 0.62,
+        "UP": {
+          "n": 98,
+          "wr": 0.551,
+          "ci": [
+            0.449,
+            0.6531
+          ]
+        },
+        "DOWN": {
+          "n": 52,
+          "wr": 0.75,
+          "ci": [
+            0.6346,
+            0.8654
+          ]
+        }
+      },
+      "LOW": {
+        "n": 252,
+        "wr": 0.623,
+        "UP": {
+          "n": 155,
+          "wr": 0.5742,
+          "ci": [
+            0.4968,
+            0.6516
+          ]
+        },
+        "DOWN": {
+          "n": 97,
+          "wr": 0.701,
+          "ci": [
+            0.6082,
+            0.7938
+          ]
+        }
+      }
+    },
+    "test25": {
+      "n_gated": 525,
+      "wr_all": 0.6019,
+      "HIGH": {
+        "n": 228,
+        "wr": 0.5746,
+        "UP": {
+          "n": 139,
+          "wr": 0.5396,
+          "ci": [
+            0.4604,
+            0.6187
+          ]
+        },
+        "DOWN": {
+          "n": 89,
+          "wr": 0.6292,
+          "ci": [
+            0.5281,
+            0.7303
+          ]
+        }
+      },
+      "LOW": {
+        "n": 297,
+        "wr": 0.6229,
+        "UP": {
+          "n": 147,
+          "wr": 0.5986,
+          "ci": [
+            0.517,
+            0.6803
+          ]
+        },
+        "DOWN": {
+          "n": 150,
+          "wr": 0.6467,
+          "ci": [
+            0.5667,
+            0.72
+          ]
+        }
+      }
+    },
+    "oos": {
+      "n_gated": 283,
+      "wr_all": 0.5194,
+      "HIGH": {
+        "n": 184,
+        "wr": 0.5326,
+        "UP": {
+          "n": 102,
+          "wr": 0.5,
+          "ci": [
+            0.402,
+            0.598
+          ]
+        },
+        "DOWN": {
+          "n": 82,
+          "wr": 0.5732,
+          "ci": [
+            0.4634,
+            0.6829
+          ]
+        }
+      },
+      "LOW": {
+        "n": 99,
+        "wr": 0.4949,
+        "UP": {
+          "n": 39,
+          "wr": 0.4872,
+          "ci": [
+            0.3333,
+            0.641
+          ]
+        },
+        "DOWN": {
+          "n": 60,
+          "wr": 0.5,
+          "ci": [
+            0.3667,
+            0.6333
+          ]
+        }
+      }
+    }
+  },
+  "verdict": {
+    "mag_val_auc": 0.6636,
+    "lifts_above_threshold": [],
+    "beats_base_auc": true,
+    "KILLED": true,
+    "note": "E2 magdir KILLED \u2192 I3 |ret|-weight SUBSUMED (sign-invariance confirmed for NZDUSD)"
+  }
+}
