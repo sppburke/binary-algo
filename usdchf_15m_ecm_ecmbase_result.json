@@ -15,5 +15,381 @@
     "registered": "pre-OOS",
     "IMPROVES_if": "VAL moved-AUC > 0.5301 AND 2026 cov2% COMBINED wr > 0.5103",
     "ADVERSARIAL_KILL_if": "sign(corr(z960,fwd)) FLIPS between 2024 and 2026 (era-local band memorization, no forward transfer)"
+  },
+  "val_auc": 0.5331712415039691,
+  "best_iter": 278,
+  "top20": [
+    "hour_cos",
+    "hour_sin",
+    "chfshare1920",
+    "4h_autocorr_10",
+    "30m_autocorr_10",
+    "anchslope1920",
+    "4h_rv_24",
+    "chfshare960",
+    "1h_autocorr_10",
+    "4h_atr_pct",
+    "anchslope120",
+    "4h_bb_width",
+    "anchslope960",
+    "4h_dist_hi_48",
+    "4h_rv_12",
+    "chfshare120",
+    "4h_dist_lo_48",
+    "4h_rangepos_48",
+    "1h_slope_20",
+    "4h_dist_ema100"
+  ],
+  "ecm_in_top20": [
+    "chfshare1920",
+    "anchslope1920",
+    "chfshare960",
+    "anchslope120",
+    "anchslope960",
+    "chfshare120"
+  ],
+  "gate": {
+    "cov": 0.02,
+    "thr": 0.11576499714547123,
+    "val_worst_half": 0.6713
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5303,
+      "up_rate": 0.5034,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 1288,
+          "wr": 0.6561,
+          "ci": [
+            0.63,
+            0.681
+          ]
+        },
+        "UP": {
+          "n": 733,
+          "wr": 0.6398,
+          "ci": [
+            0.604,
+            0.674
+          ]
+        },
+        "DOWN": {
+          "n": 555,
+          "wr": 0.6775,
+          "ci": [
+            0.64,
+            0.717
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.071,
+          "COMBINED": {
+            "n": 5249,
+            "wr": 0.5654
+          },
+          "UP": {
+            "n": 3023,
+            "wr": 0.563
+          },
+          "DOWN": {
+            "n": 2226,
+            "wr": 0.5687
+          }
+        },
+        "0.05": {
+          "thr": 0.0887,
+          "COMBINED": {
+            "n": 2845,
+            "wr": 0.5895
+          },
+          "UP": {
+            "n": 1642,
+            "wr": 0.5792
+          },
+          "DOWN": {
+            "n": 1203,
+            "wr": 0.6035
+          }
+        },
+        "0.03": {
+          "thr": 0.1022,
+          "COMBINED": {
+            "n": 1876,
+            "wr": 0.6295
+          },
+          "UP": {
+            "n": 1073,
+            "wr": 0.6123
+          },
+          "DOWN": {
+            "n": 803,
+            "wr": 0.6526
+          }
+        },
+        "0.02": {
+          "thr": 0.1131,
+          "COMBINED": {
+            "n": 1394,
+            "wr": 0.6535
+          },
+          "UP": {
+            "n": 796,
+            "wr": 0.6357
+          },
+          "DOWN": {
+            "n": 598,
+            "wr": 0.6773
+          }
+        },
+        "0.01": {
+          "thr": 0.1318,
+          "COMBINED": {
+            "n": 811,
+            "wr": 0.6917
+          },
+          "UP": {
+            "n": 452,
+            "wr": 0.6394
+          },
+          "DOWN": {
+            "n": 359,
+            "wr": 0.7577
+          }
+        }
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5235,
+      "up_rate": 0.4995,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 1371,
+          "wr": 0.5915,
+          "ci": [
+            0.565,
+            0.617
+          ]
+        },
+        "UP": {
+          "n": 739,
+          "wr": 0.5778,
+          "ci": [
+            0.543,
+            0.614
+          ]
+        },
+        "DOWN": {
+          "n": 632,
+          "wr": 0.6076,
+          "ci": [
+            0.571,
+            0.646
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.0761,
+          "COMBINED": {
+            "n": 5145,
+            "wr": 0.538
+          },
+          "UP": {
+            "n": 2738,
+            "wr": 0.5358
+          },
+          "DOWN": {
+            "n": 2407,
+            "wr": 0.5405
+          }
+        },
+        "0.05": {
+          "thr": 0.0939,
+          "COMBINED": {
+            "n": 2770,
+            "wr": 0.5596
+          },
+          "UP": {
+            "n": 1484,
+            "wr": 0.5553
+          },
+          "DOWN": {
+            "n": 1286,
+            "wr": 0.5645
+          }
+        },
+        "0.03": {
+          "thr": 0.1071,
+          "COMBINED": {
+            "n": 1766,
+            "wr": 0.5719
+          },
+          "UP": {
+            "n": 954,
+            "wr": 0.5535
+          },
+          "DOWN": {
+            "n": 812,
+            "wr": 0.5936
+          }
+        },
+        "0.02": {
+          "thr": 0.1182,
+          "COMBINED": {
+            "n": 1279,
+            "wr": 0.5966
+          },
+          "UP": {
+            "n": 689,
+            "wr": 0.5806
+          },
+          "DOWN": {
+            "n": 590,
+            "wr": 0.6153
+          }
+        },
+        "0.01": {
+          "thr": 0.136,
+          "COMBINED": {
+            "n": 789,
+            "wr": 0.6439
+          },
+          "UP": {
+            "n": 401,
+            "wr": 0.6284
+          },
+          "DOWN": {
+            "n": 388,
+            "wr": 0.6598
+          }
+        }
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5159,
+      "up_rate": 0.5042,
+      "tripwire_ok": true,
+      "gate": {
+        "COMBINED": {
+          "n": 656,
+          "wr": 0.5259,
+          "ci": [
+            0.488,
+            0.564
+          ]
+        },
+        "UP": {
+          "n": 304,
+          "wr": 0.5329,
+          "ci": [
+            0.477,
+            0.589
+          ]
+        },
+        "DOWN": {
+          "n": 352,
+          "wr": 0.5199,
+          "ci": [
+            0.466,
+            0.571
+          ]
+        }
+      },
+      "covcurve": {
+        "0.10": {
+          "thr": 0.084,
+          "COMBINED": {
+            "n": 1789,
+            "wr": 0.5109
+          },
+          "UP": {
+            "n": 882,
+            "wr": 0.5102
+          },
+          "DOWN": {
+            "n": 907,
+            "wr": 0.5116
+          }
+        },
+        "0.05": {
+          "thr": 0.1035,
+          "COMBINED": {
+            "n": 949,
+            "wr": 0.5079
+          },
+          "UP": {
+            "n": 448,
+            "wr": 0.5112
+          },
+          "DOWN": {
+            "n": 501,
+            "wr": 0.505
+          }
+        },
+        "0.03": {
+          "thr": 0.117,
+          "COMBINED": {
+            "n": 635,
+            "wr": 0.5197
+          },
+          "UP": {
+            "n": 295,
+            "wr": 0.539
+          },
+          "DOWN": {
+            "n": 340,
+            "wr": 0.5029
+          }
+        },
+        "0.02": {
+          "thr": 0.1273,
+          "COMBINED": {
+            "n": 451,
+            "wr": 0.4945
+          },
+          "UP": {
+            "n": 204,
+            "wr": 0.5098
+          },
+          "DOWN": {
+            "n": 247,
+            "wr": 0.4818
+          }
+        },
+        "0.01": {
+          "thr": 0.1437,
+          "COMBINED": {
+            "n": 259,
+            "wr": 0.4942
+          },
+          "UP": {
+            "n": 114,
+            "wr": 0.5088
+          },
+          "DOWN": {
+            "n": 145,
+            "wr": 0.4828
+          }
+        }
+      }
+    }
+  },
+  "z960_corr_by_era": {
+    "test24": -0.009352033924822534,
+    "test25": -0.007927292729802549,
+    "oos": -0.013649035318098
+  },
+  "verdict": {
+    "val_auc_gt_base": true,
+    "oos_cov2_comb": 0.4945,
+    "oos_cov2_gt_base": false,
+    "z960_sign_flip_2024_vs_2026": false,
+    "IMPROVES_base": false,
+    "note": "IMPROVES requires VAL>base AND 2026 cov2>base AND NO z-sign flip across eras (else era-local band memorization, no transfer)."
   }
 }

@@ -1,0 +1,1 @@
+[magdir15m USDCHF] stride=6 dir_train(NY moved)=227,592 mag_train(NY)=230,539 val(NY moved)=272,209 magQ75=3.12e-04 build=19s

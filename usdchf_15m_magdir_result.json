@@ -1,0 +1,46 @@
+{
+  "key": "USDCHF.15m.ny",
+  "lever": "E2 direction-conditioned-on-magnitude (base NY dir GBM x magnitude-quartile bucketing); safe-haven-flight angle",
+  "settlement": "deriv-faithful sign(close[t+15]-close[t]); ties LOSE; BE=0.541; gap=900s nonoverlap",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "mag_target_quantile": 0.75,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "in fewer than 2 of {test24,test25,oos} does Q4(HIGH-mag) NY dir moved-AUC exceed BOTH (a) Q1(LOW-mag) by >0.010 AND (b) ~0.540 (USDCHF NY incumbent AUC) \u2014 AND no year's Q4 cov3% win-rate CI95-lower clears 0.541 in >=2 years",
+    "expected": "NULL per sign-invariance (mag gates SIZE not SIGN) UNLESS the safe-haven-flight angle holds (risk-off big moves carry cleaner DOWN sign) \u2014 then Q4 lifts. RUN it; let the number decide.",
+    "incumbent": {
+      "ny_signal_auc": 0.54,
+      "ny_winrate": "0.62-0.64",
+      "BE": 0.541
+    }
+  },
+  "years": {}
+}
