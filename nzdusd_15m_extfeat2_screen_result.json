@@ -1,0 +1,150 @@
+{
+  "model": "NZDUSD.15m expanded-external VAL screen (F6)",
+  "key": "NZDUSD.15m",
+  "base_val_auc": 0.5219,
+  "ext_val_auc": 0.5259233248294555,
+  "lift": 0.0040233248294554436,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUME \u2014 lift < .010",
+  "tickers_attempted": [
+    "^VIX",
+    "DX-Y.NYB",
+    "^TNX",
+    "GC=F",
+    "^NZ50",
+    "^AXJO",
+    "AUDNZD=X",
+    "HG=F",
+    "^HSI"
+  ],
+  "tickers_loaded": [
+    "vix",
+    "dxy",
+    "us10y",
+    "gold",
+    "nzx50",
+    "asx200",
+    "audnzd",
+    "copper",
+    "hsi"
+  ],
+  "ext_features_tested": [
+    "vix_prev",
+    "vix_ret1d",
+    "vix_mom5d",
+    "vix_mom20d",
+    "vix_z63",
+    "dxy_prev",
+    "dxy_ret1d",
+    "dxy_mom5d",
+    "dxy_mom20d",
+    "dxy_z63",
+    "us10y_prev",
+    "us10y_ret1d",
+    "us10y_mom5d",
+    "us10y_mom20d",
+    "us10y_z63",
+    "gold_prev",
+    "gold_ret1d",
+    "gold_mom5d",
+    "gold_mom20d",
+    "gold_z63",
+    "nzx50_prev",
+    "nzx50_ret1d",
+    "nzx50_mom5d",
+    "nzx50_mom20d",
+    "nzx50_z63",
+    "asx200_prev",
+    "asx200_ret1d",
+    "asx200_mom5d",
+    "asx200_mom20d",
+    "asx200_z63",
+    "audnzd_prev",
+    "audnzd_ret1d",
+    "audnzd_mom5d",
+    "audnzd_mom20d",
+    "audnzd_z63",
+    "copper_prev",
+    "copper_ret1d",
+    "copper_mom5d",
+    "copper_mom20d",
+    "copper_z63",
+    "hsi_prev",
+    "hsi_ret1d",
+    "hsi_mom5d",
+    "hsi_mom20d",
+    "hsi_z63"
+  ],
+  "top_ext_importances": [
+    [
+      "audnzd_ret1d",
+      957
+    ],
+    [
+      "us10y_mom5d",
+      954
+    ],
+    [
+      "hsi_ret1d",
+      931
+    ],
+    [
+      "audnzd_mom5d",
+      920
+    ],
+    [
+      "nzx50_ret1d",
+      912
+    ],
+    [
+      "us10y_ret1d",
+      903
+    ],
+    [
+      "asx200_ret1d",
+      903
+    ],
+    [
+      "nzx50_mom5d",
+      873
+    ],
+    [
+      "vix_ret1d",
+      870
+    ],
+    [
+      "us10y_mom20d",
+      862
+    ],
+    [
+      "vix_mom5d",
+      839
+    ],
+    [
+      "audnzd_mom20d",
+      837
+    ],
+    [
+      "copper_ret1d",
+      831
+    ],
+    [
+      "gold_mom5d",
+      826
+    ],
+    [
+      "vix_prev",
+      825
+    ]
+  ],
+  "train_years": [
+    "2012",
+    "2018"
+  ],
+  "val_years": [
+    "2022",
+    "2023"
+  ],
+  "falsifier": "escalate if ext_val_auc > base_val_auc + .010"
+}

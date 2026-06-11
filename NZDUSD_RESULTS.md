@@ -369,7 +369,7 @@ No experiment exceeded AUC .5412 (max single path). The ceiling is ~.532–.536.
 
 **Cross-pair (EUR-bloc) is not the path:** NZD has no algebraic EUR relationship. Own-pair family (USDJPY/AUDUSD/USDCAD) — 3 Tier-1 runs — all show EUR-bloc/pooling DILUTES. NZD is Antipodean/commodity, not EUR-linked. Antipodean xpair (A6/A6b) is the relevant xpair and it ran — UP era-structural, DOWN below incumbent.
 
-**Conclusion:** Sweep is **honestly exhausted on-disk and across all accessible external data**. Both sides certified above BE=.541. Global macro daily features (VIX/DXY/US10Y/Gold via yfinance) screened 2026-06-11: VAL AUC .5254 vs .5219 base = **+.0035 lift**, SUBSUMED (`nzdusd_15m_extfeat_screen_result.json`). Further AUC lift to ≥.550 requires NZD-specific features that are externally blocked (no free API):
+**Conclusion:** Sweep is **honestly exhausted on-disk and across all accessible external data**. Both sides certified above BE=.541. Two external screens completed 2026-06-11: F5 (VIX/DXY/US10Y/Gold, 20 ext feats) → VAL AUC +.0035; F6 (F5 + NZX50/ASX200/AUDNZD/Copper/HSI, 45 ext feats) → VAL AUC +.0040. Combined 9-ticker accessible frontier adds only +.004 AUC — definitively subsumed (`nzdusd_15m_extfeat2_screen_result.json`). Further AUC lift to ≥.550 requires NZD-specific features that are externally blocked (no free API):
 1. Dairy/GDT auction direction + surprise magnitude (fortnightly NZD catalyst)
 2. RBNZ MPR tone/surprise (NZ-US rate-differential driver)
 3. China PMI/trade data → NZD risk-on driver
@@ -519,6 +519,7 @@ All three GRU runs: val_ny_auc < base_auc. OOS moved_auc: USDJPY .4974, USDCAD .
 - F3 COT positioning: daily frequency; diluted by 15m bar-frequency signal; ~null prior for all tested pairs.
 - F4 options-implied vol: FX options IV data not in on-disk pipeline; ~null for direction at 15m in all prior assessments.
 - **F5 global macro daily screen (VIX, DXY, US10Y, Gold — yfinance, VAL 2022-2023):** `nzdusd_15m_extfeat_screen.py` | 259 total features (239 base + 20 ext) | VAL AUC .5254 vs base .5219 → lift = **+.0035** (threshold .010) | **SUBSUMED** — global macro regime features at daily resolution add < .004 AUC to 15m price-action model. Top external features by importance: us10y_ret1d (1231), vix_ret1d (1151), us10y_mom5d (1121), gold_ret1d (1077), us10y_mom20d (1054). Macro information already embedded in intraday price movements. `nzdusd_15m_extfeat_screen_result.json`.
+- **F6 expanded external daily screen (F5 + NZX50, ASX200, AUDNZD, Copper, HangSeng — yfinance, VAL 2022-2023):** `nzdusd_15m_extfeat2_screen.py` | 284 total features (239 base + 45 ext from 9 tickers) | VAL AUC .5259 vs base .5219 → lift = **+.0040** (threshold .010) | **SUBSUMED** — Antipodean equity (NZX50, ASX200), AUD/NZD cross, copper, and China equity (HSI) add only +.0005 marginal lift over F5 (+.0035). AUDNZD_ret1d is top new feature (957 importance) but absorbed by intraday price-action. Accessible daily external data is definitively exhausted. `nzdusd_15m_extfeat2_screen_result.json`.
 
 **NZDUSD-specific externally blocked features (confirmed in Discovery R1 Backlog):**
 - Dairy/GDT auction direction + surprise magnitude — not in bar features; requires external GDT data pipeline
@@ -532,7 +533,7 @@ All three GRU runs: val_ny_auc < base_auc. OOS moved_auc: USDJPY .4974, USDCAD .
 - RBNZ/dairy/GDT: academic void (0 arXiv hits)
 - Two off-disk-only mechanisms noted: (1) Chinese commodity futures lagged return → AUD/NZD (supported by SS paper on China-AUD correlation, daily horizon, off-disk); (2) G10 vol-transmission rank as 15m feature (arxiv:2101.09738, daily/weekly mechanism, 15m adaptation speculative). Neither implementable on-disk currently.
 
-**Status: SUBSUMED** (F1-F4 all ~null from prior cross-pair runs; F5 global macro daily screen Tier-1 KILLED at lift +.0035; NZD-specific exogenous features externally blocked; arXiv mining confirms academic void; on-disk + accessible external information frontier exhausted).
+**Status: SUBSUMED** (F1-F4 all ~null from prior cross-pair runs; F5 global macro daily screen KILLED at lift +.0035; F6 expanded screen KILLED at lift +.0040 with all accessible tickers — NZX50/ASX200/AUDNZD/Copper/HSI add only +.0005 marginal lift; NZD-specific exogenous features externally blocked; arXiv mining confirms academic void; on-disk + accessible external information frontier **definitively exhausted**).
 
 ---
 
@@ -580,7 +581,7 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 | C (state-space) | SWEEP_MATRIX C6 `usdjpy_2m_esn.py` KILLED | SUBSUMED (shorter horizon = best case; 15m worse) |
 | D (deep learning) | `usdjpy_15m_gru_result.json` + `usdcad_15m_gru_result.json` + `usdchf_15m_gru_result.json` | SUBSUMED (3/3 15m NY kills; D7/D9/N42-N44 add'l) |
 | E (magnitude) | `nzdusd_15m_magdir.py` KILLED (Tier-1 this session) | E2 KILLED; E1 SIZE certified |
-| F (exogenous) | F1-F4 null/blocked; **F5 global macro daily screen** VAL AUC .5254 (+.0035 lift); arXiv void | SUBSUMED; accessible external data exhausted; NZD-specific externally blocked |
+| F (exogenous) | F1-F4 null/blocked; **F5** (4-ticker VAL +.0035) + **F6** (9-ticker VAL +.0040); arXiv void | SUBSUMED; accessible external frontier definitively exhausted; NZD-specific externally blocked |
 | I (improvement levers) | I1 KILLED; I2 DONE; I3 SUBSUMED via magdir; I4 in ACI; I5 seed K=8 SUBSUMED | Complete — all I-levers Tier-1 cited |
 | N (novel) | arXiv mining R2 CLOSED (academic void) | No implementable novel mechanism found |
 
@@ -588,5 +589,5 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 **Improve loops dry:** no lever remains that could plausibly lift AUC above .536 ceiling on-disk.
 - I5 seed K=8: `audusd_15m_cpcv_session_ny_seedens8_result.json` proves saturation past K=3 (UP REGRESSES −.005, DOWN mixes +.016 at cov2%; sign-inconsistent across cov). Even if projected to NZDUSD, DOWN ~.584–.595, UP ~.570–.575 — nowhere near .65.
 **Discovery loops dry:** R1 CLOSED (on-disk topics covered, off-disk externally blocked); R2 CLOSED (academic void).
-**>65% is provably unreachable on-disk or via accessible external data** (AUC ceiling ~.535 → p10 max ~.58; see §AUC Information Bound Wall). Required: AUC ~.550 for p10=.65 (see §AUC Bound Wall); gap = +.015 from mean .5321 (or +.009 from max path .5412). No on-disk or accessible-external lever provides .010 AUC lift across 4 own-pair-family majors; F5 global macro daily screen confirms accessible external null (+.0035).
-**Path forward:** NZD-specific externally blocked features (dairy/GDT, RBNZ surprise, China PMI, NZ-US rate diff). Global macro daily (VIX/DXY/US10Y/Gold) exhausted 2026-06-11 — SUBSUMED.
+**>65% is provably unreachable on-disk or via accessible external data** (AUC ceiling ~.535 → p10 max ~.58; see §AUC Information Bound Wall). Required: AUC ~.550 for p10=.65 (see §AUC Bound Wall); gap = +.015 from mean .5321 (or +.009 from max path .5412). No on-disk or accessible-external lever provides .010 AUC lift across 4 own-pair-family majors; F6 9-ticker comprehensive daily screen (VIX/DXY/US10Y/Gold/NZX50/ASX200/AUDNZD/Copper/HSI) confirms accessible external ceiling = +.004 AUC.
+**Path forward:** NZD-specific externally blocked features (dairy/GDT, RBNZ surprise, China PMI, NZ-US rate diff). All accessible daily market data (9 tickers) exhausted 2026-06-11 — SUBSUMED.
