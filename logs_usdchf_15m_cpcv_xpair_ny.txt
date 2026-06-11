@@ -119,3 +119,4 @@
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
+[cpcv-xpair/ny] rows=1,776,577 in-NY=659,668 feats=337 built 44s

@@ -1,0 +1,44 @@
+{
+  "model": "XPAIR(xpbase)-GBM @15m, SESSION=ny, TIES-STRICT per-fold-REFIT CPCV (multi-cov)",
+  "key": "USDCHF.15m",
+  "breakeven": 0.541,
+  "stride": 3,
+  "covs": [
+    0.05,
+    0.03,
+    0.02,
+    0.01,
+    0.005
+  ],
+  "nseed": 1,
+  "n_feats": 337,
+  "incumbent": "own-pair NY refit-CPCV (usdchf_15m_cpcv_session_ny_multicov_result.json)",
+  "incumbent_p10": {
+    "0.05": {
+      "UP": 0.6029,
+      "DOWN": 0.6039,
+      "COMBINED": 0.5924
+    },
+    "0.03": {
+      "UP": 0.6029,
+      "DOWN": 0.6191,
+      "COMBINED": 0.611
+    },
+    "0.02": {
+      "UP": 0.6221,
+      "DOWN": 0.6161,
+      "COMBINED": 0.6244
+    },
+    "0.01": {
+      "UP": 0.6413,
+      "DOWN": 0.6361,
+      "COMBINED": 0.6386
+    }
+  },
+  "CERT_RULE": "side CERTIFIED iff p10>=0.541 AND frac_clear_BE>=0.80",
+  "falsifier": {
+    "registered": "pre-paths",
+    "IMPROVES_if": "p10 > incumbent own-pair NY p10 at matched cov on BOTH sides (cov0.02 UP .6221 / DOWN .6161; cov1 UP .6413 / DOWN .6361); else NON-ADDITIVE (own-pair book stands = own-pair-specific haven case)",
+    "KILL_if": "p10<0.541 OR frac_clear_BE<0.80 per side"
+  }
+}
