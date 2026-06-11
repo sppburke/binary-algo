@@ -68,7 +68,19 @@
 ### ★ Cross-pair EUR-bloc POOLING (the differentiating test) — `usdchf_15m_xpair.py` (sign-FLIPPED, USDCHF≈−EURUSD)
 **Frozen all-session SCREEN (`xpbase`):** ⚠️ IMPROVES_base=**False**. VAL AUC .5330 > base .5301 ✓ (pooling adds train-era signal; `ll_EURUSD30`+`ll_USDJPY30` rank top-20 → cross-pair info present) BUT frozen 2026 cov2 COMB **.5049 < base .5103** ✗, DOWN collapses 2026 (.4862). Per-year cov2 COMB .6382/.6062/.5049 (2024/25/26).
 - **Caveat:** the frozen all-session screen is a POOR proxy for the refit-CPCV deliverable — base A1 *also* failed frozen-2026 (.5103) yet certified strongly under NY refit-CPCV (.624). → escalated to the definitive NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`, RUNNING).
-- **Mechanism read:** cross-pair (EUR-bloc + JPY-haven) coupling is largely CONTEMPORANEOUS (already in own-pair price), not a forward-leading signal — matches discovery R1 (EUR-bloc lead-lag corr~0). Leans own-pair-specific (USDCAD/USDJPY case), pending the refit confirmation. `usdchf_15m_xpair_xpbase_result.json`.
+- **Mechanism read:** cross-pair (EUR-bloc + JPY-haven) coupling is largely CONTEMPORANEOUS (already in own-pair price). `usdchf_15m_xpair_xpbase_result.json`.
+
+**⚡ NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`) — POOLING WINS, ⚠️ pending adversarial verify:**
+| cov | UP p10 (own-pair inc) | DOWN p10 (inc) | COMB p10 (inc) | med_n (U/D/C) |
+|---|---|---|---|---|
+| 0.05 | .6087 (.6029) | .607 (.6039) | .6027 (.5924) | 2745/2859/5395 |
+| 0.03 | .6246 (.6029) | .6249 (.6191) | .6233 (.611) | 1738/1796/3419 |
+| 0.02 | .645 (.6221) | .6437 (.6161) | .645 (.6244) | 1182/1286/2353 |
+| **0.01** | **.6997** (.6413) | **.662** (.6361) | **.6804** (.6386) | 625/696/1289 |
+| 0.005 | **.733** | **.6958** | **.7137** | 331/361/669 |
+
+**The xpair (EUR-bloc pooled) book BEATS the own-pair NY incumbent at EVERY cov on BOTH sides** (15/15 paths, frac 1.0), AUC .5464 > own-pair .5401. **At cov1 BOTH sides clear 65%** (UP .6997, DOWN .662, COMB .6804) — the >65% target. This CONTRADICTS the frozen all-session screen → the refit harness recovers an era-local cross-pair lift the frozen book misses.
+- **⚠️ MANDATORY ADVERSARIAL VERIFY (trap#9):** the frozen screen failed (2026 worse) = the signature of pooled-CPCV era-local memorization. Running matched frozen-past forward holdout (`usdchf_15m_xpair_frozen.py` + own-pair freeze): if xpair-frozen ≥ own-pair-frozen forward → genuine (deploy xpair); if xpair-frozen ~coin-flip or < own-pair → refit-overfit, own-pair stands. **NOT certified until this clears.** `usdchf_15m_cpcv_xpair_ny_multicov_result.json`.
 
 ### Improve cross-product (on the carrier book) — pending
 | lever | file | result | verdict |
