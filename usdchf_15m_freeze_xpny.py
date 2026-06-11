@@ -8,9 +8,11 @@ then manifest.build + freeze (+ currency override).
 
 CERTIFICATION OF RECORD = per-fold-refit xpair-NY CPCV (usdchf_15m_cpcv_xpair_ny_seedens3_result.json +
 single-seed usdchf_15m_cpcv_xpair_ny_multicov_result.json): BOTH sides p10 ≥ BE 15/15 paths every cov;
-K=3 cov1 UP p10 .6470 / DOWN .6323 (means .6787/.6624); single-seed cov1 UP .6515. REFIT-DEPENDENT
-(usdchf_15m_xpair_frozen_seedens3_result.json: 2024 cov1 .7437 → 2026 .4679) — deploy NY-only with
-periodic retraining, size on the refit per-era floor minus the tick haircut (ticksettle mean Δ −.0078).
+K=3 cov1 UP p10 .6935 / DOWN .6682 (means .7252/.7230); single-seed cov1 UP .6997 / DOWN .662. Seed-ens
+LIFTS single-seed on path-MEAN 15/15 cov×side cells + p10 13/15 (only thin cov0.01/0.005 UP p10 dip,
+mean still up) → genuine variance-reduction floor lift, not redistribution. REFIT-DEPENDENT (single-seed
+frozen-fwd proxy usdchf_15m_xpair_frozen_result.json: 2024 cov1 COMB .7924 → 2026 .4775) — deploy NY-only
+with periodic retraining, size on the refit per-era floor minus the bar-close haircut (-.0035, no tick data).
 
 Usage: ~/binary-algo-venv/bin/python usdchf_15m_freeze_xpny.py [nseed=3]
   -> book USDCHF.m15ny_xpair_seedens.v1 (nseed>1) / USDCHF.m15ny_xpair.v1 (nseed=1)

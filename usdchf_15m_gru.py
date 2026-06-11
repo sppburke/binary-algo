@@ -1,12 +1,12 @@
 """USDCHF 15m NY — D1 (fork of usdjpy_15m_gru.py). sequence DL (GRU on raw return path) — coverage-rule RUN of the DL class.
 
-SCOPE: USDJPY · 15m · NY. RUN (not argue) one DL/sequence model at this key. Prior is strong (EURUSD
+SCOPE: USDCHF · 15m · NY. RUN (not argue) one DL/sequence model at this key. Prior is strong (EURUSD
 neural+spectral sweep KILLED 84/84 arms all tf incl 15m; info-bound) but the coverage rule says confirm here.
 Input = trailing W one-minute log-returns before each NY 15m decision bar; small GRU -> P(up next 15m).
 Train 2012-21 NY moved bars (subsampled), eval 2024/25/26 NY moved-AUC + cov3% win-rate. EVAL deriv-faithful.
 
 Falsifier: VAL moved-AUC <= base .539 (GRU adds no sign over the GBM-on-TA-features) => DL class KILLED here.
-Usage: ~/binary-algo-venv/bin/python usdjpy_15m_gru.py [W=32] [epochs=8]
+Usage: ~/binary-algo-venv/bin/python usdchf_15m_gru.py [W=32] [epochs=8]
 """
 import os, sys, json, time, numpy as np, pandas as pd
 from sklearn.metrics import roc_auc_score

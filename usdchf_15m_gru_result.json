@@ -1,0 +1,66 @@
+{
+  "key": "USDCHF.15m.ny",
+  "model": "GRU(24) on trailing 32 1-min returns",
+  "val_ny_auc": 0.5313,
+  "base_auc": 0.5433,
+  "falsifier": {
+    "KILL_if": "VAL-AUC<=.5433 (no lift over GBM)"
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.524,
+      "cov3": {
+        "COMBINED": [
+          925,
+          0.5924
+        ],
+        "UP": [
+          479,
+          0.6096
+        ],
+        "DOWN": [
+          446,
+          0.574
+        ]
+      }
+    },
+    "test25": {
+      "moved_auc": 0.5204,
+      "cov3": {
+        "COMBINED": [
+          2172,
+          0.5672
+        ],
+        "UP": [
+          1069,
+          0.5828
+        ],
+        "DOWN": [
+          1103,
+          0.5521
+        ]
+      }
+    },
+    "oos": {
+      "moved_auc": 0.5065,
+      "cov3": {
+        "COMBINED": [
+          1148,
+          0.5078
+        ],
+        "UP": [
+          537,
+          0.5102
+        ],
+        "DOWN": [
+          611,
+          0.5057
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "beats_base": false,
+    "KILLED": true
+  }
+}
