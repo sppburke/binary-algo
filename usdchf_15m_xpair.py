@@ -189,7 +189,7 @@ def main(mode="xpbase", stride=4):
     pva=L.predict_proba(Xva)[:,1]; aucv=float(roc_auc_score(yva,pva))
     imp=sorted(zip(cols,L.feature_importances_),key=lambda z:-z[1])[:20]
     res["val_auc"]=aucv; res["best_iter"]=int(L.best_iteration_ or 0); res["top20"]=[c for c,_ in imp]
-    print(f"[xpair USDCHF] best_iter={L.best_iteration_} VAL AUC={aucv:.4f} (base .5234)",flush=True)
+    print(f"[xpair USDCHF] best_iter={L.best_iteration_} VAL AUC={aucv:.4f} (base {BASE_VAL_AUC})",flush=True)
     print("  top20:",", ".join(c for c,_ in imp),flush=True)
     tsv=VA["_ts"].values.astype("int64"); fwv=VA["_fwd"].values; half=len(pva)//2; confv=np.abs(pva-0.5); best=None
     for cov in (0.10,0.05,0.03,0.02):
@@ -217,7 +217,7 @@ def main(mode="xpbase", stride=4):
     res["verdict"]={"val_auc_gt_base":bool(aucv>BASE_VAL_AUC),"oos_cov2_comb":a26,"oos_cov2_gt_base":bool(np.isfinite(a26) and a26>BASE_2026_COV2_COMB),
                     "IMPROVES_base":improves,"note":"if not IMPROVES, base stands; pooling subsumed at 15m (USDJPY/AUDUSD case). If IMPROVES -> escalate to NY refit-CPCV."}
     json.dump(res,open(RESULT,"w"),indent=2)
-    print(f"\n[xpair USDCHF] VERDICT IMPROVES_base={improves} (VAL {aucv:.4f} vs .5234; 2026 cov2 COMB {a26} vs .537) -> {RESULT} {time.time()-t0:.0f}s",flush=True)
+    print(f"\n[xpair USDCHF] VERDICT IMPROVES_base={improves} (VAL {aucv:.4f} vs {BASE_VAL_AUC}; 2026 cov2 COMB {a26} vs {BASE_2026_COV2_COMB}) -> {RESULT} {time.time()-t0:.0f}s",flush=True)
 
 if __name__=="__main__":
     mode=sys.argv[1] if len(sys.argv)>1 else "xpbase"

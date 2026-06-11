@@ -66,9 +66,9 @@
 **Session landscape verdict: NY is the unique carrier; all-session also certifies (broad EUR-bloc breadth); LDN/asia dead.** This `broad + NY-concentrated` hybrid is the USDCHF signature.
 
 ### ★ Cross-pair EUR-bloc POOLING (the differentiating test) — `usdchf_15m_xpair.py` (sign-FLIPPED, USDCHF≈−EURUSD)
-| variant | VAL AUC vs base | 2026 COMB/UP/DOWN | verdict |
-|---|---|---|---|
-| _pending_ | — | — | does CHF pool with EUR-bloc (WIN like EURUSD/GBPUSD) or own-pair (NULL like JPY/CAD)? |
+**Frozen all-session SCREEN (`xpbase`):** ⚠️ IMPROVES_base=**False**. VAL AUC .5330 > base .5301 ✓ (pooling adds train-era signal; `ll_EURUSD30`+`ll_USDJPY30` rank top-20 → cross-pair info present) BUT frozen 2026 cov2 COMB **.5049 < base .5103** ✗, DOWN collapses 2026 (.4862). Per-year cov2 COMB .6382/.6062/.5049 (2024/25/26).
+- **Caveat:** the frozen all-session screen is a POOR proxy for the refit-CPCV deliverable — base A1 *also* failed frozen-2026 (.5103) yet certified strongly under NY refit-CPCV (.624). → escalated to the definitive NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`, RUNNING).
+- **Mechanism read:** cross-pair (EUR-bloc + JPY-haven) coupling is largely CONTEMPORANEOUS (already in own-pair price), not a forward-leading signal — matches discovery R1 (EUR-bloc lead-lag corr~0). Leans own-pair-specific (USDCAD/USDJPY case), pending the refit confirmation. `usdchf_15m_xpair_xpbase_result.json`.
 
 ### Improve cross-product (on the carrier book) — pending
 | lever | file | result | verdict |
