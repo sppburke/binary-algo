@@ -1,0 +1,29 @@
+{
+  "target": "NZDUSD",
+  "cousin": "AUDUSD",
+  "mode": "xpbase",
+  "val_auc": 0.5247,
+  "base_val_auc": 0.5219,
+  "verdict": "LIFT->ESCALATE",
+  "forward": {
+    "val": {
+      "n": 69,
+      "wr": 0.5652
+    },
+    "test24": {
+      "n": 34,
+      "wr": 0.7059
+    },
+    "test25": {
+      "n": 2310,
+      "wr": 0.5792
+    },
+    "oos": {
+      "n": 953,
+      "wr": 0.5278
+    }
+  },
+  "n_features": 271,
+  "stride_train": 4,
+  "elapsed": 82.0
+}

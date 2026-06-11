@@ -8,7 +8,7 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 |---|-----|-------|------|-------|--------|
 | — | FREEZE | nzdusd_15m_freeze_ny.py nseed=3 | ✅ DONE — content_id=f599708e; test24 COMB .622 DOWN .718; test25 COMB .602 DOWN .640; oos .519 (REFIT-DEPENDENT) | high | ✅ DONE |
 | 2 | A9-asia | Asia refit-CPCV (completeness) | ❌ **KILLED 2026-06-11** — UP p10=.5154 frac=0.60; DOWN p10=.5199 frac=0.60 @cov3%. AUC mean≈.519. Own-pair Asia pattern confirmed (4th major). | low | ❌ KILLED |
-| 3 | A6 | AUD-cousin Antipodean pooling | NZDUSD+AUDUSD (r≈.88 — strongest cousin); EUR-bloc demoted by A1 | low-med | ⏸ QUEUED |
+| 3 | A6 | AUD-cousin Antipodean xpair CPCV | Screen ESCALATE (val_auc=0.5247>0.5219); NY CPCV running PID 3539283 (271 feats) | low-med | 🔄 RUNNING |
 | 4 | §8-OFI | signed order-flow screen | OF gates SIZE not SIGN @900s for all majors run; run as confirmatory | low | ⏸ DEFERRED |
 | 5 | §8-GRU | DL sequence GRU | DL no sign over GBM-on-TA for all 5 majors tested; confirmatory | low | ⏸ DEFERRED |
 | 6 | §8-Optuna | Hparam search | hparams not the constraint (~.535 AUC bound confirmed every major) | low | ⏸ DEFERRED |
