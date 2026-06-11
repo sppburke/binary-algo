@@ -233,6 +233,65 @@ Result JSON: `nzdusd_15m_cpcv_xpair_ny_result.json`
 
 ---
 
+## A6b — Antipodean Xpair CPCV (NY) seed-ens K=3 — ❌ NO SUPERSEDE (UP fails cov2%)
+
+`nzdusd_15m_cpcv_xpair.py ny 2 0.03,0.02,0.01 3` | nseed=3 | feats=271 (239 base + 32 AUD) | AUC mean=.5356 | **DONE 2026-06-11** | 2796s
+
+Result JSON: `nzdusd_15m_cpcv_xpair_ny_seedens3_result.json`
+
+**Pre-registered falsifier (from A6):** "If UP p10@cov2% ≥ .541 → bad paths were seed-noise; if < .541 → era-structural."
+**Verdict:** UP p10@cov2% = .5298 < .541 → **ERA-STRUCTURAL confirmed.** Paths g[2,5] and g[4,5] have structural UP failure that K=3 cannot fix. NO SUPERSEDE.
+
+| cov | side | p10 | mean | min@cov3 | frac_clear_BE | med_n/path | CERTIFIED |
+|-----|------|-----|------|----------|---------------|------------|-----------|
+| 3% | UP | .5469 | .5713 | .5088 | .867 (13/15) | 461 | ✅ |
+| 3% | DOWN | .5702 | .5981 | .5660 | 1.0 (15/15) | 395 | ✅ |
+| 3% | COMB | .5668 | .5828 | — | 1.0 (15/15) | 828 | ✅ |
+| 2% | UP | .5298 | .5731 | — | .867 (13/15) | 316 | ❌ |
+| 2% | DOWN | .5782 | .6054 | — | 1.0 (15/15) | 256 | ✅ |
+| 2% | COMB | .5730 | .5869 | — | 1.0 (15/15) | 539 | ✅ |
+| 1% | UP | .5437 | .5864 | — | .867 (13/15) | 116 | ✅ |
+| 1% | DOWN | .5609 | .6079 | — | 1.0 (15/15) | 123 | ✅ |
+| 1% | COMB | .5686 | .5964 | — | 1.0 (15/15) | 269 | ✅ |
+
+**AUC:** mean=.5356, min=.5274, max=.5412, trip=True. Uprate tripwire: PASS.
+
+**Non-monotonic UP p10 across cov (structural issue):**
+- @cov3%: p10=.5469 ✅ — path 15 .5088 catastrophic but 13/15 pass; p10 pulls above .541
+- @cov2%: p10=.5298 ❌ — paths 12 and 15 even worse at tighter cov; sorted[1] drags p10 to .5298
+- @cov1%: p10=.5437 ✅ — very few trades per path (med_n=116); fewer bad paths survive n≥25 cutoff
+
+**No SUPERSEDE:** UP@cov2% p10=.5298 fails. Mean UP@cov2% (.5731) < incumbent (.5749) also fails. DOWN p10@cov2% (.5782) < incumbent (.5803). Incumbent `NZDUSD.m15ny_seedens.v1` retained.
+
+**Key finding — Path 15 regression under K=3:**
+Path 15 (g[4,5] = most recent era ~2021–2026 in test): K=3 made UP WORSE (A6a .5462 → A6b .5088 @cov3%). Three seeds unanimously agree on the wrong UP direction in this era, making the average more confidently wrong. Confirms: the failure is era-structural, not seed-variance. AUDUSD features systematically mislead NZD UP in the 2021–2026 regime, likely because AUD-NZD directional decoupling worsened in that period.
+
+**Structural conclusion:** Antipodean xpair avenue for UP is exhausted. Both K=1 and K=3 fail UP@cov2%. New mechanism needed for UP: NZD-idiosyncratic features (RBNZ, dairy cycle), USDCAD commodity xpair, or external data.
+
+### All 15 paths @cov3%
+
+| path | g | AUC | up-rate | UP | DOWN | COMB |
+|------|---|-----|---------|-----|------|------|
+| 1 | [0,1] | .5412 | .5006 | n316 .5854 | n370 .5946 | n686 .5904 |
+| 2 | [0,2] | .5405 | .5015 | n533 .5704 | n345 .6087 | n877 .5861 |
+| 3 | [0,3] | .5383 | .5041 | n461 .6030 | n528 .5720 | n987 .5856 |
+| 4 | [0,4] | .5390 | .5024 | n351 .5613 | n425 .5929 | n775 .5781 |
+| 5 | [0,5] | .5275 | .5024 | n397 .5718 | n431 .6009 | n828 .5870 |
+| 6 | [1,2] | .5364 | .5006 | n487 .5647 | n312 .6218 | n799 .5870 |
+| 7 | [1,3] | .5391 | .5032 | n314 .5796 | n402 .5697 | n715 .5734 |
+| 8 | [1,4] | .5409 | .5015 | n299 .5853 | n330 .6212 | n629 .6041 |
+| 9 | [1,5] | .5294 | .5015 | n477 .5723 | n359 .5710 | n836 .5730 |
+| 10 | [2,3] | .5389 | .5040 | n544 .5570 | n461 .6052 | n1005 .5791 |
+| 11 | [2,4] | .5396 | .5023 | n508 .5610 | n371 .5660 | n877 .5633 |
+| 12 | [2,5] | .5276 | .5024 | n635 .5402❌ | n334 .6287 | n969 .5707 |
+| 13 | [3,4] | .5366 | .5050 | n318 .6289 | n486 .6029 | n804 .6132 |
+| 14 | [3,5] | .5308 | .5050 | n488 .5799 | n502 .5956 | n989 .5875 |
+| 15 | [4,5] | .5274 | .5033 | n399 .5088❌ | n395 .6203 | n794 .5642 |
+
+**Failed UP paths at cov3%:** g[2,5]=.5402 and g[4,5]=.5088. Path 15 regressed from .5462 (A6a) to .5088 (A6b) — K=3 hurt, not helped.
+
+---
+
 ## Books
 
 | book | status | UP p10@cov | DOWN p10@cov | frozen-fwd COMB | frozen-fwd UP | frozen-fwd DOWN |
@@ -267,3 +326,4 @@ Result JSON: `nzdusd_15m_cpcv_xpair_ny_result.json`
 | I2 seed-ens K=3 | ✅ SUPERSEDES single-seed — mean lifts both sides all 3 covs; UP p10=.5749, DOWN p10=.5803 @cov2; incumbent book NZDUSD.m15ny_seedens.v1 | 2026-06-11 |
 | A9-asia | KILLED — UP p10=.5154 frac=0.60; DOWN p10=.5245 frac=0.733. Both sides fail all 3 covs. AUC mean≈.519 vs NY .531. Own-pair Asia pattern confirmed (4th major). | 2026-06-11 |
 | A6 xpair NY (nseed=1) | PARTIAL LIFT — DOWN CERT all covs (p10=.5772@cov2%, frac=1.0); UP NOT CERT all covs (p10=.5371@cov2%, frac=.733). AUC mean=.5345 (+.015 over base). NO SUPERSEDE: UP fails + DOWN p10 < incumbent .5803. Directional asymmetry: DOWN=Pacific risk-off joint signal (strong, frac=1.0 all covs); UP=NZD-idiosyncratic (AUDUSD features confuse). | 2026-06-11 |
+| A6b xpair NY (nseed=3, K=3 seed-ens) | NO SUPERSEDE — UP@cov2% p10=.5298 ERA-STRUCTURAL (pre-reg falsifier triggered). DOWN CERT all covs (p10=.5782@cov2%, frac=1.0); UP CERT cov3%/cov1% only (p10=.5469/.5437), FAIL cov2% (.5298). AUC mean=.5356 (+.011 vs base). Path 15 (g[4,5]) regressed .5462→.5088 under K=3 — recent era UP failure worsens with seed-ens. Antipodean xpair UP avenue EXHAUSTED. | 2026-06-11 |

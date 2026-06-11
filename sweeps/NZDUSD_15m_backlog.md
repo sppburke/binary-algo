@@ -9,6 +9,7 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 | — | FREEZE | nzdusd_15m_freeze_ny.py nseed=3 | ✅ DONE — content_id=f599708e; test24 COMB .622 DOWN .718; test25 COMB .602 DOWN .640; oos .519 (REFIT-DEPENDENT) | high | ✅ DONE |
 | 2 | A9-asia | Asia refit-CPCV (completeness) | ❌ **KILLED 2026-06-11** — UP p10=.5154 frac=0.60; DOWN p10=.5199 frac=0.60 @cov3%. AUC mean≈.519. Own-pair Asia pattern confirmed (4th major). | low | ❌ KILLED |
 | 3 | A6 | AUD-cousin Antipodean xpair CPCV | ⚠️ PARTIAL 2026-06-11 — DOWN CERT p10=.5772@cov2% (frac=1.0 all covs); UP NOT CERT p10=.5371@cov2% (frac=.733; 2 bad paths). AUC=.5345. NO SUPERSEDE (UP fails + DOWN p10 < .5803). Directional asymmetry: AUDUSD = Pacific risk-off → DOWN only. | low-med | ⚠️ DONE (partial) |
+| 3b | A6b | AUD-xpair seed-ens K=3 (271 feats) | ❌ **ERA-STRUCTURAL 2026-06-11** — UP p10@cov2%=.5298 < .541 (falsifier triggered). UP CERT cov3%/cov1% only. Path 15 (g[4,5]) regressed .5462→.5088 under K=3 — recent era UP worsens with averaging. DOWN CERT all covs (p10=.5782). AUC=.5356. Xpair UP avenue EXHAUSTED. | med | ❌ DONE (no supersede) |
 | 4 | §8-OFI | signed order-flow screen | OF gates SIZE not SIGN @900s for all majors run; run as confirmatory | low | ⏸ DEFERRED |
 | 5 | §8-GRU | DL sequence GRU | DL no sign over GBM-on-TA for all 5 majors tested; confirmatory | low | ⏸ DEFERRED |
 | 6 | §8-Optuna | Hparam search | hparams not the constraint (~.535 AUC bound confirmed every major) | low | ⏸ DEFERRED |
