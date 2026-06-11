@@ -290,3 +290,19 @@ Did not meet early stopping. Best iteration is:
 [cpcv-sess/ldn] building USDCHF (stride 2) covs=[0.05, 0.03, 0.02, 0.01] nseed=1...
 [cpcv-sess/ldn] USDCHF=2,667,609 rows  in-session=891,286  built 19s
 [cpcv-sess/ldn] groups: [('2012-01-02', '2014-05-22'), ('2014-05-22', '2016-10-13'), ('2016-10-13', '2019-03-07'), ('2019-03-07', '2021-07-28'), ('2021-07-28', '2023-12-14'), ('2023-12-14', '2026-05-08')]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.743447
+  path 1/15 g[0, 1] AUC=0.5233 up=0.4996 | @cov0.05: UP n586 0.5631 | DOWN n581 0.5577 | COMB n1166 0.5609 (135s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.742441
+  path 2/15 g[0, 2] AUC=0.5214 up=0.4984 | @cov0.05: UP n555 0.5441 | DOWN n742 0.558 | COMB n1297 0.552 (254s)

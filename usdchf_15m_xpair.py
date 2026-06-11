@@ -47,8 +47,10 @@ BASE_VAL_AUC=0.5301; BASE_2026_COV2_COMB=0.5103   # A1 incumbent to beat (usdchf
 def equiv_sign(p): return -1.0 if p in USD_BASE else +1.0
 def aln(p): return equiv_sign(TARGET)*equiv_sign(p)   # target-up frame: aln(TARGET)=+1
 
-def build_xp(years, stride=1, mode="xpbase"):
-    """Cross-pair (USDCHF-target, sign-aligned) + USDCHF-specific features + label _y,_ts,_fwd. Ties excluded."""
+def build_xp(years, stride=1, mode="xpbase", keep_ties=False):
+    """Cross-pair (USDCHF-target, sign-aligned) + USDCHF-specific features + label _y,_ts,_fwd.
+    keep_ties=False (screen): drop ties (train/AUC on moved bars). keep_ties=True (CPCV harness):
+    keep ties (fwd==0, _fwd=0) so side_wr charges them as losses — deriv-faithful."""
     out=[]
     for y in years:
         cl={}; ok=True
@@ -102,7 +104,7 @@ def build_xp(years, stride=1, mode="xpbase"):
             fr=lr[TARGET][HOR:]-lr[TARGET][:-HOR]
             fwd[:n-HOR]=np.where(contig,fr,np.nan)
         F=pd.DataFrame(feats,index=idx).astype("float32"); F["_y"]=(fwd>0).astype("float32"); F["_ts"]=secs.astype("int64"); F["_fwd"]=fwd.astype("float64")
-        valid=np.isfinite(fwd)&(fwd!=0)
+        valid=np.isfinite(fwd) if keep_ties else (np.isfinite(fwd)&(fwd!=0))
         F=F.loc[valid]
         if stride>1: F=F.iloc[::stride]
         out.append(F)
