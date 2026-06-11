@@ -12,7 +12,7 @@
 
 **The unique result key is `(currency, timeframe, side)`, side ∈ {UP, DOWN}.** Where a key is unmeasured it is `UNTESTED`. COMBINED is context only, never an UP/DOWN number.
 
-**Conventions.** Deriv-faithful settlement (bar-close approx at 15m, mid-to-mid, next-tick entry +1s, ties LOSE), breakeven **0.541** (deriv payout R≈1.85). Splits: bars train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026 (strict OOS). Selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS)=−0.54`). Moved-bars-only; verify moved up-rate ∈ [0.47,0.53] (**USDCHF checked clean: .5034/.4996/.5041 for 2024/2025/2026, flat_frac <1.3%** — no fake-flat mirage). Per-year CI95 (bootstrap). de-overlap = `nonoverlap_chrono` gap=900s. CERTIFY a side ONLY via full per-fold-refit CPCV at the operating gate: p10 ≥ 0.541 AND ≥ ~80% of 15 purged paths clear 0.541; adversarially verify every positive (frozen-forward, trap#9). **Target: >65% accuracy** (achievable, if at all, only at tight coverage — neighbors hit ~.60–.65 at cov1–2%). Bar features on disk 2012–2026. **Tick data note (corrected 2026-06-10):** USDCHF HAS on-disk order-flow modeling features (`features_of/USDCHF_*`, `features_tick_xofi/USDCHF_*cks1s`); what is absent is RAW-tick data for true-tick SETTLEMENT validation → bar-close proxy (−.0035, validated on USDJPY/AUDUSD). Last updated 2026-06-10 (**SWEEP OPEN** — bootstrapped; A1 base running).
+**Conventions.** Deriv-faithful settlement (bar-close approx at 15m, mid-to-mid, next-tick entry +1s, ties LOSE), breakeven **0.541** (deriv payout R≈1.85). Splits: bars train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026 (strict OOS). Selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS)=−0.54`). Moved-bars-only; verify moved up-rate ∈ [0.47,0.53] (**USDCHF checked clean: .5034/.4996/.5041 for 2024/2025/2026, flat_frac <1.3%** — no fake-flat mirage). Per-year CI95 (bootstrap). de-overlap = `nonoverlap_chrono` gap=900s. CERTIFY a side ONLY via full per-fold-refit CPCV at the operating gate: p10 ≥ 0.541 AND ≥ ~80% of 15 purged paths clear 0.541; adversarially verify every positive (frozen-forward, trap#9). **Target: >65% accuracy** (achievable, if at all, only at tight coverage — neighbors hit ~.60–.65 at cov1–2%). Bar features on disk 2012–2026. **Tick data note (corrected 2026-06-10):** USDCHF HAS on-disk order-flow modeling features (`features_of/USDCHF_*`, `features_tick_xofi/USDCHF_*cks1s`); what is absent is RAW-tick data for true-tick SETTLEMENT validation → bar-close proxy (−.0035, validated on USDJPY/AUDUSD). Last updated 2026-06-11 (**SWEEP CLOSED** — deliverable `USDCHF.m15ny_xpair_seedens.v1` `eb44d999` certified >65% BOTH sides; §8 confirmatory 4/4 done; on-disk exhausted).
 
 ---
 
@@ -33,12 +33,13 @@
 ### Combined-book / single-pair experiments
 | # | Method (file) | Result (2024 / 2025 / 2026 moved-AUC; gate cov2% COMB wr) | Verdict |
 |---|---|---|---|
-| _pending_ | `usdchf_15m_base.py` | running | — |
+| A1 | `usdchf_15m_base.py` | moved-AUC .5288 / .5205 / .5129; gate cov2% COMB wr .6513 / .5675 / .5103; VAL moved-AUC .5301 | base floor (own-pair 239-feat); ✅ certifies under NY refit-CPCV → superseded by xpair-NY seed-ens deliverable |
 
 ### Coverage curve (step d) — `usdchf_15m_base.py` covcurve (frozen-2012-21 book; per-year, per-cov thr)
 | cov | COMB wr 2024/25/26 | UP wr 2024/25/26 | DOWN wr 2024/25/26 |
 |---|---|---|---|
-| _pending_ | — | — | — |
+| 0.02 | .6277 / .573 / .504 | .601 / .5646 / .5269 | .6655 / .584 / .4793 |
+| 0.01 | .6703 / .5858 / .5486 | .6569 / .565 / .5897 | .6914 / .6148 / .5092 |
 
 ### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `usdchf_15m_cpcv_session.py all` — ✅✅ BOTH CERTIFY @cov≤.03 (AUC .523)
 | cov | UP p10 (frac) | DOWN p10 (frac) | COMB p10 (frac) | CERT | med_n (U/D) |
@@ -48,7 +49,7 @@
 | 0.02 | .5546 (1.0) | .5589 (1.0) | .5599 (1.0) | ✅ BOTH | 2012/1811 |
 | 0.01 | .5548 (1.0) | .5633 (1.0) | .5606 (1.0) | ✅ BOTH | 923/868 |
 
-**⚡ PATTERN-BREAK: USDCHF certifies on ALL-SESSION (both sides, cov≤.03) — UNLIKE USDCAD/USDJPY (all-session-efficient, needed NY). The edge is BROAD, not session-concentrated = the EUR-bloc signature.** DOWN leads tight cov (haven-flight). This is the current certified FLOOR (pending: do NY/LDN concentrate higher? does EUR-bloc pooling lift?). `usdchf_15m_cpcv_session_all_multicov_result.json`.
+**⚡ PATTERN-BREAK: USDCHF certifies on ALL-SESSION (both sides, cov≤.03) — UNLIKE USDCAD/USDJPY (all-session-efficient, needed NY). The edge is BROAD, not session-concentrated = the EUR-bloc signature.** DOWN leads tight cov (haven-flight). This was the first certified FLOOR (since superseded: NY concentrates the edge AND EUR-bloc pooling lifts it — both confirmed below). `usdchf_15m_cpcv_session_all_multicov_result.json`.
 
 ### Session segmentation (A9) — `usdchf_15m_cpcv_session.py {ny,ldn,asia}` (symmetric refit-CPCV) — **NY = CARRIER**
 **NY (AUC .5401, 15/15 every cov):**
@@ -67,10 +68,10 @@
 
 ### ★ Cross-pair EUR-bloc POOLING (the differentiating test) — `usdchf_15m_xpair.py` (sign-FLIPPED, USDCHF≈−EURUSD)
 **Frozen all-session SCREEN (`xpbase`):** ⚠️ IMPROVES_base=**False**. VAL AUC .5330 > base .5301 ✓ (pooling adds train-era signal; `ll_EURUSD30`+`ll_USDJPY30` rank top-20 → cross-pair info present) BUT frozen 2026 cov2 COMB **.5049 < base .5103** ✗, DOWN collapses 2026 (.4862). Per-year cov2 COMB .6382/.6062/.5049 (2024/25/26).
-- **Caveat:** the frozen all-session screen is a POOR proxy for the refit-CPCV deliverable — base A1 *also* failed frozen-2026 (.5103) yet certified strongly under NY refit-CPCV (.624). → escalated to the definitive NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`, RUNNING).
+- **Caveat:** the frozen all-session screen is a POOR proxy for the refit-CPCV deliverable — base A1 *also* failed frozen-2026 (.5103) yet certified strongly under NY refit-CPCV (.624). → escalated to the definitive NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`) — POOLING WINS (below).
 - **Mechanism read:** cross-pair (EUR-bloc + JPY-haven) coupling is largely CONTEMPORANEOUS (already in own-pair price). `usdchf_15m_xpair_xpbase_result.json`.
 
-**⚡ NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`) — POOLING WINS, ⚠️ pending adversarial verify:**
+**⚡ NY xpair refit-CPCV (`usdchf_15m_cpcv_xpair.py`) — POOLING WINS, ✅ adversarially verified (trap#9 ruled out, below):**
 | cov | UP p10 (own-pair inc) | DOWN p10 (inc) | COMB p10 (inc) | med_n (U/D/C) |
 |---|---|---|---|---|
 | 0.05 | .6087 (.6029) | .607 (.6039) | .6027 (.5924) | 2745/2859/5395 |
@@ -79,7 +80,7 @@
 | **0.01** | **.6997** (.6413) | **.662** (.6361) | **.6804** (.6386) | 625/696/1289 |
 | 0.005 | **.733** | **.6958** | **.7137** | 331/361/669 |
 
-**The xpair (EUR-bloc pooled) book BEATS the own-pair NY incumbent at EVERY cov on BOTH sides** (15/15 paths, frac 1.0), AUC .5464 > own-pair .5401. **At cov1 BOTH sides clear 65%** (UP .6997, DOWN .662, COMB .6804) — the >65% target. This CONTRADICTS the frozen all-session screen → the refit harness recovers an era-local cross-pair lift the frozen book misses.
+**The xpair (EUR-bloc pooled) book BEATS the own-pair NY incumbent at EVERY cov on BOTH sides** (15/15 paths, frac 1.0), AUC .5464 > own-pair .5401. **At cov1 BOTH sides clear 65%** (UP .6997, DOWN .662, COMB .6804) — the >65% target. This CONTRADICTS the frozen all-session screen → the refit harness recovers an era-local cross-pair lift the frozen book misses. _(These are the **single-seed** xpair numbers — the pooling test of record; the deployed deliverable is the **seed-ens K=3** book `USDCHF.m15ny_xpair_seedens.v1` which superseded this, cov1 .6935/.6682 — see Improve cross-product + FINAL CONCLUSION below.)_
 - **✅✅ ADVERSARIAL VERIFY PASSED (trap#9 ruled out).** Matched frozen-past forward holdout (both train 2012-21 NY, base-239 own-pair vs 337-feat xpair, same gates):
 
 | year | cov2 COMB xpair / own | cov1 COMB xpair / own |

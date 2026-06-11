@@ -84,6 +84,15 @@ Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measur
   ⇒ factor-refinement levers (IPCA instrumented betas, antisymmetric lead-lag matrix Aₐ) are **subsumed** — they
   refine a ~2%-gain channel. CORRECTS the earlier speculation that factor/IPCA levers grow more relevant at longer H:
   what grows is the *pooling* benefit, not the factor features. `[EURUSD·30m]` (`m30_xpair_featimp_result.json`)
+- **Whether cross-pair POOLING wins is KEY-CLASS-dependent — a dichotomy set by the pair's USD-factor coupling.**
+  EUR-bloc pairs (where the quote currency tracks the USD-common factor — incl. an SNB-managed haven that trades as
+  −EURUSD, so it pools sign-FLIPPED) **WIN with the cross-pair pool** and can reach BOTH-side `>0.65` via the
+  cross-SECTIONAL pool, NOT via magnitude. Own-pair havens (idiosyncratic-flow majors) instead see pooling **DILUTE**
+  the edge — own-pair training wins and pooling must be re-screened, never assumed. Methodological warning: the cheap
+  frozen ALL-SESSION pooling screen can return a FALSE NEGATIVE; the NY-restricted per-fold-refit CPCV is the decisive
+  test, and a pooling positive must still survive a matched frozen-past forward holdout vs own-pair (else it is era-local
+  memorization). `[EURUSD·15m]` `[GBPUSD·15m]` `[USDCHF·15m]` (pool wins) vs `[USDJPY·15m]` `[AUDUSD·15m]` `[USDCAD·15m]`
+  (pool dilutes) — see each `<PAIR>_RESULTS.md`.
 - **MAGNITUDE is the one CPCV-deflation-certified edge** at every horizon tested (large-move AUC ≈0.71–0.81).
   `[EURUSD·30m/60s]`
 - Where a direction edge exists it is **regime-/horizon-specific** and may be **one-sided** (dip-buy UP at 60s/5m)
