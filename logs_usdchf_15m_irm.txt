@@ -120,3 +120,33 @@
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
 [irm] rows=1,776,577 train=454,198 val=91,347 feats=337 build=39s
+[irm] invariant feats=202/337 (prune 40.1%); dropped sign-flippers=131, weak=4 (67s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Early stopping, best iteration is:
+[82]	valid_0's auc: 0.554038
+[irm] invariant-subset VAL AUC=0.5548 (full-337 .5572)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+=== test24 === inv frozen moved-AUC=0.5333
+   cov0.05: COMB 0.5956 (full 0.6384) | UP 0.5916 | DOWN 0.6006
+   cov0.03: COMB 0.6194 (full 0.6723) | UP 0.6027 | DOWN 0.6416
+   cov0.02: COMB 0.6432 (full 0.7244) | UP 0.6329 | DOWN 0.6574
+   cov0.01: COMB 0.6928 (full 0.7924) | UP 0.6872 | DOWN 0.7008
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+=== test25 === inv frozen moved-AUC=0.5290
+   cov0.05: COMB 0.5749 (full 0.5974) | UP 0.5866 | DOWN 0.5609
+   cov0.03: COMB 0.5776 (full 0.6384) | UP 0.5785 | DOWN 0.5764
+   cov0.02: COMB 0.6052 (full 0.6678) | UP 0.6212 | DOWN 0.5837
+   cov0.01: COMB 0.6667 (full 0.6858) | UP 0.6747 | DOWN 0.6557
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+=== oos === inv frozen moved-AUC=0.5137
+   cov0.05: COMB 0.5093 (full 0.5232) | UP 0.4951 | DOWN 0.5225
+   cov0.03: COMB 0.4975 (full 0.5269) | UP 0.4673 | DOWN 0.5263
+   cov0.02: COMB 0.5038 (full 0.5127) | UP 0.4878 | DOWN 0.5182
+   cov0.01: COMB 0.4911 (full 0.4775) | UP 0.5 | DOWN 0.4821
+
+[irm] VERDICT SURVIVES=False (prune 40.1%; inv 2026 cov1 UP 0.5/DOWN 0.4821 vs full 0.6296/0.4286) -> usdchf_15m_irm_result.json 126s
