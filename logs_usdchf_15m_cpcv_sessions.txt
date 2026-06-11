@@ -58,3 +58,91 @@ Training until validation scores don't improve for 80 rounds
 Did not meet early stopping. Best iteration is:
 [800]	valid_0's auc: 0.623401
   path 7/15 g[1, 3] AUC=0.5239 up=0.5013 | @cov0.05: UP n4889 0.5598 | DOWN n5463 0.5578 | COMB n10280 0.5582 (737s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.624276
+  path 8/15 g[1, 4] AUC=0.5242 up=0.5042 | @cov0.05: UP n5385 0.5617 | DOWN n6441 0.5344 | COMB n11783 0.5461 (868s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.624111
+  path 9/15 g[1, 5] AUC=0.5231 up=0.5031 | @cov0.05: UP n4901 0.5511 | DOWN n5329 0.56 | COMB n10152 0.5553 (1015s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.622924
+  path 10/15 g[2, 3] AUC=0.5210 up=0.5005 | @cov0.05: UP n4880 0.5516 | DOWN n4828 0.5628 | COMB n9679 0.5569 (1144s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.622706
+  path 11/15 g[2, 4] AUC=0.5232 up=0.5034 | @cov0.05: UP n5188 0.5426 | DOWN n5105 0.5608 | COMB n10230 0.5507 (1350s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.626971
+  path 12/15 g[2, 5] AUC=0.5206 up=0.5023 | @cov0.05: UP n5113 0.548 | DOWN n4316 0.5646 | COMB n9391 0.5547 (1538s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.628547
+  path 13/15 g[3, 4] AUC=0.5196 up=0.5008 | @cov0.05: UP n5523 0.5363 | DOWN n4252 0.5386 | COMB n9742 0.5367 (1728s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.62568
+  path 14/15 g[3, 5] AUC=0.5187 up=0.4997 | @cov0.05: UP n5548 0.5429 | DOWN n4321 0.5603 | COMB n9748 0.5483 (1886s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.625304
+  path 15/15 g[4, 5] AUC=0.5188 up=0.5026 | @cov0.05: UP n5413 0.5472 | DOWN n5361 0.5424 | COMB n10725 0.5439 (2046s)
+
+[cpcv-sess/all] === MULTI-COV SUMMARY ===
+ cov0.05:
+   UP: p10=0.5427 mean=0.5525 frac=0.933 med_n=5156 -> CERT=True
+   DOWN: p10=0.5401 mean=0.5565 frac=0.867 med_n=4828 -> CERT=False
+   COMBINED: p10=0.5448 mean=0.5534 frac=0.933 med_n=9748 -> CERT=True
+ cov0.03:
+   UP: p10=0.5478 mean=0.5584 frac=1.0 med_n=3047 -> CERT=True
+   DOWN: p10=0.5562 mean=0.5667 frac=1.0 med_n=2820 -> CERT=True
+   COMBINED: p10=0.5529 mean=0.5618 frac=1.0 med_n=5773 -> CERT=True
+ cov0.02:
+   UP: p10=0.5546 mean=0.5664 frac=1.0 med_n=2012 -> CERT=True
+   DOWN: p10=0.5589 mean=0.5723 frac=1.0 med_n=1811 -> CERT=True
+   COMBINED: p10=0.5599 mean=0.5689 frac=1.0 med_n=3845 -> CERT=True
+ cov0.01:
+   UP: p10=0.5548 mean=0.5735 frac=1.0 med_n=923 -> CERT=True
+   DOWN: p10=0.5633 mean=0.5805 frac=1.0 med_n=868 -> CERT=True
+   COMBINED: p10=0.5606 mean=0.576 frac=1.0 med_n=1876 -> CERT=True
+  AUC {'mean': 0.523, 'min': 0.5187, 'max': 0.5284} trip=True  done 2046s -> usdchf_15m_cpcv_session_all_multicov_result.json
+########## CPCV SESSION=all done 20:09:11 ##########
+########## CPCV SESSION=ny start 20:09:11 ##########
+[cpcv-sess/ny] building USDCHF (stride 2) covs=[0.05, 0.03, 0.02, 0.01] nseed=1...
+[cpcv-sess/ny] USDCHF=2,667,609 rows  in-session=991,789  built 22s
+[cpcv-sess/ny] groups: [('2012-01-01', '2014-05-22'), ('2014-05-22', '2016-10-11'), ('2016-10-11', '2019-03-05'), ('2019-03-05', '2021-07-25'), ('2021-07-25', '2023-12-14'), ('2023-12-14', '2026-05-08')]

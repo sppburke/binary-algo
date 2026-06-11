@@ -20,8 +20,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| USDCHF · **15m** · UP | `UNTESTED` (A1 base running) | — | safe-haven vs EUR-bloc face TBD; pooling test pending | 🔄 IN PROGRESS |
-| USDCHF · **15m** · DOWN | `UNTESTED` (A1 base running) | — | predicted sharper side (haven flight); pooling test pending | 🔄 IN PROGRESS |
+| USDCHF · **15m** · UP | **all-session refit-CPCV p10 .5546 @cov2 / .5548 @cov1 (15/15)** ✅ CERTIFIED (floor) | all-session own-pair LGBM refit-CPCV (not yet frozen) | broad edge (EUR-bloc signature); NY/LDN + pooling pending | 🔄 certified floor, improving |
+| USDCHF · **15m** · DOWN | **all-session refit-CPCV p10 .5589 @cov2 / .5633 @cov1 (15/15)** ✅ CERTIFIED (floor) | all-session own-pair LGBM refit-CPCV (not yet frozen) | DOWN leads tight cov (haven-flight); pooling pending | 🔄 certified floor, improving |
 | USDCHF · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
 ---
@@ -40,10 +40,15 @@
 |---|---|---|---|
 | _pending_ | — | — | — |
 
-### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `usdchf_15m_cpcv_session.py all`
-| cov | UP p10 (frac_clear) | DOWN p10 (frac) | COMB p10 (frac) | CERT |
-|---|---|---|---|---|
-| _pending_ | — | — | — | — |
+### All-session refit-CPCV (per-fold-refit, 15 purged paths) — `usdchf_15m_cpcv_session.py all` — ✅✅ BOTH CERTIFY @cov≤.03 (AUC .523)
+| cov | UP p10 (frac) | DOWN p10 (frac) | COMB p10 (frac) | CERT | med_n (U/D) |
+|---|---|---|---|---|---|
+| 0.05 | .5427 (.933) | .5401 (.867) | .5448 (.933) | UP only (DOWN p10<BE) | 5156/4828 |
+| 0.03 | .5478 (1.0) | .5562 (1.0) | .5529 (1.0) | ✅ BOTH | 3047/2820 |
+| 0.02 | .5546 (1.0) | .5589 (1.0) | .5599 (1.0) | ✅ BOTH | 2012/1811 |
+| 0.01 | .5548 (1.0) | .5633 (1.0) | .5606 (1.0) | ✅ BOTH | 923/868 |
+
+**⚡ PATTERN-BREAK: USDCHF certifies on ALL-SESSION (both sides, cov≤.03) — UNLIKE USDCAD/USDJPY (all-session-efficient, needed NY). The edge is BROAD, not session-concentrated = the EUR-bloc signature.** DOWN leads tight cov (haven-flight). This is the current certified FLOOR (pending: do NY/LDN concentrate higher? does EUR-bloc pooling lift?). `usdchf_15m_cpcv_session_all_multicov_result.json`.
 
 ### Session segmentation (A9) — `usdchf_15m_cpcv_session.py {ny,ldn,asia}` (symmetric refit-CPCV)
 | session | UP p10 @cov (mean) | DOWN p10 @cov (mean) | COMB p10 | CERT | verdict |
@@ -71,7 +76,7 @@ _To be written when both sides certified-or-honestly-exhausted and improve+disco
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | `UNTESTED` | — | — | 🔄 sweep open (A1 base running) |
-| **15m DOWN** | `UNTESTED` | — | — | 🔄 sweep open (A1 base running) |
+| **15m UP** | **.5546 @cov2 / .5548 @cov1** (all-session refit-CPCV, 15/15) | .5664 / .5735 mean (cov2/1) | _not yet frozen_ | ✅ CERTIFIED floor; NY/LDN + EUR-bloc pooling pending |
+| **15m DOWN** | **.5589 @cov2 / .5633 @cov1** (all-session refit-CPCV, 15/15) | .5723 / .5805 mean (cov2/1) | _not yet frozen_ | ✅ CERTIFIED floor; pooling pending |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
