@@ -1,0 +1,11 @@
+{
+  "key": "USDCHF.15m",
+  "model": "cross-pair USD-residual (sign-aligned, USD-numerator, sign-FLIPPED EUR-bloc) + EUR-bloc/SNB-resid, mode=xpbase",
+  "incumbent": "A1 base VAL AUC .5301, 2026 cov2% COMB .5103",
+  "breakeven": 0.541,
+  "hypothesis": "USDCHF\u2248-EURUSD (SNB-managed EUR-bloc) so cross-pair EUR-bloc POOLING may WIN here (like EURUSD/GBPUSD) UNLIKE the own-pair-specific havens (USDJPY/AUDUSD/USDCAD). This is the DIFFERENTIATING test.",
+  "falsifier": {
+    "registered": "pre-OOS",
+    "IMPROVES_if": "VAL moved-AUC > 0.5301 AND 2026 cov2% COMBINED wr > 0.5103 (else base stands; pooling subsumed = own-pair-specific haven case). If screen lifts -> escalate to carrier-session refit-CPCV."
+  }
+}

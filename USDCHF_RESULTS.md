@@ -59,7 +59,11 @@
 | 0.02 | .6221 (.6464) | .6161 (.6606) | .6244 (.6515) | 573/685/1321 | ✅ BOTH |
 | 0.01 | **.6413** (.6782) | **.6361** (.6947) | **.6386** (.684) | 289/349/665 | ✅ BOTH |
 
-**NY CONCENTRATES the edge far above all-session** (NY AUC .5401 vs .523; NY cov2 p10 ~.62 vs all-session ~.56). NY is the deliverable CARRIER. cov1 p10 ~.64 (means ~.68–.69) — approaching but not clearing the >65% certified-floor target. UP/DOWN ~parity (DOWN leads cov2-3, UP edges cov1). LDN/asia: pending (does the European session also carry — CHF-specific?). `usdchf_15m_cpcv_session_ny_multicov_result.json`.
+**NY CONCENTRATES the edge far above all-session** (NY AUC .5401 vs .523; NY cov2 p10 ~.62 vs all-session ~.56). NY is the deliverable CARRIER. cov1 p10 ~.64 (means ~.68–.69) — approaching but not clearing the >65% certified-floor target. UP/DOWN ~parity (DOWN leads cov2-3, UP edges cov1). `usdchf_15m_cpcv_session_ny_multicov_result.json`.
+
+**LDN: ❌ NO CERT any cov** (AUC .5178; COMB p10 .5238/.5237/.5162/.5102 @cov5/3/2/1, frac .47–.73 sub-BE). **The European-session prior is REFUTED — despite CHF being a European currency, LDN does NOT carry direction; NY (US-session risk flow) is the UNIQUE carrier** (same as USDCAD/AUDUSD). `usdchf_15m_cpcv_session_ldn_multicov_result.json`. **Asia: ⏸ deferred** (killed early to prioritize the EUR-bloc keystone; NY clearly the carrier, asia barely-traded → completeness rerun later).
+
+**Session landscape verdict: NY is the unique carrier; all-session also certifies (broad EUR-bloc breadth); LDN/asia dead.** This `broad + NY-concentrated` hybrid is the USDCHF signature.
 
 ### ★ Cross-pair EUR-bloc POOLING (the differentiating test) — `usdchf_15m_xpair.py` (sign-FLIPPED, USDCHF≈−EURUSD)
 | variant | VAL AUC vs base | 2026 COMB/UP/DOWN | verdict |
