@@ -461,16 +461,17 @@ SWEEP_MATRIX Tier A rows A1/A9/A6/A6b were run directly for NZDUSD 15m (see abov
 
 | JSON | pair | timeframe | base_val_auc | aug_val_auc | lift | verdict |
 |------|------|-----------|--------------|-------------|------|---------|
+| `nzdusd_15m_ofi_screen_result.json` | NZDUSD | 15m | .5219 | .5160 | −.0059 | KILLED (Tier-1 own-pair) |
 | `usdcad_15m_ofi_result.json` | USDCAD | 15m | .5433 | .5434 | +.0001 | KILLED (≤.003) |
 | `usdchf_15m_ofi_result.json` | USDCHF | 15m | .5495 | .5490 | −.0006 | KILLED (≤.003) |
 
-Pre-falsifier (both): augmented AUC lift ≤ .003; OFI features appear in top-20 but produce negligible or negative direction lift. Mechanism: signed-OF direction is subsumed at 15m; order-flow gates SIZE (move magnitude) not SIGN (direction). Sign lives at seconds horizon, where tick-level imbalance is directionally predictive before mean-reversion washes it out.
+Pre-falsifier (all three): augmented AUC lift ≤ .003; OFI features appear in top-20 but produce negligible or negative direction lift. Mechanism: signed-OF direction is subsumed at 15m; order-flow gates SIZE (move magnitude) not SIGN (direction).
+
+**NZDUSD Tier-1 run:** `nzdusd_15m_ofi_screen.py` — 18 pre-computed OF features (`features_of/NZDUSD_*.parquet`: OF_of_norm/sum 1/3/5/10/15/30m, OF_of_uptick 5/15, OF_kyle 5/15, OF_of_accel, OF_of_persist) added to 239 base = 257 total features. VAL AUC .5160 vs base .5219 = −.0059. All 18 OF features treated as noise; adding them dilutes the base signal at colsample_bytree=0.5. Kyle's λ features (5m, 15m) rank highest among OF cols but still negative net lift. CKS tick data (`features_tick_xofi/NZDUSD_*_cks1s.parquet`, 11.8M rows) subsumed — `features_of` is the pre-aggregated form; both killed.
 
 **Backlog row 4** additionally cites EURUSD, GBPUSD, AUDUSD kills: "OFI gates SIZE not SIGN for all 5 prior majors."
 
-**NZDUSD CKS tick data EXISTS on-disk** (`NZDUSD_{train,val,test,oos}_cks1s.parquet`), so a B3 event-OFI run is technically feasible. Not run: prior is near-zero given 2 explicit 15m kills at the same horizon + 5-major pattern. The magnitude model in `nzdusd_15m_magdir.py` (VAL AUC=.664) confirms SIZE is predictable from bar features; the direction being orthogonal to SIZE (lifts=[] in magdir) is the same mechanism that kills OFI direction-gating.
-
-**Status: SUBSUMED** (B1-B7 all null at 15m; Tier-1 citations cover 15m horizon for own-pair family).
+**Status: KILLED (Tier-1, NZDUSD own-pair)** — confirmed 2026-06-11; −.0059 lift.
 
 ---
 

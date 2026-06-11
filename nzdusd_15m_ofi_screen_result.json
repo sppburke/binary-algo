@@ -1,0 +1,28 @@
+{
+  "ofi_val_auc": 0.5159854716617106,
+  "base_val_auc": 0.5219,
+  "lift": -0.0059145283382894265,
+  "status": "SUBSUMED",
+  "of_features": 18,
+  "total_features": 257,
+  "of_cols": [
+    "OF_of_norm_1",
+    "OF_of_sum_1",
+    "OF_of_norm_3",
+    "OF_of_sum_3",
+    "OF_of_norm_5",
+    "OF_of_sum_5",
+    "OF_of_norm_10",
+    "OF_of_sum_10",
+    "OF_of_norm_15",
+    "OF_of_sum_15",
+    "OF_of_norm_30",
+    "OF_of_sum_30",
+    "OF_of_uptick_5",
+    "OF_of_uptick_15",
+    "OF_kyle_5",
+    "OF_kyle_15",
+    "OF_of_accel",
+    "OF_of_persist"
+  ]
+}
