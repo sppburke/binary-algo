@@ -146,3 +146,147 @@ Did not meet early stopping. Best iteration is:
 [cpcv-sess/ny] building USDCHF (stride 2) covs=[0.05, 0.03, 0.02, 0.01] nseed=1...
 [cpcv-sess/ny] USDCHF=2,667,609 rows  in-session=991,789  built 22s
 [cpcv-sess/ny] groups: [('2012-01-01', '2014-05-22'), ('2014-05-22', '2016-10-11'), ('2016-10-11', '2019-03-05'), ('2019-03-05', '2021-07-25'), ('2021-07-25', '2023-12-14'), ('2023-12-14', '2026-05-08')]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.73309
+  path 1/15 g[0, 1] AUC=0.5452 up=0.5054 | @cov0.05: UP n1012 0.6047 | DOWN n1473 0.6259 | COMB n2443 0.6152 (153s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.7318
+  path 2/15 g[0, 2] AUC=0.5463 up=0.5020 | @cov0.05: UP n1193 0.6471 | DOWN n1587 0.6257 | COMB n2737 0.6321 (281s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.725439
+  path 3/15 g[0, 3] AUC=0.5453 up=0.5032 | @cov0.05: UP n1670 0.6251 | DOWN n1552 0.6347 | COMB n3128 0.6266 (405s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.731856
+  path 4/15 g[0, 4] AUC=0.5414 up=0.5043 | @cov0.05: UP n1329 0.6343 | DOWN n1590 0.6164 | COMB n2854 0.6223 (525s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.737529
+  path 5/15 g[0, 5] AUC=0.5358 up=0.5037 | @cov0.05: UP n1408 0.608 | DOWN n1984 0.5832 | COMB n3301 0.5895 (640s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.73462
+  path 6/15 g[1, 2] AUC=0.5435 up=0.4990 | @cov0.05: UP n1224 0.6373 | DOWN n1589 0.64 | COMB n2781 0.6361 (760s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.733129
+  path 7/15 g[1, 3] AUC=0.5452 up=0.5001 | @cov0.05: UP n1434 0.6416 | DOWN n1405 0.6448 | COMB n2786 0.6403 (886s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.732238
+  path 8/15 g[1, 4] AUC=0.5418 up=0.5012 | @cov0.05: UP n1352 0.6457 | DOWN n1585 0.6416 | COMB n2888 0.6427 (1004s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.731207
+  path 9/15 g[1, 5] AUC=0.5366 up=0.5006 | @cov0.05: UP n1506 0.6029 | DOWN n1815 0.6149 | COMB n3222 0.6034 (1131s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.728238
+  path 10/15 g[2, 3] AUC=0.5417 up=0.4967 | @cov0.05: UP n1475 0.6156 | DOWN n1382 0.6433 | COMB n2808 0.6286 (1251s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.733847
+  path 11/15 g[2, 4] AUC=0.5426 up=0.4978 | @cov0.05: UP n1823 0.6253 | DOWN n1750 0.6343 | COMB n3489 0.6257 (1378s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.732073
+  path 12/15 g[2, 5] AUC=0.5342 up=0.4972 | @cov0.05: UP n1496 0.6049 | DOWN n2335 0.6009 | COMB n3750 0.5968 (1493s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.73175
+  path 13/15 g[3, 4] AUC=0.5392 up=0.4990 | @cov0.05: UP n2000 0.628 | DOWN n1771 0.6228 | COMB n3677 0.6225 (1618s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.730096
+  path 14/15 g[3, 5] AUC=0.5324 up=0.4984 | @cov0.05: UP n2274 0.6029 | DOWN n1896 0.6171 | COMB n4000 0.6055 (1734s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.732703
+  path 15/15 g[4, 5] AUC=0.5297 up=0.4995 | @cov0.05: UP n2101 0.5688 | DOWN n2199 0.6085 | COMB n4211 0.5842 (1846s)
+
+[cpcv-sess/ny] === MULTI-COV SUMMARY ===
+ cov0.05:
+   UP: p10=0.6029 mean=0.6195 frac=1.0 med_n=1475 -> CERT=True
+   DOWN: p10=0.6039 mean=0.6236 frac=1.0 med_n=1590 -> CERT=True
+   COMBINED: p10=0.5924 mean=0.6181 frac=1.0 med_n=3128 -> CERT=True
+ cov0.03:
+   UP: p10=0.6029 mean=0.6347 frac=1.0 med_n=870 -> CERT=True
+   DOWN: p10=0.6191 mean=0.6467 frac=1.0 med_n=985 -> CERT=True
+   COMBINED: p10=0.611 mean=0.6384 frac=1.0 med_n=1934 -> CERT=True
+ cov0.02:
+   UP: p10=0.6221 mean=0.6464 frac=1.0 med_n=573 -> CERT=True
+   DOWN: p10=0.6161 mean=0.6606 frac=1.0 med_n=685 -> CERT=True
+   COMBINED: p10=0.6244 mean=0.6515 frac=1.0 med_n=1321 -> CERT=True
+ cov0.01:
+   UP: p10=0.6413 mean=0.6782 frac=1.0 med_n=289 -> CERT=True
+   DOWN: p10=0.6361 mean=0.6947 frac=1.0 med_n=349 -> CERT=True
+   COMBINED: p10=0.6386 mean=0.684 frac=1.0 med_n=665 -> CERT=True
+  AUC {'mean': 0.5401, 'min': 0.5297, 'max': 0.5463} trip=True  done 1846s -> usdchf_15m_cpcv_session_ny_multicov_result.json
+########## CPCV SESSION=ny done 20:40:00 ##########
+########## CPCV SESSION=ldn start 20:40:00 ##########
+[cpcv-sess/ldn] building USDCHF (stride 2) covs=[0.05, 0.03, 0.02, 0.01] nseed=1...
+[cpcv-sess/ldn] USDCHF=2,667,609 rows  in-session=891,286  built 19s
+[cpcv-sess/ldn] groups: [('2012-01-02', '2014-05-22'), ('2014-05-22', '2016-10-13'), ('2016-10-13', '2019-03-07'), ('2019-03-07', '2021-07-28'), ('2021-07-28', '2023-12-14'), ('2023-12-14', '2026-05-08')]

@@ -20,8 +20,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| USDCHF · **15m** · UP | **all-session refit-CPCV p10 .5546 @cov2 / .5548 @cov1 (15/15)** ✅ CERTIFIED (floor) | all-session own-pair LGBM refit-CPCV (not yet frozen) | broad edge (EUR-bloc signature); NY/LDN + pooling pending | 🔄 certified floor, improving |
-| USDCHF · **15m** · DOWN | **all-session refit-CPCV p10 .5589 @cov2 / .5633 @cov1 (15/15)** ✅ CERTIFIED (floor) | all-session own-pair LGBM refit-CPCV (not yet frozen) | DOWN leads tight cov (haven-flight); pooling pending | 🔄 certified floor, improving |
+| USDCHF · **15m** · UP | **NY refit-CPCV p10 .6221 @cov2 / .6413 @cov1 (15/15)** ✅ CERTIFIED | NY own-pair LGBM refit-CPCV (not yet frozen) | NY carrier (AUC .540); seed-ens + EUR-bloc pooling pending | 🔄 certified, improving |
+| USDCHF · **15m** · DOWN | **NY refit-CPCV p10 .6161 @cov2 / .6361 @cov1 (15/15)** ✅ CERTIFIED | NY own-pair LGBM refit-CPCV (not yet frozen) | NY carrier; DOWN leads cov2-3; pooling pending | 🔄 certified, improving |
 | USDCHF · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
 ---
@@ -50,10 +50,16 @@
 
 **⚡ PATTERN-BREAK: USDCHF certifies on ALL-SESSION (both sides, cov≤.03) — UNLIKE USDCAD/USDJPY (all-session-efficient, needed NY). The edge is BROAD, not session-concentrated = the EUR-bloc signature.** DOWN leads tight cov (haven-flight). This is the current certified FLOOR (pending: do NY/LDN concentrate higher? does EUR-bloc pooling lift?). `usdchf_15m_cpcv_session_all_multicov_result.json`.
 
-### Session segmentation (A9) — `usdchf_15m_cpcv_session.py {ny,ldn,asia}` (symmetric refit-CPCV)
-| session | UP p10 @cov (mean) | DOWN p10 @cov (mean) | COMB p10 | CERT | verdict |
+### Session segmentation (A9) — `usdchf_15m_cpcv_session.py {ny,ldn,asia}` (symmetric refit-CPCV) — **NY = CARRIER**
+**NY (AUC .5401, 15/15 every cov):**
+| cov | UP p10 (mean) | DOWN p10 (mean) | COMB p10 (mean) | med_n (U/D/C) | CERT |
 |---|---|---|---|---|---|
-| _pending_ | — | — | — | — | which session carries (NY vs LDN — CHF is European) |
+| 0.05 | .6029 (.6195) | .6039 (.6236) | .5924 (.6181) | 1475/1590/3128 | ✅ BOTH |
+| 0.03 | .6029 (.6347) | .6191 (.6467) | .611 (.6384) | 870/985/1934 | ✅ BOTH |
+| 0.02 | .6221 (.6464) | .6161 (.6606) | .6244 (.6515) | 573/685/1321 | ✅ BOTH |
+| 0.01 | **.6413** (.6782) | **.6361** (.6947) | **.6386** (.684) | 289/349/665 | ✅ BOTH |
+
+**NY CONCENTRATES the edge far above all-session** (NY AUC .5401 vs .523; NY cov2 p10 ~.62 vs all-session ~.56). NY is the deliverable CARRIER. cov1 p10 ~.64 (means ~.68–.69) — approaching but not clearing the >65% certified-floor target. UP/DOWN ~parity (DOWN leads cov2-3, UP edges cov1). LDN/asia: pending (does the European session also carry — CHF-specific?). `usdchf_15m_cpcv_session_ny_multicov_result.json`.
 
 ### ★ Cross-pair EUR-bloc POOLING (the differentiating test) — `usdchf_15m_xpair.py` (sign-FLIPPED, USDCHF≈−EURUSD)
 | variant | VAL AUC vs base | 2026 COMB/UP/DOWN | verdict |
@@ -76,7 +82,7 @@ _To be written when both sides certified-or-honestly-exhausted and improve+disco
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.5546 @cov2 / .5548 @cov1** (all-session refit-CPCV, 15/15) | .5664 / .5735 mean (cov2/1) | _not yet frozen_ | ✅ CERTIFIED floor; NY/LDN + EUR-bloc pooling pending |
-| **15m DOWN** | **.5589 @cov2 / .5633 @cov1** (all-session refit-CPCV, 15/15) | .5723 / .5805 mean (cov2/1) | _not yet frozen_ | ✅ CERTIFIED floor; pooling pending |
+| **15m UP** | **.6221 @cov2 / .6413 @cov1** (NY refit-CPCV, 15/15) | .6464 / .6782 mean (cov2/1) | _not yet frozen (NY book)_ | ✅ CERTIFIED; seed-ens + EUR-bloc pooling pending |
+| **15m DOWN** | **.6161 @cov2 / .6361 @cov1** (NY refit-CPCV, 15/15) | .6606 / .6947 mean (cov2/1) | _not yet frozen (NY book)_ | ✅ CERTIFIED; pooling pending |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
