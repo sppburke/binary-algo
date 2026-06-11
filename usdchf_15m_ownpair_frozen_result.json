@@ -1,0 +1,27 @@
+{
+  "key": "USDCHF.15m",
+  "model": "FROZEN-2012-21 xpair-NY book (xpbase, stride 3, nseed 1), per-year forward NY",
+  "breakeven": 0.541,
+  "purpose": "trap#9 adversarial: refit-dependent decay vs era-local memorization vs frozen-deployable",
+  "refit_cpcv_cert": {
+    "UP_p10": {
+      "0.05": 0.6087,
+      "0.03": 0.6246,
+      "0.02": 0.645,
+      "0.01": 0.6997,
+      "0.005": 0.733
+    },
+    "DOWN_p10": {
+      "0.05": 0.607,
+      "0.03": 0.6249,
+      "0.02": 0.6437,
+      "0.01": 0.662,
+      "0.005": 0.6958
+    }
+  },
+  "falsifier": {
+    "registered": "pre-eval",
+    "MEMORIZATION_if": "all forward years ~coin-flip (no year COMBINED wr >= 0.55 at any cov)",
+    "REFIT_DEPENDENT_if": "2024 strong then monotone decay to sub-BE by 2026 (sibling pattern)"
+  }
+}

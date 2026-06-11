@@ -119,33 +119,4 @@
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-[xpfrozen USDCHF] rows=1,776,577 train=454,198 val=91,347 feats=337 build=25s
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-Training until validation scores don't improve for 80 rounds
-Early stopping, best iteration is:
-[133]	valid_0's auc: 0.556437
-[xpfrozen USDCHF] VAL moved-AUC=0.5572 gates={'0.05': 0.124, '0.03': 0.1444, '0.02': 0.1604, '0.01': 0.1865}
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-=== test24 === frozen moved-AUC=0.5366
-   cov0.05: COMB n1004 0.6384 CI[0.61, 0.666] | UP 0.6114 | DOWN 0.6703
-   cov0.03: COMB n653 0.6723 CI[0.637, 0.709] | UP 0.6554 | DOWN 0.6923
-   cov0.02: COMB n450 0.7244 CI[0.684, 0.767] | UP 0.7143 | DOWN 0.7352
-   cov0.01: COMB n236 0.7924 CI[0.742, 0.843] | UP 0.8115 | DOWN 0.7719
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-=== test25 === frozen moved-AUC=0.5319
-   cov0.05: COMB n1232 0.5974 CI[0.571, 0.624] | UP 0.5943 | DOWN 0.6007
-   cov0.03: COMB n813 0.6384 CI[0.605, 0.672] | UP 0.6508 | DOWN 0.6265
-   cov0.02: COMB n575 0.6678 CI[0.628, 0.704] | UP 0.6955 | DOWN 0.6399
-   cov0.01: COMB n296 0.6858 CI[0.632, 0.74] | UP 0.7133 | DOWN 0.6601
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-=== oos === frozen moved-AUC=0.5113
-   cov0.05: COMB n583 0.5232 CI[0.484, 0.564] | UP 0.5524 | DOWN 0.5015
-   cov0.03: COMB n353 0.5269 CI[0.473, 0.578] | UP 0.587 | DOWN 0.4884
-   cov0.02: COMB n236 0.5127 CI[0.449, 0.576] | UP 0.575 | DOWN 0.4808
-   cov0.01: COMB n111 0.4775 CI[0.387, 0.568] | UP 0.6296 | DOWN 0.4286
-
-[xpfrozen USDCHF] memorization=False -> usdchf_15m_xpair_frozen_result.json  62s
+[xpfrozen USDCHF] rows=1,776,577 train=454,198 val=91,347 feats=238 build=20s
