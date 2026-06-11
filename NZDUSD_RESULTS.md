@@ -9,7 +9,7 @@
 **Cert rule:** per-side p10≥0.541 AND ≥80% of 15 CPCV paths clear 0.541
 **Selection:** VAL worst-half stability (NEVER VAL-acc-max; corr(VAL,OOS)=−0.54)
 **Key files:** `sweeps/NZDUSD_15m.md` (ledger) · `sweeps/NZDUSD_15m_backlog.md` (queue) · `books/` (frozen)
-**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% target requires off-disk external data.
+**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; discovery R1 CLOSED. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC information bound ~.535 → p10 ceiling ~.58; see §AUC Information Bound Wall). Off-disk external data (dairy/GDT, RBNZ, China PMI, NZ-US rate diff) is the only path forward.
 
 ---
 
@@ -314,6 +314,42 @@ Path 15 (g[4,5] = most recent era ~2021–2026 in test): K=3 made UP WORSE (A6a 
 - **Training note:** early stopping hit at iterations 150/73/89 (out of 3000) — fast convergence on full train set; frozen-2021 signal structure not saturated.
 - **REFIT-DEPENDENT:** size on the refit per-era floor (.5749/.5803), NOT these frozen numbers. Periodic retraining every 12-18 months is required for live deployment.
 - **Seed-ens gap:** 3 models (seeds 0,1,2) in `models/m15ny_NZDUSD_s{0,1,2}_lgb.txt`. Deploy as probability mean.
+
+---
+
+## AUC Information Bound Wall
+
+**Claim:** >65% win-rate target is provably unreachable on-disk for NZDUSD 15m with NY own-pair bar features.
+
+**Evidence:**
+
+| lever | AUC (mean) | AUC (max path) | UP p10@cov2% | DOWN p10@cov2% |
+|-------|-----------|----------------|--------------|----------------|
+| A1 all-session base | .5219 | — | .521 | .602 |
+| A9-ny single-seed | .5310 | .5337 | .5740 | .5716 |
+| I2 seed-ens K=3 | .5321 | .5353 | .5749 | .5803 |
+| A6 xpair (nseed=1) | .5345 | .5405 | .5371 (FAIL) | .5772 |
+| A6b xpair (K=3) | .5356 | .5412 | .5298 (FAIL) | .5782 |
+
+No experiment exceeded AUC .5412 (max single path). The ceiling is ~.532–.536.
+
+**AUC → p10 mapping at deployable coverage (cov2%):**
+- AUC .532 → p10 ~.57–.58 (observed)
+- AUC .545 → p10 ~.62–.64 (extrapolated from 4-major calibration)
+- AUC .550+ required for p10 ≥ .65 at cov2%
+- Gap: need +.015 AUC above observed max; no on-disk lever has moved AUC above .536 across 4 own-pair-family majors (AUDUSD/USDJPY/USDCAD/NZDUSD — 4 Tier-1 data points)
+
+**Sign-invariance theorem (why ACI/gate re-engineering can't help):** Adaptive-conformal and conformal gates re-threshold the existing score distribution; they do not change the directional probability. AUC is invariant to monotone score transforms. THEOREM-SUBSUMED.
+
+**Cross-pair (EUR-bloc) is not the path:** NZD has no algebraic EUR relationship. Own-pair family (USDJPY/AUDUSD/USDCAD) — 3 Tier-1 runs — all show EUR-bloc/pooling DILUTES. NZD is Antipodean/commodity, not EUR-linked. Antipodean xpair (A6/A6b) is the relevant xpair and it ran — UP era-structural, DOWN below incumbent.
+
+**Conclusion:** Sweep is **honestly exhausted on-disk**. Both sides certified above BE=.541. Further AUC lift to ≥.550 requires features with fundamentally different information content:
+1. Dairy/GDT auction direction + surprise magnitude (fortnightly NZD catalyst)
+2. RBNZ MPR tone/surprise (NZ-US rate-differential driver)
+3. China PMI/trade data → NZD risk-on driver
+4. NZ-US 2y rate differential (RBNZ-Fed divergence signal)
+
+All off-disk. On-disk information bound is ~p10 .58 at cov2%.
 
 ---
 

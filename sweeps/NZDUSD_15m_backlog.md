@@ -42,13 +42,20 @@ KILL rule:
 - Per side: p10 < 0.541 OR frac_clear_BE < 0.80 → KILL that side
 - Both sides KILLED → KILL the experiment, move to SUBSUMED or KILLED ledger entry
 
-## Discovery round R1 (pending — after NY carrier established)
+## Discovery round R1 — ✅ CLOSED 2026-06-11
 
-Topics to mine after NY own-pair certifies:
-- NZD-specific mechanisms: dairy price cycles (GDT auction timing + direction carry), RBNZ tone/surprise magnitude, NZ-US rate differential
-- External alpha: China PMI surprise → AUD/NZD risk-on driver (off-disk, NZD proxies on disk?)
-- Within-Antipodean residuals: NZDUSD orthogonal to AUDUSD (pure NZ-specific signal after AUD extracted)
-- Commodity proxy: iron-ore / CRB already in the 239 feature set? If not, the AUD-cousin pool captures it via AUDUSD features
+**Status:** CLOSED. On-disk topics covered by A6/A6b; off-disk topics externally blocked.
+
+| topic | status | resolution |
+|-------|--------|------------|
+| Within-Antipodean residuals (NZDUSD orthogonal to AUDUSD) | ✅ COVERED | `aud_resid_k` (k=1..8) are in the 271-feat xpair pool; A6/A6b ran with full 271 features; UP era-structural, DOWN cert below incumbent |
+| Commodity proxy (iron-ore/CRB direction) | ✅ COVERED | AUDUSD cousin A6/A6b captures commodity cross-pair signal (AUD = commodity currency); DOWN cert all covs, UP era-structural; no further commodity xpair on-disk |
+| NZD-specific: dairy/GDT auction timing+direction | ⊘ EXTERNAL-BLOCKED | Not in bar features. Off-disk: GDT auction direction + surprise magnitude required. Not acquirable without external data pipeline. |
+| NZD-specific: RBNZ tone/surprise magnitude | ⊘ EXTERNAL-BLOCKED | Not in bar features. Off-disk: NLP on RBNZ MPR + press conference or rate-surprise series required. |
+| NZ-US rate differential (RBNZ-Fed divergence) | ⊘ EXTERNAL-BLOCKED | Not in bar features. Off-disk: NZ 2y yield or RBNZ OCR series required. |
+| China PMI/trade → AUD/NZD risk-on driver | ⊘ EXTERNAL-BLOCKED | Not in bar features at bar-frequency. AUDUSD cousin A6 serves as the on-disk proxy; UP era-structural. True China PMI surprise series is off-disk. |
+
+**Conclusion:** On-disk R1 is dry. External data frontier (dairy/GDT, RBNZ, NZ-US rate diff, China PMI) is the only path to AUC lift above the ~.535 on-disk ceiling. R1 CLOSED.
 
 ## Completeness notes
 
