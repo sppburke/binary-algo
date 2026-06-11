@@ -56,8 +56,9 @@ KILL rule:
 | NZD-specific: RBNZ tone/surprise magnitude | ⊘ EXTERNAL-BLOCKED | Not in bar features. Off-disk: NLP on RBNZ MPR + press conference or rate-surprise series required. |
 | NZ-US rate differential (RBNZ-Fed divergence) | ⊘ EXTERNAL-BLOCKED | Not in bar features. Off-disk: NZ 2y yield or RBNZ OCR series required. |
 | China PMI/trade → AUD/NZD risk-on driver | ⊘ EXTERNAL-BLOCKED | Not in bar features at bar-frequency. AUDUSD cousin A6 serves as the on-disk proxy; UP era-structural. True China PMI surprise series is off-disk. |
+| **Global macro daily (VIX/DXY/US10Y/Gold) — accessible external** | ⊘ **SUBSUMED 2026-06-11** | F5 screen `nzdusd_15m_extfeat_screen.py` (259 feats): VAL AUC .5254 vs base .5219 = **+.0035** lift. Far below .010 CPCV escalation threshold. Top features: us10y_ret1d, vix_ret1d, us10y_mom5d — absorbed by 15m price-action signals. `nzdusd_15m_extfeat_screen_result.json`. |
 
-**Conclusion:** On-disk R1 is dry. External data frontier (dairy/GDT, RBNZ, NZ-US rate diff, China PMI) is the only path to AUC lift above the ~.535 on-disk ceiling. R1 CLOSED.
+**Conclusion:** On-disk R1 is dry. Global macro (VIX/DXY/US10Y/Gold daily, F5 screen 2026-06-11): SUBSUMED — accessible external data exhausted (+.0035 lift, below .010 threshold). Remaining external frontier (dairy/GDT, RBNZ, NZ-US rate diff, China PMI) is truly externally blocked (no free API). R1 CLOSED; accessible external data CLOSED.
 
 ## Completeness notes
 

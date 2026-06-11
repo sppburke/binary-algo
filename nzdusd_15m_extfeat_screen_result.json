@@ -1,0 +1,83 @@
+{
+  "model": "NZDUSD.15m external-macro-features VAL screen",
+  "key": "NZDUSD.15m",
+  "base_val_auc": 0.5219,
+  "ext_val_auc": 0.5253753700574832,
+  "lift": 0.003475370057483218,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUME \u2014 lift < .010",
+  "ext_features_tested": [
+    "vix_prev",
+    "vix_ret1d",
+    "vix_mom5d",
+    "vix_mom20d",
+    "vix_z63",
+    "dxy_prev",
+    "dxy_ret1d",
+    "dxy_mom5d",
+    "dxy_mom20d",
+    "dxy_z63",
+    "us10y_prev",
+    "us10y_ret1d",
+    "us10y_mom5d",
+    "us10y_mom20d",
+    "us10y_z63",
+    "gold_prev",
+    "gold_ret1d",
+    "gold_mom5d",
+    "gold_mom20d",
+    "gold_z63"
+  ],
+  "top_ext_importances": [
+    [
+      "us10y_ret1d",
+      1231
+    ],
+    [
+      "vix_ret1d",
+      1151
+    ],
+    [
+      "us10y_mom5d",
+      1121
+    ],
+    [
+      "gold_ret1d",
+      1077
+    ],
+    [
+      "us10y_mom20d",
+      1054
+    ],
+    [
+      "vix_mom5d",
+      1053
+    ],
+    [
+      "vix_mom20d",
+      1038
+    ],
+    [
+      "vix_prev",
+      1036
+    ],
+    [
+      "dxy_ret1d",
+      1036
+    ],
+    [
+      "gold_mom5d",
+      996
+    ]
+  ],
+  "train_years": [
+    "2012",
+    "2018"
+  ],
+  "val_years": [
+    "2022",
+    "2023"
+  ],
+  "falsifier": "escalate if ext_val_auc > base_val_auc + .010"
+}
