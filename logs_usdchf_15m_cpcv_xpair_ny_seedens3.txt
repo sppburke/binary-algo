@@ -1,4 +1,4 @@
-[xpfrozen USDCHF] building (stride 3, nseed 1)...
+[cpcv-xpair/ny] building xpbase matrix (stride 3) covs=[0.05, 0.03, 0.02, 0.01, 0.005] nseed=3...
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
   basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
@@ -87,65 +87,3 @@
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
-  basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
-  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:84: RuntimeWarning: Mean of empty slice
-  eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
-  safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
-  basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
-  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:84: RuntimeWarning: Mean of empty slice
-  eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
-  safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
-  basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
-  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:84: RuntimeWarning: Mean of empty slice
-  eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
-  safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
-  basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
-  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:84: RuntimeWarning: Mean of empty slice
-  eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
-/home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
-  safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-[xpfrozen USDCHF] rows=1,776,577 train=454,198 val=91,347 feats=238 build=20s
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-Training until validation scores don't improve for 80 rounds
-Early stopping, best iteration is:
-[112]	valid_0's auc: 0.548204
-[xpfrozen USDCHF] VAL moved-AUC=0.5487 gates={'0.05': 0.1095, '0.03': 0.1218, '0.02': 0.1303, '0.01': 0.1447}
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-=== test24 === frozen moved-AUC=0.5317
-   cov0.05: COMB n822 0.6363 CI[0.602, 0.668] | UP 0.6125 | DOWN 0.6649
-   cov0.03: COMB n548 0.6661 CI[0.626, 0.704] | UP 0.6534 | DOWN 0.679
-   cov0.02: COMB n404 0.6881 CI[0.641, 0.733] | UP 0.6837 | DOWN 0.6923
-   cov0.01: COMB n233 0.7468 CI[0.691, 0.803] | UP 0.7281 | DOWN 0.7647
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-=== test25 === frozen moved-AUC=0.5322
-   cov0.05: COMB n1264 0.5799 CI[0.553, 0.606] | UP 0.5766 | DOWN 0.5832
-   cov0.03: COMB n897 0.5875 CI[0.555, 0.62] | UP 0.5931 | DOWN 0.5823
-   cov0.02: COMB n656 0.6174 CI[0.581, 0.654] | UP 0.6215 | DOWN 0.6136
-   cov0.01: COMB n375 0.624 CI[0.576, 0.672] | UP 0.6 | DOWN 0.6439
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-=== oos === frozen moved-AUC=0.5097
-   cov0.05: COMB n562 0.4609 CI[0.42, 0.504] | UP 0.502 | DOWN 0.429
-   cov0.03: COMB n379 0.4723 CI[0.422, 0.522] | UP 0.5 | DOWN 0.4541
-   cov0.02: COMB n268 0.4552 CI[0.396, 0.515] | UP 0.495 | DOWN 0.4311
-   cov0.01: COMB n148 0.4324 CI[0.351, 0.514] | UP 0.5 | DOWN 0.3936
-
-[xpfrozen USDCHF] memorization=False -> usdchf_15m_ownpair_frozen_result.json  65s

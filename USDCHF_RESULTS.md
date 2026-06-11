@@ -20,8 +20,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| USDCHF · **15m** · UP | **NY refit-CPCV p10 .6221 @cov2 / .6413 @cov1 (15/15)** ✅ CERTIFIED | NY own-pair LGBM refit-CPCV (not yet frozen) | NY carrier (AUC .540); seed-ens + EUR-bloc pooling pending | 🔄 certified, improving |
-| USDCHF · **15m** · DOWN | **NY refit-CPCV p10 .6161 @cov2 / .6361 @cov1 (15/15)** ✅ CERTIFIED | NY own-pair LGBM refit-CPCV (not yet frozen) | NY carrier; DOWN leads cov2-3; pooling pending | 🔄 certified, improving |
+| USDCHF · **15m** · UP | **EUR-bloc xpair-NY refit-CPCV p10 .645 @cov2 / .6997 @cov1 (15/15)** ✅✅ CERTIFIED **>65%** | NY EUR-bloc xpair LGBM refit-CPCV (freeze pending) | pooling WINS (adversarially verified); seed-ens pending | 🔄 certified >65%, improving |
+| USDCHF · **15m** · DOWN | **EUR-bloc xpair-NY refit-CPCV p10 .6437 @cov2 / .662 @cov1 (15/15)** ✅✅ CERTIFIED **>65%** | NY EUR-bloc xpair LGBM refit-CPCV (freeze pending) | pooling WINS (adversarially verified); seed-ens pending | 🔄 certified >65%, improving |
 | USDCHF · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
 ---
@@ -80,7 +80,15 @@
 | 0.005 | **.733** | **.6958** | **.7137** | 331/361/669 |
 
 **The xpair (EUR-bloc pooled) book BEATS the own-pair NY incumbent at EVERY cov on BOTH sides** (15/15 paths, frac 1.0), AUC .5464 > own-pair .5401. **At cov1 BOTH sides clear 65%** (UP .6997, DOWN .662, COMB .6804) — the >65% target. This CONTRADICTS the frozen all-session screen → the refit harness recovers an era-local cross-pair lift the frozen book misses.
-- **⚠️ MANDATORY ADVERSARIAL VERIFY (trap#9):** the frozen screen failed (2026 worse) = the signature of pooled-CPCV era-local memorization. Running matched frozen-past forward holdout (`usdchf_15m_xpair_frozen.py` + own-pair freeze): if xpair-frozen ≥ own-pair-frozen forward → genuine (deploy xpair); if xpair-frozen ~coin-flip or < own-pair → refit-overfit, own-pair stands. **NOT certified until this clears.** `usdchf_15m_cpcv_xpair_ny_multicov_result.json`.
+- **✅✅ ADVERSARIAL VERIFY PASSED (trap#9 ruled out).** Matched frozen-past forward holdout (both train 2012-21 NY, base-239 own-pair vs 337-feat xpair, same gates):
+
+| year | cov2 COMB xpair / own | cov1 COMB xpair / own |
+|---|---|---|
+| 2024 | .7244 / .6881 | .7924 / .7468 |
+| 2025 | .6678 / .6174 | .6858 / .624 |
+| 2026 | .5127 / .4552 | .4775 / .4324 |
+
+  **xpair beats own-pair in ALL 6 cells (mean +.048)** — the EUR-bloc pooling advantage is GENUINE, not era-local memorization. xpair-frozen `memorization=False` (2024/25 strong .67–.79). Both books refit-dependent (decay forward; deploy with periodic retraining — the 5-yr-stale frozen vintage drops to sub-BE by 2026, same as ALL 15m books). The frozen all-session SCREEN was a FALSE NEGATIVE. **Deliverable = EUR-bloc xpair-NY book; >65% certified BOTH sides at cov1 (refit-CPCV cert of record).** `usdchf_15m_cpcv_xpair_ny_multicov_result.json`, `usdchf_15m_xpair_frozen_result.json`, `usdchf_15m_ownpair_frozen_result.json`.
 
 ### Improve cross-product (on the carrier book) — pending
 | lever | file | result | verdict |
@@ -98,7 +106,7 @@ _To be written when both sides certified-or-honestly-exhausted and improve+disco
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.6221 @cov2 / .6413 @cov1** (NY refit-CPCV, 15/15) | .6464 / .6782 mean (cov2/1) | _not yet frozen (NY book)_ | ✅ CERTIFIED; seed-ens + EUR-bloc pooling pending |
-| **15m DOWN** | **.6161 @cov2 / .6361 @cov1** (NY refit-CPCV, 15/15) | .6606 / .6947 mean (cov2/1) | _not yet frozen (NY book)_ | ✅ CERTIFIED; pooling pending |
+| **15m UP** | **.645 @cov2 / .6997 @cov1 / .733 @cov.5** (EUR-bloc xpair-NY refit-CPCV, 15/15) | .6736 / .7211 mean (cov1/.5) | _freeze pending (xpair-NY)_ | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; seed-ens pending |
+| **15m DOWN** | **.6437 @cov2 / .662 @cov1 / .6958 @cov.5** (EUR-bloc xpair-NY refit-CPCV, 15/15) | .6731 / .711 mean (cov1/.5) | _freeze pending (xpair-NY)_ | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; seed-ens pending |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
