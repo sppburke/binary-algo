@@ -1,0 +1,24 @@
+########## CPCV SESSION=all start 19:35:03 ##########
+[cpcv-sess/all] building USDCHF (stride 2) covs=[0.05, 0.03, 0.02, 0.01] nseed=1...
+[cpcv-sess/all] USDCHF=2,667,609 rows  in-session=2,667,609  built 15s
+[cpcv-sess/all] groups: [('2012-01-01', '2014-05-22'), ('2014-05-22', '2016-10-11'), ('2016-10-11', '2019-03-05'), ('2019-03-05', '2021-07-26'), ('2021-07-26', '2023-12-12'), ('2023-12-12', '2026-05-09')]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.620434
+  path 1/15 g[0, 1] AUC=0.5241 up=0.5043 | @cov0.05: UP n4304 0.5579 | DOWN n4447 0.553 | COMB n8726 0.5551 (162s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Did not meet early stopping. Best iteration is:
+[800]	valid_0's auc: 0.622117
+  path 2/15 g[0, 2] AUC=0.5284 up=0.5035 | @cov0.05: UP n5484 0.5543 | DOWN n4356 0.5618 | COMB n9823 0.557 (249s)
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(

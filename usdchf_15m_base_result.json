@@ -1,0 +1,475 @@
+{
+  "key": "USDCHF.15m",
+  "model": "single-pair LGBM baseline (239 base feats, 15-min own-clock label)",
+  "settlement": "bar-close approx, ties LOSE, breakeven 0.541, gap=900s nonoverlap_chrono",
+  "splits": {
+    "train": [
+      "2012",
+      "2013",
+      "2014",
+      "2015",
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021"
+    ],
+    "val": [
+      "2022",
+      "2023"
+    ],
+    "test24": [
+      "2024"
+    ],
+    "test25": [
+      "2025"
+    ],
+    "oos": [
+      "2026"
+    ]
+  },
+  "tr_stride": 6,
+  "num_leaves": 127,
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "VAL moved-AUC <= 0.515  OR  no held-out year COMBINED win-rate CI95-lower clears 0.541",
+    "rationale": "USDCHF is a USD-base/CHF-quote EUROPEAN SAFE-HAVEN major. Two competing faces: (1) safe-haven (USDJPY analog) -> own-pair-specific + NY-concentrated, pooling dilutes; (2) EUR-bloc/SNB-managed (EURUSD analog) -> CHF tracks EUR tightly (SNB EURCHF floor 2011-15 + intervention), so cross-pair EUR-bloc pooling (sign-FLIPPED, USDCHF~-EURUSD) may WIN like it did for EURUSD/GBPUSD. The pooling test is the differentiating early experiment. LDN-session prior materially higher than JPY/CAD (CHF is European). Side-asymmetry prediction: USDCHF DOWN (=risk-off/CHF-strength/haven-flight) is the sharper, more forecastable side -- but EUR-bloc pooling may flip which side leads (falsifiable). Measure SINGLE-PAIR all-session base floor + moved-AUC ceiling first; session + EUR-bloc pooling are the levers tested next. 15m = deriv-FX floor + program's best direction horizon."
+  },
+  "val_auc": 0.5301413072744054,
+  "best_iter": 130,
+  "gate": {
+    "cov": 0.02,
+    "conf_thr": 0.09088045707560327,
+    "val_worst_half_wr": 0.6318607764390897,
+    "val_half_wrs": [
+      0.6318607764390897,
+      0.6561814191660571
+    ]
+  },
+  "years": {
+    "test24": {
+      "moved_auc": 0.5287989985774404,
+      "moved_up_rate": 0.5033585756715121,
+      "gate": {
+        "COMBINED": {
+          "n": 1190,
+          "wr": 0.6512605042016807,
+          "ci": [
+            0.6243697478991597,
+            0.6781512605042017
+          ]
+        },
+        "UP": {
+          "n": 695,
+          "wr": 0.6244604316546762,
+          "ci": [
+            0.5884892086330935,
+            0.660431654676259
+          ]
+        },
+        "DOWN": {
+          "n": 495,
+          "wr": 0.6888888888888889,
+          "ci": [
+            0.6464646464646465,
+            0.7292929292929293
+          ]
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.03474076529406794,
+          "COMBINED": {
+            "n": 13922,
+            "wr": 0.5273
+          },
+          "UP": {
+            "n": 7760,
+            "wr": 0.5264
+          },
+          "DOWN": {
+            "n": 6162,
+            "wr": 0.5284
+          }
+        },
+        "0.20": {
+          "thr": 0.04270811487109869,
+          "COMBINED": {
+            "n": 10222,
+            "wr": 0.5355
+          },
+          "UP": {
+            "n": 5844,
+            "wr": 0.5411
+          },
+          "DOWN": {
+            "n": 4378,
+            "wr": 0.5281
+          }
+        },
+        "0.10": {
+          "thr": 0.05499732786552356,
+          "COMBINED": {
+            "n": 5698,
+            "wr": 0.5546
+          },
+          "UP": {
+            "n": 3316,
+            "wr": 0.5594
+          },
+          "DOWN": {
+            "n": 2382,
+            "wr": 0.5479
+          }
+        },
+        "0.05": {
+          "thr": 0.0671173391739277,
+          "COMBINED": {
+            "n": 3121,
+            "wr": 0.5799
+          },
+          "UP": {
+            "n": 1827,
+            "wr": 0.5747
+          },
+          "DOWN": {
+            "n": 1294,
+            "wr": 0.5873
+          }
+        },
+        "0.03": {
+          "thr": 0.07711990456359212,
+          "COMBINED": {
+            "n": 1997,
+            "wr": 0.5974
+          },
+          "UP": {
+            "n": 1150,
+            "wr": 0.5791
+          },
+          "DOWN": {
+            "n": 847,
+            "wr": 0.6222
+          }
+        },
+        "0.02": {
+          "thr": 0.08599042721535317,
+          "COMBINED": {
+            "n": 1437,
+            "wr": 0.6277
+          },
+          "UP": {
+            "n": 842,
+            "wr": 0.601
+          },
+          "DOWN": {
+            "n": 595,
+            "wr": 0.6655
+          }
+        },
+        "0.01": {
+          "thr": 0.10101757609284398,
+          "COMBINED": {
+            "n": 834,
+            "wr": 0.6703
+          },
+          "UP": {
+            "n": 510,
+            "wr": 0.6569
+          },
+          "DOWN": {
+            "n": 324,
+            "wr": 0.6914
+          }
+        }
+      },
+      "tripwire_ok": true
+    },
+    "test25": {
+      "moved_auc": 0.520532622748006,
+      "moved_up_rate": 0.4995607909037341,
+      "gate": {
+        "COMBINED": {
+          "n": 1764,
+          "wr": 0.5674603174603174,
+          "ci": [
+            0.5447845804988662,
+            0.590702947845805
+          ]
+        },
+        "UP": {
+          "n": 965,
+          "wr": 0.5647668393782384,
+          "ci": [
+            0.533678756476684,
+            0.5968911917098445
+          ]
+        },
+        "DOWN": {
+          "n": 799,
+          "wr": 0.5707133917396746,
+          "ci": [
+            0.5369211514392991,
+            0.6032540675844806
+          ]
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.038091172241075374,
+          "COMBINED": {
+            "n": 13534,
+            "wr": 0.5239
+          },
+          "UP": {
+            "n": 7461,
+            "wr": 0.5239
+          },
+          "DOWN": {
+            "n": 6073,
+            "wr": 0.5238
+          }
+        },
+        "0.20": {
+          "thr": 0.04714609873269544,
+          "COMBINED": {
+            "n": 9815,
+            "wr": 0.5182
+          },
+          "UP": {
+            "n": 5414,
+            "wr": 0.5135
+          },
+          "DOWN": {
+            "n": 4401,
+            "wr": 0.524
+          }
+        },
+        "0.10": {
+          "thr": 0.061896115066292404,
+          "COMBINED": {
+            "n": 5350,
+            "wr": 0.5338
+          },
+          "UP": {
+            "n": 2883,
+            "wr": 0.5307
+          },
+          "DOWN": {
+            "n": 2467,
+            "wr": 0.5375
+          }
+        },
+        "0.05": {
+          "thr": 0.07717821330992919,
+          "COMBINED": {
+            "n": 2869,
+            "wr": 0.5465
+          },
+          "UP": {
+            "n": 1564,
+            "wr": 0.5403
+          },
+          "DOWN": {
+            "n": 1305,
+            "wr": 0.554
+          }
+        },
+        "0.03": {
+          "thr": 0.08867903546418639,
+          "COMBINED": {
+            "n": 1900,
+            "wr": 0.5616
+          },
+          "UP": {
+            "n": 1047,
+            "wr": 0.5597
+          },
+          "DOWN": {
+            "n": 853,
+            "wr": 0.5639
+          }
+        },
+        "0.02": {
+          "thr": 0.09724275755888306,
+          "COMBINED": {
+            "n": 1410,
+            "wr": 0.573
+          },
+          "UP": {
+            "n": 797,
+            "wr": 0.5646
+          },
+          "DOWN": {
+            "n": 613,
+            "wr": 0.584
+          }
+        },
+        "0.01": {
+          "thr": 0.10941078736138334,
+          "COMBINED": {
+            "n": 874,
+            "wr": 0.5858
+          },
+          "UP": {
+            "n": 508,
+            "wr": 0.565
+          },
+          "DOWN": {
+            "n": 366,
+            "wr": 0.6148
+          }
+        }
+      },
+      "tripwire_ok": true
+    },
+    "oos": {
+      "moved_auc": 0.5128549719982812,
+      "moved_up_rate": 0.5040683229813665,
+      "gate": {
+        "COMBINED": {
+          "n": 774,
+          "wr": 0.5103359173126615,
+          "ci": [
+            0.47416020671834624,
+            0.5452196382428941
+          ]
+        },
+        "UP": {
+          "n": 387,
+          "wr": 0.5064599483204134,
+          "ci": [
+            0.45478036175710596,
+            0.5555555555555556
+          ]
+        },
+        "DOWN": {
+          "n": 387,
+          "wr": 0.5142118863049095,
+          "ci": [
+            0.46511627906976744,
+            0.5633074935400517
+          ]
+        }
+      },
+      "covcurve": {
+        "0.30": {
+          "thr": 0.04099176261391182,
+          "COMBINED": {
+            "n": 4665,
+            "wr": 0.5173
+          },
+          "UP": {
+            "n": 2507,
+            "wr": 0.5197
+          },
+          "DOWN": {
+            "n": 2158,
+            "wr": 0.5144
+          }
+        },
+        "0.20": {
+          "thr": 0.0509798796248152,
+          "COMBINED": {
+            "n": 3361,
+            "wr": 0.5067
+          },
+          "UP": {
+            "n": 1804,
+            "wr": 0.5044
+          },
+          "DOWN": {
+            "n": 1557,
+            "wr": 0.5093
+          }
+        },
+        "0.10": {
+          "thr": 0.06740020372317551,
+          "COMBINED": {
+            "n": 1859,
+            "wr": 0.4976
+          },
+          "UP": {
+            "n": 947,
+            "wr": 0.5111
+          },
+          "DOWN": {
+            "n": 912,
+            "wr": 0.4836
+          }
+        },
+        "0.05": {
+          "thr": 0.08367258307359886,
+          "COMBINED": {
+            "n": 1024,
+            "wr": 0.4922
+          },
+          "UP": {
+            "n": 509,
+            "wr": 0.5206
+          },
+          "DOWN": {
+            "n": 515,
+            "wr": 0.4641
+          }
+        },
+        "0.03": {
+          "thr": 0.09480286826911168,
+          "COMBINED": {
+            "n": 679,
+            "wr": 0.5007
+          },
+          "UP": {
+            "n": 339,
+            "wr": 0.5074
+          },
+          "DOWN": {
+            "n": 340,
+            "wr": 0.4941
+          }
+        },
+        "0.02": {
+          "thr": 0.10262775925892802,
+          "COMBINED": {
+            "n": 502,
+            "wr": 0.504
+          },
+          "UP": {
+            "n": 260,
+            "wr": 0.5269
+          },
+          "DOWN": {
+            "n": 242,
+            "wr": 0.4793
+          }
+        },
+        "0.01": {
+          "thr": 0.11315495618657437,
+          "COMBINED": {
+            "n": 319,
+            "wr": 0.5486
+          },
+          "UP": {
+            "n": 156,
+            "wr": 0.5897
+          },
+          "DOWN": {
+            "n": 163,
+            "wr": 0.5092
+          }
+        }
+      },
+      "tripwire_ok": true
+    }
+  },
+  "verdict": {
+    "val_auc_le_0515": false,
+    "years_COMBINED_CIlo_clears_BE": [
+      "test24",
+      "test25"
+    ],
+    "KILLED": false,
+    "note": "baseline as a standalone tradeable edge"
+  }
+}
