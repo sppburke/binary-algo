@@ -1,0 +1,72 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "USDCHF.m15ny_xpair.v1",
+  "content_id": "7505c9340d8c982d",
+  "currency": "USDCHF",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "USDCHF 15m XPAIR-NY seed-ens direction book: pooled USD cross-section + EURGBP-triangular/eurobloc/risk channels + 239 own-pair feats, NY decision rows, K-seed mean, per-cov conf gates. BOTH sides certified via per-fold-refit CPCV (15/15 paths every cov); REFIT-DEPENDENT.",
+  "metrics": {
+    "breakeven": 0.541,
+    "val_moved_auc": 0.5572,
+    "refit_cpcv_p10_cov1_UP": 0.6997,
+    "refit_cpcv_p10_cov1_DOWN": 0.662,
+    "refit_cpcv_p10_cov2_UP": 0.645,
+    "refit_cpcv_p10_cov2_DOWN": 0.6437,
+    "refit_cpcv_mean_cov1_UP": 0.7211,
+    "refit_cpcv_mean_cov1_DOWN": 0.711,
+    "singleseed_cov1_UP_p10": 0.6997,
+    "singleseed_cov1_DOWN_p10": 0.662,
+    "frozen_fwd_2024_cov1_COMB": 0.7924,
+    "frozen_fwd_2026_cov1_COMB": 0.4775,
+    "barclose_haircut": -0.0035
+  },
+  "source": {
+    "script": "usdchf_15m_freeze_xpny.py",
+    "git_sha": "e9feff1666fff1fb9018705f0f940c6d434d109b",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 255,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 800,
+    "early_stop": 80,
+    "tr_stride": 3,
+    "nseed": 1,
+    "n_features": 337
+  },
+  "artifacts": [
+    {
+      "file": "m15xpny_USDCHF_s0.txt",
+      "bytes": 3963437,
+      "sha256": "29db196807946be49a8db10675b838d552a098c0a929249e19be6d56f853eb85"
+    }
+  ],
+  "strategy_json": "models/m15xpny_USDCHF_strategy.json",
+  "feature_fingerprint": null,
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "Cert of record: usdchf_15m_cpcv_xpair_ny_multicov_result.json (+ single-seed multicov usdchf_15m_cpcv_xpair_ny_multicov_result.json: cov1 UP p10 .6997 / DOWN .662 \u2014 FIRST major to certify >65% BOTH sides). Adversarial: usdchf_15m_xpair_frozen_result.json (refit-dependent, NOT memorization; xpair-frozen BEATS own-pair-frozen all 6 cells = pooling genuine) + usdchf_15m_ownpair_frozen_result.json. No USDCHF tick data; bar-close proxy haircut -.0035 (USDJPY/AUDUSD-validated). EUR-bloc pooling case (USDCHF~-EURUSD, SNB-managed); NY carrier + all-session breadth. p10 binds on recent era.",
+  "created_utc": null
+}

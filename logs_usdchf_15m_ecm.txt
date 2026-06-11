@@ -1,0 +1,2 @@
+[ecm USDCHF] mode=ecmbase stride=4 HOR=15 anchors=[120, 240, 480, 960, 1920]
+[ecm USDCHF] train=921,194 val=736,641 feats=259 (ecm=20) build=23s

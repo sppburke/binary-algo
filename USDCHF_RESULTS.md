@@ -20,8 +20,8 @@
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
-| USDCHF · **15m** · UP | **EUR-bloc xpair-NY refit-CPCV p10 .645 @cov2 / .6997 @cov1 (15/15)** ✅✅ CERTIFIED **>65%** | NY EUR-bloc xpair LGBM refit-CPCV (freeze pending) | pooling WINS (adversarially verified); seed-ens pending | 🔄 certified >65%, improving |
-| USDCHF · **15m** · DOWN | **EUR-bloc xpair-NY refit-CPCV p10 .6437 @cov2 / .662 @cov1 (15/15)** ✅✅ CERTIFIED **>65%** | NY EUR-bloc xpair LGBM refit-CPCV (freeze pending) | pooling WINS (adversarially verified); seed-ens pending | 🔄 certified >65%, improving |
+| USDCHF · **15m** · UP | **xpair-NY refit-CPCV p10 .645 @cov2 / .6997 @cov1 / .733 @cov.5 (15/15)** ✅✅ CERTIFIED **>65%** | **`USDCHF.m15ny_xpair.v1`** · `7505c934` ✅ FROZEN | EUR-bloc pooling WINS (adversarially verified vs trap#9); seed-ens pending (may supersede) | ✅ certified >65%, improving |
+| USDCHF · **15m** · DOWN | **xpair-NY refit-CPCV p10 .6437 @cov2 / .662 @cov1 / .6958 @cov.5 (15/15)** ✅✅ CERTIFIED **>65%** | **`USDCHF.m15ny_xpair.v1`** · `7505c934` ✅ FROZEN | EUR-bloc pooling WINS (adversarially verified); seed-ens pending | ✅ certified >65%, improving |
 | USDCHF · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
 ---
@@ -106,7 +106,7 @@ _To be written when both sides certified-or-honestly-exhausted and improve+disco
 ## UP/DOWN LEADERBOARD (current best per side, certified-or-best-available)
 | Side | Best certified (refit-CPCV p10) | Best available (mean) | Book | Status |
 |---|---|---|---|---|
-| **15m UP** | **.645 @cov2 / .6997 @cov1 / .733 @cov.5** (EUR-bloc xpair-NY refit-CPCV, 15/15) | .6736 / .7211 mean (cov1/.5) | _freeze pending (xpair-NY)_ | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; seed-ens pending |
-| **15m DOWN** | **.6437 @cov2 / .662 @cov1 / .6958 @cov.5** (EUR-bloc xpair-NY refit-CPCV, 15/15) | .6731 / .711 mean (cov1/.5) | _freeze pending (xpair-NY)_ | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; seed-ens pending |
+| **15m UP** | **.645 @cov2 / .6997 @cov1 / .733 @cov.5** (xpair-NY refit-CPCV, 15/15) | .7211 / .7655 mean (cov1/.5) | **`USDCHF.m15ny_xpair.v1`** ✅ FROZEN (`7505c934`) | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; seed-ens K3/K8 pending |
+| **15m DOWN** | **.6437 @cov2 / .662 @cov1 / .6958 @cov.5** (xpair-NY refit-CPCV, 15/15) | .711 / .7497 mean (cov1/.5) | **`USDCHF.m15ny_xpair.v1`** ✅ FROZEN (`7505c934`) | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; seed-ens pending |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._

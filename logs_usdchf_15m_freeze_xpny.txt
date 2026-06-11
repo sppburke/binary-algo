@@ -1,4 +1,3 @@
-[cpcv-xpair/ny] building xpbase matrix (stride 3) covs=[0.05, 0.03, 0.02, 0.01, 0.005] nseed=3...
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:72: RuntimeWarning: Mean of empty slice
   basket=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in NONTGT]),axis=0)   # USD-strength factor (USDCHF-up frame)
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2015: RuntimeWarning: Degrees of freedom <= 0 for slice.
@@ -119,48 +118,12 @@
   eurbloc=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in EUR_BLOC]),axis=0)  # EUR-bloc (EURUSD,GBPUSD) in USDCHF-up frame (sign-FLIPPED: EUR up=USD weak=USDCHF down)
 /home/sean/git/binary-algo/usdchf_15m_xpair.py:85: RuntimeWarning: Mean of empty slice
   safeh=np.nanmean(np.vstack([aln(p)*rets[p][k] for p in SAFEHAVEN]),axis=0)  # USDJPY safe-haven in USDCHF-up frame
-[cpcv-xpair/ny] rows=1,776,577 in-NY=659,668 feats=337 built 40s
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
+[freeze xpny] rows=1,776,577 train=454,198 val=91,347 feats=337 build=42s
 /home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
   warnings.warn(
 Training until validation scores don't improve for 80 rounds
-Did not meet early stopping. Best iteration is:
-[800]	valid_0's auc: 0.675305
-Training until validation scores don't improve for 80 rounds
-Did not meet early stopping. Best iteration is:
-[800]	valid_0's auc: 0.676516
-Training until validation scores don't improve for 80 rounds
-Did not meet early stopping. Best iteration is:
-[800]	valid_0's auc: 0.677031
-  path 1/15 g[0, 1] AUC=0.5521 up=0.5055 | @cov0.05: UP n1857 0.6791 | DOWN n2802 0.6103 | COMB n4506 0.6358 (573s)
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
-  warnings.warn(
-Training until validation scores don't improve for 80 rounds
-Did not meet early stopping. Best iteration is:
-[800]	valid_0's auc: 0.67899
-Training until validation scores don't improve for 80 rounds
-Did not meet early stopping. Best iteration is:
-[800]	valid_0's auc: 0.67914
-Training until validation scores don't improve for 80 rounds
-Did not meet early stopping. Best iteration is:
-[800]	valid_0's auc: 0.678281
-  path 2/15 g[0, 2] AUC=0.5534 up=0.5017 | @cov0.05: UP n2124 0.6549 | DOWN n2523 0.6373 | COMB n4449 0.6359 (1025s)
+Early stopping, best iteration is:
+[133]	valid_0's auc: 0.556437
+[freeze xpny] seed 0 best_iter=133 saved models/m15xpny_USDCHF_s0.txt (97s)
+[freeze xpny] VAL moved-AUC=0.5572 gates={'0.05': 0.124, '0.03': 0.1444, '0.02': 0.1604, '0.01': 0.1865}
+[freeze xpny] FROZEN USDCHF.m15ny_xpair.v1 content_id=7505c9340d8c982d -> /home/sean/git/binary-algo/books/USDCHF.m15ny_xpair.v1.manifest.json  (99s)
