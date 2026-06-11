@@ -1,0 +1,48 @@
+{
+  "model": "NZDUSD.15m RBNZ OCR + NZ-US spread VAL screen (F9)",
+  "key": "NZDUSD.15m",
+  "source_nz": "FRED IRSTCI01NZM156N (monthly)",
+  "source_us": "Yahoo Finance ^IRX (daily)",
+  "base_val_auc": 0.5219,
+  "rbnz_val_auc": 0.5224809477793239,
+  "lift": 0.000580947779323826,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUME \u2014 RBNZ OCR lift < .010 (Tier-1 closure)",
+  "nz_ocr_rows": 480,
+  "us_rate_rows": 3770,
+  "coverage_train": 1.0,
+  "coverage_val": 1.0,
+  "rbnz_importances": [
+    [
+      "nz_us_chg30d",
+      1234
+    ],
+    [
+      "nz_us_z52w",
+      1126
+    ],
+    [
+      "us_rate_prev",
+      829
+    ],
+    [
+      "nz_us_spread_prev",
+      736
+    ],
+    [
+      "nz_ocr_prev",
+      473
+    ]
+  ],
+  "train_years": [
+    "2012",
+    "2018"
+  ],
+  "val_years": [
+    "2022",
+    "2023"
+  ],
+  "falsifier": "escalate if rbnz_val_auc > base_val_auc + .010",
+  "status": "SUBSUMED"
+}
