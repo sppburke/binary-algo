@@ -1,0 +1,165 @@
+{
+  "schema": "book-manifest/v1",
+  "id": "NZDUSD.m15ny_seedens.v1",
+  "content_id": "f599708e8a9c3e3f",
+  "currency": "NZDUSD",
+  "timeframe": "15m",
+  "side": "combined",
+  "role": "direction",
+  "summary": "NZDUSD 15m NY-session own-pair base GBM seed-ens K=3; BOTH sides certified via NY per-fold-refit CPCV (UP p10 0.5749 / DOWN p10 0.5803 @cov0.02, seed-ens K=3, 14-15/15 paths). Direction edge NY-concentrated + NZDUSD-own-pair-specific (EUR-bloc demoted all-session; Antipodean/AUDUSD cousin pooling not yet tested). REFIT-DEPENDENT (frozen-2021 fwd decays).",
+  "metrics": {
+    "up_refit_cpcv_p10": 0.5749,
+    "down_refit_cpcv_p10": 0.5803,
+    "comb_refit_cpcv_p10": 0.5817,
+    "up_refit_mean": 0.5959,
+    "down_refit_mean": 0.5973,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "val_ny_auc": 0.5362,
+    "frozen_forward": {
+      "test24": {
+        "COMBINED": {
+          "n": 402,
+          "wr": 0.6219,
+          "ci": [
+            0.5746,
+            0.6692
+          ]
+        },
+        "UP": {
+          "n": 253,
+          "wr": 0.5652,
+          "ci": [
+            0.5059,
+            0.6245
+          ]
+        },
+        "DOWN": {
+          "n": 149,
+          "wr": 0.7181,
+          "ci": [
+            0.6443,
+            0.7919
+          ]
+        }
+      },
+      "test25": {
+        "COMBINED": {
+          "n": 525,
+          "wr": 0.6019,
+          "ci": [
+            0.56,
+            0.6419
+          ]
+        },
+        "UP": {
+          "n": 286,
+          "wr": 0.5699,
+          "ci": [
+            0.514,
+            0.6259
+          ]
+        },
+        "DOWN": {
+          "n": 239,
+          "wr": 0.6402,
+          "ci": [
+            0.5816,
+            0.6987
+          ]
+        }
+      },
+      "oos": {
+        "COMBINED": {
+          "n": 283,
+          "wr": 0.5194,
+          "ci": [
+            0.4628,
+            0.576
+          ]
+        },
+        "UP": {
+          "n": 141,
+          "wr": 0.4965,
+          "ci": [
+            0.4184,
+            0.5745
+          ]
+        },
+        "DOWN": {
+          "n": 142,
+          "wr": 0.5423,
+          "ci": [
+            0.4646,
+            0.6197
+          ]
+        }
+      }
+    },
+    "refit_dependent": true
+  },
+  "source": {
+    "script": "nzdusd_15m_base.py (model) + nzdusd_15m_cpcv_session.py ny (cert) + nzdusd_15m_freeze_ny.py (freeze)",
+    "git_sha": "b0934d628e8e70c360477fcf45b53530b25e8894",
+    "git_dirty": true
+  },
+  "hyperparams": {
+    "num_leaves": 127,
+    "lr": 0.02,
+    "reg_lambda": 20,
+    "n_est": 3000,
+    "early_stop": 150,
+    "tr_stride": 6,
+    "nseed": 3
+  },
+  "artifacts": [
+    {
+      "file": "m15ny_NZDUSD_s0_lgb.txt",
+      "bytes": 2214274,
+      "sha256": "515ed0a7731cfb850ff6d534cf762c7eba15bf31ee00f9c147c079d8e01d91e4"
+    },
+    {
+      "file": "m15ny_NZDUSD_s1_lgb.txt",
+      "bytes": 1084701,
+      "sha256": "d72bbc5327ed7cec57287e38f445a53a76b413f5e8a3e28c853d81280c23f314"
+    },
+    {
+      "file": "m15ny_NZDUSD_s2_lgb.txt",
+      "bytes": 1318710,
+      "sha256": "224edc32a5d4e7d13cc8e6e020d60eee61e4c3d445338721652bf309c380baad"
+    }
+  ],
+  "strategy_json": "models/m15ny_NZDUSD_seedens_strategy.json",
+  "feature_fingerprint": {
+    "dir": "/home/sean/git/binary-algo/features",
+    "patterns": [
+      "NZDUSD_*.parquet"
+    ],
+    "n_files": 15,
+    "total_bytes": 1409267644,
+    "sha256_of_listing": "efba2a5025c67496619095432fe0028be6e7c16b3812207664b9eb08449506a7"
+  },
+  "env": {
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3",
+    "key_libs": {
+      "lightgbm": "4.6.0",
+      "xgboost": "3.2.0",
+      "catboost": "1.2.10",
+      "scikit-learn": "1.7.2",
+      "numpy": "2.3.5",
+      "pandas": "2.3.3",
+      "pyarrow": "24.0.0",
+      "scipy": "1.17.1"
+    }
+  },
+  "determinism": {
+    "estimator_seed": "unset",
+    "threads": "n_jobs/thread_count=20",
+    "bitwise_retrainable": false,
+    "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
+  },
+  "depends_on": null,
+  "notes": "NY session = America/New_York 08-17 (DST-correct, sessions.py). cov2% gate frozen on VAL NY worst-half (best p10 OP for seed-ens: UP .5749, DOWN .5803). Two-sided via confidence selection. BOTH sides REFIT-DEPENDENT (frozen-2021 forward decays); deploy with periodic retrain, size on refit floor. Antipodean/AUDUSD cousin pooling not yet tested \u2014 may further lift if Antipodean bloc adds beyond own-pair.",
+  "created_utc": "2026-06-11"
+}
