@@ -105,8 +105,8 @@
 |---|---|---|---|
 | signed order-flow (OFI/Kyle) direction | `usdchf_15m_ofi.py` → `usdchf_15m_ofi_result.json` | base+OF NY VAL moved-AUC .5490 vs base .5495 (Δ−0.0006 ≤ +.003); 2 OF feats in top-20 | ❌ KILLED — OF gates SIZE not SIGN at 900s (sign-invariance; USDJPY/EURUSD precedent) |
 | sequence DL (GRU on 1-min return path) | `usdchf_15m_gru.py` → `usdchf_15m_gru_result.json` | VAL-AUC(NY) .5313 < base .5433 | ❌ KILLED — DL adds no sign over GBM-on-TA (EURUSD neural sweep 84/84 null confirmed here) |
-| TB first-touch TRAIN label (refit-CPCV) | `usdchf_15m_tbfirsttouch.py` | _running_ | _pending_ |
-| Optuna (TPE) hyperparam tuning | `usdchf_15m_optuna.py` | _running_ | _pending_ |
+| Optuna (TPE) hyperparam tuning | `usdchf_15m_optuna.py` → `usdchf_15m_optuna_result.json` | tuned binding-year AUC .5046 vs default .5049; beats default in 0/3 yrs; cov3 clears 1/3 | ❌ KILLED — hyperparameters are not the constraint; ~.539 AUC bound holds (confirms USDJPY-2m anti-transfer) |
+| TB first-touch TRAIN label (refit-CPCV) | `usdchf_15m_tbfirsttouch.py` | _running (heavy refit-CPCV)_ | _pending_ |
 
 ---
 

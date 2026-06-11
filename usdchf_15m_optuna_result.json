@@ -1,0 +1,122 @@
+{
+  "key": "USDCHF.15m.ny",
+  "lever": "I6 Optuna TPE hyperparameter search (worst-VAL-half objective)",
+  "n_trials": 40,
+  "stride": 6,
+  "best_params": {
+    "num_leaves": 31,
+    "learning_rate": 0.015631803541630334,
+    "min_child_samples": 654,
+    "subsample": 0.8787032519294586,
+    "colsample_bytree": 0.39747774576141653,
+    "reg_lambda": 19.147924584490237
+  },
+  "best_val_worst_half_auc": 0.5456,
+  "default_config": {
+    "num_leaves": 127,
+    "learning_rate": 0.02,
+    "min_child_samples": 400,
+    "subsample": 0.8,
+    "colsample_bytree": 0.5,
+    "reg_lambda": 20.0,
+    "n_estimators": 3000
+  },
+  "default_heldout": {
+    "val_worst_half_auc": 0.5426883589638323,
+    "val_full_auc": 0.5483566065898924,
+    "years": {
+      "test24": {
+        "moved_auc": 0.5338,
+        "up_rate": 0.4999,
+        "cov3_COMB": {
+          "n": 819,
+          "wr": 0.6593,
+          "ci": [
+            0.6264,
+            0.6911
+          ]
+        }
+      },
+      "test25": {
+        "moved_auc": 0.532,
+        "up_rate": 0.498,
+        "cov3_COMB": {
+          "n": 1203,
+          "wr": 0.5594,
+          "ci": [
+            0.5303,
+            0.5877
+          ]
+        }
+      },
+      "oos": {
+        "moved_auc": 0.5049,
+        "up_rate": 0.5006,
+        "cov3_COMB": {
+          "n": 517,
+          "wr": 0.5126,
+          "ci": [
+            0.472,
+            0.5571
+          ]
+        }
+      }
+    }
+  },
+  "tuned_heldout": {
+    "val_worst_half_auc": 0.5456059664227406,
+    "val_full_auc": 0.5493161893789167,
+    "years": {
+      "test24": {
+        "moved_auc": 0.5333,
+        "up_rate": 0.4999,
+        "cov3_COMB": {
+          "n": 802,
+          "wr": 0.6708,
+          "ci": [
+            0.6384,
+            0.7032
+          ]
+        }
+      },
+      "test25": {
+        "moved_auc": 0.5313,
+        "up_rate": 0.498,
+        "cov3_COMB": {
+          "n": 1242,
+          "wr": 0.5604,
+          "ci": [
+            0.5322,
+            0.5878
+          ]
+        }
+      },
+      "oos": {
+        "moved_auc": 0.5046,
+        "up_rate": 0.5006,
+        "cov3_COMB": {
+          "n": 527,
+          "wr": 0.5047,
+          "ci": [
+            0.463,
+            0.5465
+          ]
+        }
+      }
+    }
+  },
+  "falsifier": {
+    "registered_utc": "pre-heldout",
+    "SURVIVE_if": "tuned moved-AUC>default in >=2 yrs AND cov3% COMB CI-lo>=BE in >=2 yrs AND tuned binding-year AUC>default binding-year AUC"
+  },
+  "verdict": {
+    "SURVIVES": false,
+    "tuned_auc_beats_default_years": [],
+    "tuned_cov3_clears_years": [
+      "test24"
+    ],
+    "default_binding_auc": 0.5049,
+    "tuned_binding_auc": 0.5046,
+    "note": "KILLED: Optuna-tuned hyperparams do NOT beat the default base on held-out (binding year) \u2014 hyperparameters are not the constraint; the ~.539 AUC bound holds. Consistent with USDJPY-2m anti-transfer."
+  }
+}

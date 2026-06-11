@@ -1,2 +1,151 @@
 [optuna] building NY train/val (stride 6)...
 [optuna] NY train moved=227,592 (fit 130,000) val moved=272,209  11s
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[166]	valid_0's auc: 0.548456
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[93]	valid_0's auc: 0.547189
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[58]	valid_0's auc: 0.548032
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[186]	valid_0's auc: 0.548497
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[90]	valid_0's auc: 0.548023
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[70]	valid_0's auc: 0.548591
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[203]	valid_0's auc: 0.548404
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[56]	valid_0's auc: 0.547917
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[236]	valid_0's auc: 0.547742
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[66]	valid_0's auc: 0.548046
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[38]	valid_0's auc: 0.54631
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.548158
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[63]	valid_0's auc: 0.549253
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[72]	valid_0's auc: 0.548369
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[14]	valid_0's auc: 0.547459
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[59]	valid_0's auc: 0.547878
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[146]	valid_0's auc: 0.548259
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[48]	valid_0's auc: 0.545546
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[26]	valid_0's auc: 0.547849
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[70]	valid_0's auc: 0.548487
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[42]	valid_0's auc: 0.548437
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[71]	valid_0's auc: 0.548429
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[92]	valid_0's auc: 0.547831
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[66]	valid_0's auc: 0.547861
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[66]	valid_0's auc: 0.548001
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.547724
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[151]	valid_0's auc: 0.548619
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.549316
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[108]	valid_0's auc: 0.547692
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[108]	valid_0's auc: 0.548024
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[72]	valid_0's auc: 0.547411
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.549153
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[64]	valid_0's auc: 0.548111
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.547493
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[31]	valid_0's auc: 0.547566
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[90]	valid_0's auc: 0.547593
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[66]	valid_0's auc: 0.548625
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[26]	valid_0's auc: 0.548883
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[53]	valid_0's auc: 0.549246
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[47]	valid_0's auc: 0.547891
+[optuna] best worst-half VAL AUC=0.5456 params={'num_leaves': 31, 'learning_rate': 0.015631803541630334, 'min_child_samples': 654, 'subsample': 0.8787032519294586, 'colsample_bytree': 0.39747774576141653, 'reg_lambda': 19.147924584490237}  606s
+[optuna] === DEFAULT base held-out ===
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.548357
+  [default] test24: moved-AUC=0.5338 | cov3% COMB n819 wr=0.6593 CI[0.626,0.691]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+  [default] test25: moved-AUC=0.5320 | cov3% COMB n1203 wr=0.5594 CI[0.530,0.588]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+  [default] oos: moved-AUC=0.5049 | cov3% COMB n517 wr=0.5126 CI[0.472,0.557]
+[optuna] === TUNED held-out ===
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 120 rounds
+Early stopping, best iteration is:
+[65]	valid_0's auc: 0.549316
+  [tuned] test24: moved-AUC=0.5333 | cov3% COMB n802 wr=0.6708 CI[0.638,0.703]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+  [tuned] test25: moved-AUC=0.5313 | cov3% COMB n1242 wr=0.5604 CI[0.532,0.588]
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+  [tuned] oos: moved-AUC=0.5046 | cov3% COMB n527 wr=0.5047 CI[0.463,0.546]
+
+[optuna] VERDICT: KILLED (tuned binding AUC 0.5046 vs default 0.5049; auc-beats=[]; cov3-clears=['test24']) -> usdchf_15m_optuna_result.json  644s

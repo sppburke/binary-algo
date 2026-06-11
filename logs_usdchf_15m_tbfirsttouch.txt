@@ -1,0 +1,7 @@
+[tbft/ny] building USDCHF (stride 3) covs=[0.05, 0.03, 0.02, 0.01, 0.005] nseed=1 kgrid=[0.5, 0.75, 1.0, 1.5, 2.0]...
+/home/sean/binary-algo-venv/lib/python3.12/site-packages/sklearn/utils/validation.py:2749: UserWarning: X does not have valid feature names, but LGBMClassifier was fitted with feature names
+  warnings.warn(
+Training until validation scores don't improve for 80 rounds
+Early stopping, best iteration is:
+[55]	valid_0's auc: 0.546793
+  k-screen k=0.5: VAL fixed-15m AUC=0.5468 (34s)
