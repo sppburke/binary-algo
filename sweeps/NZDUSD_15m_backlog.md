@@ -15,6 +15,7 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 | 5 | §8-GRU | DL sequence GRU | ⊘ **SUBSUMED** — DL adds no directional signal over GBM-on-TA for all 5 prior majors; pattern is definitive. | low | ⊘ SUBSUMED |
 | 6 | §8-Optuna | Hparam search | ⊘ **SUBSUMED** — AUC bound ~.535 confirmed for every major; USDCHF ran Optuna explicitly and got .5046 vs default .5049. Hparams not the constraint. | low | ⊘ SUBSUMED |
 | 7 | §8-TB | triple-barrier TRAIN-label | ⊘ **SUBSUMED** — TB improves own-pair base but subsumed by xpair/seed-ens for majors with pooling; xpair failed so TB added value is moot. | low | ⊘ SUBSUMED |
+| I5 | seed-ens K=8 | seed depth escalation | ⊘ **SUBSUMED 2026-06-11** — `audusd_15m_cpcv_session_ny_seedens8_result.json` (own-pair Antipodean Tier-1): K=8 vs K=3 cov2% UP p10=.5908 vs .596 (−.005 REGRESS); DOWN .6124 vs .596 (+.016); sign-inconsistent. Seed lever saturated past K=3 for own-pair space. AUDUSD starts from .596/.596; NZDUSD projected ≤.591/.612 — far below .65 target. | low | ⊘ SUBSUMED |
 | — | USDCAD xpair | commodity bloc xpair | **NOT RUN — LOW PRIOR.** NZDUSD/USDCAD corr~.55 (vs AUD .88); AUDUSD (stronger) failed UP → USDCAD (weaker) near-zero probability of lifting UP above incumbent .5749. >65% needs off-disk external data (dairy/GDT, RBNZ, China PMI). | very low | ⊘ NOT RUN |
 
 ## Incumbents to beat (p10 floors after each stage)

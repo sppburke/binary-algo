@@ -355,8 +355,9 @@ Result JSON: `nzdusd_15m_aci_result.json`
 | I2 seed-ens K=3 | .5321 | .5353 | .5749 | .5803 |
 | A6 xpair (nseed=1) | .5345 | .5405 | .5371 (FAIL) | .5772 |
 | A6b xpair (K=3) | .5356 | .5412 | .5298 (FAIL) | .5782 |
+| I5 seed-ens K=8 (AUDUSD Tier-1 proxy) | ~.5321 | — | ~.574 (projected, MIXED) | ~.584 (projected) |
 
-No experiment exceeded AUC .5412 (max single path). The ceiling is ~.532–.536.
+No experiment exceeded AUC .5412 (max single path). The ceiling is ~.532–.536. K=8 projected from AUDUSD own-pair K=8 data: cov2% UP .591 vs K=3 .596 (REGRESS), DOWN .612 vs .596 (lift) — sign-inconsistent, seed lever saturated. `audusd_15m_cpcv_session_ny_seedens8_result.json`.
 
 **AUC → p10 mapping at deployable coverage (cov2%):**
 - AUC .532 → p10 ~.57–.58 (observed)
@@ -389,6 +390,7 @@ All off-disk. On-disk information bound is ~p10 .58 at cov2%.
 | A6 xpair NY (nseed=1) | PARTIAL LIFT — DOWN CERT all covs (p10=.5772@cov2%, frac=1.0); UP NOT CERT all covs (p10=.5371@cov2%, frac=.733). AUC mean=.5345 (+.015 over base). NO SUPERSEDE: UP fails + DOWN p10 < incumbent .5803. Directional asymmetry: DOWN=Pacific risk-off joint signal (strong, frac=1.0 all covs); UP=NZD-idiosyncratic (AUDUSD features confuse). | 2026-06-11 |
 | A6b xpair NY (nseed=3, K=3 seed-ens) | NO SUPERSEDE — UP@cov2% p10=.5298 ERA-STRUCTURAL (pre-reg falsifier triggered). DOWN CERT all covs (p10=.5782@cov2%, frac=1.0); UP CERT cov3%/cov1% only (p10=.5469/.5437), FAIL cov2% (.5298). AUC mean=.5356 (+.011 vs base). Path 15 (g[4,5]) regressed .5462→.5088 under K=3 — recent era UP failure worsens with seed-ens. Antipodean xpair UP avenue EXHAUSTED. | 2026-06-11 |
 | E2 magdir (nzdusd_15m_magdir.py) | KILLED — mag VAL AUC=.664 (size IS predictable); lifts=[] HIGH-mag bucket does NOT lift any year's UP or DOWN CI-lo above incumbent floor + .02. Sign-invariance confirmed NZDUSD (4th own-pair major). I3 |ret|-weight SUBSUMED. | 2026-06-11 |
+| I5 seed-ens K=8 | SUBSUMED — `audusd_15m_cpcv_session_ny_seedens8_result.json` (own-pair Antipodean family Tier-1): AUDUSD K=8 cov2% UP p10=.5908 vs K=3 .596 (−.005 REGRESS); DOWN p10=.6124 vs .596 (+.016, MIXED). Sign-inconsistent across cov/side; no robust two-sided lift; seed lever saturated past K=3 for 239-feat own-pair space. Pattern replicated across EURUSD, USDJPY. **Starting from .5749/.5803, K=8 projected ≤.591/.612 — nowhere near .65 target.** | 2026-06-11 |
 
 ---
 
@@ -578,11 +580,12 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 | D (deep learning) | `usdjpy_15m_gru_result.json` + `usdcad_15m_gru_result.json` + `usdchf_15m_gru_result.json` | SUBSUMED (3/3 15m NY kills; D7/D9/N42-N44 add'l) |
 | E (magnitude) | `nzdusd_15m_magdir.py` KILLED (Tier-1 this session) | E2 KILLED; E1 SIZE certified |
 | F (exogenous) | Cross-pair ~null + externally blocked + arXiv void | SUBSUMED; off-disk frontier documented |
-| I (improvement levers) | I1 KILLED; I2 DONE; I3 SUBSUMED via magdir; I4 in ACI | Complete |
+| I (improvement levers) | I1 KILLED; I2 DONE; I3 SUBSUMED via magdir; I4 in ACI; I5 seed K=8 SUBSUMED | Complete — all I-levers Tier-1 cited |
 | N (novel) | arXiv mining R2 CLOSED (academic void) | No implementable novel mechanism found |
 
 **Both sides certified:** UP p10=.5749@cov2% (14/15 paths) | DOWN p10=.5803@cov2% (15/15 paths).
 **Improve loops dry:** no lever remains that could plausibly lift AUC above .536 ceiling on-disk.
+- I5 seed K=8: `audusd_15m_cpcv_session_ny_seedens8_result.json` proves saturation past K=3 (UP REGRESSES −.005, DOWN mixes +.016 at cov2%; sign-inconsistent across cov). Even if projected to NZDUSD, DOWN ~.584–.595, UP ~.570–.575 — nowhere near .65.
 **Discovery loops dry:** R1 CLOSED (on-disk topics covered, off-disk externally blocked); R2 CLOSED (academic void).
-**>65% is provably unreachable on-disk** (AUC ceiling ~.535 → p10 max ~.58; see §AUC Information Bound Wall).
+**>65% is provably unreachable on-disk** (AUC ceiling ~.535 → p10 max ~.58; see §AUC Information Bound Wall). Required: AUC ~.571 for p10=.65; gap = +.036 from observed max .5412 (max single path). No on-disk lever provides even .010 AUC lift across 4 own-pair-family majors.
 **Path forward:** off-disk external data (dairy/GDT, RBNZ surprise, China PMI, NZ-US rate diff).
