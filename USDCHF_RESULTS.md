@@ -97,9 +97,21 @@
 
 ---
 
-## FINAL CONCLUSION (USDCHF 15m direction) — _pending (sweep open)_
+## FINAL CONCLUSION (USDCHF 15m direction) — 2026-06-10
 
-_To be written when both sides certified-or-honestly-exhausted and improve+discover loops are dry._
+**★ USDCHF is the FIRST major to CERTIFY >65% on BOTH sides.** Deliverable `USDCHF.m15ny_xpair.v1` (content_id `7505c934`, EUR-bloc xpair-NY single-seed): **UP refit-CPCV cov1 p10 .6997 / DOWN .662 / COMB .6804** (cov.5 .733/.696/.714; cov2 .645/.6437/.645), 15/15 paths every cov, frac_clear 1.0, AUC .5464. Full per-side pipeline ✓: (a) side-split throughout; (b) worst-VAL-half gate; (c) the EUR-bloc xpair matrix IS the purpose-built specialist (cross-pair USD-residual/lead-lag + EUR-bloc resid + 239 own-pair, sign-flipped USDCHF≈−EURUSD); (d) coverage curve (cov5→cov.5); (e) full per-fold-refit CPCV + adversarial frozen-forward head-to-head. **REFIT-DEPENDENT** (deploy NY-only with periodic retraining, size on the refit floor minus −.0035 bar-close haircut).
+
+**Mechanism (RESOLVED):** USDCHF is the **EUR-BLOC case** (pooling WINS, like EURUSD/GBPUSD) despite being a premier safe-haven — because CHF≈EUR (SNB-managed, EURCHF-tight). It is a **HYBRID carrier**: broad (all-session certifies — EUR-bloc breadth, unlike the own-pair havens) AND NY-concentrated (NY AUC .540 ≫ all-session .523 — the haven face). LDN/asia dead (the directional sign rides US-session risk flow, not Zurich hours — the European-session prior was REFUTED). DOWN leads at cov2-3 (haven-flight), UP at cov1.
+
+**The pooling win was ADVERSARIALLY VERIFIED vs trap#9** (the decisive call of the campaign): the frozen all-session SCREEN said IMPROVES=False (a FALSE NEGATIVE — it tests the frozen all-session vintage, not the NY+refit deliverable), but the NY refit-CPCV showed pooling BEATS own-pair at every cov both sides, AND the matched frozen-forward head-to-head confirmed it (xpair-frozen beats own-pair-frozen in ALL 6 forward cells 2024-26×cov1-2, mean +.048; memorization=False). Meta-lesson (→ IDEAS_LOG): run the NY refit-CPCV pooling test even when the frozen screen says no, for any EUR-bloc-cousin pair.
+
+**Improve cross-product — RUN + adversarially verified:** EUR-bloc pooling WON (the deliverable). dblortho (SNB-resid) KILLED — xpair matrix subsumes channels. ECM synthetic-EURCHF LEVEL band KILLED — level non-stationary/too-weak (R2 premise-refutation confirmed). magdir KILLED — magnitude doesn't carry 15m sign (sign-invariance). **IRM env-invariant feature-stability filter KILLED — and it proved the refit-decay is an INFORMATION BOUND, not a fixable feature-selection artifact (the era-local-sign features carry genuine in-era signal; periodic retrain is the only mitigation).** Channel-class levers (kNN/meta/two-speed/|ret|-weight/cross-horizon/ACI) Tier-1-subsumed. Confirmatory batch (OFI/TB/GRU/Optuna — all KILLED on USDCAD) + seed-ens K=3 robustness: _in progress (deliverable stands regardless)._
+
+**Discovery R1+R2+R3 EXHAUSTED (2 dry rounds):** R1 found the levers (pooling won); R2's one survivor (IRM) was KILLED on test; R3 critic confirmed the on-disk × sign-carrying × novel space is saturated. R3 also corrected a record error (USDCHF HAS OF features; only raw-tick *settlement* data is absent).
+
+**>65% is NOT an information bound at cov1 for USDCHF** (it is for the own-pair havens) — pooling + NY-concentration + CHF≈EUR tight coupling stack to clear it. **BONUS: USDCHF magnitude edge magAUC .65–.73** (→ MAGNITUDE_FINDINGS.md) — USDCHF carries BOTH a strong magnitude edge AND a certified direction edge.
+
+**Deployment spec:** trade USDCHF 15m Rise/Fall in the NY session (America/New_York 08:00–17:00, DST-correct) when |p̄−0.5| ≥ the cov1 (1%) confidence gate; predict with the EUR-bloc xpair feature recipe (`usdchf_15m_xpair.build_xp` + 239 base); **retrain periodically** (frozen-2021 vintage decays to sub-BE by 2026); size on the refit-CPCV per-era floor (UP .70 / DOWN .66 @cov1) minus the −.0035 bar-close haircut, minus breakeven .541; Kelly 1/8.
 
 ---
 
