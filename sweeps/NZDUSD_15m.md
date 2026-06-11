@@ -26,12 +26,13 @@ SCOPE: NZDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 - kNN regime-matcher: USDCAD ran (AUC .507≪GBM, dilutes). SUBSUMED.
 - meta-gate: USDCAD/AUDUSD/EURUSD all killed. SUBSUMED.
 - two-speed momentum: base 239 mtf features already capture it. SUBSUMED.
-- ACI/adaptive-conformal: sign-invariance (re-thresholding ≠ directional signal). THEOREM-SUBSUMED.
+- **ACI/adaptive-conformal: ❌ KILLED Tier-1 (2026-06-11, nzdusd_15m_aci.py)** — frozen-fwd fixed: test24 .635 / test25 .558 / oos .509; ACI: test24 .558 / test25 .540 / oos .521. ACI trades 2× more at lower selectivity; "wins" only in 2026 (both below BE=.541, CI overlaps). Test24 ACI is .077 WORSE. AUDUSD backlog confirms "plain ACI KILLED both pairs." Own-pair dilution effect, not regime selectivity.
 - |ret|-weight: USDCAD HURTS. SUBSUMED pending magdir confirmation here.
 - cross-horizon blend: USDCAD killed (refit-CPCV positive = refit-overfit), AUDUSD equally-weak-redundant. SUBSUMED.
 **§8 confirmatory (after carrier + seed-ens certified):** OFI (signed OF @ 900s — SIZE not SIGN for all majors), GRU/DL (DL adds no sign over GBM-on-TA for any major), Optuna (hparams not the constraint, ~.535 AUC bound), TB-label (triple-barrier — improves own-pair base but subsumed by xpair/seed-ens for majors with pooling).
 
 ## Run log (newest first)
+- 2026-06-11 — **I1 ACI gate KILLED (Tier-1 run).** `nzdusd_15m_aci.py` (51s). Fixed gate binding year OOS .5090; ACI .5205 — both BELOW BE=.541; CI overlap; ACI trades 2× more at lower selectivity (test24 fixed .635 vs ACI .558, −.077). ACI dilutes, does not select regimes. Status updated from THEOREM-SUBSUMED → KILLED with Tier-1 run evidence. `nzdusd_15m_aci_result.json`
 - 2026-06-11 — **SWEEP CLOSED.** Improve+discover loops exhausted on-disk. §8 SUBSUMED (5-major evidence). USDCAD xpair NOT RUN (corr~.55 < AUDUSD .88 which already failed UP; prior near-zero). Incumbent `NZDUSD.m15ny_seedens.v1` is the on-disk ceiling. >65% needs off-disk.
 - 2026-06-11 — **A6b xpair seed-ens K=3 DONE — ERA-STRUCTURAL confirmed, NO SUPERSEDE.** 15/15 paths, 2796s, AUC mean=.5356. Pre-reg falsifier triggered: UP p10@cov2%=.5298 < .541 → structural (not seed-noise). UP CERT cov3% (.5469) and cov1% (.5437) only; FAIL cov2% (.5298). DOWN CERT all covs (p10=.5782@cov2%, frac=1.0). Path 15 (g[4,5]) regressed .5462→.5088 under K=3 — 3 seeds unanimously wrong on UP in recent era (2021–2026). Antipodean xpair UP avenue EXHAUSTED.
 - 2026-06-11 — **A6 Antipodean xpair CPCV DONE — DOWN CERT, UP NOT CERT, NO SUPERSEDE.** 15/15 paths, 943s, AUC mean=.5345. DOWN: p10=.5772@cov2% frac=1.0 (CERT all covs); mean=.604. UP: p10=.5371@cov2% frac=.733 (FAIL all covs); 2 catastrophic paths (g[0,4]=.5219, g[2,5]=.5285). DOWN p10=.5772 < incumbent .5803 → no supersede. Directional asymmetry: AUDUSD cousin = Pacific risk-off signal (DOWN), not NZD-idiosyncratic UP. Incumbent NZDUSD.m15ny_seedens.v1 retained.

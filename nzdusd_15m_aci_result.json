@@ -1,0 +1,76 @@
+{
+  "key": "NZDUSD.15m.ny",
+  "model": "certified NY base + I1 ACI gate + I4 temp-calibration",
+  "target_cov": 0.02,
+  "eta": 0.02,
+  "temperature": 0.9,
+  "val_auc": 0.5372,
+  "fixed_thr0": 0.0753,
+  "falsifier": {
+    "KILL_if": "ACI does NOT beat the fixed cov-gate binding-year win-rate at >= equal coverage"
+  },
+  "years": {
+    "test24": {
+      "fixed": {
+        "n": 455,
+        "wr": 0.6352,
+        "ci": [
+          0.5912,
+          0.6791
+        ]
+      },
+      "aci": {
+        "n": 1714,
+        "wr": 0.5583,
+        "cov": 0.0124,
+        "ci": [
+          0.535,
+          0.5817
+        ]
+      }
+    },
+    "test25": {
+      "fixed": {
+        "n": 638,
+        "wr": 0.558,
+        "ci": [
+          0.5188,
+          0.5956
+        ]
+      },
+      "aci": {
+        "n": 1670,
+        "wr": 0.5395,
+        "cov": 0.0121,
+        "ci": [
+          0.515,
+          0.5623
+        ]
+      }
+    },
+    "oos": {
+      "fixed": {
+        "n": 332,
+        "wr": 0.509,
+        "ci": [
+          0.4548,
+          0.5633
+        ]
+      },
+      "aci": {
+        "n": 611,
+        "wr": 0.5205,
+        "cov": 0.0124,
+        "ci": [
+          0.4795,
+          0.5597
+        ]
+      }
+    }
+  },
+  "verdict": {
+    "fixed_binding_wr": 0.509,
+    "aci_binding_wr": 0.5205,
+    "ACI_improves": true
+  }
+}

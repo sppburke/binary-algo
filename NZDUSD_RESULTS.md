@@ -317,6 +317,31 @@ Path 15 (g[4,5] = most recent era ~2021–2026 in test): K=3 made UP WORSE (A6a 
 
 ---
 
+## I1 — ACI Gate (NY) — ❌ KILLED
+
+`nzdusd_15m_aci.py` | target_cov=0.02, eta=0.02 | T=0.900 | VAL AUC=.5372 | **KILLED 2026-06-11** | 51s
+
+Result JSON: `nzdusd_15m_aci_result.json`
+
+**Falsifier (pre-registered):** ACI must beat fixed gate's binding-year win-rate at ≥ equal coverage.
+
+| split | Fixed n | Fixed wr | Fixed CI95 | ACI n | ACI wr | ACI cov | ACI CI95 |
+|-------|---------|----------|------------|-------|--------|---------|----------|
+| test24 | 455 | .6352 | [.591,.679] | 1714 | .5583 | .0124 | [.535,.582] |
+| test25 | 638 | .5580 | [.519,.596] | 1670 | .5395 | .0121 | [.515,.562] |
+| oos (2026) | 332 | .5090 | [.455,.563] | 611 | .5205 | .0124 | [.480,.560] |
+
+**Binding-year verdict:** `ACI_improves=True` (ACI OOS .5205 > Fixed OOS .5090) — but **KILLED** for the following reasons:
+1. **Both below BE=.541 in OOS 2026** — neither gate is profitable in the binding year
+2. **CI overlap is complete** — [.455,.563] vs [.480,.560] — statistically indistinguishable
+3. **ACI trades 2× more at LOWER selectivity** — n=611 vs n=332 in OOS. Test24: ACI .558 vs Fixed .635 (−.077). This is dilution (ACI lowers threshold to trade more), not regime selection (ACI raising threshold for better quality)
+4. **Falsifier weak:** the "improvement" is entirely in 2026 where the signal is decayed; in 2024-2025 (non-binding, signal alive), ACI significantly HURTS
+5. **Own-pair family pattern confirmed:** AUDUSD backlog documents "plain ACI KILLED both pairs" — same mechanism: own-pair low-AUC pairs have a near-flat score distribution; ACI oscillates around target rate without finding high-quality regimes
+
+**Conclusion:** ACI status updated from THEOREM-SUBSUMED → KILLED with Tier-1 run. No warrant for full CPCV.
+
+---
+
 ## AUC Information Bound Wall
 
 **Claim:** >65% win-rate target is provably unreachable on-disk for NZDUSD 15m with NY own-pair bar features.
