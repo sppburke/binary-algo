@@ -1,1 +1,25 @@
 [magdir15m USDCHF] stride=6 dir_train(NY moved)=227,592 mag_train(NY)=230,539 val(NY moved)=272,209 magQ75=3.12e-04 build=19s
+Training until validation scores don't improve for 150 rounds
+Early stopping, best iteration is:
+[80]	valid_0's auc: 0.549535
+Training until validation scores don't improve for 150 rounds
+Early stopping, best iteration is:
+[321]	valid_0's auc: 0.699006
+[magdir15m USDCHF] VAL NY dir-AUC=0.5495  VAL NY magAUC=0.6990 163s
+=== test24 === NY dir-AUC=0.5323 up=0.4999 magAUC=0.7276 | cov3 wr=0.6775 n831
+        Q1_low   dir-AUC=0.5357 (n 62921) | sel wr=0.5409 n2581 CI[0.522,0.559]
+        Q2       dir-AUC=0.5321 (n 33623) | sel wr=0.5418 n1938 CI[0.519,0.564]
+        Q3       dir-AUC=0.5240 (n 25525) | sel wr=0.5436 n1547 CI[0.519,0.569]
+        Q4_high  dir-AUC=0.5355 (n 14879) | sel wr=0.5705 n808 CI[0.537,0.605]
+=== test25 === NY dir-AUC=0.5296 up=0.4980 magAUC=0.6690 | cov3 wr=0.6053 n836
+        Q1_low   dir-AUC=0.5380 (n 29366) | sel wr=0.5367 n1429 CI[0.510,0.563]
+        Q2       dir-AUC=0.5305 (n 32709) | sel wr=0.5239 n1886 CI[0.502,0.546]
+        Q3       dir-AUC=0.5266 (n 36335) | sel wr=0.5445 n2110 CI[0.523,0.566]
+        Q4_high  dir-AUC=0.5280 (n 38056) | sel wr=0.5587 n1754 CI[0.535,0.582]
+=== oos === NY dir-AUC=0.5063 up=0.5006 magAUC=0.6463 | cov3 wr=0.5395 n291
+        Q1_low   dir-AUC=0.4973 (n 5854) | sel wr=0.4907 n324 CI[0.435,0.543]
+        Q2       dir-AUC=0.5172 (n 9519) | sel wr=0.4924 n591 CI[0.452,0.531]
+        Q3       dir-AUC=0.4963 (n 13661) | sel wr=0.4903 n777 CI[0.456,0.525]
+        Q4_high  dir-AUC=0.5094 (n 19751) | sel wr=0.4858 n881 CI[0.453,0.519]
+
+[magdir15m USDCHF] VERDICT: KILLED (q4_beats=[]; q4_wr_clears=[]; auc_beats=[]) -> usdchf_15m_magdir_result.json total=175s
