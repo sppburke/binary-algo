@@ -179,6 +179,60 @@ Result JSON: `nzdusd_15m_cpcv_session_asia_multicov_result.json`
 
 ---
 
+## A6 — Antipodean Xpair CPCV (NY) — PARTIAL LIFT — ❌ NO SUPERSEDE
+
+`nzdusd_15m_cpcv_xpair.py ny 2 0.03,0.02,0.01 1` | nseed=1 | feats=271 (239 base + 32 AUD) | AUC mean=.5345 | **DONE 2026-06-11** | 943s
+
+Result JSON: `nzdusd_15m_cpcv_xpair_ny_result.json`
+
+**Verdict: DOWN CERTIFIED (all 3 cov levels), UP NOT CERTIFIED (all 3 cov levels) — NO SUPERSEDE.**
+
+| cov | side | p10 | mean | min | frac_clear_BE | med_n/path | CERTIFIED |
+|-----|------|-----|------|-----|---------------|------------|-----------|
+| 3% | UP | .5356 | .5654 | .5219 | .867 (13/15) | 510 | ❌ |
+| 3% | DOWN | .5735 | .5969 | .5612 | 1.0 (15/15) | 435 | ✅ |
+| 3% | COMB | .5535 | .5791 | .5482 | 1.0 (15/15) | 923 | ✅ |
+| 2% | UP | .5371 | .5693 | .5354 | .733 (11/15) | 338 | ❌ |
+| 2% | DOWN | .5772 | .6042 | .5734 | 1.0 (15/15) | 282 | ✅ |
+| 2% | COMB | .5623 | .5841 | .5587 | 1.0 (15/15) | 603 | ✅ |
+| 1% | UP | .5258 | .5761 | .4961 | .600 (9/15) | 161 | ❌ |
+| 1% | DOWN | .5804 | .6069 | .5598 | 1.0 (15/15) | 142 | ✅ |
+| 1% | COMB | .5557 | .5890 | .5449 | 1.0 (15/15) | 297 | ✅ |
+
+**AUC:** mean=.5345, min=.5262, max=.5405 — strong lift over own-pair base .519 (+.015). Confirms AUDUSD cousin carries real common signal.
+**Uprate tripwire:** PASS.
+
+**No SUPERSEDE:** SUPERSEDE requires BOTH sides certified. UP p10 fails all cov levels (max .5371@cov2%); DOWN p10=.5772@cov2% also below incumbent .5803. Incumbent NZDUSD.m15ny_seedens.v1 retained.
+
+**Directional asymmetry finding:**
+- **DOWN**: 15/15 paths all covs (frac=1.0). Mean escalates .597 → .604 → .607 as coverage tightens. The "both-Pacific-down" (AUD+NZD correlated risk-off) is a clean, consistent signal. AUDUSD cousin features strongly reinforce DOWN.
+- **UP**: 2 catastrophically bad paths drag p10 below .541 at all covs — g[0,4]@cov3%=.5219, g[2,5]@cov3%=.5285; g[4,5]@cov1%=.4961 (below 50%). NZD UP is idiosyncratic — AUDUSD features confuse rather than help when NZD strength decouples from AUD.
+- **Mechanism**: "both Pacific currencies going down" (risk-off) = joint Pacific signal; "NZD UP" often means NZD-specific strength (RBNZ, dairy flows, NZ macro) not shared with AUD.
+
+### All 15 paths @cov3%
+
+| path | g | AUC | up-rate | UP | DOWN | COMB |
+|------|---|-----|---------|-----|------|------|
+| 1 | [0,1] | .5405 | .5006 | n355 .5859 | n396 .6111 | n750 .5987 |
+| 2 | [0,2] | .5396 | .5015 | n578 .5709 | n350 .6400 | n927 .5976 |
+| 3 | [0,3] | .5376 | .5041 | n529 .5917 | n566 .5830 | n1093 .5874 |
+| 4 | [0,4] | .5377 | .5024 | n456 **.5219** | n452 .5796 | n906 .5508 |
+| 5 | [0,5] | .5271 | .5024 | n414 .5531 | n515 .5612 | n929 .5576 |
+| 6 | [1,2] | .5345 | .5006 | n555 .5532 | n330 .6303 | n885 .5819 |
+| 7 | [1,3] | .5383 | .5032 | n360 .6000 | n453 .5872 | n812 .5924 |
+| 8 | [1,4] | .5390 | .5015 | n348 .5862 | n371 .6361 | n719 .6120 |
+| 9 | [1,5] | .5289 | .5015 | n510 .5667 | n428 .5724 | n938 .5704 |
+| 10 | [2,3] | .5382 | .5040 | n587 .5520 | n499 .6032 | n1086 .5755 |
+| 11 | [2,4] | .5371 | .5023 | n525 .5600 | n400 .5750 | n923 .5655 |
+| 12 | [2,5] | .5273 | .5024 | n719 **.5285** | n382 .5864 | n1100 .5482 |
+| 13 | [3,4] | .5357 | .5050 | n349 .5989 | n510 .5980 | n859 .5984 |
+| 14 | [3,5] | .5301 | .5050 | n520 .5654 | n549 .5756 | n1069 .5706 |
+| 15 | [4,5] | .5262 | .5033 | n465 .5462 | n435 .6138 | n900 .5789 |
+
+**Failed UP paths at cov3%:** g[0,4]=.5219 and g[2,5]=.5285 (both below BE=.541).
+
+---
+
 ## Books
 
 | book | status | UP p10@cov | DOWN p10@cov | frozen-fwd COMB | frozen-fwd UP | frozen-fwd DOWN |
@@ -212,3 +266,4 @@ Result JSON: `nzdusd_15m_cpcv_session_asia_multicov_result.json`
 | A9-ny single-seed | ✅ CERTIFIED — UP p10=.574@cov2, DOWN p10=.572@cov2 — 15/15 paths both sides | 2026-06-11 |
 | I2 seed-ens K=3 | ✅ SUPERSEDES single-seed — mean lifts both sides all 3 covs; UP p10=.5749, DOWN p10=.5803 @cov2; incumbent book NZDUSD.m15ny_seedens.v1 | 2026-06-11 |
 | A9-asia | KILLED — UP p10=.5154 frac=0.60; DOWN p10=.5245 frac=0.733. Both sides fail all 3 covs. AUC mean≈.519 vs NY .531. Own-pair Asia pattern confirmed (4th major). | 2026-06-11 |
+| A6 xpair NY (nseed=1) | PARTIAL LIFT — DOWN CERT all covs (p10=.5772@cov2%, frac=1.0); UP NOT CERT all covs (p10=.5371@cov2%, frac=.733). AUC mean=.5345 (+.015 over base). NO SUPERSEDE: UP fails + DOWN p10 < incumbent .5803. Directional asymmetry: DOWN=Pacific risk-off joint signal (strong, frac=1.0 all covs); UP=NZD-idiosyncratic (AUDUSD features confuse). | 2026-06-11 |
