@@ -1,0 +1,89 @@
+{
+  "model": "NZDUSD.15m USDCAD-xpair VAL screen",
+  "key": "NZDUSD.15m",
+  "base_pair": "NZDUSD",
+  "xpair": "USDCAD",
+  "corr_note": "NZDUSD/USDCAD corr~.55 (weaker than AUDUSD .88 which ERA-STRUCTURALLY failed UP)",
+  "base_val_auc": 0.5219,
+  "xpair_val_auc": 0.5298915209651891,
+  "lift": 0.00799152096518907,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUME \u2014 lift < .010",
+  "xpair_match_rate_train": 0.9998951535638749,
+  "xpair_match_rate_val": 0.9992713034966556,
+  "features_base": 239,
+  "features_xpair": 239,
+  "features_total": 478,
+  "train_years": [
+    "2012",
+    "2018"
+  ],
+  "val_years": [
+    "2022",
+    "2023"
+  ],
+  "top_xp_importances": [
+    [
+      "xp_15m_autocorr_10",
+      1109
+    ],
+    [
+      "xp_5m_autocorr_10",
+      1018
+    ],
+    [
+      "xp_30m_autocorr_10",
+      1013
+    ],
+    [
+      "xp_30m_ret_1",
+      1004
+    ],
+    [
+      "xp_15m_ret_1",
+      958
+    ],
+    [
+      "xp_5m_rv_12",
+      954
+    ],
+    [
+      "xp_15m_rv_12",
+      930
+    ],
+    [
+      "xp_1h_autocorr_10",
+      921
+    ],
+    [
+      "xp_1h_ret_1",
+      901
+    ],
+    [
+      "xp_4h_autocorr_10",
+      877
+    ],
+    [
+      "xp_15m_ret_3",
+      817
+    ],
+    [
+      "xp_30m_ret_3",
+      780
+    ],
+    [
+      "xp_5m_bb_width",
+      752
+    ],
+    [
+      "xp_15m_bb_width",
+      749
+    ],
+    [
+      "xp_15m_slope_20",
+      734
+    ]
+  ],
+  "falsifier": "escalate if xpair_val_auc > base_val_auc + .010"
+}

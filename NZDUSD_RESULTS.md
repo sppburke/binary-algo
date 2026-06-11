@@ -576,7 +576,7 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 
 | tier | addressed by | result |
 |------|-------------|--------|
-| A (baseline/session/xpair) | A1, A9-ny, A9-asia, A6, A6b — all NZDUSD Tier-1 | CERT'd both sides (A9-ny I2); all avenues exhausted |
+| A (baseline/session/xpair) | A1, A9-ny, A9-asia, A6, A6b (AUDUSD), **USDCAD xpair VAL screen** — all NZDUSD Tier-1 | CERT'd both sides (A9-ny I2); USDCAD VAL +.0080 SUBSUMED; all avenues exhausted |
 | B (microstructure/OFI) | `usdcad_15m_ofi_result.json` + `usdchf_15m_ofi_result.json` | SUBSUMED (5-major null at 15m) |
 | C (state-space) | SWEEP_MATRIX C6 `usdjpy_2m_esn.py` KILLED | SUBSUMED (shorter horizon = best case; 15m worse) |
 | D (deep learning) | `usdjpy_15m_gru_result.json` + `usdcad_15m_gru_result.json` + `usdchf_15m_gru_result.json` | SUBSUMED (3/3 15m NY kills; D7/D9/N42-N44 add'l) |
@@ -588,6 +588,7 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 **Both sides certified:** UP p10=.5749@cov2% (14/15 paths) | DOWN p10=.5803@cov2% (15/15 paths).
 **Improve loops dry:** no lever remains that could plausibly lift AUC above .536 ceiling on-disk.
 - I5 seed K=8: `audusd_15m_cpcv_session_ny_seedens8_result.json` proves saturation past K=3 (UP REGRESSES −.005, DOWN mixes +.016 at cov2%; sign-inconsistent across cov). Even if projected to NZDUSD, DOWN ~.584–.595, UP ~.570–.575 — nowhere near .65.
+- USDCAD xpair VAL screen: `nzdusd_15m_usdcad_xpair_screen_result.json` — VAL AUC .5299 vs base .5219 = **+.0080** (sub-.010 threshold). Notable: largest single on-disk xpair lift for NZDUSD, still sub-threshold; top features = autocorr/returns (correlated USD momentum). Final AUC ceiling ~.530; SUBSUMED.
 **Discovery loops dry:** R1 CLOSED (on-disk topics covered, off-disk externally blocked); R2 CLOSED (academic void).
 **>65% is provably unreachable on-disk or via accessible external data** (AUC ceiling ~.535 → p10 max ~.58; see §AUC Information Bound Wall). Required: AUC ~.550 for p10=.65 (see §AUC Bound Wall); gap = +.015 from mean .5321 (or +.009 from max path .5412). No on-disk or accessible-external lever provides .010 AUC lift across 4 own-pair-family majors; F6 9-ticker comprehensive daily screen (VIX/DXY/US10Y/Gold/NZX50/ASX200/AUDNZD/Copper/HSI) confirms accessible external ceiling = +.004 AUC.
 **Path forward:** NZD-specific externally blocked features (dairy/GDT, RBNZ surprise, China PMI, NZ-US rate diff). All accessible daily market data (9 tickers) exhausted 2026-06-11 — SUBSUMED.
