@@ -217,7 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Binary-algo research artifacts (large/regenerable)
+# Binary-algo research artifacts (large/regenerable/noisy)
+logs/
+*.pt
 features/
 features_of/
 models/
