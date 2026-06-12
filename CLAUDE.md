@@ -40,7 +40,11 @@ binaries. Read this first, then the files it points to. Keep it accurate as the 
 - Python env: `~/binary-algo-venv`; pinned deps in `ENVIRONMENT_libs.txt`.
 
 ## Research discipline (from REPO_MAP — keep results trustworthy)
-- **Evidence-first.** Every number traces to an on-disk result JSON / ledger line, never prose.
+- **Evidence-first.** Every factual claim traces to primary-source evidence (an on-disk result JSON /
+  ledger line / code citation), never prose or memory. The full binding standard — tiered primary
+  sources (T1–T4), pre-committed falsifiers, forbidden hedging, and the Blocked format — is
+  **`/home/sean/git/prediction-markets/docs/_EVIDENCE-FIRST.md`** (`alwaysApply`); read and follow it.
+- Every number traces to an on-disk result JSON / ledger line, never prose.
 - **Tier-1 GENERIC docs must not bake in one key's numbers.** If a generic doc cites a result, tag it
   inline `[PAIR·tf]` and point to the Tier-2 file of record. Per-key numbers live only in
   `results/<PAIR>_RESULTS.md` / `sweeps/<PAIR>_<tf>.md`.
