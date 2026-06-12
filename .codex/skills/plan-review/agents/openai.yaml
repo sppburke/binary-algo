@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Review"
+  short_description: "Review binary-algo plans before execution"
+  default_prompt: "Use $plan-review to review this binary-algo plan before any model is fit or code is written."

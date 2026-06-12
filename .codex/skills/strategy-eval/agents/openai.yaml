@@ -1,0 +1,4 @@
+interface:
+  display_name: "Strategy Eval"
+  short_description: "Evaluate and record binary-algo strategies"
+  default_prompt: "Use $strategy-eval to evaluate this binary-algo strategy and record the result correctly."
