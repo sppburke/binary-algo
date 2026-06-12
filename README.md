@@ -136,6 +136,7 @@ binary-algo/
 ├── logs/                   ← experiment stdout logs (*.log, *.txt) and checkpoints (*.pt)
 │
 └── [data dirs at root — absolute paths hardcoded in scripts, do not move]
+    ├── macro_calendar.parquet  ← macro event calendar (both absolute + relative refs in scripts)
     ├── features/           ← main feature parquets: {PAIR}_{year}.parquet (2012–2026)
     ├── features_of/        ← order-flow features
     ├── features_tick/      ← tick-derived features

@@ -1,4 +1,4 @@
-> **SCOPE: USDJPY** (key-specific — all timeframes × sides; results of record + UP/DOWN leaderboard). Generic methods: METHODS_CATALOG.md. Sweep menu: SWEEP_MATRIX.md. See REPO_MAP.md. Bootstrapped 2026-06-04 (new currency; structure copied from EURUSD_RESULTS.md).
+> **SCOPE: USDJPY** (key-specific — all timeframes × sides; results of record + UP/DOWN leaderboard). Generic methods: docs/METHODS_CATALOG.md. Sweep menu: SWEEP_MATRIX.md. See REPO_MAP.md. Bootstrapped 2026-06-04 (new currency; structure copied from EURUSD_RESULTS.md).
 
 # USDJPY — Results Ledger (unique key: currency × timeframe × side)
 
@@ -24,7 +24,7 @@
 
 Provenance: `usdjpy_1m_base_result.json`, `usdjpy_2m_base_result.json`, `usdjpy_2m_base_s6_l255_result.json` (Tier-1).
 
-**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (USDJPY pending).
+**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `docs/MAGNITUDE_docs/FINDINGS.md` (USDJPY pending).
 
 ---
 
@@ -100,7 +100,7 @@ Per held-out year **2024 / 2025 / 2026-OOS**, moved-bars-only, deriv-faithful (t
 - gotobi/Tokyo-fix calendar (N5): null (+.0004 AUC). Magnitude→direction bridge: sign-invariant (null).
 - Discovery: round-1 5 candidates all killed; round-2 DRY (2 independent agents + their own probes). Loop dry.
 
-**The real USDJPY 1m edge is MAGNITUDE** (sign-invariant): magAUC OOS 0.72–0.79, decile |ret| lift ~2.1–2.5× (`usdjpy_1m_magnitude_result.json`, recorded in MAGNITUDE_FINDINGS.md). Not a direction deliverable.
+**The real USDJPY 1m edge is MAGNITUDE** (sign-invariant): magAUC OOS 0.72–0.79, decile |ret| lift ~2.1–2.5× (`usdjpy_1m_magnitude_result.json`, recorded in docs/MAGNITUDE_docs/FINDINGS.md). Not a direction deliverable.
 
 **Best-AVAILABLE (uncertified, NOT deployable) per side** — for the record only:
 - UP: `usdjpy_1m_base.py 6 255` up-preds, cov2% .547/.534/.538 (reproduce: `~/binary-algo-venv/bin/python usdjpy_1m_base.py 6 255`). No book frozen (sub-breakeven, not a deliverable; 1m < deriv 15m forex minimum anyway → research/synthetic-index horizon only).
@@ -172,7 +172,7 @@ Breakeven 0.541. **Prior: 2m is the transition horizon** (EURUSD 1m~.50 → 2m U
 2. **Triangular EURJPY** (USDJPY = EURJPY/EURUSD dislocation residual) — needs EURJPY 1m bars (not on disk; only 7 USD-majors present). Sign-carrying.
 3. **Intraday US–JP 2y rate differential** (carry driver) + **JPY 25-delta risk-reversal** (DOWN-enabler) — slower drift, helps longer horizons more than 2m but structurally USDJPY-specific.
 
-**Magnitude (sign-invariant, separate deliverable):** USDJPY 2m magnitude is STRONG — magAUC Q90 **.827/.772/.785**, Q75 .780/.718/.722, decile lift ~2.1–2.5× (`usdjpy_2m_magnitude_result.json`). Recorded in MAGNITUDE_FINDINGS.md. The sign-invariance signature holds (magAUC ~.78 vs dirAUC ~.52).
+**Magnitude (sign-invariant, separate deliverable):** USDJPY 2m magnitude is STRONG — magAUC Q90 **.827/.772/.785**, Q75 .780/.718/.722, decile lift ~2.1–2.5× (`usdjpy_2m_magnitude_result.json`). Recorded in docs/MAGNITUDE_docs/FINDINGS.md. The sign-invariance signature holds (magAUC ~.78 vs dirAUC ~.52).
 
 ---
 

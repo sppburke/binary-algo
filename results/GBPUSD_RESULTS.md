@@ -1,4 +1,4 @@
-> **SCOPE: GBPUSD** (key-specific — results of record + UP/DOWN leaderboard). Generic methods: METHODS_CATALOG.md. Sweep menu: SWEEP_MATRIX.md. See REPO_MAP.md. Bootstrapped 2026-06-09 (new currency; structure copied from AUDUSD_RESULTS.md / EURUSD_RESULTS.md). Current scope: **15m only** (deriv-FX-deployable floor + program's best direction horizon).
+> **SCOPE: GBPUSD** (key-specific — results of record + UP/DOWN leaderboard). Generic methods: docs/METHODS_CATALOG.md. Sweep menu: SWEEP_MATRIX.md. See REPO_MAP.md. Bootstrapped 2026-06-09 (new currency; structure copied from AUDUSD_RESULTS.md / EURUSD_RESULTS.md). Current scope: **15m only** (deriv-FX-deployable floor + program's best direction horizon).
 
 # GBPUSD — Results Ledger (unique key: currency × timeframe × side)
 
@@ -20,7 +20,7 @@
 | GBPUSD · **15m** · DOWN | **xpair-NY K=8 refit-CPCV p10 .6255 @cov2 / .6395 @cov1 (15/15 every cov); means .6449 / .6660** ✅ CERTIFIED, REFIT-DEPENDENT | same book as UP: `GBPUSD.m15ny_xpair_seedens8.v1` `9ee9a4634a6b73e0`; `gbpusd_15m_cpcv_xpair_ny_seedens8_result.json` | **K=8 unseats K=3** (+.0101 @cov2 — the STRONGEST lift in the K=8 run; +.0072 @cov1). >65% floor open (mean .666; refit-p10 .6395 — recent-regime era binds; improve loop exhausted: orthochan all ADDS=False, K>8 diminishing returns). | ✅ CERTIFIED + FROZEN (xpair-NY K=8 refit-CPCV) 2026-06-10 |
 | GBPUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
-**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (GBPUSD pending).
+**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `docs/MAGNITUDE_docs/FINDINGS.md` (GBPUSD pending).
 
 ---
 

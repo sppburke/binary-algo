@@ -1,4 +1,4 @@
-> **SCOPE: USDCAD** (key-specific — results of record + UP/DOWN leaderboard). Generic methods: METHODS_CATALOG.md. Sweep menu: SWEEP_MATRIX.md. See REPO_MAP.md. Bootstrapped 2026-06-10 (new currency; structure copied from AUDUSD_RESULTS.md / USDJPY_RESULTS.md). Current scope: **15m only** (deriv-FX-deployable floor + program's best direction horizon).
+> **SCOPE: USDCAD** (key-specific — results of record + UP/DOWN leaderboard). Generic methods: docs/METHODS_CATALOG.md. Sweep menu: SWEEP_MATRIX.md. See REPO_MAP.md. Bootstrapped 2026-06-10 (new currency; structure copied from AUDUSD_RESULTS.md / USDJPY_RESULTS.md). Current scope: **15m only** (deriv-FX-deployable floor + program's best direction horizon).
 
 # USDCAD — Results Ledger (unique key: currency × timeframe × side)
 
@@ -23,7 +23,7 @@
 | USDCAD · **15m** · DOWN | **NY seed-ens K=3 refit-CPCV p10 .5814 @cov5 / .5805 @cov3 / .577 @cov2 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate; book `USDCAD.m15ny_seedens.v1` ✅ FROZEN (content_id ddb4a78c) | NY-concentrated; certifies every cov (cov1 14/15). DOWN peaks at wider cov (cov5 .5814) vs UP at tight cov — slightly below UP on the refit floor. REFIT-DEPENDENT. | **CERTIFIED (NY seed-ens refit-CPCV) 2026-06-10** |
 | USDCAD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar data present (no tick). Bootstrap when scoped. | UNTESTED |
 
-**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `MAGNITUDE_FINDINGS.md` (USDCAD pending).
+**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `docs/MAGNITUDE_docs/FINDINGS.md` (USDCAD pending).
 
 ---
 
@@ -132,7 +132,7 @@ _(tables populated as rows complete — see sweep ledger `sweeps/USDCAD_15m.md` 
 - **Meta-label 'avoid-losers' gate** — `usdcad_15m_metagate.py`: orthogonal-axes (cross-pair/risk/agree/session) meta-correctness AUC **.5298 ≤ .53** (axes+conf .5374) → viable=False, KILLED. The axes carry no incremental WHEN-CORRECT info, same as EURUSD (.502) / AUDUSD (.5294). `usdcad_15m_metagate_result.json`.
 - **Two-speed momentum sign-agreement (R1-1)** — `usdcad_15m_twospeed.py`: NY base+twospeed VAL AUC Δ−0.0005, no ts_ feature in top-20 → KILLED (the base's `mtf_trend_align` + multi-tf ret/ema/macd already capture it). `usdcad_15m_twospeed_result.json`.
 - **kNN regime-matcher (R1-3)** — `usdcad_15m_knn.py`: kNN VAL AUC .5068 ≪ GBM .5433; corr(kNN,GBM) .211 (decorrelated) but 50/50 blend Δ−0.0175 → KILLED (decorrelated-but-equally-weak → dilutes; the AUDUSD cross-horizon-stack lesson). `usdcad_15m_knn_result.json`.
-- **Magnitude→direction bridge (E2, petrocurrency angle) (R1-bonus)** — `usdcad_15m_magdir.py`: **KILLED.** Bucketing NY moved bars by predicted-magnitude quartile, the direction-AUC profile is **flat-to-decreasing** (2024 Q1 .550→Q4 .526; 2026 Q1 .516→Q4 **.500**), and Q4(high-mag) never beats Q1+.010 nor clears BE → **the petrocurrency hypothesis (oil-driven big moves carry cleaner SIGN) is REFUTED**; sign-invariance holds for USDCAD. **BONUS — the auxiliary magnitude model is STRONG (magAUC .751/.717/.697 forward), confirming USDCAD has the program's magnitude edge** (move-SIZE, sign-invariant) → recorded in `MAGNITUDE_FINDINGS.md`. `usdcad_15m_magdir_result.json`.
+- **Magnitude→direction bridge (E2, petrocurrency angle) (R1-bonus)** — `usdcad_15m_magdir.py`: **KILLED.** Bucketing NY moved bars by predicted-magnitude quartile, the direction-AUC profile is **flat-to-decreasing** (2024 Q1 .550→Q4 .526; 2026 Q1 .516→Q4 **.500**), and Q4(high-mag) never beats Q1+.010 nor clears BE → **the petrocurrency hypothesis (oil-driven big moves carry cleaner SIGN) is REFUTED**; sign-invariance holds for USDCAD. **BONUS — the auxiliary magnitude model is STRONG (magAUC .751/.717/.697 forward), confirming USDCAD has the program's magnitude edge** (move-SIZE, sign-invariant) → recorded in `docs/MAGNITUDE_docs/FINDINGS.md`. `usdcad_15m_magdir_result.json`.
 - **K=8 seed-ens saturation** — `usdcad_15m_cpcv_session.py ny ..8`: K=8 vs K=3 p10 mixed ±.002-.008, sign-inconsistent across cov/side (cov2 COMB .6047 marginally best, cov5 DOWN/COMB slightly worse) — within CPCV-path noise → **SATURATED**, K=3 retained for parsimony. 239-feat own-pair saturates at K=3 (AUDUSD/USDJPY pattern; only GBPUSD's 340-feat xpair lifted at K=8). `usdcad_15m_cpcv_session_ny_seedens8_result.json`.
 
 ---
