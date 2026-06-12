@@ -11,16 +11,16 @@ description: >
   UP and DOWN predictor for a (currency, timeframe). Triggers: "evaluate this strategy", "reverse engineer a
   model for <pair>/<timeframe>", "does <method> work at <horizon>", "best <X>-minute strategy for <currency>",
   "sweep all the models/methods", "try every permutation", "find new model ideas", "add a result to the
-  ledger", "freeze a book", or references a GitHub issue such as "#222" as the run spec.
+  ledger", "freeze a book", or references a GitHub issue such as "#<issue-number>" as the run spec.
 ---
 
 # Strategy evaluation & reverse-engineering (binary direction / magnitude)
 
 ## GitHub Issue Hand-Offs
 
-- A bare issue reference like `#222` means `https://github.com/sppburke/binary-algo/issues/222`.
+- A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
 - If the request includes an issue reference, fetch it before selecting a backlog row:
-  `gh issue view 222 -R sppburke/binary-algo --json number,title,body,url,state,labels,comments`.
+  `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments`.
 - Use the issue title/body as the run spec unless a more specific local ledger row is explicitly named. Do not ask
   the user to paste the issue unless `gh` cannot access it.
 - Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If

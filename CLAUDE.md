@@ -30,6 +30,9 @@ binaries. Read this first, then the files it points to. Keep it accurate as the 
 | Feature data + `macro_calendar.parquet` | **repo root** (absolute paths hardcoded — do not move) |
 
 ## Operational rules (non-negotiable)
+- **Tracked-file edits require `dev-cycle`.** If a task will create, edit, delete, move, stage, commit, or otherwise
+  change any git-tracked file in this repo, invoke and follow the `dev-cycle` skill from the start. Pure read-only
+  inspection does not require `dev-cycle`; any transition from inspection to tracked-file mutation does.
 - **Run scripts from the repo root**, never from `scripts/`: `python scripts/<name>.py`. This is what
   makes `import harness`, `from sessions import ...` resolve (Python adds `scripts/` to `sys.path[0]`)
   and what makes the hardcoded `features/` absolute paths line up.

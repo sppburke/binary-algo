@@ -1,6 +1,6 @@
 ---
 name: plan-review
-description: Review a binary-algo experiment plan, method design, sweep plan, new-key bootstrap, infra spec, or GitHub issue before execution. Use for plan soundness, leakage checks, repo fit, and minimum viable scope. If invoked with `#222`, review issue 222 from `sppburke/binary-algo`.
+description: Review a binary-algo experiment plan, method design, sweep plan, new-key bootstrap, infra spec, or GitHub issue before execution. Use for plan soundness, leakage checks, repo fit, and minimum viable scope. If invoked with `#<issue-number>`, review issue <issue-number> from `sppburke/binary-algo`.
 ---
 
 # plan-review
@@ -10,8 +10,8 @@ experiment, fit a model, freeze a book, or rewrite the plan into a new plan.
 
 ## GitHub Issue Inputs
 
-- A bare issue reference like `#222` means `https://github.com/sppburke/binary-algo/issues/222`.
-- Fetch it before normalizing the plan: `gh issue view 222 -R sppburke/binary-algo --json number,title,body,url,state,labels`.
+- A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
+- Fetch it before normalizing the plan: `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels`.
 - Use the issue title/body/comments supplied by the user as the plan artifact. Do not ask the user to paste the
   issue unless `gh` cannot access it.
 - Use the locally configured `sppburke` GitHub token/account. If `gh` is on the wrong active account or repo lookup

@@ -1,6 +1,6 @@
 ---
 name: dev-cycle
-description: Full development iteration for binary-algo — analyse, plan, implement, run the local evidence gate (smoke-run + evaluation discipline), self-review, then commit and push to main, update/close the driving GitHub issue when present, and archive artifacts. Use for "next phase", "ship change X", "implement Y", "add the harness/module/script", "do the reorg", or any engineering/infra/tooling/doc work that ends in a push to main. If invoked with `#222`, treat it as issue 222 in `sppburke/binary-algo`. For evaluating or sweeping a STRATEGY at a (currency, timeframe, side), use the `strategy-eval` skill instead — this skill is for code/infra/doc changes; it defers the evaluation protocol to `strategy-eval`.
+description: Full development iteration for binary-algo — analyse, plan, implement, run the local evidence gate (smoke-run + evaluation discipline), self-review, then commit and push to main, update/close the driving GitHub issue when present, and archive artifacts. Use for "next phase", "ship change X", "implement Y", "add the harness/module/script", "do the reorg", or any engineering/infra/tooling/doc work that ends in a push to main. If invoked with `#<issue-number>`, treat it as issue <issue-number> in `sppburke/binary-algo`. For evaluating or sweeping a STRATEGY at a (currency, timeframe, side), use the `strategy-eval` skill instead — this skill is for code/infra/doc changes; it defers the evaluation protocol to `strategy-eval`.
 ---
 
 # Dev Cycle
@@ -14,9 +14,9 @@ Terse, high information density. Final summary lists every shortcut, hack, or sk
 
 ## GitHub Issue Workflow
 
-- A bare issue reference like `#222` means `https://github.com/sppburke/binary-algo/issues/222`.
+- A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
 - If the request includes an issue reference, fetch it during analysis with
-  `gh issue view 222 -R sppburke/binary-algo --json number,title,body,url,state,labels,comments` and treat the
+  `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments` and treat the
   issue body as the task spec. Do not ask the user to paste the issue unless `gh` cannot access it.
 - Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If `gh`
   is on the wrong active account or repo lookup fails, run `gh auth switch -u sppburke` and verify with

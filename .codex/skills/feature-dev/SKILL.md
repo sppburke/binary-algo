@@ -27,8 +27,8 @@ and ask about all underspecified details, design well-mechanised candidate appro
   was) traces to a Tier-1 source per `docs/_EVIDENCE-FIRST.md`. No "probably already tried" — grep it.
 - **Use the task plan**: Track progress through the phases.
 - **GitHub issue hand-off**: The durable output of this skill is a GitHub issue in `sppburke/binary-algo`, no
-  questions asked. If the request references an existing issue like `#222`, treat it as
-  `https://github.com/sppburke/binary-algo/issues/222`, read it with `gh issue view 222 -R sppburke/binary-algo`,
+  questions asked. If the request references an existing issue like `#<issue-number>`, treat it as
+  `https://github.com/sppburke/binary-algo/issues/<issue-number>`, read it with `gh issue view <issue-number> -R sppburke/binary-algo`,
   and update/comment that issue instead of creating a duplicate. Otherwise create a new issue with the finalized
   plan.
 - **GitHub auth**: Use the locally configured `sppburke` GitHub token/account. Prefer commands with
@@ -58,7 +58,7 @@ and ask about all underspecified details, design well-mechanised candidate appro
 Initial request: the user's description from the invoking message. If they only said "use feature-dev to plan X"
 without specifics, jump to the clarifying questions in step 2.
 
-If the invoking message contains a GitHub issue reference like `#222`, fetch that issue first and use its title/body
+If the invoking message contains a GitHub issue reference like `#<issue-number>`, fetch that issue first and use its title/body
 as the initial request. The issue number always refers to `sppburke/binary-algo`.
 
 **Actions**:
@@ -171,8 +171,8 @@ in `sppburke/binary-algo`. **Do not write or run any experiment code in this ski
    phases 1–4 should be able to act on it.
 
 3. **File it as a GitHub issue**:
-   - Existing issue referenced (`#222`): post the finalized plan as a comment or update the issue body when the
-     user asked for an update. Use `gh issue comment 222 -R sppburke/binary-algo --body-file <file>`.
+   - Existing issue referenced (`#<issue-number>`): post the finalized plan as a comment or update the issue body when the
+     user asked for an update. Use `gh issue comment <issue-number> -R sppburke/binary-algo --body-file <file>`.
    - No issue referenced: create one with `gh issue create -R sppburke/binary-algo --title "<title>" --body-file <file>`.
    - Include enough detail for `strategy-eval` or `dev-cycle` to pick it up without conversation context.
    - Do **not** ask where to file the plan; GitHub issue filing is the default for this repo.

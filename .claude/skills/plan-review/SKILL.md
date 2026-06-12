@@ -7,7 +7,7 @@ description: >-
   model is fit or code is written. Outputs a verdict (approve /
   approve-with-revisions / reject) plus Blocking and Should-fix findings, each
   with an exact plan delta and a tier-cited evidence trail. Use whenever the
-  user shares a not-yet-run plan, cites an issue like #222, and asks whether it
+  user shares a not-yet-run plan, cites an issue like #<issue-number>, and asks whether it
   is ready, sound, leakage-free, internally consistent, minimum-viable, or
   whether it "follows our discipline" — and whenever they say "review this
   plan", "check this experiment design before I run it", "is this sound enough
@@ -26,8 +26,8 @@ experiment, fit a model, freeze a book, or rewrite the plan into a new plan.
 
 ## GitHub Issue Inputs
 
-- A bare issue reference like `#222` means `https://github.com/sppburke/binary-algo/issues/222`.
-- Fetch it before normalizing the plan: `gh issue view 222 -R sppburke/binary-algo --json number,title,body,url,state,labels`.
+- A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
+- Fetch it before normalizing the plan: `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels`.
 - Use the issue title/body/comments supplied by the user as the plan artifact. Do not ask the user to paste the
   issue unless `gh` cannot access it.
 - Use the locally configured `sppburke` GitHub token/account. If `gh` is on the wrong active account or repo lookup
