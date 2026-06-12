@@ -1,0 +1,17 @@
+{
+  "model": "NZDUSD.15m dual-xpair (AUDUSD+USDCAD) single-seed VAL screen",
+  "base_val_auc": 0.5219,
+  "own_k3_val_auc": 0.5362,
+  "dual_xpair_val_auc": 0.527058154345297,
+  "lift_vs_base": 0.005158154345296984,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUMED",
+  "features_base": 239,
+  "features_audusd": 239,
+  "features_usdcad": 239,
+  "features_total": 717,
+  "imp_share_nzdusd": 0.3635301837270341,
+  "imp_share_audusd": 0.3133727034120735,
+  "imp_share_usdcad": 0.3230971128608924
+}

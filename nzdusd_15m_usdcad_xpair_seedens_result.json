@@ -1,0 +1,17 @@
+{
+  "model": "NZDUSD.15m USDCAD-xpair seed-ens K=3 VAL screen",
+  "seeds": [
+    42,
+    0,
+    7
+  ],
+  "base_val_auc": 0.5219,
+  "own_k3_val_auc": 0.5362,
+  "xpair_seedens_val_auc": 0.5291828151033465,
+  "lift_vs_base": 0.007282815103346496,
+  "lift_vs_own_k3": -0.007017184896653483,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUMED \u2014 below .5319",
+  "features_total": 478
+}
