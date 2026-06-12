@@ -1,0 +1,20 @@
+{
+  "model": "NZDUSD 15m D1 clean (shift=1, NO lookahead)",
+  "features": [
+    "d1_ret_1",
+    "d1_ret_5",
+    "d1_above_ema20",
+    "d1_above_ema100"
+  ],
+  "lookahead_fix": "shift(1) on d1_close_raw before computing EMA/ret",
+  "previous_auc_was_invalid": 0.5471,
+  "base_val_auc_ref": 0.5219,
+  "base_val_auc_check": 0.5257050914476074,
+  "own_k3_val_auc": 0.5362,
+  "d1_clean_val_auc": 0.5256523973465861,
+  "lift_vs_ref": 0.003752397346586056,
+  "lift_vs_check": -5.2694101021266704e-05,
+  "d1_importance_share": 0.014816272965879266,
+  "escalate": false,
+  "decision": "SUBSUMED"
+}
