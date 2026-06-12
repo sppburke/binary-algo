@@ -76,7 +76,8 @@ binary-algo/
 ├── MODEL_REGISTRY.md       ← all frozen books, content_ids, status (active/superseded)
 ├── SWEEP_MATRIX.md         ← all (pair, tf, side) combinations and sweep status
 ├── REPO_MAP.md             ← file-naming conventions and organisation rules
-├── ENVIRONMENT_libs.txt    ← pip dependency list
+├── ENVIRONMENT_libs.txt    ← research-stack dependency record
+├── requirements-deriv-demo.txt ← pinned Deriv demo executor runtime deps
 │
 ├── books/                  ← frozen certified models (one subdir per book)
 │   ├── USDCHF.m15ny_xpair_seedens.v1/   ← best: >65% both sides
@@ -163,6 +164,27 @@ python scripts/usdchf_15m_cpcv_xpair.py
 ```
 
 Python imports work automatically — `python scripts/foo.py` adds `scripts/` to `sys.path[0]`, so `import harness`, `import sessions`, etc. resolve correctly.
+
+## Package Manager / Pinned Runtime
+
+The package-manager path for the Deriv demo executor is `uv` with a pip-compatible pinned requirements file:
+
+```bash
+# Tooling versions verified in this checkout on 2026-06-12:
+# uv==0.11.7
+# pip==24.0 inside ~/binary-algo-venv
+
+uv venv ~/binary-algo-venv --python 3.12
+uv pip sync requirements-deriv-demo.txt --python ~/binary-algo-venv/bin/python
+```
+
+Fallback if `uv` is unavailable:
+
+```bash
+~/binary-algo-venv/bin/python -m pip install -r requirements-deriv-demo.txt
+```
+
+`requirements-deriv-demo.txt` pins the executor runtime packages used by `scripts/deriv_client.py`, `scripts/book_runtime.py`, `scripts/live_features.py`, and `scripts/deriv_demo_executor.py`. `ENVIRONMENT_libs.txt` remains the broader research-stack dependency record.
 
 ---
 

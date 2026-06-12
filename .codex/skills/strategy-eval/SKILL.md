@@ -9,12 +9,12 @@ description: Evaluate, retarget, sweep, freeze, or record a binary-algo directio
 
 - A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
 - If the request includes an issue reference, fetch it before selecting a backlog row:
-  `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments`.
+  `GH_TOKEN="$(gh auth token --user sppburke)" gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments`.
 - Use the issue title/body as the run spec unless a more specific local ledger row is explicitly named. Do not ask
-  the user to paste the issue unless `gh` cannot access it.
+  the user to paste the issue unless the token-prefixed `gh` command cannot access it.
 - Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If
-  `gh` is on the wrong active account or repo lookup fails, run `gh auth switch -u sppburke` and verify with
-  `gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
+  GitHub access needs an explicit account token, use `GH_TOKEN="$(gh auth token --user sppburke)" gh <your command>` and verify with
+  `GH_TOKEN="$(gh auth token --user sppburke)" gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
 - After a successful push to `main`, comment on the driving issue with what was evaluated/recorded/frozen, the
   commit SHA, result JSON/ledger/book paths, checks, and any skipped checks. Close the issue only after the commit
   is on `main`.

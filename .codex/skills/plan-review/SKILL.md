@@ -11,12 +11,11 @@ experiment, fit a model, freeze a book, or rewrite the plan into a new plan.
 ## GitHub Issue Inputs
 
 - A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
-- Fetch it before normalizing the plan: `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels`.
+- Fetch it before normalizing the plan: `GH_TOKEN="$(gh auth token --user sppburke)" gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels`.
 - Use the issue title/body/comments supplied by the user as the plan artifact. Do not ask the user to paste the
-  issue unless `gh` cannot access it.
-- Use the locally configured `sppburke` GitHub token/account. If `gh` is on the wrong active account or repo lookup
-  fails, run `gh auth switch -u sppburke` and verify with
-  `gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
+  issue unless the token-prefixed `gh` command cannot access it.
+- Use the locally configured `sppburke` GitHub token/account. If GitHub access needs an explicit account token, use `GH_TOKEN="$(gh auth token --user sppburke)" gh <your command>` and verify with
+  `GH_TOKEN="$(gh auth token --user sppburke)" gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
 - The review output should name the issue number and URL. Do not edit, close, or comment on the issue unless the
   user explicitly asks you to post the review.
 

@@ -16,11 +16,10 @@ Terse, high information density. Final summary lists every shortcut, hack, or sk
 
 - A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
 - If the request includes an issue reference, fetch it during analysis with
-  `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments` and treat the
-  issue body as the task spec. Do not ask the user to paste the issue unless `gh` cannot access it.
-- Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If `gh`
-  is on the wrong active account or repo lookup fails, run `gh auth switch -u sppburke` and verify with
-  `gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
+  `GH_TOKEN="$(gh auth token --user sppburke)" gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments` and treat the
+  issue body as the task spec. Do not ask the user to paste the issue unless the token-prefixed `gh` command cannot access it.
+- Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If GitHub access needs an explicit account token, use `GH_TOKEN="$(gh auth token --user sppburke)" gh <your command>` and verify with
+  `GH_TOKEN="$(gh auth token --user sppburke)" gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
 - After the change is pushed to `main`, comment on the driving issue with what shipped, the commit SHA, the checks
   run, and any skipped checks/shortcuts. Then close the issue once the commit is on `main`.
 - This repo ships direct to `main`; if a PR exists for the issue, mention it in the closeout comment, but do not
@@ -85,7 +84,7 @@ git status --short                     # is the tree clean / what's untracked
 git log --oneline -3 -- results/ books/ docs/   # recent record-of-truth changes
 ```
 
-If an issue reference was provided, fetch the issue with `gh issue view <n> -R sppburke/binary-algo ...` before
+If an issue reference was provided, fetch the issue with `GH_TOKEN="$(gh auth token --user sppburke)" gh issue view <n> -R sppburke/binary-algo ...` before
 deciding scope, and include its number/title in the plan.
 
 For recent commits that touch the area you're about to change, read the diff (`git show <sha>`). Identify new
@@ -260,8 +259,8 @@ If push is rejected (non-fast-forward), STOP, sync, re-gate, retry. Do not force
 If this work came from a GitHub issue, update the issue after the successful push:
 
 ```bash
-gh issue comment <n> -R sppburke/binary-algo --body "<what shipped, commit SHA, checks, skipped checks>"
-gh issue close <n> -R sppburke/binary-algo
+GH_TOKEN="$(gh auth token --user sppburke)" gh issue comment <n> -R sppburke/binary-algo --body "<what shipped, commit SHA, checks, skipped checks>"
+GH_TOKEN="$(gh auth token --user sppburke)" gh issue close <n> -R sppburke/binary-algo
 ```
 
 Only close after `git push` succeeds and the shipped commit is confirmed on `main`.
