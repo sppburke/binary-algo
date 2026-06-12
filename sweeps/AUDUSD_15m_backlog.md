@@ -1,4 +1,4 @@
-SCOPE: AUDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, discovery rounds). Ledger/status: `AUDUSD_15m.md`. Results: `AUDUSD_RESULTS.md`. Generic ideas: `IDEAS_LOG.md`.
+SCOPE: AUDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, discovery rounds). Ledger/status: `AUDUSD_15m.md`. Results: `results/AUDUSD_RESULTS.md`. Generic ideas: `docs/IDEAS_LOG.md`.
 
 # AUDUSD 15m direction — executable backlog
 

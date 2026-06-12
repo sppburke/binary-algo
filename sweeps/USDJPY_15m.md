@@ -1,4 +1,4 @@
-> **SCOPE: USDJPY · 15m** (key-specific SWEEP LEDGER — resumable row-by-row state of the exhaustive direction sweep). Generic menu: SWEEP_MATRIX.md. Methods: METHODS_CATALOG.md. Results of record: USDJPY_RESULTS.md. Backlog/discovery: sweeps/USDJPY_15m_backlog.md. Opened 2026-06-08.
+> **SCOPE: USDJPY · 15m** (key-specific SWEEP LEDGER — resumable row-by-row state of the exhaustive direction sweep). Generic menu: SWEEP_MATRIX.md. Methods: docs/METHODS_CATALOG.md. Results of record: results/USDJPY_RESULTS.md. Backlog/discovery: sweeps/USDJPY_15m_backlog.md. Opened 2026-06-08.
 
 # USDJPY × 15m — Direction Sweep Ledger (UP & DOWN, symmetric)
 
@@ -8,7 +8,7 @@
 - 15m is the **deriv-FX-deployable minimum** expiry (deriv forex Rise/Fall floor) AND the program's **strongest direction horizon**: EURUSD 15m cross-pair POOLED certified BOTH sides via refit-CPCV (UP p10 .567 / DOWN p10 .574 — the program's best DOWN edge).
 - The cross-pair sign gradient is **horizon-gated: none@60s → UP@5m → BOTH@10m & 15m** (EURUSD keystone). USDJPY 2m pooling lifted the mean above the 1m floor but p10 saturated ~.531 (sub-BE). The gradient predicts **USDJPY 15m pooling should cross BE**.
 - Direction edge is **NY-session-concentrated** (EURUSD A9: 15m NY cross-pair .5845/.5712, LDN/Asia null).
-- Prior hook: a cross-horizon probe at 1m showed USDJPY H=15m UP 2024 .593 (cleared!) but 2025/OOS sub-BE (`USDJPY_RESULTS.md:116`) — a 15m-specific signal worth chasing directly.
+- Prior hook: a cross-horizon probe at 1m showed USDJPY H=15m UP 2024 .593 (cleared!) but 2025/OOS sub-BE (`results/USDJPY_RESULTS.md:116`) — a 15m-specific signal worth chasing directly.
 
 **Discipline (every row):** deriv-faithful settlement (bar-close approx, ties LOSE), `nonoverlap_chrono` gap=900s, train 2012-21 / val 2022-23 / test 2024 / test 2025 / oos 2026, selection on VAL worst-half (never VAL-acc-max), moved-bars only + up-rate tripwire ∈ [0.47,0.53], pre-registered falsifier in result JSON BEFORE OOS, COMBINED + UP-split + DOWN-split scored per-year with CI95. Certify ONLY via per-fold-refit CPCV (p10 ≥ 0.541 AND ≥80% folds clear). One heavy fit at a time. Commit after each row.
 
@@ -117,7 +117,7 @@ Incumbents to beat: UP p10 .586 / DOWN p10 .572 (NY). Challengers must beat the 
   - **C4 CCM convergent cross-mapping** (lagged causal, USD-majors): best held-out moved-AUC **.4983** (selected driver USDCHF E=4 tp=1, cross-map ρ_Lmax=.0376 — weak + no own-sign), 0 cov3 clears. Reconfirms A6: cross-pair causal structure does NOT carry USDJPY own 15m sign. `usdjpy_15m_ccm_result.json`.
   - **C5 ARF online adaptive forest** (river ARF+ADWIN, leakage-corrected deferred-learn by realize-ts): held-out moved-AUC {.5011,.4989,.4925} ~.50 every year, all-null. **NOTE: the earlier AUC≈.85 was a prequential leak (learn-one released bar i's 15m-horizon label before predicting overlapping bars i+1..i+14); the deferred-learn fix collapses it to ~.50 — confirms the efficiency keystone at 15m.** `usdjpy_15m_arf_result.json`.
   - Verdict matches sign-invariance (state/complexity statistics gate SIZE not SIGN) AND confirms the wall is an information bound, not removable by online adaptation. The certified NY edge survives because it is engineered-TA conditional structure, not a state/complexity/cross-map statistic.
-- **D1 GRU/CNN, DL/spectral/foundation** — SUBSUMED (Tier-1): neural+spectral DIRECTION sweep KILLED 84/84 arms all EURUSD tf (THEORY.md); Kronos/Chronos null all horizons; info-bound caps DL at the .53 AUC.
+- **D1 GRU/CNN, DL/spectral/foundation** — SUBSUMED (Tier-1): neural+spectral DIRECTION sweep KILLED 84/84 arms all EURUSD tf (docs/THEORY.md); Kronos/Chronos null all horizons; info-bound caps DL at the .53 AUC.
 - **E2 mag→dir / E3 complexity / E4 info-bars** — **E2+E3 RAN (2026-06-08) → KILLED; E4 DATA-LIMITED** (Tier-1).
   - **E2 direction-conditioned-on-magnitude** (base NY dir GBM × magnitude-quartile bucket): dir-AUC **FLAT across magnitude quartiles** (Q4 beats Q1+base in 0 yrs; held-out full-NY dir-AUC ~.531). The SAME bars carry a clean **magnitude** edge (mag-AUC .79) but no extra SIGN — textbook sign-invariance (arXiv:2512.15720). `usdjpy_15m_magdir_result.json`.
   - **E3 complexity/predictability gates** (entropy/Hurst/etc. bucketing of NY moved bars): conditional dir-AUC flat across complexity bins (max spread .038), standalone stat-AUC ~coin-flip, low-complexity-gated WR clears BE in only 1 yr (test24). KILLED for DIRECTION. `usdjpy_15m_complexity_result.json`.
@@ -140,4 +140,4 @@ The named "external data" frontier became available: full bid/ask + **quote-volu
 - **Remaining tick frontiers (OUT of the 15m-direction goal):** seconds-horizon (1-5s) direction (~.65 per program prior — needs a non-15m tick venue / synthetic index; deriv FX min expiry is 15m); tick-derived MAGNITUDE (sign-invariant → magnitude-book lever, separate key).
 
 ## RESUMABILITY
-This ledger IS the state. On resume, continue from the first `pending`/`running` row; never repeat a `done` row. Update USDJPY_RESULTS.md (master table + per-tf + leaderboard) and this ledger together; commit after each row.
+This ledger IS the state. On resume, continue from the first `pending`/`running` row; never repeat a `done` row. Update results/USDJPY_RESULTS.md (master table + per-tf + leaderboard) and this ledger together; commit after each row.

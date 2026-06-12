@@ -5,7 +5,7 @@ description: >
   (/home/sean/git/binary-algo) and record the result correctly. Use whenever the task is to test a
   model/methodology at a (currency, timeframe, side); retarget an existing method to a new horizon or
   currency; reference/load/freeze a model from the registry (books/); or write a result into a
-  <PAIR>_RESULTS.md. Enforces the deriv-faithful evaluation discipline and the unique-key results schema so
+  results/<PAIR>_RESULTS.md. Enforces the deriv-faithful evaluation discipline and the unique-key results schema so
   results are trustworthy and comparable. Also drives the EXHAUSTIVE + GENERATIVE SWEEP (§8): work through every
   permutation in SWEEP_MATRIX.md variant by variant AND research/invent new methods to append, to find the best
   UP and DOWN predictor for a (currency, timeframe). Triggers: "evaluate this strategy", "reverse engineer a
@@ -22,31 +22,31 @@ artifacts of broken discipline, and the program has already catalogued how.**
 
 ## 0. The unique key and where results go
 Every result is keyed `(currency, timeframe, side)`, side ∈ {UP, DOWN} (COMBINED is context, not a side key).
-Results for a currency live in `<PAIR>_RESULTS.md` (e.g. `EURUSD_RESULTS.md`). A new currency gets its own
-file, copied from `EURUSD_RESULTS.md`'s exact structure. **Never pool across timeframes; never copy one
+Results for a currency live in `results/<PAIR>_RESULTS.md` (e.g. `results/EURUSD_RESULTS.md`). A new currency gets its own
+file, copied from `results/EURUSD_RESULTS.md`'s exact structure. **Never pool across timeframes; never copy one
 timeframe's or one side's number into another key.**
 
 ### 0a. GENERIC ↔ KEY-SPECIFIC file convention (READ `REPO_MAP.md` — enforce it)
 Every doc is exactly one tier; keep them clean as keys multiply:
-- **GENERIC** (currency/timeframe-agnostic): `METHODS_CATALOG.md` (methods), `SWEEP_MATRIX.md` (permutation
-  menu), `IDEAS_LOG.md` (transferable idea→experiment backlog + falsifier templates), `THEORY.md` (sign-invariance,
-  direction ceiling, settlement), `GOAL_PROMPT.md`, `research/**`. **Never bake a single key's incumbents/numbers
+- **GENERIC** (currency/timeframe-agnostic): `docs/METHODS_CATALOG.md` (methods), `SWEEP_MATRIX.md` (permutation
+  menu), `docs/IDEAS_LOG.md` (transferable idea→experiment backlog + falsifier templates), `docs/THEORY.md` (sign-invariance,
+  direction ceiling, settlement), `docs/GOAL_PROMPT.md`, `research/**`. **Never bake a single key's incumbents/numbers
   into these** — if you must cite a result as an example, tag it inline `[PAIR·tf]` and point to the Tier-2 file.
 - **KEY-SPECIFIC** (named/labeled by the key — ALL incumbents/numbers/results/backlogs live here):
-  `<PAIR>_RESULTS.md` (results of record + leaderboard), `sweeps/<PAIR>_<tf>.md` (sweep LEDGER / status),
+  `results/<PAIR>_RESULTS.md` (results of record + leaderboard), `sweeps/<PAIR>_<tf>.md` (sweep LEDGER / status),
   **`sweeps/<PAIR>_<tf>_backlog.md` (the per-key EXECUTABLE backlog — TOP-N experiments, FIRST-TO-RUN queue,
-  incumbents-to-beat, discovery rounds)**, `MAGNITUDE_FINDINGS.md` (per-currency), `MODEL_REGISTRY.md`+`books/`.
-- Legacy key-specific files keep their names (`research_log.md`, `m{5,10,30}_research_log.md`, `EXPERIMENT_LEDGER.md`,
-  `FINDINGS.md`, `DIRECTION_FINDINGS.md`, `CCM_DESIGN.md`) but each carries a `SCOPE:` banner declaring its key —
+  incumbents-to-beat, discovery rounds)**, `docs/MAGNITUDE_FINDINGS.md` (per-currency), `MODEL_REGISTRY.md`+`books/`.
+- Legacy key-specific files keep their names (`docs/research_log.md`, `m{5,10,30}_research_log.md`, `docs/EXPERIMENT_LEDGER.md`,
+  `docs/FINDINGS.md`, `docs/DIRECTION_FINDINGS.md`, `docs/CCM_DESIGN.md`) but each carries a `SCOPE:` banner declaring its key —
   don't rename (dense cross-refs into production scripts); the banner is the label.
 - **When you run a sweep/idea on a key: record the idea generically once (IDEAS_LOG/SWEEP_MATRIX/METHODS_CATALOG),
   and the result ONLY in the key's Tier-2 files.** Every file opens with a 1-line `SCOPE:` banner — keep it.
 
 ## 1. Before touching code — read, don't redo
-1. `METHODS_CATALOG.md` — every methodology, how to retarget it (env `MX_HOR=<minutes>` for bar models;
+1. `docs/METHODS_CATALOG.md` — every methodology, how to retarget it (env `MX_HOR=<minutes>` for bar models;
    `HS`/`HSEC` seconds for tick models), its leakage traps, and its status. Most methods are already
    implemented and horizon-parameterized — check before writing anything new.
-2. `<PAIR>_RESULTS.md` — is this exact key already measured? If so, don't redo; if you'll try to beat it,
+2. `results/<PAIR>_RESULTS.md` — is this exact key already measured? If so, don't redo; if you'll try to beat it,
    note the incumbent's binding-year stat (you must clear it on the WORST held-out year).
 3. `MODEL_REGISTRY.md` + `books/INDEX.json` — the frozen books you can load as parents/baselines.
 
@@ -113,14 +113,14 @@ almost certainly a magnitude edge — test it as magnitude (`|ret|≥Q`, AUC), n
 6. **If it SURVIVES and is a deliverable book:** freeze it via `manifest.py` →
    `manifest.build(book_id="<PAIR>.<book>.v1", ...)` then `manifest.freeze(...)` → copies artifacts into
    `books/<id>/` + writes the manifest; `git tag book/<id>`; record env/data fingerprint automatically.
-7. **Record the result** in `<PAIR>_RESULTS.md`:
+7. **Record the result** in `results/<PAIR>_RESULTS.md`:
    - add a row to that timeframe's combined-book experiments table (method, file, per-year stats + CI, verdict);
    - if side-split was run, update that timeframe's **Key results** AND the **MASTER KEY TABLE** (method +
      best OOS + frozen book id); unseat a key's leader only if the new method beats the incumbent's
      binding-year stat with CI95-lower clearing it under this discipline;
-   - magnitude (|ret|) is sign-invariant → no up/down key; record it in `MAGNITUDE_FINDINGS.md`.
+   - magnitude (|ret|) is sign-invariant → no up/down key; record it in `docs/MAGNITUDE_FINDINGS.md`.
 8. **Commit + push** with a message stating the verdict + the Tier-1 evidence (result JSON keys). Update
-   `METHODS_CATALOG.md` if it's a new method or a method's status changed.
+   `docs/METHODS_CATALOG.md` if it's a new method or a method's status changed.
 
 ## 6. Evidence standard
 Every number you write must trace to an on-disk result JSON or a research-log line (Tier-1) — never an
@@ -130,7 +130,7 @@ cite it, you have not verified it.
 ## 7. Bootstrapping a NEW currency
 1. Confirm the feature/tick data exists for the pair (`features/<PAIR>_<year>.parquet`,
    `features_tick_<PAIR>/`); if not, that's a data-acquisition prerequisite, not a modeling task.
-2. Copy `EURUSD_RESULTS.md` → `<PAIR>_RESULTS.md`; reset all keys to UNTESTED; keep the structure and the
+2. Copy `results/EURUSD_RESULTS.md` → `results/<PAIR>_RESULTS.md`; reset all keys to UNTESTED; keep the structure and the
    maintenance protocol.
 3. Retarget methods via `MX_HOR`/`HS` and the per-pair artifact convention (scripts are PAIR-parameterized).
 4. Proceed through the workflow per key; freeze surviving books as `<PAIR>.<book>.v1`.
@@ -150,9 +150,9 @@ recorded and the search resumable + exhaustive.
 2. **Work rows top-to-bottom.** For each `pending` row:
    a. Pre-register its falsifier (cheap fast-KILL for low-prior rows).
    b. Retarget + run the §2 discipline; evaluate **combined + UP-split + DOWN-split** per-year with CI95.
-   c. Write the row's result into `<PAIR>_RESULTS.md` (combined-book table + per-key) and the result JSON.
+   c. Write the row's result into `results/<PAIR>_RESULTS.md` (combined-book table + per-key) and the result JSON.
    d. Mark the ledger row `done` (or `killed`) with its numbers + JSON path.
-   e. Update the **UP/DOWN leaderboard** in `<PAIR>_RESULTS.md` — unseat a side-leader only if it beats the
+   e. Update the **UP/DOWN leaderboard** in `results/<PAIR>_RESULTS.md` — unseat a side-leader only if it beats the
       incumbent's binding (worst held-out) year with CI95-lower clearing it under discipline.
    f. Commit (the ledger + results) so progress survives interruption / a drive drop.
 3. **One heavy job at a time** (OOM history); use sub-agents for research (literature, new method variants)
@@ -173,7 +173,7 @@ recorded and the search resumable + exhaustive.
    **MINE IT EXHAUSTIVELY:** read every paper thoroughly (every word/equation/diagram/reference), extract every
    testable lever (logic/math/loss/arch/gating/labeling/validation/framing), and EXPERIMENT on all of them —
    better DISPROVED BY EXPERIMENT than never tried; never pre-dismiss on a hunch. Fan out reader sub-agents over
-   the corpus → idea→experiment backlog in `IDEAS_LOG.md` → execute.
+   the corpus → idea→experiment backlog in `docs/IDEAS_LOG.md` → execute.
 6. **Do not stop** until every row is `done`/`killed`, the Tier-I levers + combinations are exhausted on the
    best edge, and the discovery loop is dry. Then write the final best-UP and best-DOWN for the key, freeze the
    survivors (including the best combination) as books (§6), and report the leaderboard.
@@ -191,14 +191,14 @@ candidates:
       information), neuroscience/signal-processing (state-space, point processes, Hawkes), causal discovery;
       (iii) **novel COMBINATIONS** of existing methods (e.g. HMM-regime-gated CCM, magnitude-conditioned
       cross-horizon stack, RL sizing on the 15m book, online-adaptive meta-labeler) — combinations are often
-      the cheapest novelty; (iv) re-read `IDEAS_LOG.md` + `EXPERIMENT_BACKLOG.md` for already-logged-but-untried
+      the cheapest novelty; (iv) re-read `docs/IDEAS_LOG.md` + `docs/EXPERIMENT_BACKLOG.md` for already-logged-but-untried
       ideas.
    c. **Vet before adding** (cheap filter, avoid junk rows): is it genuinely NEW (not already in
-      `METHODS_CATALOG.md`/the ledger)? Is there a plausible MECHANISM by which it carries *direction* (sign),
+      `docs/METHODS_CATALOG.md`/the ledger)? Is there a plausible MECHANISM by which it carries *direction* (sign),
       not just magnitude — i.e. does it survive the sign-invariance theorem, or is it really a magnitude/gate
       idea? What data does it need (on-disk vs acquisition)? Assign a prior + a fast-KILL falsifier.
    d. **Append** each vetted candidate as a new row in `SWEEP_MATRIX.md` (the "Tier N — discovered" section)
-      AND the sweep ledger, and log it in `IDEAS_LOG.md` with its source citation + mechanism + prior. Then it
+      AND the sweep ledger, and log it in `docs/IDEAS_LOG.md` with its source citation + mechanism + prior. Then it
       gets run like any other row.
    e. **Loop-until-dry:** keep a discovery round going until it yields K consecutive rounds (e.g. 2) with no
       novel survivable idea; then the search space is saturated for now. The leaderboard always reflects the

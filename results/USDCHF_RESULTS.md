@@ -97,7 +97,7 @@
 | **seed-ens K=3** (⊕ mean over 3 seeds) | `usdchf_15m_cpcv_xpair_ny.py 3 … 3` → `usdchf_15m_cpcv_xpair_ny_seedens3_result.json` | vs single-seed xpair: path-**mean ↑ 15/15** cov×side cells, **p10 ↑ 13/15** (only thin cov0.01/0.005 UP p10 dip −.006/−.003, mean still ↑); cov2 UP .6533/DOWN .644, cov1 UP .6935/DOWN .6682, cov.5 .7303/.7084; frac 1.0, CERT all cells; VAL-AUC .5576>.5464 | **✅ SUPERSEDES** → frozen `USDCHF.m15ny_xpair_seedens.v1` `eb44d999` (variance-reduction floor lift, not redistribution — mean rises everywhere) |
 | dblortho (SNB-resid orthogonalization) | `usdchf_15m_xpair_dblortho.py` | xpair matrix already subsumes channels (no lift) | ❌ KILLED |
 | ECM synthetic-EURCHF level band | `usdchf_15m_ecm.py` | 2026 covcurve cov2 .4945 < base .5103 (level non-stationary/too weak) | ❌ KILLED |
-| magdir (magnitude-conditioned sign) | `usdchf_15m_magdir.py` | dir-AUC flat across mag quartiles (sign-invariance) — magnitude bonus → docs/MAGNITUDE_docs/FINDINGS.md | ❌ KILLED (dir) |
+| magdir (magnitude-conditioned sign) | `usdchf_15m_magdir.py` | dir-AUC flat across mag quartiles (sign-invariance) — magnitude bonus → docs/MAGNITUDE_FINDINGS.md | ❌ KILLED (dir) |
 | IRM env-invariant feature-stability filter | `usdchf_15m_irm.py` | pruned 40.1% era-local sign-flippers; SURVIVES=False (UP collapsed 2026 .50 vs .63) — **proves refit-decay is an INFORMATION BOUND, not a fixable artifact** | ❌ KILLED |
 | OFI / TB-firsttouch / GRU / Optuna | `usdchf_15m_{ofi,tbfirsttouch,gru,optuna}.py` | §8 coverage confirmations (all KILLED on sibling pairs) | _see Confirmatory below_ |
 
@@ -123,7 +123,7 @@
 
 **Discovery R1+R2+R3 EXHAUSTED (2 dry rounds):** R1 found the levers (pooling won); R2's one survivor (IRM) was KILLED on test; R3 critic confirmed the on-disk × sign-carrying × novel space is saturated. R3 also corrected a record error (USDCHF HAS OF features; only raw-tick *settlement* data is absent).
 
-**>65% is NOT an information bound at cov1 for USDCHF** (it is for the own-pair havens) — pooling + NY-concentration + CHF≈EUR tight coupling stack to clear it. **BONUS: USDCHF magnitude edge magAUC .65–.73** (→ docs/MAGNITUDE_docs/FINDINGS.md) — USDCHF carries BOTH a strong magnitude edge AND a certified direction edge.
+**>65% is NOT an information bound at cov1 for USDCHF** (it is for the own-pair havens) — pooling + NY-concentration + CHF≈EUR tight coupling stack to clear it. **BONUS: USDCHF magnitude edge magAUC .65–.73** (→ docs/MAGNITUDE_FINDINGS.md) — USDCHF carries BOTH a strong magnitude edge AND a certified direction edge.
 
 **Deployment spec:** trade USDCHF 15m Rise/Fall in the NY session (America/New_York 08:00–17:00, DST-correct) when |p̄−0.5| ≥ the cov1 (1%) confidence gate; predict p̄ = **mean over the K=3 seed boosters'** P(up) with the EUR-bloc xpair feature recipe (`usdchf_15m_xpair.build_xp` + 239 base); **retrain periodically** (frozen-2021 vintage decays to sub-BE by 2026); size on the refit-CPCV per-era floor (UP .69 / DOWN .67 @cov1) minus the −.0035 bar-close haircut, minus breakeven .541; Kelly 1/8.
 

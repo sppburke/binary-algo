@@ -1,11 +1,11 @@
-> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # EURUSD Research — FORWARD-LOOKING EXPERIMENT BACKLOG (2026-05-31, 8-agent proactive sweep)
 
 Output of an 8-front literature/competition/alt-data/signal-processing/info-theory/microstructure/methodology sweep
 (`scour-everything-fx-research`), each candidate **grep-verified genuinely-untried** against the codebase. Companion to the
-backward-looking record `EXPERIMENT_LEDGER.md` / `METHODS_CATALOG.md`. Priors are the agents' honest estimates; discipline as in
-`METHODS_CATALOG.md` (non-overlap, ties-lose, CI95, select-on-VAL-verify-each-window, corr(VAL,OOS)=−0.54).
+backward-looking record `docs/EXPERIMENT_LEDGER.md` / `docs/METHODS_CATALOG.md`. Priors are the agents' honest estimates; discipline as in
+`docs/METHODS_CATALOG.md` (non-overlap, ties-lose, CI95, select-on-VAL-verify-each-window, corr(VAL,OOS)=−0.54).
 
 ## Honest assessment (verbatim spirit)
 **Nothing credibly beats the ~0.55–0.60 60-second direction ceiling** — the online ARF+ADWIN control (AUC 0.503–0.508 every

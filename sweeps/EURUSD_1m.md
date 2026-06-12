@@ -1,9 +1,9 @@
-> **SCOPE: EURUSD · 1m (60s)** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_1m_backlog.md. Results: EURUSD_RESULTS.md (§ EURUSD × 60s). See REPO_MAP.md.
+> **SCOPE: EURUSD · 1m (60s)** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_1m_backlog.md. Results: results/EURUSD_RESULTS.md (§ EURUSD × 60s). See REPO_MAP.md.
 
 ---
 currency: EURUSD
 timeframe: 1m (60s)
-started: 2026-06-03 (formal ledger; the 1m channel was swept earlier — see min1_research_log.md + EXPERIMENT_LEDGER.md rows 27-55)
+started: 2026-06-03 (formal ledger; the 1m channel was swept earlier — see docs/min1_research_log.md + docs/EXPERIMENT_LEDGER.md rows 27-55)
 target: best UP and DOWN binary predictor at 60s, OOS(2026)-verified, clearing breakeven 0.541
 status: CLOSED (2026-06-03) — both sides certified-or-exhausted. ~24 prior channels + 3 new DOWN levers (D3a/magweight/
         mag-bridge) + 12-candidate discovery round (DRY) all null/subsumed; online-ARF keystone proves efficiency.
@@ -24,12 +24,12 @@ up-rate∈[.47,.53]) → score combined + UP + DOWN → record → commit. `oos`
 **The bulk of the 1m sweep predates this ledger** — 24+ channels (base ensemble, cross-horizon stack, cross-pair
 USD-residual, Hurst/VR, HMM, online-ARF keystone, macro impulse, cross-impact OFI, CKS-OFI, Kalman, kernel-SVM, RMT,
 Neural-CDE, DRL DQN/IQN, ordinal-irreversibility, residualized-target, CCM) are logged as rows 1-17 in
-EURUSD_RESULTS.md § 60s and in EXPERIMENT_LEDGER.md rows 27-55 / min1_research_log.md. This ledger tracks NEW rows
+results/EURUSD_RESULTS.md § 60s and in docs/EXPERIMENT_LEDGER.md rows 27-55 / docs/min1_research_log.md. This ledger tracks NEW rows
 from 2026-06-03 onward (the both-sides-symmetric DOWN/UP push).
 
 | id | tier | method | script | status | up_oos (24/25/26) | down (24/25/26) | verdict | result_json |
 |----|------|--------|--------|--------|-------------------|-----------------|---------|-------------|
-| base | base | **min1 frozen book SIDE-SPLIT (the answer)** | min1_updown.py | **done** | **.520/.584/.613** (filter) | .522/.522/.516 | UP-filter best (floor .520, regime-dependent); DOWN dead all yrs | EURUSD_RESULTS.md§60s |
+| base | base | **min1 frozen book SIDE-SPLIT (the answer)** | min1_updown.py | **done** | **.520/.584/.613** (filter) | .522/.522/.516 | UP-filter best (floor .520, regime-dependent); DOWN dead all yrs | results/EURUSD_RESULTS.md§60s |
 | D3a | N | **USD-strength-conditioned DOWN** (retarget of 5m m5_downcond) | min1_downcond.py | **killed** | — (UP mirror .506/.504/.499) | USD-strong **.500/.494/.497** | DOWN efficient even USD-gated; USD-strong≈USD-weak (no separation); coverage curve FALLS to .475(25)/.464(26) at top-2% USD-strong tail (microstructure mean-reversion) → STRENGTHENS 5m D3 kill (5m had some lift .526; 60s has none) | min1_downcond_result.json |
 | B1a | I | **\|ret\|-weighted magweight retrain** POW=0.5 (retarget of 5m m5_magweight, the only lever that ever certified 5m DOWN) | min1_magweight.py | **killed** | cov.15 .45/**.522**/.495 (worse than filter) | cov.05 .513/**.507**/.512 (CI-lo<.50) | tick substrate, deriv-faithful. **best_iter=8/4000** = no learnable direction signal to weight. DOWN binding-2025 .507 < breakeven & < incumbent .522; UP worse than filter. 5m razor-thin DOWN edge does NOT transfer to more-efficient 60s | min1_magweight_result.json |
 | E-bridge | E→D | **magnitude→direction bridge** (frozen mag+dir; does direction hide on large moves?) | min1_magdir.py | **killed** | ~.50-.51 all magq | DOWN FLAT ~.50: magq0.0 .500/magq0.7 **.502**/magq0.95 **.498** (2025) | textbook sign-invariance AT THE OPERATING POINT: magnitude perfectly selects big moves (magAUC .787) but they carry ZERO direction. Conditioning DOWN on predicted-larger moves does NOT raise acc in any year. The 60s direction edge does NOT hide on large moves | min1_magdir_result.json |
@@ -41,10 +41,10 @@ from 2026-06-03 onward (the both-sides-symmetric DOWN/UP push).
 
 ### Prior-subsumed at 60s (documented, not re-run)
 - **Side-specialists** (UP/DOWN trained on subset bars): killed — subset-training destroys the confidence ranking
-  (`min1_upspec.py`: UP-spec .498/.537/.519 < filter; DOWN-spec .472/.521/.481 dead). EURUSD_RESULTS.md§60s + EXP_LEDGER row 33/55.
+  (`min1_upspec.py`: UP-spec .498/.537/.519 < filter; DOWN-spec .472/.521/.481 dead). results/EURUSD_RESULTS.md§60s + EXP_LEDGER row 33/55.
 - **Online-ARF keystone** (`min1_online.py`): a drift-adaptive forest finds ZERO 60s direction signal every year
   (AUC .503-.508) → 60s direction is genuine efficiency; subsumes retuned/gate-swept static ensembles.
-- **Magnitude** is the certified edge (magAUC 0.787) but sign-invariant → out of scope for up/down (→ MAGNITUDE_FINDINGS.md).
+- **Magnitude** is the certified edge (magAUC 0.787) but sign-invariant → out of scope for up/down (→ docs/MAGNITUDE_FINDINGS.md).
 
 ## GOAL RESULT (1m) — BOTH SIDES CLOSED, improve+discover loops DRY (2026-06-03)
 **No certified 60s EURUSD direction edge exists** (faithful CPCV, `min1_cpcv.py`). Both improve and discover loops are
@@ -70,14 +70,14 @@ work is a research-horizon characterization.
 **ADDENDUM 2026-06-05 — bar/candlestick 2-D-image CNN lever RUN. DIRECTION → KILLED; MAGNITUDE → clears >65%
 CPCV-certified.** `/goal` asked specifically for the Sezer CNN-BI + Kronos bar-pattern approach. Built 1m OHLCV from
 ticks (`barcnn_bars.py`, moved up-rate ∈ [.497,.503] every yr) and faithfully reimplemented Sezer CNN-BI
-(`barcnn_run.py`; method in `METHODS_CATALOG.md` §5.5) on the 60s wc_ret label, 3 image encodings (close-histogram /
+(`barcnn_run.py`; method in `docs/METHODS_CATALOG.md` §5.5) on the 60s wc_ret label, 3 image encodings (close-histogram /
 3ch-OHLC / GAF-GASF+GADF). **DIRECTION** all null: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, faithful CPCV
 (`barcnn_cpcv.py`, 28 purged paths) **path_p10 .484–.499, 0.0 paths clear 0.541 at every coverage** (incl.
 regime-gated, `barcnn_regime.py`). Even the antisymmetric GADF sign-field is null → the bar-image lever is magnitude,
 not ≤60s sign; 60s direction near-efficiency now holds across a 4th model class. **MAGNITUDE** (`barcnn_mag.py
 ohlcabs`, the sign-invariant Touch/Range outcome, NOT a 60s direction key): the absolute-scale bar image hits magAUC
 .699/.714/.686 and selective large-call precision .68→.80 with **all 28 CPCV paths ≥0.65 at cov≤0.2 in 2024/2025/2026**
-(`barcnn_mag_ohlcabs_result.json`, `MAGNITUDE_FINDINGS.md` §3) — bar patterns DO predict move-SIZE at >65%, just not
+(`barcnn_mag_ohlcabs_result.json`, `docs/MAGNITUDE_FINDINGS.md` §3) — bar patterns DO predict move-SIZE at >65%, just not
 sign. Kronos NOT built (RankIC/magnitude gains, no FX/60s/direction numbers; fine-tune deteriorates arXiv:2511.18578).
 
 **ADDENDUM 2026-06-08 — three neural + spectral forecaster families RUN at 1m. DIRECTION → ALL KILLED.** Part of a
@@ -91,4 +91,4 @@ flashiest selacc .5213 (2026) but CI-lo .4872 (thin-coverage mirage). No arm cle
 unseated. Confirms the SIGN-INVARIANCE theorem — path/spectral forecasters carry move SIZE, not 60s SIGN (consistent
 with the E-bridge sign-invariance proof above and the barimg/online-ARF near-efficiency findings). Result JSONs:
 `nbeats_nhits_dir_1m_result.json`, `decomp_dir_1m_result.json`, `spectral_dir_1m_result.json` (consolidated:
-`neural_spectral_dir_sweep_result.json`). See EURUSD_RESULTS.md §2026-06-08 / EXPERIMENT_LEDGER.md #162.
+`neural_spectral_dir_sweep_result.json`). See results/EURUSD_RESULTS.md §2026-06-08 / docs/EXPERIMENT_LEDGER.md #162.

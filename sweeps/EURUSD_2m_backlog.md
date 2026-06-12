@@ -1,7 +1,7 @@
 # EURUSD · 2m — EXECUTABLE BACKLOG (key-specific)
 SCOPE: EURUSD · 2m. Key-specific executable backlog — incumbents, scripts, numbers, discovery rounds.
-Moved out of IDEAS_LOG.md on 2026-06-02 during the generic↔specific split (see REPO_MAP.md).
-Generic methods/ideas: METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md. Sweep ledger (status): sweeps/EURUSD_2m.md. Results of record: EURUSD_RESULTS.md.
+Moved out of docs/IDEAS_LOG.md on 2026-06-02 during the generic↔specific split (see REPO_MAP.md).
+Generic methods/ideas: docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md. Sweep ledger (status): sweeps/EURUSD_2m.md. Results of record: results/EURUSD_RESULTS.md.
 
 ---
 
@@ -31,7 +31,7 @@ NOTE (2026-06-04): rounds 1-2 "PENDING" items N3-N9 + Stoikov were all subsequen
 
 ## Discovery round 3 — corpus re-mine through the cross-pair-decorrelation lens (2026-06-04)
 Re-opened after the 15m certification taught the cross-pair feature-row-POOLING mechanism (distinct from cross-leg
-sign-lead). Filtered `_extracted_levers.json` (2050) + `CORPUS_LEVER_INVENTORY.md` (550) programmatically →
+sign-lead). Filtered `_extracted_levers.json` (2050) + `docs/CORPUS_LEVER_INVENTORY.md` (550) programmatically →
 946 high/med-prior, on-disk, sign-aware DIRECTION candidates. After dedup + sign-invariance/subsumption vetting, the
 genuinely-NEW on-disk direction ideas ALL reduce to the cross-pair/cross-sectional family (matching the 15m round
 conclusion). Disposition:

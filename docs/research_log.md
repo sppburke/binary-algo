@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # Research Log — 5-Minute Binary Option Direction Prediction
 
@@ -108,7 +108,7 @@ microstructure, V13). Ranking by achievable selective edge: 3s (~78%) > 15m (~65
 ~0.52 AUC full-coverage; ~56–59% selective at 0.5–1.5% coverage (all 7 pairs, 2026 OOS). Root
 cause = 5-min return autocorrelation ρ₁≈−0.03 (best so far ~0.51 linear, ~0.55 conditional).
 Paths to higher accuracy require leaving the constraints: 15m horizon (AUC~0.57), true LOB/order-flow
-data (the documented >0.75 route), Deriv synthetic indices, or news-event conditioning. See FINDINGS.md.
+data (the documented >0.75 route), Deriv synthetic indices, or news-event conditioning. See docs/FINDINGS.md.
 
 ---
 

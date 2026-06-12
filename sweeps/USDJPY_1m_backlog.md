@@ -1,4 +1,4 @@
-> **SCOPE: USDJPY · 1m** (key-specific EXECUTABLE backlog — TOP-N first-to-run queue, incumbents-to-beat, discovery rounds). Ledger/status: `sweeps/USDJPY_1m.md`. Results of record: `USDJPY_RESULTS.md`. Generic ideas: `IDEAS_LOG.md` + `SWEEP_MATRIX.md`.
+> **SCOPE: USDJPY · 1m** (key-specific EXECUTABLE backlog — TOP-N first-to-run queue, incumbents-to-beat, discovery rounds). Ledger/status: `sweeps/USDJPY_1m.md`. Results of record: `results/USDJPY_RESULTS.md`. Generic ideas: `docs/IDEAS_LOG.md` + `SWEEP_MATRIX.md`.
 
 # USDJPY × 1m — Executable Backlog
 
@@ -28,7 +28,7 @@
 2. **A8a up/down FILTER + coverage curve** — if BASE shows a UP tilt (as EURUSD 60s did), the deliverable UP predictor is the up-only filter on the symmetric model; map the coverage curve to find where UP CI-lo clears 0.541.
 3. **A1a GBM knob sweep** — only if BASE AUC > ~0.515 (signal worth tuning); pick by worst-VAL-half.
 4. **A6a cross-pair USDJPY-target (xp/xpbase/xpof)** — USDJPY IS a USD pair (direct USD-factor exposure); even though EURUSD cross-pair was none@60s, USDJPY's own USD loading + OF (features_of/USDJPY exists) is a distinct channel. Low prior at 1m but mechanism-distinct → run once.
-5. **E1a magnitude |ret60|≥Q** — the likely-real edge (sign-invariant); record in MAGNITUDE_FINDINGS.md. Establishes whether a magnitude→direction bridge (I3) is even worth trying.
+5. **E1a magnitude |ret60|≥Q** — the likely-real edge (sign-invariant); record in docs/MAGNITUDE_FINDINGS.md. Establishes whether a magnitude→direction bridge (I3) is even worth trying.
 6. **A2a gate sweep / A3a reversion-compression specialist** — regime gating to concentrate the UP edge.
 7. **F4a residualized-target / A8b specialist** — controls; expected to confirm subset-training hurts ranking.
 

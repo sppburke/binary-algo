@@ -5,7 +5,7 @@
 
 # Monetizing Magnitude Predictability on Deriv.com
 
-> Status: research deliverable, evidence-first. Every load-bearing fact below is tagged by tier. **T1** = repo file at current commit (`deriv_frxEURUSD_contracts_for.json`, `cpcv_certify_result.json`, `MAGNITUDE_FINDINGS.md`, etc.) read this session. **T3** = repo docs / Deriv product pages described in the supplied research fragments. **T4** = Deriv API behaviour from the supplied fragments not independently re-verified against a live socket this session. Claims that depend on a Deriv fact we could **not** confirm at T1 are flagged inline.
+> Status: research deliverable, evidence-first. Every load-bearing fact below is tagged by tier. **T1** = repo file at current commit (`deriv_frxEURUSD_contracts_for.json`, `cpcv_certify_result.json`, `docs/MAGNITUDE_FINDINGS.md`, etc.) read this session. **T3** = repo docs / Deriv product pages described in the supplied research fragments. **T4** = Deriv API behaviour from the supplied fragments not independently re-verified against a live socket this session. Claims that depend on a Deriv fact we could **not** confirm at T1 are flagged inline.
 >
 > One verification caveat up front: the on-disk `deriv_frxEURUSD_contracts_for.json` is a **single FX-major snapshot** (`echo_req = {contracts_for: "frxEURUSD", currency: "USD"}`, `spot: 1.15991`, file mtime 2026-06-03). It is genuine Tier-1 for *what FX exposes*, but it is one symbol, one fetch. I did **not** open a live socket this session; all API-mechanics and synthetic-index (R_100) claims are T3/T4 from the supplied fragments and are flagged as such.
 >
@@ -22,7 +22,7 @@ We can predict **how far price moves, not which way.** Concretely, the certified
 - Deflated expectation `0.7124` (`deflation.magnitude_auc`) — clears the 0.55 bar comfortably.
 - **Top-vs-bottom-decile realized-|ret| lift: `lift_mean = 5.013×`, `lift_p10 = 3.956×`** (`magnitude_30m.lift_mean/lift_p10`). This is the economically load-bearing number: rank bars by predicted magnitude, the top decile realizes ~5× the |move| of the bottom decile.
 
-**Strength at other horizons (T1 result files / `MAGNITUDE_FINDINGS.md` table, lines 162–172):**
+**Strength at other horizons (T1 result files / `docs/MAGNITUDE_FINDINGS.md` table, lines 162–172):**
 - 60s EURUSD: magAUC **0.787** vs dirAUC **0.5096** on identical data (`magnitude_verified.json`; the cleanest sign-invariance proof).
 - USDJPY 1m: magAUC Q67 0.716 / Q75 0.730 / Q90 **0.790**; **top-decile |ret| lift only ~2.1–2.5×** (`usdjpy_1m_magnitude_result.json`).
 - USDJPY 2m: magAUC Q75 0.722 / Q90 0.785; **top-decile |ret| lift ~2.0–2.5×** (`usdjpy_2m_magnitude_result.json`).
@@ -31,7 +31,7 @@ We can predict **how far price moves, not which way.** Concretely, the certified
 
 **The implication.** A sign-invariant magnitude forecast monetizes on **payoffs that key off |move|, not sign**: buy volatility when we predict a large move (touch / range-out / lookback / straddle), sell volatility when we predict a small move (range-in / no-touch / accumulator). Our **best** axis (magnitude) aligns exactly with **volatility-structured** payoffs and is orthogonal to the directional binaries (Rise/Fall) that dominate Deriv's FX retail menu.
 
-> **Honest caveat that recurs throughout:** every certified number is at **60s–30m**. The decile lift quoted as "5×" is the **30m** figure; at 1m/2m it is only **~2.0–2.5×** (T1, `MAGNITUDE_FINDINGS.md` L171–172). This matters because the cleanest FX magnitude products turn out to be **daily-only** (§2), a horizon at which our edge is **literally unmeasured**.
+> **Honest caveat that recurs throughout:** every certified number is at **60s–30m**. The decile lift quoted as "5×" is the **30m** figure; at 1m/2m it is only **~2.0–2.5×** (T1, `docs/MAGNITUDE_FINDINGS.md` L171–172). This matters because the cleanest FX magnitude products turn out to be **daily-only** (§2), a horizon at which our edge is **literally unmeasured**.
 
 ---
 
@@ -86,7 +86,7 @@ Ranking combines payoff-fit (sign-invariant > one-sided > directional), the adve
 
 - **Fit (catalog fit_score 5):** textbook two-sided magnitude binary. EXPIRYMISS wins if exit lands **outside** a symmetric band (large |move|, either way); EXPIRYRANGE wins **inside** (small |move|). At-expiry settlement (`euro_non_atm`), not path-dependent. **FX-confirmed at T1** (both in `available`; the EXPIRYMISS row shows `high_barrier = 1.16279`, `low_barrier = 1.15705`, `barriers = 2`).
 - **Signal → trade rule:** large leg → buy EXPIRYMISS in the top score decile with band half-width `w = k·σ̂·√τ`, k swept via repeated `proposal` calls to maximize `(our_P_out − implied_q_out)`; small leg → buy EXPIRYRANGE in the bottom decile. Trade only top/bottom deciles, skip the middle 8. Daily contracts require **absolute** barrier strings (`entry ± w`), not relative offsets.
-- **EV logic:** `EV = P_model·payout − ask`; positive iff `P_model > q = ask/payout`. The implicit binary haircut is real (T1 `THEORY.md` L97: breakeven win-rate ≈ 0.541 at payout R ≈ 1.85, ~4.1pp over a coin).
+- **EV logic:** `EV = P_model·payout − ask`; positive iff `P_model > q = ask/payout`. The implicit binary haircut is real (T1 `docs/THEORY.md` L97: breakeven win-rate ≈ 0.541 at payout R ≈ 1.85, ~4.1pp over a coin).
 - **Adversarial verdict: DOES NOT SURVIVE as scoped.** Fails the duration gate: daily-only on FX, while every certified horizon is 60s–30m. EV is **doubtful** — there is **no 1d magnitude model anywhere on disk** (verified by grep across all `*result*.json`; the only "1d" string is a Deriv product spec), and `rv30/rv120` autocorrelation mean-reverts over a day, so the 5× lift very likely attenuates. At-expiry settlement also means a large intraday move that reverts by daily close *loses* — so terminal `|ret_1d|` is a **different label** than the intraday `|ret_H|` we certified.
 - **Path to viability:** retrain + CPCV-certify a `|ret_1d| >= Q` classifier (does not exist), then live-probe `proposal` to confirm `P_model − q ≥ margin`.
 
@@ -103,7 +103,7 @@ Ranking combines payoff-fit (sign-invariant > one-sided > directional), the adve
 ### Rank 5 — Vanilla straddle (long VANILLALONGCALL + long VANILLALONGPUT) — ideal shape, **FX-blocked**
 
 - **Fit (fit_score 6):** same-strike same-expiry straddle isolates |move| (delta-neutral). A pure realized-vs-implied vol bet — exactly what our rv-forecaster is.
-- **Verdict: DOES NOT SURVIVE on FX.** **Confirmed-no on FX** at T1 (`non_available`). The T&C §2.1.1.11 mention of "Selling Vanilla Options on FX within 24h prior to expiration" is a **sell-side mechanics clause**, not proof of buy-side intraday availability, and is a lower tier than the T1 `non_available` probe. EV is **doubtful and overstated** in the catalog: it leans on the **5× (30m)** lift, but the straddle Q90 gate targets 60s/1m/2m where the lift is only **~2.0–2.5×** (T1), and the correct comparison is realized-vs-**implied** (implied already conditions on the same public rv state) — not realized-vs-unconditional. EV is also **un-backtestable on disk**: no intraday implied-vol feed exists (T1 `MAGNITUDE_FINDINGS.md` L322–323). Pursue only on synthetics, re-certified.
+- **Verdict: DOES NOT SURVIVE on FX.** **Confirmed-no on FX** at T1 (`non_available`). The T&C §2.1.1.11 mention of "Selling Vanilla Options on FX within 24h prior to expiration" is a **sell-side mechanics clause**, not proof of buy-side intraday availability, and is a lower tier than the T1 `non_available` probe. EV is **doubtful and overstated** in the catalog: it leans on the **5× (30m)** lift, but the straddle Q90 gate targets 60s/1m/2m where the lift is only **~2.0–2.5×** (T1), and the correct comparison is realized-vs-**implied** (implied already conditions on the same public rv state) — not realized-vs-unconditional. EV is also **un-backtestable on disk**: no intraday implied-vol feed exists (T1 `docs/MAGNITUDE_FINDINGS.md` L322–323). Pursue only on synthetics, re-certified.
 
 ### Rank 6 — Accumulators (ACCU) — the inverse (small-move) bet, **FX-blocked**
 
@@ -121,7 +121,7 @@ Ranking combines payoff-fit (sign-invariant > one-sided > directional), the adve
 
 ## 4. The house-edge problem (critical analysis)
 
-**Where Deriv's edge sits.** Deriv binaries carry **no separate markup field** — the haircut is baked into the `payout/stake` ratio. The broker-implied win-probability is `q = ask_price / payout`. For a true-probability-p outcome the fair payout is `1/p`; Deriv quotes `payout < 1/q`, so `q > p_fair`. T1 anchor: `THEORY.md` L97 — Rise/Fall breakeven win-rate **≈ 0.541 at payout R ≈ 1.85**, i.e. a **~4.1 percentage-point** haircut over a fair coin. Touch/range binaries carry a comparable implicit margin folded into `ask_price/payout`. Multipliers/ACCU instead expose an explicit `commission` (%).
+**Where Deriv's edge sits.** Deriv binaries carry **no separate markup field** — the haircut is baked into the `payout/stake` ratio. The broker-implied win-probability is `q = ask_price / payout`. For a true-probability-p outcome the fair payout is `1/p`; Deriv quotes `payout < 1/q`, so `q > p_fair`. T1 anchor: `docs/THEORY.md` L97 — Rise/Fall breakeven win-rate **≈ 0.541 at payout R ≈ 1.85**, i.e. a **~4.1 percentage-point** haircut over a fair coin. Touch/range binaries carry a comparable implicit margin folded into `ask_price/payout`. Multipliers/ACCU instead expose an explicit `commission` (%).
 
 **The EV condition.** For any fixed-payout magnitude binary:
 
@@ -138,7 +138,7 @@ So the model must beat the **broker's implied probability** by more than the hai
 
 1. **AUC measures ranking, not calibration.** EV needs a *calibrated absolute* `P(touch | barrier, H)` or `P(ends-outside | band, H)`. The repo stores AUC + decile lift only — **no calibration for magnitude band-crossing exists on disk** (verified: `cpcv_certify_result.json` and `mag_har_result.json` carry no brier/reliability keys; `brier_audit_result.json` exists but audits the **direction** books, not magnitude). A high-AUC ranker can still be miscalibrated and lose money at a *specific* barrier.
 
-2. **Adverse selection / "the edge is in the price."** Vol-clustering is **public** information. Deriv prices barriers off a vol model that also sees recent realized vol, so on exactly the rows we flag most confidently, `ask_price` rises in lock-step — compressing the gap precisely when we are most confident. Our *true* exploitable edge is only the **increment** our model has over Deriv's vol model, not the full lift. T1 corroboration that this increment is thin: forward-vol features (Kronos dispersion) correlate 0.46–0.83 with `rv30` and add **nothing** orthogonal (`MAGNITUDE_FINDINGS.md` §6c, KILLED at every horizon).
+2. **Adverse selection / "the edge is in the price."** Vol-clustering is **public** information. Deriv prices barriers off a vol model that also sees recent realized vol, so on exactly the rows we flag most confidently, `ask_price` rises in lock-step — compressing the gap precisely when we are most confident. Our *true* exploitable edge is only the **increment** our model has over Deriv's vol model, not the full lift. T1 corroboration that this increment is thin: forward-vol features (Kronos dispersion) correlate 0.46–0.83 with `rv30` and add **nothing** orthogonal (`docs/MAGNITUDE_FINDINGS.md` §6c, KILLED at every horizon).
 
 3. **Horizon mismatch compounds it.** The 5× lift is at **30m**; FX two-sided binaries are **1d**; at 1m/2m the lift is only ~2.0–2.5×. At the *tradeable* FX horizon (1d) the edge is **unmeasured**, and rv-autocorrelation mean-reverts over a day.
 
@@ -148,7 +148,7 @@ So the model must beat the **broker's implied probability** by more than the hai
 
 ## 5. Recommended modeling approach
 
-The existing classifier ranks bars by `P(|ret_H| >= Q)`. To trade, we need **calibrated absolute probabilities of the contract-specific event**, plus deriv-faithful settlement. Three new label families, all buildable from on-disk OHLC (and, where settlement is path/tick-based, from on-disk raw ticks 2012–2026, T1 `AUDUSD_RESULTS.md` L12):
+The existing classifier ranks bars by `P(|ret_H| >= Q)`. To trade, we need **calibrated absolute probabilities of the contract-specific event**, plus deriv-faithful settlement. Three new label families, all buildable from on-disk OHLC (and, where settlement is path/tick-based, from on-disk raw ticks 2012–2026, T1 `results/AUDUSD_RESULTS.md` L12):
 
 1. **Touch label (for ONETOUCH/NOTOUCH, and as a building block for path products):**
    `label = 1 iff path crosses entry ± k·σ̂·√τ within H`. Build by walking the **tick** path (not the bar close — touch is path/American). Fit a calibrated `P_touch(k, σ̂, τ)` via a first-passage/reflection anchor `≈ 2·Φ(−D/(σ̂√τ))`, then **isotonic-correct** on a held-out window against historical realized touch frequencies. Calibration, not AUC, is the deliverable.
@@ -161,7 +161,7 @@ The existing classifier ranks bars by `P(|ret_H| >= Q)`. To trade, we need **cal
 
 **Calibration > AUC.** For every product, the trading signal is a calibrated probability compared to `q = ask/payout`. Fit isotonic/Platt on the magnitude score → event probability, validate with Brier/reliability (the repo has the machinery in `brier_audit` — currently pointed at direction books; repoint it at magnitude bands).
 
-**Deriv-faithful settlement discipline (already used in the repo, T1 `AUDUSD_RESULTS.md` L12):** bar-close approx, **mid-to-mid**, **next-tick entry +1s**, **ties LOSE**, breakeven 0.541 at R≈1.85, strict OOS splits (train 2012–21 / val 2022–23 / test 2024 / 2025 / oos 2026), selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS) = −0.54`), CPCV with purge+embargo, per-fold refit. Touch/range labels must be **path-aware** (tick-level), since a bar-close label systematically understates American-barrier touch frequency. Note also the **refit-decay** finding (T1 `AUDUSD_RESULTS.md` L20–21): frozen-2021 books decay forward (.61→.58→.53 cov5 by 2026) — any deployed magnitude→trade model must be **periodically retrained and sized on the refit floor**, never frozen.
+**Deriv-faithful settlement discipline (already used in the repo, T1 `results/AUDUSD_RESULTS.md` L12):** bar-close approx, **mid-to-mid**, **next-tick entry +1s**, **ties LOSE**, breakeven 0.541 at R≈1.85, strict OOS splits (train 2012–21 / val 2022–23 / test 2024 / 2025 / oos 2026), selection on VAL worst-half (never VAL-acc-max; `corr(VAL,OOS) = −0.54`), CPCV with purge+embargo, per-fold refit. Touch/range labels must be **path-aware** (tick-level), since a bar-close label systematically understates American-barrier touch frequency. Note also the **refit-decay** finding (T1 `results/AUDUSD_RESULTS.md` L20–21): frozen-2021 books decay forward (.61→.58→.53 cov5 by 2026) — any deployed magnitude→trade model must be **periodically retrained and sized on the refit floor**, never frozen.
 
 ---
 
@@ -227,7 +227,7 @@ wss://ws.derivws.com/websockets/v3?app_id=1089     # 1089 = public test id; regi
 
 ## 7. Corrections to the repo's existing productization notes
 
-`MAGNITUDE_FINDINGS.md` §6 was written from general knowledge / MEMORY before the live `contracts_for` snapshot existed. Specific corrections and confirmations, now that the T1 FX probe is on disk:
+`docs/MAGNITUDE_FINDINGS.md` §6 was written from general knowledge / MEMORY before the live `contracts_for` snapshot existed. Specific corrections and confirmations, now that the T1 FX probe is on disk:
 
 1. **CONFIRMED — Rise/Fall is the wrong shape and 15m is the FX intraday floor.** §6 L306–307 says "forex Rise/Fall minimum expiry = 15 minutes and is DIRECTIONAL." T1 confirms exactly: CALL/PUT/CALLE/PUTE intraday rows show `min = 15m, euro_atm` (sign-only). Magnitude-irrelevant, as §6 states.
 

@@ -1,8 +1,8 @@
-SCOPE: USDCHF · 15m — EXECUTABLE backlog (TOP-N queue / incumbents-to-beat / discovery rounds). Ledger: `USDCHF_15m.md`. Results: `USDCHF_RESULTS.md`. Generic menu: `SWEEP_MATRIX.md`.
+SCOPE: USDCHF · 15m — EXECUTABLE backlog (TOP-N queue / incumbents-to-beat / discovery rounds). Ledger: `USDCHF_15m.md`. Results: `results/USDCHF_RESULTS.md`. Generic menu: `SWEEP_MATRIX.md`.
 
 # USDCHF 15m direction — executable backlog — ✅ SWEEP CLOSED 2026-06-11
 
-**STATUS: CLOSED.** Queue DRAINED, every candidate RESOLVED (verdicts below + `USDCHF_RESULTS.md`), R1+R2+R3 all DRY. On-disk key EXHAUSTED.
+**STATUS: CLOSED.** Queue DRAINED, every candidate RESOLVED (verdicts below + `results/USDCHF_RESULTS.md`), R1+R2+R3 all DRY. On-disk key EXHAUSTED.
 **DELIVERABLE (frozen + git-tagged + in `books/INDEX.json`):** `USDCHF.m15ny_xpair_seedens.v1` (content_id `eb44d9992cce9734` / `eb44d999`; tag `book/USDCHF.m15ny_xpair_seedens.v1`) — EUR-bloc CROSS-PAIR POOLED, NY-session, LightGBM SEED-ENS K=3, 337 feats. ★ FIRST major to certify >65% BOTH sides (refit-CPCV p10: cov.02 UP .6533 / DOWN .6440; cov.01 .6935/.6682; cov.005 .7303/.7084; all cells CERT=True). VAL moved-AUC .5576; CPCV AUC .5479. REFIT-DEPENDENT (NY-only deploy + periodic retrain; size refit-CPCV floor −.0035 haircut; Kelly 1/8). Supersedes single-seed `USDCHF.m15ny_xpair.v1` (`7505c934`). Only frontier left = OFF-DISK data (traded EURCHF, SNB sight-deposits, VIX/risk-reversal, US-CH rate-diff) — out of on-disk scope.
 
 ## FIRST-TO-RUN queue — ✅ DRAINED
@@ -96,6 +96,6 @@ NY own-pair cov1 per-path distribution (`usdchf_15m_cpcv_session_ny_multicov_res
 - **DELIVERABLE:** `USDCHF.m15ny_xpair_seedens.v1` (`eb44d9992cce9734` / `eb44d999`; tag `book/USDCHF.m15ny_xpair_seedens.v1`; in `books/INDEX.json`). FIRST major to certify >65% BOTH sides.
 - **MECHANISM:** EUR-bloc case — CHF≈−EURUSD (SNB-managed) → cross-pair pooling WINS sign-flipped (like EURUSD/GBPUSD, unlike own-pair havens). NY = carrier. Methodological lesson: the cheap frozen all-session pooling screen was a FALSE NEGATIVE; NY refit-CPCV was decisive; adversarially gated vs trap#9.
 - **REFIT-DEPENDENT** (info-bound decay confirmed by IRM-null): deploy NY-only + periodic retrain; size refit-CPCV per-era floor −.0035 haircut; Kelly 1/8.
-- **MAGNITUDE BONUS** (sign-invariant; recorded only in `MAGNITUDE_FINDINGS.md`): magAUC .728/.669/.646.
+- **MAGNITUDE BONUS** (sign-invariant; recorded only in `docs/MAGNITUDE_FINDINGS.md`): magAUC .728/.669/.646.
 - **DISCOVERY R1+R2+R3 all DRY. ON-DISK KEY EXHAUSTED.** Only frontier left = OFF-DISK data (traded EURCHF feed, SNB sight-deposits, VIX/risk-reversal, US-CH rate-diff) — out of on-disk scope.
-- Per-key files: `USDCHF_RESULTS.md`, `sweeps/USDCHF_15m.md`, `sweeps/USDCHF_15m_backlog.md`. **SWEEP CLOSED 2026-06-11.**
+- Per-key files: `results/USDCHF_RESULTS.md`, `sweeps/USDCHF_15m.md`, `sweeps/USDCHF_15m_backlog.md`. **SWEEP CLOSED 2026-06-11.**

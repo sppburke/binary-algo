@@ -2,7 +2,7 @@
 
 Source: 19-agent research workflow (17 search clusters → dedup/rank synthesis + completeness critic), 110 candidates →
 ~20 distinct mechanisms, all verified against repo ground truth. Raw slate: `novel_methods_candidates.json`. This doc is
-the actionable distillation. Pointers in IDEAS_LOG.md / SWEEP_MATRIX.md.
+the actionable distillation. Pointers in docs/IDEAS_LOG.md / SWEEP_MATRIX.md.
 
 ## 0. TWO MANDATORY GATES (apply to EVERY item below — they post-date and reshape the whole slate)
 

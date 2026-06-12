@@ -21,7 +21,7 @@
 | AUDUSD · **15m** · DOWN | **NY seed-ens(K=3) refit-CPCV p10 .596 @cov2 / .587 @cov5 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate; book `AUDUSD.m15ny_seedens.v1` ✅ FROZEN (content_id 9b0e0ed3) | NY-concentrated; the more robust side (also all-session @cov1%); seed-ens lifts p10 (+.010 @cov5). p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.60→.56→.53 cov5) → deploy w/ periodic retrain, size on refit floor.** | **CERTIFIED (NY seed-ens refit-CPCV), refit-dependent 2026-06-09** |
 | AUDUSD · 1m/2m/5m/10m/30m · UP/DOWN | `UNTESTED` | — | Out of current scope (goal = 15m). Bar + tick data present; bootstrap when scoped. | UNTESTED |
 
-**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `docs/MAGNITUDE_docs/FINDINGS.md` (AUDUSD pending).
+**Magnitude** (|ret|≥Q) is sign-invariant → no up/down key; tracked in `docs/MAGNITUDE_FINDINGS.md` (AUDUSD pending).
 
 ---
 

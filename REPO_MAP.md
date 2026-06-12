@@ -28,7 +28,7 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `README.md`, `REPO_MAP.md` | Repo overview + this convention. |
 | `docs/CORRECTNESS_AUDIT.md` | Record-of-truth for evaluation integrity: FM-A…FM-G failure-mode taxonomy, repo-wide audit verdict (FM-F look-forward bug isolated to Kronos), the 4 clean-substrate proofs, flagged-scripts table + remediation. |
 | `docs/DERIV_MAGNITUDE_MONETIZATION.md` | **Venue/platform** (currency-agnostic): how/whether the magnitude edge monetizes on Deriv. Tier-1 FX contract catalog (`docs/deriv_frxEURUSD_contracts_for.json`), per-product fit+adversarial verdict, house-edge analysis, API integration. Verdict: FX touch/range are daily-only, exotics synthetic-only → only live fork is a 1-day FX model. |
-| `docs/SYNTHETIC_RNG_docs/FINDINGS.md` + `scripts/syn_collect.py`/`syn_rng_audit.py`/`syn_spike_audit.py` (+ `syn_data/`) | **Venue/platform**: empirical RNG/predictability audit of Deriv synthetic indices. Verdict NULL — vol indices IID-Gaussian (no vol clustering, magnitude edge does not transfer; NIST 6/6), engineered-index spike timing memoryless. Don't re-chase. |
+| `docs/SYNTHETIC_RNG_FINDINGS.md` + `scripts/syn_collect.py`/`syn_rng_audit.py`/`syn_spike_audit.py` (+ `syn_data/`) | **Venue/platform**: empirical RNG/predictability audit of Deriv synthetic indices. Verdict NULL — vol indices IID-Gaussian (no vol clustering, magnitude edge does not transfer; NIST 6/6), engineered-index spike timing memoryless. Don't re-chase. |
 
 ## TIER 2 — KEY-SPECIFIC (named/labeled by the key — ALL incumbents, numbers, results, backlogs live here)
 
@@ -37,8 +37,8 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `results/<PAIR>_RESULTS.md` | Per-**currency** results across tf×side: MASTER KEY TABLE + per-tf experiment tables + the UP/DOWN leaderboard. (e.g. `results/EURUSD_RESULTS.md`) |
 | `sweeps/<PAIR>_<tf>.md` | Per-(currency,tf) **SWEEP LEDGER** — the resumable state of the exhaustive sweep (row-by-row status). |
 | `sweeps/<PAIR>_<tf>_backlog.md` | Per-key **EXECUTABLE BACKLOG** — the ranked TOP-N experiments, FIRST-TO-RUN queue, "incumbents to beat", and key-specific discovery rounds. (Moved out of the generic `docs/IDEAS_LOG.md`.) |
-| `<PAIR>_<tf>_docs/research_log.md` | Per-key narrative research log (the running prose journal for that key). |
-| `docs/MAGNITUDE_docs/FINDINGS.md` | Magnitude is sign-invariant → no UP/DOWN key, but still **per-currency**; label each result by `PAIR`. |
+| `<PAIR>_<tf>_research_log.md` | Per-key narrative research log (the running prose journal for that key). |
+| `docs/MAGNITUDE_FINDINGS.md` | Magnitude is sign-invariant → no UP/DOWN key, but still **per-currency**; label each result by `PAIR`. |
 | `MODEL_REGISTRY.md` + `books/` | Multi-currency book **registry**; every entry keyed `<PAIR>.<book>.v1` with a provenance manifest. |
 
 ---
@@ -47,8 +47,8 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 
 These predate the convention and are densely cross-referenced (some by production `.py` scripts), so renaming
 was rejected as high-churn/low-gain. Each instead carries a `SCOPE: EURUSD[·tf]` banner that is the label:
-`docs/research_log.md` (cross-tf), `m5_docs/research_log.md` `[·5m]`, `m10_` `[·10m]`, `m30_` `[·30m]`, `min1_` `[·60s]`,
-`docs/EXPERIMENT_LEDGER.md`, `docs/EXPERIMENT_BACKLOG.md`, `docs/FINDINGS.md`, `docs/DIRECTION_docs/FINDINGS.md`, `docs/CCM_DESIGN.md` `[·60s]`.
+`docs/research_log.md` (cross-tf), `docs/m5_research_log.md` `[·5m]`, `m10_` `[·10m]`, `m30_` `[·30m]`, `min1_` `[·60s]`,
+`docs/EXPERIMENT_LEDGER.md`, `docs/EXPERIMENT_BACKLOG.md`, `docs/FINDINGS.md`, `docs/DIRECTION_FINDINGS.md`, `docs/CCM_DESIGN.md` `[·60s]`.
 For a NEW currency, prefer the key-named patterns above (`<PAIR>_...`) rather than copying these legacy names.
 
 ### Novel-methods campaign files (2026-06-07) — `execute ALL of docs/NOVEL_METHODS_RESEARCH.md §7`
@@ -77,7 +77,7 @@ certified MAGNITUDE edge RE-VALIDATED on a clean forward holdout, no decay).
 
 | File | Role (key-specific) |
 |---|---|
-| `scripts/mag_har.py` + `results/json/mag_har_result.json` | EURUSD MAGNITUDE HAR/RV-canon arms (har/jump/semivar/harq/all) — recorded in `docs/MAGNITUDE_docs/FINDINGS.md §6g`; KILLED as upgrade. |
+| `scripts/mag_har.py` + `results/json/mag_har_result.json` | EURUSD MAGNITUDE HAR/RV-canon arms (har/jump/semivar/harq/all) — recorded in `docs/MAGNITUDE_FINDINGS.md §6g`; KILLED as upgrade. |
 | `frac_direction.py` + `results/json/frac_direction_15m_result.json`, `results/json/frac_direction_30m_result.json` | EURUSD FFD-into-direction-book at 15m & 30m — both KILLED (decays in recent years). |
 
 ## THE RULE OF THUMB

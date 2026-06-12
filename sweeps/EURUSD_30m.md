@@ -1,7 +1,7 @@
 # EURUSD · 30m — SWEEP LEDGER (key-specific status)
 SCOPE: EURUSD · 30m. Resumable sweep ledger — the STATE of the exhaustive+generative search for the best
-30m UP and best 30m DOWN EURUSD direction predictor. Generic menu = SWEEP_MATRIX.md; ideas = IDEAS_LOG.md;
-executable backlog/discovery = sweeps/EURUSD_30m_backlog.md; results of record = EURUSD_RESULTS.md.
+30m UP and best 30m DOWN EURUSD direction predictor. Generic menu = SWEEP_MATRIX.md; ideas = docs/IDEAS_LOG.md;
+executable backlog/discovery = sweeps/EURUSD_30m_backlog.md; results of record = results/EURUSD_RESULTS.md.
 Created 2026-06-04 (the /goal 30m two-sided certification push). 30m is DERIV-TRADEABLE (longest, above 15m floor).
 
 Discipline (strategy-eval §2): deriv-faithful wc settlement (mid-to-mid, ties LOSE, breakeven 0.541),
@@ -30,7 +30,7 @@ git-tag `book/EURUSD.m30xp.v1`):
 
 ---
 
-## CONTEXT — what is already known at 30m (Tier-1, prior thread, m30_research_log.md + EURUSD_RESULTS.md)
+## CONTEXT — what is already known at 30m (Tier-1, prior thread, docs/m30_research_log.md + results/EURUSD_RESULTS.md)
 - COMBINED deliverable EURUSD.m30.v1 = 3-model ensemble × comp(1h)×NY, conf-selective: combined held-out 0.591
   CI[.556,.625] (2024 .623 / 2025 .589 / 2026 .546), EV +0.064. Book sha a17be49b9262668f. NEVER side-split.
 - (30m,UP) and (30m,DOWN) keys = UNTESTED (this sweep gives them their first real numbers).
@@ -59,7 +59,7 @@ git-tag `book/EURUSD.m30xp.v1`):
 | I-Aa | improve | antisymmetric cross-pair matrix feature | Aa(X) lead-lag rotation added to K2 | — | both | med | **SUBSUMED (Tier-1 FI)** | — | — | — | ll_ lead-lag features = 2.1% gain AND already GBM inputs; Aa is a linear combo of them -> cannot beat incumbent | m30_xpair_featimp_result.json |
 | I-ipca | improve | IPCA time-varying USD-loadings | instrumented betas, regime-adaptive | — | both | med | **SUBSUMED (Tier-1 FI)** | — | — | — | cross-pair factor channel = 2.0% gain; IPCA refines that channel; 2025-inversion rationale doesn't bind at 30m (2025 is the STRONG fwd year .62/.56) | m30_xpair_featimp_result.json |
 | SPEC | pipeline-c | meta-labeler UP/DOWN specialist, nested-refit CPCV | per-fold primary+meta refit | m30_spec_cpcv.py | both | low | **done** | — | .5501 (CERT but SUBSUMED, <.5588) | .5203 (NOT cert, 40% clear — COLLAPSES) | **SUBSUMED** — meta-gate/subset training kills ranking (DOWN collapses, same as 2m). Symmetric book wins both sides | m30_spec_cpcv_result.json |
-| TI-sub | improve | ACI/calibration gate · GMADL loss · DL-stack · Optuna(worst-VAL-half) | Tier-I remainder | — | both | low | **SUBSUMED (Tier-1)** | — | — | — | THEORY law: loss/label/gate re-eng can't beat gated cross-pair sign; 5m ACI nested-refit KILLED; 10m N18 GMADL KILLED; DL info-bound (D1-D6); 30m magweight HURTS + FI pooling-not-factors | THEORY.md §2 |
+| TI-sub | improve | ACI/calibration gate · GMADL loss · DL-stack · Optuna(worst-VAL-half) | Tier-I remainder | — | both | low | **SUBSUMED (Tier-1)** | — | — | — | THEORY law: loss/label/gate re-eng can't beat gated cross-pair sign; 5m ACI nested-refit KILLED; 10m N18 GMADL KILLED; DL info-bound (D1-D6); 30m magweight HURTS + FI pooling-not-factors | docs/THEORY.md §2 |
 | I1 | improve | cross-pair re-gate (search gate TF/cov on worst-VAL-half) | if K2 borderline | m30_xpair_regate.py (retarget) | best side | med | pending | — | — | — | — | — |
 | I2 | improve | seed-ensemble ⊕ GBM on cross-pair | n-seed bag | m30_seedens_cpcv.py (retarget m5) | both | med | pending | — | — | — | — | — |
 | I3 | improve | |ret|-weighted / GMADL loss on cross-pair | sample-weight by |ret| | m30_magweight_cpcv.py (retarget) | both | med | pending | — | — | — | magnitude→direction bridge | — |

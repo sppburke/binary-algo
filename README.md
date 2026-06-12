@@ -45,10 +45,11 @@ Each book directory is a **frozen, self-contained, deployable model**:
 All 7 certified 15m books have saved weights. Load without retraining:
 
 ```python
-import lightgbm as lgb, json, numpy as np
+import lightgbm as lgb, json, glob, numpy as np
 
 book_dir = "books/USDCHF.m15ny_xpair_seedens.v1"
-strategy = json.load(open(f"{book_dir}/m15ny_xpny_USDCHF_seedens_strategy.json"))
+# strategy.json filename varies per book — glob for it (one per book dir)
+strategy = json.load(open(glob.glob(f"{book_dir}/*strategy*.json")[0]))
 
 # Load all seeds and average probabilities
 seed_files = sorted(glob.glob(f"{book_dir}/*_lgb.txt"))

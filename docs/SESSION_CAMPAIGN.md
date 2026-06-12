@@ -1,4 +1,4 @@
-SCOPE: CROSS-KEY CAMPAIGN LEDGER (resumable state) — DST-correct, per-session (NY/LDN/Asian) re-test of EVERY frequency × method. Generic methodology; per-cell numbers also land in the key-specific files (EURUSD_RESULTS.md / MAGNITUDE_FINDINGS.md / DIRECTION_FINDINGS.md / sweeps/). See REPO_MAP.md, sessions.py.
+SCOPE: CROSS-KEY CAMPAIGN LEDGER (resumable state) — DST-correct, per-session (NY/LDN/Asian) re-test of EVERY frequency × method. Generic methodology; per-cell numbers also land in the key-specific files (results/EURUSD_RESULTS.md / docs/MAGNITUDE_FINDINGS.md / docs/DIRECTION_FINDINGS.md / sweeps/). See REPO_MAP.md, sessions.py.
 
 # Session re-campaign — DST-correct, session-segmented re-test of the whole suite
 

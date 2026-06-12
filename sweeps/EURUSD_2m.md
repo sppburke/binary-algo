@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD · 2m** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_2m_backlog.md. Results: EURUSD_RESULTS.md. See REPO_MAP.md.
+> **SCOPE: EURUSD · 2m** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_2m_backlog.md. Results: results/EURUSD_RESULTS.md. See REPO_MAP.md.
 
 ---
 currency: EURUSD
@@ -104,6 +104,6 @@ wrongly subsumed under the *different* cross-leg-sign-lead mechanism). Closed it
 - **(EURUSD, 2m, DOWN)** = **DEAD** (~.52, sub-breakeven all years; cross-pair refit p10 .5124; specialist nested-refit .4912).
 - **Keystone:** four model classes at ~.50-.52 AUC every year → 2m direction is GENUINE market efficiency. The cross-pair
   edge gradient (none@60s → UP@5m → both@15m) does NOT reach back to 2m: the slow USD-common-factor needs ≥5m to be exploitable.
-- **Forecastable at 2m = magnitude only** (sign-invariant, AUC ~.68-.74; Touch/Range/Straddle, NOT Rise/Fall). Track in MAGNITUDE_FINDINGS.md.
+- **Forecastable at 2m = magnitude only** (sign-invariant, AUC ~.68-.74; Touch/Range/Straddle, NOT Rise/Fall). Track in docs/MAGNITUDE_FINDINGS.md.
 - **Redirect (not a wall):** external data — DE-US rate-diff / VIX-risk-reversal / GARCH-MIDAS / cross-asset leads (Tier-G, gated on user "go").
 - **Venue:** 120s is BELOW deriv's 15m forex minimum → a research horizon, not directly deployable regardless.

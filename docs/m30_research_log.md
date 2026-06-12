@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD · 30m** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD · 30m** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # 30-MINUTE EURUSD BINARY DIRECTION — RESEARCH LOG
 

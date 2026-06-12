@@ -1,7 +1,7 @@
 # USDJPY × 2m — Executable Backlog (FIRST-TO-RUN queue + reasoning)
 
 SCOPE: USDJPY · 2m (120s). KEY-SPECIFIC. The reasoned, prioritized experiment queue. Ledger of record =
-`sweeps/USDJPY_2m.md`; results of record = `USDJPY_RESULTS.md`. Update the MODEL OF THE EDGE in the ledger
+`sweeps/USDJPY_2m.md`; results of record = `results/USDJPY_RESULTS.md`. Update the MODEL OF THE EDGE in the ledger
 after every result, then re-rank this queue.
 
 ## ★ FINAL STATE (2026-06-05) — SWEEP COMPLETE, on-disk EXHAUSTED, both sides REAL-but-sub-BE
@@ -14,7 +14,7 @@ after every result, then re-rank this queue.
   ESN reservoir, GMADL/|ret|-loss, compression-gate combine, cov-grid, mag→dir bridge, recency-weighting — **all killed/no-lift,
   none crossed .541.** See ledger DEEP-PASS table + `usdjpy_2m_{esn,loss,magdir,cpcv2_multialgo_all7,optuna,recency}_result.json`.
 - **The ONLY live frontier = EXTERNAL DATA** (see bottom; the structurally-right unlock is USDJPY 1s tick microstructure).
-- Magnitude STRONG (magAUC ~.78, `usdjpy_2m_magnitude_result.json` → MAGNITUDE_FINDINGS.md). Sign-invariant, not a direction key.
+- Magnitude STRONG (magAUC ~.78, `usdjpy_2m_magnitude_result.json` → docs/MAGNITUDE_FINDINGS.md). Sign-invariant, not a direction key.
 
 ## INCUMBENTS TO BEAT (start of sweep — historical)
 - No certified USDJPY 2m book yet. Cross-horizon refs: USDJPY 1m near-efficient (best UP uncertified .547/.534/.538);
@@ -54,7 +54,7 @@ The next experiments are EXTERNAL-DATA-gated only (below) — a data-acquisition
   at this key; fan out reader sub-agents. Vet each for a DIRECTION (sign) mechanism (sign-invariance) before adding.
 - Candidate seeds to vet: Hawkes/self-exciting breakout timing → direction conditioning; triangular-arbitrage residual
   (USDJPY via EURUSD×EURJPY) sign; realized-skew / signed-jump sign-predictivity at 2m; intraday DE–US/US–JP 2y rate-diff
-  (EXTERNAL data — gated). Append vetted rows to ledger Tier-N + IDEAS_LOG.md (generic) + here (per-key).
+  (EXTERNAL data — gated). Append vetted rows to ledger Tier-N + docs/IDEAS_LOG.md (generic) + here (per-key).
 
 ## EXTERNAL-DATA FRONTIER (gated on explicit user "go" — do not acquire without it)
 - Intraday US–JP 2y rate differential (carry driver; BoJ vs Fed) via Dukascopy; daily JPY implied-vol / risk-reversal;

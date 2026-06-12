@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD · 1m (60s)** (EXECUTABLE backlog — first-to-run queue + incumbents-to-beat). Ledger: sweeps/EURUSD_1m.md. Results: EURUSD_RESULTS.md § 60s. See REPO_MAP.md.
+> **SCOPE: EURUSD · 1m (60s)** (EXECUTABLE backlog — first-to-run queue + incumbents-to-beat). Ledger: sweeps/EURUSD_1m.md. Results: results/EURUSD_RESULTS.md § 60s. See REPO_MAP.md.
 
 # EURUSD 60s — incumbents to beat
 - **UP:** up-only filter on symmetric ensemble (`min1_updown.py`) — OOS .613, floor .520, regime-dependent, NOT 0.65, uncertified-for-deriv.
@@ -23,10 +23,10 @@ re-weighting that the 5m DOWN responded to, and (2) the magnitude→direction br
    **Subsumes any further confidence-only / "avoid-losers" DOWN gate.**
 - ~~[both · discovered · prior LOW] BAR-IMAGE 2-D CNN (Sezer CNN-BI / GAF — last non-subsumed bar sub-lever)~~ —
    **DONE 2026-06-05: DIRECTION KILLED / MAGNITUDE clears >65%** (`barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`/
-   `barcnn_mag.py`; method `METHODS_CATALOG.md` §5.5). DIRECTION: 3 encodings (close-histogram / 3ch-OHLC / GAF), 60s
+   `barcnn_mag.py`; method `docs/METHODS_CATALOG.md` §5.5). DIRECTION: 3 encodings (close-histogram / 3ch-OHLC / GAF), 60s
    wc_ret label, ALL null — VAL dirAUC ≈.50, CPCV path_p10 .484–.499, **0.0 paths clear 0.541** (incl. regime-gated).
    Even the antisymmetric GADF sign-field is null → bar geometry = magnitude not 60s sign. MAGNITUDE (sign-invariant,
-   → `MAGNITUDE_FINDINGS.md` §3, NOT a direction key): the absolute-scale OHLC image (`barcnn_mag.py ohlcabs`) hits
+   → `docs/MAGNITUDE_FINDINGS.md` §3, NOT a direction key): the absolute-scale OHLC image (`barcnn_mag.py ohlcabs`) hits
    magAUC .699/.714/.686 with **all 28 CPCV paths ≥0.65 at cov≤0.2 every held-out year** — bar patterns predict move
    SIZE at >65%. Kronos NOT built (RankIC/magnitude; fine-tune deteriorates arXiv:2511.18578).
 3. **[UP · improve · prior ~15%] |return|-weighted (POW=0.5) retrain @60s, UP-split** — same `min1_magweight.py`,
@@ -37,7 +37,7 @@ re-weighting that the 5m DOWN responded to, and (2) the magnitude→direction br
 
 # DISCOVERY ROUND 1 (2026-06-03) — DRY (0 survivors / 12 vetted)
 Adversarial fan-out (`discover-60s-down-levers` workflow, 12 Explore agents, each grounded in the repo kill
-evidence) vetted every UNTESTED sign-aware microstructure DOWN/direction lever in CORPUS_LEVER_INVENTORY.md for
+evidence) vetted every UNTESTED sign-aware microstructure DOWN/direction lever in docs/CORPUS_LEVER_INVENTORY.md for
 subsumption + sign-invariance at 60s. **ALL 12 subsumed/sign-invariant; 0 survivors.** The order-flow microstructure
 family is uniformly a reparameterization of the signed-flow channel already dead at 60s (CKS-OFI VAL .4993,
 cross-impact-OFI .5015, per-side-flow ~.50, online-ARF keystone .503-.508) and/or sign-invariant (magdir proof).
@@ -61,7 +61,7 @@ N4 (min2_mim killed @2m). (5) calendar/option-expiry = sign-invariant (magnitude
 # Subsumed / dead at 60s (do NOT re-run without a NEW mechanism)
 - USD/cross-pair conditioning DOWN (D3a, killed 2026-06-03) — and its 5m parent. Cross-pair sign-lead family null.
 - Side-specialists (subset-training kills ranking). Online-ARF (efficiency keystone). HMM/Kalman/RMT/CCM/OFI/CKS
-  (~24 channels, all null — EURUSD_RESULTS.md § 60s rows 1-17). Complexity/Hurst (sign-invariant).
+  (~24 channels, all null — results/EURUSD_RESULTS.md § 60s rows 1-17). Complexity/Hurst (sign-invariant).
 
 # External-data-gated (NOT on-disk — acquisition prerequisite, per honest-frontier)
 - **Option-implied risk-reversal sign** (the single remaining mechanism-grounded DOWN lever) — verified PAYWALLED.

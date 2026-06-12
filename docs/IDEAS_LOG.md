@@ -1,18 +1,18 @@
 # IDEAS LOG — transferable prediction levers (GENERIC)
 SCOPE: GENERIC (currency/timeframe-agnostic). Idea→experiment backlog of transferable levers + mechanisms +
 falsifier TEMPLATES. **No per-key incumbents/numbers here** — those live in the per-key backlogs
-`sweeps/<PAIR>_<tf>_backlog.md` and results in `<PAIR>_RESULTS.md`. See `REPO_MAP.md`.
-Generic methods: `METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`; cross-key theory: `THEORY.md`.
-**Untried-methodology research (2026-06-07): `NOVEL_METHODS_RESEARCH.md`** — 110-candidate web+academic slate (raw:
+`sweeps/<PAIR>_<tf>_backlog.md` and results in `results/<PAIR>_RESULTS.md`. See `REPO_MAP.md`.
+Generic methods: `docs/METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`; cross-key theory: `docs/THEORY.md`.
+**Untried-methodology research (2026-06-07): `docs/NOVEL_METHODS_RESEARCH.md`** — 110-candidate web+academic slate (raw:
 `novel_methods_candidates.json`) distilled to ranked runnable experiments + input transforms (frac-diff, information-driven
 bars, vol-time subordination, cross-pair whitening) + GARCH/HAR/semivariance/Hawkes/BOCPD/causal-PCMCI gaps. **Every item
 gated by the §6f frozen-past forward holdout + a surrogate-null** (pooled CPCV alone is insufficient — leakage trap #9).
 
 **Tested-on-keys pointers (where these levers were instantiated):**
-- EURUSD · 1m  → `sweeps/EURUSD_1m_backlog.md`  (+ `EURUSD_RESULTS.md` §60s) — **CLOSED 2026-06-03: both sides certified-or-exhausted, 2 discovery rounds DRY**
-- EURUSD · 5m  → `sweeps/EURUSD_5m_backlog.md`  (+ `EURUSD_RESULTS.md`)
+- EURUSD · 1m  → `sweeps/EURUSD_1m_backlog.md`  (+ `results/EURUSD_RESULTS.md` §60s) — **CLOSED 2026-06-03: both sides certified-or-exhausted, 2 discovery rounds DRY**
+- EURUSD · 5m  → `sweeps/EURUSD_5m_backlog.md`  (+ `results/EURUSD_RESULTS.md`)
 - EURUSD · 2m  → `sweeps/EURUSD_2m_backlog.md`
-- EURUSD · 10m → `sweeps/EURUSD_10m_backlog.md`  (+ `EURUSD_RESULTS.md` §10m) — **CLOSED 2026-06-04: BOTH sides certified (cross-pair `EURUSD.m10xp.v1` UP p10 .586 / DOWN p10 .568, 15/15), improve+discover loops DRY (2 rounds, 11 levers)**
+- EURUSD · 10m → `sweeps/EURUSD_10m_backlog.md`  (+ `results/EURUSD_RESULTS.md` §10m) — **CLOSED 2026-06-04: BOTH sides certified (cross-pair `EURUSD.m10xp.v1` UP p10 .586 / DOWN p10 .568, 15/15), improve+discover loops DRY (2 rounds, 11 levers)**
 - EURUSD · 15m → `sweeps/EURUSD_15m_backlog.md`  (deriv-tradeable binary; Q1 = magnitude×direction gate, user-queued 2026-06-03)
 - EURUSD · 30m → `sweeps/EURUSD_30m_backlog.md`
 
@@ -102,7 +102,7 @@ When moving a sweep to a LONGER horizon, lever priors shift by MECHANISM-decay, 
   longer H) flip whether large moves are sign-predictable. A DOWN side dead at 5m can be alive at 15m (measured: [EURUSD·15m]).
 - **Cross-pair cross-sectional factor/ranking levers get MORE relevant at longer H** — the USD common factor evolves slowly, so
   rank/PC-shrinkage/IPCA constructions (≠ raw exog features, which were null) plausibly carry more sign at 15m than 5m.
-Source: CORPUS_LEVER_INVENTORY.md families (Lucchese/Michankow MADL-GMADL, Kozak-Nagel-Santosh, IPCA, Sirignano-Cont).
+Source: docs/CORPUS_LEVER_INVENTORY.md families (Lucchese/Michankow MADL-GMADL, Kozak-Nagel-Santosh, IPCA, Sirignano-Cont).
 
 **Corollary — cross-pair pooling is HORIZON-GATED DOWNWARD (measured 2026-06-04):** the cross-pair USD-residual+OF primary
 (`m5_xpair.py`, the lever that CERTIFIED [EURUSD·5m·UP] and BOTH [EURUSD·15m] sides under refit-CPCV) is **null below 5m** —
@@ -158,7 +158,7 @@ a per-bar GBM nor a 1-D sequence net (GRU/ESN, both tested) can represent. Prior
 store keeps only `close` (e.g. USDJPY) without raw tick/OHLC acquisition.** ⇒ runnable today on EURUSD; an external-data lever
 for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ breakeven falsifier, eval vs the GBM baseline.
 > **RAN it [EURUSD·60s] 2026-06-05 → DIRECTION null/KILLED, MAGNITUDE clears >65% (generic conclusion).** Faithful
-> Sezer CNN-BI reimplementation (`METHODS_CATALOG.md` §5.5; `barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`/
+> Sezer CNN-BI reimplementation (`docs/METHODS_CATALOG.md` §5.5; `barcnn_bars.py`/`barcnn_run.py`/`barcnn_cpcv.py`/
 > `barcnn_mag.py`), image encodings — Sezer close-histogram,
 > 3-channel OHLC (wick + up-body + down-body), and GAF (GASF+GADF) — each a small MNIST-class 2-D CNN on the 60s
 > wc_ret label (ties-strict, moved-bars). ALL three: VAL dirAUC ≈ .50, test/oos AUC ≈ .50, and faithful CPCV (28
@@ -168,7 +168,7 @@ for USDJPY. If run: same deriv-faithful CPCV harness, pre-registered p10 ≥ bre
 > GAF lever is magnitude, not ≤60s sign — confirming the 60s near-efficiency keystone via a 4th model class (2-D
 > conv).** Kronos NOT built (its reported gains are RankIC/magnitude; no FX/60s/direction numbers; fine-tune
 > deteriorates, arXiv:2511.18578) — a magnitude/path foundation model, not a direction lever.
-> **The flip side — bar patterns DO predict the MAGNITUDE outcome at >65% (`barcnn_mag.py`, `MAGNITUDE_FINDINGS.md`
+> **The flip side — bar patterns DO predict the MAGNITUDE outcome at >65% (`barcnn_mag.py`, `docs/MAGNITUDE_FINDINGS.md`
 > §3).** Pointing the same bar-image CNN at large-vs-small move (the deriv Touch/Range/straddle outcome) gives magAUC
 > .699/.714/.686 and selective large-call precision .68→.80 with **all 28 CPCV paths ≥0.65 at cov≤0.2 in every held-out
 > year** — but ONLY with ABSOLUTE-scale rendering (per-window min-max normalization throws away the vol scale and caps
@@ -253,11 +253,11 @@ on 15,041 nonoverlap bars (K=24, pred_len=30, all horizons 1/5/10/15/30m, cpcv_c
 **KILLED everywhere:** paired ΔAUC = −.0003 (H=1, zero effect) → −.0070 (H=30, hurts); CI95 excludes 0 below for H≥5.
 The dispersion features ARE used by the GBM (non-trivial gain) but correlate .46–.83 with rv30 — a noisier Monte-Carlo
 restatement of realized vol that backward rolling-std already captures cleanly. `kronos_disp_disp_main_result.json`,
-MAGNITUDE_FINDINGS.md §6c.
+docs/MAGNITUDE_FINDINGS.md §6c.
 > **Generic lesson — a single-pair generative path forecast adds NO magnitude info orthogonal to cheap trailing realized
 > vol.** Kronos's per-path spread ≈ predicted forward vol ≈ a re-derivation of rv30/rv120, just with Monte-Carlo noise and
 > (at long H) compounding error that anti-transfers. Magnitude gains must come from inputs rv CAN'T see — macro-event
-> windows, deseasonalized/semivariance RV, an external implied-vol feed (MAGNITUDE_FINDINGS.md §7), NOT more model capacity
+> windows, deseasonalized/semivariance RV, an external implied-vol feed (docs/MAGNITUDE_FINDINGS.md §7), NOT more model capacity
 > on own OHLCV. Mirrors the direction finding (d above): Kronos is blind to anything not in one pair's own candles.
 
 ### (e) Lever — Kronos `decode_s1` 512-d HIDDEN STATE as a frozen feature = SMALL REAL MAGNITUDE LIFT / direction null (2026-06-06)
@@ -266,7 +266,7 @@ kronos.py:305-308; one forward pass, no AR/sampling, ~190 win/s). `kronos_embed.
 nonoverlap bars vs the certified rv baseline. **MAGNITUDE: the FIRST feature to beat rv** — paired ΔAUC
 +.0067/+.0022/+.0076/+.0024/+.0058 (H=1/5/10/15/30m), **every CI95 excludes 0** (clears the +.005 bar at 1/10/30m); rv
 .73→.74. Real but MODEST. **DIRECTION emb-only NULL** (AUC .50–.51). `kronos_embed_embed_main_result.json`,
-MAGNITUDE_FINDINGS.md §6d, DIRECTION_FINDINGS.md.
+docs/MAGNITUDE_FINDINGS.md §6d, docs/DIRECTION_FINDINGS.md.
 > **Generic lesson — a single-pair LEARNED representation carries a little magnitude info that hand-crafted rv misses,
 > but ZERO sign.** The likely source of the magnitude lift is time-of-day vol seasonality (the embedding has an additive
 > time-emb; rv30/rv120 don't) → the cheap win is §7 deseasonalized-RV, not a Kronos dependency. Decisive next-check: add
@@ -277,7 +277,7 @@ MAGNITUDE_FINDINGS.md §6d, DIRECTION_FINDINGS.md.
 > decays 2024 +.020 → 2025 −.009 → 2026 −.054 forward (non-stationary seasonal shape). NOT deployable. The whole
 > tod/clock magnitude-lift family was pooled-CPCV-only; adversarial review (wwtci9slp) confirmed it's leakage-free but
 > forward-fragile. **New leakage trap #9 (pooled-CPCV non-stationary-feature memorization) recorded in METHODS_CATALOG.**
-> MAGNITUDE_FINDINGS.md §6f.
+> docs/MAGNITUDE_FINDINGS.md §6f.
 
 ### (f) Lever — Chronos-2 GROUP-ATTENTION on the 7-pair USD panel = DIRECTION NULL (2026-06-07)
 Lever 3, the cross-sectional bet — the highest-value/most-unsolved need (every single-pair model reads ~.50 on direction;
@@ -286,8 +286,8 @@ group-attention mixes across variates) fed the L=512 close panel of all 7 USD pa
 44,999 bars (`chronos2_xpair.py`): forecast-sign, embed→GBM (1536-d cross-pair representation), NY/LDN/Asia. **KILLED
 every horizon/method:** acc .505–.511, AUC .506–.514, CPCV p10 ~.50 — far below breakeven .541. A FAINT NY-tilt
 (NY acc slightly > pooled) + AUC consistently a hair above .50 means the signal is THERE but non-deployable. Forecast
-spread → magnitude sub-bar (+.002–.004, < +.005). `chronos2_xpair_c2_main_result.json`, DIRECTION_FINDINGS.md,
-MAGNITUDE_FINDINGS.md §6e.
+spread → magnitude sub-bar (+.002–.004, < +.005). `chronos2_xpair_c2_main_result.json`, docs/DIRECTION_FINDINGS.md,
+docs/MAGNITUDE_FINDINGS.md §6e.
 > **Generic lesson — a strong multivariate TSFM's learned cross-attention on raw price LEVELS does NOT recover the
 > cross-sectional direction sign.** The deployable ≥10m NY edge (.57–.61, `session_xpair`) lives in the SPECIFIC engineered
 > features (USD-residual, basket-catchup, signed eu-equiv lead-lag residuals), NOT in what a foundation model extracts from
@@ -314,9 +314,9 @@ cohort (`min1_v*`/`min2_v*`/`tickmodel*`/`tick5s_final`/`tick_ensemble`, no resu
 
 ---
 
-## 2026-06-07 — NOVEL-METHODS campaign (execute ALL of `NOVEL_METHODS_RESEARCH.md` §7), by-experiment status
+## 2026-06-07 — NOVEL-METHODS campaign (execute ALL of `docs/NOVEL_METHODS_RESEARCH.md` §7), by-experiment status
 
-Verified-facts source of truth: `CAMPAIGN_2026-06-07_FACTS.md`. Every item below is gated by the deployment-faithful
+Verified-facts source of truth: `docs/CAMPAIGN_2026-06-07_FACTS.md`. Every item below is gated by the deployment-faithful
 **FROZEN-PAST FORWARD HOLDOUT** (train≤2023 → per-year 2024/25/26), NOT pooled CPCV (leakage trap #9). Campaign certified
 NOTHING new — every tested lever is KILLED or REAL-but-SUB-BAR. The ONE positive: the certified MAGNITUDE edge RE-VALIDATED
 on a clean forward holdout with NO decay.
@@ -398,8 +398,8 @@ forward (15m .5895/.5518/.5234; 30m .5827/.5505/.5055 — the documented refit-d
 
 ### (e) REMAINING SLATE — reasoned SCOPE DECISIONS (evidence-based skip/blocked/moot/queued; 2026-06-07)
 After 4 convergent direction nulls (FFD/D1/D6/D7) on the deployment-faithful gate, with the base book itself decaying forward,
-the remaining `NOVEL_METHODS_RESEARCH.md` §7 slate is scoped by EVIDENCE — recorded so the next session resumes deliberately,
-not blindly. From `CAMPAIGN_2026-06-07_FACTS.md` "reasoned scope decisions":
+the remaining `docs/NOVEL_METHODS_RESEARCH.md` §7 slate is scoped by EVIDENCE — recorded so the next session resumes deliberately,
+not blindly. From `docs/CAMPAIGN_2026-06-07_FACTS.md` "reasoned scope decisions":
 - **D5 causal lead-lag (Granger / PCMCI / structural-VAR)** — **REASONED-SKIP.** The certified base book ALREADY contains every
   peer's lagged lead-lag feature (`ll_<pair>k`, k∈{1,3,5,10,15,30}) which the GBM weights; D1 proved signature lead-lag content
   does NOT survive a rotation null. A Granger feature-SELECTION on top of an already-lead-lag-saturated GBM has near-zero
@@ -436,9 +436,9 @@ Three "technically-uncoded" lever families (mined from external directional-pred
 timeframes, single-pair AND cross-pair input, GPU + deriv-faithful (TRAIN 2012-21 / VAL 22-23 / held-out per-year 2024/25/26,
 2026 strict OOS; selective-acc @cov0.10, ties-dropped, moved-bars, breakeven .541). KILL per arm: VAL dirAUC ≤ .515 OR no
 held-out year's selective-acc CI95-lower ≥ breakeven. **All KILLED — no leader unseated.** Each family converts a *generative
-PATH or SPECTRAL forecast* into a sign — i.e. is structurally exposed to the SIGN-INVARIANCE theorem (`THEORY.md`): a forecaster
+PATH or SPECTRAL forecast* into a sign — i.e. is structurally exposed to the SIGN-INVARIANCE theorem (`docs/THEORY.md`): a forecaster
 that nails move SIZE need carry no move SIGN. Tested-on-keys (no per-key numbers here): EURUSD {1,2,5,10,15,30}m → KILLED;
-numbers in `EURUSD_RESULTS.md` (§2026-06-08), consolidated `neural_spectral_dir_sweep_result.json` (+ per-horizon
+numbers in `results/EURUSD_RESULTS.md` (§2026-06-08), consolidated `neural_spectral_dir_sweep_result.json` (+ per-horizon
 `{nbeats_nhits_dir,decomp_dir,spectral_dir}_<tf>m_result.json`). Retarget knob: env `MX_HOR=<minutes>`.
 
 ### (a) Lever — N-BEATS / N-HiTS PATH-forecast → sign (`nbeats_nhits_dir.py`)
@@ -468,7 +468,7 @@ fixed coverage certifies. **Falsifier template:** a band-split → sign that cle
 selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell) means a frequency band carries sign — re-open.
 **Tested-on-keys:** EURUSD {1,2,5,10,15,30}m, single + cross-pair → KILLED (`spectral_dir_<tf>m_result.json`,
 `neural_spectral_dir_sweep_result.json`).
-> **Generic lesson — path/spectral/quantile FORECASTERS carry move SIZE, not SIGN (sign-invariance theorem, `THEORY.md`).**
+> **Generic lesson — path/spectral/quantile FORECASTERS carry move SIZE, not SIGN (sign-invariance theorem, `docs/THEORY.md`).**
 > N-BEATS/N-HiTS (path), DLinear/Autoformer/FEDformer + TFT-quantile (decomposition/frequency), and causal DWT/SSA (spectral
 > band-split) all reduce to magnitude/distribution re-expressions of own (or cross-pair) price; none recovers the directional
 > sign at any of the 6 EURUSD horizons. This adds 3 model families to the ≥5 already at ~.50 on own-history direction and
@@ -476,7 +476,7 @@ selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell)
 
 
 ---
-## Transferable lessons from the AUDUSD 15m direction sweep (2026-06-09) — generic; per-key numbers in `AUDUSD_RESULTS.md` + `sweeps/AUDUSD_15m{,_backlog}.md`
+## Transferable lessons from the AUDUSD 15m direction sweep (2026-06-09) — generic; per-key numbers in `results/AUDUSD_RESULTS.md` + `sweeps/AUDUSD_15m{,_backlog}.md`
 
 > **A commodity/risk USD-major's 15m DIRECTION-sign is still NY-session-concentrated + OWN-PAIR-specific — its "home-session" idiosyncratic info gates MAGNITUDE, not 15m sign.** [AUDUSD·15m] Going in, the strong prior was that AUDUSD's edge lives in the **Asia** session (RBA/China/AU-data/commodity flows). The symmetric session test REFUTED this: NY certifies both sides, Asia + LDN are sub-breakeven. The commodity/China information is real but gates move SIZE (sign-invariance theorem), while the directional sign rides the US-session USD flow — same as EURUSD/USDJPY. **Lesson: test the session symmetrically for every new pair; do NOT assume the home-session carries direction even for a home-driven currency.** Cite: `audusd_15m_cpcv_session_{ny,asia,ldn}_multicov_result.json`.
 
@@ -489,7 +489,7 @@ selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell)
 > **Seed-ensemble (Tier-I I2) reproduces as the one robust own-pair improve-lever** (lifts both p10 AND mean modestly), while triple-barrier label, meta-labeling, symmetric ACI, GMADL-selection, and calibration remain null/subsumed-by-precedent for an own-pair NY book. The honest direction ceiling on existing on-disk data is an information bound (NY moved-AUC ~.53–.54); >65% as a certified floor requires EXTERNAL signed data (intraday AU-US rate differential, risk-on/off VIX/ES, commodity index) — the standing program conclusion, AUD-instantiated. Cite: `audusd_15m_cpcv_session_ny_seedens3_result.json`.
 
 ---
-## Transferable lessons from the GBPUSD 15m direction sweep (2026-06-10) — generic; per-key numbers in `GBPUSD_RESULTS.md` + `sweeps/GBPUSD_15m.md`
+## Transferable lessons from the GBPUSD 15m direction sweep (2026-06-10) — generic; per-key numbers in `results/GBPUSD_RESULTS.md` + `sweeps/GBPUSD_15m.md`
 
 > **EUR-bloc discriminator resolved: GBPUSD follows EURUSD (pooling ADDS), not JPY/AUD (own-pair-specific).** [GBPUSD·15m] The program's prior entering GBPUSD was genuinely open — EUR-bloc pooling certifies EURUSD but dilutes JPY+AUD; GBPUSD sits at the EUR end by USD-correlation and FX-structure. The symmetric test confirmed: xpair 340-feat matrix lifts BOTH sides at EVERY coverage (+.007–.032 p10 vs own-pair NY incumbent). **Lesson: EUR-bloc pairs (EURUSD, GBPUSD) are the pooling-wins cases; commodity/JPY/AUD are own-pair cases. Poolable = tight USD-EUR-GBP triangle; separate = commodity/risk/carry.** Cite: `gbpusd_15m_xpair_xpbase_result.json`, `gbpusd_15m_cpcv_xpair_ny_multicov_result.json`.
 
@@ -505,7 +505,7 @@ selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell)
 > **★ Synthetic-cross LEVEL error-correction band for SNB/policy-MANAGED currencies (a DIRECTION lever, not magnitude).** [generic; first target USDCHF·15m] For a currency whose central bank pins a CROSS rate's LEVEL into a slow band (SNB↔EURCHF; analogously HKMA↔USDHKD, or any soft-peg/target-zone), build the synthetic cross from two on-disk USD legs: logEURCHF = logEURUSD + logUSDCHF. A causal rolling z-score of that LEVEL vs its slow anchor carries a RESTORING-FORCE SIGN (target-zone/ECM mean-reversion): −sign(z) on the cross maps through to a signed prediction on the managed leg (USDCHF). **Why it survives sign-invariance:** it is a conditional-MEAN drift on a policy-stationary LEVEL (Krugman target-zone S-curve), NOT a vol/entropy/flow statistic — so unlike return-residual mean-reversion (corr~0 at 15m) it predicts the SIGN of the next move, not just its size. **Distinct from cross-pair POOLING** (which uses RETURN residuals / lead-lag): this uses the LEVEL, an axis the 239-feat base + xpair return-residuals do NOT span. **Prior low-med; fast-KILL:** add [z, |z|, leg-shares] to the base GBM — KILL if VAL moved-AUC ≤ base OR the z-coefficient sign flips across eras (2024↔2026) OR no held-out year's COMB CI95-lower clears breakeven. Mechanism source: Krugman target-zone (1991) + SNB EURCHF floor regime; corpus + web discovery R1. Build: `usdchf_15m_ecm.py`.
 
 ---
-## Transferable lesson from the USDCHF 15m direction sweep (2026-06-10) — generic; per-key numbers in `USDCHF_RESULTS.md` + `sweeps/USDCHF_15m.md`
+## Transferable lesson from the USDCHF 15m direction sweep (2026-06-10) — generic; per-key numbers in `results/USDCHF_RESULTS.md` + `sweeps/USDCHF_15m.md`
 
 > **★ The all-session FROZEN pooling SCREEN can FALSE-NEGATIVE; the NY refit-CPCV is the DECISIVE pooling test — run it even when the screen says IMPROVES=False.** [USDCHF·15m] The frozen all-session xpair screen returned IMPROVES_base=False (VAL AUC lifts .5301→.5330 but frozen-2026 cov2 COMB .5049 < base .5103, DOWN collapses) — by the standard escalation rule this would have KILLED pooling. But the NY-restricted per-fold-refit CPCV showed the OPPOSITE: xpair BEATS the own-pair NY incumbent at EVERY cov on BOTH sides (single-seed pooling-test stage: cov1 p10 UP .6997/DOWN .662 vs own .641/.636; the deployed deliverable is the K=3 seed-ens `USDCHF.m15ny_xpair_seedens.v1` cov1 .6935/.6682, which superseded it), and the matched frozen-forward head-to-head confirmed it (xpair-frozen beats own-pair-frozen in all 6 forward cells, mean +.048 — genuine, not trap#9). **Why the screen lies:** it scores the FROZEN ALL-SESSION 2012-21 vintage; the deliverable is NY + refit. The EUR-bloc cross-pair signal is era-local (USD-factor structure drifts), so the per-fold-refit harness captures it while the frozen all-session book cannot — and the dilution from off-carrier (non-NY) bars further masks it in the screen. **Protocol fix: for any pair with a MECHANISTIC reason to expect pooling (EUR-bloc cousin — EUR/GBP/CHF triangle), escalate to the NY refit-CPCV pooling test regardless of the frozen-screen verdict; the screen's frozen-2026 failure is necessary-not-sufficient evidence against pooling.** **Caveat/follow-up:** USDCAD's pooling was ruled NULL on the SCREEN ONLY (never refit-CPCV-tested) — mechanistically defensible (CAD is commodity, no EUR-bloc cousin) but technically a gap; a USDCAD NY xpair-CPCV retest would close it. Cite: `usdchf_15m_xpair_xpbase_result.json` (screen, IMPROVES=False), `usdchf_15m_cpcv_xpair_ny_multicov_result.json` (refit-CPCV, pooling WINS), `usdchf_15m_xpair_frozen_result.json` + `usdchf_15m_ownpair_frozen_result.json` (matched frozen-forward, xpair wins all cells).
 

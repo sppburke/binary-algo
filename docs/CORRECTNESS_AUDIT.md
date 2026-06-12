@@ -136,7 +136,7 @@ and NY **beats** the legacy fixed-UTC gate.
 | 30m | .5681 | .5639 | .520 / .514 | .487 / .509 | .559 / .553 |
 
 Files: `session_xpair_{10,15,30}m_{ny,ldn,asia}_result.json`. **5m + 2m (in progress.)**
-Per-key numbers tagged `[EURUSD·{10m,15m,30m}]`; file of record `EURUSD_RESULTS.md`.
+Per-key numbers tagged `[EURUSD·{10m,15m,30m}]`; file of record `results/EURUSD_RESULTS.md`.
 
 **Kronos direction, CORRECTED** (`kronos_mtf.py`, alignment-fixed) — **NULL at every horizon** 1/5/10/15/30m,
 zero-shot **and** fine-tuned, **all sessions** (pooled .50–.51, CPCV p10 .489–.500, all KILLED, up-rates

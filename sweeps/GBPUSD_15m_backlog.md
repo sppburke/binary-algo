@@ -1,4 +1,4 @@
-> **SCOPE: GBPUSD · 15m** — per-key EXECUTABLE backlog (FIRST-TO-RUN queue + incumbents-to-beat + discovery rounds). Ledger/status: `sweeps/GBPUSD_15m.md`. Results of record: `GBPUSD_RESULTS.md`. Generic idea pool: `IDEAS_LOG.md` / `SWEEP_MATRIX.md`.
+> **SCOPE: GBPUSD · 15m** — per-key EXECUTABLE backlog (FIRST-TO-RUN queue + incumbents-to-beat + discovery rounds). Ledger/status: `sweeps/GBPUSD_15m.md`. Results of record: `results/GBPUSD_RESULTS.md`. Generic idea pool: `docs/IDEAS_LOG.md` / `SWEEP_MATRIX.md`.
 
 # GBPUSD 15m — executable backlog
 

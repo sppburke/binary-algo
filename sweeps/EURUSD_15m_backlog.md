@@ -1,12 +1,12 @@
 # EURUSD · 15m — experiment backlog (queued, not yet run)
 
-SCOPE: EURUSD 15m (key-specific). Generic levers/templates: `IDEAS_LOG.md`. Results of record: `EURUSD_RESULTS.md`.
+SCOPE: EURUSD 15m (key-specific). Generic levers/templates: `docs/IDEAS_LOG.md`. Results of record: `results/EURUSD_RESULTS.md`.
 The 15m book `EURUSD.m15.v1` is the **deriv-tradeable binary product** (deriv forex Rise/Fall min duration = 15m,
 verified live 2026-06-03 via `contracts_for` — `m5_venue_feasibility_result.json`). Unlike 5m (research-grade, no binary
 venue), a 15m UP/DOWN edge is **directly deployable as a deriv binary** (R≈0.85, breakeven 0.541).
 
 ## STATUS (as of 2026-06-03)
-- 15m is **only COMBINED-tested** (`EURUSD_RESULTS.md`: 2026 slice 0.663; cross-era CPCV-faithful **0.579**, p10 0.557).
+- 15m is **only COMBINED-tested** (`results/EURUSD_RESULTS.md`: 2026 slice 0.663; cross-era CPCV-faithful **0.579**, p10 0.557).
   **Never side-split.** PREREQUISITE for everything below: run the (15m,UP) and (15m,DOWN) **side-split** first
   (`m5_updown.py` pattern retargeted `MX_HOR=15`), then the full strategy-eval pipeline (a)–(e) per side.
 

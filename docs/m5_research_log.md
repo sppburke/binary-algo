@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD · 5m** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD · 5m** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # 5-MINUTE EURUSD BINARY DIRECTION — RESEARCH LOG
 
@@ -14,7 +14,7 @@ allows 5-minute binary options (NOT deriv — deriv forex floor is 15m). Settlem
 ## Prior evidence (carried forward — Tier-1)
 - Horizon sweep: 5min OHLCV AUC ~0.519 / OOS ~0.52 (V8). Information floor ~0.52, same as 30m. Real edge is ≤8s (0.75+ only there).
 - Tick microstructure achievability curve: 5s 0.712 → 60s 0.603 → 120s ~0.54 → 5min ~0.54. So microstructure at 300s is weak but > 30m.
-- Best honest selective (15m compress×NY): ~0.60-0.64. 30m: ~0.59. >75% NOT found at any tradeable horizon (9-line proof, m30_research_log.md).
+- Best honest selective (15m compress×NY): ~0.60-0.64. 30m: ~0.59. >75% NOT found at any tradeable horizon (9-line proof, docs/m30_research_log.md).
 - NEW untested setups (sofien corpus, this session): Strat 3-2-2 (67.4% hit n181) & 3-1-2 (81.6% hit n629 but PF<1), round-number/psychological-level reactions (EURUSD H1), NR7 contraction breakout, W-M normalized double-bottom. Price-action STRUCTURE — never tested at 5m.
 
 ## ITERATIONS

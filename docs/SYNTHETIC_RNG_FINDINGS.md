@@ -95,4 +95,4 @@ The direction, magnitude, and *average* frequency are all documented & priced. T
 ## 6. Next steps (only if pursuing further)
 1. **Live forward-collection** of CRASH50/BOOM50 over days/weeks to push the spike sample to 10⁴–10⁵ and tighten the hazard/gap-ACF floors to ±0.01 (the only way past the 1-day history cap).
 2. If you still want a *cryptographic* verdict: stream a multi-million-bit file and run full Dieharder/NIST STS/TestU01 (would need the binaries installed).
-3. Otherwise: **stop here.** The synthetic route is a rigorously-supported NULL for our prediction methods — redirect effort to the FX magnitude work (`DERIV_MAGNITUDE_MONETIZATION.md` Fork 1: the 1-day FX magnitude model), which at least has a real (vol-clustering) edge to build on.
+3. Otherwise: **stop here.** The synthetic route is a rigorously-supported NULL for our prediction methods — redirect effort to the FX magnitude work (`docs/DERIV_MAGNITUDE_MONETIZATION.md` Fork 1: the 1-day FX magnitude model), which at least has a real (vol-clustering) edge to build on.

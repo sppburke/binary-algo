@@ -1,12 +1,12 @@
-> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # EURUSD Binary DIRECTION — Exhaustive Investigation & Findings (2026-05-30/31)
 
 Master summary of the multi-day effort to build a high-accuracy EURUSD up/down binary model across horizons
 (1 second → 30 minutes), with the deriv-faithful, leakage-controlled, OOS-verified methodology established by the
 2026-05 bias audit. **Every number here is held-out (TEST 2024 / 2025 + OOS 2026), independent (non-overlapping
-windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `m30_research_log.md`, `m5_research_log.md`,
-`IDEAS_LOG.md` (orthogonal-math program), `research_log.md` (pre-audit + bias-audit history).
+windows, chronological/no-look-ahead), bootstrap-CI'd.** Companion logs: `docs/m30_research_log.md`, `docs/m5_research_log.md`,
+`docs/IDEAS_LOG.md` (orthogonal-math program), `docs/research_log.md` (pre-audit + bias-audit history).
 
 ## 2026-06-08 — Neural-forecaster + spectral DIRECTION sweep (ALL 6 tf): 84 arms, 0 survivors → ALL KILLED
 
@@ -26,7 +26,7 @@ The single flashiest point (DWT/SSA 10m 2026 = **0.5455** > breakeven) is the ca
 CI95-lower is **0.5112**, it's one year at n=847, and the binding 2024/2025 slices read ~0.50. **No arm at any
 horizon has a held-out CI95-lower clearing 0.541.** This is a clean experimental confirmation of (a) the
 sign-invariance theorem — path/spectral forecasters carry move SIZE, not SIGN — and (b) the prior `binary_alpha`
-N-HiTS@5m = acc 0.515 / AUC 0.518 null (`research_log.md:16`). `CORPUS_LEVER_INVENTORY.md` rows 333/356/357/359
+N-HiTS@5m = acc 0.515 / AUC 0.518 null (`docs/research_log.md:16`). `docs/CORPUS_LEVER_INVENTORY.md` rows 333/356/357/359
 flipped UNTESTED→tested-killed. **No leader unseated; the mined external repos add nothing net-new at any timeframe.**
 
 ## TL;DR — the honest frontier
@@ -88,7 +88,7 @@ worth revisiting only if EXTERNAL data raises the floor.
 **Convergent verdict:** four direction families (FFD/D1/D6/D7) die forward; the engineered cross-pair book remains the only
 direction edge and it is refit-dependent. **Direction beyond the engineered cross-pair book is EFFICIENT on existing data;
 the only frontier is EXTERNAL data** (intraday DE–US rate differential, implied-vol/risk-reversal, EURGBP/EURJPY ticks).
-Reasoned scope for the rest (`CAMPAIGN_2026-06-07_FACTS.md`): D5 causal lead-lag SKIP (base book already lead-lag-saturated;
+Reasoned scope for the rest (`docs/CAMPAIGN_2026-06-07_FACTS.md`): D5 causal lead-lag SKIP (base book already lead-lag-saturated;
 D1 showed the content is spurious), D2 signature-kernel / D4 FASCL BLOCKED (need GPU + `Python.h`, absent), D8 = control,
 Phase-5 gates G1/G2/G3 MOOT (no signal survived to gate), T1 info-bars need per-pair external ticks. The ONE positive of
 the whole campaign was on the magnitude side (certified edge re-validated forward, no decay — see MAGNITUDE_FINDINGS §6g).
@@ -149,7 +149,7 @@ p10 .428), 10m ABORT (only 12 common decision bars across 3 grids). Finer/combin
 AUC .502/.506/.5085/.5086/.5096 at 1/5/10/15/30m (path-p10 .49–.50, all KILLED, bar .52) on 18,077 nonoverlap bars. The
 learned representation carries no sign — the single-pair direction null now spans zero-shot/FT generation, per-path
 dispersion, AND the frozen transformer embedding. (The same embedding DOES add a small magnitude lift — see
-MAGNITUDE_FINDINGS.md §6d — confirming Kronos's value is magnitude/vol, not sign.)
+docs/MAGNITUDE_FINDINGS.md §6d — confirming Kronos's value is magnitude/vol, not sign.)
 
 **Chronos-2 GROUP-ATTENTION on the 7-pair USD panel = NULL (`chronos2_xpair.py`, Lever 3, 2026-06-07).** The
 cross-sectional bet: feed the L=512 close panel of all 7 USD pairs (EURUSD,GBPUSD,AUDUSD,NZDUSD,USDJPY,USDCHF,USDCAD)
@@ -232,7 +232,7 @@ venv torch swapped `2.12.0+cpu`→`2.12.0+cu130` → Kronos FT+inference now GPU
 ## Session-4 (2026-05-31d) — 1-MIN re-push: lesson-transfer + Hidden Markov + online concept-drift
 
 Goal re-set to **1-min >0.65 OOS**. Applied the methods discovered AFTER `min1_production.py` was frozen — none had ever
-touched the 60s horizon (grep `m5/m15/m10_EURUSD` in `min1_*`/`min2_*` = 0 hits). Full journal: `min1_research_log.md`; two
+touched the 60s horizon (grep `m5/m15/m10_EURUSD` in `min1_*`/`min2_*` = 0 hits). Full journal: `docs/min1_research_log.md`; two
 multi-agent research workflows (prior-art/infra/sofien; and an HMM literature/feasibility pass). **>0.65 is NOT achievable —
 six independent levers all pinned by the 2025 regime / market efficiency:**
 
@@ -267,7 +267,7 @@ six independent levers all pinned by the 2025 regime / market efficiency:**
 
 ## Session-5 (2026-06-03) — 1-MIN FORMAL CLOSURE: both sides CPCV + 2 dry discovery rounds
 Goal re-set to **best 1m UP & best 1m DOWN, OOS-verified**. Ran the remaining on-disk DOWN levers + a faithful CPCV of
-both sides + two adversarial discovery rounds. Ledger `sweeps/EURUSD_1m{,_backlog}.md`; per-key rows EURUSD_RESULTS.md
+both sides + two adversarial discovery rounds. Ledger `sweeps/EURUSD_1m{,_backlog}.md`; per-key rows results/EURUSD_RESULTS.md
 §60s rows 18-21.
 
 | Lever (file) | Result | Verdict |
@@ -286,7 +286,7 @@ both sides + two adversarial discovery rounds. Ledger `sweeps/EURUSD_1m{,_backlo
 
 ## Session-3 (2026-05-31c) — 10-MIN battery: native ensemble, gate sweep, cross-horizon stack, walk-forward
 
-Goal set to **10-min >65% OOS**. Ran 6 independent Tier-1 methods (full journal: `m10_research_log.md`; a 4-agent
+Goal set to **10-min >65% OOS**. Ran 6 independent Tier-1 methods (full journal: `docs/m10_research_log.md`; a 4-agent
 research workflow independently ranked the same combinations and pre-warned the verdict). **Honest 10-min direction
 ceiling ≈ 0.60–0.61; >0.65 OOS-verified is NOT achievable** — every method is capped by the **test25 (2025) regime**:
 
@@ -308,7 +308,7 @@ ceiling ≈ 0.60–0.61; >0.65 OOS-verified is NOT achievable** — every method
   floor than the 15m-winner's `15m_bb_width × NY` — a genuine (small) refinement, but it does not break 0.65.
 - **Walk-forward is the cleanest regime test and it closes the door:** adapting through 2024 to predict 2025 lifts the
   binding window only +0.017. The 2025 EURUSD 10-min regime is near-efficient for direction; gap-reduction isn't the lever.
-  **(UPDATE 2026-06-04 — Session-1 above was COMBINED-only. The side-split re-push certifies BOTH 10m sides via the SELECTIVE compression×NY×confidence-gated cross-pair USD-common-factor sign: `EURUSD.m10xp.v1` refit-CPCV UP p10 .5863 / DOWN p10 .5683, 15/15 paths — see the top table + `m10_research_log.md` + `sweeps/EURUSD_10m.md`. Raw 10m direction does remain ~efficient (~.52 AUC); the certified edge is the thin gated cross-pair sign, info-bound by the 2025 regime, not a refutation of near-efficiency.)**
+  **(UPDATE 2026-06-04 — Session-1 above was COMBINED-only. The side-split re-push certifies BOTH 10m sides via the SELECTIVE compression×NY×confidence-gated cross-pair USD-common-factor sign: `EURUSD.m10xp.v1` refit-CPCV UP p10 .5863 / DOWN p10 .5683, 15/15 paths — see the top table + `docs/m10_research_log.md` + `sweeps/EURUSD_10m.md`. Raw 10m direction does remain ~efficient (~.52 AUC); the certified edge is the thin gated cross-pair sign, info-bound by the 2025 regime, not a refutation of near-efficiency.)**
 - **EXTERNAL cross-asset (ES S&P500 e-mini minute futures, the only untried directional lever) — null, and it reveals the
   mechanism:** the ES→EURUSD *lead-lag* corr is tiny (|corr|<0.055) AND **sign-flips from +0.02 in 2024 to −0.05 in 2025**;
   contemporaneous corr is real (+0.16..+0.22) but untradeable. The normal risk-on→USD-weakness link **decoheres/inverts in
@@ -321,7 +321,7 @@ ceiling ≈ 0.60–0.61; >0.65 OOS-verified is NOT achievable** — every method
 
 Goal re-set to 5-min >65% OOS. Ran a NEW, genuinely-untried battery (+ a 5-agent research workflow that ran its own
 falsifiers). Result: the honest 5-min frontier **improved 0.566 → ~0.61**, but **≥0.65 OOS-stable is still not reachable** —
-confirmed a 4th independent way. Details in `m5_research_log.md` iter 8-11; lab: `m5_xpair.py` `m5_xpair_probe.py`
+confirmed a 4th independent way. Details in `docs/m5_research_log.md` iter 8-11; lab: `m5_xpair.py` `m5_xpair_probe.py`
 `m5_xp_analyze.py` `m5_meta.py` `m5_xpair_production.py`.
 - **Cross-pair / USD-common-factor / lead-lag (NEW orthogonal family):** USD basket from the other 6 majors (sign-aligned),
   per-pair lead-lag residuals in EURUSD-equivalent terms, catch-up & EUR-idiosyncratic residual, dispersion/agreement.
@@ -363,7 +363,7 @@ confirmed a 4th independent way. Details in `m5_research_log.md` iter 8-11; lab:
 - OHLCV 239-feature ensemble (lgb+xgb+cat) at HOR 5/15/30 → AUC ~0.52; selective ~0.56–0.64.
 - Tick microstructure (order-flow imbalance, microprice) HS 1–1800s → AUC ~0.50 @30m, **~0.65 @1–5s**.
 - 1D-CNN & GRU on the raw tick path → AUC 0.525 (= GBM): **model type is not the bottleneck, the data is**.
-- **Bar-image 2-D CNN (Sezer CNN-BI / GAF, the 4th model class)** → 60s **dirAUC ≈ 0.50** across hist/ohlc/gaf images, CPCV path_p10 .484–.499, 0.0 paths clear breakeven (incl. regime-gated); even the GADF antisymmetric sign-field is null. The SAME image CNN on MAGNITUDE clears >65% (`MAGNITUDE_FINDINGS.md` §3) — cleanest single-method sign-invariance proof. Method: `METHODS_CATALOG.md` §5.5; scripts `barcnn_*.py`.
+- **Bar-image 2-D CNN (Sezer CNN-BI / GAF, the 4th model class)** → 60s **dirAUC ≈ 0.50** across hist/ohlc/gaf images, CPCV path_p10 .484–.499, 0.0 paths clear breakeven (incl. regime-gated); even the GADF antisymmetric sign-field is null. The SAME image CNN on MAGNITUDE clears >65% (`docs/MAGNITUDE_FINDINGS.md` §3) — cleanest single-method sign-invariance proof. Method: `docs/METHODS_CATALOG.md` §5.5; scripts `barcnn_*.py`.
 - Cross-pair / USD-basket, external CME ES/NQ futures lead-lag (real data thru 2026) → +0 / zero 30m lead.
 - Volume & dollar bars (López de Prado information bars) → null for direction (improve normality, not AUC).
 - Sofien Kaabar's 45 custom indicators as features → 0 OOS AUC (rank high in importance, redundant OOS).
@@ -437,9 +437,9 @@ direction map) `m5_news.py` (rule tests) `m5_news_model.py` (model-based conditi
 `min1_updown.py`/`min1_upspec.py` (up/down asymmetry) `min1_kalman.py` (Kalman filter) `min1_kernel.py` (RBF kernel-SVM)
 `min1_best.py` (lever-combination) · adversarial red-team: `_redteam_magdir60.py` `_redteam_trigger60.py` `_redteam_trigpop.py`
 `_adj_perside_flow.py` · audit: `_verify_*.py` `_thr_sweep_audit.py`.
-Refs: `sofien_rules.json` (79 mined rules) · `ENVIRONMENT_libs.txt`. Companion logs: `m5_research_log.md` (iter 1–19),
-`m10_research_log.md`, `min1_research_log.md`, `IDEAS_LOG.md`.
+Refs: `sofien_rules.json` (79 mined rules) · `ENVIRONMENT_libs.txt`. Companion logs: `docs/m5_research_log.md` (iter 1–19),
+`docs/m10_research_log.md`, `docs/min1_research_log.md`, `docs/IDEAS_LOG.md`.
 
-**→ For applying any of these at a NEW horizon, start with [`METHODS_CATALOG.md`](METHODS_CATALOG.md)** — the timeframe-agnostic
+**→ For applying any of these at a NEW horizon, start with [`docs/METHODS_CATALOG.md`](docs/METHODS_CATALOG.md)** — the timeframe-agnostic
 catalog: how to retarget each method, the method×horizon results matrix (with the untested cells as a ready backlog), and the
 leakage traps that recur at every horizon.

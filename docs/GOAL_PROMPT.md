@@ -5,10 +5,10 @@
 Fill `<X>` (timeframe, e.g. `5`) and `<CURRENCY>` (e.g. `EURUSD`). Paste after `/goal`.
 
 **FILE CONVENTION (read `REPO_MAP.md` first; the `strategy-eval` skill §0a enforces it).** Keep generic ↔ key-specific
-clean: a *discovered generic idea/lever* → `IDEAS_LOG.md` + `SWEEP_MATRIX.md` Tier-N (+ `METHODS_CATALOG.md` if new
+clean: a *discovered generic idea/lever* → `docs/IDEAS_LOG.md` + `SWEEP_MATRIX.md` Tier-N (+ `docs/METHODS_CATALOG.md` if new
 method); the *per-key executable queue* (TOP-N experiments, FIRST-TO-RUN, incumbents-to-beat, discovery rounds) →
-`sweeps/<CURRENCY>_<X>m_backlog.md`; *results of record* → `<CURRENCY>_RESULTS.md` (+ `MAGNITUDE_FINDINGS.md`); *sweep
-status* → `sweeps/<CURRENCY>_<X>m.md`; cross-key theory → `THEORY.md`. Never bake per-key numbers into a generic file
+`sweeps/<CURRENCY>_<X>m_backlog.md`; *results of record* → `results/<CURRENCY>_RESULTS.md` (+ `docs/MAGNITUDE_FINDINGS.md`); *sweep
+status* → `sweeps/<CURRENCY>_<X>m.md`; cross-key theory → `docs/THEORY.md`. Never bake per-key numbers into a generic file
 (tag `[PAIR·tf]` + cite the Tier-2 file instead).
 
 ---
@@ -47,7 +47,7 @@ results, or "the literature says it's hard" as permission to give up.**
   small or how skeptical you are. Convert each into a falsifiable experiment with a pre-registered falsifier and
   RUN IT. **Bias hard toward action: it is better to have an idea DISPROVED BY EXPERIMENT than never tried.** Do
   not pre-dismiss an idea because a survey was pessimistic or because it "probably won't work" — that judgment is
-  what experiments are for. Maintain the running idea→experiment backlog in `IDEAS_LOG.md`; only retire an idea
+  what experiments are for. Maintain the running idea→experiment backlog in `docs/IDEAS_LOG.md`; only retire an idea
   after it has actually been tested (or is provably subsumed by a Tier-1 result), never on a hunch.
 
 ## Reference: the academic-papers corpus
@@ -78,11 +78,11 @@ _v3 changes vs prior: §2 renamed DISCOVER+INVENT+COMBINE with an explicit combi
 ```
 {X}=5, {CURRENCY}=EURUSD. GOAL: best {X}m UP AND best {X}m DOWN {CURRENCY} binary-direction predictor, OOS-verified — TWO deliverables, each certified + deployable-spec'd. Don't stop until BOTH sides are certified-or-honestly-exhausted AND improve+discover loops go dry. NULL lit ≠ permission to quit (ATTITUDE): improve our edges, hunt more.
 
-FILE CONVENTION (read REPO_MAP.md; strategy-eval §0a enforces): keep GENERIC (METHODS_CATALOG·SWEEP_MATRIX·IDEAS_LOG·THEORY) separate from KEY-SPECIFIC ({CURRENCY}_RESULTS.md · sweeps/{CURRENCY}_{X}m.md ledger · sweeps/{CURRENCY}_{X}m_backlog.md executable backlog · MAGNITUDE_FINDINGS.md · MODEL_REGISTRY/books). Never bake a per-key number into a generic file — tag [PAIR·tf] + cite the Tier-2 file.
+FILE CONVENTION (read REPO_MAP.md; strategy-eval §0a enforces): keep GENERIC (METHODS_CATALOG·SWEEP_MATRIX·IDEAS_LOG·THEORY) separate from KEY-SPECIFIC (results/{CURRENCY}_RESULTS.md · sweeps/{CURRENCY}_{X}m.md ledger · sweeps/{CURRENCY}_{X}m_backlog.md executable backlog · docs/MAGNITUDE_FINDINGS.md · MODEL_REGISTRY/books). Never bake a per-key number into a generic file — tag [PAIR·tf] + cite the Tier-2 file.
 
 1. EXHAUSTIVE SWEEP, BOTH SIDES SYMMETRICALLY (strategy-eval SWEEP MODE). Work SWEEP_MATRIX.md row-by-row (Tier A→F), retarget EVERY permutation to {X}m via MX_HOR/HS. Reuse frozen books as baselines. Score COMBINED+UP+DOWN separately. A side isn't done until the FULL pipeline hits IT: (a) side-split; (b) side gate on worst-VAL-half; (c) purpose-built SPECIALIST; (d) confidence/coverage curve; (e) full-refit CPCV for any op-point whose binding (worst) year clears breakeven on CI-lower. Dead = run (a)-(d) & SHOW the wall, never infer from the other side.
 
-2. DISCOVER + INVENT + COMBINE (continuous, mechanism-first, BOTH dirs). Scour arXiv(q-fin.TR/ST,stat.ML)/SSRN + cross-disciplinary; save every paper to /home/sean/git/academic-papers. MINE THE CORPUS EXHAUSTIVELY: read EVERY paper fully (chase load-bearing refs; use _CORPUS_INDEX.md + _extracted_levers.json), extract EVERY testable lever (math/loss/arch/gating/labeling/validation/framing) — EVERY lever ends as a RUN experiment OR a Tier-1-cited subsumption (none silently skipped). ACTIVELY COMBINE models/signals/levers you judge promising — cascade · gate/filter · blend · k-of-n consensus · stack · regime-route · meta-labeler-on-a-combination · cross-horizon · paper-lever×our-model — wherever a DIRECTION mechanism exists (survives sign-invariance; say which side's sign). LEARN FROM PRIOR RESULTS BEFORE BUILDING: read {CURRENCY}_RESULTS.md + ledger/backlog for what combinations already ran, what failed and WHY (diagnosed cause — common-factor/regime/info-bound/overfit); design the NEXT combination to ATTACK that cause and BUILD ON what came closest — never re-permute a subsumed combo. MEASURE assumptions (correlation, coverage); don't guess. Append generic ideas → SWEEP_MATRIX Tier-N + IDEAS_LOG; per-key rows → sweeps/{CURRENCY}_{X}m_backlog.md; test. Sub-agents/fan-out; loop until K dry rounds.
+2. DISCOVER + INVENT + COMBINE (continuous, mechanism-first, BOTH dirs). Scour arXiv(q-fin.TR/ST,stat.ML)/SSRN + cross-disciplinary; save every paper to /home/sean/git/academic-papers. MINE THE CORPUS EXHAUSTIVELY: read EVERY paper fully (chase load-bearing refs; use _CORPUS_INDEX.md + _extracted_levers.json), extract EVERY testable lever (math/loss/arch/gating/labeling/validation/framing) — EVERY lever ends as a RUN experiment OR a Tier-1-cited subsumption (none silently skipped). ACTIVELY COMBINE models/signals/levers you judge promising — cascade · gate/filter · blend · k-of-n consensus · stack · regime-route · meta-labeler-on-a-combination · cross-horizon · paper-lever×our-model — wherever a DIRECTION mechanism exists (survives sign-invariance; say which side's sign). LEARN FROM PRIOR RESULTS BEFORE BUILDING: read results/{CURRENCY}_RESULTS.md + ledger/backlog for what combinations already ran, what failed and WHY (diagnosed cause — common-factor/regime/info-bound/overfit); design the NEXT combination to ATTACK that cause and BUILD ON what came closest — never re-permute a subsumed combo. MEASURE assumptions (correlation, coverage); don't guess. Append generic ideas → SWEEP_MATRIX Tier-N + IDEAS_LOG; per-key rows → sweeps/{CURRENCY}_{X}m_backlog.md; test. Sub-agents/fan-out; loop until K dry rounds.
 
 3. IMPROVE WHAT YOU FIND (don't stop at first certified book). The model space is a CROSS-PRODUCT: {base·cross-pair·cross-horizon·pooled·seed-ens·DL-stack} × {fixed·ACI·calibrated gate} × {BCE·|ret|/GMADL loss} × {filter·specialist}. Per edge, vs the BEST incumbent COMBINATION, run: seed-ensembling, |return|-weighted/GMADL loss (magnitude→direction bridge), calibration(temp/Venn-Abers)+ADAPTIVE-CONFORMAL gate, DL-as-decorrelated-stack, cross-pair POOLING, Optuna(capped+logged, worst-VAL-half) — AND novel combinations you believe (from prior results + mechanism) will beat it. Each: pre-registered falsifier — beat the incumbent's binding (worst) year or raise CPCV path-clear. Evaluate against the ACTUAL deployment objective (binary win-rate AND, where that's the channel, spot expectancy net of spread): a lever null for hit-rate can still matter for the deployable channel.
 
@@ -90,7 +90,7 @@ FILE CONVENTION (read REPO_MAP.md; strategy-eval §0a enforces): keep GENERIC (M
 
 5. DEPLOYMENT SPEC per survivor (each side; even a non-deployable side gets a documented DO-NOT-DEPLOY sheet w/ the disqualifying metrics): operating gate + coverage (trades/session); confidence/coverage curve; FRACTIONAL-Kelly on the ROBUST FLOOR (refit p10); equity path w/ max-DD + losing-streak; kill-switch TESTED not assumed; VERIFY real tradeable venue/min-duration/settlement from a LIVE source + test the actual channel (binary vs spot net-of-spread) before calling anything "best algo to trade".
 
-6. SUBSUMPTION AUDIT + RECORDS. Mark "subsumed" only w/ Tier-1 rationale (script/JSON/theorem); AUDIT it adversarially — run, don't argue. Record COMBINED+UP+DOWN → {CURRENCY}_RESULTS.md (magnitude → MAGNITUDE_FINDINGS.md); maintain ledger + executable backlog + two-sided leaderboard; freeze every survivor (incl. best COMBINATION) via manifest.py + git-tag. INCUMBENT = best COMBINATION in books/INDEX.json, NOT the old base GBM — retarget Tier-I levers + certified combinations to a new key, compare vs ALL. ONE heavy job at a time (OOM); commit often (flaky drive); EVIDENCE-FIRST — every number traces to a result JSON, never prose; flag thin-coverage (n<~50) + VAL-acc-max. DON'T GIVE UP — a null is a redirect, not a stop.
+6. SUBSUMPTION AUDIT + RECORDS. Mark "subsumed" only w/ Tier-1 rationale (script/JSON/theorem); AUDIT it adversarially — run, don't argue. Record COMBINED+UP+DOWN → results/{CURRENCY}_RESULTS.md (magnitude → docs/MAGNITUDE_FINDINGS.md); maintain ledger + executable backlog + two-sided leaderboard; freeze every survivor (incl. best COMBINATION) via manifest.py + git-tag. INCUMBENT = best COMBINATION in books/INDEX.json, NOT the old base GBM — retarget Tier-I levers + certified combinations to a new key, compare vs ALL. ONE heavy job at a time (OOM); commit often (flaky drive); EVIDENCE-FIRST — every number traces to a result JSON, never prose; flag thin-coverage (n<~50) + VAL-acc-max. DON'T GIVE UP — a null is a redirect, not a stop.
 ```
 
 ## Short prompt
@@ -101,15 +101,15 @@ operating gate). Use the strategy-eval skill in sweep mode: run every SWEEP_MATR
 research/invent new ones (download papers to /home/sean/git/academic-papers) AND run the edge-IMPROVING levers
 (seed-ensemble, |ret|-weighted/GMADL loss, calibration+adaptive-conformal, DL+GBM stacking, cross-pair pooling)
 on whatever you find. Certify = full-refit CPCV at the operating gate; ship a deployment spec (gate, fractional-
-Kelly on the refit floor, equity/drawdown). Record combined+up+down in <CURRENCY>_RESULTS.md; resumable ledger
+Kelly on the refit floor, equity/drawdown). Record combined+up+down in results/<CURRENCY>_RESULTS.md; resumable ledger
 (sweeps/<CURRENCY>_<X>m.md) + executable backlog (sweeps/<CURRENCY>_<X>m_backlog.md) + two-sided leaderboard;
-generic ideas→IDEAS_LOG.md/SWEEP_MATRIX.md (see REPO_MAP.md); freeze survivors. Evidence-first; one heavy job at
+generic ideas→docs/IDEAS_LOG.md/SWEEP_MATRIX.md (see REPO_MAP.md); freeze survivors. Evidence-first; one heavy job at
 a time; null literature ≠ give up — improve the edge.
 ```
 
 ## Notes
-- **File convention:** `REPO_MAP.md` defines GENERIC (methods/menus/ideas/theory — `METHODS_CATALOG.md`,
-  `SWEEP_MATRIX.md`, `IDEAS_LOG.md`, `THEORY.md`) vs KEY-SPECIFIC (`<CURRENCY>_RESULTS.md`,
+- **File convention:** `REPO_MAP.md` defines GENERIC (methods/menus/ideas/theory — `docs/METHODS_CATALOG.md`,
+  `SWEEP_MATRIX.md`, `docs/IDEAS_LOG.md`, `docs/THEORY.md`) vs KEY-SPECIFIC (`results/<CURRENCY>_RESULTS.md`,
   `sweeps/<CURRENCY>_<X>m{,_backlog}.md`). Record per-key numbers ONLY in the key files; tag any example in a
   generic file `[PAIR·tf]`. The skill §0a enforces this.
 - The skill (`.claude/skills/strategy-eval/SKILL.md`) is auto-discovered; the prompt sets the objective + scope.

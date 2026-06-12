@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD · 10m** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD · 10m** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # 10-MINUTE EURUSD binary direction — research log
 
@@ -227,5 +227,5 @@ maps to a killed bucket / magnitude-only / external-blocked.
 cannot create SIGN the regime erased. The 10m direction edge is the gated raw cross-pair USD-common-factor sign,
 info-bound; same leader-not-unseated outcome as 15m. **Only remaining frontier = external/funded data** (intraday
 DE–US rate-diff, implied-vol/risk-reversal, EURGBP ticks) — gated. **NOTE: 10m < deriv's 15m forex Rise/Fall minimum
-→ research/synthetic-index horizon; the deployable sibling is `EURUSD.m15xp.v1`.** Records: `EURUSD_RESULTS.md` §10m,
+→ research/synthetic-index horizon; the deployable sibling is `EURUSD.m15xp.v1`.** Records: `results/EURUSD_RESULTS.md` §10m,
 `sweeps/EURUSD_10m{,_backlog}.md`, all `m10_*_result.json`.

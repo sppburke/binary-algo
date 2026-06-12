@@ -69,7 +69,7 @@ a tradeable edge (calibrate the falsifier accordingly; low-prior = design to KIL
 | D8 | **Multi-timeframe Kronos vote-ensemble** (combine per-TF fine forecasts) | `kronos_ensemble.py` (npz vote-combine across `kronos_mtf.py` TFs) | TF set {1,5,10,15,30}m, vote {mean-prob, majority}, session | D | **RUN→KILLED/ABORT.** 5m ensemble (fine1+native) pooled .531 but CPCV p10 .428, no year CI95-lo≥.541 → KILLED; 10m ensemble only **12** common decision bars across 3 grids → ABORT. LIMITATION: nonoverlap-chrono at different grids leaves too few shared decision instants (5m n_common 267→147; 10m n=12). Combining single-pair views ≠ cross-section. `kronos_dir_mtf_ens_*_result.json` |
 | D9 | **Per-session bar-image CNN** (Sezer CNN-BI under session filter) | `barcnn_run.py SESSION` (2-D OHLC image-conv, +SESSION arg) | session {NY,LDN,Asia} × variant {hist, ohlc, gaf} | D+M | **RUN→DIRECTION NULL all sessions** (NY VAL .510/test .503/oos .505; LDN .509/.499/.503; Asia .501/.506/.500; cov2-10% per-yr ~.50-.53, none robustly clear .541). 4th model class confirms single-pair candle images carry no sign per session. `barcnn_hist_{ny,ldn,asia}_result.json` |
 
-## Tier E — magnitude & complexity (sign-invariant → the CERTIFIED edge; track in docs/MAGNITUDE_docs/FINDINGS.md)
+## Tier E — magnitude & complexity (sign-invariant → the CERTIFIED edge; track in docs/MAGNITUDE_FINDINGS.md)
 | # | Family / method | Script | Variant axes | Tgt | Prior |
 |---|---|---|---|---|---|
 | E1 | Magnitude |ret|≥Q classifier | `m30_magnitude.py`, `m10_magdir.py`, `_redteam_magdir60.py`, `min2_v1.py` | Q {0.67,0.75,0.90}, features {rv-windows, semivariance, deseasonalized-RV} | M | **high (certified)** |
@@ -120,7 +120,7 @@ falsifier) and be logged in `docs/IDEAS_LOG.md` with its source citation.
 > **DATA GATE:** requires O/H/L — present only as `ohlc_cache/EURUSD_5m_*` + rebuildable from EURUSD ticks (`vbars.py` src);
 > **NOT computable for USDJPY (feature store keeps only `close`; no USDJPY tick/OHLC on disk)** → for USDJPY it is an
 > external-data lever. Runnable only on EURUSD. Per-key: `sweeps/USDJPY_2m_backlog.md` external frontier; `docs/IDEAS_LOG.md`.
-> **RUN [EURUSD·60s] 2026-06-05 → DIRECTION KILLED / MAGNITUDE clears >65% (`docs/METHODS_CATALOG.md` §5.5, `results/EURUSD_RESULTS.md` row 22, `docs/MAGNITUDE_docs/FINDINGS.md` §3).** Built 1m OHLCV from ticks
+> **RUN [EURUSD·60s] 2026-06-05 → DIRECTION KILLED / MAGNITUDE clears >65% (`docs/METHODS_CATALOG.md` §5.5, `results/EURUSD_RESULTS.md` row 22, `docs/MAGNITUDE_FINDINGS.md` §3).** Built 1m OHLCV from ticks
 > (`barcnn_bars.py`) + faithfully reimplemented the Sezer CNN-BI image-CNN (`barcnn_run.py`) on the 60s wc_ret label,
 > 3 variants: **hist** (Sezer close-histogram), **ohlc** (3ch wick+up/down-body), **gaf** (GASF+GADF). ALL null: VAL
 > dirAUC .499/.503/.502, test/oos AUC ≈.50, and **faithful CPCV (`barcnn_cpcv.py`, 28 purged paths) path_p10 .484–.499
@@ -129,7 +129,7 @@ falsifier) and be logged in `docs/IDEAS_LOG.md` with its source citation.
 > is null) — sign-invariance @60s. **Bar/candlestick 2-D-image family now RUN + EXHAUSTED on-disk for EURUSD ≤60s DIRECTION.**
 > **BUT the SAME bar-image CNN pointed at the MAGNITUDE outcome CLEARS >65% CPCV-certified** (`barcnn_mag.py ohlcabs`,
 > absolute-scale OHLC image: magAUC .699/.714/.686, selective large-call precision .68→.80, **all 28 purged paths ≥0.65
-> at cov≤0.2 in 2024/2025/2026**; `barcnn_mag_ohlcabs_result.json`, `docs/MAGNITUDE_docs/FINDINGS.md` §3). The single cleanest
+> at cov≤0.2 in 2024/2025/2026**; `barcnn_mag_ohlcabs_result.json`, `docs/MAGNITUDE_FINDINGS.md` §3). The single cleanest
 > sign-invariance demo: one method, null on sign, >65% on size — and the key knob is preserving ABSOLUTE vol scale
 > (per-window min-max only reaches .64). Kronos NOT built: its gains are RankIC/magnitude (no FX/60s/direction numbers)
 > and fine-tune deteriorates (arXiv:2511.18578) → magnitude probe, not a direction lever (deprioritized).
@@ -269,7 +269,7 @@ falsifier) and be logged in `docs/IDEAS_LOG.md` with its source citation.
 
 > **Corpus subsumption audit (2026-06-03, `m5_corpus_audit_result.json`, 16-agent workflow):** clustered 257 of the 363
 > UNTESTED corpus levers into 14 mechanism families → **8 subsumed** (each with a Tier-1 RUN cite), **40 magnitude-only**
-> (sign-invariance theorem → `docs/MAGNITUDE_docs/FINDINGS.md`), **5 external-blocked** (need multi-level LOB depth / VIX / funded
+> (sign-invariance theorem → `docs/MAGNITUDE_FINDINGS.md`), **5 external-blocked** (need multi-level LOB depth / VIX / funded
 > risk-reversal / DE-US rate-diff), and **4 genuinely-distinct direction family-killers** (N16–N19 above) surfaced after an
 > adversarial-challenge pass REFUTED 3 subsumptions. **Coverage:** once N16–N19 run, the on-disk 5m DIRECTION mechanism
 > space is exhaustively covered on BOTH sides; what remains genuinely open is ONLY external/funded data.

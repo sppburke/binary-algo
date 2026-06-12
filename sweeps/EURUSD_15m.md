@@ -1,5 +1,5 @@
 SCOPE: KEY-SPECIFIC — EURUSD · 15m sweep LEDGER (status/state). Generic menu: `SWEEP_MATRIX.md`. Results of
-record: `EURUSD_RESULTS.md`. Backlog/queue: `sweeps/EURUSD_15m_backlog.md`. Ideas: `IDEAS_LOG.md`.
+record: `results/EURUSD_RESULTS.md`. Backlog/queue: `sweeps/EURUSD_15m_backlog.md`. Ideas: `docs/IDEAS_LOG.md`.
 
 # EURUSD · 15m — EXHAUSTIVE SWEEP LEDGER
 Goal: best (15m,UP) and best (15m,DOWN) EURUSD binary-direction predictor, certified-or-honestly-exhausted.
@@ -125,8 +125,8 @@ microstructure noise). Fast-KILL falsifier: KILL unless VAL dirAUC>0.515 AND som
 - **Frozen-stable alternative:** if periodic retrain isn't feasible, deploy the base book `EURUSD.m15.v1` (p10
   .5475/.5486) — lower ceiling but more frozen-forward-robust.
 
-## DISCOVERY (loop-until-dry; see task 5 + CORPUS_LEVER_INVENTORY.md)
-**Round 1 done (2026-06-03):** parsed CORPUS_LEVER_INVENTORY.md (550 levers) programmatically → **106 untested
+## DISCOVERY (loop-until-dry; see task 5 + docs/CORPUS_LEVER_INVENTORY.md)
+**Round 1 done (2026-06-03):** parsed docs/CORPUS_LEVER_INVENTORY.md (550 levers) programmatically → **106 untested
 sign-aware direction/labeling levers**, ranked by prior, clustered into 3 families. Horizon-reasoned transfer:
 - **Loss/labeling (HIGH @15m, horizon-agnostic objective changes on the GBM):** MADL training loss (.18),
   GMADL diff loss (.16), triple-barrier path-dependent train labels (.15), 3-class up/flat/down deadband (.13),

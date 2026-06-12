@@ -2,7 +2,7 @@
 
 SCOPE: GENERIC (currency/timeframe-agnostic). The load-bearing theory that governs every key. Per-key
 *measurements* that illustrate these facts are tagged `[PAIR·tf]` and their record-of-truth is the Tier-2
-file (`<PAIR>_RESULTS.md`, `MAGNITUDE_FINDINGS.md`). See `REPO_MAP.md`.
+file (`results/<PAIR>_RESULTS.md`, `docs/MAGNITUDE_FINDINGS.md`). See `REPO_MAP.md`.
 
 ---
 
@@ -17,7 +17,7 @@ Hurst/DFA, Kalman/HMM **filter statistics**, signature **norms** — all gate mo
 
 **Operational test (apply to EVERY candidate before claiming "direction"):** the within-`|ret|`-bin **sign-shuffle
 placebo**. Shuffle the sign of the label within magnitude bins; if the "edge" survives, it is a MAGNITUDE edge →
-evaluate it as magnitude (`|ret|≥Q`, AUC) and record in `MAGNITUDE_FINDINGS.md`, NOT as direction. A genuine
+evaluate it as magnitude (`|ret|≥Q`, AUC) and record in `docs/MAGNITUDE_FINDINGS.md`, NOT as direction. A genuine
 *direction* mechanism must be **sign-AWARE** (e.g. signed Hawkes up/down cross-excitation asymmetry, signed
 lead-lag / path signed-area, tail-conditional sign asymmetry) and must name which side's sign it carries.
 
@@ -27,7 +27,7 @@ GAF — a 4th model class beyond GBM/GRU/state-space) is **null on direction** (
 .699/.714/.686, selective precision .68→.80, all 28 CPCV paths ≥0.65 every held-out year). One representation, one
 training pipeline, opposite verdicts by target — exactly the theorem. KEY detail: a bar image must keep its
 **absolute volatility scale** to carry magnitude (per-window min-max normalization strips it → magAUC .64). See
-`MAGNITUDE_FINDINGS.md` §3, `METHODS_CATALOG.md` §5.5, `barcnn_*.py`.
+`docs/MAGNITUDE_FINDINGS.md` §3, `docs/METHODS_CATALOG.md` §5.5, `barcnn_*.py`.
 
 **Empirical test of the SIGN-AWARE candidates (2026-06-07, `xsec_direction.py` forward holdout):** the theorem predicts
 sign-aware constructs (line above) *can* carry sign where sign-invariant gauges cannot. Two of the named candidates were
@@ -39,7 +39,7 @@ theorem allows for a sign-aware construct. BUT the content is sub-breakeven (poo
 the cross-pair book → real, not deployable. **Refinement of the working law:** sign-awareness is NECESSARY but not
 SUFFICIENT — a sign-aware feature can clear the placebo yet still be too weak to trade. The certified cross-pair lead-lag
 book remains the only sign-aware construct strong enough to deploy. (HAVOK forcing D6 = sign-aware precursor, also
-sub-breakeven.) See `DIRECTION_FINDINGS.md` 2026-06-07, `MAGNITUDE_FINDINGS.md` §6g.
+sub-breakeven.) See `docs/DIRECTION_FINDINGS.md` 2026-06-07, `docs/MAGNITUDE_FINDINGS.md` §6g.
 
 **Strongest direct confirmation yet (2026-06-08) — path forecasters & spectral decompositions run AS direction models are
 sign-null.** A deriv-faithful sweep ran the forecasting families head-on as DIRECTION predictors at every EURUSD timeframe
@@ -48,11 +48,11 @@ TFT-quantile-fan decompositions**, and **causal DWT + SSA band-split→recombine
 KILLED at every horizon** (pre-registered VAL-dirAUC and held-out selective-acc CI95-lower gates), no leader unseated. This
 is the cleanest direct demonstration of the theorem: a path/spectral forecaster reconstructs move SIZE faithfully yet
 carries no SIGN — exactly the sign-invariance prediction, now shown by running the size-forecasters *as* sign models rather
-than inferring it from a gauge. `[EURUSD·1-30m]` (see `EURUSD_RESULTS.md` §2026-06-08, `neural_spectral_dir_sweep_result.json`).
+than inferring it from a gauge. `[EURUSD·1-30m]` (see `results/EURUSD_RESULTS.md` §2026-06-08, `neural_spectral_dir_sweep_result.json`).
 
 ## 2. The direction ceiling (horizon-dependent; magnitude is the durable edge)
 
-Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measured evidence, see `EURUSD_RESULTS.md`):
+Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measured evidence, see `results/EURUSD_RESULTS.md`):
 - Sub-minute direction is **near-efficient** — AUC ≈0.50–0.51 across ~24 input channels (now incl. a 2-D bar-image
   CNN, the 4th model class — dirAUC ≈.50, CPCV 0/28 clear); `>0.65` OOS-stable is **not** achievable at ≤5m on
   clock-bar data. The best *available* 60s direction is the regime-gated UP dip-buy filter (uncertified: pooled .573,
@@ -70,7 +70,7 @@ Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measur
   (.567/.574), BOTH 30m sides (.5588/.5525 — the LONGEST deriv horizon, but REFIT-DEPENDENT: the frozen-2021 book's
   forward edge DECAYS by the 2026 OOS year, esp. UP → deploy with periodic retraining); KILLED at 2m (p10 ~.51).
   For a new (currency, ≥10m) key the cross-pair refit-CPCV side-split is the
-  #1-prior lever. `[EURUSD·5m/10m/15m/2m]` (see `EURUSD_RESULTS.md`, `sweeps/EURUSD_{10,15}m.md`, `METHODS_CATALOG.md` A6)
+  #1-prior lever. `[EURUSD·5m/10m/15m/2m]` (see `results/EURUSD_RESULTS.md`, `sweeps/EURUSD_{10,15}m.md`, `docs/METHODS_CATALOG.md` A6)
 - Once the cross-pair book certifies a ≥10m key, **loss/label/gate re-engineering does NOT beat the gated raw
   cross-pair sign** — magweight, GMADL/sign-coupled loss, residual-relabel, ACI gate, specialist, calibration,
   cross-horizon blend, lagged lead-lag, intraday-momentum all collapse on the binding-regime wall (a wrapper cannot
@@ -92,7 +92,7 @@ Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measur
   frozen ALL-SESSION pooling screen can return a FALSE NEGATIVE; the NY-restricted per-fold-refit CPCV is the decisive
   test, and a pooling positive must still survive a matched frozen-past forward holdout vs own-pair (else it is era-local
   memorization). `[EURUSD·15m]` `[GBPUSD·15m]` `[USDCHF·15m]` (pool wins) vs `[USDJPY·15m]` `[AUDUSD·15m]` `[USDCAD·15m]`
-  (pool dilutes) — see each `<PAIR>_RESULTS.md`.
+  (pool dilutes) — see each `results/<PAIR>_RESULTS.md`.
 - **MAGNITUDE is the one CPCV-deflation-certified edge** at every horizon tested (large-move AUC ≈0.71–0.81).
   `[EURUSD·30m/60s]`
 - Where a direction edge exists it is **regime-/horizon-specific** and may be **one-sided** (dip-buy UP at 60s/5m)
@@ -107,7 +107,7 @@ Working shape (currency-agnostic hypothesis; numbers below are `[EURUSD]`-measur
   binding (worst) held-out year's CI95-lower.
 - **Forex minimum contract duration = 15m** on deriv; sub-15m edges need a different venue to be tradeable.
 - Faithful evaluation MUST use `wc_ret()` (never `mid.shift(-N)` on gap-dropped bars — that shifts *bars* not
-  *seconds*, the biggest historical inflation). See `METHODS_CATALOG.md` (validation family) for the full discipline.
+  *seconds*, the biggest historical inflation). See `docs/METHODS_CATALOG.md` (validation family) for the full discipline.
 
 ## 4. corr(VAL, OOS) = −0.54 (selection anti-transfers)
 
@@ -173,7 +173,7 @@ generative-forecast-→-binary pipelines; direct classifiers and same-bar/same-h
 immune, so a misaligned Kronos was a FALSE NULL, not a corruption of the certified GBM/CNN/cross-pair results.**
 
 ## 5. See also
-- The 7 recurring leakage traps + the sign-invariance shuffle: `METHODS_CATALOG.md` (validation family) and the
+- The 7 recurring leakage traps + the sign-invariance shuffle: `docs/METHODS_CATALOG.md` (validation family) and the
   `strategy-eval` skill (`.claude/skills/strategy-eval/SKILL.md`).
-- Multiple-testing deflation (Holm/BHY/HLZ/N̂, CSCV/PBO/DSR): `METHODS_CATALOG.md` validation family; per-key
+- Multiple-testing deflation (Holm/BHY/HLZ/N̂, CSCV/PBO/DSR): `docs/METHODS_CATALOG.md` validation family; per-key
   results in the key's backlog/results file.

@@ -3,7 +3,7 @@
 One ledger file per active search: `sweeps/<PAIR>_<tf>.md` (e.g. `sweeps/EURUSD_3m.md`, `sweeps/GBPUSD_15m.md`).
 The ledger IS the state of an exhaustive strategy sweep — it makes the search **resumable** (survives session
 end / drive drop) and **exhaustive** (never repeat or skip a permutation). Driven by the `strategy-eval` skill
-(§8 sweep mode) off `SWEEP_MATRIX.md`. Final results land in `<PAIR>_RESULTS.md`; new ideas in `IDEAS_LOG.md`.
+(§8 sweep mode) off `SWEEP_MATRIX.md`. Final results land in `results/<PAIR>_RESULTS.md`; new ideas in `docs/IDEAS_LOG.md`.
 
 ## Ledger format
 Front-matter: `currency`, `timeframe`, `started`, `target` (e.g. ">0.65 OOS-stable UP or DOWN"), `status`.
@@ -16,7 +16,7 @@ Then one table, one row per **method × variant** instantiated from `SWEEP_MATRI
 | N1 | N | (discovered) transfer-entropy gate | E=4,tp5s | (new) | G | low | pending | | | | | |
 
 `status` ∈ {pending, running, done, killed, pruned}. On `done`/`killed`, fill the OOS columns + verdict +
-result_json path, and reflect it in `<PAIR>_RESULTS.md` + the UP/DOWN leaderboard. `pruned` = a dominated
+result_json path, and reflect it in `results/<PAIR>_RESULTS.md` + the UP/DOWN leaderboard. `pruned` = a dominated
 variant skipped on purpose (log why in the row).
 
 ## Loop (per the skill)

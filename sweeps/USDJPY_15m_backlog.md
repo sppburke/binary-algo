@@ -1,4 +1,4 @@
-> **SCOPE: USDJPY · 15m** (key-specific EXECUTABLE BACKLOG — ranked TOP-N experiments, incumbents-to-beat, discovery rounds). Ledger/status: sweeps/USDJPY_15m.md. Generic idea bank: IDEAS_LOG.md. Opened 2026-06-08.
+> **SCOPE: USDJPY · 15m** (key-specific EXECUTABLE BACKLOG — ranked TOP-N experiments, incumbents-to-beat, discovery rounds). Ledger/status: sweeps/USDJPY_15m.md. Generic idea bank: docs/IDEAS_LOG.md. Opened 2026-06-08.
 
 # USDJPY × 15m — Executable Backlog & Discovery
 

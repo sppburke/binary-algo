@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD × 10m** (key-specific EXECUTABLE BACKLOG — ranked TOP-N experiments, first-to-run queue, incumbents-to-beat, discovery rounds). Ledger/status: `sweeps/EURUSD_10m.md`. Results: `EURUSD_RESULTS.md`. Generic ideas: `IDEAS_LOG.md`.
+> **SCOPE: EURUSD × 10m** (key-specific EXECUTABLE BACKLOG — ranked TOP-N experiments, first-to-run queue, incumbents-to-beat, discovery rounds). Ledger/status: `sweeps/EURUSD_10m.md`. Results: `results/EURUSD_RESULTS.md`. Generic ideas: `docs/IDEAS_LOG.md`.
 
 # EURUSD × 10m — EXECUTABLE BACKLOG
 

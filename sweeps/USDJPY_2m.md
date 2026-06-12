@@ -1,7 +1,7 @@
 # USDJPY × 2m — Sweep Ledger
 
-SCOPE: USDJPY · 2m (120s). KEY-SPECIFIC ledger (status of record). Results → `USDJPY_RESULTS.md`;
-backlog/queue → `sweeps/USDJPY_2m_backlog.md`; generic methods → `METHODS_CATALOG.md`/`SWEEP_MATRIX.md`.
+SCOPE: USDJPY · 2m (120s). KEY-SPECIFIC ledger (status of record). Results → `results/USDJPY_RESULTS.md`;
+backlog/queue → `sweeps/USDJPY_2m_backlog.md`; generic methods → `docs/METHODS_CATALOG.md`/`SWEEP_MATRIX.md`.
 
 currency: USDJPY
 timeframe: 2m (120s)
@@ -50,7 +50,7 @@ VERDICT: USDJPY 2m direction = **REAL-but-sub-BE both sides** (cross-pair POOLED
 The pooling LIFTS the edge above the 1m near-efficiency floor (1m ~.52 → 2m mean .546) — a genuine signal gain — but the
 worst-regime p10 saturates ~1pp under the 0.541 deriv breakeven and is SIGNAL-bound (variance reduction can't close it).
 Not robustly certifiable on-disk. Magnitude STRONG (magAUC ~.78). Only frontiers = EXTERNAL data (USDJPY tick microstructure
-= the EURUSD-2m edge driver USDJPY lacks; + triangular EURJPY; + US-JP rate-diff). Final verdict + deployment spec → USDJPY_RESULTS.md.
+= the EURUSD-2m edge driver USDJPY lacks; + triangular EURJPY; + US-JP rate-diff). Final verdict + deployment spec → results/USDJPY_RESULTS.md.
 
 ## LEDGER
 | id | family | method | variant | script | target | prior | status | combined_oos | up_oos | down_oos | verdict | result_json |

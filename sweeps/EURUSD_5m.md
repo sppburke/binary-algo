@@ -1,4 +1,4 @@
-> **SCOPE: EURUSD · 5m** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_5m_backlog.md. Results: EURUSD_RESULTS.md. See REPO_MAP.md.
+> **SCOPE: EURUSD · 5m** (sweep LEDGER — resumable status). Backlog: sweeps/EURUSD_5m_backlog.md. Results: results/EURUSD_RESULTS.md. See REPO_MAP.md.
 
 ---
 currency: EURUSD
@@ -28,7 +28,7 @@ prior: 5m direction combined ~0.61 verifiable, capped by the 15m parent; binding
 
 Each row: pre-register falsifier → retarget to 300s (`MX_HOR=5`) → deriv-faithful discipline (wc_ret/contig
 ties-LOSE, nonoverlap_chrono 300s, per-year 2024/25/26 CI95, worst-VAL-half selection, moved-bars
-up-rate∈[.47,.53] tripwire) → score combined + UP + DOWN → record into EURUSD_RESULTS.md → commit. `OOS`
+up-rate∈[.47,.53] tripwire) → score combined + UP + DOWN → record into results/EURUSD_RESULTS.md → commit. `OOS`
 columns = per-year 2024/2025/2026 moved-only accuracy.
 
 Settlement note: the frozen 5m books (m5xp/m5stack) settle close-to-close over a wall-clock-CONTIGUOUS 300s
@@ -48,7 +48,7 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | A4a | A | meta-labeler on orthogonal axes (already in m5xp) | m5_meta.py | done | — | — | meta-labeler on orthogonal axes IS the m5xp gate (helped 5m 0.612). | A8a / m5xp |
 | A5a | A | cross-horizon stack 15m→5m (soft, q-gate sweep) | m5_stack2.py | done | .663t/.581/.557t | .599/.593/— | soft cross-horizon stack = frozen m5stack book (row 0b); tripwire-cautioned, m5xp is the cleaner book. | m5_updown_result.json (0b) |
 | A5b | A | cross-horizon stack 15m→5m (hard agree) | m5_stack.py | dominated | — | — | hard-agree starves OOS coverage; soft m5stack preferred. | m5_stack.py (prose §A5b) |
-| A6a | A | cross-pair USD-residual modes {xp,xpbase,xpof} | m5_xpair.py | done | — | — | xpof selected as best mode (production freeze); xp/xpbase dominated. Certified UP is on the best mode. | m5_research_log.md |
+| A6a | A | cross-pair USD-residual modes {xp,xpbase,xpof} | m5_xpair.py | done | — | — | xpof selected as best mode (production freeze); xp/xpbase dominated. Certified UP is on the best mode. | docs/m5_research_log.md |
 | A7a | A | walk-forward retrain (regime robustness) | m5_walkforward.py | done-null | comb .600 (+.015) | — | walk-forward t24 .676/t25 .557/oos .565; +.015 only — retrain doesn't beat the frozen book. | m5_walkforward.py |
 | A8a | A | up-only FILTER (UP-specific thr select) | m5_upfilter.py | **done ✅** | .666/.616/.581(n31) | — | **CERTIFIED higher-conviction UP**: tighter thr 0.598 → binding 2025 0.616, CPCV p10 0.608, 28/28 paths clear, block-boot CI-lo 0.614. Caveat: 2026 standalone thin (n31, pooled-CPCV mitigates). Higher-accuracy/lower-coverage variant of the certified UP book. | m5_upfilter_result.json, m5_cpcv_a8a_result.json |
 | A8b | A | down-only FILTER (DOWN-specific thr select) | m5_upfilter.py | done | — | .600/.558/.575(n47) | tighter thr lifts 2025 DOWN .533→.558 but CI-lo .516<.541 (uncertified) + 2026 thin. DOWN still uncertified. | m5_upfilter_result.json |
@@ -64,9 +64,9 @@ Breakeven 0.541 (R≈1.85). Binding constraint = WORST held-out year's moved-acc
 | C5a | C | **online ARF+ADWIN control @300s (KEYSTONE)** | m5_online_run.py | done | AUC .509/.509/.514 | (single-pair) | NULL on single-pair TA (selective never >.52). BASELINE efficient at 5m. Does NOT cover the cross-pair UP edge (different feature set) → keystone ≠ "5m fully efficient" here (m5xp UP 0.577 lives in cross-pair structure). | m5_online_result.json |
 | D1a | D | 1D-CNN/GRU on raw path @300s | m_cnn.py | confirmed-null | — | — | single-pair seq null 60s/2m; cross-pair TABULAR dominates; m5_deep MLP=GBM (info-bound). | m5_deep_result.json |
 | D4a | D | DRL DQN direction-with-abstain @300s | min1_drl.py (MX_HOR=5) | confirmed-null | — | — | single-pair DRL; abstain doesn't beat .51 floor; keystone subsumes. | min1_drl (m5_corpus_audit) |
-| E1a | E | magnitude \|ret300\|≥Q (SIZE, sign-invariant) | m5 magnitude | subsumed (OUT OF SCOPE) | — | — | magnitude is sign-invariant (theorem; m5_magdyn flat across quartiles) → SIZE not SIGN; real edge tracked in MAGNITUDE_FINDINGS.md. | m5_magdyn_result.json / theorem |
+| E1a | E | magnitude \|ret300\|≥Q (SIZE, sign-invariant) | m5 magnitude | subsumed (OUT OF SCOPE) | — | — | magnitude is sign-invariant (theorem; m5_magdyn flat across quartiles) → SIZE not SIGN; real edge tracked in docs/MAGNITUDE_FINDINGS.md. | m5_magdyn_result.json / theorem |
 | E2a | E | direction-conditioned-on-magnitude @300s | m10_magdir (MX_HOR=5) | subsumed | — | — | direction-on-magnitude null 10m/60s; magnitude quartile carries no sign (m5_magdyn; combo-sweep family-9 confirms). | m5_magdyn_result.json |
-| F1a | F | macro-release impulse @300s | m5_news.py | done-null | ~.50-.52 | — | macro surprise-direction extracts nothing; news-window AUC ≤ overall (FX prices a surprise <1 min). | m5_research_log.md |
+| F1a | F | macro-release impulse @300s | m5_news.py | done-null | ~.50-.52 | — | macro surprise-direction extracts nothing; news-window AUC ≤ overall (FX prices a surprise <1 min). | docs/m5_research_log.md |
 | F2a | F | structural / Sofien price-action rules @5m | m5_sofien*.py | null | .50-.535 | — | Sofien price-action rules null. | combined table |
 | F3a | F | external cross-asset lead-lag (ES/NQ→pair) @5m | m5_xasset.py | killed | — | dir-hit<.50 | ES→EUR lead-lag corr SIGN-FLIPS +.025(24)→−.022(25) — mechanistic key to the 2025 wall. | m5_xasset_result.json |
 | F4a | F | residualized TARGET (label=resid-sign) @300s | min1_residtarget.py / m5_residlabel_down_h5.py | confirmed-null | — | 2024 .5685/2025 .544/**2026 .5124** | residtarget null @60s; **N19 H=5 DOWN-split RUN 2026-06-03 KILLED** (2026 collapses, binding CI-lo .460). | m5_residlabel_down_h5_result.json |
@@ -95,14 +95,14 @@ arXiv/SSRN agent round pending. Discovery continues until K=2 dry rounds.)
 Per the coverage rule (run once OR document why subsumed). Three Tier-1 results do most of the subsuming:
 the **certified m5xp UP book** (the live cross-pair nonlinear channel, already exploited), the **online-ARF
 keystone** (single-pair adaptive = ~0.51, the single-pair channel is dead), and the **76-candidate signed-lag
-family probe** (every standalone signed channel ~0.51). Plus prior 5m research (`m5_research_log.md`) already
+family probe** (every standalone signed channel ~0.51). Plus prior 5m research (`docs/m5_research_log.md`) already
 measured several of these at 5m.
 
 - **A1a GBM retune (native-5)** — `m5_production.py` native-5 base = VAL AUC 0.523 / OOS 0.518 (book 0.586-0.594); the certified edge needs CROSS-PAIR features, which the native retune lacks. m5xp IS the tuned cross-pair model. Dominated.
 - **A2a gate sweep / A4a meta-labeler** — the m5xp gate IS NY×meta-labeler; A8 swept its threshold (A8a/A8b). Compression×session gates explored in `m5_lab.py` (combined table). Done.
 - **A3a comp-release reversion specialist** — a 60s/2m lever; at 5m the live channel is cross-pair, not the reversion gate (which is the 2m book's mechanism, uncertified there). Subsumed.
 - **A5b hard-agreement stack** — `m5_stack.py` hard-agree starves OOS coverage (the soft m5stack was preferred for that reason); m5stack soft side-split done (0b, tripwire-cautioned). Dominated.
-- **A6a cross-pair modes {xp,xpbase}** — `m5_research_log.md`: xpof selected as the best mode (production freeze); xp/xpbase dominated in the combined comparison. The certified UP is on the best mode.
+- **A6a cross-pair modes {xp,xpbase}** — `docs/m5_research_log.md`: xpof selected as the best mode (production freeze); xp/xpbase dominated in the combined comparison. The certified UP is on the best mode.
 - **A7a walk-forward** — `m5_walkforward.py` already run: t24 .676/t25 .557/oos .565 comb 0.600 (+0.015 only). Done-null (retrain doesn't beat the frozen book).
 - **A8c side specialist** — separately-trained up/down specialists are WORSE (subset-training kills ranking; `min1_upspec.py` + MODEL_REGISTRY note). Subsumed; the FILTER (A8a) is the right side-mechanism.
 - **B1a tick microstructure @300s / B5a per-side flow** — the genuine tick edge (0.657) is seconds-scale and decays by 60s+ (`rawtick_decay.py`); the live 1-min order-flow (OF_*) is already IN m5xp; standalone signed-flow ~0.51 (family probe). Subsumed.
@@ -111,7 +111,7 @@ measured several of these at 5m.
 - **D1a CNN/GRU / D4a DRL @300s** — single-pair sequence/RL; null at 60s/2m; the certified edge is cross-pair TABULAR, not single-pair sequence; keystone (adaptive single-pair) subsumes. Confirmed-null.
 - **E1a magnitude |ret300|≥Q** — sign-invariant → OUT OF SCOPE for up/down (the certified size edge, AUC ~0.74 at 2m; tracked in MAGNITUDE_FINDINGS). Quick-confirm pending.
 - **E2a direction-on-magnitude @300s** — null at 10m/60s (confirms invariance: magnitude quartile doesn't carry sign). Subsumed.
-- **F1a macro-release impulse @300s** — `m5_research_log.md` (DONE): surprise-direction ~0.50-0.52, model extracts NOTHING directional, news-window AUC ≤ overall. NULL for 5m direction (FX prices a surprise in ~1 min). Done-null.
+- **F1a macro-release impulse @300s** — `docs/m5_research_log.md` (DONE): surprise-direction ~0.50-0.52, model extracts NOTHING directional, news-window AUC ≤ overall. NULL for 5m direction (FX prices a surprise in ~1 min). Done-null.
 - **F2a Sofien price-action @5m** — 0.50-0.535 (combined table). Null.
 - **F3a ES/NQ cross-asset lead-lag @5m** — `m10_xasset_probe.py`: lagged corr +0.02 (2024) → −0.05 (2025) = null + mechanistic key to the 2025 wall. Null.
 - **F4a residualized-target @300s** — null at 60s (`min1_residtarget`). Confirmed-null.
@@ -197,7 +197,7 @@ A 16-agent corpus subsumption audit (`m5_corpus_audit_result.json`) clustered 25
 structure→pool/tarvecm/xasset/triangular + GBM-MLP info-bound; deep/graph/ICL→deep/deep_ens/ncde/rankloss ~0.52 bound;
 loss-reweight→lossbatch/rankloss/magweight; distribution-head→lossbatch quantile; DOWN-reweight/gate/calib/pool→
 downspec/refit/downcond/pool/calib; infra→cert machinery; sizing→aci/kelly/magdyn), **40 magnitude-only** (sign-invariance
-theorem → MAGNITUDE_FINDINGS.md), **5 external-blocked** (multi-level LOB depth / VIX / funded risk-reversal / DE-US
+theorem → docs/MAGNITUDE_FINDINGS.md), **5 external-blocked** (multi-level LOB depth / VIX / funded risk-reversal / DE-US
 rate-diff). **An adversarial-challenge pass REFUTED 3 subsumptions**, leaving **4 genuinely-distinct, on-disk, sign-carrying
 direction family-killers** (Tier-N rows N16–N19) that NO prior Tier-1 result decisively hit — these are RUNNING/queued:
 
@@ -228,7 +228,7 @@ Three technically-uncoded families surfaced from external directional-prediction
 
 Audit **coverage statement:** once N16–N19 are run, the on-disk 5m DIRECTION mechanism space is exhaustively covered on
 BOTH sides; what remains genuinely open is ONLY external/funded data. **The conclusion below stands UNLESS a family-killer
-clears its pre-registered falsifier** (each row will update this ledger + EURUSD_RESULTS.md + the leaderboard on completion).
+clears its pre-registered falsifier** (each row will update this ledger + results/EURUSD_RESULTS.md + the leaderboard on completion).
 
 ## FINAL CONCLUSION — EURUSD 5-minute sweep (2026-06-03; audit + 4 family-killers + 2,874 combinations + meta-gate ALL exhausted)
 

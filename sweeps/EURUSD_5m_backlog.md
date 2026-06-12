@@ -1,7 +1,7 @@
 # EURUSD · 5m — EXECUTABLE BACKLOG (key-specific)
 SCOPE: EURUSD · 5m. Key-specific executable backlog — incumbents, scripts, numbers, discovery rounds.
-Moved out of IDEAS_LOG.md on 2026-06-02 during the generic↔specific split (see REPO_MAP.md).
-Generic methods/ideas: METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md. Sweep ledger (status): sweeps/EURUSD_5m.md. Results of record: EURUSD_RESULTS.md.
+Moved out of docs/IDEAS_LOG.md on 2026-06-02 during the generic↔specific split (see REPO_MAP.md).
+Generic methods/ideas: docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md. Sweep ledger (status): sweeps/EURUSD_5m.md. Results of record: results/EURUSD_RESULTS.md.
 
 ---
 
@@ -207,7 +207,7 @@ The DOWN side is structurally hard (down-moves jump/informed-dominated → energ
 Everything else DOWN-side (D3 USD-strength .526, A8c specialist .509 anti-transfer, A8b CI-lo .516, sidecurve) is already KILLED — do not re-run; F1/H2/F2 are the only live DOWN levers.
 
 ## HONEST META-NOTE
-The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed ACI improvement (.584). The realistic prize from this backlog is INCREMENTAL: a few points of binding-2025 win, a tighter CPCV tail, a rescued DOWN side, or better realized EV via calibration+sizing — NOT a jump to >0.65 (proven unreachable on these inputs). The ONE lever with a high ceiling is external data (H-track). Run the FIRST-TO-RUN seven, certify survivors on full-refit CPCV at the gate, freeze any winner as a new book (`m5_register_*.py` pattern), and update EURUSD_RESULTS.md + the leaderboard. Disproved-by-experiment beats untried — but here, prefer the cheap certifications of LIVE near-misses (B1/A1/C1) over re-mining dead inputs.
+The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed ACI improvement (.584). The realistic prize from this backlog is INCREMENTAL: a few points of binding-2025 win, a tighter CPCV tail, a rescued DOWN side, or better realized EV via calibration+sizing — NOT a jump to >0.65 (proven unreachable on these inputs). The ONE lever with a high ceiling is external data (H-track). Run the FIRST-TO-RUN seven, certify survivors on full-refit CPCV at the gate, freeze any winner as a new book (`m5_register_*.py` pattern), and update results/EURUSD_RESULTS.md + the leaderboard. Disproved-by-experiment beats untried — but here, prefer the cheap certifications of LIVE near-misses (B1/A1/C1) over re-mining dead inputs.
 
 
 # ============================================================================
@@ -491,7 +491,7 @@ The 5m sweep already CERTIFIED a deployable UP edge (~.55–.57) and a deployed 
   nothing). Stage-B dynamic gate (score=conf+λ·mag) confirmed: VAL-selected λ=0.2 looked better on worst-VAL-half
   (.680 vs .623) but **ANTI-TRANSFERRED** — binding-2025 .588 < fixed-conf baseline .603, pooled .596 < .675 (textbook
   corr(VAL,OOS)=−0.54). Does NOT beat the incumbent; magnitude×direction bridge is null for the GATE at 5m. (Mag stays
-  a SIZE edge → MAGNITUDE_FINDINGS.md, not direction.)
+  a SIZE edge → docs/MAGNITUDE_FINDINGS.md, not direction.)
 **R2. ⚡ High-vol-regime AND-gate using GKYZ range-vol (we have 1m OHLC), abstain in calm/efficient regimes.** Multiple papers:
   ML directional predictability is ~7× concentrated in high-vol/high-uncertainty states; the nonlinear cross-pair edge should be
   largest there. EXPERIMENT: compute causal 5m GKYZ range-vol per moved bar in `m5_updown.py`, add as an AND-gate (like sess_ny)
@@ -597,7 +597,7 @@ prize remains INCREMENTAL (a few points of binding-2025 win, a tighter CPCV tail
 calibration) — NOT >0.65 (proven unreachable on these inputs). The ONLY step-change lever is external data (H-track), gated by
 the feature-admission discipline. Run V1+V2 first (they may move the bar), then the cheap NEW gate/regime levers in parallel
 with the v1 near-miss certifications; certify any survivor on full-refit CPCV at the operating gate, freeze as a new book
-(`m5_register_*.py`), update EURUSD_RESULTS.md + the leaderboard. Disproved-by-experiment beats untried.
+(`m5_register_*.py`), update results/EURUSD_RESULTS.md + the leaderboard. Disproved-by-experiment beats untried.
 
 ---
 
@@ -708,7 +708,7 @@ p=1e-5 SIGNIFICANT; PSR vs0 0.996 (MinTRL 63<n159) SIGNIFICANT; EB/James-Stein s
 [.667/.606/.725]; V4 impose-null 5-day-block bootstrap binding-2025 p=0.085 (thin); per-year FWER-Holm 2024✓/2026✓/
 2025✗(.274).** CONSISTENT with V1/V2: the POOLED UP edge is real & significant under every lens; the SINGLE-binding-year
 (2025) is thin under the conservative MT lenses → durable UP figure = refit-CPCV floor .553. (Validation levers V4/DM/
-FWER/PSR/EB now RUN; the remaining 60+ inventory validation levers are variants of these — documented in CORPUS_LEVER_INVENTORY.md.)
+FWER/PSR/EB now RUN; the remaining 60+ inventory validation levers are variants of these — documented in docs/CORPUS_LEVER_INVENTORY.md.)
 
 ### OPTUNA TPE tuning (real optuna 4.9.0, installed per user) — DOWN RUN, UP subsumed (2026-06-03, `m5_down_optuna2.py`)
 DOWN study (40 TPE trials, worst-VAL-half selection, magweight cross-pair primary): best VAL-worst-half DOWN **.5801**

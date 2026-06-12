@@ -1,4 +1,4 @@
-SCOPE: NZDUSD · 15m — sweep LEDGER (status of record). Backlog/executable queue: `NZDUSD_15m_backlog.md`. Results of record: `NZDUSD_RESULTS.md`. Generic menu: `SWEEP_MATRIX.md`.
+SCOPE: NZDUSD · 15m — sweep LEDGER (status of record). Backlog/executable queue: `NZDUSD_15m_backlog.md`. Results of record: `results/NZDUSD_RESULTS.md`. Generic menu: `SWEEP_MATRIX.md`.
 
 # NZDUSD 15m direction sweep — LEDGER
 
@@ -42,7 +42,7 @@ SCOPE: NZDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 - 2026-06-11 — **NZDUSD.m15ny_seedens.v1 FROZEN** (content_id=f599708e). VAL(NY) AUC=0.5362, thr=0.0835@cov2%. Frozen-fwd: test24 COMB .6219 UP .5652 DOWN .7181; test25 COMB .6019 UP .5699 DOWN .6402; oos COMB .5194 UP .4965 DOWN .5423. REFIT-DEPENDENT confirmed (2026 UP .497 dead, DOWN .542 below BE). Early stopping: 150/73/89 iters. Models: models/m15ny_NZDUSD_s{0,1,2}_lgb.txt.
 - 2026-06-11 — **I2 seed-ens K=3 DONE — SUPERSEDES single-seed.** AUC mean=.5321. UP p10=.5749@cov2 (14/15 frac), DOWN p10=.5803@cov2 (15/15). Mean lifts both sides all 3 covs. Incumbent: NZDUSD.m15ny_seedens.v1. Freeze script written: `nzdusd_15m_freeze_ny.py`.
 - 2026-06-11 — **A9-NY CERTIFIED (both sides 15/15).** UP p10=.574@cov2 DOWN p10=.572@cov2, frac=1.0 both sides at cov3%+cov2%. AUC mean=.531. Own-pair NY carrier confirmed. Seed-ens K=3 launched immediately (PID 3467195 → nzdusd_15m_cpcv_ny_seedens3.log).
-- 2026-06-11 — **sweep OPEN.** Verified NZDUSD bar features 2012–2026 (15 parquets, 239 feats, 0 missing, 2,667,689 rows). Forked nzdusd_15m_base.py + nzdusd_15m_cpcv_session.py (PAIR=NZDUSD, mechanistic prose updated). Launched A1 baseline (KILLED: val_auc=.5219, all-session broken). A9-NY CPCV launched immediately (ny session, stride=2, covs=0.03/0.02/0.01, nseed=1). Bootstrapped NZDUSD_RESULTS.md + ledger + backlog.
+- 2026-06-11 — **sweep OPEN.** Verified NZDUSD bar features 2012–2026 (15 parquets, 239 feats, 0 missing, 2,667,689 rows). Forked nzdusd_15m_base.py + nzdusd_15m_cpcv_session.py (PAIR=NZDUSD, mechanistic prose updated). Launched A1 baseline (KILLED: val_auc=.5219, all-session broken). A9-NY CPCV launched immediately (ny session, stride=2, covs=0.03/0.02/0.01, nseed=1). Bootstrapped results/NZDUSD_RESULTS.md + ledger + backlog.
 
 ## Discipline reminders (strategy-eval §2)
 deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half selection, moved up-rate∈[.47,.53] tripwire, pre-registered falsifier in result JSON BEFORE OOS, full refit-CPCV to certify, adversarially verify every positive vs frozen-past forward (trap#9), one heavy job at a time (OOM), commit often.

@@ -1,8 +1,8 @@
-> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md; cross-key theory in THEORY.md. See REPO_MAP.md.
+> **SCOPE: EURUSD** (key-specific). Generic methods/ideas live in docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md; cross-key theory in docs/THEORY.md. See REPO_MAP.md.
 
 # 5-Minute Binary Option Direction Prediction — Findings & Strategy
 
-> ⚠️ **SUPERSEDED IN PART — read the 2026-05-30 bias audit first** (`research_log.md` "BIAS AUDIT" and
+> ⚠️ **SUPERSEDED IN PART — read the 2026-05-30 bias audit first** (`docs/research_log.md` "BIAS AUDIT" and
 > `README.md` "Methodology audit"). The seconds/minute accuracies in this file (3 s 0.81, etc.) were
 > **inflated** by a bar-count horizon, greedy de-overlap, and best-of-search, and the sub-15-minute books
 > are **not tradeable on deriv EUR/USD** (forex Rise/Fall minimum = 15 minutes). Deriv-faithful, OOS-verified:
@@ -109,7 +109,7 @@ V1–V11, with the order-book-imbalance decay curve explaining the current best 
 
 - **Efficient market:** majors (EURUSD etc.) are the most liquid, most-arbitraged instruments on
   earth. 5-minute mid-price changes are dominated by noise; drift ≈ 0.
-- **Autocorrelation math** (`research_log.md` → STRUCTURE OF THE PROBLEM): ρ₁(5m) ≈ −0.03 ⇒ linear
+- **Autocorrelation math** (`docs/research_log.md` → STRUCTURE OF THE PROBLEM): ρ₁(5m) ≈ −0.03 ⇒ linear
   accuracy ≈ 0.51. Stable 2012→2026 (not decayed; not exploited beyond ~0.55 so far).
 - **Selective prediction hasn't rescued it yet:** thresholds that hit 75% on validation collapse to
   61–69% on TEST and to noise (n=14–60) on 2026 OOS. The high-precision "pocket" is overfit so far.
@@ -201,4 +201,4 @@ coverage on TEST and on the fully-held-out **2026** set — the unbiased live pr
 A 75% claim would require both TEST and 2026 to reach 75% at non-trivial sample size; at the
 5-minute horizon they have not yet.
 
-Full chronological reasoning, every variant, and its lesson are in **`research_log.md`**.
+Full chronological reasoning, every variant, and its lesson are in **`docs/research_log.md`**.

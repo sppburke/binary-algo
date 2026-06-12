@@ -1,7 +1,7 @@
 # EURUSD · 30m — EXECUTABLE BACKLOG (key-specific)
 SCOPE: EURUSD · 30m. Key-specific executable backlog — incumbents, scripts, numbers, discovery rounds.
-Moved out of IDEAS_LOG.md on 2026-06-02 during the generic↔specific split (see REPO_MAP.md).
-Generic methods/ideas: METHODS_CATALOG.md / SWEEP_MATRIX.md / IDEAS_LOG.md. Sweep ledger (status): sweeps/EURUSD_30m.md. Results of record: EURUSD_RESULTS.md.
+Moved out of docs/IDEAS_LOG.md on 2026-06-02 during the generic↔specific split (see REPO_MAP.md).
+Generic methods/ideas: docs/METHODS_CATALOG.md / SWEEP_MATRIX.md / docs/IDEAS_LOG.md. Sweep ledger (status): sweeps/EURUSD_30m.md. Results of record: results/EURUSD_RESULTS.md.
 
 ---
 
@@ -76,7 +76,7 @@ Actionable NEW improve-levers (run ONLY after K2 certifies, build ON the frozen 
   OR pruning lowers K2 binding-side refit p10.
 - **(gated, low) External DE-US 2y rate-diff + 25-delta risk-reversal** [low/new/OFF-disk]. Only non-redundant info channel
   left, but data not acquired + likely subsumed by realized-vol SIZE gate. Defer to external-data phase.
-Generic versions of I-Aa / I-IPCA / I-GX -> IDEAS_LOG.md + SWEEP_MATRIX Tier-N during records phase.
+Generic versions of I-Aa / I-IPCA / I-GX -> docs/IDEAS_LOG.md + SWEEP_MATRIX Tier-N during records phase.
 
 ### MECHANISM UPDATE (2026-06-04, Tier-1 feature-importance of frozen EURUSD.m30xp.v1)
 The 30m cross-pair edge is carried by **POOLED TRAINING on the BASE 239 multi-TF features (94% gain)** — top: hour_sin/cos
