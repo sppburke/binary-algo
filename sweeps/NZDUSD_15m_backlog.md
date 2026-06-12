@@ -21,6 +21,8 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 | A1-XGB | XGBoost A1 | different GBM algorithm (level-wise vs leaf-wise) | ⊘ **VAL SUBSUMED 2026-06-11** — `nzdusd_15m_xgb_screen.py`. XGB single-seed: .5241; LGB K=3: .5256; best blend α=0.7: .5258. LGB/XGB corr=.8809 — 88% prediction overlap leaves only 12% error decorrelation (+.0002 lift). ZERO INDEPENDENT SIGNAL. A1 fully closed: LGB+XGB+different architectures all SUBSUMED at Tier-1. | none | ⊘ EXHAUSTED |
 | D7-semi | D7 RS semivariance | Patton-Sheppard RS+/RS- (Tier N novel) | ⊘ **VAL SUBSUMED 2026-06-11** — `nzdusd_15m_semivar_screen.py`. RS+/RS-/RS_diff at 15/30/60m windows, 248 feats. AUC .5240 vs base .5257 = **−.0017 (HURTS)**. RS features 4.82% importance share but steal colsample from stronger predictors. Raw target corr: ±.007 range. Confirms NOVEL_METHODS_RESEARCH D7 at Tier-1 own-pair. Final NOVEL_METHODS row closed. | none | ⊘ EXHAUSTED |
 
+| D1-feats | D1 daily trend features | d1_ret_1/d1_ret_5/ema20/ema100 | ⊘ **RETRACTED+SUBSUMED 2026-06-11** — `nzdusd_15m_d1feats_clean_result.json`. LOOKAHEAD BUG: `resample("1D").last()` labels bin 00:00 UTC but holds 23:59 UTC close; ffill gave NY session bars TODAY's daily return. Buggy AUC .5471/.5724 INVALID. FIX: shift(1) on daily close. Clean result: d1_ret_1 target corr = −0.0008; AUC .5257 = base (−.0001). NO genuine 1-day momentum signal. Feature confirmed SUBSUMED with Tier-1 clean evidence. | none | ⊘ RETRACTED |
+
 ## Incumbents to beat (p10 floors after each stage)
 
 | stage | incumbent | UP p10 @cov | DOWN p10 @cov | updated |

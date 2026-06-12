@@ -9,7 +9,7 @@
 **Cert rule:** per-side p10≥0.541 AND ≥80% of 15 CPCV paths clear 0.541
 **Selection:** VAL worst-half stability (NEVER VAL-acc-max; corr(VAL,OOS)=−0.54)
 **Key files:** `sweeps/NZDUSD_15m.md` (ledger) · `sweeps/NZDUSD_15m_backlog.md` (queue) · `books/` (frozen)
-**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; discovery R1 CLOSED. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC information bound ~.535 → p10 ceiling ~.58; see §AUC Information Bound Wall). Off-disk external data (dairy/GDT, RBNZ, China PMI, NZ-US rate diff) is the only path forward.
+**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; all SWEEP_MATRIX+NOVEL_METHODS rows closed Tier-1. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC ceiling ~.535; see §AUC Information Bound Wall). Note: D1 daily features (d1_ret_1) ATTEMPTED 2026-06-11 but RETRACTED — `resample("1D").last()` lookahead bug; clean AUC .5257 = no lift. Certified book unaffected (uses pre-computed 239 features only).
 
 ---
 
@@ -358,8 +358,10 @@ Result JSON: `nzdusd_15m_aci_result.json`
 | I5 seed-ens K=8 (AUDUSD Tier-1 proxy) | ~.5321 | — | ~.574 (projected, MIXED) | ~.584 (projected) |
 | Arch-ens K=9 (127/255/511 leaves × 3 seeds, stride-6) | .5254 (K=9 ens) | — | — | — |
 | D7 RS semivar (RS+/RS-, 15/30/60m windows, 248 feats, stride-6) | .5240 | — | — | — |
+| ~~D1 daily features (RETRACTED — lookahead bug)~~ | ~~.5724~~ | — | — | — |
+| D1 daily features CLEAN (shift=1, true prior-day ret) | .5257 | — | — | — |
 
-No experiment exceeded AUC .5412 (max single path). The ceiling is ~.532–.536. K=8 projected from AUDUSD own-pair K=8 data: cov2% UP .591 vs K=3 .596 (REGRESS), DOWN .612 vs .596 (lift) — sign-inconsistent, seed lever saturated. `audusd_15m_cpcv_session_ny_seedens8_result.json`.
+D1 daily features RETRACTED 2026-06-11: `resample("1D").last()` labels bin with 00:00 UTC start but holds 23:59 UTC end-of-day value; ffill propagated today's close to all NY session bars (lookahead confirmed: Jan 4 14:00 bar saw Jan 4 return, not Jan 3). AUC .5471/.5724 were INVALID. Fixed with shift(1): d1_close_raw.shift(1) makes "Jan 4 00:00" hold Jan 3 23:59 close. Clean result: d1_ret_1 target corr = −0.0008 (vs buggy +0.0430); AUC .5257 = base (no genuine 1-day momentum signal). No lookahead in certified book (pre-computed 239 features only). AUC ceiling confirmed at .5412 max single path. K=8 projected from AUDUSD own-pair K=8 data: cov2% UP .591 vs K=3 .596 (REGRESS), DOWN .612 vs .596 (lift) — sign-inconsistent, seed lever saturated. `audusd_15m_cpcv_session_ny_seedens8_result.json`.
 
 Architectural diversity (K=9 = 3 seeds × 3 num_leaves) confirmed SUBSUMED 2026-06-11 (`nzdusd_15m_arch_ens_result.json`): stride-6 proxy AUC .5254. Per-architecture: 127 leaves=.5258, 255=.5256, 511=.5244. K=9 full ensemble (.5254) WORSE than K=3 standard (.5256) — averaging weaker architectures dilutes signal. Deeper trees (511 leaves) overfit in 239-feat space; shallower trees (127 leaves) add near-zero diversity. Standard num_leaves=255 K=3 seed-ens is the global optimum for this feature set.
 
