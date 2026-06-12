@@ -356,8 +356,11 @@ Result JSON: `nzdusd_15m_aci_result.json`
 | A6 xpair (nseed=1) | .5345 | .5405 | .5371 (FAIL) | .5772 |
 | A6b xpair (K=3) | .5356 | .5412 | .5298 (FAIL) | .5782 |
 | I5 seed-ens K=8 (AUDUSD Tier-1 proxy) | ~.5321 | — | ~.574 (projected, MIXED) | ~.584 (projected) |
+| Arch-ens K=9 (127/255/511 leaves × 3 seeds, stride-6) | .5254 (K=9 ens) | — | — | — |
 
 No experiment exceeded AUC .5412 (max single path). The ceiling is ~.532–.536. K=8 projected from AUDUSD own-pair K=8 data: cov2% UP .591 vs K=3 .596 (REGRESS), DOWN .612 vs .596 (lift) — sign-inconsistent, seed lever saturated. `audusd_15m_cpcv_session_ny_seedens8_result.json`.
+
+Architectural diversity (K=9 = 3 seeds × 3 num_leaves) confirmed SUBSUMED 2026-06-11 (`nzdusd_15m_arch_ens_result.json`): stride-6 proxy AUC .5254. Per-architecture: 127 leaves=.5258, 255=.5256, 511=.5244. K=9 full ensemble (.5254) WORSE than K=3 standard (.5256) — averaging weaker architectures dilutes signal. Deeper trees (511 leaves) overfit in 239-feat space; shallower trees (127 leaves) add near-zero diversity. Standard num_leaves=255 K=3 seed-ens is the global optimum for this feature set.
 
 **AUC → p10 mapping at deployable coverage (cov2%):**
 - AUC .532 → p10 ~.57–.58 (observed)

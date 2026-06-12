@@ -1,0 +1,28 @@
+{
+  "model": "NZDUSD.15m architectural ensemble (127/255/511 leaves \u00d7 K=3 seeds = 9 models)",
+  "seeds": [
+    42,
+    0,
+    7
+  ],
+  "leaf_values": [
+    127,
+    255,
+    511
+  ],
+  "total_models": 9,
+  "base_val_auc": 0.5219,
+  "own_k3_val_auc": 0.5362,
+  "per_arch_val_auc": {
+    "127": 0.5258080841215018,
+    "255": 0.5255827180971797,
+    "511": 0.5244126989647361
+  },
+  "full_arch_ens_val_auc": 0.5254404965205787,
+  "lift_vs_base": 0.00354049652057864,
+  "lift_vs_own_k3": -0.01075950347942134,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUMED",
+  "features": 239
+}
