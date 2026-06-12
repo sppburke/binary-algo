@@ -25,6 +25,8 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 
 | Moments+AUDNZD | Rolling skewness/kurtosis + synthetic AUDNZD | skew/kurt (30/60/120/240 bar windows) + AUDNZD=AUDUSD/NZDUSD TA | ⊘ **VAL SUBSUMED 2026-06-11** — `nzdusd_15m_moments_screen_result.json`. 12 new feats (8 moments + 4 AUDNZD) added to base 239 = 251 total. Skew raw corr −.025→−.036 (non-trivial; negative skew predicts DOWN-continuation); AUDNZD raw corr +.028→+.033. AUC .5257 vs base .5257 = **0.0000 net lift**. Feature importance 7.79% but colsample dilution neutralizes signal already captured by return/vol features. Both moment types and synthetic AUDNZD SUBSUMED. | none | ⊘ EXHAUSTED |
 
+| Multi-xpair (USDJPY/EURUSD/GBPUSD) | 3 cross-pair feature screens | 239 NZD + 239 cross-pair feats each (478 total); stride-6 single-seed | ⊘ **VAL SUBSUMED 2026-06-11** — `nzdusd_15m_multi_xpair_screen_result.json`. USDJPY: AUC .5276 (+.0057); EURUSD: .5265 (+.0046); GBPUSD: .5276 (+.0057). All three below .5319 escalation threshold. Closes Tier-3 gaps: EUR-bloc features KILLED (Tier-3 via USDJPY precedent I7) now Tier-1 confirmed for NZDUSD. Haven pair (USDJPY) and EUR-bloc pairs all SUBSUMED. AUC ceiling for any single xpair ≤ .5299 (USDCAD). Own-pair K=3 (.5362) DOMINATES all cross-pair feature additions. | none | ⊘ EXHAUSTED |
+
 ## Incumbents to beat (p10 floors after each stage)
 
 | stage | incumbent | UP p10 @cov | DOWN p10 @cov | updated |

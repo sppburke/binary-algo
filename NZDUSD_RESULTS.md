@@ -9,7 +9,7 @@
 **Cert rule:** per-side p10≥0.541 AND ≥80% of 15 CPCV paths clear 0.541
 **Selection:** VAL worst-half stability (NEVER VAL-acc-max; corr(VAL,OOS)=−0.54)
 **Key files:** `sweeps/NZDUSD_15m.md` (ledger) · `sweeps/NZDUSD_15m_backlog.md` (queue) · `books/` (frozen)
-**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; all SWEEP_MATRIX+NOVEL_METHODS rows closed Tier-1. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC ceiling ~.535; see §AUC Information Bound Wall). Note: D1 daily features (d1_ret_1) ATTEMPTED 2026-06-11 but RETRACTED — `resample("1D").last()` lookahead bug; clean AUC .5257 = no lift. Rolling skewness/kurtosis + synthetic AUDNZD also SUBSUMED 2026-06-11 — zero net lift despite non-trivial raw correlations. ALL on-disk feature engineering avenues exhausted. Certified book unaffected (uses pre-computed 239 features only).
+**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; all SWEEP_MATRIX+NOVEL_METHODS rows closed Tier-1. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC ceiling ~.535; see §AUC Information Bound Wall). Note: D1 daily features RETRACTED (lookahead bug; clean .5257 = no lift); rolling skew/kurt + synthetic AUDNZD SUBSUMED (0.0000 net lift); USDJPY/EURUSD/GBPUSD cross-pair features all SUBSUMED 2026-06-11 (Tier-1). ALL on-disk feature engineering and cross-pair feature addition avenues exhausted Tier-1. Certified book unaffected (uses pre-computed 239 features only).
 
 ---
 
@@ -361,6 +361,11 @@ Result JSON: `nzdusd_15m_aci_result.json`
 | ~~D1 daily features (RETRACTED — lookahead bug)~~ | ~~.5724~~ | — | — | — |
 | D1 daily features CLEAN (shift=1, true prior-day ret) | .5257 | — | — | — |
 | Rolling skew/kurt (30/60/120/240 bars) + synthetic AUDNZD (251 feats, stride-6) | .5257 | — | — | — |
+| +USDJPY xpair features (478 feats, stride-6, single-seed) | .5276 | — | — | — |
+| +EURUSD xpair features (478 feats, stride-6, single-seed) | .5265 | — | — | — |
+| +GBPUSD xpair features (478 feats, stride-6, single-seed) | .5276 | — | — | — |
+
+Multi-xpair feature screen confirmed SUBSUMED 2026-06-11 (`nzdusd_15m_multi_xpair_screen_result.json`): USDJPY +.0057 (.5276), EURUSD +.0046 (.5265), GBPUSD +.0057 (.5276) — all below .5319 threshold. Closes Tier-3 gaps: EUR-bloc features (previously inferred KILLED via USDJPY precedent I7) now Tier-1 confirmed for NZDUSD specifically. Haven pair USDJPY and all EUR-bloc pairs SUBSUMED. AUC ceiling confirmed: no single-seed xpair reaches .5299 (USDCAD best xpair), own-pair K=3 (.5362) dominates everything. **ALL cross-pair feature addition avenues exhausted Tier-1 for NZDUSD.**
 
 Rolling skewness/kurtosis + synthetic AUDNZD confirmed SUBSUMED 2026-06-11 (`nzdusd_15m_moments_screen_result.json`): 8 moment features (skew/kurt at 30/60/120/240 bar windows) + 4 AUDNZD synthetic features (AUDUSD/NZDUSD ratio returns, RSI, EMA flag) = 12 new feats. Skewness had non-trivial raw correlations (−.025→−.036; negative rolling skew → DOWN continuation), AUDNZD also non-trivial (+.028→+.033). AUC .5257 vs base .5257 = **0.0000 net lift**. Feature share 7.79% but colsample dilution neutralizes — information already embedded in base return/vol features. Both rolling higher moments and synthetic cross-pair ratio SUBSUMED at Tier-1 own-pair. ALL on-disk feature engineering avenues exhausted.
 
