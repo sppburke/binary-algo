@@ -138,7 +138,7 @@ evaluation; this step covers only the surrounding code. Do not re-derive or rela
 
 ## 5. Verify (local evidence gate)
 
-There is no CI and no cargo gate in this repo — **the local gate is authoritative.** By task scope:
+There is no CI and no automated test suite in this repo — **the local evidence gate is authoritative.** By task scope:
 
 - **code**: smoke-run the affected script(s) from repo root on a small slice; confirm imports resolve, no
   exception, and the output shape is sane. For a shared-module change, run one downstream script that imports it.
