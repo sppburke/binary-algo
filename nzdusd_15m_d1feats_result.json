@@ -1,0 +1,18 @@
+{
+  "model": "NZDUSD 15m D1 daily trend features",
+  "features": [
+    "d1_above_ema20",
+    "d1_above_ema100",
+    "d1_ret_1",
+    "d1_ret_5"
+  ],
+  "base_val_auc_ref": 0.5219,
+  "base_val_auc_check": 0.5257050914476074,
+  "own_k3_val_auc": 0.5362,
+  "d1_feats_val_auc": 0.5470848733903517,
+  "lift_vs_ref": 0.025184873390351692,
+  "lift_vs_check": 0.02137978194274437,
+  "d1_importance_share": 0.021062992125984253,
+  "escalate": true,
+  "decision": "ESCALATE"
+}

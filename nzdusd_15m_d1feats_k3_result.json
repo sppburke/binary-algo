@@ -1,0 +1,16 @@
+{
+  "model": "NZDUSD 15m +D1 features full K=3",
+  "d1_features": [
+    "d1_ret_1",
+    "d1_ret_5",
+    "d1_above_ema20",
+    "d1_above_ema100"
+  ],
+  "base_k3_val_auc_check": 0.5354546534747007,
+  "base_k3_val_auc_ref": 0.5362,
+  "d1_k3_val_auc": 0.5723818777538547,
+  "lift_vs_check": 0.03692722427915407,
+  "lift_vs_ref": 0.03618187775385473,
+  "escalate": true,
+  "decision": "ESCALATE to CPCV"
+}
