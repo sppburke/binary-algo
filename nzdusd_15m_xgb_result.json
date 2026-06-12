@@ -1,0 +1,21 @@
+{
+  "model": "NZDUSD.15m XGBoost A1 screen + LGB K=3 blend",
+  "base_val_auc_stride6": 0.5219,
+  "own_k3_val_auc_full": 0.5362,
+  "lgb_k3_val_auc": 0.5255827180971797,
+  "xgb_single_val_auc": 0.5241120558184766,
+  "lgb_xgb_corr": 0.8809080027708712,
+  "blend_results": {
+    "0.9": 0.525651868652199,
+    "0.8": 0.5257116936081435,
+    "0.7": 0.5257537475768995,
+    "0.5": 0.5257526320401549
+  },
+  "best_blend_alpha": 0.7,
+  "best_blend_auc": 0.5257537475768995,
+  "lift_vs_base": 0.003853747576899491,
+  "lift_vs_own_k3": -0.010446252423100488,
+  "escalate_threshold": 0.5319,
+  "escalate": false,
+  "decision": "SUBSUMED"
+}

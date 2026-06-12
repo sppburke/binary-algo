@@ -452,7 +452,9 @@ SWEEP_MATRIX Tier A rows A1/A9/A6/A6b were run directly for NZDUSD 15m (see abov
 | A7 | Walk-forward retrain (regime robustness) | I7 recency-weighted training (softer version of walk-forward): KILLED for USDJPY 2m — sharper recency monotonically LOWERS VAL-AUC + held-out (`usdjpy_2m_recency.py`). I8 IRM era-invariance (deeper robustness lever): KILLED for USDCHF 15m (`USDCHF_RESULTS.md`, SURVIVES=False) — refit-decay = INFORMATION BOUND, not fixable by selection. Walk-forward is STRICTER than both I7+I8 combined → predicted worse outcome. | SWEEP_MATRIX I7 (`usdjpy_2m_recency.py`) + I8 (`USDCHF_RESULTS.md`) Tier-1 kills |
 | A8 | Up/down filter vs specialist | ACI adaptive filter (stronger than any static filter) KILLED Tier-1 (`nzdusd_15m_aci_result.json`). Separately-trained specialist on UP-labeled rows halves training data and removes DOWN calibration signal — prior "spec ~null" in SWEEP_MATRIX. Information bound .5321 AUC applies to a specialist as much as to the full model. | `nzdusd_15m_aci_result.json`; SWEEP_MATRIX A8: "spec ~null" |
 
-**Tier A closure: ALL rows formally closed** (A1 KILLED, A9-ny I2 CERT, A9-asia KILLED, A6 PARTIAL, A6b NO SUPERSEDE, USDCAD VAL SUBSUMED; A2/A3/A4/A7/A8 SUBSUMED above; A5 N/A).
+**XGBoost A1 screen (2026-06-11, `nzdusd_15m_xgb_result.json`):** XGB single-seed .5241; LGB K=3 .5256; best blend (α=0.7 LGB + 0.3 XGB): .5258. LGB/XGB corr=.8809 (88% prediction overlap) → 12% error decorrelation gives +.0002 marginal blend lift. SUBSUMED. A1 fully closed: different GBM algorithms add no orthogonal signal for 239 own-pair features.
+
+**Tier A closure: ALL rows formally closed** (A1 LGB+XGB SUBSUMED Tier-1, A9-ny I2 CERT, A9-asia KILLED, A6 PARTIAL, A6b NO SUPERSEDE, USDCAD VAL SUBSUMED; A2/A3/A4/A7/A8 SUBSUMED above; A5 N/A).
 
 ---
 
