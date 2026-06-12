@@ -3,6 +3,8 @@
 **Read this first if you are an agent maintaining this repo's records.** It defines where everything goes so
 the bookkeeping stays maintainable as we add currencies and timeframes. The `strategy-eval` skill enforces it.
 
+> **Directory layout (2026-06-12 reorganisation):** All Python scripts → `scripts/` (flat). Per-pair result ledgers → `results/`. Raw experiment JSON outputs → `results/json/`. Methodology/findings docs → `docs/`. Logs → `logs/`. Books unchanged at `books/`. Data dirs (`features/`, `features_of/`, `features_tick*/`, `syn_data/`) stay at repo root (absolute paths hardcoded in scripts).
+
 This repo forecasts deriv.com binary **DIRECTION** (`sign(close(t+H)−close(t))`) and **MAGNITUDE** (`|ret_H|≥Q`)
 for FX pairs across timeframes. A **key** = `(PAIR, timeframe[, side])`, side ∈ {UP, DOWN}. **5m EURUSD is ONE
 key among many** (we will run GBPUSD, 10m, 30m, …). Every document is exactly one of two tiers:
@@ -17,16 +19,16 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 
 | File | Role (generic) |
 |---|---|
-| `METHODS_CATALOG.md` | Reusable methodologies — one entry per technique: what · how-to-retarget · why · leakage traps · status-**pointer** (no per-key numbers). |
+| `docs/METHODS_CATALOG.md` | Reusable methodologies — one entry per technique: what · how-to-retarget · why · leakage traps · status-**pointer** (no per-key numbers). |
 | `SWEEP_MATRIX.md` | The permutation **menu** (Tier A–F fixed + Tier-N discovered), with retarget knobs. The "what to try" for any key. |
-| `IDEAS_LOG.md` | Generic **idea→experiment backlog**: each idea = mechanism + sign-invariance note + falsifier **template** + `tested-on-keys:` pointers. NO per-key incumbents/numbers. |
-| `THEORY.md` | Cross-key facts: sign-invariance theorem, direction-ceiling shape by horizon, deriv settlement & breakeven (0.541 @ R≈1.85). |
-| `GOAL_PROMPT.md` | `/goal` kickoff templates (parameterized by `<X>`,`<CURRENCY>`). |
+| `docs/IDEAS_LOG.md` | Generic **idea→experiment backlog**: each idea = mechanism + sign-invariance note + falsifier **template** + `tested-on-keys:` pointers. NO per-key incumbents/numbers. |
+| `docs/THEORY.md` | Cross-key facts: sign-invariance theorem, direction-ceiling shape by horizon, deriv settlement & breakeven (0.541 @ R≈1.85). |
+| `docs/GOAL_PROMPT.md` | `/goal` kickoff templates (parameterized by `<X>`,`<CURRENCY>`). |
 | `research/**` | Literature corpus + synthesis (generic). |
 | `README.md`, `REPO_MAP.md` | Repo overview + this convention. |
-| `CORRECTNESS_AUDIT.md` | Record-of-truth for evaluation integrity: FM-A…FM-G failure-mode taxonomy, repo-wide audit verdict (FM-F look-forward bug isolated to Kronos), the 4 clean-substrate proofs, flagged-scripts table + remediation. |
-| `DERIV_MAGNITUDE_MONETIZATION.md` | **Venue/platform** (currency-agnostic): how/whether the magnitude edge monetizes on Deriv. Tier-1 FX contract catalog (`deriv_frxEURUSD_contracts_for.json`), per-product fit+adversarial verdict, house-edge analysis, API integration. Verdict: FX touch/range are daily-only, exotics synthetic-only → only live fork is a 1-day FX model. |
-| `SYNTHETIC_RNG_FINDINGS.md` + `syn_collect.py`/`syn_rng_audit.py`/`syn_spike_audit.py` (+ `syn_data/`) | **Venue/platform**: empirical RNG/predictability audit of Deriv synthetic indices. Verdict NULL — vol indices IID-Gaussian (no vol clustering, magnitude edge does not transfer; NIST 6/6), engineered-index spike timing memoryless. Don't re-chase. |
+| `docs/CORRECTNESS_AUDIT.md` | Record-of-truth for evaluation integrity: FM-A…FM-G failure-mode taxonomy, repo-wide audit verdict (FM-F look-forward bug isolated to Kronos), the 4 clean-substrate proofs, flagged-scripts table + remediation. |
+| `docs/DERIV_MAGNITUDE_MONETIZATION.md` | **Venue/platform** (currency-agnostic): how/whether the magnitude edge monetizes on Deriv. Tier-1 FX contract catalog (`docs/deriv_frxEURUSD_contracts_for.json`), per-product fit+adversarial verdict, house-edge analysis, API integration. Verdict: FX touch/range are daily-only, exotics synthetic-only → only live fork is a 1-day FX model. |
+| `docs/SYNTHETIC_RNG_FINDINGS.md` + `scripts/syn_collect.py`/`syn_rng_audit.py`/`syn_spike_audit.py` (+ `syn_data/`) | **Venue/platform**: empirical RNG/predictability audit of Deriv synthetic indices. Verdict NULL — vol indices IID-Gaussian (no vol clustering, magnitude edge does not transfer; NIST 6/6), engineered-index spike timing memoryless. Don't re-chase. |
 
 ## TIER 2 — KEY-SPECIFIC (named/labeled by the key — ALL incumbents, numbers, results, backlogs live here)
 
