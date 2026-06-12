@@ -694,6 +694,108 @@
    "manifest": "books/USDCHF.m15ny_xpair_seedens.v1.manifest.json",
    "summary": "USDCHF 15m EUR-bloc xpair-NY SEED-ENS K=3 direction book (deployment incumbent; supersedes single-seed). BOTH sides certified >65% (cov1 refit-CPCV p10 UP 0.6935 / DOWN 0.6682; cov.5 0.7303/0.7084), 15/15 paths every cov. Seed-ensembling lifts mean 15/15 + p10 13/15 vs single-seed. REFIT-DEPENDENT (NY-only, periodic retrain, size on refit floor minus -.0035 bar-close haircut, Kelly 1/8).",
    "depends_on": "USDCHF.m15ny_xpair.v1"
+  },
+  {
+   "id": "NZDUSD.m15ny_seedens.v1",
+   "currency": "NZDUSD",
+   "timeframe": "15m",
+   "side": "combined",
+   "role": "direction",
+   "script": "nzdusd_15m_base.py (model) + nzdusd_15m_cpcv_session.py ny (cert) + nzdusd_15m_freeze_ny.py (freeze)",
+   "metrics": {
+    "up_refit_cpcv_p10": 0.5749,
+    "down_refit_cpcv_p10": 0.5803,
+    "comb_refit_cpcv_p10": 0.5817,
+    "up_refit_mean": 0.5959,
+    "down_refit_mean": 0.5973,
+    "breakeven": 0.541,
+    "cov": 0.02,
+    "val_ny_auc": 0.5362,
+    "frozen_forward": {
+     "test24": {
+      "COMBINED": {
+       "n": 402,
+       "wr": 0.6219,
+       "ci": [
+        0.5746,
+        0.6692
+       ]
+      },
+      "UP": {
+       "n": 253,
+       "wr": 0.5652,
+       "ci": [
+        0.5059,
+        0.6245
+       ]
+      },
+      "DOWN": {
+       "n": 149,
+       "wr": 0.7181,
+       "ci": [
+        0.6443,
+        0.7919
+       ]
+      }
+     },
+     "test25": {
+      "COMBINED": {
+       "n": 525,
+       "wr": 0.6019,
+       "ci": [
+        0.56,
+        0.6419
+       ]
+      },
+      "UP": {
+       "n": 286,
+       "wr": 0.5699,
+       "ci": [
+        0.514,
+        0.6259
+       ]
+      },
+      "DOWN": {
+       "n": 239,
+       "wr": 0.6402,
+       "ci": [
+        0.5816,
+        0.6987
+       ]
+      }
+     },
+     "oos": {
+      "COMBINED": {
+       "n": 283,
+       "wr": 0.5194,
+       "ci": [
+        0.4628,
+        0.576
+       ]
+      },
+      "UP": {
+       "n": 141,
+       "wr": 0.4965,
+       "ci": [
+        0.4184,
+        0.5745
+       ]
+      },
+      "DOWN": {
+       "n": 142,
+       "wr": 0.5423,
+       "ci": [
+        0.4646,
+        0.6197
+       ]
+      }
+     }
+    },
+    "refit_dependent": true
+   },
+   "manifest": "books/NZDUSD.m15ny_seedens.v1.manifest.json",
+   "summary": "NZDUSD 15m NY-session own-pair base GBM seed-ens K=3; BOTH sides certified via NY per-fold-refit CPCV (UP p10 0.5749 / DOWN p10 0.5803 @cov0.02, seed-ens K=3, 14-15/15 paths). Direction edge NY-concentrated + NZDUSD-own-pair-specific (EUR-bloc demoted all-session; Antipodean/AUDUSD cousin pooling not yet tested). REFIT-DEPENDENT (frozen-2021 fwd decays).",
+   "depends_on": null
   }
  ]
 }
