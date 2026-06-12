@@ -1,6 +1,6 @@
 ---
 name: feature-dev
-description: Guided planning workflow for a new experiment, method, sweep, new-key bootstrap, or infra feature in binary-algo — understand the repo via parallel agents, ask clarifying questions, design 2-3 candidate approaches (each with a mechanism + sign-invariance note + pre-registered falsifier), finalize the chosen one, and file it as a durable hand-off artifact (a row in sweeps/<PAIR>_<tf>_backlog.md + a logged idea in docs/IDEAS_LOG.md). Does NOT run or implement (that happens in a separate `strategy-eval` run for experiments, or `dev-cycle` for infra). Use for "plan an experiment", "design a method before running it", "spec out X", "what should we try for <pair>/<tf>", "add this idea to the backlog", or any request that ends at a hand-off artifact rather than at a measured result or shipped code.
+description: Guided planning workflow for a new experiment, method, sweep, new-key bootstrap, or infra feature in binary-algo — understand the repo via parallel agents, ask clarifying questions, design 2-3 candidate approaches (each with a mechanism + sign-invariance note + pre-registered falsifier), finalize the chosen one, and file it as a durable GitHub issue hand-off artifact. Does NOT run or implement (that happens in a separate `strategy-eval` run for experiments, or `dev-cycle` for infra). Use for "plan an experiment", "design a method before running it", "spec out X", "what should we try for <pair>/<tf>", "add this idea to the backlog", or any request that ends at a hand-off artifact rather than at a measured result or shipped code.
 ---
 
 # Feature / Experiment Planning
@@ -26,6 +26,15 @@ and ask about all underspecified details, design well-mechanised candidate appro
 - **Evidence-first**: every factual premise about the repo (what exists, what was already tried, what a number
   was) traces to a Tier-1 source per `docs/_EVIDENCE-FIRST.md`. No "probably already tried" — grep it.
 - **Use TodoWrite**: Track progress through the phases.
+- **GitHub issue hand-off**: The durable output of this skill is a GitHub issue in `sppburke/binary-algo`, no
+  questions asked. If the request references an existing issue like `#222`, treat it as
+  `https://github.com/sppburke/binary-algo/issues/222`, read it with `gh issue view 222 -R sppburke/binary-algo`,
+  and update/comment that issue instead of creating a duplicate. Otherwise create a new issue with the finalized
+  plan.
+- **GitHub auth**: Use the locally configured `sppburke` GitHub token/account. Prefer commands with
+  `-R sppburke/binary-algo`. If `gh` is on the wrong active account or repo lookup fails, run
+  `gh auth switch -u sppburke` and verify with `gh repo view sppburke/binary-algo --json nameWithOwner,url`.
+  Never print, extract, or paste the token.
 
 ---
 
@@ -61,6 +70,9 @@ and ask about all underspecified details, design well-mechanised candidate appro
 
 Initial request: the user's description from the invoking message. If they only said "use feature-dev to plan X"
 without specifics, jump to the clarifying questions in step 2.
+
+If the invoking message contains a GitHub issue reference like `#222`, fetch that issue first and use its title/body
+as the initial request. The issue number always refers to `sppburke/binary-algo`.
 
 **Actions**:
 1. Create the todo list with all phases.
@@ -142,8 +154,8 @@ get explicit confirmation.
 
 ## Phase 5: Finalize and File
 
-**Goal**: Capture the agreed plan as a durable hand-off artifact — printed to screen AND filed in the repo's
-planning ledgers. **Do not write or run any experiment code in this skill.**
+**Goal**: Capture the agreed plan as a durable hand-off artifact — printed to screen AND filed as a GitHub issue
+in `sppburke/binary-algo`. **Do not write or run any experiment code in this skill.**
 
 **Prerequisite**: Phase 4 ended with the user choosing one approach. If approval isn't explicit, ask once and wait.
 
@@ -171,22 +183,18 @@ planning ledgers. **Do not write or run any experiment code in this skill.**
 2. **Print the full plan to screen** as a single self-contained markdown block — a reader who didn't sit through
    phases 1–4 should be able to act on it.
 
-3. **File it in the repo's planning ledgers** (this repo has no usable GitHub issues — the executable backlog IS
-   the hand-off artifact, per `REPO_MAP.md` and `strategy-eval` §0a/§8):
-   - **Per-key executable backlog** `sweeps/<PAIR>_<tf>_backlog.md` — append a ranked row to the FIRST-TO-RUN
-     queue: id, family, method, variant, target key, script, prior, the pre-registered falsifier, status
-     `pending`, and a one-line incumbent-to-beat. Create the file by instantiating `SWEEP_MATRIX.md` for the key
-     if it doesn't exist; resume/extend it if it does (never restart a ledger).
-   - **Generic idea log** `docs/IDEAS_LOG.md` — if the approach is a transferable idea/method, log it once
-     generically (mechanism + sign-invariance note + falsifier *template* + source citation + `tested-on-keys:`
-     pointer). NO per-key numbers in this generic file — tag examples `[PAIR·tf]` and point to the Tier-2 ledger.
-   - **New generic method?** Also append a row to `SWEEP_MATRIX.md` "Tier N — discovered".
-   - For an **infra feature** (not an experiment), file the plan as the implementation outline for a `dev-cycle`
-     run instead — print it and tell the user it's ready to hand to `dev-cycle`; there is no backlog ledger for
-     infra.
+3. **File it as a GitHub issue**:
+   - Existing issue referenced (`#222`): post the finalized plan as a comment or update the issue body when the
+     user asked for an update. Use `gh issue comment 222 -R sppburke/binary-algo --body-file <file>`.
+   - No issue referenced: create one with `gh issue create -R sppburke/binary-algo --title "<title>" --body-file <file>`.
+   - Include enough detail for `strategy-eval` or `dev-cycle` to pick it up without conversation context.
+   - Do **not** ask where to file the plan; GitHub issue filing is the default for this repo.
+   - Do **not** append repo backlog rows, `docs/IDEAS_LOG.md`, or `SWEEP_MATRIX.md` unless the user explicitly asks
+     for those legacy ledgers in addition to the issue. If a later run produces measured results, `strategy-eval`
+     remains responsible for the Tier-2 result ledger.
 
-4. **Report what was filed** — the backlog file + the appended row id (and the `IDEAS_LOG`/`SWEEP_MATRIX` entry
-   if added). This is the hand-off artifact: running happens in `strategy-eval`, infra build in `dev-cycle`.
+4. **Report what was filed** — the GitHub issue number + URL. This is the hand-off artifact: running happens in
+   `strategy-eval`, infra build in `dev-cycle`.
 
 5. **Mark all todos complete and stop.** The skill ends here. Do not run the experiment, fit a model, write a
    result JSON, or freeze a book — those happen in a separate `strategy-eval` invocation that picks up the backlog

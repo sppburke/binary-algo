@@ -1,6 +1,6 @@
 ---
 name: dev-cycle
-description: Full development iteration for binary-algo — analyse, plan, implement, run the local evidence gate (smoke-run + evaluation discipline), self-review, then commit and push to main and archive artifacts. Use for "next phase", "ship change X", "implement Y", "add the harness/module/script", "do the reorg", or any engineering/infra/tooling/doc work that ends in a push to main. For evaluating or sweeping a STRATEGY at a (currency, timeframe, side), use the `strategy-eval` skill instead — this skill is for code/infra/doc changes; it defers the evaluation protocol to `strategy-eval`.
+description: Full development iteration for binary-algo — analyse, plan, implement, run the local evidence gate (smoke-run + evaluation discipline), self-review, then commit and push to main, update/close the driving GitHub issue when present, and archive artifacts. Use for "next phase", "ship change X", "implement Y", "add the harness/module/script", "do the reorg", or any engineering/infra/tooling/doc work that ends in a push to main. If invoked with `#222`, treat it as issue 222 in `sppburke/binary-algo`. For evaluating or sweeping a STRATEGY at a (currency, timeframe, side), use the `strategy-eval` skill instead — this skill is for code/infra/doc changes; it defers the evaluation protocol to `strategy-eval`.
 ---
 
 # Dev Cycle
@@ -11,6 +11,20 @@ Target branch is `main` (this repo ships **direct to main**, linear history — 
 ## Communication
 
 Terse, high information density. Final summary lists every shortcut, hack, or skipped check. Default is `none`.
+
+## GitHub Issue Workflow
+
+- A bare issue reference like `#222` means `https://github.com/sppburke/binary-algo/issues/222`.
+- If the request includes an issue reference, fetch it during analysis with
+  `gh issue view 222 -R sppburke/binary-algo --json number,title,body,url,state,labels,comments` and treat the
+  issue body as the task spec. Do not ask the user to paste the issue unless `gh` cannot access it.
+- Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If `gh`
+  is on the wrong active account or repo lookup fails, run `gh auth switch -u sppburke` and verify with
+  `gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
+- After the change is pushed to `main`, comment on the driving issue with what shipped, the commit SHA, the checks
+  run, and any skipped checks/shortcuts. Then close the issue once the commit is on `main`.
+- This repo ships direct to `main`; if a PR exists for the issue, mention it in the closeout comment, but do not
+  invent a PR workflow.
 
 ## Model selection
 
@@ -70,6 +84,9 @@ git log --oneline -12                  # what shipped recently; carry forward ne
 git status --short                     # is the tree clean / what's untracked
 git log --oneline -3 -- results/ books/ docs/   # recent record-of-truth changes
 ```
+
+If an issue reference was provided, fetch the issue with `gh issue view <n> -R sppburke/binary-algo ...` before
+deciding scope, and include its number/title in the plan.
 
 For recent commits that touch the area you're about to change, read the diff (`git show <sha>`). Identify new
 shared utilities, naming, and conventions that landed; carry them forward. If a recent commit makes the task
@@ -151,7 +168,7 @@ There is no CI and no automated test suite in this repo — **the local evidence
   also pass a per-year frozen-past forward holdout (trap #9).
 - **docs/tooling**: skip the smoke-run. Gate = every path/link you touched resolves
   (`for p in <paths>; do [ -e "$p" ] || echo MISS $p; done`), and no mid-token corruption from bulk edits
-  (`grep -rn '_docs/\|docs/docs/\|results/results/' <changed files>` returns nothing).
+  (no `_docs` segment, no doubled `docs` segment, and no doubled `results` segment in changed paths).
 
 **The gate must be the LAST thing before `git commit` — no edits in between.** If you change any file after the
 gate ran, RE-RUN the gate. A passing smoke-run from five minutes ago is worthless if the file changed since.
@@ -240,6 +257,15 @@ git status --short && git log --oneline -1    # confirm clean tree + your commit
 
 If push is rejected (non-fast-forward), STOP, sync, re-gate, retry. Do not force-push `main`.
 
+If this work came from a GitHub issue, update the issue after the successful push:
+
+```bash
+gh issue comment <n> -R sppburke/binary-algo --body "<what shipped, commit SHA, checks, skipped checks>"
+gh issue close <n> -R sppburke/binary-algo
+```
+
+Only close after `git push` succeeds and the shipped commit is confirmed on `main`.
+
 ## 8. Cleanup
 
 Mandatory after a successful push:
@@ -251,6 +277,7 @@ Mandatory after a successful push:
 - **Ledgers current**: if this change produced/updated a measured key, the `results/<PAIR>_RESULTS.md` row, the
   `sweeps/<PAIR>_<tf>.md` ledger line, and (if a book was frozen) `MODEL_REGISTRY.md` + `books/INDEX.json` are
   all updated — that recording is owned by `strategy-eval` §5–7; confirm it happened.
+- **Issue closed**: if the work came from a GitHub issue, confirm the issue has a delivery comment and is closed.
 
 ## 9. Summarise
 
@@ -261,6 +288,7 @@ Return to the user:
 - `Shortcuts / hacks taken: <list or "none">`.
 - Any check skipped and why (e.g. `Use-case verification: N/A — doc-only`).
 - Confirmation the working tree is clean and result JSONs were archived.
+- If issue-driven, the GitHub issue number/URL and confirmation it was updated and closed.
 
 ## Failure modes
 

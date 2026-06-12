@@ -1,20 +1,21 @@
 ---
 name: plan-review
 description: >-
-  Review an experiment plan, method design, sweep plan, new-key bootstrap, or
-  infra spec for binary-algo for correctness, internal consistency, repo-fit,
-  evaluation-discipline soundness, and minimum-viable scope BEFORE any model is
-  fit or code is written. Outputs a verdict (approve / approve-with-revisions /
-  reject) plus Blocking and Should-fix findings, each with an exact plan delta
-  and a tier-cited evidence trail. Use whenever the user shares a not-yet-run
-  plan and asks whether it is ready, sound, leakage-free, internally consistent,
-  minimum-viable, or whether it "follows our discipline" — and whenever they say
-  "review this plan", "check this experiment design before I run it", "is this
-  sound enough to fit", "do you agree with this approach", or are about to hand a
-  plan to `strategy-eval` / `dev-cycle`. Trigger even without the words "plan
-  review": any request to vet a proposed-but-unrun design against the repo's
-  evaluation discipline is this skill. Do NOT use it to review a finished result
-  / committed book (that's the diff / strategy-eval recording job) or to author
+  Review an experiment plan, method design, sweep plan, new-key bootstrap, infra
+  spec, or GitHub issue for binary-algo for correctness, internal consistency,
+  repo-fit, evaluation-discipline soundness, and minimum-viable scope BEFORE any
+  model is fit or code is written. Outputs a verdict (approve /
+  approve-with-revisions / reject) plus Blocking and Should-fix findings, each
+  with an exact plan delta and a tier-cited evidence trail. Use whenever the
+  user shares a not-yet-run plan, cites an issue like #222, and asks whether it
+  is ready, sound, leakage-free, internally consistent, minimum-viable, or
+  whether it "follows our discipline" — and whenever they say "review this
+  plan", "check this experiment design before I run it", "is this sound enough
+  to fit", "do you agree with this approach", or are about to hand a plan to
+  `strategy-eval` / `dev-cycle`. Trigger even without the words "plan review":
+  any request to vet a proposed-but-unrun design against the repo's evaluation
+  discipline is this skill. Do NOT use it to review a finished result /
+  committed book (that's the diff / strategy-eval recording job) or to author
   the plan from scratch (that's feature-dev).
 ---
 
@@ -22,6 +23,18 @@ description: >-
 
 Review a plan, spec, or hand-off against the repo it will be run in. Output a verdict and findings; never run the
 experiment, fit a model, freeze a book, or rewrite the plan into a new plan.
+
+## GitHub Issue Inputs
+
+- A bare issue reference like `#222` means `https://github.com/sppburke/binary-algo/issues/222`.
+- Fetch it before normalizing the plan: `gh issue view 222 -R sppburke/binary-algo --json number,title,body,url,state,labels`.
+- Use the issue title/body/comments supplied by the user as the plan artifact. Do not ask the user to paste the
+  issue unless `gh` cannot access it.
+- Use the locally configured `sppburke` GitHub token/account. If `gh` is on the wrong active account or repo lookup
+  fails, run `gh auth switch -u sppburke` and verify with
+  `gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
+- The review output should name the issue number and URL. Do not edit, close, or comment on the issue unless the
+  user explicitly asks you to post the review.
 
 ## Required Inputs (and what to do if missing)
 
