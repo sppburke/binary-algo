@@ -227,10 +227,11 @@ models/
 *.npz
 *.joblib
 catboost_info/
-.claude/*
-!.claude/skills/
+flow_cache/
 ohlc_cache/
 vbar_cache/
+.claude/*
+!.claude/skills/
 
 # Frozen book registry — VERSION-CONTROLLED model artifacts + provenance manifests (the verbatim deliverable
 # books). These are the only reproducible copies (GBMs are not bit-for-bit retrainable). Keep them, overriding
