@@ -1,0 +1,34 @@
+{
+  "model": "NZDUSD 15m moments+AUDNZD screen",
+  "new_features": [
+    "skew_30",
+    "skew_60",
+    "skew_120",
+    "skew_240",
+    "kurt_30",
+    "kurt_60",
+    "kurt_120",
+    "kurt_240",
+    "audnzd_ret1",
+    "audnzd_ret15",
+    "audnzd_above_ema",
+    "audnzd_rsi"
+  ],
+  "base_val_auc_ref": 0.5219,
+  "base_val_auc_check": 0.5257050914476074,
+  "own_k3_val_auc": 0.5362,
+  "moments_audnzd_val_auc": 0.5257036816484835,
+  "lift_vs_ref": 0.003803681648483437,
+  "lift_vs_check": -1.4097991238859464e-06,
+  "new_feat_share": 0.07788713910761155,
+  "escalate": false,
+  "decision": "SUBSUMED",
+  "top_new_features": {
+    "kurt_240": 1620,
+    "skew_240": 1438,
+    "skew_120": 1352,
+    "kurt_120": 1323,
+    "skew_60": 1300,
+    "kurt_60": 1145
+  }
+}

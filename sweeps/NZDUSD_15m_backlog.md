@@ -23,6 +23,8 @@ SCOPE: NZDUSD · 15m — EXECUTABLE backlog (TOP-N queue, incumbents-to-beat, di
 
 | D1-feats | D1 daily trend features | d1_ret_1/d1_ret_5/ema20/ema100 | ⊘ **RETRACTED+SUBSUMED 2026-06-11** — `nzdusd_15m_d1feats_clean_result.json`. LOOKAHEAD BUG: `resample("1D").last()` labels bin 00:00 UTC but holds 23:59 UTC close; ffill gave NY session bars TODAY's daily return. Buggy AUC .5471/.5724 INVALID. FIX: shift(1) on daily close. Clean result: d1_ret_1 target corr = −0.0008; AUC .5257 = base (−.0001). NO genuine 1-day momentum signal. Feature confirmed SUBSUMED with Tier-1 clean evidence. | none | ⊘ RETRACTED |
 
+| Moments+AUDNZD | Rolling skewness/kurtosis + synthetic AUDNZD | skew/kurt (30/60/120/240 bar windows) + AUDNZD=AUDUSD/NZDUSD TA | ⊘ **VAL SUBSUMED 2026-06-11** — `nzdusd_15m_moments_screen_result.json`. 12 new feats (8 moments + 4 AUDNZD) added to base 239 = 251 total. Skew raw corr −.025→−.036 (non-trivial; negative skew predicts DOWN-continuation); AUDNZD raw corr +.028→+.033. AUC .5257 vs base .5257 = **0.0000 net lift**. Feature importance 7.79% but colsample dilution neutralizes signal already captured by return/vol features. Both moment types and synthetic AUDNZD SUBSUMED. | none | ⊘ EXHAUSTED |
+
 ## Incumbents to beat (p10 floors after each stage)
 
 | stage | incumbent | UP p10 @cov | DOWN p10 @cov | updated |

@@ -9,7 +9,7 @@
 **Cert rule:** per-side p10≥0.541 AND ≥80% of 15 CPCV paths clear 0.541
 **Selection:** VAL worst-half stability (NEVER VAL-acc-max; corr(VAL,OOS)=−0.54)
 **Key files:** `sweeps/NZDUSD_15m.md` (ledger) · `sweeps/NZDUSD_15m_backlog.md` (queue) · `books/` (frozen)
-**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; all SWEEP_MATRIX+NOVEL_METHODS rows closed Tier-1. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC ceiling ~.535; see §AUC Information Bound Wall). Note: D1 daily features (d1_ret_1) ATTEMPTED 2026-06-11 but RETRACTED — `resample("1D").last()` lookahead bug; clean AUC .5257 = no lift. Certified book unaffected (uses pre-computed 239 features only).
+**Sweep status:** ★ **CLOSED 2026-06-11** — both sides CERTIFIED+FROZEN; improve+discover loops exhausted on-disk; all SWEEP_MATRIX+NOVEL_METHODS rows closed Tier-1. Incumbent: `NZDUSD.m15ny_seedens.v1` (f599708e). >65% is **provably unreachable on-disk** (AUC ceiling ~.535; see §AUC Information Bound Wall). Note: D1 daily features (d1_ret_1) ATTEMPTED 2026-06-11 but RETRACTED — `resample("1D").last()` lookahead bug; clean AUC .5257 = no lift. Rolling skewness/kurtosis + synthetic AUDNZD also SUBSUMED 2026-06-11 — zero net lift despite non-trivial raw correlations. ALL on-disk feature engineering avenues exhausted. Certified book unaffected (uses pre-computed 239 features only).
 
 ---
 
@@ -360,6 +360,9 @@ Result JSON: `nzdusd_15m_aci_result.json`
 | D7 RS semivar (RS+/RS-, 15/30/60m windows, 248 feats, stride-6) | .5240 | — | — | — |
 | ~~D1 daily features (RETRACTED — lookahead bug)~~ | ~~.5724~~ | — | — | — |
 | D1 daily features CLEAN (shift=1, true prior-day ret) | .5257 | — | — | — |
+| Rolling skew/kurt (30/60/120/240 bars) + synthetic AUDNZD (251 feats, stride-6) | .5257 | — | — | — |
+
+Rolling skewness/kurtosis + synthetic AUDNZD confirmed SUBSUMED 2026-06-11 (`nzdusd_15m_moments_screen_result.json`): 8 moment features (skew/kurt at 30/60/120/240 bar windows) + 4 AUDNZD synthetic features (AUDUSD/NZDUSD ratio returns, RSI, EMA flag) = 12 new feats. Skewness had non-trivial raw correlations (−.025→−.036; negative rolling skew → DOWN continuation), AUDNZD also non-trivial (+.028→+.033). AUC .5257 vs base .5257 = **0.0000 net lift**. Feature share 7.79% but colsample dilution neutralizes — information already embedded in base return/vol features. Both rolling higher moments and synthetic cross-pair ratio SUBSUMED at Tier-1 own-pair. ALL on-disk feature engineering avenues exhausted.
 
 D1 daily features RETRACTED 2026-06-11: `resample("1D").last()` labels bin with 00:00 UTC start but holds 23:59 UTC end-of-day value; ffill propagated today's close to all NY session bars (lookahead confirmed: Jan 4 14:00 bar saw Jan 4 return, not Jan 3). AUC .5471/.5724 were INVALID. Fixed with shift(1): d1_close_raw.shift(1) makes "Jan 4 00:00" hold Jan 3 23:59 close. Clean result: d1_ret_1 target corr = −0.0008 (vs buggy +0.0430); AUC .5257 = base (no genuine 1-day momentum signal). No lookahead in certified book (pre-computed 239 features only). AUC ceiling confirmed at .5412 max single path. K=8 projected from AUDUSD own-pair K=8 data: cov2% UP .591 vs K=3 .596 (REGRESS), DOWN .612 vs .596 (lift) — sign-inconsistent, seed lever saturated. `audusd_15m_cpcv_session_ny_seedens8_result.json`.
 
