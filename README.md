@@ -208,6 +208,15 @@ latest two calendar months of Deriv data by default:
 ~/binary-algo-venv/bin/python scripts/deriv_train.py --pairs all --horizon 15 --holdout-months 2
 ```
 
+To attempt a schema-faithful incumbent-book replication on Deriv candle data:
+
+```bash
+~/binary-algo-venv/bin/python scripts/book_deriv_replicate.py --pairs all --cpcv candidates
+```
+
+That run writes tracked evidence to `results/json/book_deriv_replicate_*_result.json`
+and ignored model artifacts under `deriv_data/models/`.
+
 ## Data Requirements
 
 Feature parquets at `features/{PAIR}_{year}.parquet` (2012–2026) are pre-built and present. To rebuild from raw source:

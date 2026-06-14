@@ -1,0 +1,1562 @@
+{
+  "breakeven": 0.541,
+  "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; numeric gates are diagnostic until tick-level settlement labels are added.",
+  "common_latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+  "created_at_utc": "2026-06-14T14:32:14+00:00",
+  "data_dir": "deriv_data/candles_1m",
+  "eligible_for_certification": false,
+  "holdout_months": 2,
+  "horizon_minutes": 15,
+  "model_dir": "deriv_data/models/book_deriv_guarded_20260614T142844Z",
+  "pairs": [
+    {
+      "book_id": "EURUSD.m15xp.v1",
+      "missing_columns": [
+        "OF_of_norm_1",
+        "OF_of_sum_1",
+        "OF_of_norm_3",
+        "OF_of_sum_3",
+        "OF_of_norm_5",
+        "OF_of_sum_5",
+        "OF_of_norm_10",
+        "OF_of_sum_10",
+        "OF_of_norm_15",
+        "OF_of_sum_15",
+        "OF_of_norm_30",
+        "OF_of_sum_30",
+        "OF_of_uptick_5",
+        "OF_of_uptick_15",
+        "OF_kyle_5",
+        "OF_kyle_15",
+        "OF_of_accel",
+        "OF_of_persist"
+      ],
+      "of_missing_count": 18,
+      "pair": "EURUSD",
+      "reason": "schema columns unavailable from Deriv candles",
+      "status": "SCHEMA_UNAVAILABLE"
+    },
+    {
+      "book_id": "USDCHF.m15ny_xpair_seedens.v1",
+      "certification": {
+        "breakeven": 0.541,
+        "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; official certification needs tick-level entry/expiry settlement evidence.",
+        "cpcv_clear_rate_clears": false,
+        "cpcv_p10_clears": false,
+        "eligible_for_certification": false,
+        "oos_nonoverlap_clears": false,
+        "settlement_mode": "deriv_candle_close_proxy",
+        "verdict": "NOT_CERTIFIED",
+        "would_clear_numeric_gates": false
+      },
+      "cpcv": null,
+      "feature_count": 337,
+      "horizon_minutes": 15,
+      "latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+      "metrics": {
+        "oos_latest_two_months": {
+          "all_accuracy_ties_lose": 0.4976998632351113,
+          "auc_moved_only": 0.5126684326863917,
+          "moved_rows": 23701,
+          "moved_up_rate": 0.5174043289312688,
+          "rows": 24129,
+          "selected_accuracy_ties_lose": 0.5263484190948543,
+          "selected_coverage": 0.06684901985163082,
+          "selected_moved_accuracy": 0.5346347607052897,
+          "selected_moved_rows": 1588,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5,
+          "selected_nonoverlap_rows": 170,
+          "selected_nonoverlap_wilson_ci95": [
+            0.42567255222229283,
+            0.5743274477777072
+          ],
+          "selected_rows": 1613,
+          "selected_wilson_ci95": [
+            0.5019475330055584,
+            0.5506240980064095
+          ],
+          "tie_rows": 428
+        },
+        "train": {
+          "all_accuracy_ties_lose": 0.6658244779668574,
+          "auc_moved_only": 0.7436930096170576,
+          "moved_rows": 79485,
+          "moved_up_rate": 0.4988488394036611,
+          "rows": 80742,
+          "selected_accuracy_ties_lose": 0.8434128207453079,
+          "selected_coverage": 0.1365955760323004,
+          "selected_moved_accuracy": 0.8537077826725403,
+          "selected_moved_rows": 10896,
+          "selected_nonoverlap_accuracy_ties_lose": 0.8126829268292682,
+          "selected_nonoverlap_rows": 1025,
+          "selected_nonoverlap_wilson_ci95": [
+            0.7876454651844518,
+            0.8353853298378333
+          ],
+          "selected_rows": 11029,
+          "selected_wilson_ci95": [
+            0.8365109284744242,
+            0.8500755625343838
+          ],
+          "tie_rows": 1257
+        },
+        "val": {
+          "all_accuracy_ties_lose": 0.5090110191891799,
+          "auc_moved_only": 0.5167994832176077,
+          "moved_rows": 28785,
+          "moved_up_rate": 0.5044293903074518,
+          "rows": 29131,
+          "selected_accuracy_ties_lose": 0.5466712422786548,
+          "selected_coverage": 0.10003089492293434,
+          "selected_moved_accuracy": 0.553894297635605,
+          "selected_moved_rows": 2876,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5284280936454849,
+          "selected_nonoverlap_rows": 299,
+          "selected_nonoverlap_wilson_ci95": [
+            0.47184316616103583,
+            0.5842917901989886
+          ],
+          "selected_rows": 2914,
+          "selected_wilson_ci95": [
+            0.5285464794876799,
+            0.5646731113221847
+          ],
+          "tie_rows": 346
+        }
+      },
+      "model_count": 3,
+      "model_paths": [
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_USDCHF_m15_USDCHF_m15ny_xpair_seedens_v1/book_deriv_USDCHF_m15_seed20261614_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_USDCHF_m15_USDCHF_m15ny_xpair_seedens_v1/book_deriv_USDCHF_m15_seed20261615_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_USDCHF_m15_USDCHF_m15ny_xpair_seedens_v1/book_deriv_USDCHF_m15_seed20261616_lgb.txt"
+      ],
+      "oos_cutoff_utc": "2026-04-12T20:55:00+00:00",
+      "pair": "USDCHF",
+      "selection": {
+        "conf_threshold": 0.019246965439384145,
+        "half_metrics": [
+          {
+            "all_accuracy_ties_lose": 0.5232049947970864,
+            "auc_moved_only": 0.5242449750539071,
+            "moved_rows": 14243,
+            "moved_up_rate": 0.48360598188583864,
+            "rows": 14415,
+            "selected_accuracy_ties_lose": 0.5317237507018528,
+            "selected_coverage": 0.12355185570586195,
+            "selected_moved_accuracy": 0.5386803185437997,
+            "selected_moved_rows": 1758,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5257142857142857,
+            "selected_nonoverlap_rows": 175,
+            "selected_nonoverlap_wilson_ci95": [
+              0.4519757511662367,
+              0.598348110843497
+            ],
+            "selected_rows": 1781,
+            "selected_wilson_ci95": [
+              0.5085054050915738,
+              0.5548055352181993
+            ],
+            "tie_rows": 172
+          },
+          {
+            "all_accuracy_ties_lose": 0.4951073661321011,
+            "auc_moved_only": 0.5103256586631959,
+            "moved_rows": 14542,
+            "moved_up_rate": 0.5248246458533902,
+            "rows": 14716,
+            "selected_accuracy_ties_lose": 0.5701676963812886,
+            "selected_coverage": 0.07699103017124219,
+            "selected_moved_accuracy": 0.5778175313059034,
+            "selected_moved_rows": 1118,
+            "selected_nonoverlap_accuracy_ties_lose": 0.532258064516129,
+            "selected_nonoverlap_rows": 124,
+            "selected_nonoverlap_wilson_ci95": [
+              0.4447896327073294,
+              0.6177878068741526
+            ],
+            "selected_rows": 1133,
+            "selected_wilson_ci95": [
+              0.5411518540688054,
+              0.5987093192028272
+            ],
+            "tie_rows": 174
+          }
+        ],
+        "target_coverage": 0.1,
+        "worst_half_nonoverlap_accuracy": 0.5257142857142857
+      },
+      "split_rows": {
+        "oos": 24129,
+        "train": 80742,
+        "train_fit_ex_ties": 79485,
+        "val": 29131,
+        "val_fit_ex_ties": 28785
+      },
+      "status": "OK",
+      "train_val_cutoff_utc": "2026-01-25T06:30:00+00:00",
+      "verdict": "NOT_CERTIFIED"
+    },
+    {
+      "book_id": "GBPUSD.m15ny_xpair_seedens8.v1",
+      "certification": {
+        "breakeven": 0.541,
+        "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; official certification needs tick-level entry/expiry settlement evidence.",
+        "cpcv_clear_rate_clears": false,
+        "cpcv_p10_clears": false,
+        "eligible_for_certification": false,
+        "oos_nonoverlap_clears": false,
+        "settlement_mode": "deriv_candle_close_proxy",
+        "verdict": "NOT_CERTIFIED",
+        "would_clear_numeric_gates": false
+      },
+      "cpcv": null,
+      "feature_count": 340,
+      "horizon_minutes": 15,
+      "latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+      "metrics": {
+        "oos_latest_two_months": {
+          "all_accuracy_ties_lose": 0.4851009159103154,
+          "auc_moved_only": 0.4916892693787728,
+          "moved_rows": 23867,
+          "moved_up_rate": 0.4830100138266225,
+          "rows": 24129,
+          "selected_accuracy_ties_lose": 0.46046246074793035,
+          "selected_coverage": 0.1451780015748684,
+          "selected_moved_accuracy": 0.4655122655122655,
+          "selected_moved_rows": 3465,
+          "selected_nonoverlap_accuracy_ties_lose": 0.44857142857142857,
+          "selected_nonoverlap_rows": 350,
+          "selected_nonoverlap_wilson_ci95": [
+            0.3973050236806779,
+            0.5009545365293143
+          ],
+          "selected_rows": 3503,
+          "selected_wilson_ci95": [
+            0.44400867876492917,
+            0.4770028662104698
+          ],
+          "tie_rows": 262
+        },
+        "train": {
+          "all_accuracy_ties_lose": 0.6885225597899456,
+          "auc_moved_only": 0.7756093383530995,
+          "moved_rows": 79843,
+          "moved_up_rate": 0.5040391768846361,
+          "rows": 80741,
+          "selected_accuracy_ties_lose": 0.8400444502549352,
+          "selected_coverage": 0.18947003381181804,
+          "selected_moved_accuracy": 0.8488110964332893,
+          "selected_moved_rows": 15140,
+          "selected_nonoverlap_accuracy_ties_lose": 0.8054862842892768,
+          "selected_nonoverlap_rows": 1604,
+          "selected_nonoverlap_wilson_ci95": [
+            0.7853945127192167,
+            0.8241182651564148
+          ],
+          "selected_rows": 15298,
+          "selected_wilson_ci95": [
+            0.8341503407445077,
+            0.8457678202172421
+          ],
+          "tie_rows": 898
+        },
+        "val": {
+          "all_accuracy_ties_lose": 0.5051319899763139,
+          "auc_moved_only": 0.5216619621814196,
+          "moved_rows": 28846,
+          "moved_up_rate": 0.4940026346807183,
+          "rows": 29131,
+          "selected_accuracy_ties_lose": 0.5483870967741935,
+          "selected_coverage": 0.1500463423844015,
+          "selected_moved_accuracy": 0.5543478260869565,
+          "selected_moved_rows": 4324,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5467775467775468,
+          "selected_nonoverlap_rows": 481,
+          "selected_nonoverlap_wilson_ci95": [
+            0.5020937848105204,
+            0.5907200331456947
+          ],
+          "selected_rows": 4371,
+          "selected_wilson_ci95": [
+            0.5335976138820568,
+            0.5630916011057496
+          ],
+          "tie_rows": 285
+        }
+      },
+      "model_count": 8,
+      "model_paths": [
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262614_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262615_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262616_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262617_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262618_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262619_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262620_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_GBPUSD_m15_GBPUSD_m15ny_xpair_seedens8_v1/book_deriv_GBPUSD_m15_seed20262621_lgb.txt"
+      ],
+      "oos_cutoff_utc": "2026-04-12T20:55:00+00:00",
+      "pair": "GBPUSD",
+      "selection": {
+        "conf_threshold": 0.014619763026573307,
+        "half_metrics": [
+          {
+            "all_accuracy_ties_lose": 0.5041970169961846,
+            "auc_moved_only": 0.5208716855439881,
+            "moved_rows": 14263,
+            "moved_up_rate": 0.5071864264180046,
+            "rows": 14415,
+            "selected_accuracy_ties_lose": 0.5706214689265536,
+            "selected_coverage": 0.15962539021852237,
+            "selected_moved_accuracy": 0.5766359244620114,
+            "selected_moved_rows": 2277,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5435684647302904,
+            "selected_nonoverlap_rows": 241,
+            "selected_nonoverlap_wilson_ci95": [
+              0.480489195218591,
+              0.6052805432572235
+            ],
+            "selected_rows": 2301,
+            "selected_wilson_ci95": [
+              0.5502951192262435,
+              0.590712401637663
+            ],
+            "tie_rows": 152
+          },
+          {
+            "all_accuracy_ties_lose": 0.5060478390867084,
+            "auc_moved_only": 0.523273579286161,
+            "moved_rows": 14583,
+            "moved_up_rate": 0.4811081396146198,
+            "rows": 14716,
+            "selected_accuracy_ties_lose": 0.523671497584541,
+            "selected_coverage": 0.14066322370209297,
+            "selected_moved_accuracy": 0.5295554469956033,
+            "selected_moved_rows": 2047,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5477178423236515,
+            "selected_nonoverlap_rows": 241,
+            "selected_nonoverlap_wilson_ci95": [
+              0.48462036343396236,
+              0.6093179215633584
+            ],
+            "selected_rows": 2070,
+            "selected_wilson_ci95": [
+              0.5021319312565781,
+              0.5451233653870998
+            ],
+            "tie_rows": 133
+          }
+        ],
+        "target_coverage": 0.15,
+        "worst_half_nonoverlap_accuracy": 0.5435684647302904
+      },
+      "split_rows": {
+        "oos": 24129,
+        "train": 80741,
+        "train_fit_ex_ties": 79843,
+        "val": 29131,
+        "val_fit_ex_ties": 28846
+      },
+      "status": "OK",
+      "train_val_cutoff_utc": "2026-01-25T06:30:00+00:00",
+      "verdict": "NOT_CERTIFIED"
+    },
+    {
+      "book_id": "USDJPY.m15ny_seedens.v1",
+      "certification": {
+        "breakeven": 0.541,
+        "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; official certification needs tick-level entry/expiry settlement evidence.",
+        "cpcv_clear_rate_clears": false,
+        "cpcv_p10_clears": false,
+        "eligible_for_certification": false,
+        "oos_nonoverlap_clears": true,
+        "settlement_mode": "deriv_candle_close_proxy",
+        "verdict": "NOT_CERTIFIED",
+        "would_clear_numeric_gates": false
+      },
+      "cpcv": {
+        "clear_rate_breakeven": 0.4,
+        "mean_selected_nonoverlap_accuracy": 0.5319757057856134,
+        "min_selected_nonoverlap_rows": 88,
+        "n_folds": 6,
+        "ok_path_count": 15,
+        "p10_selected_nonoverlap_accuracy": 0.5133697223711357,
+        "path_count": 15,
+        "paths": [
+          {
+            "folds": [
+              0,
+              1
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.49863484956042153,
+              "auc_moved_only": 0.5045188878075214,
+              "moved_rows": 36279,
+              "moved_up_rate": 0.5127208577965214,
+              "rows": 36626,
+              "selected_accuracy_ties_lose": 0.4725274725274725,
+              "selected_coverage": 0.06708349260088461,
+              "selected_moved_accuracy": 0.47523536635284486,
+              "selected_moved_rows": 2443,
+              "selected_nonoverlap_accuracy_ties_lose": 0.48258706467661694,
+              "selected_nonoverlap_rows": 201,
+              "selected_nonoverlap_wilson_ci95": [
+                0.41448175562432343,
+                0.5513454982147405
+              ],
+              "selected_rows": 2457,
+              "selected_wilson_ci95": [
+                0.4528448278022194,
+                0.4922958915354249
+              ],
+              "tie_rows": 347
+            },
+            "path": 1,
+            "status": "ok",
+            "target_coverage": 0.05,
+            "test_rows": 36626,
+            "threshold": 0.04482806240313342,
+            "train_rows": 54509,
+            "val_rows": 18739
+          },
+          {
+            "folds": [
+              0,
+              2
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5156587030716724,
+              "auc_moved_only": 0.5100662480974125,
+              "moved_rows": 36270,
+              "moved_up_rate": 0.5169561621174524,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5445218028581899,
+              "selected_coverage": 0.07451194539249147,
+              "selected_moved_accuracy": 0.5499629903774982,
+              "selected_moved_rows": 2702,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5459183673469388,
+              "selected_nonoverlap_rows": 196,
+              "selected_nonoverlap_wilson_ci95": [
+                0.4759990601722198,
+                0.614072276326287
+              ],
+              "selected_rows": 2729,
+              "selected_wilson_ci95": [
+                0.5257871371951853,
+                0.5631312984726559
+              ],
+              "tie_rows": 355
+            },
+            "path": 2,
+            "status": "ok",
+            "target_coverage": 0.05,
+            "test_rows": 36625,
+            "threshold": 0.03578217850170229,
+            "train_rows": 49345,
+            "val_rows": 23889
+          },
+          {
+            "folds": [
+              0,
+              3
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5130102389078498,
+              "auc_moved_only": 0.5091124816891396,
+              "moved_rows": 36273,
+              "moved_up_rate": 0.5200286714636231,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.6025252525252526,
+              "selected_coverage": 0.054061433447098975,
+              "selected_moved_accuracy": 0.6099182004089979,
+              "selected_moved_rows": 1956,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5658536585365853,
+              "selected_nonoverlap_rows": 205,
+              "selected_nonoverlap_wilson_ci95": [
+                0.49740840897338134,
+                0.6318761780054579
+              ],
+              "selected_rows": 1980,
+              "selected_wilson_ci95": [
+                0.5807907980921555,
+                0.6238626379483027
+              ],
+              "tie_rows": 352
+            },
+            "path": 3,
+            "status": "ok",
+            "target_coverage": 0.05,
+            "test_rows": 36625,
+            "threshold": 0.03595243705697071,
+            "train_rows": 49345,
+            "val_rows": 23889
+          },
+          {
+            "folds": [
+              0,
+              4
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.514839590443686,
+              "auc_moved_only": 0.5212408568730478,
+              "moved_rows": 36270,
+              "moved_up_rate": 0.5132616487455197,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5684931506849316,
+              "selected_coverage": 0.0677679180887372,
+              "selected_moved_accuracy": 0.5740439381611065,
+              "selected_moved_rows": 2458,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5581395348837209,
+              "selected_nonoverlap_rows": 215,
+              "selected_nonoverlap_wilson_ci95": [
+                0.49131417498389185,
+                0.6229237030063988
+              ],
+              "selected_rows": 2482,
+              "selected_wilson_ci95": [
+                0.5489165721896248,
+                0.587858031630667
+              ],
+              "tie_rows": 355
+            },
+            "path": 4,
+            "status": "ok",
+            "target_coverage": 0.05,
+            "test_rows": 36625,
+            "threshold": 0.06869316862076391,
+            "train_rows": 54922,
+            "val_rows": 18312
+          },
+          {
+            "folds": [
+              0,
+              5
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5036450511945393,
+              "auc_moved_only": 0.5087352359556054,
+              "moved_rows": 36294,
+              "moved_up_rate": 0.5262853364192428,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5520866018198933,
+              "selected_coverage": 0.17403412969283277,
+              "selected_moved_accuracy": 0.5574211943608427,
+              "selected_moved_rows": 6313,
+              "selected_nonoverlap_accuracy_ties_lose": 0.558648111332008,
+              "selected_nonoverlap_rows": 503,
+              "selected_nonoverlap_wilson_ci95": [
+                0.5149716644414226,
+                0.60143551286999
+              ],
+              "selected_rows": 6374,
+              "selected_wilson_ci95": [
+                0.5398506922233195,
+                0.5642597642044476
+              ],
+              "tie_rows": 331
+            },
+            "path": 5,
+            "status": "ok",
+            "target_coverage": 0.15,
+            "test_rows": 36625,
+            "threshold": 0.0423514067274946,
+            "train_rows": 54813,
+            "val_rows": 18421
+          },
+          {
+            "folds": [
+              1,
+              2
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5035085324232081,
+              "auc_moved_only": 0.5136713185204895,
+              "moved_rows": 36249,
+              "moved_up_rate": 0.5101657976771773,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5261932479627474,
+              "selected_coverage": 0.023453924914675767,
+              "selected_moved_accuracy": 0.5336481700118064,
+              "selected_moved_rows": 847,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5227272727272727,
+              "selected_nonoverlap_rows": 88,
+              "selected_nonoverlap_wilson_ci95": [
+                0.4196177626380677,
+                0.6239354855631831
+              ],
+              "selected_rows": 859,
+              "selected_wilson_ci95": [
+                0.4927595854374375,
+                0.5593936718927607
+              ],
+              "tie_rows": 376
+            },
+            "path": 6,
+            "status": "ok",
+            "target_coverage": 0.02,
+            "test_rows": 36625,
+            "threshold": 0.05758338995445811,
+            "train_rows": 45183,
+            "val_rows": 28051
+          },
+          {
+            "folds": [
+              1,
+              3
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.505283276450512,
+              "auc_moved_only": 0.5109563088708824,
+              "moved_rows": 36252,
+              "moved_up_rate": 0.5132406487917908,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5677451971688574,
+              "selected_coverage": 0.05400682593856655,
+              "selected_moved_accuracy": 0.5703402742508887,
+              "selected_moved_rows": 1969,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5546875,
+              "selected_nonoverlap_rows": 256,
+              "selected_nonoverlap_wilson_ci95": [
+                0.4934427673956734,
+                0.614315189759763
+              ],
+              "selected_rows": 1978,
+              "selected_wilson_ci95": [
+                0.5458028526617832,
+                0.5894249072156964
+              ],
+              "tie_rows": 373
+            },
+            "path": 7,
+            "status": "ok",
+            "target_coverage": 0.05,
+            "test_rows": 36625,
+            "threshold": 0.0502246179767043,
+            "train_rows": 45168,
+            "val_rows": 28051
+          },
+          {
+            "folds": [
+              1,
+              4
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5026894197952219,
+              "auc_moved_only": 0.5242675148841117,
+              "moved_rows": 36249,
+              "moved_up_rate": 0.5064691439763855,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5271719038817005,
+              "selected_coverage": 0.0738566552901024,
+              "selected_moved_accuracy": 0.5328849028400597,
+              "selected_moved_rows": 2676,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5121107266435986,
+              "selected_nonoverlap_rows": 289,
+              "selected_nonoverlap_wilson_ci95": [
+                0.45470074146386036,
+                0.5692029662060881
+              ],
+              "selected_rows": 2705,
+              "selected_wilson_ci95": [
+                0.5083318502226688,
+                0.5459348887405839
+              ],
+              "tie_rows": 376
+            },
+            "path": 8,
+            "status": "ok",
+            "target_coverage": 0.05,
+            "test_rows": 36625,
+            "threshold": 0.033112936975124074,
+            "train_rows": 54907,
+            "val_rows": 18312
+          },
+          {
+            "folds": [
+              1,
+              5
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5044641638225256,
+              "auc_moved_only": 0.5164989320348845,
+              "moved_rows": 36273,
+              "moved_up_rate": 0.5195048658782014,
+              "rows": 36625,
+              "selected_accuracy_ties_lose": 0.5197613721103654,
+              "selected_coverage": 0.07322866894197952,
+              "selected_moved_accuracy": 0.5224887556221889,
+              "selected_moved_rows": 2668,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5244755244755245,
+              "selected_nonoverlap_rows": 286,
+              "selected_nonoverlap_wilson_ci95": [
+                0.4666559110717118,
+                0.5816463340166399
+              ],
+              "selected_rows": 2682,
+              "selected_wilson_ci95": [
+                0.5008381067801534,
+                0.5386281074597333
+              ],
+              "tie_rows": 352
+            },
+            "path": 9,
+            "status": "ok",
+            "target_coverage": 0.1,
+            "test_rows": 36625,
+            "threshold": 0.05199937517062048,
+            "train_rows": 51723,
+            "val_rows": 21496
+          },
+          {
+            "folds": [
+              2,
+              3
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5098569244211446,
+              "auc_moved_only": 0.5223137218303238,
+              "moved_rows": 36243,
+              "moved_up_rate": 0.5174792373699749,
+              "rows": 36624,
+              "selected_accuracy_ties_lose": 0.5612964469758611,
+              "selected_coverage": 0.20134338138925295,
+              "selected_moved_accuracy": 0.5669086426516915,
+              "selected_moved_rows": 7301,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5438813349814586,
+              "selected_nonoverlap_rows": 809,
+              "selected_nonoverlap_wilson_ci95": [
+                0.5094325014443232,
+                0.577915390199018
+              ],
+              "selected_rows": 7374,
+              "selected_wilson_ci95": [
+                0.5499411822419794,
+                0.5725878782897621
+              ],
+              "tie_rows": 381
+            },
+            "path": 10,
+            "status": "ok",
+            "target_coverage": 0.15,
+            "test_rows": 36624,
+            "threshold": 0.024474561989031196,
+            "train_rows": 45184,
+            "val_rows": 28051
+          },
+          {
+            "folds": [
+              2,
+              4
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5117136304062909,
+              "auc_moved_only": 0.5177832254490911,
+              "moved_rows": 36240,
+              "moved_up_rate": 0.5107064017660045,
+              "rows": 36624,
+              "selected_accuracy_ties_lose": 0.5147511312217194,
+              "selected_coverage": 0.15085736129314112,
+              "selected_moved_accuracy": 0.5193571950328707,
+              "selected_moved_rows": 5476,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5199115044247787,
+              "selected_nonoverlap_rows": 452,
+              "selected_nonoverlap_wilson_ci95": [
+                0.47387912653045977,
+                0.5656082743561639
+              ],
+              "selected_rows": 5525,
+              "selected_wilson_ci95": [
+                0.5015668091920166,
+                0.5279149542211367
+              ],
+              "tie_rows": 384
+            },
+            "path": 11,
+            "status": "ok",
+            "target_coverage": 0.1,
+            "test_rows": 36624,
+            "threshold": 0.03254403590182453,
+            "train_rows": 54908,
+            "val_rows": 18312
+          },
+          {
+            "folds": [
+              2,
+              5
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5175567933595456,
+              "auc_moved_only": 0.507218844904883,
+              "moved_rows": 36264,
+              "moved_up_rate": 0.523742554599603,
+              "rows": 36624,
+              "selected_accuracy_ties_lose": 0.5384159003263127,
+              "selected_coverage": 0.09204346876365226,
+              "selected_moved_accuracy": 0.5453725961538461,
+              "selected_moved_rows": 3328,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5155038759689923,
+              "selected_nonoverlap_rows": 258,
+              "selected_nonoverlap_wilson_ci95": [
+                0.4547421935298648,
+                0.5758106292454315
+              ],
+              "selected_rows": 3371,
+              "selected_wilson_ci95": [
+                0.5215525892180989,
+                0.555191753390455
+              ],
+              "tie_rows": 360
+            },
+            "path": 12,
+            "status": "ok",
+            "target_coverage": 0.15,
+            "test_rows": 36624,
+            "threshold": 0.021751444205351134,
+            "train_rows": 51724,
+            "val_rows": 21496
+          },
+          {
+            "folds": [
+              3,
+              4
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5084370904325033,
+              "auc_moved_only": 0.5042725061044356,
+              "moved_rows": 36243,
+              "moved_up_rate": 0.5137819716910852,
+              "rows": 36624,
+              "selected_accuracy_ties_lose": 0.5058440314236444,
+              "selected_coverage": 0.28500436871996504,
+              "selected_moved_accuracy": 0.5101449275362319,
+              "selected_moved_rows": 10350,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5152582159624414,
+              "selected_nonoverlap_rows": 852,
+              "selected_nonoverlap_wilson_ci95": [
+                0.48170644822054265,
+                0.548673005173637
+              ],
+              "selected_rows": 10438,
+              "selected_wilson_ci95": [
+                0.4962521184819994,
+                0.5154316442749458
+              ],
+              "tie_rows": 381
+            },
+            "path": 13,
+            "status": "ok",
+            "target_coverage": 0.15,
+            "test_rows": 36624,
+            "threshold": 0.015076592922030785,
+            "train_rows": 54923,
+            "val_rows": 18312
+          },
+          {
+            "folds": [
+              3,
+              5
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5231815203145478,
+              "auc_moved_only": 0.5095701918651674,
+              "moved_rows": 36267,
+              "moved_up_rate": 0.526815010891444,
+              "rows": 36624,
+              "selected_accuracy_ties_lose": 0.5433526011560693,
+              "selected_coverage": 0.08974989078200088,
+              "selected_moved_accuracy": 0.5495384615384615,
+              "selected_moved_rows": 3250,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5316091954022989,
+              "selected_nonoverlap_rows": 348,
+              "selected_nonoverlap_wilson_ci95": [
+                0.4791215011259762,
+                0.5834066365359718
+              ],
+              "selected_rows": 3287,
+              "selected_wilson_ci95": [
+                0.5262829211842173,
+                0.5603210648599606
+              ],
+              "tie_rows": 357
+            },
+            "path": 14,
+            "status": "ok",
+            "target_coverage": 0.15,
+            "test_rows": 36624,
+            "threshold": 0.026229292505701607,
+            "train_rows": 54923,
+            "val_rows": 18297
+          },
+          {
+            "folds": [
+              4,
+              5
+            ],
+            "metrics": {
+              "all_accuracy_ties_lose": 0.5137068588903452,
+              "auc_moved_only": 0.5089370277886917,
+              "moved_rows": 36264,
+              "moved_up_rate": 0.5200474299580852,
+              "rows": 36624,
+              "selected_accuracy_ties_lose": 0.5121501410284226,
+              "selected_coverage": 0.251692878986457,
+              "selected_moved_accuracy": 0.5165207877461707,
+              "selected_moved_rows": 9140,
+              "selected_nonoverlap_accuracy_ties_lose": 0.5283236994219653,
+              "selected_nonoverlap_rows": 865,
+              "selected_nonoverlap_wilson_ci95": [
+                0.49500436296217476,
+                0.5613925683081511
+              ],
+              "selected_rows": 9218,
+              "selected_wilson_ci95": [
+                0.5019429922592092,
+                0.5223471668777683
+              ],
+              "tie_rows": 360
+            },
+            "path": 15,
+            "status": "ok",
+            "target_coverage": 0.15,
+            "test_rows": 36624,
+            "threshold": 0.038461233033145796,
+            "train_rows": 56181,
+            "val_rows": 17054
+          }
+        ],
+        "schema": "book_deriv_cpcv.v1",
+        "test_folds": 2
+      },
+      "feature_count": 239,
+      "horizon_minutes": 15,
+      "latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+      "metrics": {
+        "oos_latest_two_months": {
+          "all_accuracy_ties_lose": 0.5350822661527622,
+          "auc_moved_only": 0.5136095533678986,
+          "moved_rows": 23735,
+          "moved_up_rate": 0.5456498841373499,
+          "rows": 24129,
+          "selected_accuracy_ties_lose": 0.5847688123300091,
+          "selected_coverage": 0.09142525591611754,
+          "selected_moved_accuracy": 0.5922865013774105,
+          "selected_moved_rows": 2178,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5560975609756098,
+          "selected_nonoverlap_rows": 205,
+          "selected_nonoverlap_wilson_ci95": [
+            0.4876721993206914,
+            0.6224591155131349
+          ],
+          "selected_rows": 2206,
+          "selected_wilson_ci95": [
+            0.564075616789034,
+            0.605167282792547
+          ],
+          "tie_rows": 394
+        },
+        "train": {
+          "all_accuracy_ties_lose": 0.573932105569523,
+          "auc_moved_only": 0.69954750735988,
+          "moved_rows": 79906,
+          "moved_up_rate": 0.5150551898480715,
+          "rows": 80743,
+          "selected_accuracy_ties_lose": 0.7985784177974707,
+          "selected_coverage": 0.1341664292879878,
+          "selected_moved_accuracy": 0.8048939337551172,
+          "selected_moved_rows": 10748,
+          "selected_nonoverlap_accuracy_ties_lose": 0.7464387464387464,
+          "selected_nonoverlap_rows": 1053,
+          "selected_nonoverlap_wilson_ci95": [
+            0.7192981752773259,
+            0.7717877168752919
+          ],
+          "selected_rows": 10833,
+          "selected_wilson_ci95": [
+            0.7909206225750653,
+            0.8060245242470494
+          ],
+          "tie_rows": 837
+        },
+        "val": {
+          "all_accuracy_ties_lose": 0.5243211698877485,
+          "auc_moved_only": 0.5164026344075505,
+          "moved_rows": 28880,
+          "moved_up_rate": 0.5214335180055402,
+          "rows": 29131,
+          "selected_accuracy_ties_lose": 0.5572702331961591,
+          "selected_coverage": 0.10009955030723285,
+          "selected_moved_accuracy": 0.5618948824343015,
+          "selected_moved_rows": 2892,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5634328358208955,
+          "selected_nonoverlap_rows": 268,
+          "selected_nonoverlap_wilson_ci95": [
+            0.5035713351439406,
+            0.6215015013902765
+          ],
+          "selected_rows": 2916,
+          "selected_wilson_ci95": [
+            0.5391778822428973,
+            0.5752118846540467
+          ],
+          "tie_rows": 251
+        }
+      },
+      "model_count": 3,
+      "model_paths": [
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z_cpcv/book_deriv_USDJPY_m15_USDJPY_m15ny_seedens_v1/book_deriv_USDJPY_m15_seed20313614_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z_cpcv/book_deriv_USDJPY_m15_USDJPY_m15ny_seedens_v1/book_deriv_USDJPY_m15_seed20313615_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z_cpcv/book_deriv_USDJPY_m15_USDJPY_m15ny_seedens_v1/book_deriv_USDJPY_m15_seed20313616_lgb.txt"
+      ],
+      "oos_cutoff_utc": "2026-04-12T20:55:00+00:00",
+      "pair": "USDJPY",
+      "selection": {
+        "conf_threshold": 0.03403487467167654,
+        "half_metrics": [
+          {
+            "all_accuracy_ties_lose": 0.5138397502601457,
+            "auc_moved_only": 0.5173275017694136,
+            "moved_rows": 14307,
+            "moved_up_rate": 0.5010833857552247,
+            "rows": 14415,
+            "selected_accuracy_ties_lose": 0.5522803114571746,
+            "selected_coverage": 0.12473118279569892,
+            "selected_moved_accuracy": 0.5556799104644656,
+            "selected_moved_rows": 1787,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5379746835443038,
+            "selected_nonoverlap_rows": 158,
+            "selected_nonoverlap_wilson_ci95": [
+              0.460256754162251,
+              0.6138898187831475
+            ],
+            "selected_rows": 1798,
+            "selected_wilson_ci95": [
+              0.5292081140212996,
+              0.5751295813676844
+            ],
+            "tie_rows": 108
+          },
+          {
+            "all_accuracy_ties_lose": 0.5345882033161186,
+            "auc_moved_only": 0.5173327249379704,
+            "moved_rows": 14573,
+            "moved_up_rate": 0.5414122006450285,
+            "rows": 14716,
+            "selected_accuracy_ties_lose": 0.5652951699463328,
+            "selected_coverage": 0.07597173144876325,
+            "selected_moved_accuracy": 0.571945701357466,
+            "selected_moved_rows": 1105,
+            "selected_nonoverlap_accuracy_ties_lose": 0.6,
+            "selected_nonoverlap_rows": 110,
+            "selected_nonoverlap_wilson_ci95": [
+              0.5065687300827921,
+              0.6866822431993824
+            ],
+            "selected_rows": 1118,
+            "selected_wilson_ci95": [
+              0.5360622202085319,
+              0.5940809301257044
+            ],
+            "tie_rows": 143
+          }
+        ],
+        "target_coverage": 0.1,
+        "worst_half_nonoverlap_accuracy": 0.5379746835443038
+      },
+      "split_rows": {
+        "oos": 24129,
+        "train": 80743,
+        "train_fit_ex_ties": 79906,
+        "val": 29131,
+        "val_fit_ex_ties": 28880
+      },
+      "status": "OK",
+      "train_val_cutoff_utc": "2026-01-25T06:30:00+00:00",
+      "verdict": "NOT_CERTIFIED"
+    },
+    {
+      "book_id": "USDCAD.m15ny_seedens.v1",
+      "certification": {
+        "breakeven": 0.541,
+        "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; official certification needs tick-level entry/expiry settlement evidence.",
+        "cpcv_clear_rate_clears": false,
+        "cpcv_p10_clears": false,
+        "eligible_for_certification": false,
+        "oos_nonoverlap_clears": false,
+        "settlement_mode": "deriv_candle_close_proxy",
+        "verdict": "NOT_CERTIFIED",
+        "would_clear_numeric_gates": false
+      },
+      "cpcv": null,
+      "feature_count": 239,
+      "horizon_minutes": 15,
+      "latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+      "metrics": {
+        "oos_latest_two_months": {
+          "all_accuracy_ties_lose": 0.5105889178996229,
+          "auc_moved_only": 0.5252458549973076,
+          "moved_rows": 23791,
+          "moved_up_rate": 0.5111176495313354,
+          "rows": 24129,
+          "selected_accuracy_ties_lose": 0.4413145539906103,
+          "selected_coverage": 0.01765510381698371,
+          "selected_moved_accuracy": 0.44655581947743467,
+          "selected_moved_rows": 421,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5,
+          "selected_nonoverlap_rows": 42,
+          "selected_nonoverlap_wilson_ci95": [
+            0.3552574591652803,
+            0.6447425408347197
+          ],
+          "selected_rows": 426,
+          "selected_wilson_ci95": [
+            0.39489431949152065,
+            0.48878376099208065
+          ],
+          "tie_rows": 338
+        },
+        "train": {
+          "all_accuracy_ties_lose": 0.6714720963067549,
+          "auc_moved_only": 0.7413358236336499,
+          "moved_rows": 79653,
+          "moved_up_rate": 0.49937855448005725,
+          "rows": 80742,
+          "selected_accuracy_ties_lose": 0.8357362325691325,
+          "selected_coverage": 0.052401476307250255,
+          "selected_moved_accuracy": 0.8443170964660937,
+          "selected_moved_rows": 4188,
+          "selected_nonoverlap_accuracy_ties_lose": 0.8115942028985508,
+          "selected_nonoverlap_rows": 414,
+          "selected_nonoverlap_wilson_ci95": [
+            0.7711257133371758,
+            0.8463331514575216
+          ],
+          "selected_rows": 4231,
+          "selected_wilson_ci95": [
+            0.8242680619860709,
+            0.8465952827019569
+          ],
+          "tie_rows": 1089
+        },
+        "val": {
+          "all_accuracy_ties_lose": 0.5199615529847929,
+          "auc_moved_only": 0.5249504177822554,
+          "moved_rows": 28845,
+          "moved_up_rate": 0.5052175420350148,
+          "rows": 29131,
+          "selected_accuracy_ties_lose": 0.5308641975308642,
+          "selected_coverage": 0.05004977515361642,
+          "selected_moved_accuracy": 0.5352697095435685,
+          "selected_moved_rows": 1446,
+          "selected_nonoverlap_accuracy_ties_lose": 0.539568345323741,
+          "selected_nonoverlap_rows": 139,
+          "selected_nonoverlap_wilson_ci95": [
+            0.4567572807295883,
+            0.6202510977819937
+          ],
+          "selected_rows": 1458,
+          "selected_wilson_ci95": [
+            0.5052002284298038,
+            0.5563659494652569
+          ],
+          "tie_rows": 286
+        }
+      },
+      "model_count": 3,
+      "model_paths": [
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_USDCAD_m15_USDCAD_m15ny_seedens_v1/book_deriv_USDCAD_m15_seed20264614_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_USDCAD_m15_USDCAD_m15ny_seedens_v1/book_deriv_USDCAD_m15_seed20264615_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_USDCAD_m15_USDCAD_m15ny_seedens_v1/book_deriv_USDCAD_m15_seed20264616_lgb.txt"
+      ],
+      "oos_cutoff_utc": "2026-04-12T20:55:00+00:00",
+      "pair": "USDCAD",
+      "selection": {
+        "conf_threshold": 0.03364547687258668,
+        "half_metrics": [
+          {
+            "all_accuracy_ties_lose": 0.5211238293444329,
+            "auc_moved_only": 0.5294242844308261,
+            "moved_rows": 14263,
+            "moved_up_rate": 0.49330435392273714,
+            "rows": 14415,
+            "selected_accuracy_ties_lose": 0.5660377358490566,
+            "selected_coverage": 0.06618106139438085,
+            "selected_moved_accuracy": 0.5726405090137858,
+            "selected_moved_rows": 943,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5393258426966292,
+            "selected_nonoverlap_rows": 89,
+            "selected_nonoverlap_wilson_ci95": [
+              0.436292717570131,
+              0.6391045181517867
+            ],
+            "selected_rows": 954,
+            "selected_wilson_ci95": [
+              0.5343841770708022,
+              0.5971615816433735
+            ],
+            "tie_rows": 152
+          },
+          {
+            "all_accuracy_ties_lose": 0.5188230497417776,
+            "auc_moved_only": 0.5199483729804976,
+            "moved_rows": 14582,
+            "moved_up_rate": 0.5168701138389795,
+            "rows": 14716,
+            "selected_accuracy_ties_lose": 0.4642857142857143,
+            "selected_coverage": 0.034248437075292196,
+            "selected_moved_accuracy": 0.46520874751491054,
+            "selected_moved_rows": 503,
+            "selected_nonoverlap_accuracy_ties_lose": 0.54,
+            "selected_nonoverlap_rows": 50,
+            "selected_nonoverlap_wilson_ci95": [
+              0.40398634328388083,
+              0.6703056539821737
+            ],
+            "selected_rows": 504,
+            "selected_wilson_ci95": [
+              0.4211788652679521,
+              0.5079328892633821
+            ],
+            "tie_rows": 134
+          }
+        ],
+        "target_coverage": 0.05,
+        "worst_half_nonoverlap_accuracy": 0.5393258426966292
+      },
+      "split_rows": {
+        "oos": 24129,
+        "train": 80742,
+        "train_fit_ex_ties": 79653,
+        "val": 29131,
+        "val_fit_ex_ties": 28845
+      },
+      "status": "OK",
+      "train_val_cutoff_utc": "2026-01-25T06:30:00+00:00",
+      "verdict": "NOT_CERTIFIED"
+    },
+    {
+      "book_id": "AUDUSD.m15ny_seedens.v1",
+      "certification": {
+        "breakeven": 0.541,
+        "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; official certification needs tick-level entry/expiry settlement evidence.",
+        "cpcv_clear_rate_clears": false,
+        "cpcv_p10_clears": false,
+        "eligible_for_certification": false,
+        "oos_nonoverlap_clears": false,
+        "settlement_mode": "deriv_candle_close_proxy",
+        "verdict": "NOT_CERTIFIED",
+        "would_clear_numeric_gates": false
+      },
+      "cpcv": null,
+      "feature_count": 239,
+      "horizon_minutes": 15,
+      "latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+      "metrics": {
+        "oos_latest_two_months": {
+          "all_accuracy_ties_lose": 0.49409424344150193,
+          "auc_moved_only": 0.5000242886031093,
+          "moved_rows": 23714,
+          "moved_up_rate": 0.49063844142700513,
+          "rows": 24129,
+          "selected_accuracy_ties_lose": 0.4475865431496831,
+          "selected_coverage": 0.08500145053669858,
+          "selected_moved_accuracy": 0.4594594594594595,
+          "selected_moved_rows": 1998,
+          "selected_nonoverlap_accuracy_ties_lose": 0.4639175257731959,
+          "selected_nonoverlap_rows": 194,
+          "selected_nonoverlap_wilson_ci95": [
+            0.39512284377847434,
+            0.5341134745691332
+          ],
+          "selected_rows": 2051,
+          "selected_wilson_ci95": [
+            0.42618435463332377,
+            0.4691847093373493
+          ],
+          "tie_rows": 415
+        },
+        "train": {
+          "all_accuracy_ties_lose": 0.6639047831364098,
+          "auc_moved_only": 0.7599283236073794,
+          "moved_rows": 79085,
+          "moved_up_rate": 0.5059619396851489,
+          "rows": 80742,
+          "selected_accuracy_ties_lose": 0.8764721627408993,
+          "selected_coverage": 0.09254167595551262,
+          "selected_moved_accuracy": 0.8928425357873211,
+          "selected_moved_rows": 7335,
+          "selected_nonoverlap_accuracy_ties_lose": 0.8329297820823245,
+          "selected_nonoverlap_rows": 826,
+          "selected_nonoverlap_wilson_ci95": [
+            0.8059605908516839,
+            0.8568164981734988
+          ],
+          "selected_rows": 7472,
+          "selected_wilson_ci95": [
+            0.8688172503940951,
+            0.8837401606671559
+          ],
+          "tie_rows": 1657
+        },
+        "val": {
+          "all_accuracy_ties_lose": 0.5027977069101645,
+          "auc_moved_only": 0.5203774042236329,
+          "moved_rows": 28822,
+          "moved_up_rate": 0.49462216362500866,
+          "rows": 29131,
+          "selected_accuracy_ties_lose": 0.560398078242965,
+          "selected_coverage": 0.10003089492293434,
+          "selected_moved_accuracy": 0.5664238640305238,
+          "selected_moved_rows": 2883,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5724137931034483,
+          "selected_nonoverlap_rows": 290,
+          "selected_nonoverlap_wilson_ci95": [
+            0.5148917412125215,
+            0.6280424110654407
+          ],
+          "selected_rows": 2914,
+          "selected_wilson_ci95": [
+            0.5423088139667835,
+            0.5783283035518645
+          ],
+          "tie_rows": 309
+        }
+      },
+      "model_count": 3,
+      "model_paths": [
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_AUDUSD_m15_AUDUSD_m15ny_seedens_v1/book_deriv_AUDUSD_m15_seed20265614_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_AUDUSD_m15_AUDUSD_m15ny_seedens_v1/book_deriv_AUDUSD_m15_seed20265615_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_AUDUSD_m15_AUDUSD_m15ny_seedens_v1/book_deriv_AUDUSD_m15_seed20265616_lgb.txt"
+      ],
+      "oos_cutoff_utc": "2026-04-12T20:55:00+00:00",
+      "pair": "AUDUSD",
+      "selection": {
+        "conf_threshold": 0.03897706956037306,
+        "half_metrics": [
+          {
+            "all_accuracy_ties_lose": 0.5143253555324315,
+            "auc_moved_only": 0.5276641852015618,
+            "moved_rows": 14266,
+            "moved_up_rate": 0.5101640263563718,
+            "rows": 14415,
+            "selected_accuracy_ties_lose": 0.5881326352530541,
+            "selected_coverage": 0.11925078043704475,
+            "selected_moved_accuracy": 0.5950559152442614,
+            "selected_moved_rows": 1699,
+            "selected_nonoverlap_accuracy_ties_lose": 0.6024096385542169,
+            "selected_nonoverlap_rows": 166,
+            "selected_nonoverlap_wilson_ci95": [
+              0.5264534165129757,
+              0.6737331102272341
+            ],
+            "selected_rows": 1719,
+            "selected_wilson_ci95": [
+              0.5646945579389175,
+              0.6111776754689593
+            ],
+            "tie_rows": 149
+          },
+          {
+            "all_accuracy_ties_lose": 0.4915058439793422,
+            "auc_moved_only": 0.5070879836421386,
+            "moved_rows": 14556,
+            "moved_up_rate": 0.4793899422918384,
+            "rows": 14716,
+            "selected_accuracy_ties_lose": 0.5205020920502093,
+            "selected_coverage": 0.08120413155748844,
+            "selected_moved_accuracy": 0.5253378378378378,
+            "selected_moved_rows": 1184,
+            "selected_nonoverlap_accuracy_ties_lose": 0.532258064516129,
+            "selected_nonoverlap_rows": 124,
+            "selected_nonoverlap_wilson_ci95": [
+              0.4447896327073294,
+              0.6177878068741526
+            ],
+            "selected_rows": 1195,
+            "selected_wilson_ci95": [
+              0.4921562947185981,
+              0.5487164944805755
+            ],
+            "tie_rows": 160
+          }
+        ],
+        "target_coverage": 0.1,
+        "worst_half_nonoverlap_accuracy": 0.532258064516129
+      },
+      "split_rows": {
+        "oos": 24129,
+        "train": 80742,
+        "train_fit_ex_ties": 79085,
+        "val": 29131,
+        "val_fit_ex_ties": 28822
+      },
+      "status": "OK",
+      "train_val_cutoff_utc": "2026-01-25T06:30:00+00:00",
+      "verdict": "NOT_CERTIFIED"
+    },
+    {
+      "book_id": "NZDUSD.m15ny_seedens.v1",
+      "certification": {
+        "breakeven": 0.541,
+        "certification_blocker": "Deriv public candle closes are not Deriv tick-settlement labels; official certification needs tick-level entry/expiry settlement evidence.",
+        "cpcv_clear_rate_clears": false,
+        "cpcv_p10_clears": false,
+        "eligible_for_certification": false,
+        "oos_nonoverlap_clears": false,
+        "settlement_mode": "deriv_candle_close_proxy",
+        "verdict": "NOT_CERTIFIED",
+        "would_clear_numeric_gates": false
+      },
+      "cpcv": null,
+      "feature_count": 239,
+      "horizon_minutes": 15,
+      "latest_deriv_timestamp_utc": "2026-06-12T20:55:00+00:00",
+      "metrics": {
+        "oos_latest_two_months": {
+          "all_accuracy_ties_lose": 0.4904471797422189,
+          "auc_moved_only": 0.507401552864196,
+          "moved_rows": 23652,
+          "moved_up_rate": 0.47750718755284965,
+          "rows": 24129,
+          "selected_accuracy_ties_lose": 0.5429650613786591,
+          "selected_coverage": 0.04388909610841726,
+          "selected_moved_accuracy": 0.5502392344497608,
+          "selected_moved_rows": 1045,
+          "selected_nonoverlap_accuracy_ties_lose": 0.49038461538461536,
+          "selected_nonoverlap_rows": 104,
+          "selected_nonoverlap_wilson_ci95": [
+            0.39637419660186013,
+            0.5850800844918921
+          ],
+          "selected_rows": 1059,
+          "selected_wilson_ci95": [
+            0.5128603551714624,
+            0.5727591764690002
+          ],
+          "tie_rows": 477
+        },
+        "train": {
+          "all_accuracy_ties_lose": 0.6525902435398756,
+          "auc_moved_only": 0.7292758364936363,
+          "moved_rows": 79130,
+          "moved_up_rate": 0.5,
+          "rows": 80726,
+          "selected_accuracy_ties_lose": 0.8886443661971831,
+          "selected_coverage": 0.056289175730248,
+          "selected_moved_accuracy": 0.9037600716204118,
+          "selected_moved_rows": 4468,
+          "selected_nonoverlap_accuracy_ties_lose": 0.8529411764705882,
+          "selected_nonoverlap_rows": 476,
+          "selected_nonoverlap_wilson_ci95": [
+            0.8183005426493412,
+            0.8819305336058231
+          ],
+          "selected_rows": 4544,
+          "selected_wilson_ci95": [
+            0.8791675032921755,
+            0.8974646467809493
+          ],
+          "tie_rows": 1596
+        },
+        "val": {
+          "all_accuracy_ties_lose": 0.5088050530362843,
+          "auc_moved_only": 0.5206099660981771,
+          "moved_rows": 28727,
+          "moved_up_rate": 0.48915654262540464,
+          "rows": 29131,
+          "selected_accuracy_ties_lose": 0.5267796610169492,
+          "selected_coverage": 0.05063334592015379,
+          "selected_moved_accuracy": 0.5332875772134523,
+          "selected_moved_rows": 1457,
+          "selected_nonoverlap_accuracy_ties_lose": 0.5277777777777778,
+          "selected_nonoverlap_rows": 144,
+          "selected_nonoverlap_wilson_ci95": [
+            0.4465785775862376,
+            0.607533390898952
+          ],
+          "selected_rows": 1475,
+          "selected_wilson_ci95": [
+            0.5012627158361489,
+            0.5521574746697173
+          ],
+          "tie_rows": 404
+        }
+      },
+      "model_count": 3,
+      "model_paths": [
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_NZDUSD_m15_NZDUSD_m15ny_seedens_v1/book_deriv_NZDUSD_m15_seed20266614_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_NZDUSD_m15_NZDUSD_m15ny_seedens_v1/book_deriv_NZDUSD_m15_seed20266615_lgb.txt",
+        "deriv_data/models/book_deriv_guarded_20260614T142844Z/book_deriv_NZDUSD_m15_NZDUSD_m15ny_seedens_v1/book_deriv_NZDUSD_m15_seed20266616_lgb.txt"
+      ],
+      "oos_cutoff_utc": "2026-04-12T20:55:00+00:00",
+      "pair": "NZDUSD",
+      "selection": {
+        "conf_threshold": 0.024589883139828628,
+        "half_metrics": [
+          {
+            "all_accuracy_ties_lose": 0.515851543531044,
+            "auc_moved_only": 0.5291295831510525,
+            "moved_rows": 14228,
+            "moved_up_rate": 0.5011245431543435,
+            "rows": 14415,
+            "selected_accuracy_ties_lose": 0.5200573065902578,
+            "selected_coverage": 0.04842178286507111,
+            "selected_moved_accuracy": 0.5223021582733813,
+            "selected_moved_rows": 695,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5428571428571428,
+            "selected_nonoverlap_rows": 70,
+            "selected_nonoverlap_wilson_ci95": [
+              0.4269805339664774,
+              0.6542744767591839
+            ],
+            "selected_rows": 698,
+            "selected_wilson_ci95": [
+              0.48298524307909446,
+              0.5569097987651049
+            ],
+            "tie_rows": 187
+          },
+          {
+            "all_accuracy_ties_lose": 0.5019026909486274,
+            "auc_moved_only": 0.5117463215085023,
+            "moved_rows": 14499,
+            "moved_up_rate": 0.47741223532657423,
+            "rows": 14716,
+            "selected_accuracy_ties_lose": 0.5328185328185329,
+            "selected_coverage": 0.0527996738244088,
+            "selected_moved_accuracy": 0.5433070866141733,
+            "selected_moved_rows": 762,
+            "selected_nonoverlap_accuracy_ties_lose": 0.5135135135135135,
+            "selected_nonoverlap_rows": 74,
+            "selected_nonoverlap_wilson_ci95": [
+              0.40180918267194504,
+              0.6238840199343733
+            ],
+            "selected_rows": 777,
+            "selected_wilson_ci95": [
+              0.4976616131412727,
+              0.5676525299576605
+            ],
+            "tie_rows": 217
+          }
+        ],
+        "target_coverage": 0.05,
+        "worst_half_nonoverlap_accuracy": 0.5135135135135135
+      },
+      "split_rows": {
+        "oos": 24129,
+        "train": 80726,
+        "train_fit_ex_ties": 79130,
+        "val": 29131,
+        "val_fit_ex_ties": 28727
+      },
+      "status": "OK",
+      "train_val_cutoff_utc": "2026-01-25T06:30:00+00:00",
+      "verdict": "NOT_CERTIFIED"
+    }
+  ],
+  "run_id": "book_deriv_guarded_20260614T142844Z",
+  "schema": "book_deriv_replicate_result.v1",
+  "settlement_mode": "deriv_candle_close_proxy",
+  "status": "CERTIFICATION_ATTEMPT",
+  "verdict": "NOT_CERTIFIED"
+}
