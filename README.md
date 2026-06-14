@@ -184,9 +184,29 @@ Fallback if `uv` is unavailable:
 ~/binary-algo-venv/bin/python -m pip install -r requirements-deriv-demo.txt
 ```
 
-`requirements-deriv-demo.txt` pins the executor runtime packages used by `scripts/deriv_client.py`, `scripts/book_runtime.py`, `scripts/live_features.py`, and `scripts/deriv_demo_executor.py`. `ENVIRONMENT_libs.txt` remains the broader research-stack dependency record.
+`requirements-deriv-demo.txt` pins the Deriv runtime packages used by `scripts/deriv_client.py`, `scripts/book_runtime.py`, `scripts/live_features.py`, `scripts/deriv_demo_executor.py`, `scripts/deriv_backfill.py`, and `scripts/deriv_train.py`. `ENVIRONMENT_libs.txt` remains the broader research-stack dependency record.
 
 ---
+
+## Deriv-Native Data
+
+Deriv candle backfills are isolated under gitignored `deriv_data/`; they do not
+replace or mutate the existing Dukascopy-derived `features/` store or any frozen
+book in `books/`.
+
+```bash
+~/binary-algo-venv/bin/python scripts/deriv_backfill.py --pairs all --granularity 60
+```
+
+The default store is `deriv_data/candles_1m/`. See
+`docs/DERIV_DATA_STORE.md` for the artifact layout and isolation rules. Any
+experimental Deriv-trained model must be clearly named with a `deriv_` prefix
+and written under `deriv_data/models/`. Deriv experiment tooling holds out the
+latest two calendar months of Deriv data by default:
+
+```bash
+~/binary-algo-venv/bin/python scripts/deriv_train.py --pairs all --horizon 15 --holdout-months 2
+```
 
 ## Data Requirements
 

@@ -219,6 +219,7 @@ __marimo__/
 
 # Binary-algo research artifacts (large/regenerable/noisy)
 logs/
+deriv_data/
 *.pt
 features/
 features_of/
