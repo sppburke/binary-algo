@@ -11,6 +11,7 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -53,19 +54,29 @@ def pair_symbol(pair: str) -> str:
 
 def candles_to_m1(candles: list[dict[str, Any]]) -> pd.DataFrame:
     if not candles:
-        raise LiveFeatureError("ticks_history returned no candles")
+        raise LiveFeatureError("Deriv returned no candles")
     frame = pd.DataFrame(candles)
-    for col in ("epoch", "open", "high", "low", "close"):
-        if col not in frame.columns:
-            raise LiveFeatureError(f"candle payload missing {col}")
-    idx = pd.to_datetime(frame["epoch"].astype("int64"), unit="s", utc=True)
+    required = {"epoch", "open", "high", "low", "close"}
+    missing = sorted(required.difference(frame.columns))
+    if missing:
+        raise LiveFeatureError(f"Deriv candle payload missing columns {missing}")
+    epochs = pd.to_numeric(frame["epoch"], errors="raise").astype("int64").to_numpy()
+    idx = pd.to_datetime(epochs, unit="s", utc=True)
+    volume_warning = ""
+    if "volume" in frame.columns:
+        volume = pd.to_numeric(frame["volume"], errors="coerce").to_numpy()
+    elif "tick_count" in frame.columns:
+        volume = pd.to_numeric(frame["tick_count"], errors="coerce").to_numpy()
+    else:
+        volume = np.full(len(frame), 1.0, dtype="float64")
+        volume_warning = "synthetic_unit_volume_no_deriv_tick_count"
     out = pd.DataFrame(
         {
-            "open": pd.to_numeric(frame["open"], errors="coerce"),
-            "high": pd.to_numeric(frame["high"], errors="coerce"),
-            "low": pd.to_numeric(frame["low"], errors="coerce"),
-            "close": pd.to_numeric(frame["close"], errors="coerce"),
-            "volume": pd.to_numeric(frame.get("volume", 1.0), errors="coerce").fillna(1.0),
+            "open": pd.to_numeric(frame["open"], errors="coerce").to_numpy(),
+            "high": pd.to_numeric(frame["high"], errors="coerce").to_numpy(),
+            "low": pd.to_numeric(frame["low"], errors="coerce").to_numpy(),
+            "close": pd.to_numeric(frame["close"], errors="coerce").to_numpy(),
+            "volume": pd.Series(volume).astype("float64").fillna(1.0).to_numpy(),
         },
         index=idx,
     ).dropna(subset=["open", "high", "low", "close"])
@@ -76,6 +87,8 @@ def candles_to_m1(candles: list[dict[str, Any]]) -> pd.DataFrame:
         raise LiveFeatureError(f"not enough completed 1m candles: {len(out)}")
     dt_min = out.index.to_series().diff().dt.total_seconds().div(60.0)
     out["gap_prev"] = dt_min.fillna(1.0).values
+    if volume_warning:
+        out.attrs["volume_warning"] = volume_warning
     return out
 
 
@@ -130,53 +143,118 @@ def latest_replay_row(pair: str, expected_cols: list[str]) -> FeatureRow:
 
 
 class LiveFeatureBuilder:
-    def __init__(self, client: DerivOptionsClient, history_minutes: int = 14000, tick_volume_count: int = 5000):
+    def __init__(
+        self,
+        client: DerivOptionsClient,
+        history_minutes: int = 14000,
+        tick_volume_count: int = 5000,
+        store_dir: str | Path | None = None,
+        stale_seconds: int = 180,
+    ):
         self.client = client
-        self.history_minutes = history_minutes
-        self.tick_volume_count = tick_volume_count
+        self.history_minutes = int(history_minutes)
+        self.tick_volume_count = int(tick_volume_count)
+        self.store_dir = Path(store_dir) if store_dir is not None else None
+        self.stale_seconds = int(stale_seconds)
         self._m1: dict[str, pd.DataFrame] = {}
         self._base: dict[str, pd.DataFrame] = {}
         self._warnings: dict[str, list[str]] = {}
 
     def feature_row(self, pair: str, expected_cols: list[str]) -> FeatureRow:
-        pairs = PAIRS if _needs_cross_pair(expected_cols) else [pair]
-        self._ensure_pairs(pairs)
+        pair = pair.upper()
+        needed = list(PAIRS) if _needs_cross_pair(expected_cols) else [pair]
+        self._ensure_pairs(needed)
         full = self._joined_row_frame(pair, expected_cols)
+        missing = [c for c in expected_cols if c not in full.columns]
+        nan_cols = [c for c in expected_cols if c in full.columns and not np.isfinite(full[c]).any()]
+        if missing or nan_cols:
+            raise LiveFeatureError(f"{pair}: cannot build requested feature row; missing={missing[:12]} nan={nan_cols[:12]}")
         clean = full.dropna(subset=expected_cols)
         if clean.empty:
-            missing = [c for c in expected_cols if c not in full.columns]
-            nan_cols = [c for c in expected_cols if c in full.columns and full[c].isna().iloc[-1]]
-            raise LiveFeatureError(f"{pair}: no finite live feature row; missing={missing[:12]} nan={nan_cols[:12]}")
-        ts = clean.index[-1]
-        row = clean.iloc[-1][expected_cols]
+            raise LiveFeatureError(f"{pair}: no complete live feature row for requested schema")
+        ts = pd.Timestamp(clean.index[-1])
+        if ts.tzinfo is None:
+            ts = ts.tz_localize("UTC")
         stale_s = time.time() - int(ts.timestamp())
-        if stale_s > 180:
+        if stale_s > self.stale_seconds:
             raise LiveFeatureError(f"{pair}: latest feature row is stale: {stale_s:.0f}s old")
-        warnings: list[str] = []
-        for p in pairs:
-            warnings.extend(self._warnings.get(p, []))
-        return FeatureRow(pair=pair, timestamp=ts, row=row, source="deriv_ticks_history", warnings=warnings)
+        row = clean.iloc[-1][expected_cols]
+        bad = row.index[~np.isfinite(row.astype("float64").values)].tolist()
+        if bad:
+            raise LiveFeatureError(f"{pair}: non-finite live feature values: {bad[:12]}")
+        warnings = [w for p in needed for w in self._warnings.get(p, [])]
+        source = f"deriv_store:{self.store_dir}" if self.store_dir is not None else "deriv_ticks_history"
+        return FeatureRow(pair=pair, timestamp=ts, row=row, source=source, warnings=warnings)
 
     def _ensure_pairs(self, pairs: list[str]) -> None:
         for pair in pairs:
+            pair = pair.upper()
             if pair in self._base:
                 continue
-            symbol = pair_symbol(pair)
-            resp = self.client.ticks_history(symbol, style="candles", count=self.history_minutes, granularity=60)
-            candles = resp.get("candles") or resp.get("history", {}).get("candles") or []
-            m1 = candles_to_m1(candles)
-            warnings: list[str] = []
-            try:
-                tick_resp = self.client.ticks_history(symbol, style="ticks", count=self.tick_volume_count, granularity=None)
-                volume = ticks_to_volume(tick_resp)
-                m1 = apply_tick_volume(m1, volume)
-                if volume.empty:
-                    warnings.append("tick volume unavailable; candle volume used")
-            except Exception as exc:
-                warnings.append(f"tick volume unavailable: {exc}; candle volume used")
+            if self.store_dir is None:
+                m1, warnings = self._fetch_pair_m1(pair)
+            else:
+                m1, warnings = self._load_store_pair_m1(pair)
             self._m1[pair] = m1
             self._base[pair] = build_base_features(m1)
             self._warnings[pair] = warnings
+
+    def _fetch_pair_m1(self, pair: str) -> tuple[pd.DataFrame, list[str]]:
+        symbol = pair_symbol(pair)
+        warnings: list[str] = []
+        resp = self.client.ticks_history(symbol, style="candles", count=self.history_minutes, granularity=60)
+        candles = resp.get("candles") or resp.get("history", {}).get("candles") or []
+        m1 = candles_to_m1(candles)
+        if m1.attrs.get("volume_warning"):
+            warnings.append(str(m1.attrs["volume_warning"]))
+        if self.tick_volume_count > 0:
+            volume = ticks_to_volume(self.client.ticks_history(symbol, style="ticks", count=self.tick_volume_count, granularity=None))
+            if volume.empty:
+                warnings.append("tick_volume_unavailable")
+            else:
+                m1 = apply_tick_volume(m1, volume)
+        return m1, warnings
+
+    def _load_store_pair_m1(self, pair: str) -> tuple[pd.DataFrame, list[str]]:
+        assert self.store_dir is not None
+        path = self.store_dir / f"{pair}.parquet"
+        if not path.exists():
+            raise LiveFeatureError(f"{pair}: rolling store file missing: {path}")
+        frame = pd.read_parquet(path)
+        if "timestamp" in frame.columns:
+            idx = pd.to_datetime(frame["timestamp"], utc=True)
+        else:
+            idx = pd.to_datetime(frame.index, utc=True)
+        required = ["open", "high", "low", "close"]
+        missing = [c for c in required if c not in frame.columns]
+        if missing:
+            raise LiveFeatureError(f"{pair}: rolling store missing columns {missing}")
+        if "volume" in frame.columns:
+            volume = pd.to_numeric(frame["volume"], errors="coerce").fillna(1.0).to_numpy()
+            warnings: list[str] = []
+        else:
+            volume = np.full(len(frame), 1.0, dtype="float64")
+            warnings = ["synthetic_unit_volume_no_deriv_tick_count"]
+        out = pd.DataFrame(
+            {
+                "open": pd.to_numeric(frame["open"], errors="coerce").to_numpy(),
+                "high": pd.to_numeric(frame["high"], errors="coerce").to_numpy(),
+                "low": pd.to_numeric(frame["low"], errors="coerce").to_numpy(),
+                "close": pd.to_numeric(frame["close"], errors="coerce").to_numpy(),
+                "volume": volume,
+            },
+            index=idx,
+        ).dropna(subset=required)
+        out = out[~out.index.duplicated(keep="last")].sort_index().tail(self.history_minutes)
+        if len(out) < 500:
+            raise LiveFeatureError(f"{pair}: rolling store has too few completed rows: {len(out)}")
+        dt_min = out.index.to_series().diff().dt.total_seconds().div(60.0)
+        out["gap_prev"] = dt_min.fillna(1.0).values
+        if not out.index.is_monotonic_increasing:
+            raise LiveFeatureError(f"{pair}: rolling store index is not monotonic")
+        if out.index.duplicated().any():
+            raise LiveFeatureError(f"{pair}: rolling store has duplicate timestamps")
+        return out, warnings
 
     def _joined_row_frame(self, pair: str, expected_cols: list[str]) -> pd.DataFrame:
         base = self._base[pair]
@@ -184,8 +262,7 @@ class LiveFeatureBuilder:
             return base
         closes = pd.DataFrame({p: self._m1[p]["close"] for p in PAIRS}).dropna()
         xp = build_cross_pair_features(pair, closes, expected_cols)
-        joined = xp.join(base[[c for c in base.columns if c not in xp.columns]], how="left")
-        return joined
+        return base.join(xp, how="left")
 
 
 def _needs_cross_pair(cols: list[str]) -> bool:

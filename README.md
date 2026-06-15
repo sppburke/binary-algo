@@ -186,6 +186,8 @@ Fallback if `uv` is unavailable:
 
 `requirements-deriv-demo.txt` pins the Deriv runtime packages used by `scripts/deriv_client.py`, `scripts/book_runtime.py`, `scripts/live_features.py`, `scripts/deriv_demo_executor.py`, `scripts/deriv_backfill.py`, and `scripts/deriv_train.py`. `ENVIRONMENT_libs.txt` remains the broader research-stack dependency record.
 
+For VPS demo deployment, see `docs/DERIV_DEMO_EXECUTOR.md` and the placeholder-only `ops/` systemd/logrotate templates. The executor default pair set is `all-enabled`, which excludes EURUSD until verified live `OF_*` columns exist.
+
 ---
 
 ## Deriv-Native Data

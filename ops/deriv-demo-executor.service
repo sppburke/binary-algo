@@ -1,0 +1,16 @@
+[Unit]
+Description=binary-algo Deriv demo executor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
+WorkingDirectory=/home/sean/git/binary-algo
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_demo_executor.py --pairs ${DERIV_DEMO_PAIRS} --store-dir ${DERIV_DEMO_STORE_DIR} --log-dir ${DERIV_DEMO_LOG_DIR} --demo-buy --stake 1 --once
+KillSignal=SIGINT
+TimeoutStartSec=1800
+Nice=5
+
+[Install]
+WantedBy=default.target

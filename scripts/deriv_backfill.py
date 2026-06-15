@@ -40,6 +40,8 @@ PAIR_TO_SYMBOL = {
     "AUDUSD": "frxAUDUSD",
     "NZDUSD": "frxNZDUSD",
 }
+DEFAULT_ENABLED_PAIRS = ["USDJPY", "USDCAD", "AUDUSD", "NZDUSD", "USDCHF", "GBPUSD"]
+XPAIR_HEALTH_PAIRS = ["USDCHF", "GBPUSD"]
 
 
 @dataclass(frozen=True)
@@ -448,8 +450,129 @@ def write_run_summary(out_dir: Path, rows: list[dict[str, Any]], args: argparse.
     return path
 
 
+def _read_store_frame(out_dir: Path, pair: str) -> pd.DataFrame:
+    path = out_dir / f"{pair}.parquet"
+    if not path.exists():
+        return pd.DataFrame()
+    frame = pd.read_parquet(path)
+    if "timestamp" in frame.columns:
+        frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True)
+        frame = frame.set_index("timestamp", drop=False)
+    else:
+        frame.index = pd.to_datetime(frame.index, utc=True)
+        frame["timestamp"] = frame.index
+    return frame.sort_index()
+
+
+def _pair_health(out_dir: Path, pair: str, min_required_rows: int, max_stale_seconds: int) -> dict[str, Any]:
+    frame = _read_store_frame(out_dir, pair)
+    now = pd.Timestamp.utcnow()
+    if frame.empty:
+        return {
+            "row_count": 0,
+            "latest_completed_utc": None,
+            "stale_seconds": None,
+            "monotonic_utc": False,
+            "duplicate_timestamps": 0,
+            "gap_count": None,
+            "open_candle_excluded": None,
+            "min_required_rows": int(min_required_rows),
+            "passes": False,
+        }
+    idx = pd.DatetimeIndex(frame.index)
+    latest = pd.Timestamp(idx.max())
+    stale_seconds = max(0, int((now - latest).total_seconds()))
+    duplicate_count = int(idx.duplicated().sum())
+    deltas = idx.to_series().diff().dt.total_seconds().dropna()
+    gap_count = int((deltas > 60).sum())
+    open_cutoff = pd.Timestamp.utcnow().floor("min") - pd.Timedelta(minutes=1)
+    open_candle_excluded = bool(latest <= open_cutoff)
+    monotonic = bool(idx.is_monotonic_increasing)
+    row_count = int(len(frame))
+    passes = (
+        row_count >= min_required_rows
+        and stale_seconds <= max_stale_seconds
+        and monotonic
+        and duplicate_count == 0
+        and open_candle_excluded
+    )
+    return {
+        "row_count": row_count,
+        "latest_completed_utc": latest.isoformat(),
+        "stale_seconds": stale_seconds,
+        "monotonic_utc": monotonic,
+        "duplicate_timestamps": duplicate_count,
+        "gap_count": gap_count,
+        "open_candle_excluded": open_candle_excluded,
+        "min_required_rows": int(min_required_rows),
+        "passes": passes,
+    }
+
+
+def _xpair_health(
+    out_dir: Path,
+    pair: str,
+    common_pairs: list[str],
+    min_required_rows: int,
+    max_stale_seconds: int,
+) -> dict[str, Any]:
+    frames = {p: _read_store_frame(out_dir, p) for p in common_pairs}
+    closes = [frames[p][["close"]].rename(columns={"close": p}) for p in common_pairs if not frames[p].empty]
+    if len(closes) != len(common_pairs):
+        return {
+            "common_close_rows": 0,
+            "latest_common_completed_utc": None,
+            "stale_seconds": None,
+            "min_required_rows": int(min_required_rows),
+            "passes": False,
+        }
+    common = pd.concat(closes, axis=1, join="inner").dropna()
+    if common.empty:
+        latest = None
+        stale_seconds = None
+        rows = 0
+    else:
+        latest = pd.Timestamp(common.index.max())
+        stale_seconds = max(0, int((pd.Timestamp.utcnow() - latest).total_seconds()))
+        rows = int(len(common))
+    passes = rows >= min_required_rows and stale_seconds is not None and stale_seconds <= max_stale_seconds
+    return {
+        "common_close_rows": rows,
+        "latest_common_completed_utc": latest.isoformat() if latest is not None else None,
+        "stale_seconds": stale_seconds,
+        "min_required_rows": int(min_required_rows),
+        "passes": passes,
+    }
+
+
+def store_health(
+    out_dir: Path,
+    enabled_pairs: list[str] | None = None,
+    min_required_rows: int = 14000,
+    max_stale_seconds: int = 180,
+) -> dict[str, Any]:
+    pairs = enabled_pairs or list(DEFAULT_ENABLED_PAIRS)
+    per_pair = {p: _pair_health(out_dir, p, min_required_rows, max_stale_seconds) for p in pairs}
+    common_pairs = list(PAIR_TO_SYMBOL)
+    xpair = {
+        p: _xpair_health(out_dir, p, common_pairs, min_required_rows, max_stale_seconds)
+        for p in XPAIR_HEALTH_PAIRS
+        if p in pairs
+    }
+    passes = all(v["passes"] for v in per_pair.values()) and all(v["passes"] for v in xpair.values())
+    return {
+        "enabled_pairs": pairs,
+        "per_pair": per_pair,
+        "xpair": xpair,
+        "min_required_rows": int(min_required_rows),
+        "max_stale_seconds": int(max_stale_seconds),
+        "passes": bool(passes),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("command", nargs="?", choices=["backfill", "health"], default="backfill")
     p.add_argument("--pairs", default="all", help="comma-separated pairs, or all")
     p.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="gitignored output directory")
     p.add_argument("--endpoint", choices=sorted(ENDPOINTS), default="legacy")
@@ -458,6 +581,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-pages", type=int, default=0, help="0 means page backward until Deriv stops making progress")
     p.add_argument("--sleep-s", type=float, default=0.2)
     p.add_argument("--timeout", type=float, default=30.0)
+    p.add_argument("--min-required-rows", type=int, default=14000)
+    p.add_argument("--max-stale-seconds", type=int, default=180)
     p.add_argument("--replace", action="store_true", help="replace pair parquet instead of merging with existing rows")
     p.add_argument("--include-open-candle", action="store_true", help="keep Deriv's current incomplete candle if returned")
     return p
@@ -469,6 +594,17 @@ def main(argv: list[str] | None = None) -> int:
     pairs = parse_pairs(args.pairs)
     out_dir = ensure_deriv_data_path(Path(args.out_dir), purpose="Deriv backfill output directory")
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.command == "health":
+        pairs_arg = DEFAULT_ENABLED_PAIRS if args.pairs == "all" else pairs
+        health = store_health(
+            out_dir=out_dir,
+            enabled_pairs=pairs_arg,
+            min_required_rows=args.min_required_rows,
+            max_stale_seconds=args.max_stale_seconds,
+        )
+        print(json.dumps(health, indent=2, sort_keys=True))
+        return 0 if health["passes"] else 2
 
     rows = []
     for pair in pairs:

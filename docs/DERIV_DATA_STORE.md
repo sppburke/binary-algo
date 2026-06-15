@@ -70,3 +70,17 @@ The trainer refuses to run on capped `--max-pages` backfills, open-candle
 backfills, still-running backfills, or output paths outside `deriv_data/`. If
 Deriv stops the backward walk with an API boundary error after usable progress,
 training requires the explicit `--allow-api-error-boundary` flag.
+
+## Health
+
+The default rolling-store health surface is:
+
+```bash
+~/binary-algo-venv/bin/python scripts/deriv_backfill.py health --out-dir deriv_data/candles_1m --pairs all
+```
+
+For `--pairs all`, health reports the six executor-enabled pairs: `USDJPY`, `USDCAD`, `AUDUSD`, `NZDUSD`, `USDCHF`, `GBPUSD`. `EURUSD` remains backfillable for data parity but is not executor-enabled until verified live `OF_*` columns exist.
+
+The JSON includes `enabled_pairs`, per-pair `row_count`, `latest_completed_utc`, `stale_seconds`, `monotonic_utc`, `duplicate_timestamps`, `gap_count`, `open_candle_excluded`, `min_required_rows`, and `passes`. It also reports cross-pair `common_close_rows`, `latest_common_completed_utc`, `stale_seconds`, `min_required_rows`, and `passes` for `USDCHF` and `GBPUSD`; those common-close checks require all seven Deriv close series for parity, including EURUSD close data, but not EURUSD `OF_*` features.
+
+Executor runs with `--store-dir` consume the same health contract before scoring store-backed feature rows.

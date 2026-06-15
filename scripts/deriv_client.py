@@ -151,8 +151,8 @@ class DerivOptionsClient:
     def active_symbols(self) -> dict[str, Any]:
         return self.request({"active_symbols": "brief", "product_type": "basic"})
 
-    def contracts_for(self, symbol: str, currency: str = "USD") -> dict[str, Any]:
-        return self.request({"contracts_for": symbol, "currency": currency})
+    def contracts_for(self, symbol: str) -> dict[str, Any]:
+        return self.request({"contracts_for": symbol})
 
     def ticks_history(
         self,
@@ -162,12 +162,14 @@ class DerivOptionsClient:
         count: int = 5000,
         granularity: int | None = 60,
         end: str = "latest",
+        adjust_start_time: int = 1,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "ticks_history": symbol,
             "style": style,
             "count": int(count),
             "end": end,
+            "adjust_start_time": int(adjust_start_time),
         }
         if granularity is not None:
             payload["granularity"] = int(granularity)
@@ -216,4 +218,3 @@ class DerivOptionsClient:
 
     def forget(self, subscription_id: str) -> dict[str, Any]:
         return self.request({"forget": subscription_id})
-

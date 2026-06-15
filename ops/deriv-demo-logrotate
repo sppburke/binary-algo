@@ -1,0 +1,8 @@
+/home/sean/git/binary-algo/logs/paper_trades/*.jsonl {
+    daily
+    rotate 14
+    missingok
+    notifempty
+    compress
+    copytruncate
+}

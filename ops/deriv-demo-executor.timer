@@ -1,0 +1,12 @@
+[Unit]
+Description=Run binary-algo Deriv demo executor each minute
+
+[Timer]
+OnBootSec=90
+OnUnitActiveSec=60
+AccuracySec=5
+Persistent=false
+Unit=deriv-demo-executor.service
+
+[Install]
+WantedBy=timers.target
