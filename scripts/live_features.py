@@ -262,7 +262,8 @@ class LiveFeatureBuilder:
             return base
         closes = pd.DataFrame({p: self._m1[p]["close"] for p in PAIRS}).dropna()
         xp = build_cross_pair_features(pair, closes, expected_cols)
-        return base.join(xp, how="left")
+        base_only = base[[c for c in base.columns if c not in xp.columns]]
+        return xp.join(base_only, how="left")
 
 
 def _needs_cross_pair(cols: list[str]) -> bool:
