@@ -201,7 +201,8 @@ class DerivOptionsClient:
                 "currency": currency,
                 "duration": int(duration),
                 "duration_unit": duration_unit,
-                "symbol": symbol,
+                # Options endpoint schema: required underlying_symbol, additionalProperties:false
+                "underlying_symbol": symbol,
             }
         )
 

@@ -84,3 +84,5 @@ For `--pairs all`, health reports the six executor-enabled pairs: `USDJPY`, `USD
 The JSON includes `enabled_pairs`, per-pair `row_count`, `latest_completed_utc`, `stale_seconds`, `monotonic_utc`, `duplicate_timestamps`, `gap_count`, `open_candle_excluded`, `min_required_rows`, and `passes`. It also reports cross-pair `common_close_rows`, `latest_common_completed_utc`, `stale_seconds`, `min_required_rows`, and `passes` for `USDCHF` and `GBPUSD`; those common-close checks require all seven Deriv close series for parity, including EURUSD close data, but not EURUSD `OF_*` features.
 
 Executor runs with `--store-dir` consume the same health contract before scoring store-backed feature rows.
+
+**Refresh dependency:** health requires freshness within `--max-stale-seconds` (default 180s), so a scheduled executor must be preceded by a store refresh each run. The `ops/deriv-demo-executor.service` template does this via `ExecStartPre` (`deriv_backfill.py backfill --max-pages 2`, an idempotent warm-store top-up); a standalone deployment needs an equivalent refresh unit/timer or documented runbook step before proposal-only/demo-buy runs.

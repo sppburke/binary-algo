@@ -23,6 +23,15 @@ import pandas as pd
 from book_runtime import TARGET_BOOKS, LoadedBook, book_inventory, load_target_books
 from deriv_backfill import DEFAULT_ENABLED_PAIRS, DERIV_DATA_ROOT, store_health
 from deriv_client import DerivAPIError, DerivEnv, DerivOptionsClient
+from deriv_floor_resolver import (
+    FloorResolutionError,
+    PairFloorResolution,
+    inventory_rows,
+    recompute_fallback_max,
+    resolve_book,
+    resolve_enabled_pairs,
+    resolve_haircut,
+)
 from live_features import (
     DERIV_SYMBOLS,
     FeatureRow,
@@ -64,10 +73,11 @@ class JsonlLogger:
 
 
 class ExecutorLock:
-    def __init__(self, log_dir: Path, account_key: str):
+    def __init__(self, log_dir: Path, account_key: str, logger: "JsonlLogger | None" = None):
         digest = hashlib.sha256(account_key.encode("utf-8")).hexdigest()[:12]
         self.path = log_dir / f"executor_{digest}.lock"
         self.fd: int | None = None
+        self.logger = logger
 
     def __enter__(self) -> "ExecutorLock":
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -82,6 +92,8 @@ class ExecutorLock:
         try:
             self.fd = os.open(str(self.path), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         except FileExistsError as exc:
+            if self.logger is not None:
+                self.logger.write("lock_acquire_failed", reason="lock_exists", path=str(self.path))
             raise ExecutorError(f"live executor lock already exists: {self.path}") from exc
         os.write(self.fd, payload.encode("utf-8"))
         os.close(self.fd)
@@ -130,7 +142,24 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--store-dir", type=Path, default=None, help="rolling deriv_data store for feature rows")
     p.add_argument("--history-minutes", type=int, default=14000)
     p.add_argument("--tick-volume-count", type=int, default=5000)
-    p.add_argument("--max-breakeven", type=float, default=0.60)
+    p.add_argument(
+        "--max-breakeven",
+        type=float,
+        default=0.60,
+        help="secondary absolute breakeven ceiling; the side-floor edge gate is the authoritative guard",
+    )
+    p.add_argument(
+        "--payout-edge-margin",
+        type=float,
+        default=0.005,
+        help="policy margin subtracted from the side floor (effective_floor = side_p10 - haircut_abs - margin)",
+    )
+    p.add_argument(
+        "--quote-snapshots",
+        choices=["all", "off"],
+        default="all",
+        help="all: snapshot CALL+PUT quotes for every enabled pair each cycle (default); off: reduced-cadence override",
+    )
     p.add_argument("--max-retries", type=int, default=3)
     p.add_argument("--retry-base-s", type=float, default=1.0)
     p.add_argument("--monitor-timeout-seconds", type=float, default=1200.0)
@@ -155,6 +184,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     pairs = resolve_pairs(args.pairs)
+    snapshots_per_cycle = len(pairs) * 2 if args.quote_snapshots == "all" else 0
     logger.write(
         "startup_config",
         pairs=pairs,
@@ -163,14 +193,33 @@ def main(argv: list[str] | None = None) -> int:
         dry_run=args.dry_run_proposal_only,
         demo_buy=args.demo_buy,
         store_dir=args.store_dir,
+        store_min_required_rows=args.store_min_required_rows,
+        store_max_stale_seconds=args.store_max_stale_seconds,
+        side_floor_gating=True,
+        payout_edge_margin=args.payout_edge_margin,
+        max_breakeven_ceiling=args.max_breakeven,
+        quote_snapshot_mode=args.quote_snapshots,
+        interval_seconds=args.interval_seconds,
+        monitor_interval_seconds=args.monitor_interval_seconds,
+        monitor_timeout_seconds=args.monitor_timeout_seconds,
+        max_trades_day=args.max_trades_day,
+        max_open=args.max_open,
+        api_call_budget={
+            "quote_snapshots_per_cycle": snapshots_per_cycle,
+            "max_fresh_buy_quotes_per_cycle": len(pairs),
+            "monitor_poll_interval_seconds": args.monitor_interval_seconds,
+            "note": "verify against Deriv per-app/per-connection rate limits before enabling all-enabled snapshots",
+        },
     )
 
     books = load_target_books(pairs)
     for row in book_inventory(pairs):
         logger.write("book_loaded", **row)
+    resolutions = resolve_floor_resolutions(pairs, books, logger)
 
     if args.check_books:
         print(json.dumps(book_inventory(pairs), indent=2))
+        print(json.dumps(inventory_rows(pairs), indent=2))
     if args.replay_schema_check:
         run_replay_schema_check(books)
     if args.public_smoke:
@@ -192,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
     state = load_state(state_path)
     account_key = DerivEnv.from_env().account_id if args.demo_buy else "public"
 
-    with ExecutorLock(args.log_dir, account_key):
+    with ExecutorLock(args.log_dir, account_key, logger):
         client = DerivOptionsClient.demo_from_env() if args.demo_buy else DerivOptionsClient.public()
         if args.demo_buy and not client.is_demo:
             raise ExecutorError("refusing buy: authenticated WebSocket URL is not demo")
@@ -203,11 +252,48 @@ def main(argv: list[str] | None = None) -> int:
             if args.reconcile_only:
                 return 0
             while True:
-                run_cycle(pairs, books, client, logger, args, kill_path, state, state_path)
+                run_cycle(pairs, books, resolutions, client, logger, args, kill_path, state, state_path)
                 if args.once or not args.loop:
                     break
                 time.sleep(args.interval_seconds)
     return 0
+
+
+def resolve_floor_resolutions(
+    pairs: list[str],
+    books: dict[str, LoadedBook],
+    logger: JsonlLogger,
+) -> dict[str, PairFloorResolution]:
+    """Resolve and log side floors/haircuts for every pair; fail closed on any gap.
+
+    Floors are refit-CPCV per-era floors (frozen vintages decay); the gate
+    certifies the documented floor under the periodic-retrain deploy policy.
+    """
+    try:
+        resolutions = resolve_enabled_pairs(pairs)
+    except FloorResolutionError as exc:
+        logger.write("floor_resolution_failed", reason=str(exc))
+        raise ExecutorError(f"floor resolution failed closed: {exc}") from exc
+    for pair, res in resolutions.items():
+        book = books[pair]
+        mismatch = (
+            abs(res.confidence_threshold - book.conf_thr) > 1e-12
+            or book.coverage is None
+            or abs(res.coverage - book.coverage) > 1e-12
+        )
+        if mismatch:
+            logger.write(
+                "floor_resolution_failed",
+                pair=pair,
+                reason="resolver_book_mismatch",
+                resolver_coverage=res.coverage,
+                book_coverage=book.coverage,
+                resolver_conf_thr=res.confidence_threshold,
+                book_conf_thr=book.conf_thr,
+            )
+            raise ExecutorError(f"{pair}: resolver coverage/conf_thr does not match loaded book")
+        logger.write("floor_resolution", **res.as_dict())
+    return resolutions
 
 
 def resolve_pairs(value: str) -> list[str]:
@@ -273,7 +359,8 @@ def run_auth_smoke() -> None:
     client = DerivOptionsClient.demo_from_env()
     if not client.is_demo:
         raise ExecutorError("FAIL: OTP URL is not demo")
-    print(f"PASS: DERIV_APP_ID set, DERIV_PAT set, DERIV_ACCOUNT_ID={env.account_id}, demo OTP URL asserted")
+    acct_hash = hashlib.sha256(env.account_id.encode("utf-8")).hexdigest()[:12]
+    print(f"PASS: DERIV_APP_ID set, DERIV_PAT set, DERIV_ACCOUNT_ID sha256:{acct_hash}, demo OTP URL asserted")
 
 
 def require_store_health(
@@ -340,9 +427,88 @@ def _duration_allows_15m(min_d: str, max_d: str) -> bool:
     return minutes(min_d, 0.0) <= 15 <= minutes(max_d, math.inf)
 
 
+def _positive_number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value) if value > 0 else None
+    if isinstance(value, str):
+        try:
+            parsed = float(value)
+        except ValueError:
+            return None
+        return parsed if parsed > 0 else None
+    return None
+
+
+def parse_quote(prop: dict[str, Any]) -> tuple[float | None, float | None, float | None, str | None]:
+    """Return (ask, payout, live_breakeven, invalid_reason), failing closed.
+
+    Both ask_price and payout are required in the Options proposal response
+    schema; there is deliberately no display_value/stake fallback (it can
+    fabricate a breakeven from the stake default).
+    """
+    ask = _positive_number(prop.get("ask_price"))
+    payout = _positive_number(prop.get("payout"))
+    if ask is None:
+        return None, payout, None, "missing_or_invalid_ask"
+    if payout is None:
+        return ask, None, None, "missing_or_invalid_payout"
+    return ask, payout, ask / payout, None
+
+
+def snapshot_quotes(
+    pairs: list[str],
+    client: DerivOptionsClient,
+    logger: JsonlLogger,
+    args: argparse.Namespace,
+) -> None:
+    """Observability-only CALL+PUT quote snapshots; never reused for buys."""
+    if args.quote_snapshots != "all":
+        return
+    for pair in pairs:
+        symbol = DERIV_SYMBOLS[pair]
+        for contract_type in ("CALL", "PUT"):
+            try:
+                resp = call_deriv(
+                    client,
+                    logger,
+                    args,
+                    "proposal_snapshot",
+                    client.proposal,
+                    symbol=symbol,
+                    contract_type=contract_type,
+                    amount=args.stake,
+                    duration=HORIZON_MINUTES,
+                )
+            except ExecutorError as exc:
+                logger.write("quote_snapshot_failed", pair=pair, contract_type=contract_type, error=str(exc))
+                continue
+            prop = resp.get("proposal", {})
+            ask, payout, breakeven, invalid_reason = parse_quote(prop)
+            spot_time = prop.get("spot_time")
+            quote_age_ms = None
+            if isinstance(spot_time, (int, float)):
+                quote_age_ms = max(0.0, (datetime.now(timezone.utc).timestamp() - float(spot_time)) * 1000.0)
+            logger.write(
+                "quote_snapshot",
+                pair=pair,
+                side="UP" if contract_type == "CALL" else "DOWN",
+                contract_type=contract_type,
+                ask=ask,
+                payout=payout,
+                live_breakeven=breakeven,
+                invalid_reason=invalid_reason,
+                proposal_id_present=bool(prop.get("id")),
+                quote_age_ms=quote_age_ms,
+                raw_hash=raw_hash(resp),
+            )
+
+
 def run_cycle(
     pairs: list[str],
     books: dict[str, LoadedBook],
+    resolutions: dict[str, PairFloorResolution],
     client: DerivOptionsClient,
     logger: JsonlLogger,
     args: argparse.Namespace,
@@ -353,6 +519,7 @@ def run_cycle(
     check_kill_switch(kill_path, logger)
     if args.store_dir is not None:
         require_store_health(args.store_dir, pairs, logger, args)
+    snapshot_quotes(pairs, client, logger, args)
     builder = LiveFeatureBuilder(
         client,
         history_minutes=args.history_minutes,
@@ -363,7 +530,10 @@ def run_cycle(
     trades_today = count_events(logger.path, "buy_confirmed")
     open_count = len(pending_contracts(state))
     for pair in pairs:
-        bought = process_pair(pair, books[pair], client, builder, logger, args, kill_path, state, state_path, trades_today, open_count)
+        bought = process_pair(
+            pair, books[pair], resolutions[pair], client, builder, logger, args,
+            kill_path, state, state_path, trades_today, open_count,
+        )
         if bought:
             trades_today += 1
             open_count += 1
@@ -372,6 +542,7 @@ def run_cycle(
 def process_pair(
     pair: str,
     book: LoadedBook,
+    resolution: PairFloorResolution,
     client: DerivOptionsClient,
     builder: LiveFeatureBuilder,
     logger: JsonlLogger,
@@ -426,7 +597,23 @@ def process_pair(
 
     contract_type = "CALL" if score.direction == "UP" else "PUT"
     symbol = DERIV_SYMBOLS[pair]
-    logger.write("proposal_requested", pair=pair, symbol=symbol, contract_type=contract_type, stake=args.stake)
+    # Side-specific documented floor for the model-selected side; raw proba is
+    # never used as a calibrated win probability.
+    side_floor = resolution.side_floor(score.direction)
+    effective_floor = side_floor - resolution.haircut_abs - args.payout_edge_margin
+    logger.write(
+        "proposal_requested",
+        pair=pair,
+        symbol=symbol,
+        contract_type=contract_type,
+        direction=score.direction,
+        stake=args.stake,
+        side_refit_p10=side_floor,
+        haircut_abs=resolution.haircut_abs,
+        payout_edge_margin=args.payout_edge_margin,
+        effective_floor=effective_floor,
+    )
+    # Fresh selected-side quote for the buy decision; snapshots are never reused.
     proposal = call_deriv(
         client,
         logger,
@@ -440,9 +627,8 @@ def process_pair(
     )
     prop = proposal.get("proposal", {})
     proposal_id = prop.get("id")
-    ask = float(prop.get("ask_price", prop.get("display_value", args.stake)))
-    payout = float(prop.get("payout", 0.0))
-    breakeven = ask / payout if payout > 0 else math.inf
+    ask, payout, live_breakeven, invalid_reason = parse_quote(prop)
+    net_edge = effective_floor - live_breakeven if live_breakeven is not None else None
     logger.write(
         "proposal_received",
         pair=pair,
@@ -451,18 +637,48 @@ def process_pair(
         strategy_file=str(book.strategy_path),
         model_files=[str(p) for p in book.model_paths],
         content_id=book.content_id,
+        book_created_utc=resolution.book_created_utc,
         feature_timestamp=row.timestamp,
         proba=score.proba,
         conf=score.confidence,
         threshold=score.threshold,
         direction=score.direction,
+        contract_type=contract_type,
         proposal_id=proposal_id,
         ask=ask,
-        implied_breakeven=breakeven,
+        payout=payout,
+        live_breakeven=live_breakeven,
+        side_refit_p10=side_floor,
+        haircut_source=resolution.haircut_source,
+        haircut_raw=resolution.haircut_raw,
+        haircut_abs=resolution.haircut_abs,
+        payout_edge_margin=args.payout_edge_margin,
+        effective_floor=effective_floor,
+        net_edge=net_edge,
+        max_breakeven_ceiling=args.max_breakeven,
         raw_hash=raw_hash(proposal),
     )
-    if breakeven > args.max_breakeven:
-        logger.write("signal_skipped", pair=pair, reason="breakeven_too_high", implied_breakeven=breakeven)
+    if invalid_reason is not None:
+        logger.write("signal_skipped", pair=pair, reason=invalid_reason, ask=ask, payout=payout)
+        return False
+    if effective_floor <= live_breakeven:
+        logger.write(
+            "signal_skipped",
+            pair=pair,
+            reason="edge_not_positive",
+            effective_floor=effective_floor,
+            live_breakeven=live_breakeven,
+            net_edge=net_edge,
+        )
+        return False
+    if live_breakeven > args.max_breakeven:
+        logger.write(
+            "signal_skipped",
+            pair=pair,
+            reason="breakeven_too_high",
+            live_breakeven=live_breakeven,
+            max_breakeven_ceiling=args.max_breakeven,
+        )
         return False
     if args.dry_run_proposal_only:
         logger.write("signal_skipped", pair=pair, reason="dry_run_proposal_only")
@@ -490,16 +706,28 @@ def process_pair(
         expected_expiry=expected_expiry,
     )
     save_state(state_path, state)
+    decision_context = {
+        "pair": pair,
+        "direction": score.direction,
+        "contract_type": contract_type,
+        "ask": ask,
+        "payout": payout,
+        "live_breakeven": live_breakeven,
+        "effective_floor": effective_floor,
+        "net_edge": net_edge,
+        "proposal_id": str(proposal_id),
+        "expected_expiry_utc": expected_expiry.isoformat(),
+    }
     logger.write(
         "buy_confirmed",
-        pair=pair,
         symbol=symbol,
         contract_id=str(contract_id),
-        proposal_id=str(proposal_id),
         buy_price=ask,
+        stake=args.stake,
         raw_hash=raw_hash(buy),
+        **decision_context,
     )
-    monitor_contract(client, str(contract_id), state, state_path, logger, args)
+    monitor_contract(client, str(contract_id), state, state_path, logger, args, decision_context)
     return True
 
 
@@ -510,18 +738,21 @@ def monitor_contract(
     state_path: Path,
     logger: JsonlLogger,
     args: argparse.Namespace,
+    decision_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     print(f"Check: monitor contract_id={contract_id} until terminal status")
+    ctx = decision_context or {}
     sub_id: str | None = None
     first = call_deriv(client, logger, args, "proposal_open_contract", client.proposal_open_contract, contract_id, True)
     sub_id = (first.get("subscription") or {}).get("id")
     terminal = update_contract_state(state, contract_id, first)
-    logger.write("contract_update", contract_id=contract_id, terminal=terminal, raw_hash=raw_hash(first))
+    logger.write("contract_update", contract_id=contract_id, terminal=terminal, raw_hash=raw_hash(first), **ctx)
     deadline = time.monotonic() + args.monitor_timeout_seconds
     latest = first
     while not terminal:
         if time.monotonic() > deadline:
             save_state(state_path, state)
+            logger.write("monitor_timeout", contract_id=contract_id, timeout_seconds=args.monitor_timeout_seconds, **ctx)
             raise ExecutorError(f"contract {contract_id}: monitor timeout before terminal status")
         try:
             latest = client.recv(timeout=args.monitor_interval_seconds)
@@ -531,12 +762,21 @@ def monitor_contract(
         if "proposal_open_contract" not in latest:
             continue
         terminal = update_contract_state(state, contract_id, latest)
-        logger.write("contract_update", contract_id=contract_id, terminal=terminal, raw_hash=raw_hash(latest))
+        logger.write("contract_update", contract_id=contract_id, terminal=terminal, raw_hash=raw_hash(latest), **ctx)
         save_state(state_path, state)
     if sub_id:
         call_deriv(client, logger, args, "forget", client.forget, sub_id)
         logger.write("subscription_forgotten", contract_id=contract_id, subscription_id=sub_id)
-    logger.write("contract_closed", contract_id=contract_id, raw_hash=raw_hash(latest))
+    poc = latest.get("proposal_open_contract", {})
+    logger.write(
+        "contract_closed",
+        contract_id=contract_id,
+        terminal_status=poc.get("status"),
+        profit=poc.get("profit"),
+        sell_price=poc.get("sell_price"),
+        raw_hash=raw_hash(latest),
+        **ctx,
+    )
     print(f"PASS: contract_id={contract_id} reached terminal status")
     return latest
 
@@ -669,6 +909,7 @@ def reconcile_open_state(
             unresolved.append(contract_id)
     save_state(state_path, state)
     if unresolved:
+        logger.write("reconcile_failed", reason="unresolved_open_contracts", unresolved=unresolved)
         raise ExecutorError(f"pending/open local state not terminal after Deriv reconciliation: {unresolved}")
 
 
@@ -730,8 +971,38 @@ class FakeBook:
     content_id = "fake"
     feature_cols = ["x"]
 
+    def __init__(self, direction: str = "UP"):
+        self.direction = direction
+
     def score(self, feature_row: pd.Series | dict[str, Any]) -> FakeScore:
-        return FakeScore(pair=self.pair, gate_reasons=[])
+        proba = 0.62 if self.direction == "UP" else 0.38
+        return FakeScore(pair=self.pair, proba=proba, direction=self.direction, gate_reasons=[])
+
+
+def fixture_resolution(
+    pair: str = "USDJPY",
+    up_floor: float = 0.6005,
+    down_floor: float = 0.5738,
+    haircut_abs: float = 0.0036,
+) -> PairFloorResolution:
+    return PairFloorResolution(
+        pair=pair,
+        book_id=f"{pair}.fake.v1",
+        strategy_path="fixture",
+        coverage=0.02,
+        coverage_source="fixture",
+        confidence_threshold=0.10,
+        up_floor=up_floor,
+        down_floor=down_floor,
+        floor_source="fixture",
+        haircut_raw=-haircut_abs,
+        haircut_abs=haircut_abs,
+        haircut_source="fixture",
+        haircut_source_detail="fixture",
+        book_created_utc="2026-06-08",
+        vintage_source="fixture",
+        registry_content_id="fixture",
+    )
 
 
 class FakeBuilder:
@@ -767,13 +1038,30 @@ class RecordingOptionsClient(DerivOptionsClient):
 
 
 class FakeTradeClient(RecordingOptionsClient):
-    def __init__(self, terminal: bool = True):
+    def __init__(
+        self,
+        terminal: bool = True,
+        ask: float | None = 1.0,
+        payout: float | None = 2.0,
+        include_proposal_id: bool = True,
+    ):
         super().__init__(is_demo=True)
         self.terminal = terminal
+        self.ask = ask
+        self.payout = payout
+        self.include_proposal_id = include_proposal_id
 
     def proposal(self, **kwargs: Any) -> dict[str, Any]:
         self.calls.append("proposal")
-        return {"proposal": {"id": "proposal-1", "ask_price": 1.0, "payout": 2.0}}
+        self.payloads.append({"proposal": 1, **kwargs})
+        prop: dict[str, Any] = {}
+        if self.include_proposal_id:
+            prop["id"] = "proposal-1"
+        if self.ask is not None:
+            prop["ask_price"] = self.ask
+        if self.payout is not None:
+            prop["payout"] = self.payout
+        return {"proposal": prop}
 
     def buy(self, proposal_id: str, price: float) -> dict[str, Any]:
         self.calls.append("buy")
@@ -795,9 +1083,80 @@ class FakeTradeClient(RecordingOptionsClient):
         return {"forget": subscription_id}
 
 
-def run_fake_client_smoke() -> None:
-    print("Check: fake-client payloads, candle conversion, no-buy mode, monitoring, reconciliation, lock, EURUSD fail-closed")
+def _last_event(path: Path, event: str) -> dict[str, Any] | None:
+    latest: dict[str, Any] | None = None
+    if not path.exists():
+        return None
+    with path.open("r", encoding="utf-8") as fh:
+        for line in fh:
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("event") == event:
+                latest = row
+    return latest
+
+
+def _require_fields(row: dict[str, Any] | None, fields: list[str], label: str) -> dict[str, Any]:
+    if row is None:
+        raise ExecutorError(f"FAIL: expected {label} event was not logged")
+    missing = [f for f in fields if f not in row]
+    if missing:
+        raise ExecutorError(f"FAIL: {label} event missing fields {missing}")
+    return row
+
+
+def _smoke_args(**overrides: Any) -> SimpleNamespace:
+    base = {
+        "stake": 1.0,
+        "max_breakeven": 0.60,
+        "payout_edge_margin": 0.005,
+        "quote_snapshots": "all",
+        "dry_run_proposal_only": True,
+        "demo_buy": False,
+        "max_trades_day": 3,
+        "max_open": 1,
+        "max_retries": 0,
+        "retry_base_s": 0.0,
+        "monitor_timeout_seconds": 5.0,
+        "monitor_interval_seconds": 0.01,
+    }
+    base.update(overrides)
+    return SimpleNamespace(**base)
+
+
+def _smoke_process(client: FakeTradeClient, logger: JsonlLogger, args: SimpleNamespace,
+                   log_dir: Path, resolution: PairFloorResolution, book: FakeBook,
+                   state: dict[str, Any] | None = None, state_path: Path | None = None) -> bool:
+    return process_pair(
+        "USDJPY",
+        book,  # type: ignore[arg-type]
+        resolution,
+        client,  # type: ignore[arg-type]
+        FakeBuilder(),  # type: ignore[arg-type]
+        logger,
+        args,
+        log_dir / "KILL",
+        state if state is not None else empty_state(),
+        state_path if state_path is not None else log_dir / "state.json",
+        trades_today=0,
+        open_count=0,
+        now_utc=datetime(2026, 6, 15, 14, 0, tzinfo=timezone.utc),
+    )
+
+
+def _smoke_payload_and_candles() -> None:
+    # Scope-1 assertion at the payload-construction layer: interception is
+    # RecordingOptionsClient.request, so this exercises DerivOptionsClient.proposal
+    # itself (FakeTradeClient.proposal returns a canned dict and would be vacuous).
     client = RecordingOptionsClient()
+    client.proposal(symbol="frxUSDJPY", contract_type="CALL", amount=1.0)
+    payload = client.payloads[-1]
+    if payload.get("underlying_symbol") != "frxUSDJPY":
+        raise ExecutorError("FAIL: proposal payload missing underlying_symbol")
+    if "symbol" in payload:
+        raise ExecutorError("FAIL: proposal payload still includes legacy symbol field")
     client.contracts_for("frxUSDJPY")
     if "currency" in client.payloads[-1]:
         raise ExecutorError("FAIL: contracts_for payload still includes currency")
@@ -814,62 +1173,181 @@ def run_fake_client_smoke() -> None:
     if "volume" not in m1.columns or not np.isfinite(m1["volume"]).all() or not m1.attrs.get("volume_warning"):
         raise ExecutorError("FAIL: missing-volume candle conversion did not produce explicit synthetic volume warning")
 
+
+def _smoke_resolver() -> None:
+    # Real-registry resolution must reproduce the issue-#3 floor/haircut table
+    # exactly, with source rules; xpair books must resolve cov1 (no "0.02" fallback).
+    expected = {
+        "USDJPY": (0.02, 0.12624352649499532, 0.6005, 0.5738, 0.0036, "direct_ticksettle_json"),
+        "USDCAD": (0.02, 0.06189305393772768, 0.5968, 0.577, 0.0035, "documented_proxy"),
+        "AUDUSD": (0.03, 0.06624753336867155, 0.5755, 0.5901, 0.0035, "direct_ticksettle_json"),
+        "NZDUSD": (0.02, 0.0835073173947228, 0.5749, 0.5803, 0.014, "structured"),
+        "USDCHF": (0.01, 0.16933929389708485, 0.6935, 0.6682, 0.0035, "structured"),
+        "GBPUSD": (0.01, 0.13209766255390926, 0.6552, 0.6395, 0.0078, "structured"),
+    }
+    rows = resolve_enabled_pairs()
+    for pair, (cov, thr, up, down, haircut_abs, rule) in expected.items():
+        res = rows[pair]
+        got = (res.coverage, res.confidence_threshold, res.up_floor, res.down_floor, res.haircut_abs, res.haircut_source)
+        if got != (cov, thr, up, down, haircut_abs, rule):
+            raise ExecutorError(f"FAIL: {pair} resolution {got} != expected {(cov, thr, up, down, haircut_abs, rule)}")
+        if res.haircut_raw > 0 or abs(res.haircut_raw) != res.haircut_abs:
+            raise ExecutorError(f"FAIL: {pair} signed raw haircut {res.haircut_raw} inconsistent with abs {res.haircut_abs}")
+        if res.book_created_utc in (None, "", "vintage_date_unavailable"):
+            raise ExecutorError(f"FAIL: {pair} missing book vintage date")
+
+    # Synthetic xpair fixture: deploy_cov must drive both conf_thr and floors to cov1.
+    xp_strategy = {
+        "gates": {"0.02": {"conf_thr": 0.145}, "0.01": {"conf_thr": 0.169}},
+        "deploy": {
+            "refit_floor_p10_cov1": {"UP": 0.69, "DOWN": 0.66},
+            "refit_floor_p10_cov2": {"UP": 0.65, "DOWN": 0.64},
+            "barclose_haircut": -0.0035,
+        },
+    }
+    xp_entry = {"metrics": {"deploy_cov": 0.01, "cov": 0.01, "barclose_haircut": -0.0035, "content_id": "fixture"}}
+    xp_manifest = {"created_utc": "2026-06-11", "metrics": {"refit_cpcv_p10_cov1_UP": 0.69, "refit_cpcv_p10_cov1_DOWN": 0.66}}
+    res = resolve_book("USDCHF", "USDCHF.fixture", xp_entry, xp_manifest, xp_strategy, "fixture")
+    if res.confidence_threshold != 0.169 or res.coverage != 0.01:
+        raise ExecutorError("FAIL: xpair fixture did not select the cov1 gates entry (0.02 fallback used)")
+    if (res.up_floor, res.down_floor) != (0.69, 0.66):
+        raise ExecutorError("FAIL: xpair fixture floors not resolved at active cov1 coverage")
+
+    # Rule-4 fallback: synthetic no-source pair resolves via the recomputed max rule.
+    raw, abs_applied, rule, detail = resolve_haircut("FAKEPAIR", "FAKEPAIR.fixture", {}, {}, {}, proxy_table={})
+    live_max, contributor, _ = recompute_fallback_max()
+    if rule != "fallback_max_validated_fx_ticksettle" or abs_applied != live_max or contributor not in detail:
+        raise ExecutorError("FAIL: rule-4 fallback did not use the recomputed validated-ticksettle max")
+    with tempfile.TemporaryDirectory() as tmp:
+        synth = Path(tmp) / "fakepair2_15m_ticksettle_result.json"
+        synth.write_text(json.dumps({
+            "mean_tick_minus_bar_COMB": -0.05,
+            "verdict": {"tick_settlement_preserves_edge": True},
+        }))
+        raw2, abs2, rule2, _ = resolve_haircut("NOPE", "NOPE.fixture", {}, {}, {}, ticksettle_dir=Path(tmp), proxy_table={})
+        if rule2 != "fallback_max_validated_fx_ticksettle" or abs(abs2 - 0.05) > 1e-12:
+            raise ExecutorError("FAIL: rule-4 fallback is not recomputed from the ticksettle dir (frozen constant?)")
+
+
+def run_fake_client_smoke() -> None:
+    print(
+        "Check: fake-client payloads, candle conversion, floor/haircut resolver, payout gate, "
+        "quote snapshots, no-buy mode, monitoring, reconciliation, lock, EURUSD fail-closed"
+    )
+    _smoke_payload_and_candles()
+    _smoke_resolver()
+
     with tempfile.TemporaryDirectory() as tmp:
         log_dir = Path(tmp)
         logger = JsonlLogger(log_dir)
-        state_path = log_dir / "state.json"
-        state = empty_state()
-        args = SimpleNamespace(
-            stake=1.0,
-            max_breakeven=0.60,
-            dry_run_proposal_only=True,
-            demo_buy=False,
-            max_trades_day=3,
-            max_open=1,
-            max_retries=0,
-            retry_base_s=0.0,
-            monitor_timeout_seconds=5.0,
-            monitor_interval_seconds=0.01,
+        args = _smoke_args()
+        resolution = fixture_resolution()  # eff floor = .6005 - .0036 - .005 = .5919
+
+        # floor_resolution structured-log fields (real resolver output).
+        logger.write("floor_resolution", **resolve_enabled_pairs(["USDJPY"])["USDJPY"].as_dict())
+        _require_fields(
+            _last_event(logger.path, "floor_resolution"),
+            ["pair", "book_id", "strategy_path", "coverage", "confidence_threshold", "up_floor",
+             "down_floor", "floor_source", "haircut_source", "haircut_raw", "haircut_abs",
+             "book_created_utc"],
+            "floor_resolution",
         )
+
+        # Positive edge (be .50 < eff .5919) reaches the proposal-only skip; no buy.
         dry_client = FakeTradeClient()
-        bought = process_pair(
-            "USDJPY",
-            FakeBook(),  # type: ignore[arg-type]
-            dry_client,  # type: ignore[arg-type]
-            FakeBuilder(),  # type: ignore[arg-type]
-            logger,
-            args,
-            log_dir / "KILL",
-            state,
-            state_path,
-            trades_today=0,
-            open_count=0,
-            now_utc=datetime(2026, 6, 15, 14, 0, tzinfo=timezone.utc),
-        )
+        bought = _smoke_process(dry_client, logger, args, log_dir, resolution, FakeBook())
         if bought or "buy" in dry_client.calls or count_events(logger.path, "buy_confirmed"):
             raise ExecutorError("FAIL: proposal-only mode bought or emitted buy_confirmed")
+        skip = _require_fields(_last_event(logger.path, "signal_skipped"), ["reason"], "signal_skipped")
+        if skip["reason"] != "dry_run_proposal_only":
+            raise ExecutorError(f"FAIL: positive-edge dry run skipped for {skip['reason']}, not dry_run_proposal_only")
+        _require_fields(
+            _last_event(logger.path, "proposal_received"),
+            ["pair", "contract_type", "direction", "ask", "payout", "live_breakeven", "side_refit_p10",
+             "haircut_source", "haircut_raw", "haircut_abs", "payout_edge_margin", "effective_floor",
+             "net_edge", "max_breakeven_ceiling", "book_created_utc", "proposal_id", "raw_hash"],
+            "proposal_received",
+        )
 
-        buy_args = SimpleNamespace(**{**args.__dict__, "dry_run_proposal_only": False, "demo_buy": True})
+        # Negative edge (payout 1.65 -> be .6061 > eff .5919) skips before buy.
+        neg_client = FakeTradeClient(payout=1.65)
+        bought = _smoke_process(neg_client, logger, args, log_dir, resolution, FakeBook())
+        skip = _last_event(logger.path, "signal_skipped")
+        if bought or "buy" in neg_client.calls or skip is None or skip["reason"] != "edge_not_positive":
+            raise ExecutorError("FAIL: negative-edge quote did not skip with edge_not_positive before buy")
+
+        # Missing/zero payout and missing/zero ask each fail closed with explicit reasons.
+        for client, expected_reason in (
+            (FakeTradeClient(payout=None), "missing_or_invalid_payout"),
+            (FakeTradeClient(payout=0.0), "missing_or_invalid_payout"),
+            (FakeTradeClient(ask=None), "missing_or_invalid_ask"),
+            (FakeTradeClient(ask=0.0), "missing_or_invalid_ask"),
+        ):
+            bought = _smoke_process(client, logger, args, log_dir, resolution, FakeBook())
+            skip = _last_event(logger.path, "signal_skipped")
+            if bought or "buy" in client.calls or skip is None or skip["reason"] != expected_reason:
+                raise ExecutorError(f"FAIL: invalid quote did not fail closed with {expected_reason}")
+
+        # Selected-side gating: DOWN selections gate on the DOWN floor (PUT),
+        # UP selections on the UP floor (CALL). Floors chosen so using the wrong
+        # side's floor would flip the decision.
+        for direction, floors in (("DOWN", {"up_floor": 0.99, "down_floor": 0.55}),
+                                  ("UP", {"up_floor": 0.55, "down_floor": 0.99})):
+            side_client = FakeTradeClient(payout=1.8)  # be .5556 > eff .5414 for the .55 floor
+            bought = _smoke_process(side_client, logger, args, log_dir,
+                                    fixture_resolution(**floors), FakeBook(direction))
+            prop_row = _last_event(logger.path, "proposal_received")
+            skip = _last_event(logger.path, "signal_skipped")
+            expected_ct = "CALL" if direction == "UP" else "PUT"
+            if bought or skip is None or skip["reason"] != "edge_not_positive":
+                raise ExecutorError(f"FAIL: {direction} selected-side gate did not use its own floor")
+            if prop_row is None or prop_row["contract_type"] != expected_ct or prop_row["side_refit_p10"] != 0.55:
+                raise ExecutorError(f"FAIL: {direction} proposal did not gate on the {direction} floor / {expected_ct}")
+
+        # Quote snapshots record both sides without causing a buy.
+        snap_logger = JsonlLogger(log_dir / "snap")
+        snap_client = FakeTradeClient()
+        snapshot_quotes(["USDJPY"], snap_client, snap_logger, args)  # type: ignore[arg-type]
+        if count_events(snap_logger.path, "quote_snapshot") != 2 or "buy" in snap_client.calls:
+            raise ExecutorError("FAIL: quote snapshots did not record both sides without buying")
+        snap = _require_fields(
+            _last_event(snap_logger.path, "quote_snapshot"),
+            ["pair", "side", "contract_type", "ask", "payout", "live_breakeven", "proposal_id_present",
+             "quote_age_ms", "raw_hash"],
+            "quote_snapshot",
+        )
+        if {snap["contract_type"]} - {"CALL", "PUT"}:
+            raise ExecutorError("FAIL: quote_snapshot contract_type invalid")
+
+        # Demo-buy path with positive edge: buy, monitor to terminal, forget; logs
+        # preserve the decision context end-to-end.
+        buy_args = _smoke_args(dry_run_proposal_only=False, demo_buy=True)
         buy_state = empty_state()
         buy_logger = JsonlLogger(log_dir / "buy")
         buy_client = FakeTradeClient()
-        bought = process_pair(
-            "USDJPY",
-            FakeBook(),  # type: ignore[arg-type]
-            buy_client,  # type: ignore[arg-type]
-            FakeBuilder(),  # type: ignore[arg-type]
-            buy_logger,
-            buy_args,
-            log_dir / "KILL",
-            buy_state,
-            log_dir / "buy_state.json",
-            trades_today=0,
-            open_count=0,
-            now_utc=datetime(2026, 6, 15, 14, 0, tzinfo=timezone.utc),
-        )
+        bought = _smoke_process(buy_client, buy_logger, buy_args, log_dir, resolution, FakeBook(),
+                                state=buy_state, state_path=log_dir / "buy_state.json")
         if not bought or "forget" not in buy_client.calls or pending_contracts(buy_state):
             raise ExecutorError("FAIL: demo-buy monitor did not reach terminal state and forget subscription")
+        _require_fields(
+            _last_event(buy_logger.path, "buy_confirmed"),
+            ["pair", "direction", "contract_type", "ask", "payout", "live_breakeven", "effective_floor",
+             "net_edge", "proposal_id", "contract_id", "buy_price", "expected_expiry_utc", "stake", "raw_hash"],
+            "buy_confirmed",
+        )
+        _require_fields(
+            _last_event(buy_logger.path, "contract_update"),
+            ["contract_id", "terminal", "pair", "direction", "contract_type", "effective_floor",
+             "live_breakeven", "net_edge"],
+            "contract_update",
+        )
+        _require_fields(
+            _last_event(buy_logger.path, "contract_closed"),
+            ["contract_id", "terminal_status", "pair", "contract_type"],
+            "contract_closed",
+        )
 
+        # Reconciliation fail-closed + reconcile_failed event.
         unresolved = empty_state()
         record_open_contract(
             unresolved,
@@ -886,13 +1364,17 @@ def run_fake_client_smoke() -> None:
             pass
         else:
             raise ExecutorError("FAIL: unresolved local state did not fail closed")
+        _require_fields(_last_event(logger.path, "reconcile_failed"), ["reason", "unresolved"], "reconcile_failed")
 
-        with ExecutorLock(log_dir, "demo-account"):
+        # Lock contention fails closed and logs lock_acquire_failed.
+        with ExecutorLock(log_dir, "demo-account", logger):
             try:
-                with ExecutorLock(log_dir, "demo-account"):
+                with ExecutorLock(log_dir, "demo-account", logger):
                     raise ExecutorError("FAIL: second executor lock unexpectedly acquired")
             except ExecutorError:
                 pass
+        _require_fields(_last_event(logger.path, "lock_acquire_failed"), ["reason", "path"], "lock_acquire_failed")
+
         try:
             resolve_pairs("EURUSD")
         except ExecutorError as exc:
@@ -900,7 +1382,11 @@ def run_fake_client_smoke() -> None:
                 raise
         else:
             raise ExecutorError("FAIL: EURUSD did not fail closed")
-    print("PASS: fake-client smoke covered payloads, candle conversion, no-buy, monitor, reconciliation, lock, EURUSD fail-closed")
+    print(
+        "PASS: fake-client smoke covered payloads, candle conversion, resolver table + cov1 fixtures + "
+        "rule-4 recompute, payout gate fail-closed paths, selected-side floors, snapshots, no-buy, "
+        "monitor context, reconciliation, lock, EURUSD fail-closed"
+    )
 
 
 if __name__ == "__main__":

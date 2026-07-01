@@ -58,6 +58,8 @@ class LoadedBook:
     boosters: list[lgb.Booster]
     conf_thr: float
     content_id: str
+    coverage: float | None = None
+    coverage_source: str | None = None
 
     def score(self, feature_row: pd.Series | dict[str, Any]) -> BookScore:
         row = pd.Series(feature_row, dtype="float64")
@@ -133,7 +135,9 @@ def load_book(pair: str, book_id: str) -> LoadedBook:
     counts = {b.num_feature() for b in boosters}
     if counts != {len(feature_cols)}:
         raise BookRuntimeError(f"{book_id}: model feature counts {sorted(counts)} != strategy columns {len(feature_cols)}")
-    conf_thr = _conf_thr(strategy)
+    metrics = index[book_id].get("metrics")
+    coverage, coverage_source = _resolve_coverage(book_id, strategy, metrics if isinstance(metrics, dict) else {})
+    conf_thr = _conf_thr(strategy, coverage)
     return LoadedBook(
         pair=pair,
         book_id=book_id,
@@ -145,7 +149,40 @@ def load_book(pair: str, book_id: str) -> LoadedBook:
         boosters=boosters,
         conf_thr=conf_thr,
         content_id=_content_id([strategy_files[0], *model_paths]),
+        coverage=coverage,
+        coverage_source=coverage_source,
     )
+
+
+def _resolve_coverage(
+    book_id: str,
+    strategy: dict[str, Any],
+    index_metrics: dict[str, Any],
+) -> tuple[float | None, str | None]:
+    """Resolve the deploy coverage for a book, cross-checking strategy vs registry.
+
+    Frozen strategy JSONs must not be edited (that changes content_id), so registry
+    deploy coverage lives in books/INDEX.json metrics (deploy_cov preferred, cov
+    fallback). When both the strategy and the registry state a coverage they must
+    agree exactly; a mismatch fails closed.
+    """
+    idx_cov = _first_number(index_metrics, ("deploy_cov", "cov"))
+    strat_cov = _first_number(strategy, ("coverage", "cov"))
+    strat_src = "strategy"
+    for block_name in ("gate", "deploy"):
+        block = strategy.get(block_name)
+        if strat_cov is None and isinstance(block, dict):
+            strat_cov = _first_number(block, ("coverage", "cov"))
+            strat_src = f"strategy.{block_name}"
+    if idx_cov is not None and strat_cov is not None and abs(idx_cov - strat_cov) > 1e-12:
+        raise BookRuntimeError(
+            f"{book_id}: coverage mismatch: books/INDEX.json {idx_cov} != {strat_src} {strat_cov}"
+        )
+    if strat_cov is not None:
+        return float(strat_cov), strat_src
+    if idx_cov is not None:
+        return float(idx_cov), "books/INDEX.json metrics"
+    return None, None
 
 
 def _feature_cols(pair: str, strategy: dict[str, Any], boosters: list[lgb.Booster]) -> list[str]:
@@ -161,25 +198,27 @@ def _feature_cols(pair: str, strategy: dict[str, Any], boosters: list[lgb.Booste
     raise BookRuntimeError(f"cannot derive feature columns for {strategy.get('pair', pair)}: n_features={n_features}, model_counts={counts}")
 
 
-def _conf_thr(strategy: dict[str, Any]) -> float:
+def _conf_thr(strategy: dict[str, Any], coverage: float | None = None) -> float:
     val = _first_number(strategy, ("conf_thr", "confidence_threshold", "threshold", "thr"))
     gate = strategy.get("gate")
     if val is None and isinstance(gate, dict):
         val = _first_number(gate, ("conf_thr", "confidence_threshold", "threshold", "thr"))
     gates = strategy.get("gates")
     if val is None and isinstance(gates, dict) and gates:
-        preferred = strategy.get("coverage") or strategy.get("cov")
-        deploy = strategy.get("deploy")
-        if preferred is None and isinstance(deploy, dict):
-            preferred = deploy.get("coverage") or deploy.get("cov")
-        gate_obj = None
-        for key in (str(preferred) if preferred is not None else None, "0.02"):
-            if key and key in gates:
-                gate_obj = gates[key]
-                break
-        if gate_obj is None:
-            numeric_keys = sorted((float(k), k) for k in gates if _looks_float(k))
-            gate_obj = gates[numeric_keys[0][1]] if numeric_keys else next(iter(gates.values()))
+        if coverage is not None:
+            # Resolved deploy coverage must select its exact gates entry; the old
+            # silent "0.02" fallback loaded cov2 thresholds for cov1 deploy books.
+            matches = [k for k in gates if _looks_float(k) and float(k) == float(coverage)]
+            if len(matches) != 1:
+                raise BookRuntimeError(
+                    f"no unique gates entry for deploy coverage {coverage}: keys={sorted(gates)}"
+                )
+            gate_obj = gates[matches[0]]
+        else:
+            gate_obj = gates.get("0.02")
+            if gate_obj is None:
+                numeric_keys = sorted((float(k), k) for k in gates if _looks_float(k))
+                gate_obj = gates[numeric_keys[0][1]] if numeric_keys else next(iter(gates.values()))
         if isinstance(gate_obj, dict):
             val = _first_number(gate_obj, ("conf_thr", "confidence_threshold", "threshold", "thr"))
         elif isinstance(gate_obj, (int, float)):
@@ -225,6 +264,8 @@ def book_inventory(pairs: list[str] | None = None) -> list[dict[str, Any]]:
                 "n_features": len(book.feature_cols),
                 "model_counts": [b.num_feature() for b in book.boosters],
                 "conf_thr": book.conf_thr,
+                "coverage": book.coverage,
+                "coverage_source": book.coverage_source,
                 "content_id": book.content_id,
             }
         )
