@@ -711,6 +711,7 @@
     "breakeven": 0.541,
     "cov": 0.02,
     "val_ny_auc": 0.5362,
+    "tick_haircut": -0.014,
     "frozen_forward": {
      "test24": {
       "COMBINED": {

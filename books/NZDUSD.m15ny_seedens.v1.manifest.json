@@ -16,6 +16,7 @@
     "breakeven": 0.541,
     "cov": 0.02,
     "val_ny_auc": 0.5362,
+    "ticksettle_mean_delta": -0.014,
     "frozen_forward": {
       "test24": {
         "COMBINED": {
@@ -160,6 +161,6 @@
     "note": "GBMs trained multithreaded without a seed -> NOT bit-for-bit retrainable; the persisted artifact is the only verbatim copy. Re-running the script yields a DIFFERENT model."
   },
   "depends_on": null,
-  "notes": "NY session = America/New_York 08-17 (DST-correct, sessions.py). cov2% gate frozen on VAL NY worst-half (best p10 OP for seed-ens: UP .5749, DOWN .5803). Two-sided via confidence selection. BOTH sides REFIT-DEPENDENT (frozen-2021 forward decays); deploy with periodic retrain, size on refit floor. Antipodean/AUDUSD cousin pooling not yet tested \u2014 may further lift if Antipodean bloc adds beyond own-pair.",
+  "notes": "NY session = America/New_York 08-17 (DST-correct, sessions.py). cov2% gate frozen on VAL NY worst-half (best p10 OP for seed-ens: UP .5749, DOWN .5803). Two-sided via confidence selection. BOTH sides REFIT-DEPENDENT (frozen-2021 forward decays); deploy with periodic retrain, size on refit floor. Antipodean/AUDUSD cousin pooling not yet tested \u2014 may further lift if Antipodean bloc adds beyond own-pair. Tick-settlement validated 2026-07-01: nzdusd_15m_ticksettle_result.json (bar proxy PRESERVED, mean -0.014; worst year 2025 -0.0206; largest validated 15m FX delta on record).",
   "created_utc": "2026-06-11"
 }

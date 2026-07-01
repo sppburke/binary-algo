@@ -1,0 +1,208 @@
+{
+  "book": "NZDUSD.m15ny_seedens.v1",
+  "thr": 0.0835073173947228,
+  "breakeven": 0.541,
+  "settlement": "TRUE TICK wc_ret: entry=first tick>=barclose+1s, exit=last tick<=entry+900s, mid-to-mid, ties LOSE",
+  "purpose": "validate the certified book's frozen-forward win-rate under deriv-faithful tick settlement vs bar-close; mean_tick_minus_bar_COMB = the pair's direct settlement haircut (issue #3 payout gate)",
+  "falsifier": {
+    "registered_utc": "pre-OOS",
+    "KILL_if": "|mean(tick_wr - bar_close_wr) COMBINED across held-out years| >= 0.02 (sibling rule: bar-close proxy biased at 15m -> edge NOT deriv-faithful)",
+    "rationale": "mirror of usdjpy/audusd/gbpusd 15m ticksettle: settlement mechanics gate, not an edge claim"
+  },
+  "years": {
+    "test24": {
+      "n_trades": 402,
+      "n_tick_valid": 347,
+      "tick_valid_frac": 0.8632,
+      "bar_close_wr": {
+        "COMBINED": {
+          "n": 347,
+          "wr": 0.5994,
+          "ci": [
+            0.5476,
+            0.6484
+          ]
+        },
+        "UP": {
+          "n": 218,
+          "wr": 0.5413,
+          "ci": [
+            0.4771,
+            0.6055
+          ]
+        },
+        "DOWN": {
+          "n": 129,
+          "wr": 0.6977,
+          "ci": [
+            0.6202,
+            0.7752
+          ]
+        }
+      },
+      "tick_wr": {
+        "COMBINED": {
+          "n": 347,
+          "wr": 0.585,
+          "ci": [
+            0.5331,
+            0.634
+          ]
+        },
+        "UP": {
+          "n": 218,
+          "wr": 0.5413,
+          "ci": [
+            0.4771,
+            0.6055
+          ]
+        },
+        "DOWN": {
+          "n": 129,
+          "wr": 0.6589,
+          "ci": [
+            0.5736,
+            0.7364
+          ]
+        }
+      },
+      "tie_rate_tick": 0.01,
+      "invalid_breakdown": {
+        "entry_bad": 0.0647,
+        "exit_bad": 0.0721,
+        "no_file": 0.0
+      }
+    },
+    "test25": {
+      "n_trades": 525,
+      "n_tick_valid": 485,
+      "tick_valid_frac": 0.9238,
+      "bar_close_wr": {
+        "COMBINED": {
+          "n": 485,
+          "wr": 0.5876,
+          "ci": [
+            0.5423,
+            0.6309
+          ]
+        },
+        "UP": {
+          "n": 266,
+          "wr": 0.5489,
+          "ci": [
+            0.4925,
+            0.609
+          ]
+        },
+        "DOWN": {
+          "n": 219,
+          "wr": 0.6347,
+          "ci": [
+            0.5708,
+            0.6986
+          ]
+        }
+      },
+      "tick_wr": {
+        "COMBINED": {
+          "n": 485,
+          "wr": 0.567,
+          "ci": [
+            0.5237,
+            0.6103
+          ]
+        },
+        "UP": {
+          "n": 266,
+          "wr": 0.5226,
+          "ci": [
+            0.4624,
+            0.5827
+          ]
+        },
+        "DOWN": {
+          "n": 219,
+          "wr": 0.621,
+          "ci": [
+            0.5571,
+            0.6849
+          ]
+        }
+      },
+      "tie_rate_tick": 0.0,
+      "invalid_breakdown": {
+        "entry_bad": 0.0533,
+        "exit_bad": 0.0229,
+        "no_file": 0.0
+      }
+    },
+    "oos": {
+      "n_trades": 283,
+      "n_tick_valid": 282,
+      "tick_valid_frac": 0.9965,
+      "bar_close_wr": {
+        "COMBINED": {
+          "n": 282,
+          "wr": 0.5213,
+          "ci": [
+            0.4645,
+            0.578
+          ]
+        },
+        "UP": {
+          "n": 141,
+          "wr": 0.4965,
+          "ci": [
+            0.4184,
+            0.5745
+          ]
+        },
+        "DOWN": {
+          "n": 141,
+          "wr": 0.5461,
+          "ci": [
+            0.4681,
+            0.6241
+          ]
+        }
+      },
+      "tick_wr": {
+        "COMBINED": {
+          "n": 282,
+          "wr": 0.5142,
+          "ci": [
+            0.4574,
+            0.5745
+          ]
+        },
+        "UP": {
+          "n": 141,
+          "wr": 0.4894,
+          "ci": [
+            0.4112,
+            0.5674
+          ]
+        },
+        "DOWN": {
+          "n": 141,
+          "wr": 0.539,
+          "ci": [
+            0.4539,
+            0.6241
+          ]
+        }
+      },
+      "tie_rate_tick": 0.0071,
+      "invalid_breakdown": {
+        "entry_bad": 0.0,
+        "exit_bad": 0.0035,
+        "no_file": 0.0
+      }
+    }
+  },
+  "mean_tick_minus_bar_COMB": -0.014,
+  "verdict": {
+    "tick_settlement_preserves_edge": true,
+    "note": "Tick settlement reproduces the bar-close win-rate within ~2pp -> the certified 15m edge is deriv-faithful, NOT a bar-shift artifact."
+  }
+}

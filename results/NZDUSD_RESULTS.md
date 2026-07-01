@@ -147,6 +147,8 @@ Result JSON: `nzdusd_15m_cpcv_session_ny_seedens3_result.json`
 - Seed-ens mean lifts both sides at cov3%/cov2%/cov1% → SUPERSEDE is clean.
 - **Incumbent book: `NZDUSD.m15ny_seedens.v1`** (pending freeze via `nzdusd_15m_freeze_ny.py`).
 
+**★ True-tick-settlement validation (integrity gate, 2026-07-01) — `nzdusd_15m_ticksettle.py`:** re-settled the frozen book's confident NY cov2% trades on raw NZDUSD ticks (`/home/sean/git/raw/NZDUSD/`; entry = first tick ≥ bar-close+1s, exit = last tick ≤ entry+900s, mid-to-mid, ties LOSE). Same-subset bar-WR → tick-WR: 2024 .5994→.5850 (n347, valid .863), 2025 .5876→.5670 (n485, valid .924), 2026 .5213→.5142 (n282, valid .996); **mean(tick−bar) = −0.0140 → PRESERVED** (pre-registered falsifier |Δ|<0.02; worst year 2025 −.0206). Deploy settlement haircut = **0.0140 abs** — the largest validated 15m FX delta on record (vs GBPUSD −.0078, USDJPY −.0036, AUDUSD −.0035), ~1.8× the cross-pair max-of-means fallback issue #3 had provisioned, which is why the direct run was required. The certified ~.57–.58 NY win-rate is real on traded prices, NOT a bar-shift artifact; bar-close proxy usable at 15m but NZDUSD-specific slippage is ~2× GBPUSD's. `results/json/nzdusd_15m_ticksettle_result.json`.
+
 ---
 
 ## A9 — Session CPCV (Asia) — ❌ KILLED (completeness check)
