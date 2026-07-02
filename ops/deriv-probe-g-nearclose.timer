@@ -1,0 +1,15 @@
+[Unit]
+Description=Fire the Deriv probe g near-close capture at 16:19 NY on weekdays (issue #4)
+
+[Timer]
+# 16:19 NY, just before probe g's 16:20 NY window opens. The TZ suffix is
+# load-bearing: the host runs on America/Chicago, so a bare "16:19" would fire
+# an hour late (17:19 NY, past the window). Recurs each weekday until the
+# capture self-disables the timer (service ExecStartPost). Persistent=false so a
+# missed run does NOT fire at an arbitrary boot time outside the NY window.
+OnCalendar=Mon-Fri 16:19 America/New_York
+Persistent=false
+Unit=deriv-probe-g-nearclose.service
+
+[Install]
+WantedBy=timers.target

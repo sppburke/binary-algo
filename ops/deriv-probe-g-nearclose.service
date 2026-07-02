@@ -1,0 +1,21 @@
+[Unit]
+Description=binary-algo Deriv probe g near-close capture (issue #4 Phase-0; pins the last-start cutoff)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/sean/git/binary-algo
+# Public Deriv endpoints only — no credentials, so no EnvironmentFile. Samples
+# from --near-close-start 16:20 NY through 17:01 NY to bracket the
+# accepted->rejected transition; writes gitignored logs/ (keeps the tree clean).
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --near-close-start 16:20 --out logs/probe_g_scheduled_capture.json
+# Self-stop once a clean transition is captured (both accepted AND rejected
+# proposals seen) so it does not re-run every weekday forever. A non-clean run
+# (holiday/closed market) leaves the timer enabled to retry the next weekday.
+ExecStartPost=/bin/bash -c 'if /home/sean/binary-algo-venv/bin/python -c "import json,sys; g=json.load(open(\"logs/probe_g_scheduled_capture.json\"))[\"runs\"][\"g_near_close\"].get(\"observations\",{}); sys.exit(0 if g.get(\"n_accepted\",0)>0 and g.get(\"n_rejected\",0)>0 else 1)"; then systemctl --user disable --now deriv-probe-g-nearclose.timer; fi'
+# The probe runs ~41 min (16:20 -> 17:01 NY); allow the full window.
+TimeoutStartSec=3600
+Nice=5
+
+# No [Install]: timer-activated only (see deriv-probe-g-nearclose.timer).
