@@ -21,7 +21,7 @@ can be added later on the VPS without clobbering the unattended probes.
 
 Run from repo root:
     ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py                # a,b,c,d,e,f,i
-    ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g    # 16:35-17:05 NY only
+    ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --near-close-start 16:20   # NY window only
     ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes h --baseline-store-dir deriv_data/candles_1m
 """
 
@@ -521,13 +521,19 @@ def probe_f(args: argparse.Namespace) -> dict[str, Any]:
 def probe_g(args: argparse.Namespace) -> dict[str, Any]:
     now = ny_now()
     hour = now.hour + now.minute / 60.0
-    # Entry must be BEFORE 17:00 so at least one pre-close attempt exists; a
-    # verdict backed by zero attempts must never read as measured.
-    if not (16 + 35 / 60 <= hour < 17.0):
+    sh, sm = (int(x) for x in args.near_close_start.split(":"))
+    start_hour = sh + sm / 60.0
+    # Start BEFORE the blackout onset so the accepted->rejected transition is
+    # bracketed. The 2026-07-02 g run showed 15m USDJPY already blocked from
+    # ~16:43 NY (expiry lands inside Deriv's 16:50-18:00 NY rollover blackout),
+    # so the true last-start (~16:35) is only observable if sampling begins
+    # earlier — hence the configurable start (default 16:20, was a hardcoded
+    # 16:35 that could never see an accepted proposal).
+    if not (start_hour <= hour < 17.0):
         return {
             "status": "pending",
-            "reason": f"near-close window is 16:35-16:59 NY; now {now.strftime('%H:%M:%S')} NY",
-            "rerun": "~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --out results/json/deriv_api_probe_result.json",
+            "reason": f"near-close window is {args.near_close_start}-16:59 NY; now {now.strftime('%H:%M:%S')} NY",
+            "rerun": f"~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --near-close-start {args.near_close_start} --out results/json/deriv_api_probe_result.json",
         }
     sym = SYMBOLS["USDJPY"]
     attempts: list[dict[str, Any]] = []
@@ -544,11 +550,20 @@ def probe_g(args: argparse.Namespace) -> dict[str, Any]:
             time.sleep(30.0)
     if not attempts:
         return {"status": "pending", "reason": "no proposal attempts completed before 17:01 NY; rerun earlier in the window"}
+    accepted = [a for a in attempts if a["ok"]]
     rejected = [a for a in attempts if not a["ok"]]
-    verdict = (
-        f"first rejection at {rejected[0]['ny_time']} NY" if rejected else "no rejection observed through 17:00 NY; 16:44:59 default stands (model-consistency rule)"
-    )
-    return {"status": "done", "observations": {"symbol": sym, "attempts": attempts, "cutoff_verdict": verdict}}
+    if accepted and rejected:
+        # the boundary we actually want: last start Deriv accepted, first it refused
+        verdict = f"last accepted start {accepted[-1]['ny_time']} NY; first rejection {rejected[0]['ny_time']} NY"
+    elif rejected:
+        # every attempt refused: the window began too late to see the edge —
+        # an honest null, NOT a measured cutoff (the 2026-07-02 failure mode)
+        verdict = (f"all {len(rejected)} attempts rejected from {rejected[0]['ny_time']} NY — window entirely inside "
+                   f"the trading blackout; rerun with --near-close-start earlier than {args.near_close_start}")
+    else:
+        verdict = f"no rejection through {attempts[-1]['ny_time']} NY; 16:44:59 default stands (model-consistency rule)"
+    return {"status": "done", "observations": {"symbol": sym, "attempts": attempts,
+            "n_accepted": len(accepted), "n_rejected": len(rejected), "cutoff_verdict": verdict}}
 
 
 # ---------------------------------------------------------------- probe h
@@ -693,6 +708,9 @@ def main() -> int:
     p.add_argument("--soak-cadence", type=float, default=5.0)
     p.add_argument("--latency-minutes", type=int, default=4, help="probe i minute boundaries to sample")
     p.add_argument("--baseline-store-dir", default=None, help="probe h: store dir for the timed one-shot")
+    p.add_argument("--near-close-start", default="16:20",
+                   help="probe g: NY HH:MM to begin sampling (default 16:20; the 2026-07-02 run showed the true "
+                        "last-start is ~16:35, so start earlier to bracket the accepted->rejected transition)")
     args = p.parse_args()
 
     requested = [s.strip() for s in args.probes.split(",") if s.strip()]
