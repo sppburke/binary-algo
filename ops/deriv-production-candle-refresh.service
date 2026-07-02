@@ -1,0 +1,21 @@
+[Unit]
+Description=binary-algo Deriv production candle-store refresh (sole writer of deriv_data/candles_1m; issue #5)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
+WorkingDirectory=/home/sean/git/binary-algo
+# No books, no features, no scoring, no proposals — structural:
+# deriv_backfill.py imports only deriv_client + pandas. --prune-shards keeps
+# the page-shard dir bounded; --reset-stale-progress discards a killed run's
+# backward cursor so one stale cycle never becomes two.
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_backfill.py backfill --pairs all --out-dir ${DERIV_DEMO_STORE_DIR} --max-pages 2 --prune-shards --reset-stale-progress
+# 2.5x the <60s wall-time criterion: a hung run dies inside one 180s cycle,
+# keeping the 540s single-failure staleness bound valid for every kill mode
+# (health contract: --max-stale-seconds 600).
+TimeoutStartSec=150
+Nice=5
+
+# No [Install]: timer-activated only (see deriv-production-candle-refresh.timer).

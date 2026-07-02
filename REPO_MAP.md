@@ -29,6 +29,7 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `docs/CORRECTNESS_AUDIT.md` | Record-of-truth for evaluation integrity: FM-A…FM-G failure-mode taxonomy, repo-wide audit verdict (FM-F look-forward bug isolated to Kronos), the 4 clean-substrate proofs, flagged-scripts table + remediation. |
 | `docs/DERIV_MAGNITUDE_MONETIZATION.md` | **Venue/platform** (currency-agnostic): how/whether the magnitude edge monetizes on Deriv. Tier-1 FX contract catalog (`docs/deriv_frxEURUSD_contracts_for.json`), per-product fit+adversarial verdict, house-edge analysis, API integration. Verdict: FX touch/range are daily-only, exotics synthetic-only → only live fork is a 1-day FX model. |
 | `docs/SYNTHETIC_RNG_FINDINGS.md` + `scripts/syn_collect.py`/`syn_rng_audit.py`/`syn_spike_audit.py` (+ `syn_data/`) | **Venue/platform**: empirical RNG/predictability audit of Deriv synthetic indices. Verdict NULL — vol indices IID-Gaussian (no vol clustering, magnitude edge does not transfer; NIST 6/6), engineered-index spike timing memoryless. Don't re-chase. |
+| `ops/` | **Deployment templates** (systemd user units + logrotate) for the Deriv demo runtime: market stream, runtime supervisor, production candle-refresh timer + quote-audit sampler (issue #5; old executor units retained deprecated). Placeholder-only — secrets/env live outside git; deploy + cutover runbook in `docs/DERIV_DEMO_EXECUTOR.md`. |
 
 ## TIER 2 — KEY-SPECIFIC (named/labeled by the key — ALL incumbents, numbers, results, backlogs live here)
 

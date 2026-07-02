@@ -1,5 +1,11 @@
+# DEPRECATED (issue #5, 2026-07-02): superseded by
+# deriv-production-candle-refresh.timer (store freshness) +
+# deriv-quote-audit.service (quote_snapshot rows). Retained disabled per the
+# docs/DERIV_DEMO_EXECUTOR.md cutover runbook. Do NOT run alongside the
+# refresh timer: both write the same deriv_data/candles_1m/{pair}.parquet.tmp
+# paths — concurrent backfills corrupt the store.
 [Unit]
-Description=binary-algo Deriv demo executor
+Description=binary-algo Deriv demo executor (DEPRECATED — see issue #5)
 After=network-online.target
 Wants=network-online.target
 

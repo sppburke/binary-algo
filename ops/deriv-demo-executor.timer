@@ -1,5 +1,8 @@
+# DEPRECATED (issue #5, 2026-07-02): superseded by
+# deriv-production-candle-refresh.timer + deriv-quote-audit.service.
+# Retained disabled per the docs/DERIV_DEMO_EXECUTOR.md cutover runbook.
 [Unit]
-Description=Run binary-algo Deriv demo executor each minute
+Description=Run binary-algo Deriv demo executor each minute (DEPRECATED — see issue #5)
 
 [Timer]
 OnBootSec=90

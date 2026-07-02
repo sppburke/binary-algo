@@ -7,7 +7,7 @@
     copytruncate
 }
 
-/home/sean/git/binary-algo/logs/paper_trades/market_stream/*.jsonl /home/sean/git/binary-algo/logs/paper_trades/supervisor/*.jsonl /home/sean/git/binary-algo/logs/deriv_market_stream/*.jsonl /home/sean/git/binary-algo/logs/deriv_hot_daemon/*.jsonl /home/sean/git/binary-algo/logs/deriv_supervisor/*.jsonl {
+/home/sean/git/binary-algo/logs/paper_trades/market_stream/*.jsonl /home/sean/git/binary-algo/logs/paper_trades/supervisor/*.jsonl /home/sean/git/binary-algo/logs/paper_trades/quote_audit/*.jsonl /home/sean/git/binary-algo/logs/deriv_market_stream/*.jsonl /home/sean/git/binary-algo/logs/deriv_hot_daemon/*.jsonl /home/sean/git/binary-algo/logs/deriv_supervisor/*.jsonl /home/sean/git/binary-algo/logs/quote_audit/*.jsonl {
     daily
     rotate 14
     missingok

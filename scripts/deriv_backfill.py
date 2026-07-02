@@ -238,11 +238,17 @@ def write_page_shard(out_dir: Path, pair: str, pages: int, frame: pd.DataFrame) 
     return path
 
 
-def load_page_shards(out_dir: Path, pair: str) -> pd.DataFrame:
+def list_page_shards(out_dir: Path, pair: str) -> list[Path]:
     page_dir = pair_page_dir(out_dir, pair)
     if not page_dir.exists():
-        return pd.DataFrame()
-    frames = [pd.read_parquet(path) for path in sorted(page_dir.glob("*.parquet"))]
+        return []
+    return sorted(page_dir.glob("*.parquet"))
+
+
+def load_page_shards(out_dir: Path, pair: str, paths: list[Path] | None = None) -> pd.DataFrame:
+    if paths is None:
+        paths = list_page_shards(out_dir, pair)
+    frames = [pd.read_parquet(path) for path in paths]
     if not frames:
         return pd.DataFrame()
     combined = pd.concat(frames, axis=0)
@@ -265,6 +271,8 @@ def backfill_pair(
     timeout: float,
     replace: bool,
     include_open_candle: bool,
+    prune_shards: bool = False,
+    reset_stale_progress: bool = False,
 ) -> dict[str, Any]:
     symbol = PAIR_TO_SYMBOL[pair]
     url = ENDPOINTS[endpoint]
@@ -273,6 +281,12 @@ def backfill_pair(
         reset_pair_artifacts(out_dir, pair)
 
     progress = load_progress(out_dir, pair)
+    if reset_stale_progress and progress and progress.get("status") == "running":
+        # a crashed/killed prior run left status='running'; resuming its
+        # BACKWARD cursor would fetch history instead of fresh candles,
+        # turning one stale cycle into two (refresh-timer mode)
+        print(f"stale_progress_reset pair={pair} discarded_next_end={progress.get('next_end')}")
+        progress = None
     if progress and progress.get("status") == "running":
         pages = int(progress.get("pages_requested", 0))
         rows_seen = int(progress.get("rows_seen_before_dedupe", 0))
@@ -365,13 +379,22 @@ def backfill_pair(
                 time.sleep(sleep_s)
 
     pair_path = out_dir / f"{pair}.parquet"
-    shard_frame = load_page_shards(out_dir, pair)
+    shard_paths = list_page_shards(out_dir, pair)
+    shard_frame = load_page_shards(out_dir, pair, shard_paths)
+    shards_pruned = 0
     if not shard_frame.empty:
         combined = shard_frame
         combined = merge_existing(pair_path, combined, replace=replace)
         tmp_path = pair_path.with_suffix(".parquet.tmp")
         combined.to_parquet(tmp_path, index=True)
         tmp_path.replace(pair_path)
+        if prune_shards:
+            # safe by construction: merge_existing deduped every shard row
+            # into the parquet BEFORE the atomic rename above; delete exactly
+            # the shards that were merged (not a fresh glob)
+            for shard in shard_paths:
+                shard.unlink(missing_ok=True)
+            shards_pruned = len(shard_paths)
     elif pair_path.exists() and not replace:
         combined = pd.read_parquet(pair_path)
         if "timestamp" in combined.columns:
@@ -416,6 +439,7 @@ def backfill_pair(
         "page_shards": str(pair_page_dir(out_dir, pair).relative_to(REPO_ROOT)),
         "include_open_candle": bool(include_open_candle),
         "next_end": next_end_cursor,
+        "shards_pruned": shards_pruned,
     }
     write_metadata(out_dir=out_dir, pair=pair, metadata=metadata)
     write_progress(
@@ -585,6 +609,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-stale-seconds", type=int, default=180)
     p.add_argument("--replace", action="store_true", help="replace pair parquet instead of merging with existing rows")
     p.add_argument("--include-open-candle", action="store_true", help="keep Deriv's current incomplete candle if returned")
+    p.add_argument("--prune-shards", action="store_true",
+                   help="after a successful merge, delete the page shards that were merged (refresh-timer mode; "
+                        "without it the shard dir grows unboundedly and every run re-reads all of it)")
+    p.add_argument("--reset-stale-progress", action="store_true",
+                   help="if a prior run died mid-page (progress status 'running'), start from latest instead of "
+                        "resuming its backward cursor (refresh-timer mode)")
     return p
 
 
@@ -619,6 +649,8 @@ def main(argv: list[str] | None = None) -> int:
             timeout=args.timeout,
             replace=args.replace,
             include_open_candle=args.include_open_candle,
+            prune_shards=args.prune_shards,
+            reset_stale_progress=args.reset_stale_progress,
         )
         rows.append(meta)
         print(

@@ -1,6 +1,6 @@
 {
   "ci": "min1_production.boot nb=5000 CI95 on the de-overlapped win vector, per (pair, side)",
-  "enable_bar": "CI95-lower > max(0.541, median observed live_breakeven for the (pair, side) from the production executor's quote_snapshot events over >= 3 NY sessions); sparse quote coverage DEFERS the lane",
+  "enable_bar": "CI95-lower > max(0.541, quote median bar for the (pair, side)); quote median bar = the MAXIMUM of per-source medians of live_breakeven over quote_snapshot rows, where source is distinguished by the `source` field (absent \u21d2 production executor; 'quote_audit' \u21d2 the deriv_quote_workers --audit sampler) and a source is admitted for a lane only with >= 3 NY sessions of coverage for that lane; where both sources are admitted the per-lane median deltas are recorded in the audit result; no admitted source \u21d2 sparse quote coverage DEFERS the lane. The audit-run median loader must glob rotated files too (`quote_audit/*.jsonl*` including `.1`/`.gz`; rows carry timestamp_utc \u2014 filenames are not authoritative).",
   "failure": "lane stays no-buy permanently absent new evidence",
   "falsifier": "issue#4 Phase 5 shifted-offset audit \u2014 pre-registered before any outcome data is examined",
   "haircuts": "no wall-clock haircut applied anywhere in this lane",
@@ -21,7 +21,7 @@
   ],
   "outcomes_examined_at_registration": false,
   "per_offset_breakdowns": "diagnostic only \u2014 never per-offset enablement",
-  "registered_utc": "2026-07-02T17:03:56+00:00",
+  "registered_utc": "2026-07-02T19:26:28+00:00",
   "scope_v1": "own-pair books only; xpair batch join resolved in the strategy-eval run",
   "session": "NY 08:00-17:00 America/New_York DST-correct; last buy start 16:44:59 NY",
   "settlement": "entry = first tick >= signal_close + 1s (tol 30s, else invalid); exit = last tick <= entry + 900s (exit must lie within 30s of entry+900s, else invalid \u2014 fail-closed both ends); mid-to-mid; ties LOSE",

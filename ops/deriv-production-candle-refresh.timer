@@ -1,0 +1,14 @@
+[Unit]
+Description=Refresh the Deriv production candle store every 180s (issue #5)
+
+[Timer]
+# Starting this timer on a long-booted VPS fires an IMMEDIATE first run
+# (OnBootSec already past) — safe only after the old executor timer is fully
+# stopped (cutover runbook step 3: both write the same {pair}.parquet.tmp).
+OnBootSec=90
+OnUnitActiveSec=180
+AccuracySec=30
+Unit=deriv-production-candle-refresh.service
+
+[Install]
+WantedBy=timers.target

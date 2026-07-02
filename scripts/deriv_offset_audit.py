@@ -13,10 +13,14 @@ Settlement is deriv-faithful, computed directly from ticks per offset:
 entry = first tick >= signal_close + 1s, exit = last tick <= entry + 900s,
 mid-to-mid, ties LOSE. No wall-clock haircut is applied anywhere in this
 lane. CI95 via `min1_production.boot` on the de-overlapped win vector,
-per (pair, side); enable bar = CI95-lower > max(0.541, median observed
-live_breakeven for that (pair, side) from the production executor's
-quote_snapshot logs — sparse coverage DEFERS the lane). Per-offset
-breakdowns are diagnostic only — never per-offset enablement.
+per (pair, side); enable bar = CI95-lower > max(0.541, quote median bar),
+where the quote median bar is the MAXIMUM of per-source medians of
+live_breakeven over quote_snapshot rows (executor rows carry no `source`
+field; the deriv_quote_workers --audit sampler stamps `quote_audit`), each
+source admitted only with >= 3 NY sessions of lane coverage — no admitted
+source DEFERS the lane (see the FALSIFIER constant, amended pre-outcome
+per issue #5). Per-offset breakdowns are diagnostic only — never
+per-offset enablement.
 
 Feature substrate: shifted 60s bars (deriv_market_stream.shifted_bar) at
 offset k, translated to the wall grid (index = close - k) so
@@ -84,9 +88,20 @@ FALSIFIER = {
     "haircuts": "no wall-clock haircut applied anywhere in this lane",
     "n_min_deoverlapped_per_pair_side": N_MIN,
     "ci": "min1_production.boot nb=5000 CI95 on the de-overlapped win vector, per (pair, side)",
+    # Amended pre-outcome 2026-07-02 (issue #5): the old executor timer is
+    # replaced by the deriv_quote_workers --audit sampler as the quote_snapshot
+    # source. Substantive amendment (evidence-source change), legitimate solely
+    # because no outcome has been examined; written fail-closed (MAX rule —
+    # a lower median would WEAKEN the bar that gates real demo buys).
     "enable_bar": (
-        "CI95-lower > max(0.541, median observed live_breakeven for the (pair, side) from the production "
-        "executor's quote_snapshot events over >= 3 NY sessions); sparse quote coverage DEFERS the lane"
+        "CI95-lower > max(0.541, quote median bar for the (pair, side)); quote median bar = the MAXIMUM of "
+        "per-source medians of live_breakeven over quote_snapshot rows, where source is distinguished by the "
+        "`source` field (absent ⇒ production executor; 'quote_audit' ⇒ the deriv_quote_workers --audit "
+        "sampler) and a source is admitted for a lane only with >= 3 NY sessions of coverage for that lane; "
+        "where both sources are admitted the per-lane median deltas are recorded in the audit result; no "
+        "admitted source ⇒ sparse quote coverage DEFERS the lane. The audit-run median loader must glob "
+        "rotated files too (`quote_audit/*.jsonl*` including `.1`/`.gz`; rows carry timestamp_utc — "
+        "filenames are not authoritative)."
     ),
     "per_offset_breakdowns": "diagnostic only — never per-offset enablement",
     "failure": "lane stays no-buy permanently absent new evidence",

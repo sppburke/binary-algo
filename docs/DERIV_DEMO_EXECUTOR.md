@@ -32,6 +32,8 @@ buy only when    effective_floor > live_breakeven
 
 Default mode (`--quote-snapshots all`) snapshots **both CALL and PUT quotes for every enabled pair each cycle** for observability, logged as `quote_snapshot` events; snapshots are never reused for buys — any buy uses a fresh selected-side proposal. `--quote-snapshots off` is the reduced-cadence override so the one-minute timer cannot create uncontrolled proposal traffic.
 
+**Since the issue-#5 cutover the standing `quote_snapshot` source is `scripts/deriv_quote_workers.py --audit`** (`ops/deriv-quote-audit.service`): a buy-incapable sampler that logs one row per (pair, side) lane every 30s under `${DERIV_DEMO_LOG_DIR}/quote_audit/`. Sampler rows carry `source: "quote_audit"`; executor rows have no `source` field (absence ⇒ executor). The Phase-5 enable bar admits each source per lane only with ≥ 3 NY sessions of coverage and takes the MAXIMUM of per-source medians (fail-closed; see the amended falsifier in `scripts/deriv_offset_audit.py`). A lane with no quote emits `live_breakeven: null` + `invalid_reason` — nulls can never enter a median.
+
 Worst-case API call budget per ~60s cycle at all-enabled defaults: **12 snapshot proposals + up to 6 fresh buy-quote proposals + `proposal_open_contract` polling at `--monitor-interval-seconds` (default 2.0s) while a contract is open**. The budget is written to the `startup_config` event. The empirical answer to the rate-limit caveat below is in the Phase-0 probe findings: 432/432 requests succeeded at 3.6 req/s sustained (probe f); `call_deriv` retry/backoff handles transient errors but is not a rate-limit budget.
 
 ## Phase-0 API Probe Findings (issue #4)
@@ -143,14 +145,22 @@ Templates live under `ops/`:
 
 ```text
 ops/deriv-demo-executor.env.example
-ops/deriv-demo-executor.service
-ops/deriv-demo-executor.timer
+ops/deriv-demo-executor.service              (DEPRECATED — issue #5, retained disabled)
+ops/deriv-demo-executor.timer                (DEPRECATED — issue #5, retained disabled)
 ops/deriv-demo-logrotate
+ops/deriv-market-stream.service
+ops/deriv-runtime-supervisor.service
+ops/deriv-production-candle-refresh.service  (issue #5)
+ops/deriv-production-candle-refresh.timer    (issue #5)
+ops/deriv-quote-audit.service                (issue #5)
 ```
 
-Copy the env template outside git, fill only VPS-local secrets, then install the service/timer with paths adjusted if the checkout or venv differs. Stop with `systemctl --user stop deriv-demo-executor.timer deriv-demo-executor.service`. Emergency stop is `touch logs/paper_trades/KILL`.
+Copy the env template outside git, fill only VPS-local secrets, then install the units with paths adjusted if the checkout or venv differs. Emergency stop is `touch <log-dir>/KILL` (per log dir).
 
-The service defaults to proposal-only (`DERIV_DEMO_MODE_ARGS=--dry-run-proposal-only`); switch to `--demo-buy` only after a proposal-only VPS run has verified proposal payloads, the payout gate, haircut resolution, and structured logs. **Store refresh dependency:** the unit's `ExecStartPre` runs `scripts/deriv_backfill.py backfill --max-pages 2` before every executor run because the store health gate requires freshness within `--store-max-stale-seconds` (default 180s); without it, store health fails within ~3 minutes of the last manual backfill. If you remove `ExecStartPre`, an equivalent refresh unit/timer or a documented runbook refresh step is required.
+The old per-minute executor service/timer are **deprecated** (issue #5): `--dry-run-proposal-only` skips only the buy, so every 60s run still loaded books, built features, and scored (~69s wall, 1.2–1.4 G peak, operator-reported). Its two surviving support roles moved to purpose-built non-buying jobs:
+
+- **`deriv-production-candle-refresh.timer`** — oneshot `deriv_backfill.py backfill --max-pages 2 --prune-shards --reset-stale-progress` every 180s; sole writer of `deriv_data/candles_1m/`. `TimeoutStartSec=150` kills a hung run inside one cycle, so worst-case staleness is 330s steady-state / 540s after one failed-then-reset cycle — the production-store health contract is therefore `health --max-stale-seconds 600`.
+- **`deriv-quote-audit.service`** — long-running `deriv_quote_workers.py --audit`: 12 proposal-subscription lanes on the PUBLIC socket, one `quote_snapshot` row per lane every 30s, per-lane resubscribe recovery (`quote_resubscribe_*` events), stale-lock reap, `UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID` (the sampler never sees the credential that mints a demo client).
 
 Secrets, account IDs, JSONL logs, and `deriv_data/` artifacts must stay out of git.
 
@@ -171,7 +181,10 @@ import it (parity by construction). Modules:
   per-minute store snapshots + `--parity-replay` (KILL #0a: the deterministic
   tuple recomputed from archived snapshots must match 100%).
 - `deriv_quote_workers.py` — hot CALL/PUT quote state via proposal
-  subscriptions on the PUBLIC socket (buy-incapable by construction).
+  subscriptions on the PUBLIC socket (buy-incapable by construction; the
+  `--smoke` AST gate proves no buy-shaped node exists in the module).
+  `--audit` runs the standalone quote-audit sampler (issue #5). Gates:
+  `--smoke` (deterministic), `--probe-seconds 60` (live).
 - `deriv_runtime_supervisor.py` — the coordinator: sole buy-capable object,
   admit-token gate battery (session, 16:44:59 NY last-start cutoff,
   lane-scoped staleness, shifted-lane per-(pair,side) verdict enforcement,
@@ -183,12 +196,37 @@ import it (parity by construction). Modules:
 
 **Deploy order (VPS):** install `ops/deriv-market-stream.service` +
 `ops/deriv-runtime-supervisor.service`; start the market stream, wait for
-daemon-store health, then the supervisor (proposal-only). The old one-shot
-timer keeps sole ownership of the production store and keeps running through
-Phase 5 (it is also the `quote_snapshot` source for the audit enable bar);
-disable-but-retain it only at Phase-6 cutover. Buy exclusivity: before
-setting `DERIV_SUPERVISOR_MODE_ARGS=--demo-buy`, drop `--demo-buy` from
-`DERIV_DEMO_MODE_ARGS`. Emergency stop: `touch <log-dir>/KILL` (per log dir).
+daemon-store health, then the supervisor (proposal-only). Production-store
+freshness and `quote_snapshot` coverage are owned by the issue-#5 support
+jobs (`deriv-production-candle-refresh.timer` + `deriv-quote-audit.service`);
+the old executor timer is deprecated — cut over per the runbook below.
+Buy exclusivity: before setting `DERIV_SUPERVISOR_MODE_ARGS=--demo-buy`,
+drop `--demo-buy` from `DERIV_DEMO_MODE_ARGS`. Emergency stop:
+`touch <log-dir>/KILL` (per log dir).
+
+**Cutover runbook (issue #5; executed on the VPS by the operator/agent):**
+
+1. `git pull`; install the two new units + the updated logrotate config.
+2. **Enable + start** the sampler: `systemctl --user enable --now
+   deriv-quote-audit.service` (`Restart=` survives crashes, not reboots — an
+   unenabled sampler silently stops accruing ≥3-NY-session coverage at the
+   first reboot); verify 12-lane rows are flowing. Coexists with the old
+   timer; executor-era rows keep accruing coverage toward their own
+   ≥3-session admission — overlap length does not gate validity, the MAX
+   rule does.
+3. `systemctl --user disable --now deriv-demo-executor.timer` AND
+   `systemctl --user stop deriv-demo-executor.service`; **wait until
+   `systemctl --user is-active deriv-demo-executor.service` reports
+   inactive** — stopping the timer does not stop an in-flight ~69s run, and
+   a concurrent second backfill is corrupting, not just racy (both processes
+   write the same fixed `{pair}.parquet.tmp` paths).
+4. `systemctl --user enable --now deriv-production-candle-refresh.timer` —
+   fires an immediate first run (OnBootSec already past on a long-booted
+   VPS); safe only once step 3 is complete.
+5. Confirm the hot services are untouched, no scheduled
+   `deriv_demo_executor.py` remains (`systemctl --user list-timers`;
+   `pgrep -f deriv_demo_executor`), and `deriv_backfill.py health --out-dir
+   ${DERIV_DEMO_STORE_DIR} --max-stale-seconds 600` exits 0.
 **Parity re-check rule:** any change to the registry, a book,
 `live_features.py`, or `deriv_runtime_core.py` re-arms the 1-session KILL #0
 re-check before the next demo-buy session.

@@ -1,0 +1,25 @@
+[Unit]
+Description=binary-algo Deriv quote-audit sampler (12-lane quote_snapshot rows for the Phase-5 enable bar; issue #5)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
+WorkingDirectory=/home/sean/git/binary-algo
+# Buy-incapable by construction: PUBLIC socket only; deriv_quote_workers.py
+# contains no authorize, no buy payload, no PAT read (AST-gated in --smoke).
+# The credentials the sampler does not need are dropped outright (KILL #6
+# posture exceeded, not just met).
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_quote_workers.py --audit --log-dir ${DERIV_DEMO_LOG_DIR}/quote_audit --sample-seconds 30 --stake ${DERIV_DEMO_STAKE}
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGINT
+Nice=5
+
+# Restart= survives crashes, not reboots: the runbook enables this unit
+# (systemctl --user enable --now) so >=3-NY-session coverage keeps accruing
+# across a VPS reboot.
+[Install]
+WantedBy=default.target

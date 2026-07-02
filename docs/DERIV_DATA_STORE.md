@@ -61,9 +61,13 @@ two additional gitignored stores:
   (Phase-0 probe (i): completed candles are fetchable ~0.5s after the
   boundary). Same schema and open-candle-drop discipline as
   the production store (`candles_frame`/`merge_existing` from
-  `deriv_backfill.py`). **Store ownership:** the production one-shot timer
-  keeps sole write ownership of `deriv_data/candles_1m/`; the daemon lane
-  reads only its own store. A cross-store consistency report (last-30
+  `deriv_backfill.py`). **Store ownership:** sole write ownership of
+  `deriv_data/candles_1m/` belongs to
+  `ops/deriv-production-candle-refresh.timer` (issue #5; transferred from
+  the deprecated one-shot executor timer — the cutover runbook in
+  `docs/DERIV_DEMO_EXECUTOR.md` serializes the handover because both write
+  the same `{pair}.parquet.tmp` paths); the daemon lane reads only its own
+  store. A cross-store consistency report (last-30
   completed closes per pair) is logged every 5 minutes — divergence there is
   a store bug, tracked separately from decision parity.
 
@@ -118,4 +122,4 @@ The JSON includes `enabled_pairs`, per-pair `row_count`, `latest_completed_utc`,
 
 Executor runs with `--store-dir` consume the same health contract before scoring store-backed feature rows.
 
-**Refresh dependency:** health requires freshness within `--max-stale-seconds` (default 180s), so a scheduled executor must be preceded by a store refresh each run. The `ops/deriv-demo-executor.service` template does this via `ExecStartPre` (`deriv_backfill.py backfill --max-pages 2`, an idempotent warm-store top-up); a standalone deployment needs an equivalent refresh unit/timer or documented runbook step before proposal-only/demo-buy runs.
+**Refresh dependency:** the production store is refreshed by `ops/deriv-production-candle-refresh.timer` (issue #5) — `deriv_backfill.py backfill --max-pages 2 --prune-shards --reset-stale-progress` every 180s (`AccuracySec=30`, `TimeoutStartSec=150`). `--prune-shards` deletes the page shards already merged into the parquet (unbounded shard growth otherwise); `--reset-stale-progress` discards a killed run's `status='running'` backward cursor so one stale cycle never becomes two. **Health contract: `--max-stale-seconds 600` for this store.** The backfill drops the open candle, so the newest kept candle is 60–120s old at fetch; worst-case steady-state staleness is 120 + (180+30) = 330s, and one failed-then-reset cycle reaches 120 + 2×(180+30) = 540s — the 540s bound holds for every kill mode because `TimeoutStartSec=150` kills a hung run inside one cycle. 600 tolerates both and still alarms a genuinely stuck store within 10 minutes. (The old `ExecStartPre` refresh on the deprecated executor unit assumed the 180s default; that contract is retired with it.)
