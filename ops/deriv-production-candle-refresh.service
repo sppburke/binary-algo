@@ -17,5 +17,11 @@ ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_backfill.py backf
 # (health contract: --max-stale-seconds 600).
 TimeoutStartSec=150
 Nice=5
+# RSS ceiling. Measured 2026-07-02: ~481 MB peak (pandas load + parquet
+# merge at --max-pages 2). MemoryHigh throttles above 768 MB; MemoryMax is a
+# 1 GB hard backstop (~2x peak) so a runaway merge fails the oneshot instead
+# of thrashing the box.
+MemoryHigh=768M
+MemoryMax=1G
 
 # No [Install]: timer-activated only (see deriv-production-candle-refresh.timer).

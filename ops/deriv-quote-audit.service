@@ -17,6 +17,12 @@ Restart=on-failure
 RestartSec=10
 KillSignal=SIGINT
 Nice=5
+# RSS ceiling (issue #5 acceptance: sampler < 300 MB). Measured 2026-07-02:
+# ~200 MB peak. MemoryHigh throttles reclaim near the 300 MB target;
+# MemoryMax is a hard backstop that OOM-kills a genuine leak (Restart= then
+# revives it fresh) rather than letting it grow unbounded.
+MemoryHigh=300M
+MemoryMax=450M
 
 # Restart= survives crashes, not reboots: the runbook enables this unit
 # (systemctl --user enable --now) so >=3-NY-session coverage keeps accruing
