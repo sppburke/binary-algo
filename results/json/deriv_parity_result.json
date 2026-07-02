@@ -1,0 +1,10 @@
+{
+  "daemon_log": "logs/deriv_hot_daemon/2026-07-02.jsonl",
+  "divergences": [],
+  "gate": "issue#4 KILL #0a snapshot-replay parity",
+  "parity_100pct": true,
+  "replayed_utc": "2026-07-02T14:59:20+00:00",
+  "tuples_checked": 12,
+  "tuples_logged": 12,
+  "tuples_skipped_pruned": 0
+}

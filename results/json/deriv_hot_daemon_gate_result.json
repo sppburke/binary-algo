@@ -1,0 +1,121 @@
+{
+  "gate": "issue#4 Phase 3 hot daemon",
+  "runs": [
+    {
+      "candidate_close_to_score_done_ms": {
+        "max": 797.1,
+        "p50": 153.2,
+        "p95": 768.2
+      },
+      "finished_utc": "2026-07-02T13:57:58+00:00",
+      "host": "quantum",
+      "kill1_proposal_p95_under_2000": false,
+      "kill2_score_p95_under_1000": true,
+      "minutes_scored": 6,
+      "pairs": [
+        "USDJPY",
+        "USDCAD",
+        "AUDUSD",
+        "NZDUSD",
+        "USDCHF",
+        "GBPUSD"
+      ],
+      "signal_to_proposal_ms": {
+        "max": null,
+        "p50": null,
+        "p95": null
+      },
+      "skips": {
+        "book_gate": 6
+      },
+      "started_utc": "2026-07-02T13:57:55+00:00"
+    },
+    {
+      "candidate_close_to_score_done_ms": {
+        "max": null,
+        "p50": null,
+        "p95": null
+      },
+      "finished_utc": "2026-07-02T14:22:12+00:00",
+      "host": "quantum",
+      "kill1_proposal_p95_under_2000": null,
+      "kill2_score_p95_under_1000": null,
+      "minutes_scored": 0,
+      "pairs": [
+        "USDJPY",
+        "USDCAD",
+        "AUDUSD",
+        "NZDUSD",
+        "USDCHF",
+        "GBPUSD"
+      ],
+      "signal_to_proposal_ms": {
+        "max": null,
+        "p50": null,
+        "p95": null
+      },
+      "skips": {
+        "feature_row_failed": 6
+      },
+      "started_utc": "2026-07-02T14:19:08+00:00"
+    },
+    {
+      "candidate_close_to_score_done_ms": {
+        "max": 832.8,
+        "p50": 126.2,
+        "p95": 810.1
+      },
+      "finished_utc": "2026-07-02T14:30:50+00:00",
+      "host": "quantum",
+      "kill1_proposal_p95_under_2000": null,
+      "kill2_score_p95_under_1000": true,
+      "minutes_scored": 30,
+      "pairs": [
+        "USDJPY",
+        "USDCAD",
+        "AUDUSD",
+        "NZDUSD",
+        "USDCHF",
+        "GBPUSD"
+      ],
+      "signal_to_proposal_ms": {
+        "max": null,
+        "p50": null,
+        "p95": null
+      },
+      "skips": {
+        "book_gate": 30
+      },
+      "started_utc": "2026-07-02T14:26:46+00:00"
+    },
+    {
+      "candidate_close_to_score_done_ms": {
+        "max": 795.5,
+        "p50": 142.4,
+        "p95": 752.7
+      },
+      "finished_utc": "2026-07-02T14:59:14+00:00",
+      "host": "quantum",
+      "kill1_proposal_p95_under_2000": null,
+      "kill2_score_p95_under_1000": true,
+      "minutes_scored": 6,
+      "pairs": [
+        "USDJPY",
+        "USDCAD",
+        "AUDUSD",
+        "NZDUSD",
+        "USDCHF",
+        "GBPUSD"
+      ],
+      "signal_to_proposal_ms": {
+        "max": null,
+        "p50": null,
+        "p95": null
+      },
+      "skips": {
+        "book_gate": 6
+      },
+      "started_utc": "2026-07-02T14:59:11+00:00"
+    }
+  ]
+}
