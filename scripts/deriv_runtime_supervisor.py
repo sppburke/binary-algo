@@ -159,16 +159,18 @@ class Coordinator:
         key = (pair, side, int(signal.get("offset_id", 0)), str(signal["signal_close_utc"]))
         if key in self.seen_keys:
             return self._reject(signal, "duplicate_signal")
-        if len(pending_contracts(self.state)) >= self.args.max_open:
+        # Risk caps are OPT-IN (0 = unconstrained): demo trades every firing signal
+        if self.args.max_open and len(pending_contracts(self.state)) >= self.args.max_open:
             return self._reject(signal, "max_open")
         # The daily cap counts from persisted state, NOT the JSONL: the log
         # path is pinned to the process start date and logrotate copytruncate
         # would reset a log-derived count mid-day — fail-open (review M1)
-        if self._trades_today(now) >= self.args.max_trades_day:
+        if self.args.max_trades_day and self._trades_today(now) >= self.args.max_trades_day:
             return self._reject(signal, "max_trades_day")
-        last = self.last_pair_buy_monotonic.get(pair)
-        if last is not None and time.monotonic() - last < HORIZON_MINUTES * 60:
-            return self._reject(signal, "pair_cooldown")
+        if self.args.pair_cooldown_seconds:
+            last = self.last_pair_buy_monotonic.get(pair)
+            if last is not None and time.monotonic() - last < self.args.pair_cooldown_seconds:
+                return self._reject(signal, "pair_cooldown")
         self.seen_keys.add(key)
         token = secrets.token_hex(8)
         self._admitted[token] = dict(signal)
@@ -332,8 +334,8 @@ async def run_smoke() -> int:
 
     tmp = Path(tempfile.mkdtemp(prefix="deriv_sup_smoke_"))
     args = argparse.Namespace(log_dir=tmp, stake=1.0, max_breakeven=0.60, payout_edge_margin=0.005,
-                              max_open=1, max_trades_day=3, monitor_timeout_seconds=5.0,
-                              monitor_interval_seconds=0.01)
+                              max_open=1, max_trades_day=3, pair_cooldown_seconds=900,
+                              monitor_timeout_seconds=5.0, monitor_interval_seconds=0.01)
     logger = JsonlLogger(tmp)
     in_session = datetime(2026, 7, 1, 18, 0, tzinfo=timezone.utc)   # Wed 14:00 NY
     late = datetime(2026, 7, 1, 20, 50, tzinfo=timezone.utc)        # Wed 16:50 NY
@@ -523,8 +525,9 @@ def main() -> int:
     p.add_argument("--stake", type=float, default=1.0)
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
     p.add_argument("--max-breakeven", type=float, default=0.60)
-    p.add_argument("--max-open", type=int, default=1)
-    p.add_argument("--max-trades-day", type=int, default=3)
+    p.add_argument("--max-open", type=int, default=0, help="0 = unlimited concurrent open contracts, account-wide")
+    p.add_argument("--max-trades-day", type=int, default=0, help="0 = unlimited (demo default: trade every signal)")
+    p.add_argument("--pair-cooldown-seconds", type=int, default=0, help="0 = none")
     p.add_argument("--monitor-timeout-seconds", type=float, default=1200.0)
     p.add_argument("--monitor-interval-seconds", type=float, default=2.0)
     p.add_argument("--log-dir", default="logs/deriv_supervisor")

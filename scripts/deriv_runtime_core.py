@@ -392,17 +392,27 @@ def reconcile_open_state(
     logger: JsonlLogger,
     args: argparse.Namespace,
 ) -> None:
+    # Fail-closed on UNKNOWN state (a query failure raises via call_deriv);
+    # KNOWN-open contracts are normal with unconstrained concurrency — they are
+    # refreshed and carried, never a reason to refuse trading.
     unresolved: list[str] = []
+    still_open: list[str] = []
     for contract_id in list(pending_contracts(state)):
-        resp = call_deriv(client, logger, args, "proposal_open_contract", client.proposal_open_contract, contract_id, False)
+        try:
+            resp = call_deriv(client, logger, args, "proposal_open_contract", client.proposal_open_contract, contract_id, False)
+        except ExecutorError:
+            unresolved.append(contract_id)
+            continue
         terminal = update_contract_state(state, contract_id, resp)
         logger.write("state_reconciled_contract", contract_id=contract_id, terminal=terminal, raw_hash=raw_hash(resp))
         if not terminal:
-            unresolved.append(contract_id)
+            still_open.append(contract_id)
     save_state(state_path, state)
+    if still_open:
+        logger.write("reconcile_carried_open", contracts=still_open)
     if unresolved:
         logger.write("reconcile_failed", reason="unresolved_open_contracts", unresolved=unresolved)
-        raise ExecutorError(f"pending/open local state not terminal after Deriv reconciliation: {unresolved}")
+        raise ExecutorError(f"open local state UNRESOLVABLE against Deriv (query failed): {unresolved}")
 
 def count_events(path: Path, event: str) -> int:
     if not path.exists():
@@ -598,6 +608,8 @@ def _smoke_args(**overrides: Any) -> SimpleNamespace:
         "demo_buy": False,
         "max_trades_day": 3,
         "max_open": 1,
+        "pair_cooldown_seconds": 900,
+        "blocking_monitor": True,
         "max_retries": 0,
         "retry_base_s": 0.0,
         "monitor_timeout_seconds": 5.0,

@@ -1,0 +1,227 @@
+{
+  "gate": "issue#4 Phase 2 market stream",
+  "runs": [
+    {
+      "client_resubscribe_latency_s": [
+        1.485
+      ],
+      "client_stats": {
+        "decode_errors": 0,
+        "error_frames": 0,
+        "frames": 6530,
+        "pre_sub_buffered": 0,
+        "queue_overflow": 0,
+        "reconnect_breakdown": [
+          {
+            "connect_attempts": 1,
+            "connect_s": 0.487,
+            "resubscribe_s": 0.998,
+            "total_s": 1.485
+          }
+        ],
+        "reconnects": 1,
+        "request_frames": 1262,
+        "stream_frames": 5268,
+        "unmatched_frames": 0,
+        "watchdog_trips": 1
+      },
+      "coverage_denominator": "run_elapsed_seconds (gate sessions must run session-aligned)",
+      "elapsed_s": 900.8,
+      "finished_utc": "2026-07-02T16:41:44+00:00",
+      "host": "quantum",
+      "pairs": {
+        "AUDUSD": {
+          "coverage_live": 0.9769,
+          "coverage_vs_elapsed": 0.9991,
+          "dupes": 0,
+          "gap_max_s": 21,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 880,
+          "pages": 253,
+          "persisted": 900,
+          "recovered_ticks": 20,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "41": 1,
+            "46": 1,
+            "51": 1,
+            "56": 1
+          },
+          "window_rate": 0.9778,
+          "windows_complete": 176,
+          "windows_expected": 180,
+          "windows_healed_by_recovery": 12,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 27,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "GBPUSD": {
+          "coverage_live": 0.9769,
+          "coverage_vs_elapsed": 0.9991,
+          "dupes": 0,
+          "gap_max_s": 21,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 880,
+          "pages": 253,
+          "persisted": 900,
+          "recovered_ticks": 20,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "41": 1,
+            "46": 1,
+            "51": 1,
+            "56": 1
+          },
+          "window_rate": 0.9778,
+          "windows_complete": 176,
+          "windows_expected": 180,
+          "windows_healed_by_recovery": 12,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 27,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "NZDUSD": {
+          "coverage_live": 0.9769,
+          "coverage_vs_elapsed": 0.9991,
+          "dupes": 0,
+          "gap_max_s": 21,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 880,
+          "pages": 253,
+          "persisted": 900,
+          "recovered_ticks": 20,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "41": 1,
+            "46": 1,
+            "51": 1,
+            "56": 1
+          },
+          "window_rate": 0.9778,
+          "windows_complete": 176,
+          "windows_expected": 180,
+          "windows_healed_by_recovery": 12,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 27,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCAD": {
+          "coverage_live": 0.9769,
+          "coverage_vs_elapsed": 0.9991,
+          "dupes": 0,
+          "gap_max_s": 21,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 880,
+          "pages": 253,
+          "persisted": 900,
+          "recovered_ticks": 20,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "41": 1,
+            "46": 1,
+            "51": 1,
+            "56": 1
+          },
+          "window_rate": 0.9778,
+          "windows_complete": 176,
+          "windows_expected": 180,
+          "windows_healed_by_recovery": 12,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 27,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCHF": {
+          "coverage_live": 0.9769,
+          "coverage_vs_elapsed": 0.9991,
+          "dupes": 0,
+          "gap_max_s": 21,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 880,
+          "pages": 253,
+          "persisted": 900,
+          "recovered_ticks": 20,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "41": 1,
+            "46": 1,
+            "51": 1,
+            "56": 1
+          },
+          "window_rate": 0.9778,
+          "windows_complete": 176,
+          "windows_expected": 180,
+          "windows_healed_by_recovery": 12,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 27,
+          "writer_lag_s": {
+            "max": 1.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDJPY": {
+          "coverage_live": 0.9769,
+          "coverage_vs_elapsed": 0.9991,
+          "dupes": 0,
+          "gap_max_s": 21,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 880,
+          "pages": 253,
+          "persisted": 900,
+          "recovered_ticks": 20,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "41": 1,
+            "46": 1,
+            "51": 1,
+            "56": 1
+          },
+          "window_rate": 0.9778,
+          "windows_complete": 176,
+          "windows_expected": 180,
+          "windows_healed_by_recovery": 12,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 27,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        }
+      },
+      "refresher": {
+        "errors": 2,
+        "updates": 1244
+      },
+      "started_utc": "2026-07-02T16:26:43+00:00"
+    }
+  ]
+}

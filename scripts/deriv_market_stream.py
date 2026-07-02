@@ -13,7 +13,7 @@ forward-filled; aggregation open=first / high=max / low=min / close=last
 the production one-shot timer owns `deriv_data/candles_1m/`; this refresher
 writes `deriv_data/candles_1m_daemon/` and a cross-store consistency report.
 
-Shadow only: no scoring, no trading. Phase-2 gate (>=3 full NY sessions):
+Data plane only: no scoring, no trading. Phase-2 gate (>=3 full NY sessions):
 per-pair 1s coverage >= 99.5% of session seconds, 12/12 window rate >= 99%,
 no ring overflow, store-writer lag p95 <= 30s / max <= 120s, zero ticks lost
 between ring and store. Each run appends its rollup to

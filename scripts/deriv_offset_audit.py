@@ -88,7 +88,7 @@ FALSIFIER = {
         "executor's quote_snapshot events over >= 3 NY sessions); sparse quote coverage DEFERS the lane"
     ),
     "per_offset_breakdowns": "diagnostic only — never per-offset enablement",
-    "failure": "lane stays shadow-only permanently absent new evidence",
+    "failure": "lane stays no-buy permanently absent new evidence",
     "scope_v1": "own-pair books only; xpair batch join resolved in the strategy-eval run",
 }
 

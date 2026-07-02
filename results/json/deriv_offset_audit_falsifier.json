@@ -1,7 +1,7 @@
 {
   "ci": "min1_production.boot nb=5000 CI95 on the de-overlapped win vector, per (pair, side)",
   "enable_bar": "CI95-lower > max(0.541, median observed live_breakeven for the (pair, side) from the production executor's quote_snapshot events over >= 3 NY sessions); sparse quote coverage DEFERS the lane",
-  "failure": "lane stays shadow-only permanently absent new evidence",
+  "failure": "lane stays no-buy permanently absent new evidence",
   "falsifier": "issue#4 Phase 5 shifted-offset audit \u2014 pre-registered before any outcome data is examined",
   "haircuts": "no wall-clock haircut applied anywhere in this lane",
   "n_min_deoverlapped_per_pair_side": 400,
@@ -21,7 +21,7 @@
   ],
   "outcomes_examined_at_registration": false,
   "per_offset_breakdowns": "diagnostic only \u2014 never per-offset enablement",
-  "registered_utc": "2026-07-02T14:56:42+00:00",
+  "registered_utc": "2026-07-02T16:47:57+00:00",
   "scope_v1": "own-pair books only; xpair batch join resolved in the strategy-eval run",
   "session": "NY 08:00-17:00 America/New_York DST-correct; last buy start 16:44:59 NY",
   "settlement": "entry = first tick >= signal_close + 1s (tol 30s, else invalid); exit = last tick <= entry + 900s (exit must lie within 30s of entry+900s, else invalid \u2014 fail-closed both ends); mid-to-mid; ties LOSE",

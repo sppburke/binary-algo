@@ -84,8 +84,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--pairs", default="all-enabled", help="comma-separated pair list or all-enabled")
     p.add_argument("--stake", type=float, default=1.0)
-    p.add_argument("--max-trades-day", type=int, default=3)
-    p.add_argument("--max-open", type=int, default=1)
+    p.add_argument("--max-trades-day", type=int, default=0, help="0 = unlimited (demo default: trade every signal)")
+    p.add_argument("--max-open", type=int, default=0, help="0 = unlimited concurrent open contracts, account-wide")
+    p.add_argument("--pair-cooldown-seconds", type=int, default=0, help="0 = none; per-pair wait after a buy")
     p.add_argument("--demo-buy", action="store_true", help="submit demo-account buys; never enabled by default")
     p.add_argument("--dry-run-proposal-only", action="store_true", help="request proposals but do not buy")
     p.add_argument("--once", action="store_true")
@@ -118,6 +119,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--retry-base-s", type=float, default=1.0)
     p.add_argument("--monitor-timeout-seconds", type=float, default=1200.0)
     p.add_argument("--monitor-interval-seconds", type=float, default=2.0)
+    p.add_argument("--blocking-monitor", action="store_true",
+                   help="block after each buy until the contract settles (serializes the account to one open trade)")
     p.add_argument("--store-min-required-rows", type=int, default=14000)
     p.add_argument("--store-max-stale-seconds", type=int, default=180)
     p.add_argument("--check-books", action="store_true")
@@ -427,16 +430,18 @@ def process_pair(
     if not score.gate_passed:
         logger.write("signal_skipped", pair=pair, reason="book_gate", gate_reasons=score.gate_reasons)
         return False
-    if trades_today >= args.max_trades_day:
+    # Risk caps are OPT-IN (0 = unconstrained): demo trades every firing signal
+    if args.max_trades_day and trades_today >= args.max_trades_day:
         logger.write("signal_skipped", pair=pair, reason="max_trades_day", trades_today=trades_today)
         return False
-    if open_count >= args.max_open:
+    if args.max_open and open_count >= args.max_open:
         logger.write("signal_skipped", pair=pair, reason="max_open", open_count=open_count)
         return False
-    last_buy = last_pair_buy_seconds(logger.path, pair)
-    if last_buy is not None and time.time() - last_buy < HORIZON_MINUTES * 60:
-        logger.write("signal_skipped", pair=pair, reason="pair_cooldown", last_buy_epoch=last_buy)
-        return False
+    if args.pair_cooldown_seconds:
+        last_buy = last_pair_buy_seconds(logger.path, pair)
+        if last_buy is not None and time.time() - last_buy < args.pair_cooldown_seconds:
+            logger.write("signal_skipped", pair=pair, reason="pair_cooldown", last_buy_epoch=last_buy)
+            return False
 
     contract_type = "CALL" if score.direction == "UP" else "PUT"
     symbol = DERIV_SYMBOLS[pair]
@@ -572,7 +577,13 @@ def process_pair(
         raw_hash=raw_hash(buy),
         **decision_context,
     )
-    monitor_contract(client, str(contract_id), state, state_path, logger, args, decision_context)
+    if getattr(args, "blocking_monitor", False):
+        monitor_contract(client, str(contract_id), state, state_path, logger, args, decision_context)
+    else:
+        # Detached (default): the contract is recorded in state; each cycle's
+        # reconciliation refreshes it to terminal. Blocking here serialized the
+        # whole account to one open contract at a time.
+        logger.write("monitor_detached", contract_id=str(contract_id))
     return True
 
 
@@ -797,10 +808,11 @@ def run_fake_client_smoke() -> None:
             "contract_closed",
         )
 
-        # Reconciliation fail-closed + reconcile_failed event.
-        unresolved = empty_state()
+        # Reconciliation: a KNOWN-open contract is refreshed and carried (multi
+        # -open concurrency is normal); no refusal, no raise.
+        carried = empty_state()
         record_open_contract(
-            unresolved,
+            carried,
             pair="USDJPY",
             proposal_id="proposal-2",
             contract_id="contract-open",
@@ -808,12 +820,32 @@ def run_fake_client_smoke() -> None:
             buy_price=1.0,
             expected_expiry=datetime(2026, 6, 15, 14, 15, tzinfo=timezone.utc),
         )
+        reconcile_open_state(FakeTradeClient(terminal=False), carried, log_dir / "carried.json", logger, buy_args)  # type: ignore[arg-type]
+        if "contract-open" not in pending_contracts(carried):
+            raise ExecutorError("FAIL: known-open contract was not carried through reconciliation")
+        _require_fields(_last_event(logger.path, "reconcile_carried_open"), ["contracts"], "reconcile_carried_open")
+
+        # Reconciliation fail-closed on UNRESOLVABLE state (query failure).
+        class _FailingClient(FakeTradeClient):
+            def proposal_open_contract(self, contract_id: str | int, subscribe: bool = False) -> dict[str, Any]:
+                raise DerivAPIError("poc query down")
+
+        unresolved = empty_state()
+        record_open_contract(
+            unresolved,
+            pair="USDJPY",
+            proposal_id="proposal-3",
+            contract_id="contract-unknown",
+            stake=1.0,
+            buy_price=1.0,
+            expected_expiry=datetime(2026, 6, 15, 14, 15, tzinfo=timezone.utc),
+        )
         try:
-            reconcile_open_state(FakeTradeClient(terminal=False), unresolved, log_dir / "unresolved.json", logger, buy_args)  # type: ignore[arg-type]
+            reconcile_open_state(_FailingClient(terminal=False), unresolved, log_dir / "unresolved.json", logger, buy_args)  # type: ignore[arg-type]
         except ExecutorError:
             pass
         else:
-            raise ExecutorError("FAIL: unresolved local state did not fail closed")
+            raise ExecutorError("FAIL: unresolvable local state did not fail closed")
         _require_fields(_last_event(logger.path, "reconcile_failed"), ["reason", "unresolved"], "reconcile_failed")
 
         # Lock contention fails closed and logs lock_acquire_failed.

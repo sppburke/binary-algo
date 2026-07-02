@@ -45,7 +45,7 @@ below captures them for the hot runtime's shifted lane and offline audit.
 
 ## Tick Store (`ticks_1s`) and Daemon Candle Store (issue #4 Phase 2)
 
-`scripts/deriv_market_stream.py` (shadow-only: no scoring, no trading) writes
+`scripts/deriv_market_stream.py` (data plane: no scoring, no trading) writes
 two additional gitignored stores:
 
 - `deriv_data/ticks_1s/_pages/<PAIR>/*.parquet` — live 1-second tick shards

@@ -129,7 +129,9 @@ The executor requires 15m `CALL` and `PUT` availability from `contracts_for`, a 
 
 Every skip logs a stable `reason` (`outside_ny_session`, `feature_row_failed`, `book_gate`, `max_trades_day`, `max_open`, `pair_cooldown`, `missing_or_invalid_ask`, `missing_or_invalid_payout`, `edge_not_positive`, `breakeven_too_high`, `dry_run_proposal_only`, `demo_buy_not_enabled`, plus `lock_acquire_failed` / `reconcile_failed` / `kill_switch_triggered` events). Buy and monitor events carry the full decision context (side, contract type, ask/payout, effective floor, live breakeven, net edge, ids, expiry, terminal status, profit). Logs are JSONL- and secret-safe: raw responses are hashed, and the auth smoke prints only a SHA-256 prefix of the account id.
 
-`logs/paper_trades/executor_state.json` stores open demo contracts with pair, proposal id, contract id, stake, expected expiry, status, and last platform update. On `--demo-buy` startup the executor queries Deriv for every pending local contract and refuses new buys unless all pending state reconciles to a terminal platform status.
+`logs/paper_trades/executor_state.json` stores open demo contracts with pair, proposal id, contract id, stake, expected expiry, status, and last platform update. On `--demo-buy` startup the executor queries Deriv for every pending local contract; known-open contracts are refreshed and **carried** (concurrent open contracts are normal), and it fails closed only on UNRESOLVABLE state (the status query itself fails).
+
+**Risk caps are opt-in** (demo default: trade every firing signal): `--max-open`, `--max-trades-day`, and `--pair-cooldown-seconds` all default to 0 = unconstrained; set them explicitly to re-impose limits. Post-buy monitoring is **detached** by default (the contract settles via per-cycle reconciliation); `--blocking-monitor` restores the old block-until-terminal behavior, which serializes the account to one open trade at a time.
 
 A single-instance lock is created under the log directory per account/log-dir key. A second executor with the same key fails closed.
 
@@ -173,8 +175,8 @@ import it (parity by construction). Modules:
 - `deriv_runtime_supervisor.py` — the coordinator: sole buy-capable object,
   admit-token gate battery (session, 16:44:59 NY last-start cutoff,
   lane-scoped staleness, shifted-lane per-(pair,side) verdict enforcement,
-  dedup, account-wide max_open, max_trades_day, per-pair cooldown across
-  offsets and sides, payout gate on a fresh proposal), contract_id-correlated
+  dedup, opt-in risk caps (max_open / max_trades_day / pair cooldown, 0 =
+  unconstrained default), payout gate on a fresh proposal), contract_id-correlated
   monitoring. Gates: `--smoke`; live `--run` (proposal-only default).
 - `deriv_offset_audit.py` — the pre-registered Phase-5 shifted-lane audit
   (falsifier-first; the audit RUN is a `strategy-eval` session).

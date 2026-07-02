@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
 WorkingDirectory=/home/sean/git/binary-algo
-# Shadow-only: no scoring, no trading. Owns deriv_data/ticks_1s/ and the
+# Data plane: no scoring, no trading. Owns deriv_data/ticks_1s/ and the
 # DAEMON candle store deriv_data/candles_1m_daemon/ (all seven pairs). The
 # production store stays with the old one-shot timer (store-ownership rule,
 # issue #4 r3). MUST be running before the supervisor starts: the daemon's
