@@ -105,7 +105,17 @@ def main() -> int:
         _log("dry-run: merged in working tree, no commit/push")
         return 0
 
-    _git("add", rel)
+    def revert_merge() -> int:
+        # discard the working-tree merge; the gitignored capture persists so
+        # the next weekday's run retries from scratch — never a dirty tree
+        _git("checkout", "HEAD", "--", rel, check=False)
+        return 1
+
+    # Every git op is check=False + explicitly handled: a fail-safe pipeline
+    # must never crash with a traceback (it runs unattended from systemd).
+    if _git("add", rel, check=False).returncode != 0:
+        _log(f"git add {rel} failed; reverting merge, timer stays armed")
+        return revert_merge()
     if _git("diff", "--cached", "--quiet", check=False).returncode == 0:
         # no staged change: either already folded, or recover an earlier
         # committed-but-unpushed fold
@@ -118,17 +128,19 @@ def main() -> int:
         return 0
 
     verdict = (capture["runs"]["g_near_close"].get("observations") or {}).get("cutoff_verdict", "")
-    _git("commit", "-m",
-         "Deriv: fold scheduled probe g near-close capture (issue #4)\n\n"
-         f"Automated fold-in of a clean accepted->rejected transition: {verdict}\n\n"
-         "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>")
+    if _git("commit", "-m",
+            "Deriv: fold scheduled probe g near-close capture (issue #4)\n\n"
+            f"Automated fold-in of a clean accepted->rejected transition: {verdict}\n\n"
+            "Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>", check=False).returncode != 0:
+        _log("git commit failed; reverting merge, timer stays armed")
+        return revert_merge()
 
     _git("fetch", "origin", "main", check=False)
     if _git("rebase", "origin/main", check=False).returncode != 0:
         _git("rebase", "--abort", check=False)
-        _git("reset", "--soft", "HEAD~1", check=False)  # undo the commit, keep the merge staged-free for retry
-        _log("rebase conflict; aborted and undid the commit — timer stays armed")
-        return 1
+        _git("reset", "--soft", "HEAD~1", check=False)  # undo the commit
+        _log("rebase conflict; aborted — timer stays armed")
+        return revert_merge()
 
     if not push_with_retries():
         _log("push failed after retries; local commit retained, will re-push next run")
