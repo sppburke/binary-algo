@@ -1,0 +1,690 @@
+{
+  "decisions": {
+    "candle_publication_latency_p95_s": 0.5,
+    "candle_subscribe_supported": {
+      "legacy": {
+        "ohlc_frames_in_15s": 16,
+        "supported": true
+      },
+      "options": {
+        "ohlc_frames_in_15s": 16,
+        "supported": true
+      }
+    },
+    "last_start_cutoff_ny": "16:44:59 default stands (probe g pending)",
+    "proposal_subscription_supported": true,
+    "rate_budget_error_rate": 0.0,
+    "rate_budget_ok_5s_cadence": false,
+    "rss_baseline_bytes": null,
+    "six_symbol_multiplex_one_socket": {
+      "legacy": true,
+      "options": true
+    },
+    "sub_60s_candles_rejected": true,
+    "tick_1s_contiguous_all_pairs": true,
+    "tick_retention_days_min": 9679.2,
+    "tick_retention_is_lower_bound": true
+  },
+  "issue": "sppburke/binary-algo#4",
+  "phase": 0,
+  "probe": "deriv_api_phase0",
+  "probe_version": 1,
+  "runs": {
+    "a_granularity_enum": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:49:27-04:00",
+        "started_utc": "2026-07-02T04:49:26+00:00"
+      },
+      "finished_utc": "2026-07-02T04:49:29+00:00",
+      "observations": {
+        "granularity_30_rejected": true,
+        "per_endpoint": {
+          "legacy": {
+            "granularity_30_error": "Deriv error for {'ticks_history': 'frxUSDJPY', 'style': 'candles', 'count': 10, 'end': 'latest', 'adjust_start_time': 1, 'granularity': 30}: {'code': 'InputValidationFailed', 'details': {'granularity': 'Not in enum list: 60, 120, 180, 300, 600, 900, 1800, 3600, 7200, 14400, 28800, 86400.'}, 'message': 'Input validation failed: granularity'}",
+            "granularity_30_rejected": true,
+            "granularity_60_n_candles": 10,
+            "granularity_60_spacing_s": [
+              60
+            ]
+          },
+          "options": {
+            "granularity_30_error": "Deriv error for {'ticks_history': 'frxUSDJPY', 'style': 'candles', 'count': 10, 'end': 'latest', 'adjust_start_time': 1, 'granularity': 30}: {'code': 'InputValidationFailed', 'details': {'granularity': 'Not in enum list: 60, 120, 180, 300, 600, 900, 1800, 3600, 7200, 14400, 28800, 86400.'}, 'message': 'Input validation failed: granularity'}",
+            "granularity_30_rejected": true,
+            "granularity_60_n_candles": 10,
+            "granularity_60_spacing_s": [
+              60
+            ]
+          }
+        },
+        "symbol": "frxUSDJPY"
+      },
+      "status": "done"
+    },
+    "b_tick_history_1s": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:25:46-04:00",
+        "started_utc": "2026-07-02T04:25:46+00:00"
+      },
+      "finished_utc": "2026-07-02T04:25:49+00:00",
+      "observations": {
+        "count_requested": 300,
+        "per_pair": {
+          "AUDUSD": {
+            "delta_hist": {
+              "1": 299
+            },
+            "delta_max_s": 1,
+            "delta_min_s": 1,
+            "delta_p50_s": 1,
+            "n": 300,
+            "response_keys": [
+              "echo_req",
+              "history",
+              "msg_type",
+              "pip_size",
+              "req_id"
+            ],
+            "span_s": 299
+          },
+          "GBPUSD": {
+            "delta_hist": {
+              "1": 299
+            },
+            "delta_max_s": 1,
+            "delta_min_s": 1,
+            "delta_p50_s": 1,
+            "n": 300,
+            "response_keys": [
+              "echo_req",
+              "history",
+              "msg_type",
+              "pip_size",
+              "req_id"
+            ],
+            "span_s": 299
+          },
+          "NZDUSD": {
+            "delta_hist": {
+              "1": 299
+            },
+            "delta_max_s": 1,
+            "delta_min_s": 1,
+            "delta_p50_s": 1,
+            "n": 300,
+            "response_keys": [
+              "echo_req",
+              "history",
+              "msg_type",
+              "pip_size",
+              "req_id"
+            ],
+            "span_s": 299
+          },
+          "USDCAD": {
+            "delta_hist": {
+              "1": 299
+            },
+            "delta_max_s": 1,
+            "delta_min_s": 1,
+            "delta_p50_s": 1,
+            "n": 300,
+            "response_keys": [
+              "echo_req",
+              "history",
+              "msg_type",
+              "pip_size",
+              "req_id"
+            ],
+            "span_s": 299
+          },
+          "USDCHF": {
+            "delta_hist": {
+              "1": 299
+            },
+            "delta_max_s": 1,
+            "delta_min_s": 1,
+            "delta_p50_s": 1,
+            "n": 300,
+            "response_keys": [
+              "echo_req",
+              "history",
+              "msg_type",
+              "pip_size",
+              "req_id"
+            ],
+            "span_s": 299
+          },
+          "USDJPY": {
+            "delta_hist": {
+              "1": 299
+            },
+            "delta_max_s": 1,
+            "delta_min_s": 1,
+            "delta_p50_s": 1,
+            "n": 300,
+            "response_keys": [
+              "echo_req",
+              "history",
+              "msg_type",
+              "pip_size",
+              "req_id"
+            ],
+            "span_s": 299
+          }
+        }
+      },
+      "status": "done"
+    },
+    "c_ticks_subscription": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:25:49-04:00",
+        "started_utc": "2026-07-02T04:25:49+00:00"
+      },
+      "finished_utc": "2026-07-02T04:29:04+00:00",
+      "observations": {
+        "per_endpoint": {
+          "legacy": {
+            "capture_seconds": 90.0,
+            "forget_errors": 0,
+            "other_frames": {},
+            "per_symbol": {
+              "frxAUDUSD": {
+                "delta_hist": {
+                  "1": 90,
+                  "3": 1
+                },
+                "delta_max_s": 3,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 93
+              },
+              "frxGBPUSD": {
+                "delta_hist": {
+                  "1": 90
+                },
+                "delta_max_s": 1,
+                "delta_min_s": 1,
+                "delta_p50_s": 1.0,
+                "n": 91,
+                "span_s": 90
+              },
+              "frxNZDUSD": {
+                "delta_hist": {
+                  "1": 91,
+                  "2": 1
+                },
+                "delta_max_s": 2,
+                "delta_min_s": 1,
+                "delta_p50_s": 1.0,
+                "n": 93,
+                "span_s": 93
+              },
+              "frxUSDCAD": {
+                "delta_hist": {
+                  "1": 89,
+                  "5": 1
+                },
+                "delta_max_s": 5,
+                "delta_min_s": 1,
+                "delta_p50_s": 1.0,
+                "n": 91,
+                "span_s": 94
+              },
+              "frxUSDCHF": {
+                "delta_hist": {
+                  "1": 91
+                },
+                "delta_max_s": 1,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 91
+              },
+              "frxUSDJPY": {
+                "delta_hist": {
+                  "1": 89,
+                  ">5": 1
+                },
+                "delta_max_s": 6,
+                "delta_min_s": 1,
+                "delta_p50_s": 1.0,
+                "n": 91,
+                "span_s": 95
+              }
+            },
+            "subscribe_errors": {},
+            "subscribed": 6,
+            "symbols_with_ticks": 6,
+            "tick_fields": {
+              "frxAUDUSD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxGBPUSD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxNZDUSD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxUSDCAD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxUSDCHF": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxUSDJPY": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ]
+            }
+          },
+          "options": {
+            "capture_seconds": 90.0,
+            "forget_errors": 0,
+            "other_frames": {},
+            "per_symbol": {
+              "frxAUDUSD": {
+                "delta_hist": {
+                  "1": 90,
+                  "4": 1
+                },
+                "delta_max_s": 4,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 94
+              },
+              "frxGBPUSD": {
+                "delta_hist": {
+                  "1": 91
+                },
+                "delta_max_s": 1,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 91
+              },
+              "frxNZDUSD": {
+                "delta_hist": {
+                  "1": 90,
+                  "3": 1
+                },
+                "delta_max_s": 3,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 93
+              },
+              "frxUSDCAD": {
+                "delta_hist": {
+                  "1": 89,
+                  ">5": 1
+                },
+                "delta_max_s": 6,
+                "delta_min_s": 1,
+                "delta_p50_s": 1.0,
+                "n": 91,
+                "span_s": 95
+              },
+              "frxUSDCHF": {
+                "delta_hist": {
+                  "1": 90,
+                  "2": 1
+                },
+                "delta_max_s": 2,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 92
+              },
+              "frxUSDJPY": {
+                "delta_hist": {
+                  "1": 90,
+                  ">5": 1
+                },
+                "delta_max_s": 6,
+                "delta_min_s": 1,
+                "delta_p50_s": 1,
+                "n": 92,
+                "span_s": 96
+              }
+            },
+            "subscribe_errors": {},
+            "subscribed": 6,
+            "symbols_with_ticks": 6,
+            "tick_fields": {
+              "frxAUDUSD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxGBPUSD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxNZDUSD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxUSDCAD": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxUSDCHF": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ],
+              "frxUSDJPY": [
+                "ask",
+                "bid",
+                "epoch",
+                "id",
+                "pip_size",
+                "quote",
+                "symbol"
+              ]
+            }
+          }
+        }
+      },
+      "status": "done"
+    },
+    "d_retention_paging": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:37:08-04:00",
+        "started_utc": "2026-07-02T04:37:07+00:00"
+      },
+      "finished_utc": "2026-07-02T04:37:13+00:00",
+      "observations": {
+        "method": "binary search on ticks_history emptiness (1h resolution) + oldest-tick confirm; full page-to-exhaustion infeasible at 5000 ticks/page over multi-day 1s retention",
+        "paging_count_requested": 5000,
+        "paging_disjoint_ordered": true,
+        "paging_page_sizes": [
+          1000,
+          1000,
+          1000
+        ],
+        "paging_sorted_ascending": true,
+        "paging_symbol": "frxUSDJPY",
+        "per_pair_oldest_epoch": {
+          "AUDUSD": 946684800,
+          "GBPUSD": 946684800,
+          "NZDUSD": 946684800,
+          "USDCAD": 946684800,
+          "USDCHF": 946684800,
+          "USDJPY": 946684800
+        },
+        "per_pair_retention_days": {
+          "AUDUSD": 9679.2,
+          "GBPUSD": 9679.2,
+          "NZDUSD": 9679.2,
+          "USDCAD": 9679.2,
+          "USDCHF": 9679.2,
+          "USDJPY": 9679.2
+        },
+        "retention_note": "floor-hit pairs: ticks exist at/before the 2000-01-01 search floor; recorded days are a LOWER BOUND",
+        "search_floor_epoch": 946684800,
+        "search_floor_hit": [
+          "USDJPY",
+          "USDCAD",
+          "AUDUSD",
+          "NZDUSD",
+          "USDCHF",
+          "GBPUSD"
+        ]
+      },
+      "status": "done"
+    },
+    "e_proposal": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:29:10-04:00",
+        "started_utc": "2026-07-02T04:29:10+00:00"
+      },
+      "finished_utc": "2026-07-02T04:29:28+00:00",
+      "observations": {
+        "contracts_for": {
+          "contract_types": [
+            "CALL",
+            "CALLE",
+            "EXPIRYMISS",
+            "EXPIRYMISSE",
+            "EXPIRYRANGE",
+            "EXPIRYRANGEE",
+            "HIGHER",
+            "LOWER",
+            "MULTDOWN",
+            "MULTUP",
+            "NOTOUCH",
+            "ONETOUCH",
+            "PUT",
+            "PUTE",
+            "RANGE",
+            "UPORDOWN"
+          ],
+          "max_durations": [
+            "0",
+            "1d",
+            "365d"
+          ],
+          "min_durations": [
+            "0",
+            "15m",
+            "1d"
+          ],
+          "n_available": 20,
+          "response_keys": [
+            "contracts_for",
+            "echo_req",
+            "msg_type",
+            "req_id"
+          ]
+        },
+        "proposal": {
+          "ask_price": 1,
+          "has_id": true,
+          "keys": [
+            "ask_price",
+            "contract_details",
+            "date_expiry",
+            "date_start",
+            "id",
+            "longcode",
+            "payout",
+            "spot",
+            "spot_time",
+            "validation_params"
+          ],
+          "payout": 1.9
+        },
+        "subscription_id_present": true,
+        "subscription_supported": true,
+        "symbol": "frxUSDJPY",
+        "updates_in_15s": 16
+      },
+      "status": "done"
+    },
+    "f_rate_budget": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:29:28-04:00",
+        "started_utc": "2026-07-02T04:29:28+00:00"
+      },
+      "finished_utc": "2026-07-02T04:31:43+00:00",
+      "observations": {
+        "aborted": null,
+        "cycle_wall_s": {
+          "max": 6.9,
+          "p50": 5.4,
+          "p95": 6.7
+        },
+        "cycles_completed": 24,
+        "error_count": 0,
+        "error_rate": 0.0,
+        "errors_sample": [],
+        "request_latency_ms": {
+          "max": 1293.1,
+          "p50": 130.3,
+          "p95": 601.7
+        },
+        "requests_ok": 432,
+        "requests_total": 432,
+        "sustainable_5s_cadence": false,
+        "transport_note": "serial sync client, one connection (deriv_client.py); the async Phase-1 client parallelizes"
+      },
+      "status": "done"
+    },
+    "g_near_close": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:49:26-04:00",
+        "started_utc": "2026-07-02T04:49:25+00:00"
+      },
+      "finished_utc": "2026-07-02T04:49:26+00:00",
+      "reason": "near-close window is 16:35-16:59 NY; now 00:49:26 NY",
+      "rerun": "~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --out results/json/deriv_api_probe_result.json",
+      "status": "pending"
+    },
+    "h_baseline": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:49:26-04:00",
+        "started_utc": "2026-07-02T04:49:26+00:00"
+      },
+      "finished_utc": "2026-07-02T04:49:26+00:00",
+      "reason": "run on the VPS during NY session with a fresh store",
+      "rerun": "~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes h --baseline-store-dir $DERIV_DEMO_STORE_DIR --out results/json/deriv_api_probe_result.json",
+      "status": "pending"
+    },
+    "i_candle_latency": {
+      "context": {
+        "host": "quantum",
+        "in_ny_session": false,
+        "ny_time": "2026-07-02T00:31:43-04:00",
+        "started_utc": "2026-07-02T04:31:43+00:00"
+      },
+      "finished_utc": "2026-07-02T04:35:38+00:00",
+      "observations": {
+        "completed_bar_finality": [
+          {
+            "boundary_epoch": 1782966720,
+            "changed": false,
+            "close_5s_later": 162.436,
+            "close_at_first_sight": 162.436
+          },
+          {
+            "boundary_epoch": 1782966780,
+            "changed": false,
+            "close_5s_later": 162.433,
+            "close_at_first_sight": 162.433
+          },
+          {
+            "boundary_epoch": 1782966840,
+            "changed": false,
+            "close_5s_later": 162.432,
+            "close_at_first_sight": 162.432
+          },
+          {
+            "boundary_epoch": 1782966900,
+            "changed": false,
+            "close_5s_later": 162.424,
+            "close_at_first_sight": 162.424
+          }
+        ],
+        "poll_endpoint": "legacy",
+        "poll_latency_p95_s": 0.5,
+        "poll_latency_samples_s": [
+          0.42,
+          0.49,
+          0.56,
+          0.53
+        ],
+        "subscribe_supported": {
+          "legacy": {
+            "ohlc_frames_in_15s": 16,
+            "supported": true
+          },
+          "options": {
+            "ohlc_frames_in_15s": 16,
+            "supported": true
+          }
+        },
+        "symbol": "frxUSDJPY"
+      },
+      "status": "done"
+    }
+  },
+  "script": "scripts/deriv_api_probe.py",
+  "updated_utc": "2026-07-02T04:49:29+00:00"
+}
