@@ -40,7 +40,40 @@ Each pair writes:
   and written under `deriv_data/models/`.
 
 The smallest Deriv candle bar requested by this repo is 60 seconds. Raw ticks
-are a separate feed shape and are not treated as bars.
+are a separate feed shape and are not treated as bars — the `ticks_1s` store
+below captures them for the hot runtime's shifted lane and offline audit.
+
+## Tick Store (`ticks_1s`) and Daemon Candle Store (issue #4 Phase 2)
+
+`scripts/deriv_market_stream.py` (shadow-only: no scoring, no trading) writes
+two additional gitignored stores:
+
+- `deriv_data/ticks_1s/_pages/<PAIR>/*.parquet` — live 1-second tick shards
+  (`epoch, quote, bid, ask`; quote = mid), one atomic shard per writer flush
+  (default 10s), with `<PAIR>_progress.json` recording received/persisted
+  counts and the last persisted epoch. `--compact` merges shards into
+  `<PAIR>.parquet` (the Phase-5 offline-audit substrate). Warmup history ticks
+  feed only the in-memory ring — the store holds live-received ticks, so
+  `received == persisted` is the zero-loss gate check.
+- `deriv_data/candles_1m_daemon/<PAIR>.parquet` — the daemon candle store,
+  all seven pairs including EURUSD (the xpair books' live feature join reads
+  every pair's closes, exactly like the production store), refreshed every 5s
+  (Phase-0 probe (i): completed candles are fetchable ~0.5s after the
+  boundary). Same schema and open-candle-drop discipline as
+  the production store (`candles_frame`/`merge_existing` from
+  `deriv_backfill.py`). **Store ownership:** the production one-shot timer
+  keeps sole write ownership of `deriv_data/candles_1m/`; the daemon lane
+  reads only its own store. A cross-store consistency report (last-30
+  completed closes per pair) is logged every 5 minutes — divergence there is
+  a store bug, tracked separately from decision parity.
+
+The shifted aggregator emits 12-offset 60s bars (offsets {0,5,...,55}s;
+validity = exactly 60 one-second ticks in `(end-60s, end]`, deduped
+keep-last, never forward-filled) to the runtime only — shifted bars are not
+persisted as a feature store. Per-run gate rollups append to
+`deriv_market_stream_gate_result.json` (archived in `results/json/`); the
+Phase-2 gate needs >=3 full NY sessions passing coverage >= 99.5%, window
+rate >= 99%, writer lag p95 <= 30s / max <= 120s, zero ring-to-store loss.
 
 ## Experimental Deriv Models
 

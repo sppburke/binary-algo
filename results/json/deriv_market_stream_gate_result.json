@@ -1,0 +1,942 @@
+{
+  "gate": "issue#4 Phase 2 market stream",
+  "runs": [
+    {
+      "client_resubscribe_latency_s": [],
+      "client_stats": {
+        "decode_errors": 0,
+        "error_frames": 0,
+        "frames": 1350,
+        "pre_sub_buffered": 0,
+        "queue_overflow": 0,
+        "reconnects": 0,
+        "request_frames": 276,
+        "stream_frames": 1074,
+        "unmatched_frames": 0
+      },
+      "coverage_denominator": "run_elapsed_seconds (gate sessions must run session-aligned)",
+      "elapsed_s": 180.7,
+      "finished_utc": "2026-07-02T13:48:02+00:00",
+      "host": "quantum",
+      "pairs": {
+        "AUDUSD": {
+          "coverage_vs_elapsed": 0.9963,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 180,
+          "pages": 18,
+          "persisted": 180,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 36,
+          "windows_expected": 36,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "GBPUSD": {
+          "coverage_vs_elapsed": 0.9963,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 180,
+          "pages": 18,
+          "persisted": 180,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 36,
+          "windows_expected": 36,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "NZDUSD": {
+          "coverage_vs_elapsed": 0.9963,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 180,
+          "pages": 18,
+          "persisted": 180,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 36,
+          "windows_expected": 36,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCAD": {
+          "coverage_vs_elapsed": 0.9963,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 180,
+          "pages": 18,
+          "persisted": 180,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 36,
+          "windows_expected": 36,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCHF": {
+          "coverage_vs_elapsed": 0.9963,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 180,
+          "pages": 18,
+          "persisted": 180,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 36,
+          "windows_expected": 36,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDJPY": {
+          "coverage_vs_elapsed": 0.9963,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 180,
+          "pages": 18,
+          "persisted": 180,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 36,
+          "windows_expected": 36,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        }
+      },
+      "refresher": {
+        "errors": 0,
+        "updates": 162
+      },
+      "started_utc": "2026-07-02T13:45:02+00:00"
+    },
+    {
+      "client_resubscribe_latency_s": [],
+      "client_stats": {
+        "decode_errors": 0,
+        "error_frames": 0,
+        "frames": 904,
+        "pre_sub_buffered": 0,
+        "queue_overflow": 0,
+        "reconnects": 0,
+        "request_frames": 190,
+        "stream_frames": 714,
+        "unmatched_frames": 0
+      },
+      "coverage_denominator": "run_elapsed_seconds (gate sessions must run session-aligned)",
+      "elapsed_s": 120.5,
+      "finished_utc": "2026-07-02T13:57:54+00:00",
+      "host": "quantum",
+      "pairs": {
+        "AUDUSD": {
+          "coverage_vs_elapsed": 0.9954,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 120,
+          "pages": 30,
+          "persisted": 120,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 24,
+          "windows_expected": 24,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "GBPUSD": {
+          "coverage_vs_elapsed": 0.9954,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 120,
+          "pages": 30,
+          "persisted": 120,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 24,
+          "windows_expected": 24,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "NZDUSD": {
+          "coverage_vs_elapsed": 0.9954,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 120,
+          "pages": 30,
+          "persisted": 120,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 24,
+          "windows_expected": 24,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCAD": {
+          "coverage_vs_elapsed": 0.9954,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 120,
+          "pages": 30,
+          "persisted": 120,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 24,
+          "windows_expected": 24,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCHF": {
+          "coverage_vs_elapsed": 0.9954,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 120,
+          "pages": 30,
+          "persisted": 120,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 24,
+          "windows_expected": 24,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDJPY": {
+          "coverage_vs_elapsed": 0.9954,
+          "dupes": 0,
+          "gap_max_s": 1,
+          "gaps_over_3s": 0,
+          "gate_pass": true,
+          "live_ticks_received": 120,
+          "pages": 30,
+          "persisted": 120,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {},
+          "window_rate": 1.0,
+          "windows_complete": 24,
+          "windows_expected": 24,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 10,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        }
+      },
+      "refresher": {
+        "errors": 0,
+        "updates": 161
+      },
+      "started_utc": "2026-07-02T13:55:54+00:00"
+    },
+    {
+      "client_resubscribe_latency_s": [
+        1.088
+      ],
+      "client_stats": {
+        "decode_errors": 0,
+        "error_frames": 0,
+        "frames": 3623,
+        "pre_sub_buffered": 0,
+        "queue_overflow": 0,
+        "reconnects": 1,
+        "request_frames": 701,
+        "stream_frames": 2922,
+        "unmatched_frames": 0
+      },
+      "coverage_denominator": "run_elapsed_seconds (gate sessions must run session-aligned)",
+      "elapsed_s": 540.8,
+      "finished_utc": "2026-07-02T14:34:02+00:00",
+      "host": "quantum",
+      "pairs": {
+        "AUDUSD": {
+          "coverage_vs_elapsed": 0.9043,
+          "dupes": 0,
+          "gap_max_s": 52,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 489,
+          "pages": 80,
+          "persisted": 489,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "12": 2,
+            "17": 2,
+            "22": 2,
+            "27": 2,
+            "32": 2,
+            "37": 2,
+            "42": 2,
+            "47": 2,
+            "52": 2,
+            "57": 2,
+            "9": 2
+          },
+          "window_rate": 0.7963,
+          "windows_complete": 86,
+          "windows_expected": 108,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 1.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "GBPUSD": {
+          "coverage_vs_elapsed": 0.9043,
+          "dupes": 0,
+          "gap_max_s": 52,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 489,
+          "pages": 80,
+          "persisted": 489,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "12": 2,
+            "17": 2,
+            "22": 2,
+            "27": 2,
+            "32": 2,
+            "37": 2,
+            "42": 2,
+            "47": 2,
+            "52": 2,
+            "57": 2,
+            "9": 2
+          },
+          "window_rate": 0.7963,
+          "windows_complete": 86,
+          "windows_expected": 108,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "NZDUSD": {
+          "coverage_vs_elapsed": 0.9043,
+          "dupes": 0,
+          "gap_max_s": 52,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 489,
+          "pages": 80,
+          "persisted": 489,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "12": 2,
+            "17": 2,
+            "22": 2,
+            "27": 2,
+            "32": 2,
+            "37": 2,
+            "42": 2,
+            "47": 2,
+            "52": 2,
+            "57": 2,
+            "9": 2
+          },
+          "window_rate": 0.7963,
+          "windows_complete": 86,
+          "windows_expected": 108,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCAD": {
+          "coverage_vs_elapsed": 0.9043,
+          "dupes": 0,
+          "gap_max_s": 52,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 489,
+          "pages": 80,
+          "persisted": 489,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "12": 2,
+            "17": 2,
+            "22": 2,
+            "27": 2,
+            "32": 2,
+            "37": 2,
+            "42": 2,
+            "47": 2,
+            "52": 2,
+            "57": 2,
+            "9": 2
+          },
+          "window_rate": 0.7963,
+          "windows_complete": 86,
+          "windows_expected": 108,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCHF": {
+          "coverage_vs_elapsed": 0.9043,
+          "dupes": 0,
+          "gap_max_s": 52,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 489,
+          "pages": 80,
+          "persisted": 489,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "12": 2,
+            "17": 2,
+            "22": 2,
+            "27": 2,
+            "32": 2,
+            "37": 2,
+            "42": 2,
+            "47": 2,
+            "52": 2,
+            "57": 2,
+            "9": 2
+          },
+          "window_rate": 0.7963,
+          "windows_complete": 86,
+          "windows_expected": 108,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDJPY": {
+          "coverage_vs_elapsed": 0.9043,
+          "dupes": 0,
+          "gap_max_s": 52,
+          "gaps_over_3s": 1,
+          "gate_pass": false,
+          "live_ticks_received": 489,
+          "pages": 80,
+          "persisted": 489,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "12": 2,
+            "17": 2,
+            "22": 2,
+            "27": 2,
+            "32": 2,
+            "37": 2,
+            "42": 2,
+            "47": 2,
+            "52": 2,
+            "57": 2,
+            "9": 2
+          },
+          "window_rate": 0.7963,
+          "windows_complete": 86,
+          "windows_expected": 108,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        }
+      },
+      "refresher": {
+        "errors": 4,
+        "updates": 689
+      },
+      "started_utc": "2026-07-02T14:25:01+00:00"
+    },
+    {
+      "client_resubscribe_latency_s": [],
+      "client_stats": {
+        "decode_errors": 0,
+        "error_frames": 0,
+        "frames": 4446,
+        "pre_sub_buffered": 0,
+        "queue_overflow": 0,
+        "reconnects": 0,
+        "request_frames": 852,
+        "stream_frames": 3594,
+        "unmatched_frames": 0
+      },
+      "coverage_denominator": "run_elapsed_seconds (gate sessions must run session-aligned)",
+      "elapsed_s": 600.7,
+      "finished_utc": "2026-07-02T14:48:35+00:00",
+      "host": "quantum",
+      "pairs": {
+        "AUDUSD": {
+          "coverage_live": 0.9988,
+          "coverage_vs_elapsed": 0.9988,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 600,
+          "pages": 140,
+          "persisted": 600,
+          "recovered_ticks": 0,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 11
+          },
+          "window_rate": 0.9076,
+          "windows_complete": 108,
+          "windows_expected": 119,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "GBPUSD": {
+          "coverage_live": 0.9988,
+          "coverage_vs_elapsed": 0.9988,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 600,
+          "pages": 140,
+          "persisted": 600,
+          "recovered_ticks": 0,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 11
+          },
+          "window_rate": 0.9076,
+          "windows_complete": 108,
+          "windows_expected": 119,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "NZDUSD": {
+          "coverage_live": 0.9988,
+          "coverage_vs_elapsed": 0.9988,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 600,
+          "pages": 140,
+          "persisted": 600,
+          "recovered_ticks": 0,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 11
+          },
+          "window_rate": 0.9076,
+          "windows_complete": 108,
+          "windows_expected": 119,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCAD": {
+          "coverage_live": 0.9988,
+          "coverage_vs_elapsed": 0.9988,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 600,
+          "pages": 140,
+          "persisted": 600,
+          "recovered_ticks": 0,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 11
+          },
+          "window_rate": 0.9076,
+          "windows_complete": 108,
+          "windows_expected": 119,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCHF": {
+          "coverage_live": 0.9988,
+          "coverage_vs_elapsed": 0.9988,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 600,
+          "pages": 140,
+          "persisted": 600,
+          "recovered_ticks": 0,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 11
+          },
+          "window_rate": 0.9076,
+          "windows_complete": 108,
+          "windows_expected": 119,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDJPY": {
+          "coverage_live": 0.9988,
+          "coverage_vs_elapsed": 0.9988,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 600,
+          "pages": 140,
+          "persisted": 600,
+          "recovered_ticks": 0,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 11
+          },
+          "window_rate": 0.9076,
+          "windows_complete": 108,
+          "windows_expected": 119,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 1.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        }
+      },
+      "refresher": {
+        "errors": 0,
+        "updates": 840
+      },
+      "started_utc": "2026-07-02T14:38:34+00:00"
+    },
+    {
+      "client_resubscribe_latency_s": [],
+      "client_stats": {
+        "decode_errors": 0,
+        "error_frames": 0,
+        "frames": 1788,
+        "pre_sub_buffered": 0,
+        "queue_overflow": 0,
+        "reconnects": 0,
+        "request_frames": 354,
+        "stream_frames": 1434,
+        "unmatched_frames": 0
+      },
+      "coverage_denominator": "run_elapsed_seconds (gate sessions must run session-aligned)",
+      "elapsed_s": 240.8,
+      "finished_utc": "2026-07-02T15:01:31+00:00",
+      "host": "quantum",
+      "pairs": {
+        "AUDUSD": {
+          "coverage_live": 0.9967,
+          "coverage_vs_elapsed": 1.0008,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 240,
+          "pages": 164,
+          "persisted": 241,
+          "recovered_ticks": 1,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 12
+          },
+          "window_rate": 0.75,
+          "windows_complete": 36,
+          "windows_expected": 48,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "GBPUSD": {
+          "coverage_live": 0.9967,
+          "coverage_vs_elapsed": 1.0008,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 240,
+          "pages": 164,
+          "persisted": 241,
+          "recovered_ticks": 1,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 12
+          },
+          "window_rate": 0.75,
+          "windows_complete": 36,
+          "windows_expected": 48,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "NZDUSD": {
+          "coverage_live": 0.9967,
+          "coverage_vs_elapsed": 1.0008,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 240,
+          "pages": 164,
+          "persisted": 241,
+          "recovered_ticks": 1,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 12
+          },
+          "window_rate": 0.75,
+          "windows_complete": 36,
+          "windows_expected": 48,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCAD": {
+          "coverage_live": 0.9967,
+          "coverage_vs_elapsed": 1.0008,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 240,
+          "pages": 164,
+          "persisted": 241,
+          "recovered_ticks": 1,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 12
+          },
+          "window_rate": 0.75,
+          "windows_complete": 36,
+          "windows_expected": 48,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDCHF": {
+          "coverage_live": 0.9967,
+          "coverage_vs_elapsed": 1.0008,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 240,
+          "pages": 164,
+          "persisted": 241,
+          "recovered_ticks": 1,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 12
+          },
+          "window_rate": 0.75,
+          "windows_complete": 36,
+          "windows_expected": 48,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        },
+        "USDJPY": {
+          "coverage_live": 0.9967,
+          "coverage_vs_elapsed": 1.0008,
+          "dupes": 0,
+          "gap_max_s": 2,
+          "gaps_over_3s": 0,
+          "gate_pass": false,
+          "live_ticks_received": 240,
+          "pages": 164,
+          "persisted": 241,
+          "recovered_ticks": 1,
+          "ticks_lost_ring_to_store": 0,
+          "unpersisted_at_stop": 0,
+          "window_incomplete_by_n": {
+            "59": 12
+          },
+          "window_rate": 0.75,
+          "windows_complete": 36,
+          "windows_expected": 48,
+          "windows_retry_completed": 0,
+          "write_buf_depth_max": 11,
+          "writer_lag_s": {
+            "max": 0.0,
+            "p50": 0.0,
+            "p95": 0.0
+          }
+        }
+      },
+      "refresher": {
+        "errors": 0,
+        "updates": 336
+      },
+      "started_utc": "2026-07-02T14:57:30+00:00"
+    }
+  ]
+}
