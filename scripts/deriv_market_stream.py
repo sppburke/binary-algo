@@ -134,7 +134,12 @@ class PairState:
         self.write_buf: list[tuple[int, float, float, float]] = []
         self.buf_depth_max = 0
         self.page_n = page_n
-        self.recovered = 0  # gap ticks backfilled from history into the store (not the ring)
+        self.recovered = 0  # gap ticks backfilled from history (store + window heal)
+        # True ticks fetched from history for live-skipped seconds; merged into
+        # windows at aggregation so a healed window scores COMPLETE (real data,
+        # never ffill). Live ring ticks win on duplicate epochs.
+        self.recovered_map: dict[int, tuple[float, float, float]] = {}
+        self.windows_healed = 0
         self.persisted = 0
         self.persisted_last_epoch = 0
         self.writer_lag_samples: list[float] = []
@@ -161,14 +166,21 @@ class PairState:
             self.buf_depth_max = max(self.buf_depth_max, len(self.write_buf))
 
     def window_ticks(self, end_epoch: int) -> list[tuple[int, float, float, float]]:
-        out: list[tuple[int, float, float, float]] = []
+        # recovered ticks FIRST: shifted_bar dedups keep-last, so a live ring
+        # tick wins over a recovered one at the same epoch
+        out: list[tuple[int, float, float, float]] = [
+            (e, *self.recovered_map[e])
+            for e in range(end_epoch - WINDOW_S + 1, end_epoch + 1)
+            if e in self.recovered_map
+        ]
+        tail: list[tuple[int, float, float, float]] = []
         for item in reversed(self.ring):
             if item[0] <= end_epoch - WINDOW_S:
                 break
             if item[0] <= end_epoch:
-                out.append(item)
-        out.reverse()
-        return out
+                tail.append(item)
+        tail.reverse()
+        return out + tail
 
 
 # ---------------------------------------------------------------- store writer
@@ -376,7 +388,12 @@ class MarketStream:
             end = times[0] - 1
         if fetched:
             st.write_buf.extend((e, q, math.nan, math.nan) for e, q in sorted(fetched.items()))
+            for e, q in fetched.items():
+                st.recovered_map[e] = (q, math.nan, math.nan)
             st.recovered += len(fetched)
+            cutoff = st.last_epoch - self.args.ring_seconds
+            for stale in [e for e in st.recovered_map if e < cutoff]:
+                del st.recovered_map[stale]
             self.log("gap_recovered", pair=pair, n=len(fetched), gap_s=end_epoch - start_epoch)
 
     # ---------------- aggregator
@@ -398,6 +415,8 @@ class MarketStream:
                 bar, n = shifted_bar(st.window_ticks(bound), bound)
                 if bar is not None:
                     st.windows_complete += 1
+                    if any(bound - WINDOW_S < e <= bound for e in st.recovered_map):
+                        st.windows_healed += 1
                     if bound % 60 == 0:
                         self.log("window_complete_sample", pair=st.pair, **bar)
                 else:
@@ -496,6 +515,7 @@ class MarketStream:
                 "gaps_over_3s": st.gaps_over_3s,
                 "windows_expected": st.windows_expected,
                 "windows_complete": st.windows_complete,
+                "windows_healed_by_recovery": st.windows_healed,
                 "windows_retry_completed": st.windows_retry_completed,
                 "window_rate": round(win_rate, 4) if win_rate is not None else None,
                 "window_incomplete_by_n": st.window_incomplete_counts,
@@ -634,6 +654,21 @@ def run_smoke() -> int:
     dup = ticks + [(1050, 9.9, 9.89, 9.91)]
     bar, n = shifted_bar(dup, 1060)
     check("duplicate epoch keep-last (high reflects late dup)", bar is not None and bar["high"] == 9.9)
+
+    # 4b. ring-healing: a live-skipped second recovered from history heals the
+    # window with the TRUE tick (complete, never ffilled); live wins on dup
+    st_heal = PairState("USDJPY", ring_seconds=7200, page_n=0)
+    for e, quote, bid, ask in ticks:
+        if e != 1023:
+            st_heal.add_tick(e, quote, bid, ask, persist=False)
+    bar, n = shifted_bar(st_heal.window_ticks(1060), 1060)
+    check("hole window incomplete before heal", bar is None and n == 59)
+    st_heal.recovered_map[1023] = (q(1023), math.nan, math.nan)
+    bar, n = shifted_bar(st_heal.window_ticks(1060), 1060)
+    check("healed window complete with the true tick", bar is not None and n == 60 and bar["close"] == q(1060))
+    st_heal.recovered_map[1040] = (99.9, math.nan, math.nan)  # dup epoch: live ring tick must win
+    bar, _ = shifted_bar(st_heal.window_ticks(1060), 1060)
+    check("live tick wins over recovered on duplicate epoch", bar is not None and bar["high"] != 99.9)
 
     # 5. writer atomicity + zero-loss accounting (smoke dir under deriv_data, cleaned up)
     smoke_dir = ensure_deriv_data_path(Path("deriv_data/ticks_1s_smoke"), purpose="smoke tick store")
