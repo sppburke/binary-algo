@@ -10,10 +10,13 @@ WorkingDirectory=/home/sean/git/binary-algo
 # from --near-close-start 16:20 NY through 17:01 NY to bracket the
 # accepted->rejected transition; writes gitignored logs/ (keeps the tree clean).
 ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --near-close-start 16:20 --out logs/probe_g_scheduled_capture.json
-# Self-stop once a clean transition is captured (both accepted AND rejected
-# proposals seen) so it does not re-run every weekday forever. A non-clean run
-# (holiday/closed market) leaves the timer enabled to retry the next weekday.
-ExecStartPost=/bin/bash -c 'if /home/sean/binary-algo-venv/bin/python -c "import json,sys; g=json.load(open(\"logs/probe_g_scheduled_capture.json\"))[\"runs\"][\"g_near_close\"].get(\"observations\",{}); sys.exit(0 if g.get(\"n_accepted\",0)>0 and g.get(\"n_rejected\",0)>0 else 1)"; then systemctl --user disable --now deriv-probe-g-nearclose.timer; fi'
+# On a clean accepted->rejected capture, fold_probe_g_capture.py merges the
+# g_near_close record into the tracked result JSON and commits+pushes it
+# (fail-safe: rebase-first, never force-push, retry), then the timer
+# self-disables. A non-clean run (holiday/closed market) makes the fold a
+# no-op (exit 1) and leaves the timer armed to retry the next weekday.
+# `|| true` keeps the oneshot from reporting failed on those expected no-ops.
+ExecStartPost=/bin/bash -c '/home/sean/binary-algo-venv/bin/python scripts/fold_probe_g_capture.py && systemctl --user disable --now deriv-probe-g-nearclose.timer || true'
 # The probe runs ~41 min (16:20 -> 17:01 NY); allow the full window.
 TimeoutStartSec=3600
 Nice=5
