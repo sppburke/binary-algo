@@ -151,3 +151,47 @@ Copy the env template outside git, fill only VPS-local secrets, then install the
 The service defaults to proposal-only (`DERIV_DEMO_MODE_ARGS=--dry-run-proposal-only`); switch to `--demo-buy` only after a proposal-only VPS run has verified proposal payloads, the payout gate, haircut resolution, and structured logs. **Store refresh dependency:** the unit's `ExecStartPre` runs `scripts/deriv_backfill.py backfill --max-pages 2` before every executor run because the store health gate requires freshness within `--store-max-stale-seconds` (default 180s); without it, store health fails within ~3 minutes of the last manual backfill. If you remove `ExecStartPre`, an equivalent refresh unit/timer or a documented runbook refresh step is required.
 
 Secrets, account IDs, JSONL logs, and `deriv_data/` artifacts must stay out of git.
+
+## Hot Runtime (issue #4, Phases 1-6)
+
+The hot 5s runtime shares this executor's decision chain — `deriv_runtime_core.py`
+holds the extracted gate/monitor/reconcile/state helpers, pair + floor
+resolution, `effective_floor_for`, and the fake test harness; both binaries
+import it (parity by construction). Modules:
+
+- `deriv_async_client.py` — websockets transport: req_id futures, subscription
+  registry, batched auto-resubscribe (<1s live), fail-closed error surface.
+  Gates: `--smoke` (deterministic), `--soak-minutes 30 --inject-disconnects 3`.
+- `deriv_market_stream.py` — tick store + 12-offset shifted aggregator +
+  daemon candle refresher (see `docs/DERIV_DATA_STORE.md`). **Must run before
+  the supervisor** — the daemon store health gate fails closed when stale.
+- `deriv_hot_daemon.py` — offset-0 wall-clock scoring, books loaded once,
+  per-minute store snapshots + `--parity-replay` (KILL #0a: the deterministic
+  tuple recomputed from archived snapshots must match 100%).
+- `deriv_quote_workers.py` — hot CALL/PUT quote state via proposal
+  subscriptions on the PUBLIC socket (buy-incapable by construction).
+- `deriv_runtime_supervisor.py` — the coordinator: sole buy-capable object,
+  admit-token gate battery (session, 16:44:59 NY last-start cutoff,
+  lane-scoped staleness, shifted-lane per-(pair,side) verdict enforcement,
+  dedup, account-wide max_open, max_trades_day, per-pair cooldown across
+  offsets and sides, payout gate on a fresh proposal), contract_id-correlated
+  monitoring. Gates: `--smoke`; live `--run` (proposal-only default).
+- `deriv_offset_audit.py` — the pre-registered Phase-5 shifted-lane audit
+  (falsifier-first; the audit RUN is a `strategy-eval` session).
+
+**Deploy order (VPS):** install `ops/deriv-market-stream.service` +
+`ops/deriv-runtime-supervisor.service`; start the market stream, wait for
+daemon-store health, then the supervisor (proposal-only). The old one-shot
+timer keeps sole ownership of the production store and keeps running through
+Phase 5 (it is also the `quote_snapshot` source for the audit enable bar);
+disable-but-retain it only at Phase-6 cutover. Buy exclusivity: before
+setting `DERIV_SUPERVISOR_MODE_ARGS=--demo-buy`, drop `--demo-buy` from
+`DERIV_DEMO_MODE_ARGS`. Emergency stop: `touch <log-dir>/KILL` (per log dir).
+**Parity re-check rule:** any change to the registry, a book,
+`live_features.py`, or `deriv_runtime_core.py` re-arms the 1-session KILL #0
+re-check before the next demo-buy session.
+
+Phase gate status lives in issue #4 and the per-gate result JSONs under
+`results/json/` (`deriv_async_soak_result.json`,
+`deriv_market_stream_gate_result.json`, `deriv_hot_daemon_gate_result.json`,
+`deriv_parity_result.json`, `deriv_offset_audit_falsifier.json`).

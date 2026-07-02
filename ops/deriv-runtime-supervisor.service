@@ -1,0 +1,23 @@
+[Unit]
+Description=binary-algo Deriv hot runtime supervisor (coordinator + hot daemon + quote workers; issue #4 Phases 3-4)
+After=network-online.target deriv-market-stream.service
+Wants=network-online.target
+Requires=deriv-market-stream.service
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
+WorkingDirectory=/home/sean/git/binary-algo
+# Proposal-only by default: DERIV_SUPERVISOR_MODE_ARGS is empty until the
+# Phase-4 gate sessions; switch to --demo-buy only per the issue-#4 phase
+# gates, and drop --demo-buy from the OLD executor timer first — exactly one
+# buy-capable process may exist (buy-exclusivity rule, issue #4 r3).
+# Emergency stop: touch ${DERIV_DEMO_LOG_DIR}/supervisor/KILL
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_runtime_supervisor.py --run --pairs all-enabled --log-dir ${DERIV_DEMO_LOG_DIR}/supervisor --stake ${DERIV_DEMO_STAKE} --max-breakeven ${DERIV_DEMO_MAX_BREAKEVEN} --payout-edge-margin ${DERIV_DEMO_PAYOUT_EDGE_MARGIN} $DERIV_SUPERVISOR_MODE_ARGS
+Restart=on-failure
+RestartSec=15
+KillSignal=SIGINT
+Nice=5
+
+[Install]
+WantedBy=default.target

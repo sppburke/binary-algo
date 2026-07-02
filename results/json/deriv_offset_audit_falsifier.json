@@ -1,0 +1,29 @@
+{
+  "ci": "min1_production.boot nb=5000 CI95 on the de-overlapped win vector, per (pair, side)",
+  "enable_bar": "CI95-lower > max(0.541, median observed live_breakeven for the (pair, side) from the production executor's quote_snapshot events over >= 3 NY sessions); sparse quote coverage DEFERS the lane",
+  "failure": "lane stays shadow-only permanently absent new evidence",
+  "falsifier": "issue#4 Phase 5 shifted-offset audit \u2014 pre-registered before any outcome data is examined",
+  "haircuts": "no wall-clock haircut applied anywhere in this lane",
+  "n_min_deoverlapped_per_pair_side": 400,
+  "offsets_s": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55
+  ],
+  "outcomes_examined_at_registration": false,
+  "per_offset_breakdowns": "diagnostic only \u2014 never per-offset enablement",
+  "registered_utc": "2026-07-02T14:56:42+00:00",
+  "scope_v1": "own-pair books only; xpair batch join resolved in the strategy-eval run",
+  "session": "NY 08:00-17:00 America/New_York DST-correct; last buy start 16:44:59 NY",
+  "settlement": "entry = first tick >= signal_close + 1s (tol 30s, else invalid); exit = last tick <= entry + 900s (exit must lie within 30s of entry+900s, else invalid \u2014 fail-closed both ends); mid-to-mid; ties LOSE",
+  "trade_stream": "chronological first-come-first-served through the per-pair cooldown across offsets and sides (nonoverlap_chrono discipline; spacing 931s = horizon 900s + entry tolerance 30s + 1s, so settlement windows are strictly non-overlapping even at the tolerance edge); max_open/max_trades_day/KILL/lock are runtime risk budgets, NOT simulated \u2014 they still bind every live trade"
+}

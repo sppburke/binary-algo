@@ -1,0 +1,22 @@
+[Unit]
+Description=binary-algo Deriv market-data workers (tick store + shifted bars + daemon candle refresher; issue #4 Phase 2)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
+WorkingDirectory=/home/sean/git/binary-algo
+# Shadow-only: no scoring, no trading. Owns deriv_data/ticks_1s/ and the
+# DAEMON candle store deriv_data/candles_1m_daemon/ (all seven pairs). The
+# production store stays with the old one-shot timer (store-ownership rule,
+# issue #4 r3). MUST be running before the supervisor starts: the daemon's
+# store health gate fails closed on a stale daemon store.
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_market_stream.py --pairs all-enabled --log-dir ${DERIV_DEMO_LOG_DIR}/market_stream
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGINT
+Nice=5
+
+[Install]
+WantedBy=default.target
