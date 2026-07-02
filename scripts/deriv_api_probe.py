@@ -60,14 +60,15 @@ def now_utc_iso() -> str:
 
 
 def ny_now() -> datetime:
-    # Reuse the executor's session definition; lazy import keeps --help light.
-    from deriv_demo_executor import NY_TZ
+    # Session definition lives in deriv_runtime_core since the Phase-3
+    # extraction (issue #4); lazy import keeps --help light.
+    from deriv_runtime_core import NY_TZ
 
     return datetime.now(NY_TZ)
 
 
 def in_ny_session_now() -> bool:
-    from deriv_demo_executor import is_ny_session
+    from deriv_runtime_core import is_ny_session
 
     return is_ny_session(datetime.now(timezone.utc))
 
