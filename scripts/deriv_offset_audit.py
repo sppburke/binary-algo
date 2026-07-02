@@ -74,7 +74,8 @@ FALSIFIER = {
         "chronological first-come-first-served through the per-pair cooldown across offsets and sides "
         f"(nonoverlap_chrono discipline; spacing {COOLDOWN_S}s = horizon 900s + entry tolerance 30s + 1s, "
         "so settlement windows are strictly non-overlapping even at the tolerance edge); "
-        "max_open/max_trades_day/KILL/lock are runtime risk budgets, NOT simulated — they still bind every live trade"
+        "max_open/max_trades_day/KILL/lock are runtime risk budgets, NOT simulated — they bind live trades "
+        "when configured (defaults are unconstrained on demo per the r4 amendment)"
     ),
     "settlement": (
         "entry = first tick >= signal_close + 1s (tol 30s, else invalid); exit = last tick <= entry + 900s "

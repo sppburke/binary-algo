@@ -24,7 +24,7 @@ import sys
 import tempfile
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Callable
@@ -58,6 +58,11 @@ EURUSD_DISABLED_REASON = "EURUSD disabled: verified live OF_* provider is unavai
 TERMINAL_STATUSES = {"sold", "won", "lost", "expired", "cancelled"}
 
 NY_TZ = ZoneInfo("America/New_York")
+
+# A contract still "open" this long past its expected expiry is an anomaly
+# (platform settlement stall / clock skew) — reconciliation fails closed on it
+# rather than carrying unknown exposure forever (review F2).
+OVERDUE_OPEN_GRACE_S = 600
 
 class ExecutorError(RuntimeError):
     pass
@@ -406,7 +411,19 @@ def reconcile_open_state(
         terminal = update_contract_state(state, contract_id, resp)
         logger.write("state_reconciled_contract", contract_id=contract_id, terminal=terminal, raw_hash=raw_hash(resp))
         if not terminal:
-            still_open.append(contract_id)
+            expiry_raw = (state.get("open_contracts", {}).get(contract_id) or {}).get("expected_expiry_utc")
+            overdue = True  # missing/unparseable expiry on an open contract is itself anomalous
+            if expiry_raw:
+                try:
+                    overdue = datetime.now(timezone.utc) > (
+                        datetime.fromisoformat(expiry_raw) + timedelta(seconds=OVERDUE_OPEN_GRACE_S))
+                except ValueError:
+                    pass
+            if overdue:
+                logger.write("reconcile_overdue_open", contract_id=contract_id, expected_expiry_utc=expiry_raw)
+                unresolved.append(contract_id)
+            else:
+                still_open.append(contract_id)
     save_state(state_path, state)
     if still_open:
         logger.write("reconcile_carried_open", contracts=still_open)

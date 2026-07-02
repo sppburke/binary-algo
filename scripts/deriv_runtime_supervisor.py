@@ -96,6 +96,7 @@ class Coordinator:
         self.last_pair_buy_monotonic: dict[str, float] = {}
         self._admitted: dict[str, dict[str, Any]] = {}
         self.counters: dict[str, int] = {}
+        self.monitor_tasks: set[asyncio.Task] = set()
 
     def _trades_today(self, now: datetime) -> int:
         return int((self.state.get("trades_by_day") or {}).get(now.date().isoformat(), 0))
@@ -241,8 +242,19 @@ class Coordinator:
             side=side, offset_id=signal.get("offset_id", 0), lane=signal.get("lane", "wall"))
         save_state(self.state_path, self.state)
         self.logger.write("buy_confirmed", pair=pair, contract_id=contract_id)
-        await self.monitor(contract_id)
-        return {"bought": True, "contract_id": contract_id}
+        # Monitor CONCURRENTLY (review F3): an inline await serialized the
+        # account to ~one open trade despite unconstrained caps. Errors are
+        # contained; state keeps the contract for reconcile().
+        task = asyncio.get_running_loop().create_task(self._monitor_contained(contract_id))
+        self.monitor_tasks.add(task)
+        task.add_done_callback(self.monitor_tasks.discard)
+        return {"bought": True, "contract_id": contract_id, "monitor_task": task}
+
+    async def _monitor_contained(self, contract_id: str) -> None:
+        try:
+            await self.monitor(contract_id)
+        except (ExecutorError, DerivAPIError) as exc:
+            self.logger.write("monitor_error", contract_id=contract_id, error=str(exc)[:300])
 
     # ------------------------------------------------------------ monitor (contract_id-correlated)
 
@@ -419,7 +431,10 @@ async def run_smoke() -> int:
                        floor: float = 0.58) -> dict[str, Any]:
         cx = fresh_coord(demo_client=FakeAsyncClient(responses, sub_frames))
         token, _ = cx.admit(_sig(signal_close_utc=f"e{len(logger.path.read_text())}", effective_floor=floor), in_session)
-        return await cx.execute(token)
+        r = await cx.execute(token)
+        if r.get("monitor_task") is not None:
+            await r["monitor_task"]  # smoke assertions need the monitor to finish
+        return r
 
     r = await run_exec([{"proposal": {"payout": 1.9}}])
     check("missing ask fails closed", r["reason"] == "missing_or_invalid_ask")
@@ -501,6 +516,8 @@ async def run_live(args: argparse.Namespace) -> int:
     lock_ctx = ExecutorLock(Path(args.log_dir), "supervisor-demo" if args.demo_buy else "supervisor-dry", logger)
     with lock_ctx:
         rc = await daemon.run()
+        if coordinator.monitor_tasks:  # let open-contract monitors finish before teardown
+            await asyncio.gather(*coordinator.monitor_tasks, return_exceptions=True)
     await workers.stop()
     await public.close()
     if demo_client is not None:
@@ -533,6 +550,10 @@ def main() -> int:
     p.add_argument("--log-dir", default="logs/deriv_supervisor")
     p.add_argument("--url", default=PUBLIC_WS_URL)
     args = p.parse_args()
+    # negative caps would be truthy and reject everything (review footgun)
+    args.max_open = max(0, args.max_open)
+    args.max_trades_day = max(0, args.max_trades_day)
+    args.pair_cooldown_seconds = max(0, args.pair_cooldown_seconds)
     if args.smoke:
         return asyncio.run(run_smoke())
     if args.run:

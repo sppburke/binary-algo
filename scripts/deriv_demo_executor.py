@@ -129,7 +129,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--auth-smoke", action="store_true")
     p.add_argument("--fake-client-smoke", action="store_true")
     p.add_argument("--reconcile-only", action="store_true")
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    # negative caps would be truthy and reject everything (review footgun)
+    args.max_open = max(0, args.max_open)
+    args.max_trades_day = max(0, args.max_trades_day)
+    args.pair_cooldown_seconds = max(0, args.pair_cooldown_seconds)
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -161,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
         monitor_timeout_seconds=args.monitor_timeout_seconds,
         max_trades_day=args.max_trades_day,
         max_open=args.max_open,
+        pair_cooldown_seconds=args.pair_cooldown_seconds,
+        blocking_monitor=args.blocking_monitor,
         api_call_budget={
             "quote_snapshots_per_cycle": snapshots_per_cycle,
             "max_fresh_buy_quotes_per_cycle": len(pairs),
@@ -363,6 +370,11 @@ def run_cycle(
     state_path: Path,
 ) -> None:
     check_kill_switch(kill_path, logger)
+    if args.demo_buy:
+        # Per-cycle reconciliation: with detached monitoring this is what
+        # settles open contracts and lets open_count fall (review F1 — the
+        # detached design is incoherent without it in --loop mode).
+        reconcile_open_state(client, state, state_path, logger, args)
     if args.store_dir is not None:
         require_store_health(args.store_dir, pairs, logger, args)
     snapshot_quotes(pairs, client, logger, args)
@@ -834,12 +846,32 @@ def run_fake_client_smoke() -> None:
             contract_id="contract-open",
             stake=1.0,
             buy_price=1.0,
-            expected_expiry=datetime(2026, 6, 15, 14, 15, tzinfo=timezone.utc),
+            expected_expiry=datetime.now(timezone.utc) + timedelta(minutes=15),  # in-flight, not overdue
         )
         reconcile_open_state(FakeTradeClient(terminal=False), carried, log_dir / "carried.json", logger, buy_args)  # type: ignore[arg-type]
         if "contract-open" not in pending_contracts(carried):
             raise ExecutorError("FAIL: known-open contract was not carried through reconciliation")
         _require_fields(_last_event(logger.path, "reconcile_carried_open"), ["contracts"], "reconcile_carried_open")
+
+        # Reconciliation fail-closed on an OVERDUE open contract (still "open"
+        # long past expected expiry = unknown exposure).
+        overdue = empty_state()
+        record_open_contract(
+            overdue,
+            pair="USDJPY",
+            proposal_id="proposal-4",
+            contract_id="contract-overdue",
+            stake=1.0,
+            buy_price=1.0,
+            expected_expiry=datetime.now(timezone.utc) - timedelta(hours=1),
+        )
+        try:
+            reconcile_open_state(FakeTradeClient(terminal=False), overdue, log_dir / "overdue.json", logger, buy_args)  # type: ignore[arg-type]
+        except ExecutorError:
+            pass
+        else:
+            raise ExecutorError("FAIL: overdue-open contract did not fail closed")
+        _require_fields(_last_event(logger.path, "reconcile_overdue_open"), ["contract_id"], "reconcile_overdue_open")
 
         # Reconciliation fail-closed on UNRESOLVABLE state (query failure).
         class _FailingClient(FakeTradeClient):
