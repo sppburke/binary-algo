@@ -22,7 +22,7 @@ can be added later on the VPS without clobbering the unattended probes.
 Run from repo root:
     ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py                # a,b,c,d,e,f,i
     ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --near-close-start 16:20   # NY window only
-    ~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes h --baseline-store-dir deriv_data/candles_1m
+    # probe h is RETIRED (issue #5) — it benchmarked the deprecated executor; RSS is now a systemd MemoryHigh concern
 """
 
 from __future__ import annotations
@@ -32,7 +32,6 @@ import json
 import os
 import socket
 import statistics
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -570,34 +569,21 @@ def probe_g(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def probe_h(args: argparse.Namespace) -> dict[str, Any]:
-    if not args.baseline_store_dir:
-        return {
-            "status": "pending",
-            "reason": "run on the VPS during NY session with a fresh store",
-            "rerun": "~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes h --baseline-store-dir $DERIV_DEMO_STORE_DIR --out results/json/deriv_api_probe_result.json",
-        }
-    cmd = [
-        "/usr/bin/time", "-v", sys.executable, "scripts/deriv_demo_executor.py",
-        "--pairs", "all-enabled", "--once", "--store-dir", args.baseline_store_dir,
-        "--log-dir", "logs/paper_trades",
-    ]
-    t0 = time.monotonic()
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    wall_s = round(time.monotonic() - t0, 1)
-    rss_kb = None
-    for line in proc.stderr.splitlines():
-        if "Maximum resident set size" in line:
-            rss_kb = int(line.rsplit(":", 1)[1].strip())
+    # RETIRED (issue #5): this probe timed `deriv_demo_executor.py --once` to
+    # get a peak-RSS baseline — but issue #5 deprecated that executor, so it
+    # was benchmarking a decommissioned component. The RSS baselines that now
+    # matter (hot daemon / supervisor / market stream / quote-audit sampler)
+    # are owned by the #5 cutover acceptance, and an ONGOING ceiling is
+    # enforced by systemd MemoryHigh/MemoryMax on the ops units (measured
+    # 2026-07-02: quote-audit ~200 MB, candle-refresh ~481 MB peak) — which
+    # both measures and enforces, unlike a periodic probe that only observes.
     return {
-        "status": "done" if proc.returncode == 0 and rss_kb else "failed",
-        "observations": {
-            "command": " ".join(cmd),
-            "returncode": proc.returncode,
-            "wall_s": wall_s,
-            "max_rss_bytes": rss_kb * 1024 if rss_kb else None,
-            "in_ny_session": in_ny_session_now(),
-            "stderr_tail": proc.stderr.strip().splitlines()[-3:],
-        },
+        "status": "retired",
+        "reason": (
+            "benchmarked the issue-#5-deprecated deriv_demo_executor; live-runtime RSS is owned by the #5 "
+            "cutover acceptance + systemd MemoryHigh on ops/deriv-quote-audit.service and "
+            "ops/deriv-production-candle-refresh.service (quote-audit ~200 MB, candle-refresh ~481 MB peak)"
+        ),
     }
 
 
@@ -707,7 +693,7 @@ def main() -> int:
     p.add_argument("--soak-cycles", type=int, default=24, help="probe f cycles (24 x 5s = 2 min)")
     p.add_argument("--soak-cadence", type=float, default=5.0)
     p.add_argument("--latency-minutes", type=int, default=4, help="probe i minute boundaries to sample")
-    p.add_argument("--baseline-store-dir", default=None, help="probe h: store dir for the timed one-shot")
+    p.add_argument("--baseline-store-dir", default=None, help="unused (probe h retired, issue #5); kept for CLI compat")
     p.add_argument("--near-close-start", default="16:20",
                    help="probe g: NY HH:MM to begin sampling (default 16:20; the 2026-07-02 run showed the true "
                         "last-start is ~16:35, so start earlier to bracket the accepted->rejected transition)")

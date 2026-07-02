@@ -803,13 +803,12 @@
       "context": {
         "host": "quantum",
         "in_ny_session": false,
-        "ny_time": "2026-07-02T00:49:26-04:00",
-        "started_utc": "2026-07-02T04:49:26+00:00"
+        "ny_time": "2026-07-02T17:33:37-04:00",
+        "started_utc": "2026-07-02T21:33:37+00:00"
       },
-      "finished_utc": "2026-07-02T04:49:26+00:00",
-      "reason": "run on the VPS during NY session with a fresh store",
-      "rerun": "~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes h --baseline-store-dir $DERIV_DEMO_STORE_DIR --out results/json/deriv_api_probe_result.json",
-      "status": "pending"
+      "finished_utc": "2026-07-02T21:33:37+00:00",
+      "reason": "benchmarked the issue-#5-deprecated deriv_demo_executor; live-runtime RSS is owned by the #5 cutover acceptance + systemd MemoryHigh on ops/deriv-quote-audit.service and ops/deriv-production-candle-refresh.service (quote-audit ~200 MB, candle-refresh ~481 MB peak)",
+      "status": "retired"
     },
     "i_candle_latency": {
       "context": {
@@ -870,5 +869,5 @@
     }
   },
   "script": "scripts/deriv_api_probe.py",
-  "updated_utc": "2026-07-02T21:01:15+00:00"
+  "updated_utc": "2026-07-02T21:33:37+00:00"
 }
