@@ -1,0 +1,189 @@
+{
+  "events_tail": [
+    {
+      "event": "connected",
+      "url": "wss://api.derivws.com/trading/v1/options/ws/public"
+    },
+    {
+      "event": "disconnected",
+      "reason": "sent 1011 (internal error) injected soak disconnect; then received 1011 (internal error) injected soak disconnect"
+    },
+    {
+      "connect_attempts": 1,
+      "event": "resubscribed",
+      "latency_s": 0.995,
+      "resubscribe_s": 0.635,
+      "subs": 6
+    },
+    {
+      "event": "disconnected",
+      "reason": "sent 1011 (internal error) injected soak disconnect; then received 1011 (internal error) injected soak disconnect"
+    },
+    {
+      "connect_attempts": 1,
+      "event": "resubscribed",
+      "latency_s": 0.96,
+      "resubscribe_s": 0.512,
+      "subs": 6
+    },
+    {
+      "event": "disconnected",
+      "reason": "sent 1011 (internal error) injected soak disconnect; then received 1011 (internal error) injected soak disconnect"
+    },
+    {
+      "connect_attempts": 1,
+      "event": "resubscribed",
+      "latency_s": 0.828,
+      "resubscribe_s": 0.479,
+      "subs": 6
+    }
+  ],
+  "finished_utc": "2026-07-02T15:18:29+00:00",
+  "gate": "issue#4 Phase 1 live soak",
+  "gate_result": {
+    "all_client_resubscribes_under_5s": true,
+    "decode_errors": 0,
+    "every_symbol_ticked_every_segment": true,
+    "pass": true,
+    "queue_overflow": 0,
+    "reconnect_breakdown": [
+      {
+        "connect_attempts": 1,
+        "connect_s": 0.36,
+        "resubscribe_s": 0.635,
+        "total_s": 0.995
+      },
+      {
+        "connect_attempts": 1,
+        "connect_s": 0.448,
+        "resubscribe_s": 0.512,
+        "total_s": 0.96
+      },
+      {
+        "connect_attempts": 1,
+        "connect_s": 0.349,
+        "resubscribe_s": 0.479,
+        "total_s": 0.828
+      }
+    ],
+    "resubscribe_total_s": [
+      0.995,
+      0.96,
+      0.828
+    ],
+    "resubscribes_observed": 3,
+    "stream_errors": [],
+    "total_gap_max_s": 0.995,
+    "unmatched_frames": 0
+  },
+  "host": "quantum",
+  "injected_disconnects": 3,
+  "minutes": 30.0,
+  "per_subscription": {
+    "frxAUDUSD": {
+      "error": null,
+      "overflow": 0,
+      "resubscribes": 3
+    },
+    "frxGBPUSD": {
+      "error": null,
+      "overflow": 0,
+      "resubscribes": 3
+    },
+    "frxNZDUSD": {
+      "error": null,
+      "overflow": 0,
+      "resubscribes": 3
+    },
+    "frxUSDCAD": {
+      "error": null,
+      "overflow": 0,
+      "resubscribes": 3
+    },
+    "frxUSDCHF": {
+      "error": null,
+      "overflow": 0,
+      "resubscribes": 3
+    },
+    "frxUSDJPY": {
+      "error": null,
+      "overflow": 0,
+      "resubscribes": 3
+    }
+  },
+  "segment_counts": [
+    {
+      "frxAUDUSD": 454,
+      "frxGBPUSD": 451,
+      "frxNZDUSD": 453,
+      "frxUSDCAD": 455,
+      "frxUSDCHF": 452,
+      "frxUSDJPY": 456
+    },
+    {
+      "frxAUDUSD": 450,
+      "frxGBPUSD": 450,
+      "frxNZDUSD": 450,
+      "frxUSDCAD": 450,
+      "frxUSDCHF": 450,
+      "frxUSDJPY": 450
+    },
+    {
+      "frxAUDUSD": 450,
+      "frxGBPUSD": 450,
+      "frxNZDUSD": 450,
+      "frxUSDCAD": 450,
+      "frxUSDCHF": 450,
+      "frxUSDJPY": 450
+    },
+    {
+      "frxAUDUSD": 450,
+      "frxGBPUSD": 450,
+      "frxNZDUSD": 450,
+      "frxUSDCAD": 450,
+      "frxUSDCHF": 450,
+      "frxUSDJPY": 450
+    }
+  ],
+  "started_utc": "2026-07-02T14:48:23+00:00",
+  "stats": {
+    "decode_errors": 0,
+    "error_frames": 0,
+    "frames": 10803,
+    "pre_sub_buffered": 0,
+    "queue_overflow": 0,
+    "reconnect_breakdown": [
+      {
+        "connect_attempts": 1,
+        "connect_s": 0.36,
+        "resubscribe_s": 0.635,
+        "total_s": 0.995
+      },
+      {
+        "connect_attempts": 1,
+        "connect_s": 0.448,
+        "resubscribe_s": 0.512,
+        "total_s": 0.96
+      },
+      {
+        "connect_attempts": 1,
+        "connect_s": 0.349,
+        "resubscribe_s": 0.479,
+        "total_s": 0.828
+      }
+    ],
+    "reconnects": 3,
+    "request_frames": 6,
+    "stream_frames": 10797,
+    "unmatched_frames": 0
+  },
+  "tick_counts": {
+    "frxAUDUSD": 1804,
+    "frxGBPUSD": 1801,
+    "frxNZDUSD": 1803,
+    "frxUSDCAD": 1805,
+    "frxUSDCHF": 1802,
+    "frxUSDJPY": 1806
+  },
+  "url": "wss://api.derivws.com/trading/v1/options/ws/public"
+}

@@ -9,5 +9,6 @@ numpy==2.4.6
 pandas==3.0.3
 pyarrow==24.0.0
 websocket-client==1.9.0  # Deriv demo executor WebSocket transport; also pinned in requirements-deriv-demo.txt.
+websockets==16.0  # Deriv async runtime transport (deriv_async_client.py, issue #4 Phase 1); also pinned in requirements-deriv-demo.txt.
 # No NEW installs were required for the seconds-scale work; all model types (GBM ensemble, 1D-CNN, GRU, TabNet) use the above.
 iisignature (path signatures, rough-path theory) — added 2026-05-31 for orthogonal-math signature features
