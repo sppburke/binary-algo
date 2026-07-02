@@ -11,7 +11,7 @@
         "supported": true
       }
     },
-    "last_start_cutoff_ny": "16:44:59 default stands (probe g pending)",
+    "last_start_cutoff_ny": "first rejection at 16:43:10 NY",
     "proposal_subscription_supported": true,
     "rate_budget_error_rate": 0.0,
     "rate_budget_ok_5s_cadence": false,
@@ -606,14 +606,198 @@
     "g_near_close": {
       "context": {
         "host": "quantum",
-        "in_ny_session": false,
-        "ny_time": "2026-07-02T00:49:26-04:00",
-        "started_utc": "2026-07-02T04:49:25+00:00"
+        "in_ny_session": true,
+        "ny_time": "2026-07-02T16:43:10-04:00",
+        "started_utc": "2026-07-02T20:43:09+00:00"
       },
-      "finished_utc": "2026-07-02T04:49:26+00:00",
-      "reason": "near-close window is 16:35-16:59 NY; now 00:49:26 NY",
-      "rerun": "~/binary-algo-venv/bin/python scripts/deriv_api_probe.py --probes g --out results/json/deriv_api_probe_result.json",
-      "status": "pending"
+      "finished_utc": "2026-07-02T21:01:15+00:00",
+      "observations": {
+        "attempts": [
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:43:10",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:43:40",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:44:11",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:44:41",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:45:11",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:45:41",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:46:11",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:46:41",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:47:11",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:47:41",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:48:11",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:48:41",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:49:12",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'duration'}, 'messa",
+            "ny_time": "16:49:42",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:50:12",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:50:42",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:51:12",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:51:42",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:52:12",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:52:42",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:53:13",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:53:43",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:54:13",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:54:43",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:55:13",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:55:43",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:56:13",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:56:43",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:57:14",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:57:44",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:58:14",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:58:44",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:59:14",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "16:59:44",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "17:00:14",
+            "ok": false
+          },
+          {
+            "error": "Deriv error for {'proposal': 1, 'amount': 1.0, 'basis': 'stake', 'contract_type': 'CALL', 'currency': 'USD', 'duration': 15, 'duration_unit': 'm', 'underlying_symbol': 'frxUSDJPY'}: {'code': 'ContractBuyValidationError', 'code_args': ['20:50:00', '22:00:00'], 'details': {'field': 'date_start'}, 'mes",
+            "ny_time": "17:00:44",
+            "ok": false
+          }
+        ],
+        "cutoff_verdict": "first rejection at 16:43:10 NY",
+        "symbol": "frxUSDJPY"
+      },
+      "status": "done"
     },
     "h_baseline": {
       "context": {
@@ -686,5 +870,5 @@
     }
   },
   "script": "scripts/deriv_api_probe.py",
-  "updated_utc": "2026-07-02T04:49:29+00:00"
+  "updated_utc": "2026-07-02T21:01:15+00:00"
 }
