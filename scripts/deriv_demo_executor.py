@@ -808,6 +808,22 @@ def run_fake_client_smoke() -> None:
             "contract_closed",
         )
 
+        # Detached monitoring (the DEFAULT path): buy returns immediately, the
+        # contract is carried open in state, and the next cycle's
+        # reconciliation settles it to terminal.
+        det_args = _smoke_args(dry_run_proposal_only=False, demo_buy=True, blocking_monitor=False)
+        det_state = empty_state()
+        det_logger = JsonlLogger(log_dir / "detached")
+        det_client = FakeTradeClient()
+        bought = _smoke_process(det_client, det_logger, det_args, log_dir, resolution, FakeBook(),
+                                state=det_state, state_path=log_dir / "det_state.json")
+        if not bought or not pending_contracts(det_state):
+            raise ExecutorError("FAIL: detached buy did not record an open contract in state")
+        _require_fields(_last_event(det_logger.path, "monitor_detached"), ["contract_id"], "monitor_detached")
+        reconcile_open_state(FakeTradeClient(), det_state, log_dir / "det_state.json", det_logger, det_args)  # type: ignore[arg-type]
+        if pending_contracts(det_state):
+            raise ExecutorError("FAIL: reconciliation did not settle the detached contract to terminal")
+
         # Reconciliation: a KNOWN-open contract is refreshed and carried (multi
         # -open concurrency is normal); no refusal, no raise.
         carried = empty_state()
@@ -867,7 +883,8 @@ def run_fake_client_smoke() -> None:
     print(
         "PASS: fake-client smoke covered payloads, candle conversion, resolver table + cov1 fixtures + "
         "rule-4 recompute, payout gate fail-closed paths, selected-side floors, snapshots, no-buy, "
-        "monitor context, reconciliation, lock, EURUSD fail-closed"
+        "monitor context, detached-monitor lifecycle (buy -> carried open -> reconciled terminal), "
+        "reconciliation carry/fail-closed, lock, EURUSD fail-closed"
     )
 
 
