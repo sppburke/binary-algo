@@ -1,13 +1,20 @@
 [Unit]
-Description=Fire the Deriv probe g near-close capture at 16:19 NY on weekdays (issue #4)
+Description=Fire the Deriv probe g near-close capture at 16:20 NY on weekdays (issue #4)
 
 [Timer]
-# 16:19 NY, just before probe g's 16:20 NY window opens. The TZ suffix is
-# load-bearing: the host runs on America/Chicago, so a bare "16:19" would fire
-# an hour late (17:19 NY, past the window). Recurs each weekday until the
-# capture self-disables the timer (service ExecStartPost). Persistent=false so a
-# missed run does NOT fire at an arbitrary boot time outside the NY window.
-OnCalendar=Mon-Fri 16:19 America/New_York
+# 16:20 NY, exactly when probe g's window opens. probe_g gates on
+# now >= --near-close-start (16:20) at MINUTE resolution and exits immediately
+# ("pending") if it fires before then — it does NOT wait — so firing even one
+# minute early (the old 16:19) no-ops every weekday and never captures. The TZ
+# suffix is load-bearing: the host runs on America/Chicago, so a bare "16:20"
+# would fire an hour late (17:20 NY, past the window). AccuracySec=1s pins the
+# fire to ~16:20:00 so the full 16:20->16:35 run-up before the accepted->rejected
+# transition is sampled (systemd's default 1-min accuracy could slip it to
+# 16:21). Recurs each weekday until the capture self-disables the timer (service
+# ExecStartPost). Persistent=false so a missed run does NOT fire at an arbitrary
+# boot time outside the NY window.
+OnCalendar=Mon-Fri 16:20 America/New_York
+AccuracySec=1s
 Persistent=false
 Unit=deriv-probe-g-nearclose.service
 
