@@ -1,0 +1,16 @@
+[Unit]
+Description=Fire the probe g capture verifier at 17:30 NY on weekdays (issue #4)
+
+[Timer]
+# 17:30 NY — well after the capture window (16:20->17:01 NY) and its fold+commit,
+# so the verdict reflects the final shipped state. The TZ suffix is load-bearing:
+# the host runs on America/Chicago, so a bare "17:30" would fire an hour late
+# (18:30 NY). Recurs each weekday; the verifier service self-disables THIS timer
+# once it confirms a clean capture shipped (PASS). Persistent=false so a missed
+# run does NOT fire at an arbitrary boot time.
+OnCalendar=Mon-Fri 17:30 America/New_York
+Persistent=false
+Unit=deriv-probe-g-verify.service
+
+[Install]
+WantedBy=timers.target

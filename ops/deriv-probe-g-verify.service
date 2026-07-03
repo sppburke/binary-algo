@@ -1,0 +1,21 @@
+[Unit]
+Description=binary-algo probe g capture verifier — catch a silent capture/fold failure (issue #4)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/sean/git/binary-algo
+# Read-only w.r.t. Deriv (no network/account/trading): inspects local systemd
+# state, the gitignored logs/probe_g_scheduled_capture.json, and git history,
+# then writes a PASS/NOOP/FAIL verdict to logs/probe_g_verify.log. On PASS it
+# self-disables deriv-probe-g-verify.timer (job done); on FAIL it posts a
+# one-shot gh comment on issue #4 (sentinel-guarded) and stays armed. Exit 1
+# (NOOP: benign no-op day) is treated as success; exit 2 (FAIL) marks the unit
+# failed so it surfaces in `systemctl --user status`.
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/verify_probe_g_capture.py
+SuccessExitStatus=0 1
+TimeoutStartSec=120
+Nice=5
+
+# No [Install]: timer-activated only (see deriv-probe-g-verify.timer).
