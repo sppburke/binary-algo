@@ -275,3 +275,14 @@ kronos_eval2_orch.log
 # deriv latency-arb lead-probe live captures (large, machine-specific)
 captures/
 deriv_lead_probe_result.*
+
+# deriv runtime gate/soak/probe results: scripts write these to the repo root
+# (CWD) by design; the canonical copies are archived under results/json/. Ignore
+# the root writes (leading / = root-only, so results/json/ archives stay tracked)
+# so a per-run write is never accidentally committed to root again.
+/deriv_market_stream_gate_result.json
+/deriv_hot_daemon_gate_result.json
+/deriv_parity_result.json
+/deriv_async_soak_result.json
+/deriv_api_probe_result.json
+/deriv_offset_audit_result.json
