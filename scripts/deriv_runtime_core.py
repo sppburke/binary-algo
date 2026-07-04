@@ -75,9 +75,43 @@ LAST_START_CUTOFF_SOURCE = (
 )
 
 DEFAULT_RUNTIME_LOCK_ROOT = Path("deriv_data/runtime/locks")
+DEFAULT_ABSOLUTE_BREAKEVEN_CEILING = 0.60
+ABSOLUTE_BREAKEVEN_CEILING_ENV = "DERIV_DEMO_ABSOLUTE_BREAKEVEN_CEILING"
+DEPRECATED_MAX_BREAKEVEN_ENV = "DERIV_DEMO_MAX_BREAKEVEN"
 
 class ExecutorError(RuntimeError):
     pass
+
+def absolute_breakeven_ceiling_default(environ: dict[str, str] | None = None) -> float:
+    """Resolve the secondary payout sanity ceiling from env, preserving the old name."""
+    env = os.environ if environ is None else environ
+    for key in (ABSOLUTE_BREAKEVEN_CEILING_ENV, DEPRECATED_MAX_BREAKEVEN_ENV):
+        raw = env.get(key)
+        if raw is None or str(raw).strip() == "":
+            continue
+        try:
+            return float(raw)
+        except ValueError as exc:
+            raise ExecutorError(f"{key} must be numeric, got {raw!r}") from exc
+    return DEFAULT_ABSOLUTE_BREAKEVEN_CEILING
+
+def add_absolute_breakeven_ceiling_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--absolute-breakeven-ceiling",
+        "--max-breakeven",
+        dest="absolute_breakeven_ceiling",
+        type=float,
+        default=None,
+        help=(
+            "secondary absolute live breakeven ceiling; --max-breakeven is a "
+            "deprecated alias, and the side-floor edge gate remains authoritative"
+        ),
+    )
+
+def normalize_absolute_breakeven_ceiling(args: argparse.Namespace) -> argparse.Namespace:
+    if args.absolute_breakeven_ceiling is None:
+        args.absolute_breakeven_ceiling = absolute_breakeven_ceiling_default()
+    return args
 
 class JsonlLogger:
     def __init__(self, log_dir: Path):
@@ -677,7 +711,7 @@ def _require_fields(row: dict[str, Any] | None, fields: list[str], label: str) -
 def _smoke_args(**overrides: Any) -> SimpleNamespace:
     base = {
         "stake": 1.0,
-        "max_breakeven": 0.60,
+        "absolute_breakeven_ceiling": DEFAULT_ABSOLUTE_BREAKEVEN_CEILING,
         "payout_edge_margin": 0.005,
         "quote_snapshots": "all",
         "dry_run_proposal_only": True,

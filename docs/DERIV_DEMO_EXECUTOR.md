@@ -46,7 +46,7 @@ effective_floor = side_refit_p10 - haircut_abs - payout_edge_margin   # margin d
 buy only when    effective_floor > live_breakeven
 ```
 
-`--max-breakeven` (default 0.60) remains a secondary absolute ceiling; the side-floor edge gate is the authoritative guard. Raw model `proba` is never used as a calibrated win probability. There is no `display_value`/stake fallback for `ask`.
+`--absolute-breakeven-ceiling` (default 0.60, or `DERIV_DEMO_ABSOLUTE_BREAKEVEN_CEILING`) remains a secondary absolute ceiling; the side-floor edge gate is the authoritative guard. The old `--max-breakeven` / `DERIV_DEMO_MAX_BREAKEVEN` spelling is accepted only as a compatibility alias. Raw model `proba` is never used as a calibrated win probability. There is no `display_value`/stake fallback for `ask`.
 
 **Refit-vintage disclosure:** floors are refit-CPCV **per-era** floors. The frozen vintages the executor loads decay forward (frozen-forward 2026 COMBINED: AUDUSD 0.5082, NZDUSD 0.5194; USDCAD DOWN 0.5258). The gate certifies the documented floor under the periodic-retrain deploy policy, not the frozen artifact's current forward win rate; this stays **demo-only** until a retrain cadence exists. Haircuts are per-book means; worst year/side cells are materially larger (e.g. NZDUSD 2024 DOWN −0.0388) — revisit worst-year haircuts and/or a larger margin before any real-money step.
 
@@ -183,6 +183,7 @@ ops/deriv-probe-g-nearclose.timer            (issue #4 — fires 16:19 NY weekda
 **Probe g near-close scheduler** (`ops/deriv-probe-g-nearclose.{service,timer}`): fires `scripts/deriv_api_probe.py --probes g --near-close-start 16:20` at **16:19 NY on weekdays** (the `OnCalendar=... America/New_York` TZ suffix is load-bearing — hosts on other timezones would otherwise misfire), writing gitignored `logs/probe_g_scheduled_capture.json`. Fully unattended: on a clean accepted→rejected capture the service `ExecStartPost` runs `scripts/fold_probe_g_capture.py`, which merges the `g_near_close` record into `results/json/deriv_api_probe_result.json` and **commits + pushes it** (fail-safe: rebase-first, never force-push, retry), then the timer **self-disables**. A non-clean run (holiday/closed market) is a no-op that leaves the timer armed to retry the next weekday. Manual stop if needed: `systemctl --user disable --now deriv-probe-g-nearclose.timer`. (`loginctl enable-linger` — no sudo needed for self — makes the user timer survive a full logout/reboot; enabled on the dev host 2026-07-02.)
 
 Copy the env template outside git, fill only VPS-local secrets, then install the units with paths adjusted if the checkout or venv differs. Emergency stop is `touch <log-dir>/KILL` (per log dir).
+The absolute live-breakeven sanity ceiling is configured with `DERIV_DEMO_ABSOLUTE_BREAKEVEN_CEILING`; existing private env files that still contain `DERIV_DEMO_MAX_BREAKEVEN` continue to work, but new installs should use the clearer name.
 
 The old per-minute executor service/timer are **deprecated** (issue #5): `--dry-run-proposal-only` skips only the buy, so every 60s run still loaded books, built features, and scored (~69s wall, 1.2–1.4 G peak, operator-reported). Its two surviving support roles moved to purpose-built non-buying jobs:
 

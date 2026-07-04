@@ -27,12 +27,14 @@ from deriv_runtime_core import (
     ExecutorLock,
     JsonlLogger,
     account_lock_key,
+    add_absolute_breakeven_ceiling_arg,
     after_last_start_cutoff,
     canonical_lock_root,
     check_kill_switch,
     executor_lock_path,
     is_ny_session,
     last_start_cutoff_info,
+    normalize_absolute_breakeven_ceiling,
     parse_quote,
 )
 from deriv_trade_queue import (
@@ -277,11 +279,13 @@ class TradeExecutor:
                               live_breakeven=live_breakeven, **payload)
             conn.close()
             return
-        if float(live_breakeven) > self.args.max_breakeven:
+        if float(live_breakeven) > self.args.absolute_breakeven_ceiling:
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
                               reason="breakeven_too_high", source=source, raw_hash_value=_raw_hash(proposal_resp))
             self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason="breakeven_too_high",
-                              live_breakeven=live_breakeven, **payload)
+                              live_breakeven=live_breakeven,
+                              absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling,
+                              **payload)
             conn.close()
             return
         proposal_id = prop.get("id")
@@ -360,7 +364,9 @@ class TradeExecutor:
         raw_key = account_lock_key(env.account_id)
         self.logger.write("executor_startup", queue_db=str(self.db_path), lock_root=str(lock_root),
                           lock_path=str(executor_lock_path(lock_root, raw_key)),
-                          cutoff=last_start_cutoff_info(), fixed_defaults=fixed_defaults())
+                          cutoff=last_start_cutoff_info(),
+                          absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling,
+                          fixed_defaults=fixed_defaults())
         with ExecutorLock(lock_root, raw_key, self.logger):
             await self.connect_async_client()
             workers = [asyncio.create_task(self.worker(i)) for i in range(self.args.executor_worker_concurrency)]
@@ -522,7 +528,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--log-dir", default="logs/deriv_trade_executor")
     p.add_argument("--lock-root", default=None)
     p.add_argument("--stake", type=float, default=1.0)
-    p.add_argument("--max-breakeven", type=float, default=0.60)
+    add_absolute_breakeven_ceiling_arg(p)
     p.add_argument("--queue-poll-interval-ms", type=int, default=QUEUE_POLL_INTERVAL_MS)
     p.add_argument("--executor-worker-concurrency", type=int, default=EXECUTOR_WORKER_CONCURRENCY)
     p.add_argument("--sync-fallback-timeout-s", type=float, default=SYNC_FALLBACK_TIMEOUT_S)
@@ -534,7 +540,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--shifted-signal-max-age-s", type=float, default=SHIFTED_SIGNAL_MAX_AGE_S)
     p.add_argument("--duration-seconds", type=float, default=0.0,
                    help="test/run bound; 0 = run until stopped")
-    args = p.parse_args(argv)
+    args = normalize_absolute_breakeven_ceiling(p.parse_args(argv))
     if args.fake_gate:
         return asyncio.run(run_fake_gate())
     if args.run:

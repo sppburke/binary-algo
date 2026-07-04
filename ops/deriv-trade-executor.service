@@ -11,7 +11,7 @@ WorkingDirectory=/home/sean/git/binary-algo
 # Sole credentialed buy-capable process. ExecStartPre scans /proc cmdlines and
 # refuses to start if a legacy supervisor/demo-executor buy mode is still live.
 ExecStartPre=/home/sean/binary-algo-venv/bin/python scripts/deriv_no_legacy_buy_guard.py
-ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_trade_executor.py --run --log-dir ${DERIV_DEMO_LOG_DIR}/trade_executor --stake ${DERIV_DEMO_STAKE} --max-breakeven ${DERIV_DEMO_MAX_BREAKEVEN}
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_trade_executor.py --run --log-dir ${DERIV_DEMO_LOG_DIR}/trade_executor --stake ${DERIV_DEMO_STAKE}
 Restart=on-failure
 RestartSec=10
 KillSignal=SIGINT

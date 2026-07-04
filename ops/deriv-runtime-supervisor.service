@@ -12,7 +12,7 @@ WorkingDirectory=/home/sean/git/binary-algo
 # The credentialed buy path lives only in deriv-trade-executor.service.
 # Emergency stop: touch ${DERIV_DEMO_LOG_DIR}/supervisor/KILL
 UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_SUPERVISOR_MODE_ARGS DERIV_DEMO_MODE_ARGS
-ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_runtime_supervisor.py --run --queue-mode --pairs all-enabled --log-dir ${DERIV_DEMO_LOG_DIR}/supervisor --stake ${DERIV_DEMO_STAKE} --max-breakeven ${DERIV_DEMO_MAX_BREAKEVEN} --payout-edge-margin ${DERIV_DEMO_PAYOUT_EDGE_MARGIN}
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_runtime_supervisor.py --run --queue-mode --pairs all-enabled --log-dir ${DERIV_DEMO_LOG_DIR}/supervisor --stake ${DERIV_DEMO_STAKE} --payout-edge-margin ${DERIV_DEMO_PAYOUT_EDGE_MARGIN}
 Restart=on-failure
 RestartSec=15
 KillSignal=SIGINT

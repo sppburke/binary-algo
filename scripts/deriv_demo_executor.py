@@ -56,6 +56,7 @@ from deriv_runtime_core import (
     _last_event,
     _require_fields,
     _smoke_args,
+    add_absolute_breakeven_ceiling_arg,
     call_deriv,
     check_kill_switch,
     count_events,
@@ -65,6 +66,7 @@ from deriv_runtime_core import (
     last_pair_buy_seconds,
     load_state,
     monitor_contract,
+    normalize_absolute_breakeven_ceiling,
     parse_quote,
     pending_contracts,
     raw_hash,
@@ -97,12 +99,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--store-dir", type=Path, default=None, help="rolling deriv_data store for feature rows")
     p.add_argument("--history-minutes", type=int, default=14000)
     p.add_argument("--tick-volume-count", type=int, default=5000)
-    p.add_argument(
-        "--max-breakeven",
-        type=float,
-        default=0.60,
-        help="secondary absolute breakeven ceiling; the side-floor edge gate is the authoritative guard",
-    )
+    add_absolute_breakeven_ceiling_arg(p)
     p.add_argument(
         "--payout-edge-margin",
         type=float,
@@ -129,7 +126,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--auth-smoke", action="store_true")
     p.add_argument("--fake-client-smoke", action="store_true")
     p.add_argument("--reconcile-only", action="store_true")
-    args = p.parse_args(argv)
+    args = normalize_absolute_breakeven_ceiling(p.parse_args(argv))
     # negative caps would be truthy and reject everything (review footgun)
     args.max_open = max(0, args.max_open)
     args.max_trades_day = max(0, args.max_trades_day)
@@ -164,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
         store_max_stale_seconds=args.store_max_stale_seconds,
         side_floor_gating=True,
         payout_edge_margin=args.payout_edge_margin,
-        max_breakeven_ceiling=args.max_breakeven,
+        absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
         quote_snapshot_mode=args.quote_snapshots,
         interval_seconds=args.interval_seconds,
         monitor_interval_seconds=args.monitor_interval_seconds,
@@ -522,7 +519,7 @@ def process_pair(
         payout_edge_margin=args.payout_edge_margin,
         effective_floor=effective_floor,
         net_edge=net_edge,
-        max_breakeven_ceiling=args.max_breakeven,
+        absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
         raw_hash=raw_hash(proposal),
     )
     if invalid_reason is not None:
@@ -538,13 +535,13 @@ def process_pair(
             net_edge=net_edge,
         )
         return False
-    if live_breakeven > args.max_breakeven:
+    if live_breakeven > args.absolute_breakeven_ceiling:
         logger.write(
             "signal_skipped",
             pair=pair,
             reason="breakeven_too_high",
             live_breakeven=live_breakeven,
-            max_breakeven_ceiling=args.max_breakeven,
+            absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
         )
         return False
     if args.dry_run_proposal_only:
@@ -743,7 +740,7 @@ def run_fake_client_smoke() -> None:
             _last_event(logger.path, "proposal_received"),
             ["pair", "contract_type", "direction", "ask", "payout", "live_breakeven", "side_refit_p10",
              "haircut_source", "haircut_raw", "haircut_abs", "payout_edge_margin", "effective_floor",
-             "net_edge", "max_breakeven_ceiling", "book_created_utc", "proposal_id", "raw_hash"],
+             "net_edge", "absolute_breakeven_ceiling", "book_created_utc", "proposal_id", "raw_hash"],
             "proposal_received",
         )
 

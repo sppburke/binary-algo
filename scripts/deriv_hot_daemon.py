@@ -53,8 +53,10 @@ from deriv_runtime_core import (
     HORIZON_MINUTES,
     JsonlLogger,
     ExecutorError,
+    add_absolute_breakeven_ceiling_arg,
     effective_floor_for,
     is_ny_session,
+    normalize_absolute_breakeven_ceiling,
     parse_quote,
     resolve_floor_resolutions,
     resolve_pairs,
@@ -281,10 +283,11 @@ class HotDaemon:
             self.skips["edge_not_positive"] = self.skips.get("edge_not_positive", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="edge_not_positive",
                               effective_floor=tup["effective_floor"], live_breakeven=live_breakeven)
-        elif live_breakeven > self.args.max_breakeven:
+        elif live_breakeven > self.args.absolute_breakeven_ceiling:
             self.skips["breakeven_too_high"] = self.skips.get("breakeven_too_high", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="breakeven_too_high",
-                              live_breakeven=live_breakeven)
+                              live_breakeven=live_breakeven,
+                              absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling)
         else:
             self.logger.write("edge_gate_passed", pair=pair, side=tup["selected_side"],
                               effective_floor=tup["effective_floor"], live_breakeven=live_breakeven,
@@ -516,11 +519,11 @@ def main() -> int:
     p.add_argument("--producer-queue-mode-fanout-limit", type=int, default=6)
     p.add_argument("--smoke", action="store_true", help="deterministic in-process idle-wait smoke (no network, no store)")
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
-    p.add_argument("--max-breakeven", type=float, default=0.60)
+    add_absolute_breakeven_ceiling_arg(p)
     p.add_argument("--stake", type=float, default=1.0)
     p.add_argument("--log-dir", default="logs/deriv_hot_daemon")
     p.add_argument("--url", default=PUBLIC_WS_URL)
-    args = p.parse_args()
+    args = normalize_absolute_breakeven_ceiling(p.parse_args())
     if args.smoke:
         return asyncio.run(run_smoke())
     if args.parity_replay is not None:

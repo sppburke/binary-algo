@@ -16,7 +16,7 @@ Gate battery (order matters; every reject logs a stable reason):
   max_open (ACCOUNT-WIDE, all pairs/offsets/sides) -> max_trades_day ->
   per-pair 15m cooldown across offsets and sides -> payout gate on a FRESH
   selected-side proposal (parse_quote + effective_floor > live_breakeven +
-  live_breakeven <= max_breakeven; snapshot quotes are never bought).
+  live_breakeven <= absolute_breakeven_ceiling; snapshot quotes are never bought).
 
 Contract monitoring is correlated by contract_id (fixes the executor's
 key-presence-only filter) and reconciles fail-closed on stream silence.
@@ -49,11 +49,13 @@ from deriv_runtime_core import (
     ExecutorError,
     ExecutorLock,
     JsonlLogger,
+    add_absolute_breakeven_ceiling_arg,
     after_last_start_cutoff,
     check_kill_switch,
     empty_state,
     last_start_cutoff_info,
     load_state,
+    normalize_absolute_breakeven_ceiling,
     parse_quote,
     pending_contracts,
     record_open_contract,
@@ -225,10 +227,12 @@ class Coordinator:
             self.logger.write("signal_skipped", reason="edge_not_positive",
                               live_breakeven=live_breakeven, **signal)
             return {"bought": False, "reason": "edge_not_positive"}
-        if live_breakeven > self.args.max_breakeven:
+        if live_breakeven > self.args.absolute_breakeven_ceiling:
             self._count("breakeven_too_high")
             self.logger.write("signal_skipped", reason="breakeven_too_high",
-                              live_breakeven=live_breakeven, **signal)
+                              live_breakeven=live_breakeven,
+                              absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling,
+                              **signal)
             return {"bought": False, "reason": "breakeven_too_high"}
         proposal_id = prop.get("id")
         if not proposal_id:  # never send the literal string "None" as a buy id (review M3)
@@ -354,7 +358,8 @@ async def run_smoke() -> int:
             failures.append(name)
 
     tmp = Path(tempfile.mkdtemp(prefix="deriv_sup_smoke_"))
-    args = argparse.Namespace(log_dir=tmp, stake=1.0, max_breakeven=0.60, payout_edge_margin=0.005,
+    args = argparse.Namespace(log_dir=tmp, stake=1.0, absolute_breakeven_ceiling=0.60,
+                              payout_edge_margin=0.005,
                               max_open=1, max_trades_day=3, pair_cooldown_seconds=900,
                               monitor_timeout_seconds=5.0, monitor_interval_seconds=0.01)
     logger = JsonlLogger(tmp)
@@ -450,7 +455,7 @@ async def run_smoke() -> int:
     r = await run_exec([{"proposal": {"id": "p1", "ask_price": 1.0, "payout": 1.6}}], floor=0.55)
     check("floor <= breakeven rejected edge_not_positive", r["reason"] == "edge_not_positive", str(r))
     r = await run_exec([{"proposal": {"id": "p1", "ask_price": 1.0, "payout": 1.5}}], floor=0.70)
-    check("breakeven > max rejected", r["reason"] == "breakeven_too_high")
+    check("breakeven above absolute ceiling rejected", r["reason"] == "breakeven_too_high")
 
     # 11. good buy + contract_id-correlated monitor (wrong-id frame ignored)
     poc_wrong = {"proposal_open_contract": {"contract_id": "OTHER", "status": "open"}}
@@ -510,7 +515,8 @@ async def run_live(args: argparse.Namespace) -> int:
         store_dir=args.store_dir, snapshot_dir=args.snapshot_dir, snapshot_keep_minutes=240,
         poll_seconds=2.0, store_min_required_rows=14000, store_max_stale_seconds=180,
         store_wait_poll_seconds=args.store_wait_poll_seconds, store_wait_max_seconds=0.0,
-        payout_edge_margin=args.payout_edge_margin, max_breakeven=args.max_breakeven,
+        payout_edge_margin=args.payout_edge_margin,
+        absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
         stake=args.stake, log_dir=args.log_dir, url=args.url,
         queue_mode=args.queue_mode,
         producer_queue_mode_fanout_limit=args.producer_queue_mode_fanout_limit)
@@ -593,7 +599,7 @@ def main() -> int:
     p.add_argument("--audit-json", default=None, help="per-(pair,side) shifted-lane verdict JSON (Phase 5)")
     p.add_argument("--stake", type=float, default=1.0)
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
-    p.add_argument("--max-breakeven", type=float, default=0.60)
+    add_absolute_breakeven_ceiling_arg(p)
     p.add_argument("--max-open", type=int, default=0, help="0 = unlimited concurrent open contracts, account-wide")
     p.add_argument("--max-trades-day", type=int, default=0, help="0 = unlimited (demo default: trade every signal)")
     p.add_argument("--pair-cooldown-seconds", type=int, default=0, help="0 = none")
@@ -601,7 +607,7 @@ def main() -> int:
     p.add_argument("--monitor-interval-seconds", type=float, default=2.0)
     p.add_argument("--log-dir", default="logs/deriv_supervisor")
     p.add_argument("--url", default=PUBLIC_WS_URL)
-    args = p.parse_args()
+    args = normalize_absolute_breakeven_ceiling(p.parse_args())
     # negative caps would be truthy and reject everything (review footgun)
     args.max_open = max(0, args.max_open)
     args.max_trades_day = max(0, args.max_trades_day)
