@@ -63,6 +63,7 @@ from live_features import DERIV_SYMBOLS, LiveFeatureBuilder, LiveFeatureError, P
 
 GATE_RESULT_PATH = Path("deriv_hot_daemon_gate_result.json")
 PARITY_RESULT_PATH = Path("deriv_parity_result.json")
+ONCE_STORE_WAIT_MAX_S = 90.0  # --once self-bounds the stale-store wait so a one-shot never hangs
 
 
 def now_utc_iso() -> str:
@@ -165,15 +166,52 @@ class HotDaemon:
                           books={p: b.book_id for p, b in self.books.items()})
 
     def check_store(self) -> dict[str, Any]:
-        health = store_health(self.store_dir, enabled_pairs=self.pairs,
-                              min_required_rows=self.args.store_min_required_rows,
-                              max_stale_seconds=self.args.store_max_stale_seconds)
-        if not health.get("passes"):
-            self.logger.write("store_unhealthy", detail=json.dumps(health, default=str)[:500])
-            # fail closed at startup (review M5): systemd restarts until the
-            # market-stream refresher has the daemon store warm and fresh
-            raise ExecutorError("daemon candle store unhealthy at startup; is deriv-market-stream running?")
-        return health
+        return store_health(self.store_dir, enabled_pairs=self.pairs,
+                            min_required_rows=self.args.store_min_required_rows,
+                            max_stale_seconds=self.args.store_max_stale_seconds)
+
+    def _resolve_wait_max(self) -> float:
+        """Effective stale-store wait bound: an explicit --store-wait-max-seconds
+        wins; else 0 (wait forever) for the service, ONCE_STORE_WAIT_MAX_S for --once."""
+        explicit = getattr(self.args, "store_wait_max_seconds", 0.0)
+        if explicit:
+            return float(explicit)
+        return ONCE_STORE_WAIT_MAX_S if self.args.once else 0.0
+
+    async def wait_for_store(self) -> dict[str, Any]:
+        """Idle until the candle store is fresh instead of crash-looping.
+
+        A stale store means the FX market is closed (weekend/holiday — the
+        market-stream refresher has no new bars) or is still warming at boot.
+        Either way we WAIT and re-check rather than fail closed: the old
+        review-M5 behaviour raised and relied on systemd restarts "until the
+        store is warm", which loops forever whenever the market is closed
+        (confirmed on the VPS: 25 store_unhealthy crashes, restart counter
+        16+). `await asyncio.sleep` is cancellable, so a SIGINT from
+        `systemctl stop` unwinds cleanly. Unbounded by default so the service
+        auto-resumes at market open; a positive --store-wait-max-seconds
+        re-raises (fail-fast) and --once self-bounds so a one-shot never hangs.
+        """
+        poll = getattr(self.args, "store_wait_poll_seconds", 60.0)
+        max_s = self._resolve_wait_max()
+        deadline = time.monotonic() + max_s if max_s else None
+        waits = 0
+        while True:
+            health = self.check_store()
+            if health.get("passes"):
+                if waits:
+                    self.logger.write("store_ready_resumed", waited_polls=waits)
+                return health
+            stale = max((v.get("stale_seconds", 0) for v in health.get("per_pair", {}).values()),
+                        default=None)
+            self.logger.write("store_unhealthy", waiting=True, waited_polls=waits,
+                              stale_seconds=stale, detail=json.dumps(health, default=str)[:300])
+            if deadline is not None and time.monotonic() >= deadline:
+                raise ExecutorError(
+                    "daemon candle store still stale after --store-wait-max-seconds; "
+                    "is deriv-market-stream running?")
+            waits += 1
+            await asyncio.sleep(poll)
 
     async def score_minute(self, pair: str, bar_epoch: int, snap_dir: Path) -> None:
         t_detect = time.monotonic()
@@ -246,7 +284,7 @@ class HotDaemon:
 
     async def run(self) -> int:
         self.load_once()
-        self.check_store()
+        await self.wait_for_store()  # idle (not crash) while the market is closed / store warming
         await self.client.connect()
         deadline = time.monotonic() + self.args.duration_minutes * 60 if self.args.duration_minutes else None
         once_deadline = time.monotonic() + 90.0 if self.args.once else None  # loud failure, never a silent hang
@@ -356,6 +394,84 @@ def parity_replay(daemon_log: Path, args: argparse.Namespace) -> int:
     return 0 if result["parity_100pct"] else 1
 
 
+def _smoke_events(log_dir: Path) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for f in log_dir.glob("*.jsonl"):
+        for line in f.read_text().splitlines():
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
+    return out
+
+
+async def run_smoke() -> int:
+    """Deterministic idle-until-reopen smoke (no network, no real store). Scripts
+    check_store() to prove wait_for_store idles on a stale store, resumes when it
+    turns fresh, logs the wait, and fail-fasts under a bounded max / --once."""
+    import tempfile
+
+    checks: list[tuple[str, bool]] = []
+
+    def check(name: str, ok: bool) -> None:
+        checks.append((name, bool(ok)))
+        print(f"  [{'PASS' if ok else 'FAIL'}] {name}")
+
+    tmp = Path(tempfile.mkdtemp(prefix="hot_daemon_smoke_"))
+    FRESH = {"passes": True, "per_pair": {}}
+    STALE = {"passes": False, "per_pair": {"USDJPY": {"stale_seconds": 5733}}}
+
+    def daemon(idx: int, seq: Any, **over: Any) -> HotDaemon:
+        # bypass __init__ (ensure_deriv_data_path + DerivAsyncClient); wait_for_store
+        # needs only .args, .logger, and check_store, which we script here.
+        d = object.__new__(HotDaemon)
+        d.args = argparse.Namespace(
+            log_dir=str(tmp / f"logs_{idx}"), once=over.get("once", False),
+            store_wait_poll_seconds=over.get("store_wait_poll_seconds", 0.01),
+            store_wait_max_seconds=over.get("store_wait_max_seconds", 0.0))
+        d.logger = JsonlLogger(Path(d.args.log_dir))
+        if isinstance(seq, list):
+            d.check_store = lambda s=seq: s.pop(0)  # type: ignore[method-assign]
+        else:
+            d.check_store = lambda h=seq: h  # type: ignore[method-assign]
+        return d
+
+    # 1. idles on a stale store, resumes when it turns fresh, never raises
+    d1 = daemon(1, [dict(STALE), dict(STALE), dict(FRESH)])
+    h1 = await d1.wait_for_store()
+    ev1 = _smoke_events(Path(d1.args.log_dir))
+    waiting = [e for e in ev1 if e.get("event") == "store_unhealthy" and e.get("waiting")]
+    resumed = [e for e in ev1 if e.get("event") == "store_ready_resumed"]
+    check("idles 2 polls then resumes fresh, no raise",
+          bool(h1.get("passes")) and len(waiting) == 2 and len(resumed) == 1)
+    check("logs stale_seconds while waiting", bool(waiting) and all(e.get("stale_seconds") == 5733 for e in waiting))
+
+    # 2. fresh immediately -> returns with no waiting / resume events
+    d2 = daemon(2, dict(FRESH))
+    await d2.wait_for_store()
+    ev2 = _smoke_events(Path(d2.args.log_dir))
+    check("fresh store returns with no waiting events",
+          not any(e.get("event") in ("store_unhealthy", "store_ready_resumed") for e in ev2))
+
+    # 3. persistent stale + explicit bounded max -> fail-fast ExecutorError
+    raised = False
+    try:
+        await daemon(3, dict(STALE), store_wait_max_seconds=0.03).wait_for_store()
+    except ExecutorError:
+        raised = True
+    check("explicit --store-wait-max-seconds re-raises on persistent stale", raised)
+
+    # 4. --once self-bounds; service (once=False, no max) waits forever (bound == 0)
+    check("--once self-bounds the wait", daemon(4, dict(FRESH), once=True)._resolve_wait_max() == ONCE_STORE_WAIT_MAX_S)
+    check("service waits unbounded by default", daemon(5, dict(FRESH), once=False)._resolve_wait_max() == 0.0)
+
+    shutil.rmtree(tmp, ignore_errors=True)
+    passed = sum(1 for _, v in checks if v)
+    ok = passed == len(checks)
+    print(f"{'SMOKE PASS' if ok else 'SMOKE FAIL'} ({passed}/{len(checks)})")
+    return 0 if ok else 1
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--pairs", default="all-enabled")
@@ -368,12 +484,19 @@ def main() -> int:
     p.add_argument("--poll-seconds", type=float, default=2.0)
     p.add_argument("--store-min-required-rows", type=int, default=14000)
     p.add_argument("--store-max-stale-seconds", type=int, default=180)
+    p.add_argument("--store-wait-poll-seconds", type=float, default=60.0,
+                   help="when the store is stale (market closed/warming) re-check every N seconds instead of crashing")
+    p.add_argument("--store-wait-max-seconds", type=float, default=0.0,
+                   help="0 = wait indefinitely and auto-resume at market open; >0 re-raises after N stale seconds (fail-fast)")
+    p.add_argument("--smoke", action="store_true", help="deterministic in-process idle-wait smoke (no network, no store)")
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
     p.add_argument("--max-breakeven", type=float, default=0.60)
     p.add_argument("--stake", type=float, default=1.0)
     p.add_argument("--log-dir", default="logs/deriv_hot_daemon")
     p.add_argument("--url", default=PUBLIC_WS_URL)
     args = p.parse_args()
+    if args.smoke:
+        return asyncio.run(run_smoke())
     if args.parity_replay is not None:
         return parity_replay(args.parity_replay, args)
     return asyncio.run(HotDaemon(args).run())

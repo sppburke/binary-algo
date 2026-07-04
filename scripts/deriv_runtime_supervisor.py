@@ -492,6 +492,7 @@ async def run_live(args: argparse.Namespace) -> int:
         pairs=args.pairs, once=False, duration_minutes=args.duration_minutes, parity_replay=None,
         store_dir=args.store_dir, snapshot_dir=args.snapshot_dir, snapshot_keep_minutes=240,
         poll_seconds=2.0, store_min_required_rows=14000, store_max_stale_seconds=180,
+        store_wait_poll_seconds=args.store_wait_poll_seconds, store_wait_max_seconds=0.0,
         payout_edge_margin=args.payout_edge_margin, max_breakeven=args.max_breakeven,
         stake=args.stake, log_dir=args.log_dir, url=args.url)
     daemon = HotDaemon(daemon_args)
@@ -538,6 +539,8 @@ def main() -> int:
     p.add_argument("--duration-minutes", type=float, default=0.0)
     p.add_argument("--store-dir", default="deriv_data/candles_1m_daemon")
     p.add_argument("--snapshot-dir", default="deriv_data/hot_snapshots")
+    p.add_argument("--store-wait-poll-seconds", type=float, default=60.0,
+                   help="when the daemon store is stale (market closed) re-check every N seconds instead of crash-looping")
     p.add_argument("--audit-json", default=None, help="per-(pair,side) shifted-lane verdict JSON (Phase 5)")
     p.add_argument("--stake", type=float, default=1.0)
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
