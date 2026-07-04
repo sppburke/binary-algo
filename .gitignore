@@ -286,3 +286,4 @@ deriv_lead_probe_result.*
 /deriv_async_soak_result.json
 /deriv_api_probe_result.json
 /deriv_offset_audit_result.json
+/deriv_trade_executor_gate_result.json

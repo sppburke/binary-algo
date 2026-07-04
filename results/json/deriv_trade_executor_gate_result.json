@@ -1,0 +1,80 @@
+{
+  "auth_outage_evidence": {
+    "first_reported_utc": "2026-07-01T16:00:26Z",
+    "journal_command": "journalctl --user --since \"2026-07-01 16:00:00 UTC\" --until \"2026-07-01 22:05:00 UTC\"",
+    "last_reported_utc": "2026-07-01T22:04:04Z",
+    "local_journal_lines_archived": null,
+    "retained_matching_lines_reported_in_issue_6": 22
+  },
+  "blocking_gates": [
+    "live_demo_session_gate_unmeasured",
+    "live_forced_concurrency_gate_unmeasured",
+    "live_forced_fallback_gate_unmeasured",
+    "incident_source_missing_locally"
+  ],
+  "closure_ready": false,
+  "fake": {
+    "buy_intent_count": 12,
+    "buy_submitted_transport_write_count": 12,
+    "claimed_before_release": 12,
+    "db_transaction_ms_max": 1.347,
+    "db_transaction_ms_p99": 1.037,
+    "max_concurrent_workers": 12,
+    "max_inflight_buy_requests_observed": 12,
+    "max_inflight_proposal_requests_observed": 12,
+    "queue_counts": {
+      "bought": 12
+    },
+    "queue_smoke": {
+      "aged_claim_12_wall_ms": 5.694,
+      "aged_terminal_rows": 100000,
+      "claimed_before_release": 12,
+      "db_transaction_ms_max": 1.124,
+      "db_transaction_ms_p99": 1.025,
+      "duplicate_counts": {
+        "contracts_per_signal": 0,
+        "selected_side_natural_tuple": 0
+      },
+      "queue_counts": {
+        "claimed": 12,
+        "terminal_skip": 1
+      }
+    }
+  },
+  "fixed_defaults": {
+    "async_proposal_timeout_ms": 2000,
+    "auth_health_interval_s": 60,
+    "buy_request_timeout_ms": 5000,
+    "commit_to_wakeup_received_p95_max_ms": 25,
+    "db_transaction_max_ms": 250,
+    "db_transaction_p99_max_ms": 50,
+    "event_loop_heartbeat_max_gap_ms": 250,
+    "executor_worker_concurrency": 12,
+    "heartbeat_interval_ms": 100,
+    "hot_proposal_max_buy_age_ms": 1000,
+    "producer_queue_mode_fanout_limit": 6,
+    "producer_queue_mode_poll_seconds": 0.25,
+    "queue_poll_interval_ms": 100,
+    "shifted_signal_max_age_s": 2.0,
+    "sqlite_busy_timeout_ms": 5000,
+    "sync_fallback_max_concurrency": 3,
+    "sync_fallback_timeout_s": 10.0,
+    "wall_signal_max_age_s": 60.0
+  },
+  "gate": "issue#6 deriv_trade_executor fake gate",
+  "generated_utc": "2026-07-04T02:52:32.045288+00:00",
+  "incident_replay": {
+    "local_source_available": false,
+    "replay_passed": null,
+    "source_path": "/home/sean/binary-algo/logs/paper_trades/supervisor/2026-07-02.jsonl.1",
+    "source_sha256_expected": "dff4470108b13df163844785f7fd6f9f391bad74dd9945cfbbeca3645a036f31",
+    "timestamp_field": "timestamp_utc"
+  },
+  "live": {
+    "live_forced_buy_overlap_passed": null,
+    "live_forced_concurrency_passed": null,
+    "live_sync_fallback_buy_submission_passed": null,
+    "live_sync_fallback_terminalization_passed": null,
+    "ny_session_demo_buy": null
+  }
+}

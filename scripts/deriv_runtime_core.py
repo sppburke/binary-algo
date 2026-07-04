@@ -64,6 +64,18 @@ NY_TZ = ZoneInfo("America/New_York")
 # rather than carrying unknown exposure forever (review F2).
 OVERDUE_OPEN_GRACE_S = 600
 
+# Shared issue-#6 cutoff. Probe-g evidence in
+# results/json/deriv_api_probe_result.json proves rejection by 16:43:10 NY but
+# has not yet pinned the last accepted boundary, so fail closed before the
+# 16:50 NY blackout can catch a 15m expiry.
+LAST_START_NY = (16, 35, 0)
+LAST_START_CUTOFF_SOURCE = (
+    "results/json/deriv_api_probe_result.json decisions.last_start_cutoff_ny="
+    "'first rejection at 16:43:10 NY'; conservative issue-#6 default"
+)
+
+DEFAULT_RUNTIME_LOCK_ROOT = Path("deriv_data/runtime/locks")
+
 class ExecutorError(RuntimeError):
     pass
 
@@ -118,6 +130,53 @@ class ExecutorLock:
             self.path.unlink()
         except FileNotFoundError:
             pass
+
+def last_start_cutoff_info() -> dict[str, Any]:
+    return {
+        "last_start_ny": f"{LAST_START_NY[0]:02d}:{LAST_START_NY[1]:02d}:{LAST_START_NY[2]:02d}",
+        "reject_rule": "reject when NY wall-clock >= last_start_ny",
+        "source": LAST_START_CUTOFF_SOURCE,
+    }
+
+def after_last_start_cutoff(ts_utc: datetime) -> bool:
+    if ts_utc.tzinfo is None:
+        ts_utc = ts_utc.replace(tzinfo=timezone.utc)
+    ny = ts_utc.astimezone(NY_TZ)
+    return (ny.hour, ny.minute, ny.second) >= LAST_START_NY
+
+def account_lock_key(account_id: str) -> str:
+    raw = str(account_id).strip()
+    if not raw:
+        raise ExecutorError("DERIV_ACCOUNT_ID is required for an account-scoped buy lock")
+    return f"deriv-demo-account:{raw}"
+
+def canonical_lock_root(root: Path | str | None = None) -> Path:
+    """Create/verify the shared account lock root for every buy-capable runtime.
+
+    Lock identity is (canonical root, raw account key). Do not pre-hash the key:
+    ExecutorLock hashes it once for the filename.
+    """
+    selected = root or os.environ.get("DERIV_RUNTIME_LOCK_ROOT") or DEFAULT_RUNTIME_LOCK_ROOT
+    path = Path(selected)
+    if path.exists() and path.is_symlink():
+        raise ExecutorError(f"lock root is a symlink, refusing: {path}")
+    path.mkdir(parents=True, exist_ok=True)
+    if path.is_symlink():
+        raise ExecutorError(f"lock root is a symlink, refusing: {path}")
+    st = path.stat()
+    if st.st_uid != os.getuid():
+        raise ExecutorError(f"lock root is not owned by current user: {path}")
+    mode = st.st_mode & 0o777
+    if mode != 0o700:
+        path.chmod(0o700)
+        mode = path.stat().st_mode & 0o777
+    if mode != 0o700:
+        raise ExecutorError(f"lock root is not 0700: {path} mode={oct(mode)}")
+    return path
+
+def executor_lock_path(lock_root: Path | str, raw_account_key: str) -> Path:
+    digest = hashlib.sha256(raw_account_key.encode("utf-8")).hexdigest()[:12]
+    return Path(lock_root) / f"executor_{digest}.lock"
 
 def _json_default(obj: Any) -> Any:
     if isinstance(obj, (np.integer, np.floating)):

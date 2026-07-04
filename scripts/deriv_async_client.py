@@ -180,6 +180,20 @@ class DerivAsyncClient:
             except Exception:
                 pass
 
+    def is_connected(self) -> bool:
+        return self._connected.is_set() and self._ws is not None and not self._closing and self._dead is None
+
+    def connection_state(self) -> dict[str, Any]:
+        return {
+            "connected": self.is_connected(),
+            "closing": self._closing,
+            "dead": self._dead,
+            "pending_requests": len(self._pending),
+            "subscriptions": len(self._registry),
+            "reconnects": self.stats.get("reconnects", 0),
+            "last_frame_age_s": round(time.monotonic() - self._last_frame_at, 3),
+        }
+
     # ------------------------------------------------------------ requests
 
     async def request(self, payload: dict[str, Any], timeout: float | None = None) -> dict[str, Any]:

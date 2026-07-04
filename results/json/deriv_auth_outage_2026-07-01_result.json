@@ -1,0 +1,26 @@
+{
+  "artifact": "deriv_auth_outage_2026-07-01_result",
+  "generated_utc": "2026-07-04T02:49:48Z",
+  "journal_command": "journalctl --user --since \"2026-07-01 16:00:00 UTC\" --until \"2026-07-01 22:05:00 UTC\"",
+  "window_start_utc": "2026-07-01T16:00:00Z",
+  "window_end_utc": "2026-07-01T22:05:00Z",
+  "expected_from_issue_6": {
+    "retained_matching_lines": 22,
+    "first_utc": "2026-07-01T16:00:26Z",
+    "last_utc": "2026-07-01T22:04:04Z",
+    "messages": [
+      "401 Unauthorized",
+      "Invalid or expired OTP"
+    ]
+  },
+  "local_archive": {
+    "journal_window_read_in_this_checkout": false,
+    "matching_lines_archived": null,
+    "blocking_reason": "VPS user journal is not present in this local checkout; rerun the command on the VPS before closing issue #6"
+  },
+  "runtime_policy": {
+    "executor_status_on_auth_failure": "buy_blocked_auth",
+    "auto_refresh_pat": false,
+    "runbook": "rotate DERIV_PAT in the private env file, then restart deriv-trade-executor.service"
+  }
+}

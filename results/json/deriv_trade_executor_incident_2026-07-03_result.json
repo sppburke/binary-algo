@@ -1,0 +1,33 @@
+{
+  "artifact": "deriv_trade_executor_incident_2026-07-03_result",
+  "generated_utc": "2026-07-04T02:49:48Z",
+  "source": {
+    "path": "/home/sean/binary-algo/logs/paper_trades/supervisor/2026-07-02.jsonl.1",
+    "sha256_expected_from_issue_6": "dff4470108b13df163844785f7fd6f9f391bad74dd9945cfbbeca3645a036f31",
+    "total_source_lines_expected_from_issue_6": 40068,
+    "timestamp_field": "timestamp_utc",
+    "window_start_utc": "2026-07-03T15:59:00Z",
+    "window_end_utc": "2026-07-03T17:13:20.999999Z",
+    "available_in_local_checkout": false
+  },
+  "expected_counts_from_issue_6": {
+    "window_rows": 1851,
+    "edge_gate_passed": 17,
+    "signal_admitted": 14,
+    "execute_error": 14,
+    "buy_submitted": 0,
+    "buy_confirmed": 0,
+    "contract_closed": 0,
+    "execute_error_message": "not connected within request timeout",
+    "admitted_pair_side_counts": {
+      "AUDUSD DOWN": 7,
+      "GBPUSD DOWN": 5,
+      "USDJPY DOWN": 2
+    }
+  },
+  "replay": {
+    "local_replay_ran": false,
+    "replay_passed": null,
+    "blocking_reason": "source log absent from local checkout; copy VPS source log and rerun incident replay before closing issue #6"
+  }
+}

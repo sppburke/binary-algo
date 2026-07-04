@@ -239,6 +239,23 @@ class HotDaemon:
             self.skips["book_gate"] = self.skips.get("book_gate", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="book_gate", gate_reasons=tup["gate_reasons"])
             return
+        signal = {
+            "pair": pair, "side": tup["selected_side"], "offset_id": 0,
+            "signal_close_utc": tup["candidate_bar_close_utc"],
+            "book_id": self.books[pair].book_id,
+            "effective_floor": tup["effective_floor"], "lane": "wall",
+            "bar_age_s": round(time.time() - (bar_epoch + 60), 1),
+            "is_latest_bar": True,
+        }
+        if getattr(self.args, "queue_mode", False):
+            self.logger.write("queue_candidate_ready", pair=pair, side=tup["selected_side"],
+                              effective_floor=tup["effective_floor"], mode="queued_to_executor")
+            if self.signal_sink is not None:
+                await self.signal_sink(signal)
+            else:
+                self.skips["queue_sink_missing"] = self.skips.get("queue_sink_missing", 0) + 1
+                self.logger.write("signal_skipped", pair=pair, reason="queue_sink_missing")
+            return
         # proposal-only quote for the selected side (KILL #1 to-proposal); NO buy path exists here
         contract_type = "CALL" if tup["selected_side"] == "UP" else "PUT"
         try:
@@ -274,18 +291,13 @@ class HotDaemon:
                               net_edge=round(tup["effective_floor"] - live_breakeven, 6),
                               mode="proposal_only_phase3" if self.signal_sink is None else "routed_to_coordinator")
             if self.signal_sink is not None:
-                await self.signal_sink({
-                    "pair": pair, "side": tup["selected_side"], "offset_id": 0,
-                    "signal_close_utc": tup["candidate_bar_close_utc"],
-                    "effective_floor": tup["effective_floor"], "lane": "wall",
-                    "bar_age_s": round(time.time() - (bar_epoch + 60), 1),
-                    "is_latest_bar": True,
-                })
+                await self.signal_sink(signal)
 
     async def run(self) -> int:
         self.load_once()
         await self.wait_for_store()  # idle (not crash) while the market is closed / store warming
-        await self.client.connect()
+        if not getattr(self.args, "queue_mode", False):
+            await self.client.connect()
         deadline = time.monotonic() + self.args.duration_minutes * 60 if self.args.duration_minutes else None
         once_deadline = time.monotonic() + 90.0 if self.args.once else None  # loud failure, never a silent hang
         while True:
@@ -298,9 +310,20 @@ class HotDaemon:
                 minute_tag = max(e for _, e in fresh)
                 snap_dir = await asyncio.to_thread(
                     snapshot_store, self.store_dir, self.snap_root / str(minute_tag), list(PAIRS))
-                for pair, epoch in fresh:
-                    await self.score_minute(pair, epoch, snap_dir)
-                    self.last_scored_epoch[pair] = epoch
+                if getattr(self.args, "queue_mode", False):
+                    sem = asyncio.Semaphore(max(1, int(getattr(self.args, "producer_queue_mode_fanout_limit", 6))))
+
+                    async def score_one(p: str, e: int) -> None:
+                        async with sem:
+                            await self.score_minute(p, e, snap_dir)
+
+                    await asyncio.gather(*(score_one(pair, epoch) for pair, epoch in fresh))
+                    for pair, epoch in fresh:
+                        self.last_scored_epoch[pair] = epoch
+                else:
+                    for pair, epoch in fresh:
+                        await self.score_minute(pair, epoch, snap_dir)
+                        self.last_scored_epoch[pair] = epoch
                 await asyncio.to_thread(prune_snapshots, self.snap_root, self.args.snapshot_keep_minutes)
             if self.args.once and self.scored + sum(self.skips.values()) >= len(self.pairs):
                 break
@@ -488,6 +511,9 @@ def main() -> int:
                    help="when the store is stale (market closed/warming) re-check every N seconds instead of crashing")
     p.add_argument("--store-wait-max-seconds", type=float, default=0.0,
                    help="0 = wait indefinitely and auto-resume at market open; >0 re-raises after N stale seconds (fail-fast)")
+    p.add_argument("--queue-mode", action="store_true",
+                   help="emit selected-side candidates after book gate; executor owns payout/buy gates")
+    p.add_argument("--producer-queue-mode-fanout-limit", type=int, default=6)
     p.add_argument("--smoke", action="store_true", help="deterministic in-process idle-wait smoke (no network, no store)")
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
     p.add_argument("--max-breakeven", type=float, default=0.60)

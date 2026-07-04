@@ -11,7 +11,7 @@ WorkingDirectory=/home/sean/git/binary-algo
 # contains no authorize, no buy payload, no PAT read (AST-gated in --smoke).
 # The credentials the sampler does not need are dropped outright (KILL #6
 # posture exceeded, not just met).
-UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_DEMO_MODE_ARGS DERIV_SUPERVISOR_MODE_ARGS
 ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_quote_workers.py --audit --log-dir ${DERIV_DEMO_LOG_DIR}/quote_audit --sample-seconds 30 --stake ${DERIV_DEMO_STAKE}
 Restart=on-failure
 RestartSec=10

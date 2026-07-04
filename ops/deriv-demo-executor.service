@@ -8,6 +8,7 @@
 Description=binary-algo Deriv demo executor (DEPRECATED — see issue #5)
 After=network-online.target
 Wants=network-online.target
+Conflicts=deriv-trade-executor.service
 
 [Service]
 Type=oneshot
@@ -15,8 +16,9 @@ EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
 WorkingDirectory=/home/sean/git/binary-algo
 # Rolling-store refresh dependency: the executor's store health gate requires the
 # 1m candle store to be fresh (max-stale default 180s); refresh before every run.
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_DEMO_MODE_ARGS DERIV_SUPERVISOR_MODE_ARGS
 ExecStartPre=/home/sean/binary-algo-venv/bin/python scripts/deriv_backfill.py backfill --pairs all --out-dir ${DERIV_DEMO_STORE_DIR} --max-pages 2
-ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_demo_executor.py --pairs ${DERIV_DEMO_PAIRS} --store-dir ${DERIV_DEMO_STORE_DIR} --log-dir ${DERIV_DEMO_LOG_DIR} --stake ${DERIV_DEMO_STAKE} --max-breakeven ${DERIV_DEMO_MAX_BREAKEVEN} --payout-edge-margin ${DERIV_DEMO_PAYOUT_EDGE_MARGIN} --quote-snapshots ${DERIV_DEMO_QUOTE_SNAPSHOTS} $DERIV_DEMO_MODE_ARGS --once
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_demo_executor.py --pairs ${DERIV_DEMO_PAIRS} --store-dir ${DERIV_DEMO_STORE_DIR} --log-dir ${DERIV_DEMO_LOG_DIR} --stake ${DERIV_DEMO_STAKE} --max-breakeven ${DERIV_DEMO_MAX_BREAKEVEN} --payout-edge-margin ${DERIV_DEMO_PAYOUT_EDGE_MARGIN} --quote-snapshots ${DERIV_DEMO_QUOTE_SNAPSHOTS} --dry-run-proposal-only --once
 KillSignal=SIGINT
 TimeoutStartSec=1800
 Nice=5

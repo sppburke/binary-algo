@@ -11,6 +11,7 @@ WorkingDirectory=/home/sean/git/binary-algo
 # deriv_backfill.py imports only deriv_client + pandas. --prune-shards keeps
 # the page-shard dir bounded; --reset-stale-progress discards a killed run's
 # backward cursor so one stale cycle never becomes two.
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_DEMO_MODE_ARGS DERIV_SUPERVISOR_MODE_ARGS
 ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_backfill.py backfill --pairs all --out-dir ${DERIV_DEMO_STORE_DIR} --max-pages 2 --prune-shards --reset-stale-progress
 # 2.5x the <60s wall-time criterion: a hung run dies inside one 180s cycle,
 # keeping the 540s single-failure staleness bound valid for every kill mode

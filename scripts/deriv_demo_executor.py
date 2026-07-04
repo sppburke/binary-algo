@@ -139,6 +139,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
+    if args.demo_buy or args.auth_smoke:
+        raise ExecutorError(
+            "legacy deriv_demo_executor credentialed modes are disabled by issue #6; "
+            "use scripts/deriv_trade_executor.py for demo buys/auth health"
+        )
     logger = JsonlLogger(args.log_dir)
 
     if args.fake_client_smoke:

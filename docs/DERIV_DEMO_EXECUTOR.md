@@ -1,3 +1,5 @@
+> **SCOPE: GENERIC** (Deriv demo runtime / venue integration). Model numbers live in the pair ledgers and `books/INDEX.json`.
+
 # Deriv Demo Executor
 
 `scripts/deriv_demo_executor.py` runs the six deployable non-EURUSD 15m books against Deriv Options demo infrastructure:
@@ -9,6 +11,26 @@ USDJPY, USDCAD, AUDUSD, NZDUSD, USDCHF, GBPUSD
 `EURUSD` is disabled until a verified live provider can produce finite `OF_*` order-flow columns. `--pairs all-enabled` means the six-pair set above. `--pairs EURUSD --public-smoke` fails closed.
 
 This is operational demo tooling. It does not certify Deriv-native edge, does not enable real-money execution, and does not replace the frozen-book registry.
+
+## Issue #6 Producer/Executor Split
+
+The current service path is split:
+
+- `scripts/deriv_runtime_supervisor.py --queue-mode` is a producer. It holds no Deriv demo credentials, scores fresh selected-side book candidates, and commits them to `deriv_data/runtime/trade_queue.sqlite`.
+- `scripts/deriv_trade_executor.py --run` is the only credentialed demo buyer. It owns the account-scoped process lock, auth health, queue claims, payout/buy gates, proposal fallback, buy submission, and contract rows.
+- `scripts/deriv_trade_queue.py` is the SQLite queue of record. Unix-socket wake-ups are a latency hint only; polling/startup scans remain the correctness fallback.
+
+Queue status values are separate from Deriv contract statuses. Signal rows use `queued`, `claimed`, `buy_intent`, `bought`, `contract_closed`, `terminal_skip`, `signal_expired`, `buy_blocked_auth`, and `buy_unknown`. Contract rows use Deriv lifecycle statuses (`open`, `sold`, `won`, `lost`, `expired`, `cancelled`, `unknown`). Every terminal skip records reason/source/code fields.
+
+The selected-side natural key is `(pair, lane, offset_id, signal_close_utc)` and intentionally excludes both `side` and `book_id`; a selected-side flip or metadata change for one pair/bar cannot double-buy. `signal_id` keeps provenance with `sha256(pair|side|lane|offset_id|signal_close_utc|book_id)`.
+
+The shared last-start cutoff now lives in `scripts/deriv_runtime_core.py`: reject `>= 16:35:00 America/New_York`. Source: `results/json/deriv_api_probe_result.json` proves rejection by `16:43:10 NY` but does not pin the last accepted boundary, so issue #6 uses a conservative default until a committed accepted-boundary capture supersedes it.
+
+The shared buy lock root is `deriv_data/runtime/locks` by default (`DERIV_RUNTIME_LOCK_ROOT` may override). It is verified as non-symlink, current-user-owned, and `0700`. The raw account key is `deriv-demo-account:{DERIV_ACCOUNT_ID}`; callers must not pre-hash it because `ExecutorLock` hashes once for the filename.
+
+The legacy `scripts/deriv_demo_executor.py --demo-buy` and `--auth-smoke` paths are hard-disabled before credential reads. Auth health moved to `scripts/deriv_trade_executor.py`; invalid/expired PAT/OTP is surfaced as `buy_blocked_auth` and does not trigger blind retry. The retained runbook item for PAT rotation is: stop `deriv-trade-executor.service`, re-mint/update `DERIV_PAT` in the private env file, run the executor auth-health/fake gate, then restart the executor.
+
+**Current closure status:** fake queue/executor gates write `deriv_trade_executor_gate_result.json` and archive under `results/json/`. Live NY-session demo-buy, live forced concurrency, and live forced fallback gates are still required before issue #6 can be closed.
 
 ## Book Model and Payout-Aware Edge Gate
 
@@ -30,7 +52,7 @@ buy only when    effective_floor > live_breakeven
 
 ## Quote Snapshots and API Call Budget
 
-Default mode (`--quote-snapshots all`) snapshots **both CALL and PUT quotes for every enabled pair each cycle** for observability, logged as `quote_snapshot` events; snapshots are never reused for buys — any buy uses a fresh selected-side proposal. `--quote-snapshots off` is the reduced-cadence override so the one-minute timer cannot create uncontrolled proposal traffic.
+Default legacy mode (`--quote-snapshots all`) snapshots **both CALL and PUT quotes for every enabled pair each cycle** for observability, logged as `quote_snapshot` events. In issue-#6 queue mode the producer no longer waits on public selected-side proposals before enqueue; final payout gating moves to the authenticated executor. Cached authenticated proposal lanes are bounded by the pre-registered hot-proposal max buy-age and fall back to a fresh proposal when stale/missing/consumed.
 
 **Since the issue-#5 cutover the standing `quote_snapshot` source is `scripts/deriv_quote_workers.py --audit`** (`ops/deriv-quote-audit.service`): a buy-incapable sampler that logs one row per (pair, side) lane every 30s under `${DERIV_DEMO_LOG_DIR}/quote_audit/`. Sampler rows carry `source: "quote_audit"`; executor rows have no `source` field (absence ⇒ executor). The Phase-5 enable bar admits each source per lane only with ≥ 3 NY sessions of coverage and takes the MAXIMUM of per-source medians (fail-closed; see the amended falsifier in `scripts/deriv_offset_audit.py`). A lane with no quote emits `live_breakeven: null` + `invalid_reason` — nulls can never enter a median.
 
@@ -47,12 +69,12 @@ Measured 2026-07-02 ~04:25–04:38 UTC (00:25–00:38 NY, **off-session**; marke
 - **(e) Proposals:** unauthenticated proposals return `id, ask_price, payout, spot, date_start, date_expiry, ...`; **proposal subscription is supported** (`subscribe: 1` → ~16 updates/15s, forgettable); `contracts_for` lists CALL/PUT with a 15m minimum duration.
 - **(f) Rate budget:** the worst-case daemon cycle (12 proposals + 6 candle fetches per 5s) ran 24 cycles, **432/432 OK, zero errors** — no API-side rate limit at this load. But cycle wall was p50 5.4s / p95 6.7s on the **serial sync client** (`deriv_client.py`, request latency p50 130ms), so a 5s cadence is **not achievable by serial polling**. KILL #8 resolution: hot CALL+PUT quote state rides **proposal subscriptions** (supported per (e)) and/or the Phase-1 async client's parallel dispatch — the budgeted-polling descope is unnecessary.
 - **(i) Candle publication:** a completed 1m candle is fetchable **p95 0.5s** after the minute boundary (legacy poll, 4 boundaries); completed closes are final (unchanged 5s later, 4/4); **candle subscription (`style=candles, subscribe=1`) is supported on both endpoints** (~1 `ohlc` frame/s). The 5s refresher cadence is confirmed viable; the wall-clock freshness target (publication latency + 10s) lands at ~10.5s, well inside the ≤60s coordinator bar.
-- **(g) Near-close: PARTIAL (2026-07-02)** — the run captured Deriv's daily close/rollover blackout: 15m FX proposals are rejected (`ContractBuyValidationError`, blackout 16:50–18:00 NY) when their expiry lands in it, so the effective last start is **~16:35 NY** — the `16:44:59` default is too permissive. But that run sampled 16:43–17:00 NY, entirely inside the blackout, so it never saw an accepted→rejected *transition*. A widened window is now configurable (`--near-close-start`, default 16:20); a weekday-16:19-NY scheduler re-runs to pin the exact boundary (writes gitignored `logs/probe_g_scheduled_capture.json`; fold into the record via dev-cycle). Until pinned, the `16:44:59` default stands.
+- **(g) Near-close: PARTIAL (2026-07-02)** — the run captured Deriv's daily close/rollover blackout: 15m FX proposals are rejected (`ContractBuyValidationError`, blackout 16:50–18:00 NY) when their expiry lands in it, so the effective last start is **~16:35 NY**. A later committed probe record proves rejection by `16:43:10 NY` but still does not pin the last accepted boundary. The issue-#6 shared runtime cutoff therefore rejects `>= 16:35:00 NY` until a committed accepted-boundary capture supersedes it.
 - **(h) Baseline: RETIRED (issue #5)** — this probe timed `deriv_demo_executor.py --once` for a peak-RSS baseline, but #5 deprecated that executor. Live-runtime RSS is owned by the #5 cutover acceptance, and an ongoing ceiling is enforced by systemd `MemoryHigh`/`MemoryMax` on the ops units (measured 2026-07-02: quote-audit ~200 MB, candle-refresh ~481 MB peak). `--probes h` now returns `status: retired`.
 
 ## Environment
 
-Required only for `--demo-buy`, `--auth-smoke`, and `--reconcile-only`:
+Required only for the credentialed executor:
 
 ```bash
 export DERIV_APP_ID=...
@@ -107,10 +129,10 @@ Public market-data and live feature check:
 
 The second command is expected to fail closed with the missing verified `OF_*` provider message.
 
-Auth smoke with VPS secrets:
+Executor auth health with VPS secrets:
 
 ```bash
-~/binary-algo-venv/bin/python scripts/deriv_demo_executor.py --auth-smoke
+~/binary-algo-venv/bin/python scripts/deriv_trade_executor.py --run --duration-seconds 1
 ```
 
 Proposal-only dry run, the default execution mode:
@@ -119,10 +141,10 @@ Proposal-only dry run, the default execution mode:
 ~/binary-algo-venv/bin/python scripts/deriv_demo_executor.py --pairs USDCHF --dry-run-proposal-only --once
 ```
 
-Tiny opt-in demo buy:
+Legacy `deriv_demo_executor.py --demo-buy` is disabled. Demo buys are executor-owned:
 
 ```bash
-~/binary-algo-venv/bin/python scripts/deriv_demo_executor.py --pairs USDCHF --demo-buy --stake 1 --once
+~/binary-algo-venv/bin/python scripts/deriv_trade_executor.py --run --stake 1
 ```
 
 ## Runtime Guards
@@ -131,11 +153,11 @@ The executor requires 15m `CALL` and `PUT` availability from `contracts_for`, a 
 
 Every skip logs a stable `reason` (`outside_ny_session`, `feature_row_failed`, `book_gate`, `max_trades_day`, `max_open`, `pair_cooldown`, `missing_or_invalid_ask`, `missing_or_invalid_payout`, `edge_not_positive`, `breakeven_too_high`, `dry_run_proposal_only`, `demo_buy_not_enabled`, plus `lock_acquire_failed` / `reconcile_failed` / `kill_switch_triggered` events). Buy and monitor events carry the full decision context (side, contract type, ask/payout, effective floor, live breakeven, net edge, ids, expiry, terminal status, profit). Logs are JSONL- and secret-safe: raw responses are hashed, and the auth smoke prints only a SHA-256 prefix of the account id.
 
-`logs/paper_trades/executor_state.json` stores open demo contracts with pair, proposal id, contract id, stake, expected expiry, status, and last platform update. On `--demo-buy` startup the executor queries Deriv for every pending local contract; known-open contracts are refreshed and **carried** (concurrent open contracts are normal), and it fails closed only on UNRESOLVABLE state (the status query itself fails).
+`deriv_data/runtime/trade_queue.sqlite` stores queued signals and linked contract rows. On executor startup/auth health it can claim queue rows independently of producer/store health; unresolved exposure remains counted until account/contract evidence or expiry-plus-grace reconciliation clears it.
 
 **Risk caps are opt-in** (demo default: trade every firing signal): `--max-open`, `--max-trades-day`, and `--pair-cooldown-seconds` all default to 0 = unconstrained; set them explicitly to re-impose limits. Post-buy monitoring is **detached** by default (the contract settles via per-cycle reconciliation); `--blocking-monitor` restores the old block-until-terminal behavior, which serializes the account to one open trade at a time.
 
-A single-instance lock is created under the log directory per account/log-dir key. A second executor with the same key fails closed.
+The credentialed executor uses the shared account lock root from `deriv_runtime_core.canonical_lock_root()`, not a per-service log directory. A second buy-capable process for the same account fails closed on the same lock path.
 
 Demo-buy mode monitors `proposal_open_contract` until terminal status, writes `contract_update` and `contract_closed` JSONL events, then forgets the subscription. Proposal-only mode may request proposals but must not call `buy` or emit `buy_submitted` / `buy_confirmed`.
 
@@ -147,6 +169,7 @@ Templates live under `ops/`:
 ops/deriv-demo-executor.env.example
 ops/deriv-demo-executor.service              (DEPRECATED — issue #5, retained disabled)
 ops/deriv-demo-executor.timer                (DEPRECATED — issue #5, retained disabled)
+ops/deriv-trade-executor.service             (issue #6 credentialed queue executor)
 ops/deriv-demo-logrotate
 ops/deriv-market-stream.service
 ops/deriv-runtime-supervisor.service
@@ -189,12 +212,12 @@ import it (parity by construction). Modules:
   `--smoke` AST gate proves no buy-shaped node exists in the module).
   `--audit` runs the standalone quote-audit sampler (issue #5). Gates:
   `--smoke` (deterministic), `--probe-seconds 60` (live).
-- `deriv_runtime_supervisor.py` — the coordinator: sole buy-capable object,
-  admit-token gate battery (session, 16:44:59 NY last-start cutoff,
-  lane-scoped staleness, shifted-lane per-(pair,side) verdict enforcement,
-  dedup, opt-in risk caps (max_open / max_trades_day / pair cooldown, 0 =
-  unconstrained default), payout gate on a fresh proposal), contract_id-correlated
-  monitoring. Gates: `--smoke`; live `--run` (proposal-only default).
+- `deriv_runtime_supervisor.py` — producer in issue-#6 queue mode: no demo
+  credentials, no buy path, selected-side candidates committed to SQLite after
+  the book gate. Legacy non-queue proposal-only mode remains for comparison.
+- `deriv_trade_executor.py` — credentialed queue executor: account lock,
+  auth-health, pre-money gates, final payout gate, buy submission, contract
+  rows, and fake/live gate JSON.
 - `deriv_offset_audit.py` — the pre-registered Phase-5 shifted-lane audit
   (falsifier-first; the audit RUN is a `strategy-eval` session).
 
@@ -204,8 +227,11 @@ daemon-store health, then the supervisor (proposal-only). Production-store
 freshness and `quote_snapshot` coverage are owned by the issue-#5 support
 jobs (`deriv-production-candle-refresh.timer` + `deriv-quote-audit.service`);
 the old executor timer is deprecated — cut over per the runbook below.
-Buy exclusivity: before setting `DERIV_SUPERVISOR_MODE_ARGS=--demo-buy`,
-drop `--demo-buy` from `DERIV_DEMO_MODE_ARGS`. Emergency stop:
+Buy exclusivity: do not run legacy demo-buy modes. Cutover verifies
+`systemctl --user disable --now deriv-demo-executor.service deriv-demo-executor.timer`,
+`pgrep -f deriv_demo_executor` is empty, and
+`pgrep -af 'deriv_runtime_supervisor.py .*--demo-buy'` is empty before
+`deriv-trade-executor.service` starts. Emergency stop:
 `touch <log-dir>/KILL` (per log dir).
 
 **Cutover runbook (issue #5; executed on the VPS by the operator/agent):**

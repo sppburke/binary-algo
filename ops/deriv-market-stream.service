@@ -12,6 +12,7 @@ WorkingDirectory=/home/sean/git/binary-algo
 # production store stays with the old one-shot timer (store-ownership rule,
 # issue #4 r3). MUST be running before the supervisor starts: the daemon's
 # store health gate fails closed on a stale daemon store.
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_DEMO_MODE_ARGS DERIV_SUPERVISOR_MODE_ARGS
 ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_market_stream.py --pairs all-enabled --log-dir ${DERIV_DEMO_LOG_DIR}/market_stream
 Restart=on-failure
 RestartSec=10

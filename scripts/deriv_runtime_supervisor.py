@@ -6,8 +6,8 @@ alone may hold a demo socket, and `execute()` requires the admit token issued
 by `admit()` — a worker cannot bypass the gate battery.
 
 Gate battery (order matters; every reject logs a stable reason):
-  kill_switch -> outside_ny_session -> after_last_start_cutoff (buy submission
-  strictly before 16:45:00 NY so the 15m expiry never crosses 17:00) ->
+  kill_switch -> outside_ny_session -> after_last_start_cutoff (shared
+  conservative issue-#6 cutoff; see deriv_runtime_core.last_start_cutoff_info) ->
   lane-scoped freshness (wall: latest completed store bar <= 60s old;
   shifted: bar age <= 2s AND tick age <= 2s) -> shifted-lane enablement
   (DERIV_ALLOW_EXPERIMENTAL_SHIFTED_DEMO_BUY=1 is only the global master
@@ -49,8 +49,10 @@ from deriv_runtime_core import (
     ExecutorError,
     ExecutorLock,
     JsonlLogger,
+    after_last_start_cutoff,
     check_kill_switch,
     empty_state,
+    last_start_cutoff_info,
     load_state,
     parse_quote,
     pending_contracts,
@@ -59,10 +61,17 @@ from deriv_runtime_core import (
     save_state,
     update_contract_state,
 )
+from deriv_trade_queue import (
+    DEFAULT_DB_PATH,
+    DEFAULT_WAKEUP_PATH,
+    PRODUCER_QUEUE_MODE_FANOUT_LIMIT,
+    connect_queue,
+    enqueue_signal,
+    send_wakeup,
+)
 from live_features import DERIV_SYMBOLS
 
 SHIFTED_FLAG_ENV = "DERIV_ALLOW_EXPERIMENTAL_SHIFTED_DEMO_BUY"
-LAST_START_NY = (16, 45, 0)  # buy submission must be strictly BEFORE 16:45:00 NY
 WALL_BAR_MAX_AGE_S = 60.0
 SHIFTED_BAR_MAX_AGE_S = 2.0
 SHIFTED_TICK_MAX_AGE_S = 2.0
@@ -140,7 +149,7 @@ class Coordinator:
         ny = now.astimezone(NY_TZ)
         if ny.weekday() >= 5 or not (8.0 <= ny.hour + ny.minute / 60.0 < 17.0):
             return self._reject(signal, "outside_ny_session")
-        if (ny.hour, ny.minute, ny.second) >= LAST_START_NY:
+        if after_last_start_cutoff(now):
             return self._reject(signal, "after_last_start_cutoff")
         if lane == "wall":
             if signal.get("bar_age_s", 1e9) > WALL_BAR_MAX_AGE_S or not signal.get("is_latest_bar", False):
@@ -351,8 +360,8 @@ async def run_smoke() -> int:
     logger = JsonlLogger(tmp)
     in_session = datetime(2026, 7, 1, 18, 0, tzinfo=timezone.utc)   # Wed 14:00 NY
     late = datetime(2026, 7, 1, 20, 50, tzinfo=timezone.utc)        # Wed 16:50 NY
-    edge_ok = datetime(2026, 7, 1, 20, 44, 59, tzinfo=timezone.utc)  # 16:44:59 NY
-    edge_cut = datetime(2026, 7, 1, 20, 45, 0, tzinfo=timezone.utc)  # 16:45:00 NY
+    edge_ok = datetime(2026, 7, 1, 20, 34, 59, tzinfo=timezone.utc)  # 16:34:59 NY
+    edge_cut = datetime(2026, 7, 1, 20, 35, 0, tzinfo=timezone.utc)  # 16:35:00 NY
     pre_open = datetime(2026, 7, 1, 10, 0, tzinfo=timezone.utc)     # 06:00 NY
 
     def fresh_coord(**kw: Any) -> Coordinator:
@@ -364,8 +373,8 @@ async def run_smoke() -> int:
     check("in-session signal admitted", c.admit(_sig(), in_session)[0] is not None)
     check("16:50 NY rejected after_last_start_cutoff",
           c.admit(_sig(signal_close_utc="x1"), late)[1] == "after_last_start_cutoff")
-    check("16:44:59 NY admitted", c.admit(_sig(signal_close_utc="x2"), edge_ok)[0] is not None)
-    check("16:45:00 NY rejected", c.admit(_sig(signal_close_utc="x3"), edge_cut)[1] == "after_last_start_cutoff")
+    check("16:34:59 NY admitted", c.admit(_sig(signal_close_utc="x2"), edge_ok)[0] is not None)
+    check("16:35:00 NY rejected", c.admit(_sig(signal_close_utc="x3"), edge_cut)[1] == "after_last_start_cutoff")
     check("pre-open rejected outside_ny_session", c.admit(_sig(signal_close_utc="x4"), pre_open)[1] == "outside_ny_session")
 
     # 3. lane-scoped staleness (fail-closed both lanes)
@@ -474,8 +483,16 @@ async def run_live(args: argparse.Namespace) -> int:
     from deriv_hot_daemon import HotDaemon  # late import: heavy chain
 
     logger = JsonlLogger(Path(args.log_dir))
+    queue_conn = None
+    if args.queue_mode:
+        if args.demo_buy:
+            raise ExecutorError("--queue-mode is producer-only; run scripts/deriv_trade_executor.py for demo buys")
+        leaked = [k for k in ("DERIV_PAT", "DERIV_ACCOUNT_ID", "DERIV_SUPERVISOR_MODE_ARGS") if os.environ.get(k)]
+        if leaked:
+            raise ExecutorError(f"producer queue mode received buy credential/mode env vars: {leaked}")
+        queue_conn = connect_queue(Path(args.queue_db))
     demo_client = None
-    if args.demo_buy:
+    if args.demo_buy and not args.queue_mode:
         demo_client = DerivAsyncClient(request_demo_ws_url(DerivEnv.from_env()))
         await demo_client.connect()
     audit_verdicts = json.loads(Path(args.audit_json).read_text()) if args.audit_json else None
@@ -494,12 +511,37 @@ async def run_live(args: argparse.Namespace) -> int:
         poll_seconds=2.0, store_min_required_rows=14000, store_max_stale_seconds=180,
         store_wait_poll_seconds=args.store_wait_poll_seconds, store_wait_max_seconds=0.0,
         payout_edge_margin=args.payout_edge_margin, max_breakeven=args.max_breakeven,
-        stake=args.stake, log_dir=args.log_dir, url=args.url)
+        stake=args.stake, log_dir=args.log_dir, url=args.url,
+        queue_mode=args.queue_mode,
+        producer_queue_mode_fanout_limit=args.producer_queue_mode_fanout_limit)
     daemon = HotDaemon(daemon_args)
 
-    await coordinator.reconcile()  # fail-closed before any signal flows
+    if not args.queue_mode:
+        await coordinator.reconcile()  # fail-closed before any signal flows
+    else:
+        logger.write("producer_queue_mode_started", queue_db=str(args.queue_db),
+                     queue_wakeup_socket=str(args.queue_wakeup_socket),
+                     cutoff=last_start_cutoff_info())
 
     async def route(signal: dict[str, Any]) -> None:
+        if args.queue_mode:
+            assert queue_conn is not None
+            result = enqueue_signal(queue_conn, signal)
+            close_ts = datetime.fromisoformat(str(signal["signal_close_utc"]).replace("Z", "+00:00"))
+            if close_ts.tzinfo is None:
+                close_ts = close_ts.replace(tzinfo=timezone.utc)
+            candidate_ms = round((datetime.now(timezone.utc) - close_ts.astimezone(timezone.utc)).total_seconds() * 1000.0, 1)
+            if result.inserted:
+                woke = send_wakeup(Path(args.queue_wakeup_socket),
+                                   payload={"event": "queue_wakeup", "signal_id": result.signal_id})
+                logger.write("signal_queued", signal_id=result.signal_id, wakeup_sent=woke,
+                             candidate_close_to_enqueue_ms=candidate_ms, **signal)
+            else:
+                logger.write("duplicate_signal", signal_id=result.signal_id,
+                             conflict_signal_id=result.conflict_signal_id,
+                             conflict_reason=result.conflict_reason,
+                             candidate_close_to_enqueue_ms=candidate_ms, **signal)
+            return
         token, reason = coordinator.admit(signal)
         if token is not None:
             if demo_client is None:
@@ -523,6 +565,8 @@ async def run_live(args: argparse.Namespace) -> int:
     await public.close()
     if demo_client is not None:
         await demo_client.close()
+    if queue_conn is not None:
+        queue_conn.close()
     logger.write("supervisor_rollup", counters=coordinator.counters,
                  quote_updates=workers.updates, quote_errors=workers.errors)
     print(json.dumps({"coordinator": coordinator.counters,
@@ -541,6 +585,11 @@ def main() -> int:
     p.add_argument("--snapshot-dir", default="deriv_data/hot_snapshots")
     p.add_argument("--store-wait-poll-seconds", type=float, default=60.0,
                    help="when the daemon store is stale (market closed) re-check every N seconds instead of crash-looping")
+    p.add_argument("--queue-mode", action="store_true",
+                   help="producer-only mode: enqueue selected-side candidates into SQLite; no credentials/buy path")
+    p.add_argument("--queue-db", default=str(DEFAULT_DB_PATH))
+    p.add_argument("--queue-wakeup-socket", default=str(DEFAULT_WAKEUP_PATH))
+    p.add_argument("--producer-queue-mode-fanout-limit", type=int, default=PRODUCER_QUEUE_MODE_FANOUT_LIMIT)
     p.add_argument("--audit-json", default=None, help="per-(pair,side) shifted-lane verdict JSON (Phase 5)")
     p.add_argument("--stake", type=float, default=1.0)
     p.add_argument("--payout-edge-margin", type=float, default=0.005)
