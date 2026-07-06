@@ -9,13 +9,14 @@ executor is by construction at this shared layer (KILL #0); this file adds no
 decision logic of its own and contains NO buy path whatsoever.
 
 Snapshot-replay parity harness (issue #4 r3): before scoring minute M the
-daemon copies the candle-store files it is about to read into
-`<snapshot-dir>/<M>/`, then scores FROM that snapshot — the archived bytes
-are the scored input by construction. `--parity-replay` re-runs the shared
-chain over each archived snapshot offline (relaxed staleness, no live calls)
-and diffs the deterministic tuple `(pair, candidate_bar_close_utc,
-feature_sha256, proba, selected_side, effective_floor)` against the daemon's
-logged tuples — 100% or the divergences are listed.
+daemon copies the candle-store files it is about to read into a unique
+`<snapshot-dir>/<M>_<time_ns>/`, then scores FROM that snapshot — the
+archived bytes are the scored input by construction. `--parity-replay`
+re-runs the shared chain over each archived snapshot offline (relaxed
+staleness, no live calls) and diffs the deterministic tuple `(pair,
+candidate_bar_close_utc, feature_sha256, proba, selected_side,
+effective_floor)` against the daemon's logged tuples — 100% or the
+divergences are listed.
 
 Latency events per scored minute: `candidate_bar_closed`, `feature_row_ready`,
 `book_scored`, `quote_state_updated`, `edge_gate_passed` / skip reasons.
@@ -93,6 +94,8 @@ def newest_completed_epoch(store_dir: Path, pair: str) -> int | None:
 
 def snapshot_store(store_dir: Path, snap_dir: Path, pairs: list[str]) -> Path:
     """Byte-copy the store files about to be scored; scoring reads FROM here."""
+    if snap_dir.exists():
+        raise ExecutorError(f"snapshot dir already exists; refusing to overwrite replay evidence: {snap_dir}")
     snap_dir.mkdir(parents=True, exist_ok=True)
     for pair in pairs:
         src = store_dir / f"{pair}.parquet"
@@ -156,6 +159,7 @@ class HotDaemon:
         self.proposal_ms: list[float] = []
         self.scored = 0
         self.skips: dict[str, int] = {}
+        self.deferred: dict[str, int] = {}
         self.started_utc = now_utc_iso()
         # Phase-4 hook: the supervisor routes edge-passed signals through the
         # coordinator. Unset (Phase 3) the daemon stays pure proposal-only.
@@ -215,7 +219,7 @@ class HotDaemon:
             waits += 1
             await asyncio.sleep(poll)
 
-    async def score_minute(self, pair: str, bar_epoch: int, snap_dir: Path) -> None:
+    async def score_minute(self, pair: str, bar_epoch: int, snap_dir: Path) -> bool:
         t_detect = time.monotonic()
         bar_close_utc = datetime.fromtimestamp(bar_epoch + 60, timezone.utc)
         self.logger.write("candidate_bar_closed", pair=pair, bar_epoch=bar_epoch,
@@ -227,8 +231,24 @@ class HotDaemon:
         except (LiveFeatureError, ExecutorError, DerivAPIError, Exception) as exc:
             self.skips["feature_row_failed"] = self.skips.get("feature_row_failed", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="feature_row_failed", error=str(exc)[:300])
-            return
+            return True
         score_done_ms = (time.monotonic() - t_detect) * 1000
+        expected_close = bar_close_utc.isoformat()
+        actual_close = str(tup["candidate_bar_close_utc"])
+        if actual_close != expected_close:
+            self.deferred["feature_row_lagged"] = self.deferred.get("feature_row_lagged", 0) + 1
+            self.logger.write("parity_tuple", snapshot=str(snap_dir), **tup)
+            self.logger.write("signal_deferred", pair=pair, reason="feature_row_lagged",
+                              bar_epoch=bar_epoch,
+                              expected_candidate_bar_close_utc=expected_close,
+                              actual_candidate_bar_close_utc=actual_close,
+                              feature_sha256=tup.get("feature_sha256"),
+                              gate_passed=tup.get("gate_passed"),
+                              selected_side=tup.get("selected_side"),
+                              confidence=tup.get("confidence"),
+                              threshold=tup.get("threshold"),
+                              snapshot=str(snap_dir))
+            return False
         self.score_ms.append(score_done_ms)
         self.scored += 1
         self.logger.write("book_scored", pair=pair, score_ms=round(score_done_ms, 1))
@@ -236,11 +256,11 @@ class HotDaemon:
         if not is_ny_session(datetime.now(timezone.utc)):
             self.skips["outside_ny_session"] = self.skips.get("outside_ny_session", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="outside_ny_session")
-            return
+            return True
         if not tup["gate_passed"]:
             self.skips["book_gate"] = self.skips.get("book_gate", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="book_gate", gate_reasons=tup["gate_reasons"])
-            return
+            return True
         signal = {
             "pair": pair, "side": tup["selected_side"], "offset_id": 0,
             "signal_close_utc": tup["candidate_bar_close_utc"],
@@ -257,7 +277,7 @@ class HotDaemon:
             else:
                 self.skips["queue_sink_missing"] = self.skips.get("queue_sink_missing", 0) + 1
                 self.logger.write("signal_skipped", pair=pair, reason="queue_sink_missing")
-            return
+            return True
         # proposal-only quote for the selected side (KILL #1 to-proposal); NO buy path exists here
         contract_type = "CALL" if tup["selected_side"] == "UP" else "PUT"
         try:
@@ -270,7 +290,7 @@ class HotDaemon:
         except DerivAPIError as exc:
             self.skips["proposal_failed"] = self.skips.get("proposal_failed", 0) + 1
             self.logger.write("signal_skipped", pair=pair, reason="proposal_failed", error=str(exc)[:200])
-            return
+            return True
         prop_ms = (time.monotonic() - t_detect) * 1000
         self.proposal_ms.append(prop_ms)
         ask, payout, live_breakeven, invalid_reason = parse_quote(resp.get("proposal") or {})
@@ -295,6 +315,7 @@ class HotDaemon:
                               mode="proposal_only_phase3" if self.signal_sink is None else "routed_to_coordinator")
             if self.signal_sink is not None:
                 await self.signal_sink(signal)
+        return True
 
     async def run(self) -> int:
         self.load_once()
@@ -311,28 +332,33 @@ class HotDaemon:
                     fresh.append((pair, epoch))
             if fresh:
                 minute_tag = max(e for _, e in fresh)
+                snap_name = f"{minute_tag}_{time.time_ns()}"
                 snap_dir = await asyncio.to_thread(
-                    snapshot_store, self.store_dir, self.snap_root / str(minute_tag), list(PAIRS))
+                    snapshot_store, self.store_dir, self.snap_root / snap_name, list(PAIRS))
                 if getattr(self.args, "queue_mode", False):
                     sem = asyncio.Semaphore(max(1, int(getattr(self.args, "producer_queue_mode_fanout_limit", 6))))
 
-                    async def score_one(p: str, e: int) -> None:
+                    async def score_one(p: str, e: int) -> tuple[str, int, bool]:
                         async with sem:
-                            await self.score_minute(p, e, snap_dir)
+                            return p, e, await self.score_minute(p, e, snap_dir)
 
-                    await asyncio.gather(*(score_one(pair, epoch) for pair, epoch in fresh))
-                    for pair, epoch in fresh:
-                        self.last_scored_epoch[pair] = epoch
+                    results = await asyncio.gather(*(score_one(pair, epoch) for pair, epoch in fresh))
+                    for pair, epoch, completed in results:
+                        if completed:
+                            self.last_scored_epoch[pair] = epoch
                 else:
                     for pair, epoch in fresh:
-                        await self.score_minute(pair, epoch, snap_dir)
-                        self.last_scored_epoch[pair] = epoch
+                        if await self.score_minute(pair, epoch, snap_dir):
+                            self.last_scored_epoch[pair] = epoch
                 await asyncio.to_thread(prune_snapshots, self.snap_root, self.args.snapshot_keep_minutes)
             if self.args.once and self.scored + sum(self.skips.values()) >= len(self.pairs):
                 break
             if once_deadline is not None and time.monotonic() > once_deadline:
-                self.logger.write("once_timeout", scored=self.scored, skips=self.skips)
-                print(f"ERROR: --once timed out; scored={self.scored} skips={self.skips}", file=sys.stderr)
+                self.logger.write("once_timeout", scored=self.scored, skips=self.skips, deferred=self.deferred)
+                print(
+                    f"ERROR: --once timed out; scored={self.scored} skips={self.skips} deferred={self.deferred}",
+                    file=sys.stderr,
+                )
                 await self.client.close()
                 self.rollup()
                 return 1
@@ -350,6 +376,7 @@ class HotDaemon:
             "pairs": self.pairs,
             "minutes_scored": self.scored,
             "skips": self.skips,
+            "deferred": self.deferred,
             "candidate_close_to_score_done_ms": {"p50": pct(self.score_ms, 0.5), "p95": pct(self.score_ms, 0.95), "max": pct(self.score_ms, 1.0)},
             "signal_to_proposal_ms": {"p50": pct(self.proposal_ms, 0.5), "p95": pct(self.proposal_ms, 0.95), "max": pct(self.proposal_ms, 1.0)},
             # None = unmeasured this run (no scored minutes / no proposals) — never a fake verdict
@@ -490,6 +517,85 @@ async def run_smoke() -> int:
     # 4. --once self-bounds; service (once=False, no max) waits forever (bound == 0)
     check("--once self-bounds the wait", daemon(4, dict(FRESH), once=True)._resolve_wait_max() == ONCE_STORE_WAIT_MAX_S)
     check("service waits unbounded by default", daemon(5, dict(FRESH), once=False)._resolve_wait_max() == 0.0)
+
+    # 5. xpair/common-row lag: do not enqueue an older feature row for the
+    # newly detected bar; leave the epoch unadvanced so the next poll retries.
+    original_score_from_snapshot = globals()["score_from_snapshot"]
+    emitted: list[dict[str, Any]] = []
+    fake_tuples = [
+        {
+            "pair": "GBPUSD",
+            "candidate_bar_close_utc": "2026-07-06T15:59:00+00:00",
+            "feature_sha256": "lagged",
+            "proba": 0.35,
+            "selected_side": "DOWN",
+            "effective_floor": 0.6267,
+            "gate_passed": True,
+            "gate_reasons": [],
+            "confidence": 0.15,
+            "threshold": 0.13,
+            "row_source": "fake",
+        },
+        {
+            "pair": "GBPUSD",
+            "candidate_bar_close_utc": "2026-07-06T16:00:00+00:00",
+            "feature_sha256": "fresh",
+            "proba": 0.35,
+            "selected_side": "DOWN",
+            "effective_floor": 0.6267,
+            "gate_passed": True,
+            "gate_reasons": [],
+            "confidence": 0.15,
+            "threshold": 0.13,
+            "row_source": "fake",
+        },
+    ]
+
+    def fake_score_from_snapshot(*_: Any, **__: Any) -> dict[str, Any]:
+        return fake_tuples.pop(0)
+
+    async def fake_sink(signal: dict[str, Any]) -> None:
+        emitted.append(signal)
+
+    d6 = object.__new__(HotDaemon)
+    d6.args = argparse.Namespace(payout_edge_margin=0.005, store_max_stale_seconds=180, queue_mode=True)
+    d6.logger = JsonlLogger(tmp / "logs_6")
+    d6.books = {"GBPUSD": argparse.Namespace(book_id="GBPUSD.fake.v1")}
+    d6.resolutions = {"GBPUSD": object()}
+    d6.score_ms = []
+    d6.proposal_ms = []
+    d6.scored = 0
+    d6.skips = {}
+    d6.deferred = {}
+    d6.signal_sink = fake_sink
+    globals()["score_from_snapshot"] = fake_score_from_snapshot
+    try:
+        done1 = await d6.score_minute("GBPUSD", 1783353540, tmp / "snap_lagged")
+        emitted_after_first = len(emitted)
+        done2 = await d6.score_minute("GBPUSD", 1783353540, tmp / "snap_fresh")
+    finally:
+        globals()["score_from_snapshot"] = original_score_from_snapshot
+    ev6 = _smoke_events(tmp / "logs_6")
+    check("lagged feature row defers and does not enqueue",
+          done1 is False and d6.deferred.get("feature_row_lagged") == 1
+          and any(e.get("event") == "signal_deferred" for e in ev6)
+          and emitted_after_first == 0)
+    check("fresh retry emits exactly one queued signal with matching close",
+          done2 is True and len(emitted) == 1
+          and emitted[0]["signal_close_utc"] == "2026-07-06T16:00:00+00:00")
+
+    # 6. replay evidence must be immutable; retry snapshots use unique dirs.
+    snap_src = tmp / "store"
+    snap_src.mkdir()
+    pd.DataFrame({"epoch": [1], "open": [1.0], "high": [1.0], "low": [1.0], "close": [1.0]}).to_parquet(snap_src / "GBPUSD.parquet")
+    snap_dst = tmp / "snapshot_once"
+    snapshot_store(snap_src, snap_dst, ["GBPUSD"])
+    overwrite_blocked = False
+    try:
+        snapshot_store(snap_src, snap_dst, ["GBPUSD"])
+    except ExecutorError:
+        overwrite_blocked = True
+    check("snapshot_store refuses to overwrite replay evidence", overwrite_blocked)
 
     shutil.rmtree(tmp, ignore_errors=True)
     passed = sum(1 for _, v in checks if v)
