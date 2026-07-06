@@ -1,0 +1,16 @@
+[Unit]
+Description=Fire the Phase-5 quote-coverage readiness check at 17:30 NY on weekdays (issue #4)
+
+[Timer]
+# 17:30 NY — after the 08:00-17:00 NY session closes, so the day's quote_snapshot
+# coverage is complete before the check. The TZ suffix is load-bearing: the dev
+# host runs on America/Chicago, so a bare "17:30" would fire an hour late. Recurs
+# each weekday; the readiness service self-disables this timer once every own-pair
+# lane has >= 3 full-clean NY sessions. Persistent=false so a missed run does NOT
+# fire at an arbitrary boot time.
+OnCalendar=Mon-Fri 17:30 America/New_York
+Persistent=false
+Unit=deriv-phase5-readiness.service
+
+[Install]
+WantedBy=timers.target

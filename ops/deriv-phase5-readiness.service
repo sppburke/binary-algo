@@ -1,0 +1,20 @@
+[Unit]
+Description=binary-algo Phase-5 shifted-lane audit quote-coverage readiness notifier (issue #4)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/sean/git/binary-algo
+# Runs on the DEV HOST (quantum). ssh's to the trading VPS (agent-less via
+# id_personal) to count full-clean NY-session quote_snapshot coverage per
+# own-pair lane; when every lane clears the enable_bar's >=3-session bar it posts
+# a one-shot gh comment on issue #4 and self-disables deriv-phase5-readiness.timer.
+# Read-only w.r.t. the VPS (counts only); no trading, no secrets. exit 1 (NOT-READY,
+# benign wait) is treated as success; exit 2 (ERROR) surfaces in status.
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/phase5_quote_readiness.py
+SuccessExitStatus=0 1
+TimeoutStartSec=180
+Nice=5
+
+# No [Install]: timer-activated only (see deriv-phase5-readiness.timer).
