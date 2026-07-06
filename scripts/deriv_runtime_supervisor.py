@@ -7,7 +7,7 @@ by `admit()` — a worker cannot bypass the gate battery.
 
 Gate battery (order matters; every reject logs a stable reason):
   kill_switch -> outside_ny_session -> after_last_start_cutoff (shared
-  conservative issue-#6 cutoff; see deriv_runtime_core.last_start_cutoff_info) ->
+  probe-g-pinned issue-#6 cutoff; see deriv_runtime_core.last_start_cutoff_info) ->
   lane-scoped freshness (wall: latest completed store bar <= 60s old;
   shifted: bar age <= 2s AND tick age <= 2s) -> shifted-lane enablement
   (DERIV_ALLOW_EXPERIMENTAL_SHIFTED_DEMO_BUY=1 is only the global master

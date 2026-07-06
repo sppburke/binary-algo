@@ -64,14 +64,17 @@ NY_TZ = ZoneInfo("America/New_York")
 # rather than carrying unknown exposure forever (review F2).
 OVERDUE_OPEN_GRACE_S = 600
 
-# Shared issue-#6 cutoff. Probe-g evidence in
-# results/json/deriv_api_probe_result.json proves rejection by 16:43:10 NY but
-# has not yet pinned the last accepted boundary, so fail closed before the
-# 16:50 NY blackout can catch a 15m expiry.
+# Shared issue-#6 cutoff, now evidence-validated by probe-g. The fold in
+# results/json/deriv_api_probe_result.json pinned the boundary: last accepted
+# start 16:34:40 NY, first rejection 16:35:10 NY. The (16, 35, 0) cutoff sits in
+# that gap, so it admits the last accepted 16:34:40 start and blocks the first
+# rejected 16:35:10 start, still failing closed before the 16:50 NY blackout can
+# catch a 15m expiry.
 LAST_START_NY = (16, 35, 0)
 LAST_START_CUTOFF_SOURCE = (
     "results/json/deriv_api_probe_result.json decisions.last_start_cutoff_ny="
-    "'first rejection at 16:43:10 NY'; conservative issue-#6 default"
+    "'last accepted start 16:34:40 NY; first rejection 16:35:10 NY'; "
+    "probe-g-pinned issue-#6 cutoff (admits 16:34:40, blocks 16:35:10)"
 )
 
 DEFAULT_RUNTIME_LOCK_ROOT = Path("deriv_data/runtime/locks")
