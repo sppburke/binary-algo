@@ -53,7 +53,7 @@ import numpy as np
 import pandas as pd
 
 from deriv_market_stream import shifted_bar
-from deriv_runtime_core import NY_TZ, is_ny_session
+from deriv_runtime_core import after_last_start_cutoff, is_ny_session
 
 FALSIFIER_PATH = Path("deriv_offset_audit_falsifier.json")
 RESULT_PATH = Path("deriv_offset_audit_result.json")
@@ -73,7 +73,15 @@ N_MIN = 400
 FALSIFIER = {
     "falsifier": "issue#4 Phase 5 shifted-offset audit — pre-registered before any outcome data is examined",
     "offsets_s": list(OFFSETS),
-    "session": "NY 08:00-17:00 America/New_York DST-correct; last buy start 16:44:59 NY",
+    # Amended pre-outcome 2026-07-06 (issue #4/#6): last buy start corrected
+    # 16:44:59 -> 16:34:59 NY to MATCH live. deoverlap_stream now calls the shared
+    # deriv_runtime_core.after_last_start_cutoff (reject >= 16:35:00 NY), the
+    # probe-g-pinned cutoff (last accepted 16:34:40, first rejection 16:35:10;
+    # commit ba0a3b5). The old literal 16:45:00 admitted ~10 min/day of near-close
+    # trades the live runtime rejects, overstating realizable edge. Legitimate
+    # pre-outcome (no audit result examined); it TIGHTENS the tradeable window
+    # (fewer trades) — fail-closed, consistent with the MAX-rule discipline.
+    "session": "NY 08:00-17:00 America/New_York DST-correct; last buy start 16:34:59 NY (shared deriv_runtime_core.after_last_start_cutoff, reject >= 16:35:00 NY)",
     "trade_stream": (
         "chronological first-come-first-served through the per-pair cooldown across offsets and sides "
         f"(nonoverlap_chrono discipline; spacing {COOLDOWN_S}s = horizon 900s + entry tolerance 30s + 1s, "
@@ -209,8 +217,7 @@ def deoverlap_stream(signals: pd.DataFrame) -> pd.DataFrame:
         ts = datetime.fromtimestamp(close, timezone.utc)
         if not is_ny_session(ts):
             continue
-        ny = ts.astimezone(NY_TZ)
-        if (ny.hour, ny.minute, ny.second) >= (16, 45, 0):
+        if after_last_start_cutoff(ts):  # shared runtime cutoff (reject >= 16:35:00 NY); replaces a stale literal 16:45:00 that desynced the backtest from live
             continue
         if close - last_close < COOLDOWN_S:
             continue
