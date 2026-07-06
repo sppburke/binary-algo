@@ -1,0 +1,346 @@
+{
+  "falsifiers": {
+    "all_source_rows_accounted": true,
+    "cap2_max_usd_factor_holds": true,
+    "cap2_no_same_pair_overlap": true,
+    "cap_sensitivity_present": true,
+    "deploy_disabled_audusd_down": true,
+    "source_facts_reproduced": true
+  },
+  "fixture": {
+    "capture_manifest": {
+      "capture_utc": "2026-07-06T20:22:25.995281+00:00",
+      "method": "sqlite3.Connection.backup for queue DB; shutil.copy2 for JSONL logs; replay filters by cutoff",
+      "source_root": "/home/sean/binary-algo",
+      "sources": {
+        "queue_db": {
+          "fixture_bytes": 311296,
+          "fixture_path": "trade_queue.sqlite",
+          "fixture_sha256": "0a7396bd25ebab3420e5efa7d4a605cf796a5383737b330b42e9f5e18f07a24e",
+          "source_bytes": 282624,
+          "source_path": "deriv_data/runtime/trade_queue.sqlite",
+          "source_sha256_at_capture": "3128584059884263af53a20a7daa7065a76c6ea2852b21c24d0b7c84b1aa26c6"
+        },
+        "supervisor_jsonl": {
+          "fixture_bytes": 1754817,
+          "fixture_path": "supervisor_jsonl_2026-07-06.jsonl",
+          "fixture_sha256": "707e8254d51056812ebf957ac7942d92bed8edcbe36c97a9b2702075b5cbccdb",
+          "source_bytes": 1754817,
+          "source_path": "logs/paper_trades/supervisor/2026-07-06.jsonl",
+          "source_sha256_at_capture": "707e8254d51056812ebf957ac7942d92bed8edcbe36c97a9b2702075b5cbccdb"
+        },
+        "trade_executor_jsonl": {
+          "fixture_bytes": 439894,
+          "fixture_path": "trade_executor_jsonl_2026-07-06.jsonl",
+          "fixture_sha256": "5d17b0ea7fbb975ee1a1e92993a181f7bf1db37168911f0225e71fd50f42b1d3",
+          "source_bytes": 439894,
+          "source_path": "logs/paper_trades/trade_executor/2026-07-06.jsonl",
+          "source_sha256_at_capture": "5d17b0ea7fbb975ee1a1e92993a181f7bf1db37168911f0225e71fd50f42b1d3"
+        }
+      }
+    },
+    "dir": "deriv_data/replay_fixtures/deriv_trade_allocator_2026-07-06",
+    "fixture_sha256": {
+      "capture_manifest.json": "dc26e0a2223647313943351ff30633262f7b5247ed9d86ad2d8a35826240d466",
+      "supervisor_jsonl_2026-07-06.jsonl": "707e8254d51056812ebf957ac7942d92bed8edcbe36c97a9b2702075b5cbccdb",
+      "trade_executor_jsonl_2026-07-06.jsonl": "5d17b0ea7fbb975ee1a1e92993a181f7bf1db37168911f0225e71fd50f42b1d3",
+      "trade_queue.sqlite": "0a7396bd25ebab3420e5efa7d4a605cf796a5383737b330b42e9f5e18f07a24e"
+    },
+    "gitignore_proof": "repo .gitignore contains deriv_data/; verified during capture"
+  },
+  "gate": "issue#7 deriv_trade_allocator replay",
+  "generated_utc": "2026-07-06T20:42:59.951898+00:00",
+  "replay": {
+    "cap_sensitivity": {
+      "1": {
+        "bought_pair_side": {
+          "AUDUSD DOWN": 7,
+          "GBPUSD DOWN": 1,
+          "USDCAD UP": 1,
+          "USDJPY UP": 1
+        },
+        "bought_total": 10,
+        "counts": {
+          "allocation_same_pair_overlap": 65,
+          "allocation_usd_factor_cap": 96,
+          "bought": 10,
+          "payout_skip:edge_not_positive": 33,
+          "signal_expired": 1
+        },
+        "disabled_pair_sides": [],
+        "max_same_pair_open": 1,
+        "max_usd_factor_observed": 1,
+        "max_usd_factor_open": 1,
+        "missing_proposal_context": 0,
+        "overlap_metrics": {
+          "AUDUSD DOWN": {
+            "bought": 7,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          },
+          "GBPUSD DOWN": {
+            "bought": 1,
+            "gaps_lt_900s": 0,
+            "min_gap_s": null
+          },
+          "USDCAD UP": {
+            "bought": 1,
+            "gaps_lt_900s": 0,
+            "min_gap_s": null
+          },
+          "USDJPY UP": {
+            "bought": 1,
+            "gaps_lt_900s": 0,
+            "min_gap_s": null
+          }
+        },
+        "skipped_total": 161
+      },
+      "2": {
+        "bought_pair_side": {
+          "AUDUSD DOWN": 10,
+          "GBPUSD DOWN": 1,
+          "USDCAD UP": 3,
+          "USDJPY UP": 3
+        },
+        "bought_total": 17,
+        "counts": {
+          "allocation_same_pair_overlap": 123,
+          "allocation_usd_factor_cap": 31,
+          "bought": 17,
+          "payout_skip:edge_not_positive": 33,
+          "signal_expired": 1
+        },
+        "disabled_pair_sides": [],
+        "max_same_pair_open": 1,
+        "max_usd_factor_observed": 2,
+        "max_usd_factor_open": 2,
+        "missing_proposal_context": 0,
+        "overlap_metrics": {
+          "AUDUSD DOWN": {
+            "bought": 10,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          },
+          "GBPUSD DOWN": {
+            "bought": 1,
+            "gaps_lt_900s": 0,
+            "min_gap_s": null
+          },
+          "USDCAD UP": {
+            "bought": 3,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          },
+          "USDJPY UP": {
+            "bought": 3,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          }
+        },
+        "skipped_total": 154
+      },
+      "off": {
+        "bought_pair_side": {
+          "AUDUSD DOWN": 10,
+          "GBPUSD DOWN": 3,
+          "USDCAD UP": 5,
+          "USDJPY UP": 6
+        },
+        "bought_total": 24,
+        "counts": {
+          "allocation_same_pair_overlap": 147,
+          "bought": 24,
+          "payout_skip:edge_not_positive": 33,
+          "signal_expired": 1
+        },
+        "disabled_pair_sides": [],
+        "max_same_pair_open": 1,
+        "max_usd_factor_observed": 4,
+        "max_usd_factor_open": "off",
+        "missing_proposal_context": 0,
+        "overlap_metrics": {
+          "AUDUSD DOWN": {
+            "bought": 10,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          },
+          "GBPUSD DOWN": {
+            "bought": 3,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 1620.0
+          },
+          "USDCAD UP": {
+            "bought": 5,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          },
+          "USDJPY UP": {
+            "bought": 6,
+            "gaps_lt_900s": 0,
+            "min_gap_s": 900.0
+          }
+        },
+        "skipped_total": 147
+      }
+    },
+    "deploy_policy": {
+      "bought_pair_side": {
+        "GBPUSD DOWN": 2,
+        "USDCAD UP": 5,
+        "USDJPY UP": 6
+      },
+      "bought_total": 13,
+      "counts": {
+        "allocation_disabled_pair_side": 82,
+        "allocation_same_pair_overlap": 70,
+        "allocation_usd_factor_cap": 6,
+        "bought": 13,
+        "payout_skip:edge_not_positive": 33,
+        "signal_expired": 1
+      },
+      "disabled_pair_sides": [
+        "AUDUSD:DOWN"
+      ],
+      "max_same_pair_open": 1,
+      "max_usd_factor_observed": 2,
+      "max_usd_factor_open": 2,
+      "missing_proposal_context": 0,
+      "overlap_metrics": {
+        "GBPUSD DOWN": {
+          "bought": 2,
+          "gaps_lt_900s": 0,
+          "min_gap_s": 3480.0
+        },
+        "USDCAD UP": {
+          "bought": 5,
+          "gaps_lt_900s": 0,
+          "min_gap_s": 900.0
+        },
+        "USDJPY UP": {
+          "bought": 6,
+          "gaps_lt_900s": 0,
+          "min_gap_s": 900.0
+        }
+      },
+      "skipped_total": 158
+    }
+  },
+  "source_facts": {
+    "bought_pair_side": {
+      "AUDUSD DOWN": 82,
+      "GBPUSD DOWN": 15,
+      "USDCAD UP": 26,
+      "USDJPY UP": 48
+    },
+    "contract_status": {
+      "open": 171
+    },
+    "cutoff_utc": "2026-07-06T18:58:27.399362+00:00",
+    "executor_event_counts": {
+      "auth_health": 73,
+      "buy_confirmed": 171,
+      "buy_intent": 171,
+      "buy_submitted": 171,
+      "exec_client_connected": 1,
+      "executor_startup": 1,
+      "payout_gate_failed": 33,
+      "proposal_selected": 204,
+      "signal_claimed": 205,
+      "signal_expired": 1
+    },
+    "executor_log_meta": {
+      "asof_lines": 1031,
+      "bad_json": 0,
+      "lines": 1036
+    },
+    "overlap_metrics": {
+      "AUDUSD DOWN": {
+        "bought": 82,
+        "gaps_lt_900s": 80,
+        "min_gap_s": 60.0
+      },
+      "GBPUSD DOWN": {
+        "bought": 15,
+        "gaps_lt_900s": 12,
+        "min_gap_s": 60.0
+      },
+      "USDCAD UP": {
+        "bought": 26,
+        "gaps_lt_900s": 24,
+        "min_gap_s": 60.0
+      },
+      "USDJPY UP": {
+        "bought": 48,
+        "gaps_lt_900s": 45,
+        "min_gap_s": 60.0
+      }
+    },
+    "queue_status": {
+      "bought": 171,
+      "signal_expired": 1,
+      "terminal_skip": 33
+    },
+    "schema_columns": {
+      "contracts": [
+        "contract_id",
+        "signal_id",
+        "contract_status",
+        "proposal_id",
+        "buy_price",
+        "stake",
+        "expected_expiry_utc",
+        "created_utc",
+        "updated_utc",
+        "raw_hash"
+      ],
+      "signals": [
+        "signal_id",
+        "pair",
+        "side",
+        "lane",
+        "offset_id",
+        "signal_close_utc",
+        "book_id",
+        "effective_floor",
+        "payload_json",
+        "payload_hash",
+        "status",
+        "producer_enqueue_utc",
+        "created_utc",
+        "updated_utc",
+        "lease_owner",
+        "lease_deadline_utc",
+        "terminal_reason",
+        "terminal_code",
+        "terminal_source",
+        "terminal_utc",
+        "buy_intent_utc",
+        "risk_reserved",
+        "reservation_owner",
+        "reservation_utc",
+        "error",
+        "raw_hash"
+      ]
+    },
+    "supervisor_event_counts": {
+      "book_scored": 876,
+      "candidate_bar_closed": 959,
+      "client_connected": 1,
+      "client_unmatched_frame": 1,
+      "daemon_loaded": 1,
+      "floor_resolution": 6,
+      "parity_tuple": 959,
+      "producer_queue_mode_started": 1,
+      "queue_candidate_ready": 124,
+      "signal_deferred": 83,
+      "signal_queued": 124,
+      "signal_skipped": 752
+    },
+    "supervisor_log_meta": {
+      "asof_lines": 3887,
+      "bad_json": 0,
+      "lines": 6063
+    }
+  }
+}

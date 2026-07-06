@@ -1,5 +1,5 @@
 [Unit]
-Description=binary-algo Deriv trade executor (credentialed demo buyer; issue #6)
+Description=binary-algo Deriv trade executor (credentialed demo buyer; issues #6/#7)
 After=network-online.target
 Wants=network-online.target
 Conflicts=deriv-demo-executor.service deriv-demo-executor.timer
@@ -10,6 +10,8 @@ EnvironmentFile=%h/.config/binary-algo/deriv-demo-executor.env
 WorkingDirectory=/home/sean/git/binary-algo
 # Sole credentialed buy-capable process. ExecStartPre scans /proc cmdlines and
 # refuses to start if a legacy supervisor/demo-executor buy mode is still live.
+# Allocator/reconciliation knobs are read from the environment file directly;
+# absent private-env values fall back inside deriv_trade_executor.py.
 ExecStartPre=/home/sean/binary-algo-venv/bin/python scripts/deriv_no_legacy_buy_guard.py
 ExecStart=/home/sean/binary-algo-venv/bin/python scripts/deriv_trade_executor.py --run --log-dir ${DERIV_DEMO_LOG_DIR}/trade_executor --stake ${DERIV_DEMO_STAKE}
 Restart=on-failure

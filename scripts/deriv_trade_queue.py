@@ -45,6 +45,12 @@ PRODUCER_QUEUE_MODE_FANOUT_LIMIT = 6
 WALL_SIGNAL_MAX_AGE_S = 60.0
 SHIFTED_SIGNAL_MAX_AGE_S = 2.0
 HOT_PROPOSAL_MAX_BUY_AGE_MS = 1000
+SAME_PAIR_MIN_GAP_SECONDS = 900
+MAX_USD_FACTOR_OPEN = 2
+ALLOCATION_ARBITRATION_MS = 250
+RECONCILE_BATCH_SIZE = 12
+RECONCILE_INTERVAL_SECONDS = 5.0
+CONTRACT_EXPIRY_GRACE_SECONDS = 600.0
 
 SIGNAL_STATUSES = (
     "queued",
@@ -103,6 +109,15 @@ class ClaimedSignal:
     lease_deadline_utc: str
 
 
+@dataclass(frozen=True)
+class ExposureReservation:
+    ok: bool
+    reason: str | None = None
+    active_same_pair: int = 0
+    active_usd_factor: int = 0
+    blocking_signal_ids: tuple[str, ...] = ()
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -145,6 +160,12 @@ def fixed_defaults() -> dict[str, Any]:
         "wall_signal_max_age_s": WALL_SIGNAL_MAX_AGE_S,
         "shifted_signal_max_age_s": SHIFTED_SIGNAL_MAX_AGE_S,
         "hot_proposal_max_buy_age_ms": HOT_PROPOSAL_MAX_BUY_AGE_MS,
+        "same_pair_min_gap_seconds": SAME_PAIR_MIN_GAP_SECONDS,
+        "max_usd_factor_open": MAX_USD_FACTOR_OPEN,
+        "allocation_arbitration_ms": ALLOCATION_ARBITRATION_MS,
+        "reconcile_batch_size": RECONCILE_BATCH_SIZE,
+        "reconcile_interval_seconds": RECONCILE_INTERVAL_SECONDS,
+        "contract_expiry_grace_seconds": CONTRACT_EXPIRY_GRACE_SECONDS,
     }
 
 
@@ -247,6 +268,13 @@ def migrate(conn: sqlite3.Connection) -> None:
             buy_price REAL,
             stake REAL,
             expected_expiry_utc TEXT,
+            sell_price REAL,
+            profit REAL,
+            payout REAL,
+            entry_tick REAL,
+            exit_tick REAL,
+            terminal_utc TEXT,
+            last_platform_update_utc TEXT,
             created_utc TEXT NOT NULL,
             updated_utc TEXT NOT NULL,
             raw_hash TEXT
@@ -269,8 +297,31 @@ def migrate(conn: sqlite3.Connection) -> None:
 
         CREATE INDEX IF NOT EXISTS idx_signals_terminal_reason
             ON signals(status, terminal_reason, terminal_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_signals_pair_status_time
+            ON signals(pair, status, signal_close_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_contracts_status_expiry
+            ON contracts(contract_status, expected_expiry_utc, updated_utc);
         """
     )
+    _migrate_contract_columns(conn)
+
+
+def _migrate_contract_columns(conn: sqlite3.Connection) -> None:
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(contracts)")}
+    columns = {
+        "sell_price": "REAL",
+        "profit": "REAL",
+        "payout": "REAL",
+        "entry_tick": "REAL",
+        "exit_tick": "REAL",
+        "terminal_utc": "TEXT",
+        "last_platform_update_utc": "TEXT",
+    }
+    for name, typ in columns.items():
+        if name not in existing:
+            conn.execute(f"ALTER TABLE contracts ADD COLUMN {name} {typ}")
 
 
 def _begin_immediate(conn: sqlite3.Connection) -> float:
@@ -442,6 +493,73 @@ def claim_next(
     )
 
 
+def _claimed_from_row(row: sqlite3.Row, claimed_at: datetime) -> ClaimedSignal:
+    try:
+        enq = parse_utc(row["producer_enqueue_utc"])
+        enqueue_to_claim_ms = (claimed_at - enq).total_seconds() * 1000.0
+    except Exception:
+        enqueue_to_claim_ms = None
+    return ClaimedSignal(
+        signal_id=row["signal_id"],
+        payload=json.loads(row["payload_json"]),
+        enqueue_to_claim_ms=round(enqueue_to_claim_ms, 3) if enqueue_to_claim_ms is not None else None,
+        lease_deadline_utc=row["lease_deadline_utc"],
+    )
+
+
+def claim_batch(
+    conn: sqlite3.Connection,
+    *,
+    owner: str,
+    limit: int,
+    lease_seconds: float = 30.0,
+    now: datetime | None = None,
+    tx_stats: list[float] | None = None,
+) -> list[ClaimedSignal]:
+    if limit <= 0:
+        return []
+    ts = now or utc_now()
+    now_s = utc_iso(ts)
+    deadline = utc_iso(ts + timedelta(seconds=lease_seconds))
+    t0 = _begin_immediate(conn)
+    try:
+        rows = conn.execute(
+            """
+            SELECT * FROM signals
+            WHERE status = 'queued'
+               OR (status = 'claimed' AND (lease_deadline_utc IS NULL OR lease_deadline_utc <= ?))
+            ORDER BY created_utc, signal_id
+            LIMIT ?
+            """,
+            (now_s, int(limit)),
+        ).fetchall()
+        if not rows:
+            _finish_tx(conn, t0, tx_stats)
+            return []
+        ids = [row["signal_id"] for row in rows]
+        placeholders = ",".join("?" for _ in ids)
+        conn.execute(
+            f"""
+            UPDATE signals
+            SET status = 'claimed', lease_owner = ?, lease_deadline_utc = ?, updated_utc = ?
+            WHERE signal_id IN ({placeholders}) AND (
+                status = 'queued'
+                OR (status = 'claimed' AND (lease_deadline_utc IS NULL OR lease_deadline_utc <= ?))
+            )
+            """,
+            (owner, deadline, now_s, *ids, now_s),
+        )
+        updated = conn.execute(
+            f"SELECT * FROM signals WHERE signal_id IN ({placeholders}) ORDER BY created_utc, signal_id",
+            ids,
+        ).fetchall()
+        _finish_tx(conn, t0, tx_stats)
+    except Exception:
+        _rollback(conn)
+        raise
+    return [_claimed_from_row(row, ts) for row in updated if row["status"] == "claimed"]
+
+
 def transition_signal(
     conn: sqlite3.Connection,
     signal_id: str,
@@ -540,6 +658,102 @@ def reserve_risk(
         raise
 
 
+def usd_factor_direction(pair: str, side: str) -> str:
+    pair_u = str(pair).upper()
+    side_u = str(side).upper()
+    if side_u not in {"UP", "DOWN"}:
+        raise QueueError(f"invalid side {side!r}")
+    if pair_u.startswith("USD"):
+        return "USD_STRENGTH" if side_u == "UP" else "USD_WEAKNESS"
+    return "USD_STRENGTH" if side_u == "DOWN" else "USD_WEAKNESS"
+
+
+def active_exposure_rows(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute(
+        """
+        SELECT
+            s.signal_id, s.pair, s.side, s.status, s.signal_close_utc, s.risk_reserved,
+            c.contract_id, c.contract_status, c.expected_expiry_utc, c.terminal_utc
+        FROM signals s
+        LEFT JOIN contracts c ON c.signal_id = s.signal_id
+        WHERE (
+            s.status IN ('buy_intent','bought','buy_unknown')
+            OR (s.status = 'claimed' AND s.risk_reserved = 1)
+        )
+          AND s.status != 'contract_closed'
+          AND (c.contract_status IS NULL OR c.contract_status IN ('open','unknown'))
+        ORDER BY s.updated_utc, s.signal_id
+        """
+    ).fetchall()
+
+
+def reserve_allocator_exposure(
+    conn: sqlite3.Connection,
+    signal_id: str,
+    *,
+    owner: str,
+    same_pair_min_gap_seconds: int = SAME_PAIR_MIN_GAP_SECONDS,
+    max_usd_factor_open: int = MAX_USD_FACTOR_OPEN,
+    now: datetime | None = None,
+    tx_stats: list[float] | None = None,
+) -> ExposureReservation:
+    """Atomically reserve allocator exposure for one claimed signal."""
+    ts = now or utc_now()
+    now_s = utc_iso(ts)
+    t0 = _begin_immediate(conn)
+    try:
+        row = conn.execute("SELECT * FROM signals WHERE signal_id = ?", (signal_id,)).fetchone()
+        if row is None:
+            _finish_tx(conn, t0, tx_stats)
+            return ExposureReservation(False, "allocation_missing_signal")
+        if row["status"] != "claimed" or int(row["risk_reserved"]) != 0:
+            _finish_tx(conn, t0, tx_stats)
+            return ExposureReservation(False, "allocation_not_claimed")
+        pair = str(row["pair"]).upper()
+        side = str(row["side"]).upper()
+        usd_dir = usd_factor_direction(pair, side)
+        active = [r for r in active_exposure_rows(conn) if r["signal_id"] != signal_id]
+        same_pair_rows = [r for r in active if str(r["pair"]).upper() == pair]
+        if same_pair_min_gap_seconds > 0 and same_pair_rows:
+            _finish_tx(conn, t0, tx_stats)
+            return ExposureReservation(
+                False,
+                "allocation_same_pair_overlap",
+                active_same_pair=len(same_pair_rows),
+                active_usd_factor=sum(1 for r in active if usd_factor_direction(r["pair"], r["side"]) == usd_dir),
+                blocking_signal_ids=tuple(str(r["signal_id"]) for r in same_pair_rows[:5]),
+            )
+        usd_rows = [r for r in active if usd_factor_direction(r["pair"], r["side"]) == usd_dir]
+        if max_usd_factor_open > 0 and len(usd_rows) >= max_usd_factor_open:
+            _finish_tx(conn, t0, tx_stats)
+            return ExposureReservation(
+                False,
+                "allocation_usd_factor_cap",
+                active_same_pair=len(same_pair_rows),
+                active_usd_factor=len(usd_rows),
+                blocking_signal_ids=tuple(str(r["signal_id"]) for r in usd_rows[:5]),
+            )
+        cur = conn.execute(
+            """
+            UPDATE signals
+            SET risk_reserved = 1, reservation_owner = ?, reservation_utc = ?, updated_utc = ?
+            WHERE signal_id = ? AND status = 'claimed' AND risk_reserved = 0
+            """,
+            (owner, now_s, now_s, signal_id),
+        )
+        _finish_tx(conn, t0, tx_stats)
+    except Exception:
+        _rollback(conn)
+        raise
+    if cur.rowcount != 1:
+        return ExposureReservation(False, "allocation_reservation_lost")
+    return ExposureReservation(
+        True,
+        active_same_pair=len(same_pair_rows),
+        active_usd_factor=len(usd_rows),
+    )
+
+
 def release_risk(
     conn: sqlite3.Connection,
     signal_id: str,
@@ -588,16 +802,143 @@ def record_contract(
             """
             INSERT INTO contracts (
                 contract_id, signal_id, contract_status, proposal_id, buy_price, stake,
-                expected_expiry_utc, created_utc, updated_utc, raw_hash
+                expected_expiry_utc, last_platform_update_utc, created_utc, updated_utc, raw_hash
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (str(contract_id), signal_id, contract_status, proposal_id, buy_price, stake, expected_expiry_utc, ts, ts, raw_hash_value),
+            (str(contract_id), signal_id, contract_status, proposal_id, buy_price, stake, expected_expiry_utc, ts, ts, ts, raw_hash_value),
         )
         _finish_tx(conn, t0, tx_stats)
     except Exception:
         _rollback(conn)
         raise
+
+
+def _number_or_none(value: Any) -> float | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _terminal_contract_status(poc: dict[str, Any], current: str) -> tuple[str, bool]:
+    raw = str(poc.get("status") or current or "open").lower()
+    if raw not in CONTRACT_STATUSES:
+        raw = "unknown"
+    terminal = bool(poc.get("is_sold")) or raw in {"sold", "won", "lost", "expired", "cancelled"}
+    if terminal and raw in {"open", "unknown"}:
+        raw = "sold"
+    return raw, terminal
+
+
+def update_contract_from_proposal(
+    conn: sqlite3.Connection,
+    *,
+    contract_id: str,
+    proposal_open_contract: dict[str, Any],
+    raw_hash_value: str | None = None,
+    now: datetime | None = None,
+    tx_stats: list[float] | None = None,
+) -> dict[str, Any]:
+    """Persist proposal_open_contract state and close the linked signal on terminal evidence."""
+    poc = proposal_open_contract.get("proposal_open_contract", proposal_open_contract)
+    remote_id = poc.get("contract_id")
+    if remote_id is not None and str(remote_id) != str(contract_id):
+        raise QueueError(f"proposal_open_contract id mismatch: {remote_id!r} != {contract_id!r}")
+    ts = utc_iso(now or utc_now())
+    t0 = _begin_immediate(conn)
+    try:
+        row = conn.execute("SELECT * FROM contracts WHERE contract_id = ?", (str(contract_id),)).fetchone()
+        if row is None:
+            _finish_tx(conn, t0, tx_stats)
+            return {"updated": False, "reason": "contract_missing", "terminal": False}
+        status, terminal = _terminal_contract_status(poc, row["contract_status"])
+        terminal_utc = ts if terminal else row["terminal_utc"]
+        conn.execute(
+            """
+            UPDATE contracts
+            SET contract_status = ?,
+                sell_price = COALESCE(?, sell_price),
+                profit = COALESCE(?, profit),
+                payout = COALESCE(?, payout),
+                entry_tick = COALESCE(?, entry_tick),
+                exit_tick = COALESCE(?, exit_tick),
+                terminal_utc = COALESCE(?, terminal_utc),
+                last_platform_update_utc = ?,
+                updated_utc = ?,
+                raw_hash = COALESCE(?, raw_hash)
+            WHERE contract_id = ?
+            """,
+            (
+                status,
+                _number_or_none(poc.get("sell_price")),
+                _number_or_none(poc.get("profit")),
+                _number_or_none(poc.get("payout")),
+                _number_or_none(poc.get("entry_tick")),
+                _number_or_none(poc.get("exit_tick")),
+                terminal_utc,
+                ts,
+                ts,
+                raw_hash_value,
+                str(contract_id),
+            ),
+        )
+        closed_signal = False
+        if terminal:
+            cur = conn.execute(
+                """
+                UPDATE signals
+                SET status = 'contract_closed',
+                    updated_utc = ?,
+                    terminal_reason = COALESCE(terminal_reason, 'contract_terminal'),
+                    terminal_source = COALESCE(terminal_source, 'proposal_open_contract'),
+                    terminal_utc = COALESCE(terminal_utc, ?),
+                    raw_hash = COALESCE(?, raw_hash)
+                WHERE signal_id = ? AND status IN ('bought','buy_unknown')
+                """,
+                (ts, ts, raw_hash_value, row["signal_id"]),
+            )
+            closed_signal = cur.rowcount == 1
+        _finish_tx(conn, t0, tx_stats)
+        return {
+            "updated": True,
+            "contract_id": str(contract_id),
+            "signal_id": row["signal_id"],
+            "contract_status": status,
+            "terminal": terminal,
+            "closed_signal": closed_signal,
+        }
+    except Exception:
+        _rollback(conn)
+        raise
+
+
+def open_contracts_for_reconcile(
+    conn: sqlite3.Connection,
+    *,
+    limit: int,
+    now: datetime | None = None,
+    expiry_grace_seconds: float = CONTRACT_EXPIRY_GRACE_SECONDS,
+) -> list[sqlite3.Row]:
+    if limit <= 0:
+        return []
+    eligible_before = utc_iso((now or utc_now()) - timedelta(seconds=max(0.0, float(expiry_grace_seconds))))
+    return conn.execute(
+        """
+        SELECT
+            c.*, s.pair, s.side, s.status AS signal_status, s.signal_close_utc
+        FROM contracts c
+        JOIN signals s ON s.signal_id = c.signal_id
+        WHERE c.contract_status IN ('open','unknown')
+          AND s.status IN ('bought','buy_unknown')
+          AND (c.expected_expiry_utc IS NULL OR c.expected_expiry_utc <= ?)
+        ORDER BY COALESCE(c.last_platform_update_utc, c.created_utc), c.contract_id
+        LIMIT ?
+        """,
+        (eligible_before, int(limit)),
+    ).fetchall()
 
 
 def queue_counts(conn: sqlite3.Connection) -> dict[str, int]:
@@ -705,6 +1046,13 @@ def run_smoke() -> int:
     claims = [claim_next(conn, owner=f"w{i}", tx_stats=tx_ms) for i in range(12)]
     check("12-row burst can be claimed before release", all(c is not None for c in claims) and len({c.signal_id for c in claims if c}) == 12)
 
+    batch_conn = connect_queue(root / "batch.sqlite")
+    tx_batch: list[float] = []
+    for i in range(20, 26):
+        enqueue_signal(batch_conn, _sample_signal(i), tx_stats=tx_batch)
+    batch = claim_batch(batch_conn, owner="batch", limit=4, tx_stats=tx_batch)
+    check("claim_batch claims bounded FIFO subset", len(batch) == 4 and queue_counts(batch_conn).get("claimed") == 4 and queue_counts(batch_conn).get("queued") == 2)
+
     risk_conn = connect_queue(root / "risk.sqlite")
     tx2: list[float] = []
     s1 = enqueue_signal(risk_conn, _sample_signal(1), tx_stats=tx2).signal_id
@@ -713,6 +1061,71 @@ def run_smoke() -> int:
     claim_next(risk_conn, owner="b", tx_stats=tx2)
     check("max_open=1 first reservation succeeds", reserve_risk(risk_conn, s1, owner="a", max_open=1, tx_stats=tx2))
     check("max_open=1 second reservation blocks", not reserve_risk(risk_conn, s2, owner="b", max_open=1, tx_stats=tx2))
+
+    alloc_conn = connect_queue(root / "allocator.sqlite")
+    tx_alloc: list[float] = []
+    alloc_signals = [
+        _sample_signal(30, pair="USDJPY", side="UP"),
+        _sample_signal(31, pair="USDCAD", side="UP", book_id="USDCAD.m15ny_seedens.v1"),
+        _sample_signal(32, pair="GBPUSD", side="DOWN", book_id="GBPUSD.m15ny_xpair_seedens8.v1"),
+    ]
+    alloc_ids = [enqueue_signal(alloc_conn, sig, tx_stats=tx_alloc).signal_id for sig in alloc_signals]
+    claim_batch(alloc_conn, owner="alloc", limit=3, tx_stats=tx_alloc)
+    r_a = reserve_allocator_exposure(alloc_conn, alloc_ids[0], owner="alloc", max_usd_factor_open=2, tx_stats=tx_alloc)
+    r_b = reserve_allocator_exposure(alloc_conn, alloc_ids[1], owner="alloc", max_usd_factor_open=2, tx_stats=tx_alloc)
+    r_c = reserve_allocator_exposure(alloc_conn, alloc_ids[2], owner="alloc", max_usd_factor_open=2, tx_stats=tx_alloc)
+    check("allocator USD-factor cap blocks third USD-strength exposure", r_a.ok and r_b.ok and not r_c.ok and r_c.reason == "allocation_usd_factor_cap")
+
+    pair_conn = connect_queue(root / "allocator_pair.sqlite")
+    tx_pair: list[float] = []
+    p1 = enqueue_signal(pair_conn, _sample_signal(40, pair="AUDUSD", side="DOWN", book_id="AUDUSD.m15ny_seedens.v1"), tx_stats=tx_pair).signal_id
+    p2 = enqueue_signal(pair_conn, _sample_signal(41, pair="AUDUSD", side="DOWN", book_id="AUDUSD.m15ny_seedens.v1"), tx_stats=tx_pair).signal_id
+    claim_batch(pair_conn, owner="pair", limit=2, tx_stats=tx_pair)
+    p1r = reserve_allocator_exposure(pair_conn, p1, owner="pair", max_usd_factor_open=0, tx_stats=tx_pair)
+    p2r = reserve_allocator_exposure(pair_conn, p2, owner="pair", max_usd_factor_open=0, tx_stats=tx_pair)
+    check("allocator same-pair exposure blocks second same-pair reservation", p1r.ok and not p2r.ok and p2r.reason == "allocation_same_pair_overlap")
+
+    settle_conn = connect_queue(root / "settlement.sqlite")
+    tx_settle: list[float] = []
+    sid = enqueue_signal(settle_conn, _sample_signal(50), tx_stats=tx_settle).signal_id
+    claim_next(settle_conn, owner="settle", tx_stats=tx_settle)
+    transition_signal(settle_conn, sid, ["claimed"], "buy_intent", source="smoke", tx_stats=tx_settle)
+    record_contract(settle_conn, signal_id=sid, contract_id="contract-smoke", contract_status="open", tx_stats=tx_settle)
+    transition_signal(settle_conn, sid, ["buy_intent"], "bought", reason="smoke_buy", source="smoke", tx_stats=tx_settle)
+    upd = update_contract_from_proposal(
+        settle_conn,
+        contract_id="contract-smoke",
+        proposal_open_contract={
+            "proposal_open_contract": {
+                "contract_id": "contract-smoke",
+                "status": "sold",
+                "is_sold": 1,
+                "profit": "0.85",
+                "sell_price": "1.85",
+                "payout": "1.85",
+            }
+        },
+        tx_stats=tx_settle,
+    )
+    closed = get_signal(settle_conn, sid)["status"] == "contract_closed"
+    check("settlement update closes bought signal and stores terminal fields", upd["terminal"] and upd["closed_signal"] and closed)
+
+    future_conn = connect_queue(root / "future_reconcile.sqlite")
+    tx_future: list[float] = []
+    future_id = enqueue_signal(future_conn, _sample_signal(60), tx_stats=tx_future).signal_id
+    claim_next(future_conn, owner="future", tx_stats=tx_future)
+    transition_signal(future_conn, future_id, ["claimed"], "buy_intent", source="smoke", tx_stats=tx_future)
+    record_contract(
+        future_conn,
+        signal_id=future_id,
+        contract_id="future-contract-smoke",
+        contract_status="open",
+        expected_expiry_utc=utc_iso(datetime.now(timezone.utc) + timedelta(minutes=10)),
+        tx_stats=tx_future,
+    )
+    transition_signal(future_conn, future_id, ["buy_intent"], "bought", reason="smoke_buy", source="smoke", tx_stats=tx_future)
+    future_rows = open_contracts_for_reconcile(future_conn, limit=12, expiry_grace_seconds=600)
+    check("reconciliation does not poll before expiry-plus-grace", len(future_rows) == 0)
 
     aged = connect_queue(root / "aged.sqlite")
     tx3: list[float] = []
@@ -759,8 +1172,9 @@ def run_smoke() -> int:
     dups = duplicate_counts(conn)
     check("duplicate counters are zero by DB constraint", dups["selected_side_natural_tuple"] == 0 and dups["contracts_per_signal"] == 0)
 
-    p99 = pct(tx_ms + tx2 + tx3, 0.99)
-    max_ms = max(tx_ms + tx2 + tx3)
+    all_tx = tx_ms + tx_batch + tx2 + tx_alloc + tx_pair + tx_settle + tx_future + tx3
+    p99 = pct(all_tx, 0.99)
+    max_ms = max(all_tx)
     check("DB transaction max within gate", max_ms <= DB_TRANSACTION_MAX_MS, f"max={max_ms:.3f}ms p99={p99}")
 
     gate = {
@@ -770,11 +1184,16 @@ def run_smoke() -> int:
         "sqlite_pragmas": pragmas,
         "fake": {
             "claimed_before_release": 12,
+            "batch_claimed": len(batch),
             "aged_terminal_rows": 100_000,
             "aged_claim_12_wall_ms": round(aged_ms, 3),
             "db_transaction_ms_p99": p99,
             "db_transaction_ms_max": round(max_ms, 3),
             "duplicate_counts": dups,
+            "allocator_usd_cap_reason": r_c.reason,
+            "allocator_same_pair_reason": p2r.reason,
+            "settlement_update_terminal": upd["terminal"],
+            "reconcile_future_before_grace_count": len(future_rows),
             "queue_counts": queue_counts(conn),
         },
         "live": {

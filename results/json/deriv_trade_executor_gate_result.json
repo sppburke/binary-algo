@@ -10,27 +10,41 @@
     "live_demo_session_gate_unmeasured",
     "live_forced_concurrency_gate_unmeasured",
     "live_forced_fallback_gate_unmeasured",
-    "incident_source_missing_locally"
+    "incident_source_missing_locally",
+    "live_allocator_overlap_gate_unmeasured",
+    "live_reconciliation_budget_gate_unmeasured"
   ],
   "closure_ready": false,
   "fake": {
-    "buy_intent_count": 12,
-    "buy_submitted_transport_write_count": 12,
-    "claimed_before_release": 12,
-    "db_transaction_ms_max": 2.181,
-    "db_transaction_ms_p99": 1.933,
-    "max_concurrent_workers": 12,
-    "max_inflight_buy_requests_observed": 12,
-    "max_inflight_proposal_requests_observed": 12,
+    "allocation_same_pair_first_ok": true,
+    "allocation_same_pair_second_reason": "allocation_same_pair_overlap",
+    "allocation_usd_factor_cap_blocks": 2,
+    "allocation_usd_factor_reasons": [
+      null,
+      null,
+      "allocation_usd_factor_cap",
+      "allocation_usd_factor_cap"
+    ],
+    "allocator_added_wait_ms": {
+      "p99": 6.0,
+      "threshold_ms": 300
+    },
+    "claimed_before_release": 4,
+    "db_lock_second_writer_ms": 51.131,
+    "db_transaction_ms_max": 2.583,
+    "db_transaction_ms_p99": 1.137,
     "queue_counts": {
-      "bought": 12
+      "claimed": 4
     },
     "queue_smoke": {
-      "aged_claim_12_wall_ms": 6.766,
+      "aged_claim_12_wall_ms": 6.162,
       "aged_terminal_rows": 100000,
+      "allocator_same_pair_reason": "allocation_same_pair_overlap",
+      "allocator_usd_cap_reason": "allocation_usd_factor_cap",
+      "batch_claimed": 4,
       "claimed_before_release": 12,
-      "db_transaction_ms_max": 1.906,
-      "db_transaction_ms_p99": 1.815,
+      "db_transaction_ms_max": 3.655,
+      "db_transaction_ms_p99": 1.805,
       "duplicate_counts": {
         "contracts_per_signal": 0,
         "selected_side_natural_tuple": 0
@@ -38,31 +52,52 @@
       "queue_counts": {
         "claimed": 12,
         "terminal_skip": 1
-      }
+      },
+      "reconcile_future_before_grace_count": 0,
+      "settlement_update_terminal": true
+    },
+    "reconcile_batch_size": 12,
+    "reconcile_future_before_grace_count": 0,
+    "reconcile_remaining_open_after_one_batch": 159,
+    "reconcile_seed_open_contracts": 171,
+    "settlement_closed_signal": true,
+    "settlement_terminal_update": {
+      "closed_signal": true,
+      "contract_id": "fake-settle",
+      "contract_status": "sold",
+      "signal_id": "f954868bc79810d55d4e2a4fca6def34705c251553515f4a8e7f8c66eb369ff0",
+      "terminal": true,
+      "updated": true
     }
   },
   "fixed_defaults": {
+    "allocation_arbitration_ms": 250,
     "async_proposal_timeout_ms": 2000,
     "auth_health_interval_s": 60,
     "buy_request_timeout_ms": 5000,
     "commit_to_wakeup_received_p95_max_ms": 25,
+    "contract_expiry_grace_seconds": 600.0,
     "db_transaction_max_ms": 250,
     "db_transaction_p99_max_ms": 50,
     "event_loop_heartbeat_max_gap_ms": 250,
     "executor_worker_concurrency": 12,
     "heartbeat_interval_ms": 100,
     "hot_proposal_max_buy_age_ms": 1000,
+    "max_usd_factor_open": 2,
     "producer_queue_mode_fanout_limit": 6,
     "producer_queue_mode_poll_seconds": 0.25,
     "queue_poll_interval_ms": 100,
+    "reconcile_batch_size": 12,
+    "reconcile_interval_seconds": 5.0,
+    "same_pair_min_gap_seconds": 900,
     "shifted_signal_max_age_s": 2.0,
     "sqlite_busy_timeout_ms": 5000,
     "sync_fallback_max_concurrency": 3,
     "sync_fallback_timeout_s": 10.0,
     "wall_signal_max_age_s": 60.0
   },
-  "gate": "issue#6 deriv_trade_executor fake gate",
-  "generated_utc": "2026-07-06T14:51:16.140844+00:00",
+  "gate": "issue#7 deriv_trade_executor allocator fake gate",
+  "generated_utc": "2026-07-06T20:42:56.395001+00:00",
   "incident_replay": {
     "local_source_available": false,
     "replay_passed": null,
@@ -71,8 +106,10 @@
     "timestamp_field": "timestamp_utc"
   },
   "live": {
+    "live_allocator_overlap_passed": null,
     "live_forced_buy_overlap_passed": null,
     "live_forced_concurrency_passed": null,
+    "live_reconciliation_budget_passed": null,
     "live_sync_fallback_buy_submission_passed": null,
     "live_sync_fallback_terminalization_passed": null,
     "ny_session_demo_buy": null

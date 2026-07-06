@@ -12,12 +12,12 @@ USDJPY, USDCAD, AUDUSD, NZDUSD, USDCHF, GBPUSD
 
 This is operational demo tooling. It does not certify Deriv-native edge, does not enable real-money execution, and does not replace the frozen-book registry.
 
-## Issue #6 Producer/Executor Split
+## Issue #6/#7 Producer/Allocator/Executor Split
 
 The current service path is split:
 
 - `scripts/deriv_runtime_supervisor.py --queue-mode` is a producer. It holds no Deriv demo credentials, scores fresh selected-side book candidates, and commits them to `deriv_data/runtime/trade_queue.sqlite`.
-- `scripts/deriv_trade_executor.py --run` is the only credentialed demo buyer. It owns the account-scoped process lock, auth health, queue claims, payout/buy gates, proposal fallback, buy submission, and contract rows.
+- `scripts/deriv_trade_executor.py --run` is the only credentialed demo buyer. It owns the account-scoped process lock, auth health, queue claims, batch allocator, payout/buy gates, proposal fallback, buy submission, contract rows, and settlement reconciliation.
 - `scripts/deriv_trade_queue.py` is the SQLite queue of record. Unix-socket wake-ups are a latency hint only; polling/startup scans remain the correctness fallback.
 
 Queue status values are separate from Deriv contract statuses. Signal rows use `queued`, `claimed`, `buy_intent`, `bought`, `contract_closed`, `terminal_skip`, `signal_expired`, `buy_blocked_auth`, and `buy_unknown`. Contract rows use Deriv lifecycle statuses (`open`, `sold`, `won`, `lost`, `expired`, `cancelled`, `unknown`). Every terminal skip records reason/source/code fields.
@@ -32,7 +32,7 @@ The legacy `scripts/deriv_demo_executor.py --demo-buy` and `--auth-smoke` paths 
 
 Deriv demo WebSocket URLs from the OTP endpoint are single-use. The credentialed executor's async client therefore refreshes the OTP URL before each reconnect attempt; otherwise a previously-used URL replays as HTTP 401 while periodic auth health still passes with a newly-minted URL. Client connection events log only the redacted endpoint (`scheme://host/path`), never the raw URL/query token.
 
-**Current closure status:** fake queue/executor gates write `deriv_trade_executor_gate_result.json` and archive under `results/json/`. Live NY-session demo-buy, live forced concurrency, and live forced fallback gates are still required before issue #6 can be closed.
+**Current closure status:** fake queue/executor gates write `deriv_trade_executor_gate_result.json` and archive under `results/json/`. The issue-#7 replay gate writes `results/json/deriv_trade_allocator_replay_2026-07-06_result.json` from an ignored live fixture under `deriv_data/replay_fixtures/`. Live NY-session demo-buy, live forced concurrency, and live forced fallback gates remain the live-service evidence tier for executor changes.
 
 ## Book Model and Payout-Aware Edge Gate
 
@@ -58,7 +58,7 @@ Default legacy mode (`--quote-snapshots all`) snapshots **both CALL and PUT quot
 
 **Since the issue-#5 cutover the standing `quote_snapshot` source is `scripts/deriv_quote_workers.py --audit`** (`ops/deriv-quote-audit.service`): a buy-incapable sampler that logs one row per (pair, side) lane every 30s under `${DERIV_DEMO_LOG_DIR}/quote_audit/`. Sampler rows carry `source: "quote_audit"`; executor rows have no `source` field (absence ⇒ executor). The Phase-5 enable bar admits each source per lane only with ≥ 3 NY sessions of coverage and takes the MAXIMUM of per-source medians (fail-closed; see the amended falsifier in `scripts/deriv_offset_audit.py`). A lane with no quote emits `live_breakeven: null` + `invalid_reason` — nulls can never enter a median.
 
-Worst-case API call budget per ~60s cycle at all-enabled defaults: **12 snapshot proposals + up to 6 fresh buy-quote proposals + `proposal_open_contract` polling at `--monitor-interval-seconds` (default 2.0s) while a contract is open**. The budget is written to the `startup_config` event. The empirical answer to the rate-limit caveat below is in the Phase-0 probe findings: 432/432 requests succeeded at 3.6 req/s sustained (probe f); `call_deriv` retry/backoff handles transient errors but is not a rate-limit budget.
+Worst-case API call budget per ~60s cycle at all-enabled defaults: **12 snapshot proposals + up to 6 fresh buy-quote proposals + bounded `proposal_open_contract` reconciliation batches** (`--reconcile-batch-size`, default 12, every `--reconcile-interval-seconds`, default 5, for open contracts missing expiry metadata or past expected expiry plus `--contract-expiry-grace-seconds`). The budget is written to the `startup_config` event. The empirical answer to the rate-limit caveat below is in the Phase-0 probe findings: 432/432 requests succeeded at 3.6 req/s sustained (probe f); `call_deriv` retry/backoff handles transient errors but is not a rate-limit budget.
 
 ## Phase-0 API Probe Findings (issue #4)
 
@@ -153,11 +153,13 @@ Legacy `deriv_demo_executor.py --demo-buy` is disabled. Demo buys are executor-o
 
 The executor requires 15m `CALL` and `PUT` availability from `contracts_for`, a finite feature row matching the frozen book schema, the 08:00-17:00 America/New_York session gate, the frozen strategy confidence gate at the **registry-resolved active coverage**, a resolved side floor + haircut for every pair (fail-closed at startup), the payout-aware edge gate above, no `logs/paper_trades/KILL` file, and a healthy rolling store when `--store-dir` is set.
 
-Every skip logs a stable `reason` (`outside_ny_session`, `feature_row_failed`, `book_gate`, `max_trades_day`, `max_open`, `pair_cooldown`, `missing_or_invalid_ask`, `missing_or_invalid_payout`, `edge_not_positive`, `breakeven_too_high`, `dry_run_proposal_only`, `demo_buy_not_enabled`, plus `lock_acquire_failed` / `reconcile_failed` / `kill_switch_triggered` events). Buy and monitor events carry the full decision context (side, contract type, ask/payout, effective floor, live breakeven, net edge, ids, expiry, terminal status, profit). Logs are JSONL- and secret-safe: raw responses are hashed, and the auth smoke prints only a SHA-256 prefix of the account id.
+Every skip logs a stable `reason` (`outside_ny_session`, `feature_row_failed`, `book_gate`, `max_trades_day`, `max_open`, `pair_cooldown`, `allocation_disabled_pair_side`, `allocation_same_pair_overlap`, `allocation_usd_factor_cap`, `missing_or_invalid_ask`, `missing_or_invalid_payout`, `edge_not_positive`, `breakeven_too_high`, `dry_run_proposal_only`, `demo_buy_not_enabled`, plus `lock_acquire_failed` / `reconcile_failed` / `kill_switch_triggered` events). Buy and monitor events carry the full decision context (side, contract type, ask/payout, effective floor, live breakeven, net edge, ids, expiry, terminal status, profit). Logs are JSONL- and secret-safe: raw responses are hashed, and the auth smoke prints only a SHA-256 prefix of the account id.
 
 `deriv_data/runtime/trade_queue.sqlite` stores queued signals and linked contract rows. On executor startup/auth health it can claim queue rows independently of producer/store health; unresolved exposure remains counted until account/contract evidence or expiry-plus-grace reconciliation clears it.
 
-**Risk caps are opt-in** (demo default: trade every firing signal): `--max-open`, `--max-trades-day`, and `--pair-cooldown-seconds` all default to 0 = unconstrained; set them explicitly to re-impose limits. Post-buy monitoring is **detached** by default (the contract settles via per-cycle reconciliation); `--blocking-monitor` restores the old block-until-terminal behavior, which serializes the account to one open trade at a time.
+The issue-#7 allocator is fail-closed by default: it batches queue claims, ranks buyable candidates by `net_edge`, refuses unresolved same-pair overlap (`--same-pair-min-gap-seconds`, default 900), and caps same-direction USD-factor exposure (`--max-usd-factor-open`, default 2; `off` disables it). `DERIV_DEMO_DISABLED_PAIR_SIDES` / `--disabled-pair-sides` is a comma-separated `PAIR:SIDE` denylist; the env template seeds `AUDUSD:DOWN` from the 2026-07-06 replay. The older generic caps (`--max-open`, `--max-trades-day`, `--pair-cooldown-seconds`) still default to 0 = unconstrained.
+
+Post-buy monitoring is detached. Settlement is queue-backed: the executor polls bounded `proposal_open_contract` batches, writes terminal contract fields (`sell_price`, `profit`, `payout`, entry/exit ticks, terminal time), and atomically moves linked signals from `bought` / `buy_unknown` to `contract_closed` only on terminal contract evidence.
 
 The credentialed executor uses the shared account lock root from `deriv_runtime_core.canonical_lock_root()`, not a per-service log directory. A second buy-capable process for the same account fails closed on the same lock path.
 
@@ -219,8 +221,11 @@ import it (parity by construction). Modules:
   credentials, no buy path, selected-side candidates committed to SQLite after
   the book gate. Legacy non-queue proposal-only mode remains for comparison.
 - `deriv_trade_executor.py` — credentialed queue executor: account lock,
-  auth-health, pre-money gates, final payout gate, buy submission, contract
-  rows, and fake/live gate JSON.
+  auth-health, batch allocator, pre-money gates, final payout gate, buy
+  submission, contract rows, reconciliation, and fake/live gate JSON.
+- `deriv_trade_allocator_replay.py` — issue-#7 replay harness over an ignored
+  VPS queue/log fixture; writes the allocator falsifier JSON under
+  `results/json/`.
 - `deriv_offset_audit.py` — the pre-registered Phase-5 shifted-lane audit
   (falsifier-first; the audit RUN is a `strategy-eval` session).
 
