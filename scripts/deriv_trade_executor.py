@@ -99,11 +99,14 @@ class TradeExecutor:
     def _count(self, key: str) -> None:
         self.counters[key] = self.counters.get(key, 0) + 1
 
+    async def fresh_demo_ws_url(self) -> str:
+        env = DerivEnv.from_env()
+        return await asyncio.to_thread(request_demo_ws_url, env, 10.0)
+
     async def auth_health(self) -> bool:
         """Detect-and-surface PAT/OTP failure; no auto-refresh here."""
         try:
-            env = DerivEnv.from_env()
-            url = await asyncio.to_thread(request_demo_ws_url, env, 10.0)
+            url = await self.fresh_demo_ws_url()
             def _ping() -> dict[str, Any]:
                 with DerivOptionsClient(url, timeout=10.0) as client:
                     return client.ping()
@@ -126,11 +129,11 @@ class TradeExecutor:
             await self.auth_health()
 
     async def connect_async_client(self) -> None:
-        env = DerivEnv.from_env()
-        url = await asyncio.to_thread(request_demo_ws_url, env, 10.0)
+        url = await self.fresh_demo_ws_url()
         self.async_client = DerivAsyncClient(
             url,
             request_timeout=max(self.args.async_proposal_timeout_ms, self.args.buy_request_timeout_ms) / 1000.0,
+            url_factory=self.fresh_demo_ws_url,
             on_event=lambda e, f: self.logger.write("exec_client_" + e, **f),
         )
         await self.async_client.connect()

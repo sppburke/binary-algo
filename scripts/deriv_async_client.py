@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import inspect
 import json
 import socket
 import sys
@@ -31,7 +32,8 @@ import time
 from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Awaitable, Callable
+from urllib.parse import urlsplit
 
 import websockets
 import websockets.exceptions
@@ -39,6 +41,14 @@ import websockets.exceptions
 from deriv_client import PUBLIC_WS_URL, DerivAPIError
 
 SOAK_RESULT_PATH = Path("deriv_async_soak_result.json")
+UrlFactory = Callable[[], str | Awaitable[str]]
+
+
+def _safe_endpoint(url: str) -> str:
+    parts = urlsplit(url)
+    if not parts.scheme or not parts.netloc:
+        return "<invalid-websocket-url>"
+    return f"{parts.scheme}://{parts.netloc}{parts.path}"
 
 
 class Subscription:
@@ -72,9 +82,11 @@ class DerivAsyncClient:
         reconnect_max_attempts: int | None = None,
         queue_maxsize: int = 4096,
         silence_timeout_s: float | None = None,
+        url_factory: UrlFactory | None = None,
         on_event: Callable[[str, dict[str, Any]], None] | None = None,
     ):
         self.url = url
+        self._url_factory = url_factory
         self.request_timeout = request_timeout
         self.open_timeout = open_timeout
         self.ping_interval = ping_interval
@@ -108,6 +120,7 @@ class DerivAsyncClient:
             "error_frames": 0,
             "decode_errors": 0,
             "reconnects": 0,
+            "url_refreshes": 0,
             "queue_overflow": 0,
             "pre_sub_buffered": 0,
             "resubscribe_latency_s": [],
@@ -129,7 +142,7 @@ class DerivAsyncClient:
         self._reader_task = asyncio.create_task(self._read_loop())
         if self.silence_timeout_s:
             self._watchdog_task = asyncio.create_task(self._silence_watchdog())
-        self._emit("connected", url=self.url)
+        self._emit("connected", endpoint=_safe_endpoint(self.url), authenticated="/demo" in self.url)
 
     async def close(self) -> None:
         self._closing = True
@@ -163,7 +176,21 @@ class DerivAsyncClient:
     async def __aexit__(self, *exc: object) -> None:
         await self.close()
 
-    async def _open(self) -> Any:
+    async def _refresh_url(self) -> None:
+        if self._url_factory is None:
+            return
+        maybe_url = self._url_factory()
+        if inspect.isawaitable(maybe_url):
+            maybe_url = await maybe_url
+        if not isinstance(maybe_url, str) or not maybe_url.startswith(("ws://", "wss://")):
+            raise DerivAPIError("url_factory returned an invalid WebSocket URL")
+        self.url = maybe_url
+        self.stats["url_refreshes"] += 1
+        self._emit("url_refreshed", endpoint=_safe_endpoint(self.url), authenticated="/demo" in self.url)
+
+    async def _open(self, *, refresh_url: bool = False) -> Any:
+        if refresh_url:
+            await self._refresh_url()
         return await websockets.connect(
             self.url,
             compression=None,
@@ -363,7 +390,7 @@ class DerivAsyncClient:
                 self._emit("reconnect_exhausted", attempts=attempts - 1)
                 return False
             try:
-                self._ws = await self._open()
+                self._ws = await self._open(refresh_url=self._url_factory is not None)
                 break
             except Exception as open_exc:
                 self._emit("reconnect_failed", attempt=attempts, error=str(open_exc)[:120])
@@ -548,6 +575,43 @@ async def run_smoke() -> int:
         post = [(await asyncio.wait_for(sub.queue.get(), 2.0))["tick"]["epoch"] for _ in range(5)]
         check("post-reconnect epochs continue increasing", min(post) > max(epochs), f"{max(epochs)} -> {min(post)}")
 
+        # 3a. authenticated sockets get single-use URLs. A reconnect must
+        # refresh the URL before opening the next transport, and emitted events
+        # must not leak the raw URL/query token.
+        refresh_calls = 0
+        auth_events: list[dict[str, Any]] = []
+
+        async def fresh_url() -> str:
+            nonlocal refresh_calls
+            refresh_calls += 1
+            return f"ws://127.0.0.1:{port}/?otp=fresh-secret-{refresh_calls}"
+
+        auth_client = DerivAsyncClient(
+            f"ws://127.0.0.1:{port}/?otp=initial-secret",
+            request_timeout=5.0,
+            reconnect_base_s=0.05,
+            url_factory=fresh_url,
+            on_event=lambda e, f: auth_events.append({"event": e, **f}),
+        )
+        await auth_client.connect()
+        auth_sub = await auth_client.subscribe({"ticks": "AUTHUSD"})
+        try:
+            await auth_client.request({"drop_now": 1})
+        except DerivAPIError:
+            pass
+        auth_frame = await asyncio.wait_for(auth_sub.queue.get(), 10.0)
+        redacted_events = [
+            ev for ev in auth_events
+            if ev.get("event") in {"connected", "url_refreshed"}
+        ]
+        redacted_text = json.dumps(redacted_events, sort_keys=True)
+        check("url_factory called once for reconnect", refresh_calls == 1, str(refresh_calls))
+        check("auth stream resumes with refreshed URL", auth_frame.get("msg_type") == "tick")
+        check("connection events redact raw URL tokens",
+              all("url" not in ev for ev in redacted_events) and "secret" not in redacted_text,
+              redacted_text)
+        await auth_client.close()
+
         # 3b. concurrent multi-subscription resubscribe: routing purity after drop
         subs3 = {sym: await client.subscribe({"ticks": sym}) for sym in ("FAKEA", "FAKEB", "FAKEC")}
         try:
@@ -677,7 +741,7 @@ async def run_soak(minutes: float, disconnects: int, url: str) -> int:
     )
     result = {
         "gate": "issue#4 Phase 1 live soak",
-        "url": url,
+        "endpoint": _safe_endpoint(url),
         "started_utc": started_utc,
         "finished_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "host": socket.gethostname(),

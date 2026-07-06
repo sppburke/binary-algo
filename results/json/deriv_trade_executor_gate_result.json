@@ -17,8 +17,8 @@
     "buy_intent_count": 12,
     "buy_submitted_transport_write_count": 12,
     "claimed_before_release": 12,
-    "db_transaction_ms_max": 1.41,
-    "db_transaction_ms_p99": 1.186,
+    "db_transaction_ms_max": 2.181,
+    "db_transaction_ms_p99": 1.933,
     "max_concurrent_workers": 12,
     "max_inflight_buy_requests_observed": 12,
     "max_inflight_proposal_requests_observed": 12,
@@ -26,11 +26,11 @@
       "bought": 12
     },
     "queue_smoke": {
-      "aged_claim_12_wall_ms": 5.999,
+      "aged_claim_12_wall_ms": 6.766,
       "aged_terminal_rows": 100000,
       "claimed_before_release": 12,
-      "db_transaction_ms_max": 1.135,
-      "db_transaction_ms_p99": 1.044,
+      "db_transaction_ms_max": 1.906,
+      "db_transaction_ms_p99": 1.815,
       "duplicate_counts": {
         "contracts_per_signal": 0,
         "selected_side_natural_tuple": 0
@@ -62,7 +62,7 @@
     "wall_signal_max_age_s": 60.0
   },
   "gate": "issue#6 deriv_trade_executor fake gate",
-  "generated_utc": "2026-07-04T03:37:03.526187+00:00",
+  "generated_utc": "2026-07-06T14:51:16.140844+00:00",
   "incident_replay": {
     "local_source_available": false,
     "replay_passed": null,

@@ -30,6 +30,8 @@ The shared buy lock root is `deriv_data/runtime/locks` by default (`DERIV_RUNTIM
 
 The legacy `scripts/deriv_demo_executor.py --demo-buy` and `--auth-smoke` paths are hard-disabled before credential reads. Auth health moved to `scripts/deriv_trade_executor.py`; invalid/expired PAT/OTP is surfaced as `buy_blocked_auth` and does not trigger blind retry. The retained runbook item for PAT rotation is: stop `deriv-trade-executor.service`, re-mint/update `DERIV_PAT` in the private env file, run the executor auth-health/fake gate, then restart the executor.
 
+Deriv demo WebSocket URLs from the OTP endpoint are single-use. The credentialed executor's async client therefore refreshes the OTP URL before each reconnect attempt; otherwise a previously-used URL replays as HTTP 401 while periodic auth health still passes with a newly-minted URL. Client connection events log only the redacted endpoint (`scheme://host/path`), never the raw URL/query token.
+
 **Current closure status:** fake queue/executor gates write `deriv_trade_executor_gate_result.json` and archive under `results/json/`. Live NY-session demo-buy, live forced concurrency, and live forced fallback gates are still required before issue #6 can be closed.
 
 ## Book Model and Payout-Aware Edge Gate
