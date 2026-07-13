@@ -15,19 +15,24 @@ not the frozen artifact's current forward win rate.
 from __future__ import annotations
 
 import json
+import math
+import os
 import re
+import stat
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
 from book_runtime import (
-    BOOKS_DIR,
     REPO_ROOT,
     TARGET_BOOKS,
     BookRuntimeError,
     _conf_thr,
     _resolve_coverage,
     load_index,
+    load_registered_manifest,
+    load_registered_strategy_path,
+    require_active_book_lifecycle,
 )
 from deriv_backfill import DEFAULT_ENABLED_PAIRS
 
@@ -205,27 +210,146 @@ def _structured_haircuts(source_name: str, obj: dict[str, Any]) -> list[tuple[fl
     return found
 
 
-def _load_ticksettle(path: Path) -> tuple[float, bool]:
-    data = json.loads(path.read_text())
+def _open_real_directory(path: Path) -> tuple[Path, int]:
+    """Open a directory by walking every component with O_NOFOLLOW."""
+
+    raw = Path(path)
+    if ".." in raw.parts:
+        raise FloorResolutionError(f"authority directory contains '..': {path}")
+    absolute = raw if raw.is_absolute() else Path.cwd() / raw
+    flags = (
+        os.O_RDONLY
+        | os.O_DIRECTORY
+        | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+    )
+    try:
+        fd = os.open(absolute.anchor, flags)
+    except OSError as exc:
+        raise FloorResolutionError(
+            f"cannot open authority filesystem root for {absolute}: {exc}"
+        ) from exc
+    try:
+        for component in absolute.parts[1:]:
+            try:
+                next_fd = os.open(component, flags, dir_fd=fd)
+            except OSError as exc:
+                raise FloorResolutionError(
+                    f"authority directory chain contains a symlink or non-directory at "
+                    f"{absolute}: {exc}"
+                ) from exc
+            os.close(fd)
+            fd = next_fd
+        if not stat.S_ISDIR(os.fstat(fd).st_mode):
+            raise FloorResolutionError(f"authority path is not a directory: {absolute}")
+        return absolute, fd
+    except Exception:
+        os.close(fd)
+        raise
+
+
+def _load_ticksettle_at(directory_fd: int, name: str, display_path: Path) -> tuple[float, bool]:
+    if Path(name).name != name or not name:
+        raise FloorResolutionError(f"invalid tick-settlement authority filename: {name!r}")
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        fd = os.open(name, flags, dir_fd=directory_fd)
+    except OSError as exc:
+        raise FloorResolutionError(
+            f"tick-settlement authority is missing, symlinked, or unreadable: {display_path}: {exc}"
+        ) from exc
+    try:
+        descriptor_stat = os.fstat(fd)
+        if not stat.S_ISREG(descriptor_stat.st_mode):
+            raise FloorResolutionError(
+                f"tick-settlement authority is not a regular file: {display_path}"
+            )
+        chunks: list[bytes] = []
+        while True:
+            chunk = os.read(fd, 1 << 20)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        try:
+            path_stat = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+        except OSError as exc:
+            raise FloorResolutionError(
+                f"tick-settlement authority changed while reading: {display_path}"
+            ) from exc
+        if (
+            path_stat.st_dev != descriptor_stat.st_dev
+            or path_stat.st_ino != descriptor_stat.st_ino
+        ):
+            raise FloorResolutionError(
+                f"tick-settlement authority changed while reading: {display_path}"
+            )
+    finally:
+        os.close(fd)
+    try:
+        data = json.loads(b"".join(chunks))
+    except json.JSONDecodeError as exc:
+        raise FloorResolutionError(
+            f"tick-settlement authority is not valid JSON: {display_path}: {exc}"
+        ) from exc
+    if not isinstance(data, dict):
+        raise FloorResolutionError(
+            f"tick-settlement authority must contain an object: {display_path}"
+        )
     val = data.get("mean_tick_minus_bar_COMB")
-    if not isinstance(val, (int, float)):
-        raise FloorResolutionError(f"{path}: missing numeric mean_tick_minus_bar_COMB")
+    if (
+        not isinstance(val, (int, float))
+        or isinstance(val, bool)
+        or not math.isfinite(float(val))
+    ):
+        raise FloorResolutionError(
+            f"{display_path}: mean_tick_minus_bar_COMB must be a finite non-boolean number"
+        )
     verdict = data.get("verdict")
-    validated = bool(isinstance(verdict, dict) and verdict.get("tick_settlement_preserves_edge"))
+    validated = bool(
+        isinstance(verdict, dict)
+        and verdict.get("tick_settlement_preserves_edge") is True
+    )
     return float(val), validated
+
+
+def _load_ticksettle(path: Path) -> tuple[float, bool]:
+    raw = Path(path)
+    if ".." in raw.parts:
+        raise FloorResolutionError(f"tick-settlement authority contains '..': {path}")
+    absolute = raw if raw.is_absolute() else Path.cwd() / raw
+    directory, directory_fd = _open_real_directory(absolute.parent)
+    try:
+        return _load_ticksettle_at(directory_fd, absolute.name, directory / absolute.name)
+    finally:
+        os.close(directory_fd)
 
 
 def recompute_fallback_max(ticksettle_dir: Path = TICKSETTLE_DIR) -> tuple[float, str, str]:
     """Rule-4 fallback: max |mean_tick_minus_bar_COMB| over validated on-disk
     ticksettle result JSONs, recomputed at resolution time — never a frozen constant."""
     best: tuple[float, str, str] | None = None
-    for path in sorted(ticksettle_dir.glob("*_15m_ticksettle_result.json")):
-        raw, validated = _load_ticksettle(path)
-        if not validated:
-            continue
-        pair = path.name.split("_15m_ticksettle_result.json")[0].upper()
-        if best is None or abs(raw) > best[0]:
-            best = (abs(raw), pair, str(path.relative_to(REPO_ROOT)) if path.is_relative_to(REPO_ROOT) else str(path))
+    directory, directory_fd = _open_real_directory(Path(ticksettle_dir))
+    try:
+        names = sorted(
+            name
+            for name in os.listdir(directory_fd)
+            if name.endswith("_15m_ticksettle_result.json")
+        )
+        for name in names:
+            path = directory / name
+            raw, validated = _load_ticksettle_at(directory_fd, name, path)
+            if not validated:
+                continue
+            pair = name.split("_15m_ticksettle_result.json")[0].upper()
+            if best is None or abs(raw) > best[0]:
+                source = (
+                    str(path.relative_to(REPO_ROOT))
+                    if path.is_relative_to(REPO_ROOT)
+                    else str(path)
+                )
+                best = (abs(raw), pair, source)
+    finally:
+        os.close(directory_fd)
     if best is None:
         raise FloorResolutionError(f"no validated ticksettle result JSONs under {ticksettle_dir}")
     return best
@@ -263,7 +387,7 @@ def resolve_haircut(
         return raw, abs(raw), "structured", "; ".join(d for _, d in found)
 
     direct = ticksettle_dir / f"{pair.lower()}_15m_ticksettle_result.json"
-    if direct.exists():
+    if direct.is_symlink() or direct.exists():
         raw, validated = _load_ticksettle(direct)
         if not validated:
             raise FloorResolutionError(f"{pair}: {direct} verdict does not preserve edge; refusing haircut")
@@ -303,6 +427,10 @@ def resolve_book(
     proxy_table: dict[str, dict[str, Any]] | None = None,
 ) -> PairFloorResolution:
     """Pure resolution from already-loaded registry dicts (fixture-testable)."""
+    try:
+        require_active_book_lifecycle(book_id, index_entry, manifest)
+    except BookRuntimeError as exc:
+        raise FloorResolutionError(str(exc)) from exc
     index_metrics = index_entry.get("metrics")
     if not isinstance(index_metrics, dict):
         raise FloorResolutionError(f"{book_id}: books/INDEX.json entry has no metrics dict")
@@ -368,24 +496,25 @@ def resolve_enabled_pairs(pairs: list[str] | None = None) -> dict[str, PairFloor
         if book_id not in index:
             raise FloorResolutionError(f"{book_id} is not registered in books/INDEX.json")
         entry = index[book_id]
-        manifest_rel = entry.get("manifest")
-        if not isinstance(manifest_rel, str):
-            raise FloorResolutionError(f"{book_id}: INDEX entry has no manifest path")
-        manifest_path = REPO_ROOT / manifest_rel
-        if not manifest_path.exists():
-            raise FloorResolutionError(f"{book_id}: manifest missing at {manifest_path}")
-        manifest = json.loads(manifest_path.read_text())
+        try:
+            _, manifest = load_registered_manifest(book_id, entry)
+            require_active_book_lifecycle(book_id, entry, manifest)
+            strategy_path = load_registered_strategy_path(book_id)
+        except BookRuntimeError as exc:
+            raise FloorResolutionError(str(exc)) from exc
         # Manifests' strategy_json entries record a stale pre-reorg models/ path;
         # the strategy of record is the single *strategy*.json inside books/<id>/.
-        strategy_files = sorted((BOOKS_DIR / book_id).glob("*strategy*.json"))
-        if len(strategy_files) != 1:
+        try:
+            strategy = json.loads(strategy_path.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
             raise FloorResolutionError(
-                f"{book_id}: expected exactly one strategy JSON in books/{book_id}, found {len(strategy_files)}"
-            )
-        strategy = json.loads(strategy_files[0].read_text())
+                f"{book_id}: cannot read strategy JSON: {exc}"
+            ) from exc
+        if not isinstance(strategy, dict):
+            raise FloorResolutionError(f"{book_id}: strategy JSON must contain an object")
         out[pair] = resolve_book(
             pair, book_id, entry, manifest, strategy,
-            str(strategy_files[0].relative_to(REPO_ROOT)),
+            str(strategy_path.relative_to(REPO_ROOT)),
         )
     return out
 

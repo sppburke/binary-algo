@@ -29,6 +29,7 @@ Pre-registered falsifier in gbpusd_15m_xpair_<mode>_result.json BEFORE held-out 
 Usage: ~/binary-algo-venv/bin/python gbpusd_15m_xpair.py [mode=xp|xpbase] [stride_train=4]
 """
 import sys, os, json, time, numpy as np, pandas as pd
+from pathlib import Path
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import harness as H
@@ -44,9 +45,8 @@ LB=[1,3,5,10,15,30]
 HOR=int(os.environ.get("MX_HOR","15")); GAP_S=HOR*60
 BE=0.541
 SPL={"train":[str(y) for y in range(2012,2022)],"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}
-_base=json.load(open("gbpusd_15m_base_result.json"))
-BASE_VAL_AUC=float(_base["val_auc"])                                            # .5285
-BASE_2026_COV2_COMB=float(_base["years"]["oos"]["covcurve"]["0.02"]["COMBINED"]["wr"])  # ~.501
+REPO_ROOT=Path(__file__).resolve().parents[1]
+RESULTS_JSON=REPO_ROOT/"results"/"json"
 
 def equiv_sign(p): return -1.0 if p in USD_BASE else +1.0
 
@@ -171,13 +171,19 @@ def covcurve(pr,y,fwd,ts,covs=(0.10,0.05,0.03,0.02,0.01)):
 
 def main(mode="xpbase", stride=4):
     t0=time.time()
+    # Experiment-only evidence is deliberately loaded here, never while importing
+    # the reusable feature builder.
+    with (RESULTS_JSON/"gbpusd_15m_base_result.json").open() as fh:
+        base=json.load(fh)
+    base_val_auc=float(base["val_auc"])
+    base_2026_cov2_comb=float(base["years"]["oos"]["covcurve"]["0.02"]["COMBINED"]["wr"])
     RESULT=f"gbpusd_15m_xpair_{mode}_result.json"
     res={"key":"GBPUSD.15m","model":f"cross-pair USD-residual + GBPUSD-specific (EURGBP N2 RV, euro-bloc, risk factor), mode={mode}",
-         "incumbent":f"A1 base VAL AUC {BASE_VAL_AUC:.4f}, 2026 cov2% COMB {BASE_2026_COV2_COMB:.4f}","breakeven":BE,
+         "incumbent":f"A1 base VAL AUC {base_val_auc:.4f}, 2026 cov2% COMB {base_2026_cov2_comb:.4f}","breakeven":BE,
          "falsifier":{"registered":"pre-OOS",
-            "IMPROVES_if":f"VAL moved-AUC > {BASE_VAL_AUC:.4f} AND 2026 cov2% COMBINED wr > {BASE_2026_COV2_COMB:.4f} (else base stands; pooling subsumed)"}}
+            "IMPROVES_if":f"VAL moved-AUC > {base_val_auc:.4f} AND 2026 cov2% COMBINED wr > {base_2026_cov2_comb:.4f} (else base stands; pooling subsumed)"}}
     json.dump(res,open(RESULT,"w"),indent=2)
-    print(f"[xpair GBPUSD] mode={mode} stride={stride} HOR={HOR} (base VAL {BASE_VAL_AUC:.4f}, base 2026cov2 {BASE_2026_COV2_COMB:.4f})",flush=True)
+    print(f"[xpair GBPUSD] mode={mode} stride={stride} HOR={HOR} (base VAL {base_val_auc:.4f}, base 2026cov2 {base_2026_cov2_comb:.4f})",flush=True)
     TR=build_xp_gbp(SPL["train"],stride); VA=build_xp_gbp(SPL["val"])
     xpc=xp_cols(TR); TR=augment(TR,SPL["train"],mode); VA=augment(VA,SPL["val"],mode)
     cols=feat_cols(mode,TR,xpc)
@@ -190,7 +196,7 @@ def main(mode="xpbase", stride=4):
     pva=L.predict_proba(Xva)[:,1]; aucv=float(roc_auc_score(yva,pva))
     imp=sorted(zip(cols,L.feature_importances_),key=lambda z:-z[1])[:20]
     res["val_auc"]=aucv; res["best_iter"]=int(L.best_iteration_ or 0); res["top20"]=[c for c,_ in imp]
-    print(f"[xpair GBPUSD] best_iter={L.best_iteration_} VAL AUC={aucv:.4f} (base {BASE_VAL_AUC:.4f})",flush=True)
+    print(f"[xpair GBPUSD] best_iter={L.best_iteration_} VAL AUC={aucv:.4f} (base {base_val_auc:.4f})",flush=True)
     print("  top20:",", ".join(c for c,_ in imp),flush=True)
     # VAL worst-half gate (cov sweep), never VAL-acc-max
     tsv=VA["_ts"].values.astype("int64"); fwv=VA["_fwd"].values; half=len(pva)//2; confv=np.abs(pva-0.5); best=None
@@ -215,11 +221,11 @@ def main(mode="xpbase", stride=4):
         print(f"=== {w} === AUC={auc:.4f} up={uprate:.4f} | gate cov{COV:.0%} COMB n{g.get('n')} wr={g.get('wr')} CI{g.get('ci')}",flush=True)
         c2=cc.get("0.02",{}); print(f"    cov2%: COMB {c2.get('COMBINED')} UP {c2.get('UP')} DOWN {c2.get('DOWN')}",flush=True)
     a26=res["years"]["oos"]["covcurve"].get("0.02",{}).get("COMBINED",{}).get("wr",float("nan"))
-    improves=bool(aucv>BASE_VAL_AUC and np.isfinite(a26) and a26>BASE_2026_COV2_COMB)
-    res["verdict"]={"val_auc_gt_base":bool(aucv>BASE_VAL_AUC),"oos_cov2_comb":a26,"oos_cov2_gt_base":bool(np.isfinite(a26) and a26>BASE_2026_COV2_COMB),
+    improves=bool(aucv>base_val_auc and np.isfinite(a26) and a26>base_2026_cov2_comb)
+    res["verdict"]={"val_auc_gt_base":bool(aucv>base_val_auc),"oos_cov2_comb":a26,"oos_cov2_gt_base":bool(np.isfinite(a26) and a26>base_2026_cov2_comb),
                     "IMPROVES_base":improves,"note":"if not IMPROVES, base stands; pooling subsumed at 15m (record + move to session/cert)"}
     json.dump(res,open(RESULT,"w"),indent=2)
-    print(f"\n[xpair GBPUSD] VERDICT IMPROVES_base={improves} (VAL {aucv:.4f} vs {BASE_VAL_AUC:.4f}; 2026 cov2 COMB {a26} vs {BASE_2026_COV2_COMB:.4f}) -> {RESULT} {time.time()-t0:.0f}s",flush=True)
+    print(f"\n[xpair GBPUSD] VERDICT IMPROVES_base={improves} (VAL {aucv:.4f} vs {base_val_auc:.4f}; 2026 cov2 COMB {a26} vs {base_2026_cov2_comb:.4f}) -> {RESULT} {time.time()-t0:.0f}s",flush=True)
 
 if __name__=="__main__":
     mode=sys.argv[1] if len(sys.argv)>1 else "xpbase"

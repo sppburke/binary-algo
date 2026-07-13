@@ -1,0 +1,967 @@
+{
+  "schema": "m15-book-refresh-spec/v1",
+  "issue": {
+    "number": 9,
+    "title": "Relaunch six incumbent 15m books with a date-only three-arm retrospective replay",
+    "repository": "sppburke/binary-algo"
+  },
+  "pair_order": [
+    "EURUSD",
+    "USDJPY",
+    "GBPUSD",
+    "USDCHF",
+    "AUDUSD",
+    "NZDUSD"
+  ],
+  "feature_source_pair_order": [
+    "EURUSD",
+    "GBPUSD",
+    "AUDUSD",
+    "NZDUSD",
+    "USDJPY",
+    "USDCHF",
+    "USDCAD"
+  ],
+  "feature_source_rules": {
+    "authority": "live_features.PAIRS",
+    "source_only_pairs": ["USDCAD"],
+    "source_only_pairs_are_campaign_targets": false,
+    "source_only_pairs_remain_required_for_cross_pair_feature_builds": true
+  },
+  "arm_order": [
+    "A",
+    "B",
+    "C"
+  ],
+  "control_order": [
+    ["eur_xpair_of", "B_perm"],
+    ["eur_xpair_of", "C_perm"],
+    ["gbpchf_xpair", "B_perm"],
+    ["gbpchf_xpair", "C_perm"],
+    ["own_pair", "B_perm"],
+    ["own_pair", "C_perm"]
+  ],
+  "sealed_constants": {
+    "horizon_seconds": 900,
+    "breakeven": 0.541,
+    "train_row_cap": 150000,
+    "probability_tie_rule": "p>=0.5_is_UP",
+    "confidence_gate_rule": "abs(p-0.5)>=threshold",
+    "quantile_method": "linear",
+    "bootstrap_seed": 9001,
+    "control_bootstrap_seed": 9002,
+    "shadow_bootstrap_seed": 9003,
+    "stats_null_test_seed": 9005,
+    "permutation_seeds": {
+      "eur_xpair_of": 9101,
+      "gbpchf_xpair": 9102,
+      "own_pair": 9103
+    },
+    "block_lengths": [5, 10, 20],
+    "production_bootstrap_replicates": 10000,
+    "ddof": 1,
+    "min_side_trades": 50,
+    "min_activity_ratio": 0.8,
+    "moved_up_rate_min": 0.47,
+    "moved_up_rate_max": 0.53
+  },
+  "splits": {
+    "entry_floor": "2012-01-01T00:00:00Z",
+    "B": {
+      "fit_label_exit_before": "2022-01-01T00:00:00Z",
+      "calibration_entry_at_or_after": "2022-01-01T00:00:00Z",
+      "calibration_label_exit_before": "2024-01-01T00:00:00Z"
+    },
+    "C": {
+      "fit_label_exit_before": "2026-01-01T00:00:00Z",
+      "calibration_entry_at_or_after": "2026-01-01T00:00:00Z",
+      "calibration_label_exit_before": "2026-04-01T00:00:00Z"
+    },
+    "replay": {
+      "entry_at_or_after": "2026-04-01T00:00:00Z",
+      "entry_before": "2026-06-01T00:00:00Z",
+      "settlement_exit_before": "2026-06-01T00:00:00Z",
+      "classification": "retrospective_replay"
+    },
+    "phase_zero": {
+      "entry_at_or_after": "2026-01-01T00:00:00Z",
+      "entry_before": "2026-04-01T00:00:00Z"
+    }
+  },
+  "evaluator": {
+    "schema": "m15-book-refresh-evaluator/v1",
+    "decision_reference": "completed_minute_close",
+    "timestamp_mapping": {
+      "processed_10s_source_label": "left_edge_of_[label,label+10s)_bar",
+      "processed_10s_close_observation_timestamp": "source_label_plus_10_seconds",
+      "feature_source_label": "left_edge_of_[label,label+60s)_completed_minute_bar",
+      "decision_timestamp": "feature_source_label_plus_60_seconds",
+      "feature_information_latest_source": "processed_10s_bar_labeled_feature_source_label_plus_50_seconds_closing_at_decision_timestamp",
+      "settlement_clock": "processed_10s_close_observation_timestamps",
+      "causal_requirement": "decision_and_settlement_observation_timestamps_never_precede_the_close_values_they_represent",
+      "pinned_runtime_evidence": "deriv_hot_daemon.score_from_snapshot_candidate_bar_close_equals_FeatureRow.timestamp_plus_1_minute"
+    },
+    "outer_session": {
+      "name": "ny",
+      "timezone": "America/New_York",
+      "open": "08:00:00",
+      "close": "17:00:00"
+    },
+    "last_start": {
+      "timezone": "America/New_York",
+      "reject_at_or_after": "16:35:00"
+    },
+    "settlement": {
+      "canonical_helper": "min1_production.wc_ret",
+      "horizon_s": 900,
+      "tol_s": 10,
+      "lag_s": 1,
+      "entry": "first_observation_at_or_after_decision_plus_1s",
+      "expiry": "decision_plus_1s_plus_900s",
+      "exit": "last_observation_at_or_before_expiry",
+      "require_distinct_observations": true,
+      "ties": "lose"
+    },
+    "scheduler": {
+      "canonical_helper": "min1_production.nonoverlap_chrono",
+      "gap_s": 900,
+      "scope": "combined_before_side"
+    },
+    "probability_metrics": {
+      "moved_rows_only": ["auc", "brier", "log_loss"],
+      "tie_rate_reported_separately": true
+    },
+    "excluded": [
+      "payout_admission",
+      "account_limits",
+      "staking",
+      "allocator_ranking",
+      "portfolio_exposure"
+    ]
+  },
+  "cap_selector": {
+    "schema": "timestamp-rank-cap/v1",
+    "row_id": "signed_int64_unix_nanoseconds",
+    "apply_after": ["family_filter", "fitting_session", "stride_phase"],
+    "sort": "fit_row_id_ascending",
+    "reject": ["duplicate", "non_finite", "out_of_int64_range"],
+    "if_n_le_cap": "all_rows",
+    "if_n_gt_cap": "unique_floor_linspace_zero_to_n_minus_1_inclusive",
+    "cap": 150000,
+    "label_blind": true
+  },
+  "pairs": {
+    "EURUSD": {
+      "book_id_A": "EURUSD.m15xp.v1",
+      "candidate_book_id": "EURUSD.m15xp.v2",
+      "adapter_family": "eur_xpair_of",
+      "builder": "m5_xpair.build_xp+augment(xpof)",
+      "feature_count": 331,
+      "feature_dtype": "float32",
+      "seed_order": [0],
+      "fit_session": "all",
+      "calibration_session": "legacy_fixed_utc_13:00_22:00",
+      "training_stride": 4,
+      "stride_phase": 0,
+      "fit_ties": "drop",
+      "early_stopping_ties": "drop",
+      "calibration_target_coverage": 0.10,
+      "structural_gate": {
+        "type": "column_quantile_le",
+        "column": "15m_bb_width",
+        "quantile": 0.33,
+        "calibration_scope": "full_exact_window_label_valid_rows_before_fixed_utc_session"
+      },
+      "model": {
+        "class": "lightgbm.LGBMClassifier",
+        "objective": "binary",
+        "metric": "auc",
+        "learning_rate": 0.02,
+        "num_leaves": 127,
+        "min_child_samples": 400,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.5,
+        "reg_lambda": 20.0,
+        "n_estimators": 3000,
+        "early_stopping_rounds": 150,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 16
+      },
+      "live_provider": {
+        "enabled": false,
+        "shadow_eligible": false,
+        "reason": "BLOCKED_SCHEMA: verified live OF_* provider absent"
+      }
+    },
+    "USDJPY": {
+      "book_id_A": "USDJPY.m15ny_seedens.v1",
+      "candidate_book_id": "USDJPY.m15ny_seedens.v2",
+      "adapter_family": "own_pair",
+      "builder": "usdjpy_15m_base.build",
+      "feature_count": 239,
+      "feature_dtype": "float32",
+      "seed_order": [0, 1, 2],
+      "fit_session": "dst_correct_ny",
+      "calibration_session": "dst_correct_ny",
+      "training_stride": 6,
+      "stride_phase": 0,
+      "fit_ties": "drop",
+      "early_stopping_ties": "drop",
+      "calibration_target_coverage": 0.02,
+      "structural_gate": {"type": "none"},
+      "model": {
+        "class": "lightgbm.LGBMClassifier",
+        "objective": "binary",
+        "metric": "auc",
+        "learning_rate": 0.02,
+        "num_leaves": 127,
+        "min_child_samples": 400,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.5,
+        "reg_lambda": 20.0,
+        "n_estimators": 3000,
+        "early_stopping_rounds": 150,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 16
+      },
+      "live_provider": {"enabled": true, "shadow_eligible": true}
+    },
+    "GBPUSD": {
+      "book_id_A": "GBPUSD.m15ny_xpair_seedens8.v1",
+      "candidate_book_id": "GBPUSD.m15ny_xpair_seedens8.v2",
+      "adapter_family": "gbpchf_xpair",
+      "builder": "gbpusd_15m_xpair_frozen.build_mat",
+      "feature_count": 340,
+      "feature_dtype": "float32",
+      "seed_order": [0, 1, 2, 3, 4, 5, 6, 7],
+      "fit_session": "dst_correct_ny",
+      "calibration_session": "dst_correct_ny",
+      "training_stride": 3,
+      "stride_phase": 0,
+      "fit_ties": "drop",
+      "early_stopping_ties": "include_as_down",
+      "calibration_target_coverage": 0.01,
+      "structural_gate": {"type": "none"},
+      "model": {
+        "class": "lightgbm.LGBMClassifier",
+        "objective": "binary",
+        "metric": "auc",
+        "learning_rate": 0.02,
+        "num_leaves": 255,
+        "min_child_samples": 400,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.5,
+        "reg_lambda": 20.0,
+        "n_estimators": 800,
+        "early_stopping_rounds": 80,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 16
+      },
+      "live_provider": {"enabled": true, "shadow_eligible": true}
+    },
+    "USDCHF": {
+      "book_id_A": "USDCHF.m15ny_xpair_seedens.v1",
+      "candidate_book_id": "USDCHF.m15ny_xpair_seedens.v2",
+      "adapter_family": "gbpchf_xpair",
+      "builder": "usdchf_15m_xpair_frozen.build_mat",
+      "feature_count": 337,
+      "feature_dtype": "float32",
+      "seed_order": [0, 1, 2],
+      "fit_session": "dst_correct_ny",
+      "calibration_session": "dst_correct_ny",
+      "training_stride": 3,
+      "stride_phase": 0,
+      "fit_ties": "drop",
+      "early_stopping_ties": "include_as_down",
+      "calibration_target_coverage": 0.01,
+      "structural_gate": {"type": "none"},
+      "model": {
+        "class": "lightgbm.LGBMClassifier",
+        "objective": "binary",
+        "metric": "auc",
+        "learning_rate": 0.02,
+        "num_leaves": 255,
+        "min_child_samples": 400,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.5,
+        "reg_lambda": 20.0,
+        "n_estimators": 800,
+        "early_stopping_rounds": 80,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 16
+      },
+      "live_provider": {"enabled": true, "shadow_eligible": true}
+    },
+    "AUDUSD": {
+      "book_id_A": "AUDUSD.m15ny_seedens.v1",
+      "candidate_book_id": "AUDUSD.m15ny_seedens.v2",
+      "adapter_family": "own_pair",
+      "builder": "audusd_15m_base.build",
+      "feature_count": 239,
+      "feature_dtype": "float32",
+      "seed_order": [0, 1, 2],
+      "fit_session": "dst_correct_ny",
+      "calibration_session": "dst_correct_ny",
+      "training_stride": 6,
+      "stride_phase": 0,
+      "fit_ties": "drop",
+      "early_stopping_ties": "drop",
+      "calibration_target_coverage": 0.03,
+      "structural_gate": {"type": "none"},
+      "model": {
+        "class": "lightgbm.LGBMClassifier",
+        "objective": "binary",
+        "metric": "auc",
+        "learning_rate": 0.02,
+        "num_leaves": 127,
+        "min_child_samples": 400,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.5,
+        "reg_lambda": 20.0,
+        "n_estimators": 3000,
+        "early_stopping_rounds": 150,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 16
+      },
+      "live_provider": {"enabled": true, "shadow_eligible": true}
+    },
+    "NZDUSD": {
+      "book_id_A": "NZDUSD.m15ny_seedens.v1",
+      "candidate_book_id": "NZDUSD.m15ny_seedens.v2",
+      "adapter_family": "own_pair",
+      "builder": "nzdusd_15m_base.build",
+      "feature_count": 239,
+      "feature_dtype": "float32",
+      "seed_order": [0, 1, 2],
+      "fit_session": "dst_correct_ny",
+      "calibration_session": "dst_correct_ny",
+      "training_stride": 6,
+      "stride_phase": 0,
+      "fit_ties": "drop",
+      "early_stopping_ties": "drop",
+      "calibration_target_coverage": 0.02,
+      "structural_gate": {"type": "none"},
+      "model": {
+        "class": "lightgbm.LGBMClassifier",
+        "objective": "binary",
+        "metric": "auc",
+        "learning_rate": 0.02,
+        "num_leaves": 127,
+        "min_child_samples": 400,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.5,
+        "reg_lambda": 20.0,
+        "n_estimators": 3000,
+        "early_stopping_rounds": 150,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 16
+      },
+      "live_provider": {"enabled": true, "shadow_eligible": true}
+    }
+  },
+  "identity": {
+    "canonical_json": {
+      "sort_keys": true,
+      "separators": [",", ":"],
+      "ensure_ascii": false,
+      "allow_nan": false,
+      "newline": false
+    },
+    "component_prefix": "unsigned_64_bit_big_endian_byte_length",
+    "digest": "sha256_full_64_lower_hex",
+    "path_normalization": "repo_relative_posix",
+    "domains": {
+      "evaluator_id": "m15-book-refresh/evaluator-id/v1",
+      "prereg_id": "m15-book-refresh/prereg-id/v1",
+      "bundle_id": "m15-book-refresh/bundle-id/v1",
+      "controls_id": "m15-book-refresh/controls-id/v1",
+      "run_id": "m15-book-refresh/run-id/v1"
+    },
+    "bundle_components": [
+      "canonical_resolved_bundle_spec_without_bundle_id",
+      "strategy_filename_and_exact_bytes",
+      "model_filename_and_exact_bytes_in_seed_order"
+    ]
+  },
+  "phases": [
+    "source_preregistration",
+    "derived_data",
+    "adapter_parity",
+    "fit_and_repeat",
+    "arm_seal",
+    "replay",
+    "status_and_publication_lock",
+    "candidate_publication",
+    "shadow_spec"
+  ],
+  "phase_manifest": {
+    "schema": "m15-book-refresh-phase/v1",
+    "required": [
+      "phase",
+      "status",
+      "canonical_attempt_id",
+      "predecessor_manifest_hashes",
+      "input_hashes",
+      "output_hashes"
+    ],
+    "sealed_behavior": "verify_and_noop",
+    "partial_behavior": "delete_and_restart_from_last_sealed_predecessor",
+    "published_candidate_exception": "authenticate_external_lock_then_verify_and_finish_or_fail_closed"
+  },
+  "primary_family": {
+    "schema": "m15-book-refresh-main-family/v1",
+    "m0": 24,
+    "tail": "two_sided_absolute_max_t",
+    "endpoint_order": [
+      "C_minus_B_yield_by_pair_order",
+      "C_minus_A_yield_by_pair_order",
+      "C_UP_accuracy_minus_0.5_by_pair_order",
+      "C_DOWN_accuracy_minus_0.5_by_pair_order"
+    ],
+    "bonferroni_floor": "Phi^-1(1-0.05/(2*24))",
+    "block_length_envelope": {"lower": "minimum", "upper": "maximum"}
+  },
+  "control_family": {
+    "schema": "m15-book-refresh-control-family/v1",
+    "representatives": {
+      "eur_xpair_of": "EURUSD",
+      "gbpchf_xpair": "GBPUSD",
+      "own_pair": "USDJPY"
+    },
+    "m0": 9,
+    "tail": "lower_only_max_t",
+    "endpoints_per_representative": [
+      "C_perm_minus_B_perm_yield",
+      "C_perm_UP_accuracy_minus_0.5",
+      "C_perm_DOWN_accuracy_minus_0.5"
+    ],
+    "bonferroni_floor": "Phi^-1(1-0.05/9)",
+    "count_screen": {"C_perm_min_each_side": 50, "C_perm_to_B_perm_activity_min": 0.8},
+    "label_permutation": {
+      "generator": "numpy.random.Generator",
+      "bit_generator": "numpy.random.PCG64",
+      "seed_sequence": ["family_permutation_seed", "arm_code"],
+      "arm_codes": {"B_perm": 0, "C_perm": 1},
+      "partition_order": ["capped_fit_rows", "early_stopping_rows"],
+      "state": "one_generator_consumed_sequentially_across_partition_order",
+      "operation": "rng.permutation(len(partition))",
+      "assignment": "labels[partition]=labels[partition][permutation]",
+      "calibration_gate_label_values": "none"
+    }
+  },
+  "status_precedence": [
+    "INVALID_integrity_identity_access_parity_clock_control",
+    "INCONCLUSIVE_required_endpoint_noncomputable",
+    "PROMOTE_TO_SHADOW",
+    "RETAIN_V1",
+    "INCONCLUSIVE_remaining"
+  ],
+  "promotion": {
+    "C_min_trades_each_side": 50,
+    "lower_C_minus_B_yield_gt": 0.0,
+    "lower_C_minus_A_yield_gt": 0.0,
+    "lower_C_each_side_accuracy_minus_0.5_gt": 0.0,
+    "C_to_B_activity_min": 0.8,
+    "C_to_A_activity_min": 0.8,
+    "each_month_min_each_side": 1,
+    "each_month_whole_book_yield_min": 0.0,
+    "whole_book_only": true
+  },
+  "retention": {
+    "adequately_sampled": "A_B_C_each_at_least_50_each_side",
+    "upper_C_minus_A_yield_lt": 0.0,
+    "or_upper_C_either_side_accuracy_minus_0.5_le": 0.0
+  },
+  "null_calibration": {
+    "schema": "m15-book-refresh-null-calibration/v1",
+    "synthetic_ny_dates": 60,
+    "rows_per_pair_date": 480,
+    "row_minutes": "08:00_through_15:59_America/New_York",
+    "rho_arm": 0.8,
+    "fixtures": [
+      {"name": "F0", "rho_cross": 0.0, "phi_label": 0.0, "phi_score": 0.0, "missing_pair_dates": 0.0},
+      {"name": "F1", "rho_cross": 0.6, "phi_label": 0.0, "phi_score": 0.0, "missing_pair_dates": 0.0},
+      {"name": "F2", "rho_cross": 0.6, "phi_label": 0.6, "phi_score": 0.6, "missing_pair_dates": 0.0},
+      {"name": "F3", "rho_cross": 0.6, "phi_label": 0.6, "phi_score": 0.6, "missing_pair_dates": 0.2}
+    ],
+    "fixture_index_order": ["F0", "F1", "F2", "F3"],
+    "helper_codes": {"main": 1, "control": 2, "shadow": 3},
+    "stream_codes": {
+      "labels": 1,
+      "policy_shared": 2,
+      "policy_left": 3,
+      "policy_right": 4,
+      "policy_reference": 5,
+      "missing_dates": 6,
+      "bootstrap": 7
+    },
+    "binding_current": {
+      "helpers": {
+        "main": {"m0": 24, "k_shadow": [0]},
+        "control": {"m0": 9, "k_shadow": [0]}
+      },
+      "fixture_order": ["F0", "F1", "F2", "F3"],
+      "cell_count": 8,
+      "binding": true
+    },
+    "nonbinding_shadow_mechanics": {
+      "helper": "shadow",
+      "pair_source": "feature_source_pair_order_prefix",
+      "m0": "3*k_shadow",
+      "k_shadow": [1, 2, 3, 4, 5, 6, 7],
+      "accuracy_null": 0.5,
+      "cell_count": 28,
+      "binding": false,
+      "excluded_from_acceptance": true,
+      "purpose": "determinism_and_mechanics_only_not_shadow_boundary_calibration"
+    },
+    "binding_deferred_shadow": {
+      "helper": "shadow",
+      "pair_source": "exact_ordered_S_shadow_only",
+      "m0": "3*k_shadow",
+      "accuracy_null": 0.541,
+      "fixture_order": ["F0", "F1", "F2", "F3"],
+      "cell_count_max": 4,
+      "binding": true,
+      "run_after_ordered_S_shadow_is_sealed": true,
+      "prefix_substitution_forbidden": true,
+      "seed_binding": {
+        "domain": "m15-book-refresh/deferred-shadow-null-seed-identity/v1",
+        "shadow_phase_code": 1,
+        "identity_payload": "ordered_[pair,candidate_C_bundle_id]_from_ordered_S_shadow_seal",
+        "identity_digest": "sha256_length_prefixed_domain_and_canonical_identity_payload",
+        "identity_digest_u32be": "eight_consecutive_big_endian_uint32_words",
+        "seed_sequence_layout": [
+          "stats_null_test_seed",
+          "shadow_phase_code",
+          "identity_digest_u32be[0..7]",
+          "fixture_index",
+          "helper_code",
+          "k_shadow",
+          "campaign_index",
+          "L_or_0",
+          "stream_code"
+        ]
+      }
+    },
+    "campaigns_per_cell": 400,
+    "bootstrap_replicates": 1000,
+    "block_lengths": [1, 2, 3],
+    "false_positive_limit": 32,
+    "false_positive_limit_inclusive": 32,
+    "failure_count_minimum": 33,
+    "clopper_pearson_diagnostic": "Beta.ppf(0.95,x+1,400-x); 1 if x=400",
+    "error_budget": {
+      "reference_false_positive_probability": 0.05,
+      "single_cell_failure_event": "X~Binomial(400,0.05); X>=33",
+      "single_cell_failure_probability_exact": 0.0037687282460565734,
+      "current_binding_cell_count": 8,
+      "current_binding_union_bound": 0.030149825968452587,
+      "deferred_binding_cell_count_max": 4,
+      "combined_binding_cell_count_max": 12,
+      "combined_binding_union_bound": 0.04522473895267888
+    },
+    "seed_sequence": [
+      9005,
+      "fixture_index",
+      "helper_code",
+      "k_shadow_or_0",
+      "campaign_index",
+      "L_or_0",
+      "stream_code"
+    ]
+  },
+  "publication": {
+    "candidate_schema": "book-manifest/candidate-v1",
+    "lifecycle_status": "inactive_shadow_candidate",
+    "destination_parent": "books",
+    "destination_must_not_exist": true,
+    "files": [
+      "<book_id>.resolved_bundle_spec.json",
+      "<book_id>.manifest.json",
+      "<book_id>.publish_receipt.json",
+      "strategy_json",
+      "models_in_seed_order"
+    ],
+    "receipt_schema": "candidate-publish-receipt/v1",
+    "receipt_payload": "all_candidate_directory_files_except_receipt",
+    "external_lock_field": "candidate_publish_locks",
+    "publish": "single_directory_rename_noreplace",
+    "registration": "inactive_only",
+    "activation": false
+  },
+  "lifecycle": {
+    "legacy_active_ids": [
+      "EURUSD.m15xp.v1",
+      "USDJPY.m15ny_seedens.v1",
+      "GBPUSD.m15ny_xpair_seedens8.v1",
+      "USDCHF.m15ny_xpair_seedens.v1",
+      "USDCAD.m15ny_seedens.v1",
+      "AUDUSD.m15ny_seedens.v1",
+      "NZDUSD.m15ny_seedens.v1"
+    ],
+    "allow": [
+      "index_active_and_manifest_active_for_registered_target",
+      "both_lifecycle_keys_absent_for_literal_legacy_active_id_only"
+    ],
+    "reject": [
+      "inactive_shadow_candidate",
+      "one_sided_absence",
+      "null",
+      "disagreement",
+      "malformed",
+      "unknown",
+      "both_absent_nonwhitelist",
+      "candidate_bundle_id_disagreement"
+    ]
+  },
+  "shadow": {
+    "schemas": {
+      "zero_eligible": "m15-book-refresh-shadow-empty/v1",
+      "positive_eligible": "m15-book-refresh-prospective-shadow-spec/v1"
+    },
+    "statuses": {
+      "empty_survivors": "no_candidates",
+      "survivors_but_zero_provider_eligible": "no_shadow_eligible_candidates",
+      "positive_eligible_handoff": "handoff_only_T0_unset"
+    },
+    "completed_retrospective_identity_fields": [
+      "prereg_id",
+      "run_id",
+      "implementation_git_sha",
+      "evaluator_id",
+      "controls_id",
+      "ordered_primary_arms_with_bundle_ids",
+      "ordered_control_arms_with_bundle_ids",
+      "run_binding_sha256"
+    ],
+    "empty_survivors_status": "no_candidates",
+    "survivors_but_zero_provider_eligible_status": "no_shadow_eligible_candidates",
+    "positive_eligible_status": "handoff_only_T0_unset",
+    "provider_qualification": {
+      "authority": "sealed_adapter_and_live_provider_parity_evidence",
+      "static_live_provider_flags_are_authority": false,
+      "required_passes": [
+        "feature_schema_parity",
+        "feature_value_parity",
+        "runtime_scoring_and_gate_parity"
+      ],
+      "required_sealed_identities": [
+        "provider_schema_identity",
+        "provider_implementation_identity",
+        "provider_parity_result_sha256",
+        "runtime_implementation_git_sha",
+        "evaluator_id"
+      ],
+      "subset_rule": "S_shadow_is_the_S_ordered_subset_with_all_required_provider_parity_passes",
+      "eurusd_rule": "EURUSD_is_excluded_as_BLOCKED_SCHEMA_until_a_verified_live_OF_provider_passes_all_required_parity",
+      "excluded_candidate_rule": "remain_frozen_registered_inactive_and_record_identity_and_nonempty_reason",
+      "qualification_must_be_sealed_before_T0": true
+    },
+    "zero_eligible_cases": {
+      "S_empty": {
+        "status": "no_candidates",
+        "S": [],
+        "S_shadow": [],
+        "k_shadow": 0,
+        "exclusions": {},
+        "record_completed_retrospective_identities": true,
+        "create_candidate_bundle_or_registration": false
+      },
+      "S_nonempty_k_shadow_zero": {
+        "status": "no_shadow_eligible_candidates",
+        "S_shadow": [],
+        "k_shadow": 0,
+        "preserve_every_S_member_as_frozen_registered_inactive": true,
+        "record_each_excluded_candidate_and_v1_identity": true,
+        "record_one_nonempty_provider_exclusion_reason_per_S_member": true
+      },
+      "common": {
+        "activation": false,
+        "start_shadow": false,
+        "define_T0": false,
+        "instantiate_max_t_family": false,
+        "instantiate_cpcv_family": false
+      }
+    },
+    "zero_eligible_omits": [
+      "T0",
+      "max_t_family",
+      "cpcv_family",
+      "prospective_capture",
+      "fixed_look",
+      "statistics",
+      "promotion_toward_activation",
+      "activation_prerequisite",
+      "family_reset_and_relook"
+    ],
+    "positive_eligible_handoff": {
+      "status": "handoff_only_T0_unset",
+      "activation": false,
+      "start_shadow_in_this_issue": false,
+      "backfill": false,
+      "T0": null,
+      "T0_contract": "a_separate_future_dev_cycle_must_seal_one_common_future_T0_before_any_capture",
+      "required_before_T0": [
+        "ordered_S_shadow",
+        "k_shadow",
+        "fixed_m0_equal_to_3_times_k_shadow",
+        "exact_candidate_and_v1_bundle_ids",
+        "runtime_implementation_git_sha",
+        "evaluator_id",
+        "feature_provider_identities",
+        "provider_parity_evidence_hashes",
+        "all_prospective_endpoint_definitions"
+      ],
+      "record_exclusions_for_S_minus_S_shadow": true,
+      "candidate_lifecycle": "inactive_shadow_candidate"
+    },
+    "endpoint_count": "3*k_shadow",
+    "endpoint_order_per_candidate": [
+      "candidate_minus_v1_yield",
+      "candidate_UP_accuracy_minus_0.541",
+      "candidate_DOWN_accuracy_minus_0.541"
+    ],
+    "endpoint_formulas": {
+      "scheduled_utility": "plus_1_if_selected_and_correct_minus_1_if_selected_and_incorrect_or_tie_else_0",
+      "candidate_minus_v1_yield": {
+        "daily_numerator": "sum(candidate_scheduled_utility-v1_scheduled_utility)_on_common_settled_grid_rows_for_date",
+        "daily_denominator": "count_common_settled_grid_rows_for_date"
+      },
+      "candidate_UP_accuracy_minus_0.541": {
+        "daily_numerator": "sum((candidate_correct_indicator-0.541)_for_scheduled_candidate_UP_rows_for_date)",
+        "daily_denominator": "count_scheduled_candidate_UP_rows_for_date"
+      },
+      "candidate_DOWN_accuracy_minus_0.541": {
+        "daily_numerator": "sum((candidate_correct_indicator-0.541)_for_scheduled_candidate_DOWN_rows_for_date)",
+        "daily_denominator": "count_scheduled_candidate_DOWN_rows_for_date"
+      }
+    },
+    "prospective_capture": {
+      "transport": "recorded_Deriv_ticks",
+      "purchase_required": false,
+      "backfill_allowed": false,
+      "grid_scope": "one_full_resolution_common_scoreable_decision_grid_per_candidate_v1_pair",
+      "grid_requires": [
+        "required_covariates_present_for_both_policies",
+        "candidate_scores_successfully",
+        "v1_scores_successfully",
+        "pinned_America_New_York_session_passes",
+        "pinned_16_35_last_start_cutoff_passes"
+      ],
+      "capture_per_grid_row": [
+        "candidate_score_and_gate_state",
+        "v1_score_and_gate_state",
+        "prospective_settlement_ticks"
+      ],
+      "outcome": "one_shared_settlement_outcome_for_candidate_and_v1",
+      "settlement": {
+        "decision_reference": "completed_minute_close_timestamp_t",
+        "entry_target": "t_plus_1_second",
+        "entry_observation": "first_tick_at_or_after_entry_target",
+        "entry_lateness_seconds_inclusive": [0, 10],
+        "expiry_target": "t_plus_1_second_plus_900_seconds_independent_of_observed_entry_delay",
+        "exit_observation": "last_tick_at_or_before_expiry_target",
+        "exit_earliness_seconds_inclusive": [0, 10],
+        "require_finite_positive_entry_and_exit_spots": true,
+        "require_distinct_entry_and_exit_observations": true,
+        "unsettled_rule": "if_any_settlement_requirement_fails_mark_UNSETTLED_for_both_arms_and_log",
+        "unsettled_backfill_allowed": false,
+        "ties": "lose_for_either_predicted_side"
+      },
+      "clock_integrity": {
+        "tick_clocks": "strictly_increasing_and_duplicate_free",
+        "signal_grids": "strictly_increasing_and_duplicate_free",
+        "sort_or_deduplicate_into_validity": false,
+        "violation": "integrity_failure"
+      },
+      "schedulers": {
+        "candidate": "separate_first_come_combined_chronological_900_second_schedule_on_common_settled_grid",
+        "v1": "separate_first_come_combined_chronological_900_second_schedule_on_common_settled_grid",
+        "derive_side_reports_after_combined_schedule": true
+      }
+    },
+    "fixed_look": {
+      "analysis_looks": 1,
+      "timezone": "America/New_York",
+      "look_boundary": "complete_New_York_trading_week_end",
+      "earliest_complete_weeks": 8,
+      "min_settled_scheduled_candidate_each_side": 50,
+      "minimum_count_scope": "after_each_candidates_own_combined_chronological_schedule",
+      "all_candidates_must_meet_minimum_at_early_look": true,
+      "cap_complete_weeks": 26,
+      "trigger": "first_complete_week_end_at_or_after_8_complete_weeks_when_every_candidate_meets_both_side_counts_or_26_complete_weeks_after_T0_whichever_occurs_first",
+      "cap_failure": "candidate_is_INCONCLUSIVE_if_either_side_has_fewer_than_50_or_any_required_endpoint_is_undefined",
+      "preserve_original_family_slots_at_cap": true
+    },
+    "statistics": {
+      "family": "fixed_3*k_shadow_lower_only_max_t",
+      "m0": "3*k_shadow",
+      "tail": "lower_only_max_t",
+      "replicates": 10000,
+      "seed": 9003,
+      "block_lengths": [5, 10, 20],
+      "endpoint_order": "three_endpoints_per_candidate_in_S_shadow_order",
+      "master_calendar": "ordered_union_of_America_New_York_trading_dates_represented_on_sealed_candidate_v1_common_settled_grids_through_common_cutoff",
+      "candidate_blocks": "every_overlapping_run_of_L_consecutive_positions_in_master_calendar",
+      "rng_per_block_length": "Generator(PCG64(SeedSequence([9003,L])))",
+      "sampling": "sample_block_start_indices_with_replacement_concatenate_date_runs_until_calendar_length_then_truncate_last_run",
+      "synchronization": "identical_ordered_sampled_date_sequence_for_every_endpoint_within_each_replicate_and_L",
+      "missing_pair_date": "contributes_neither_numerator_nor_denominator_for_that_date",
+      "endpoint_recomputation": "recompute_each_ratio_from_resampled_row_numerators_and_denominators_never_average_daily_ratios",
+      "point_estimate": "theta[j]",
+      "bootstrap_estimate": "theta_star_L[r,j]",
+      "standard_error": "SD_r(theta_star_L[r,j],ddof=1)",
+      "ddof": 1,
+      "studentized_statistic": "T_star_L[r,j]=(theta_star_L[r,j]-theta[j])/se_L[j]",
+      "empirical_maximum": "max_j(T_star_L[r,j])_over_finite_computable_entries_in_each_replicate",
+      "quantile": "q0.95(empirical_maximum,method=linear)",
+      "quantile_method": "linear",
+      "bonferroni_floor": "Phi^-1(1-0.05/(3*k_shadow))",
+      "critical_value": "max(empirical_q0.95,Phi^-1(1-0.05/(3*k_shadow)))",
+      "lower_bound_per_L": "lower_L[j]=theta[j]-c95_shadow_L*se_L[j]",
+      "authoritative_lower_bound": "min_over_L_of_lower_L[j]",
+      "registered_family_slots_remain_fixed": "3*k_shadow",
+      "noncomputable": {
+        "ordinary_candidate_conditions": [
+          "observed_zero_or_undefined_denominator_for_any_predeclared_L",
+          "resampled_zero_or_undefined_denominator_for_any_predeclared_L",
+          "zero_standard_error_from_sparse_or_constant_candidate_data",
+          "nonfinite_standard_error_from_sparse_or_constant_candidate_data"
+        ],
+        "ordinary_candidate_status": "INCONCLUSIVE",
+        "reserve_candidates_three_slots": true,
+        "malformed_input": "INVALID_campaign",
+        "shared_statistics_implementation_defect": "INVALID_campaign"
+      }
+    },
+    "promotion_toward_activation": {
+      "all_three_authoritative_lower_bounds_strictly_gt": 0.0,
+      "candidate_combined_settled_scheduled_activity_to_v1_min": 0.8,
+      "activity_comparison_grid": "same_common_settled_grid",
+      "whole_book_passage_required": true,
+      "candidate_whole_book_correctness_yield": "sum(candidate_scheduled_utility)/count_common_settled_grid_rows",
+      "complete_month_guardrail": {
+        "timezone": "America/New_York",
+        "scope": "every_complete_calendar_month_wholly_contained_between_T0_and_analysis_cutoff",
+        "min_settled_scheduled_candidate_decisions_each_side": 1,
+        "candidate_whole_book_correctness_yield_must_be_defined": true,
+        "candidate_whole_book_correctness_yield_min": 0.0,
+        "partial_boundary_months": "diagnostic_only"
+      }
+    },
+    "activation_prerequisite": {
+      "requires_later_preregistration": true,
+      "later_preregistration_must_seal": [
+        "input_vintage_and_source_hashes",
+        "exact_candidate_procedure",
+        "CPCV_constants",
+        "group_rank_and_timestamp_boundaries"
+      ],
+      "weights": "fresh_refit_of_sealed_candidate_procedure_not_frozen_C_weights",
+      "groups": 6,
+      "paths": 15,
+      "held_out_groups_per_path": 2,
+      "held_out_timestamp_source": "sorted_unique_held_out_eligible_New_York_decision_timestamps_t[0..N-1]",
+      "group_rank_start": "s_g=floor(g*N/6)",
+      "group_rank_end": "e_g=floor((g+1)*N/6)",
+      "group_rank_interval": "[s_g,e_g)",
+      "group_timestamp_low": "lo_g=t[s_g]",
+      "group_timestamp_high": "hi_g=t[e_g]_when_e_g_lt_N_else_t[N-1]+1_second",
+      "require_all_groups_nonempty": true,
+      "persist_group_ranks_and_timestamp_boundaries": true,
+      "path_order": "combinations(range(6),2)_lexicographic",
+      "purge_seconds_each_side": 900,
+      "held_out_interval": "[lo_g,hi_g)",
+      "exclude_from_fit_and_calibration": "[lo_g-900_seconds,hi_g+900_seconds)",
+      "apply_exclusion_to_each_held_out_group_interval": true,
+      "preserve_candidate_contract_per_path": [
+        "feature_order_and_dtype",
+        "fitting_target_and_tie_behavior",
+        "fitting_session_recipe",
+        "calibration_session_and_label_validity_recipe",
+        "stride_phase",
+        "model_hyperparameters",
+        "model_seed_vector_and_aggregation",
+        "early_stopping_rule",
+        "target_coverage"
+      ],
+      "calibration_pool": "chronologically_ordered_purged_non_test_rows_under_sealed_calibration_session_and_label_validity_rules",
+      "inner_validation_dates": "ordered_unique_represented_America_New_York_dates_from_calibration_pool",
+      "inner_validation_date_probability": 0.15,
+      "inner_seed": 13,
+      "inner_rng": "single_np.random.Generator(np.random.PCG64(13))_stream_across_paths_in_lexicographic_order_consuming_exactly_one_rng.random_draw_per_ordered_date",
+      "inner_assignment": "all_rows_on_date_are_validation_iff_draw_lt_0.15",
+      "fit_purge": [
+        "remove_every_inner_validation_row_id",
+        "remove_every_fit_row_whose_900_second_fitting_label_interval_overlaps_any_inner_validation_label_interval"
+      ],
+      "train_row_cap": 150000,
+      "cap_application_order": "after_held_out_and_inner_validation_overlap_purges_on_remaining_fit_pool",
+      "early_stopping_and_threshold_rows": "same_label_disjoint_inner_validation_set",
+      "seal_per_path": [
+        "ordered_date_draws",
+        "validation_row_ids",
+        "overlap_purged_row_ids",
+        "final_capped_fit_row_ids"
+      ],
+      "threshold": {
+        "confidence": "abs(p_val-0.5)",
+        "value": "np.quantile(confidence,1-target_coverage,method=linear)",
+        "coverage": "candidate_fixed_target_coverage",
+        "search_allowed": false
+      },
+      "held_out_scoring": {
+        "resolution": "full",
+        "session": "pinned_live_America_New_York_session",
+        "last_start_cutoff": "16:35_America_New_York",
+        "settlement": "min1_production.wc_ret_wall_clock_900_seconds",
+        "ties": "lose",
+        "scheduler": "one_combined_before_side_nonoverlap_chrono_900_second_schedule"
+      },
+      "persist_path_records_per_side": 15,
+      "min_side_trades_per_path": 25,
+      "path_clear_rule": "n_side>=25_and_accuracy_side>=0.541",
+      "underpowered_or_undefined_path": "fail_and_remain_in_15_path_denominator",
+      "side_p10_min": 0.541,
+      "min_clear_paths": 12,
+      "total_paths": 15,
+      "percentile_method": "linear",
+      "side_p10": "np.percentile(all_15_path_accuracies,10,method=linear)_only_if_all_15_are_finite_else_null",
+      "side_certification": "finite_p10>=0.541_and_at_least_12_of_15_paths_clear",
+      "retrospective_replay_may_supply_or_inherit_certification": false
+    },
+    "family_reset_and_relook": {
+      "individual_member_replacement_or_reset_forbidden_after": [
+        "refit",
+        "recalibration",
+        "feature_change",
+        "session_change",
+        "strategy_change",
+        "evaluator_change",
+        "missing_interval",
+        "backfilled_interval"
+      ],
+      "member_failure_options": [
+        "mark_candidate_INCONCLUSIVE_or_INVALID_and_keep_remaining_candidates_on_original_common_T0",
+        "cancel_and_reseal_entire_S_shadow_fixed_3*k_shadow_family_and_one_new_common_T0"
+      ],
+      "failed_fixed_look": "candidate_remains_inactive",
+      "repeated_nominal_95_percent_looks": "forbidden",
+      "another_attempt": "requires_new_preregistration_and_new_future_window_unless_an_always_valid_sequential_procedure_was_predeclared_from_start",
+      "runtime_mapping_change": "only_a_later_dev_cycle_after_prospective_and_fresh_refit_CPCV_evidence"
+    }
+  }
+}

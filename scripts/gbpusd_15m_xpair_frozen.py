@@ -15,6 +15,7 @@ bootstrap CI95. Compare per-year frozen WR vs the refit-CPCV p10 (UP .5962/.6515
 Usage: ~/binary-algo-venv/bin/python gbpusd_15m_xpair_frozen.py [stride=3] [nseed=1]
 """
 import os, sys, json, time, numpy as np, pandas as pd
+from pathlib import Path
 import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 from sessions import session_mask
@@ -22,12 +23,10 @@ import harness as H
 import gbpusd_15m_xpair as XP
 
 HOR=15; GAP=HOR*60; BE=0.541; NUM_LEAVES=255
-STRIDE=int(sys.argv[1]) if len(sys.argv)>1 else 3
-NSEED=int(sys.argv[2]) if len(sys.argv)>2 else 1
 SPL={"train":[str(y) for y in range(2012,2022)],"val":["2022","2023"],"test24":["2024"],"test25":["2025"],"oos":["2026"]}
 COVS=(0.05,0.03,0.02,0.01)
-INC=json.load(open("gbpusd_15m_cpcv_session_ny_multicov_result.json"))
-XINC=json.load(open("gbpusd_15m_cpcv_xpair_ny_multicov_result.json"))
+REPO_ROOT=Path(__file__).resolve().parents[1]
+RESULTS_JSON=REPO_ROOT/"results"/"json"
 
 def build_mat(years, stride):
     """xpbase matrix on the joint clock, ties kept; memory-sane per-year base join."""
@@ -46,8 +45,9 @@ def build_mat(years, stride):
         del d
     X=np.concatenate([F[xpc].values.astype("float32"), Xb], axis=1); del Xb
     fwd=F["_fwd"].values; ts=F["_ts"].values.astype("int64"); del F
-    o=np.argsort(ts)
-    return X[o], fwd[o], ts[o], list(xpc)+base_cols
+    if len(ts)>1 and np.any(ts[1:]<=ts[:-1]):
+        raise ValueError("GBPUSD xpair rows must be strictly increasing and unique")
+    return X, fwd, ts, list(xpc)+base_cols
 
 def nonoverlap_chrono(ts, mask, gap=GAP):
     take=[]; block=-1
@@ -75,21 +75,23 @@ def side_eval(pr, fwd, ts, thr):
         else: out[nm]={"n":0}
     return out
 
-def main():
+def main(stride=3, nseed=1):
     t0=time.time()
-    RESULT=f"gbpusd_15m_xpair_frozen_result.json" if NSEED==1 else f"gbpusd_15m_xpair_frozen_seedens{NSEED}_result.json"
-    res={"key":"GBPUSD.15m","model":f"FROZEN-2012-21 xpair-NY book (xpbase, stride {STRIDE}, nseed {NSEED}), per-year forward NY",
+    with (RESULTS_JSON/"gbpusd_15m_cpcv_xpair_ny_multicov_result.json").open() as fh:
+        xinc=json.load(fh)
+    RESULT=f"gbpusd_15m_xpair_frozen_result.json" if nseed==1 else f"gbpusd_15m_xpair_frozen_seedens{nseed}_result.json"
+    res={"key":"GBPUSD.15m","model":f"FROZEN-2012-21 xpair-NY book (xpbase, stride {stride}, nseed {nseed}), per-year forward NY",
          "breakeven":BE,"purpose":"trap#9 adversarial: refit-dependent decay vs era-local memorization vs frozen-deployable",
-         "refit_cpcv_cert":{"UP_p10":{c:XINC["bycov"][c]["summary"]["UP"]["p10"] for c in XINC["bycov"]},
-                            "DOWN_p10":{c:XINC["bycov"][c]["summary"]["DOWN"]["p10"] for c in XINC["bycov"]}},
+         "refit_cpcv_cert":{"UP_p10":{c:xinc["bycov"][c]["summary"]["UP"]["p10"] for c in xinc["bycov"]},
+                            "DOWN_p10":{c:xinc["bycov"][c]["summary"]["DOWN"]["p10"] for c in xinc["bycov"]}},
          "falsifier":{"registered":"pre-eval",
             "MEMORIZATION_if":"all forward years ~coin-flip (no year COMBINED wr >= 0.55 at any cov)",
             "REFIT_DEPENDENT_if":"2024 strong then monotone decay to sub-BE by 2026 (sibling pattern)"}}
     json.dump(res,open(RESULT,"w"),indent=2)
-    print(f"[xpfrozen GBPUSD] building (stride {STRIDE}, nseed {NSEED})...",flush=True)
+    print(f"[xpfrozen GBPUSD] building (stride {stride}, nseed {nseed})...",flush=True)
     # build once over all years then slice (joint clock identical to cert harness)
     allyears=[y for k in ("train","val","test24","test25","oos") for y in SPL[k]]
-    X,fwd,ts,cols=build_mat(allyears,STRIDE)
+    X,fwd,ts,cols=build_mat(allyears,stride)
     ny=session_mask(ts,"ny")
     yr=pd.to_datetime(ts,unit="s").year.values
     moved=np.isfinite(fwd)&(fwd!=0)
@@ -98,7 +100,7 @@ def main():
     iva=yrmask(SPL["val"])&ny&np.isfinite(fwd)
     print(f"[xpfrozen GBPUSD] rows={len(ts):,} train={int(itr.sum()):,} val={int(iva.sum()):,} feats={len(cols)} build={time.time()-t0:.0f}s",flush=True)
     pva=np.zeros(int(iva.sum()))
-    for sd in range(NSEED):
+    for sd in range(nseed):
         L=lgb.LGBMClassifier(objective="binary",metric="auc",learning_rate=0.02,num_leaves=NUM_LEAVES,
             min_child_samples=400,subsample=0.8,subsample_freq=1,colsample_bytree=0.5,reg_lambda=20,
             n_estimators=800,n_jobs=16,verbosity=-1,random_state=sd,bagging_seed=sd,feature_fraction_seed=sd)
@@ -107,7 +109,7 @@ def main():
         pva+=L.predict_proba(X[iva])[:,1]
         if sd==0: models=[L]
         else: models.append(L)
-    pva/=NSEED
+    pva/=nseed
     mvv=(fwd[iva]!=0)
     vauc=float(roc_auc_score((fwd[iva][mvv]>0).astype(int), pva[mvv]))
     # gate per cov on VAL worst-half (chronological halves of the NY val rows)
@@ -127,7 +129,7 @@ def main():
         m=yrmask(SPL[w])&ny&np.isfinite(fwd)
         pw=np.zeros(int(m.sum()))
         for L in models: pw+=L.predict_proba(X[m])[:,1]
-        pw/=NSEED
+        pw/=nseed
         fww=fwd[m]; tsw=ts[m]
         oo=np.argsort(tsw); pw=pw[oo]; fww=fww[oo]; tsw=tsw[oo]
         mv=fww!=0
@@ -147,4 +149,6 @@ def main():
     print(f"\n[xpfrozen GBPUSD] memorization={not any_strong} -> {RESULT}  {time.time()-t0:.0f}s",flush=True)
 
 if __name__=="__main__":
-    main()
+    cli_stride=int(sys.argv[1]) if len(sys.argv)>1 else 3
+    cli_nseed=int(sys.argv[2]) if len(sys.argv)>2 else 1
+    main(cli_stride,cli_nseed)

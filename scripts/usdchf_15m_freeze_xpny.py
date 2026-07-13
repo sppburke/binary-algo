@@ -1,8 +1,8 @@
 """Freeze the CERTIFIED USDCHF 15m XPAIR-NY seed-ensemble direction book (the deployable deliverable).
 
 SCOPE: USDCHF · 15m · combined (both sides via confidence selection). Trains the xpair-NY K-seed GBM
-ensemble on TRAIN 2012-21 restricted to NY-session decision rows (340-feat xpbase matrix: cross-pair
-USD-residual/lead-lag + EURGBP-triangular/eurobloc/risk channels + 239 own-pair base; features
+ensemble on TRAIN 2012-21 restricted to NY-session decision rows (337-feat xpbase matrix: cross-pair
+USD-residual/lead-lag + EUR-bloc/risk channels + 239 own-pair base; features
 causal/continuous), freezes per-cov gates on VAL 2022-23 NY worst-half, saves boosters + strategy.json,
 then manifest.build + freeze (+ currency override).
 
