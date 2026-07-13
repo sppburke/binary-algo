@@ -296,7 +296,10 @@ def _aligned_sign(target: str, pair: str) -> float:
 
 
 def _log_returns(closes: pd.DataFrame) -> tuple[dict[str, np.ndarray], dict[str, dict[int, np.ndarray]]]:
-    lr = {p: np.log(closes[p].astype(float).values) for p in PAIRS}
+    # Frozen xpair books were trained from parquet closes stored as float32.
+    # Pin live/replay closes to that representation before taking logs so the
+    # public feature path follows the sealed research recipe bit for bit.
+    lr = {p: np.log(closes[p].to_numpy(dtype="float32", copy=False)) for p in PAIRS}
     rets = {p: {k: np.concatenate([np.full(k, np.nan), lr[p][k:] - lr[p][:-k]]) for k in LB} for p in PAIRS}
     return lr, rets
 
