@@ -2875,20 +2875,33 @@ def test_runner_replay_hardening() -> None:
         processed = Path(raw) / "processed" / "USDJPY"
         processed.mkdir(parents=True)
 
-        def write_raw(path: Path, clock: pd.DatetimeIndex) -> None:
+        def write_raw(
+            path: Path,
+            clock: pd.DatetimeIndex,
+            *,
+            pandas_index_metadata: bool = False,
+            datetime_unit: str = "ns",
+            open_dtype: str = "float64",
+            timezone_aware: bool = True,
+        ) -> None:
             count = len(clock)
-            pd.DataFrame(
+            stored_clock = clock if timezone_aware else clock.tz_localize(None)
+            frame = pd.DataFrame(
                 {
-                    "open": np.ones(count, dtype="float64"),
+                    "open": np.ones(count, dtype=open_dtype),
                     "high": np.ones(count, dtype="float64"),
                     "low": np.ones(count, dtype="float64"),
                     "close": 1.0 + np.arange(count, dtype="float64") * 1e-5,
                     "volume": np.ones(count, dtype="float64"),
-                    "datetime_utc": clock.as_unit("ns"),
+                    "datetime_utc": stored_clock.as_unit(datetime_unit),
                 }
-            ).to_parquet(path, index=False)
+            )
+            if pandas_index_metadata:
+                frame = frame.set_index("datetime_utc")
+            frame.to_parquet(path, index=pandas_index_metadata)
 
         inside = processed / "USDJPY_10s_2025-01-01.parquet"
+        inside_us = processed / "USDJPY_10s_2025-01-02.parquet"
         later = processed / "USDJPY_10s_2025-01-03.parquet"
         write_raw(
             inside,
@@ -2899,49 +2912,99 @@ def test_runner_replay_hardening() -> None:
                     "2025-01-01T23:59:40Z",
                 ]
             ),
+            pandas_index_metadata=True,
         )
-        write_raw(later, pd.DatetimeIndex(["2025-01-02T00:00:00Z"]))
-        selected = replay.discover_observation_files(
-            "USDJPY",
-            processed_root=Path(raw) / "processed",
-            nominal_year="2025",
-            observation_at_or_after="2025-01-01T00:00:00Z",
-            observation_before="2025-01-02T00:00:00Z",
+        write_raw(
+            inside_us,
+            pd.DatetimeIndex(
+                [
+                    "2025-01-02T00:00:00Z",
+                    "2025-01-02T23:59:40Z",
+                ]
+            ),
+            pandas_index_metadata=True,
+            datetime_unit="us",
         )
-        equal(selected, (inside,), "later processed file entered settlement support")
+        write_raw(later, pd.DatetimeIndex(["2025-01-03T00:00:00Z"]))
+        real_read_table = replay.pq.read_table
+        discovery_calls: list[dict[str, Any]] = []
+
+        def discovery_spy(*args: Any, **kwargs: Any) -> Any:
+            discovery_calls.append(dict(kwargs))
+            return real_read_table(*args, **kwargs)
+
+        with mock.patch.object(replay.pq, "read_table", side_effect=discovery_spy):
+            selected = replay.discover_observation_files(
+                "USDJPY",
+                processed_root=Path(raw) / "processed",
+                nominal_year="2025",
+                observation_at_or_after="2025-01-01T00:00:00Z",
+                observation_before="2025-01-03T00:00:00Z",
+            )
+        equal(
+            selected,
+            (inside, inside_us),
+            "mixed-unit processed sources were not selected in sealed order",
+        )
+        check(
+            all(call.get("columns") == ["datetime_utc"] for call in discovery_calls),
+            "observation discovery requested a semantic value column",
+        )
+        check(
+            all(call.get("filters") is None for call in discovery_calls),
+            "observation discovery unexpectedly filtered the physical clock",
+        )
+        check(
+            all(call.get("use_threads") is False for call in discovery_calls),
+            "observation discovery enabled nondeterministic threaded reads",
+        )
+        check(
+            all(
+                call.get("use_pandas_metadata") is False
+                for call in discovery_calls
+            ),
+            "observation discovery enabled pandas metadata reconstruction",
+        )
         full_inventory = [
             {
                 "path": f"processed/USDJPY/{path.name}",
                 "bytes": path.stat().st_size,
                 "sha256": sha256(path),
             }
-            for path in (inside, later)
+            for path in (inside, inside_us, later)
         ]
         selected_inventory = replay._verify_observation_inventory(
             "USDJPY", selected, full_inventory
         )
-        real_read_parquet = replay.pd.read_parquet
         load_calls: list[dict[str, Any]] = []
 
-        def read_spy(*args: Any, **kwargs: Any) -> pd.DataFrame:
+        def read_spy(*args: Any, **kwargs: Any) -> Any:
             load_calls.append(dict(kwargs))
-            return real_read_parquet(*args, **kwargs)
+            return real_read_table(*args, **kwargs)
 
-        with mock.patch.object(replay.pd, "read_parquet", side_effect=read_spy):
+        with mock.patch.object(replay.pq, "read_table", side_effect=read_spy):
             observation = replay.load_observation_series(
                 selected,
                 expected_inventory=selected_inventory,
                 pair="USDJPY",
                 observation_at_or_after="2025-01-01T00:00:00Z",
-                observation_before="2025-01-02T00:00:00Z",
+                observation_before="2025-01-03T00:00:00Z",
             )
         check(
             all(call.get("columns") == ["datetime_utc", "close"] for call in load_calls),
             "observation loader requested columns beyond clock+close",
         )
         check(all(call.get("filters") for call in load_calls), "observation filter absent")
+        check(
+            all(call.get("use_threads") is False for call in load_calls),
+            "observation projection enabled nondeterministic threaded reads",
+        )
+        check(
+            all(call.get("use_pandas_metadata") is False for call in load_calls),
+            "observation projection enabled pandas metadata reconstruction",
+        )
         lower_s = int(pd.Timestamp("2025-01-01T00:00:00Z").timestamp())
-        upper_s = int(pd.Timestamp("2025-01-02T00:00:00Z").timestamp())
+        upper_s = int(pd.Timestamp("2025-01-03T00:00:00Z").timestamp())
         check(
             np.all(
                 (observation.timestamps_s >= lower_s)
@@ -2950,21 +3013,57 @@ def test_runner_replay_hardening() -> None:
             "observation rows escaped sealed support window",
         )
 
-        def mutate_after_read(*args: Any, **kwargs: Any) -> pd.DataFrame:
-            frame = real_read_parquet(*args, **kwargs)
+        def mutate_after_read(*args: Any, **kwargs: Any) -> Any:
+            table = real_read_table(*args, **kwargs)
             with inside.open("ab") as handle:
                 handle.write(b"mutation")
-            return frame
+            return table
 
         with mock.patch.object(
-            replay.pd, "read_parquet", side_effect=mutate_after_read
+            replay.pq, "read_table", side_effect=mutate_after_read
         ), expect_raises(replay.ReplayInputError, "path/size differs"):
             replay.load_observation_series(
                 selected,
                 expected_inventory=selected_inventory,
                 pair="USDJPY",
                 observation_at_or_after="2025-01-01T00:00:00Z",
-                observation_before="2025-01-02T00:00:00Z",
+                observation_before="2025-01-03T00:00:00Z",
+            )
+
+        invalid_clock_ms = processed / "invalid_clock_ms.parquet"
+        invalid_clock_naive = processed / "invalid_clock_naive.parquet"
+        invalid_value = processed / "invalid_value.parquet"
+        one_clock = pd.DatetimeIndex(["2025-01-01T00:00:00Z"])
+        write_raw(invalid_clock_ms, one_clock, datetime_unit="ms")
+        write_raw(
+            invalid_clock_naive,
+            one_clock,
+            datetime_unit="us",
+            timezone_aware=False,
+        )
+        write_raw(invalid_value, one_clock, open_dtype="float32")
+        for invalid_path in (invalid_clock_ms, invalid_clock_naive, invalid_value):
+            with expect_raises(replay.ReplayInputError, "physical types differ"):
+                replay._validate_observation_schema(invalid_path)
+
+        source_only_dir = Path(raw) / "processed" / "USDCAD"
+        source_only_dir.mkdir()
+        source_only = source_only_dir / "USDCAD_10s_2025-01-01.parquet"
+        write_raw(source_only, one_clock, pandas_index_metadata=True)
+        equal(
+            replay.discover_observation_files(
+                "USDCAD",
+                processed_root=Path(raw) / "processed",
+                nominal_year="2025",
+            ),
+            (source_only,),
+            "source-only feature pair was rejected by processed discovery",
+        )
+        with expect_raises(replay.ReplayInputError, "unknown pair"):
+            replay.discover_observation_files(
+                "EURGBP",
+                processed_root=Path(raw) / "processed",
+                nominal_year="2025",
             )
 
     # Pair-isolated defects reserve every main/control endpoint slot and yield

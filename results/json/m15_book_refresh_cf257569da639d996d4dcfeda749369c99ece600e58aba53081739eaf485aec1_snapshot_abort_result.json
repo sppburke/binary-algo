@@ -1,0 +1,113 @@
+{
+  "schema": "m15-book-refresh-launch-abort/v1",
+  "issue": 9,
+  "status": "ABORTED_OUTCOME_BLIND",
+  "classification": "pre_derived_data_processed_clock_projection_defect",
+  "prereg_id": "cf257569da639d996d4dcfeda749369c99ece600e58aba53081739eaf485aec1",
+  "implementation_git_sha": "e82a7254a7cbd23f34508acb27f07410436d9266",
+  "failed_command": "PYTHONNOUSERSITE=1 ~/binary-algo-venv/bin/python scripts/m15_book_refresh.py --build-snapshot --prereg-id cf257569da639d996d4dcfeda749369c99ece600e58aba53081739eaf485aec1",
+  "failed_phase": "derived_data",
+  "error_type": "m15_book_refresh_replay.ReplayInputError",
+  "error": "/home/sean/git/processed/EURUSD/EURUSD_10s_2026-01-01.parquet: clock-only projection order differs",
+  "failure_source": {
+    "path": "processed/EURUSD/EURUSD_10s_2026-01-01.parquet",
+    "bytes": 12141,
+    "sha256": "e2eb951a1d724855402b9ae5e0be7874b6d56948b3dc1b228355328d7a34f8af",
+    "physical_schema_in_order": [
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume",
+      "datetime_utc"
+    ],
+    "physical_types_in_order": [
+      "double",
+      "double",
+      "double",
+      "double",
+      "double",
+      "timestamp[ns, tz=UTC]"
+    ],
+    "preregistered_identity_exact": true
+  },
+  "failed_projection": {
+    "reader": "pandas.read_parquet",
+    "requested_columns_in_order": [
+      "datetime_utc"
+    ],
+    "returned_columns_in_order": [],
+    "returned_index_type": "DatetimeIndex",
+    "returned_index_name": "datetime_utc",
+    "returned_rows": 354,
+    "cause": "Arrow pandas metadata reconstructed the requested physical datetime_utc field as the DataFrame index"
+  },
+  "sealed_evidence": {
+    "preregistration_result": {
+      "path": "results/json/m15_book_refresh_cf257569da639d996d4dcfeda749369c99ece600e58aba53081739eaf485aec1_preregister_result.json",
+      "sha256": "cf5f8d52c6a64253b28e81c3a668af7fe072b750f92dfbd62f0fe366f945066a"
+    },
+    "source_phase": {
+      "path": "logs/m15_book_refresh/cf257569da639d996d4dcfeda749369c99ece600e58aba53081739eaf485aec1/phases/00_source_preregistration.json",
+      "sha256": "3206daa8ee2fa1ed9aa1f5dd8939804c17f0e34008c25fdffe7e3b6d863f2fa9"
+    },
+    "exact_null_calibration": {
+      "path": "logs/m15_book_refresh/null_calibration/null_calibration_e82a7254a7cbd23f34508acb27f07410436d9266.json",
+      "sha256": "b4692d67705b530d42a51c28fcde00502172389906cac303c1ca1c2f45a0f7bf",
+      "accepted": true
+    },
+    "phase_zero_acceptance_v1": {
+      "path": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance.json",
+      "sha256": "3147f61f1b8d3233589cb7d0734cf8a2fcd615b6360a48a96796f2c16966b78a",
+      "mode": "0444",
+      "preserved_immutable": true
+    }
+  },
+  "derived_data_phase_sealed": false,
+  "last_completed_phase": "source_preregistration",
+  "sealed_phase_manifests": [
+    "00_source_preregistration.json"
+  ],
+  "snapshot_regular_files_created": 0,
+  "data_lock_file_created": false,
+  "adapter_parity_phase_sealed": false,
+  "fit_phase_sealed": false,
+  "arm_phase_sealed": false,
+  "replay_start_marker_created": false,
+  "semantic_labels_or_outcomes_accessed": false,
+  "source_or_book_files_mutated": false,
+  "pre_relaunch_outcome_blind_audit": {
+    "inspection_scope": "Arrow physical schemas and datetime_utc projections only; no close values, labels, or replay outcomes",
+    "pairs": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "USDCAD",
+      "AUDUSD",
+      "NZDUSD",
+      "USDCHF"
+    ],
+    "files_per_pair": 112,
+    "nanosecond_clock_files_per_pair": 92,
+    "microsecond_clock_files_per_pair": 20,
+    "first_microsecond_clock_date": "2026-05-11",
+    "schema_order_exact_for_all_files": true,
+    "five_value_fields_exact_double_for_all_files": true,
+    "accepted_clock_types": [
+      "timestamp[ns, tz=UTC]",
+      "timestamp[us, tz=UTC]"
+    ],
+    "clock_normalization": "strict exact conversion to nanoseconds before 10-second lattice validation"
+  },
+  "relaunch": {
+    "required": true,
+    "outcome_blind_contract_deltas": [
+      "project exact Arrow columns with pandas metadata disabled and convert with ignore_metadata=true",
+      "accept only the observed UTC nanosecond or microsecond physical clocks and normalize exactly to nanoseconds",
+      "authorize processed-source discovery for all seven feature-source pairs, including source-only USDCAD, while replay remains six targets"
+    ],
+    "new_phase_zero_authority": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v2.json",
+    "overwrite_prior_authority": false,
+    "reuse_preregistration": false
+  }
+}

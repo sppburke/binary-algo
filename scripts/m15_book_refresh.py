@@ -45,7 +45,7 @@ RESULTS_JSON = REPO_ROOT / "results" / "json"
 WORK_ROOT = REPO_ROOT / "logs" / "m15_book_refresh"
 PROCESSED_ROOT = Path("/home/sean/git/processed")
 PHASE_ZERO_AUTHORITY_PATH = (
-    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance.json"
+    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v2.json"
 )
 PHASE_ZERO_FLOAT32_LIVE_FEATURES_SHA256 = (
     "c485766d2dda85339938d59180056287ee5826ad275ff4d988588bdc2d201198"

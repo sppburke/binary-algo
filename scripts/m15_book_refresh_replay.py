@@ -29,6 +29,8 @@ from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
 
 from m15_book_refresh_adapters import (
@@ -69,8 +71,12 @@ REPORT_MONTHS = (("April", 4), ("May", 5))
 RAW_OBSERVATION_SCHEMA = (
     "open", "high", "low", "close", "volume", "datetime_utc"
 )
-RAW_OBSERVATION_TYPES = (
-    "double", "double", "double", "double", "double", "timestamp[ns, tz=UTC]"
+RAW_OBSERVATION_VALUE_TYPES = (
+    "double", "double", "double", "double", "double"
+)
+RAW_OBSERVATION_CLOCK_TYPES = (
+    "timestamp[ns, tz=UTC]",
+    "timestamp[us, tz=UTC]",
 )
 
 
@@ -1114,7 +1120,7 @@ def discover_observation_files(
     """
 
     canonical = str(pair).upper()
-    if canonical not in PAIR_ORDER:
+    if canonical not in FEATURE_SOURCE_PAIR_ORDER:
         raise ReplayInputError(f"unknown pair {pair!r}")
     root = Path(processed_root) / canonical
     candidates = tuple(sorted(root.glob(f"{canonical}_10s_{nominal_year}-*.parquet")))
@@ -1132,16 +1138,13 @@ def discover_observation_files(
             raise ReplayInputError("observation discovery window is empty/reversed")
     selected: list[Path] = []
     close_shift_ns = PROCESSED_BAR_CLOSE_SHIFT_SECONDS * NS_PER_SECOND
-    import pyarrow as pa
-
     for path in candidates:
         _validate_observation_schema(path)
-        try:
-            clock_only = pd.read_parquet(path, columns=["datetime_utc"])
-        except (OSError, TypeError, ValueError, pa.ArrowException) as exc:
-            raise ReplayInputError(f"cannot read observation clock {path}: {exc}") from exc
-        if list(clock_only.columns) != ["datetime_utc"]:
-            raise ReplayInputError(f"{path}: clock-only projection order differs")
+        clock_only = _read_observation_projection(
+            path,
+            columns=("datetime_utc",),
+            name="observation clock",
+        )
         source_ns = _strict_utc_ns(clock_only["datetime_utc"], name=str(path))
         if lower_ns is None:
             selected.append(path)
@@ -1222,9 +1225,6 @@ def _validate_observation_schema(path: Path) -> None:
     if path.is_symlink() or not path.is_file():
         raise ReplayInputError(f"observation source is not a regular file: {path}")
     try:
-        import pyarrow as pa
-        import pyarrow.parquet as pq
-
         schema = pq.ParquetFile(path).schema_arrow
     except (OSError, TypeError, ValueError, pa.ArrowException) as exc:
         raise ReplayInputError(f"cannot inspect observation schema {path}: {exc}") from exc
@@ -1232,8 +1232,52 @@ def _validate_observation_schema(path: Path) -> None:
         raise ReplayInputError(
             f"{path}: processed schema must be exactly {RAW_OBSERVATION_SCHEMA}"
         )
-    if tuple(str(field.type) for field in schema) != RAW_OBSERVATION_TYPES:
+    physical_types = tuple(str(field.type) for field in schema)
+    if (
+        physical_types[:-1] != RAW_OBSERVATION_VALUE_TYPES
+        or physical_types[-1] not in RAW_OBSERVATION_CLOCK_TYPES
+    ):
         raise ReplayInputError(f"{path}: processed physical types differ")
+
+
+def _read_observation_projection(
+    path: Path,
+    *,
+    columns: Sequence[str],
+    name: str,
+    filters: Sequence[tuple[str, str, Any]] | None = None,
+) -> pd.DataFrame:
+    """Read exact physical columns without reconstructing a pandas index.
+
+    The processed files legitimately record ``datetime_utc`` as their pandas
+    index in Arrow metadata while retaining it as the final physical Parquet
+    field.  ``pandas.read_parquet`` consumes that metadata and silently removes
+    the requested clock from ``DataFrame.columns``.  Reading the Arrow table
+    and converting with ``ignore_metadata=True`` preserves the sealed physical
+    projection and gives one unambiguous RangeIndex.
+    """
+
+    requested = list(columns)
+    if not requested or len(set(requested)) != len(requested):
+        raise ReplayInputError(f"{name} projection is empty or duplicated")
+    try:
+        table = pq.read_table(
+            path,
+            columns=requested,
+            filters=list(filters) if filters is not None else None,
+            use_threads=False,
+            use_pandas_metadata=False,
+        )
+        frame = table.to_pandas(ignore_metadata=True, use_threads=False)
+    except (OSError, TypeError, ValueError, pa.ArrowException) as exc:
+        raise ReplayInputError(f"cannot read {name} {path}: {exc}") from exc
+    if table.column_names != requested or list(frame.columns) != requested:
+        raise ReplayInputError(f"{path}: {name} projection order differs")
+    if not isinstance(frame.index, pd.RangeIndex) or not frame.index.equals(
+        pd.RangeIndex(len(frame))
+    ):
+        raise ReplayInputError(f"{path}: {name} projection index is ambiguous")
+    return frame
 
 
 def _utc_bound(value: Any, *, name: str) -> pd.Timestamp:
@@ -1284,8 +1328,6 @@ def load_observation_series(
     clocks: list[np.ndarray] = []
     closes: list[np.ndarray] = []
     inventory: list[dict[str, Any]] = []
-    import pyarrow as pa
-
     for position, path in enumerate(ordered):
         _validate_observation_schema(path)
         filters = None
@@ -1300,22 +1342,14 @@ def load_observation_series(
                 ("datetime_utc", ">=", source_lower.to_pydatetime()),
                 ("datetime_utc", "<", source_upper.to_pydatetime()),
             ]
-        try:
-            frame = pd.read_parquet(
-                path,
-                columns=["datetime_utc", "close"],
-                filters=filters,
-            )
-        except (OSError, TypeError, ValueError, pa.ArrowException) as exc:
-            raise ReplayInputError(
-                f"cannot read observation source {path}: {exc}"
-            ) from exc
+        frame = _read_observation_projection(
+            path,
+            columns=("datetime_utc", "close"),
+            filters=filters,
+            name="observation source",
+        )
         if frame.empty:
             raise ReplayInputError(f"observation source is empty: {path}")
-        if list(frame.columns) != ["datetime_utc", "close"]:
-            raise ReplayInputError(f"{path}: observation projection order differs")
-        if isinstance(frame.index, pd.DatetimeIndex):
-            raise ReplayInputError(f"{path}: ambiguous index and datetime_utc clocks")
         raw_clock = frame["datetime_utc"]
         source_clock = _strict_utc_ns(raw_clock, name=str(path))
         if np.any(np.remainder(source_clock, 10 * NS_PER_SECOND) != 0):

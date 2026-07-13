@@ -51,10 +51,12 @@ OUTPUT_PATH = (
 # The diagnostic above remains the immutable USDJPY/USDCAD investigation.  The
 # campaign acceptance authority is deliberately a separate schema and path so
 # a diagnostic (including a stopped diagnostic) can never satisfy the runner's
-# phase-zero gate by filename substitution.
+# phase-zero gate by filename substitution.  The version suffix preserves the
+# immutable v1 authority from the outcome-blind launch that stopped on the
+# pandas-index Parquet projection defect before derived-data sealing.
 ACCEPTANCE_OUTPUT_PATH = (
     REPO_ROOT
-    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance.json"
+    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v2.json"
 )
 PAIRS = ("USDJPY", "USDCAD")
 ACCEPTANCE_TARGET_PAIRS = (
