@@ -1,0 +1,121 @@
+{
+  "schema": "m15-book-refresh-adapter-parity-abort/v1",
+  "issue": 9,
+  "status": "ABORTED_PRE_REPLAY",
+  "classification": "pre_replay_provider_nan_payload_contract_inconsistency",
+  "prereg_id": "b4b5c05ede51a28d1f3005c9512c2ce78df306242d955ec3c9b48d51c81c5999",
+  "implementation_git_sha": "2e05d3a9e46555745483b575aa284fe8a71ace9e",
+  "failed_command": "PYTHONNOUSERSITE=1 ~/binary-algo-venv/bin/python scripts/m15_book_refresh.py --adapter-parity --prereg-id b4b5c05ede51a28d1f3005c9512c2ce78df306242d955ec3c9b48d51c81c5999",
+  "failed_phase": "adapter_parity",
+  "failure_pair": "USDJPY",
+  "error_type": "m15_book_refresh.RefreshError",
+  "error": "USDJPY: public LiveFeatureBuilder parity failed because ordered raw float32 bytes differed while decoded values and finite masks were exact",
+  "failure_report": {
+    "schema": "m15-live-feature-builder-parity/v1",
+    "pair": "USDJPY",
+    "provider_rows": 89920,
+    "compared_rows": 89920,
+    "feature_count": 239,
+    "feature_order_exact": true,
+    "source_clock_subset_exact": true,
+    "causal_decision_mapping_exact": true,
+    "finite_mask_exact": true,
+    "ordered_float32_feature_bytes_exact": false,
+    "decoded_mismatched_cells": 0,
+    "finite_nonfinite_disagreements": 0,
+    "public_latest_row_exact": true,
+    "all_equal_under_stale_raw_byte_gate": false
+  },
+  "bit_audit": {
+    "ordered_cell_count": 21490880,
+    "raw_uint32_mismatch_count": 174,
+    "common_finite_uint32_mismatch_count": 0,
+    "nan_mask_mismatch_count": 0,
+    "infinity_count_left": 0,
+    "infinity_count_right": 0,
+    "nonfinite_count_each": 142193,
+    "only_raw_bit_pattern": {
+      "parquet_backed_score_rows": "0x7fc00000",
+      "in_memory_live_provider": "0xffc00000",
+      "count": 174,
+      "interpretation": "quiet NaN sign bit only"
+    },
+    "columns": {
+      "1m_autocorr_10": 144,
+      "5m_autocorr_10": 30
+    },
+    "root_cause": "zero-variance rolling correlation yields a negative quiet NaN in memory; Parquet null encoding does not preserve its sign bit",
+    "finite_values_bitwise_exact": true,
+    "provider_recipe_drift_detected": false
+  },
+  "sealed_evidence": {
+    "preregistration_result": {
+      "path": "results/json/m15_book_refresh_b4b5c05ede51a28d1f3005c9512c2ce78df306242d955ec3c9b48d51c81c5999_preregister_result.json",
+      "sha256": "fdd15db93b5022cb240b85840264848b1c3834e31c83c022fac1665f04fb82c9"
+    },
+    "data_lock_result": {
+      "path": "results/json/m15_book_refresh_b4b5c05ede51a28d1f3005c9512c2ce78df306242d955ec3c9b48d51c81c5999_data_lock_result.json",
+      "sha256": "897b5dc0d2ff7dfd375e90462a0193e9d28e5db22ef9e78452075570306c15ec"
+    },
+    "source_phase": {
+      "path": "logs/m15_book_refresh/b4b5c05ede51a28d1f3005c9512c2ce78df306242d955ec3c9b48d51c81c5999/phases/00_source_preregistration.json",
+      "sha256": "95e258d0df5bf8d2cc7f583778ccdbef201175f3bc91365c11b4e12b7e0882a3"
+    },
+    "derived_data_phase": {
+      "path": "logs/m15_book_refresh/b4b5c05ede51a28d1f3005c9512c2ce78df306242d955ec3c9b48d51c81c5999/phases/01_derived_data.json",
+      "sha256": "4c25f54f53ecf961904b9ceaa2ac20e213db7e1c72c7e6be6f343b5b97c6463f"
+    },
+    "exact_null_calibration": {
+      "path": "logs/m15_book_refresh/null_calibration/null_calibration_2e05d3a9e46555745483b575aa284fe8a71ace9e.json",
+      "sha256": "9b66aefccb290c01bc6f11714d21a770bc6afad94db7f6b821a35009106a2db1",
+      "accepted": true
+    },
+    "phase_zero_acceptance_v2": {
+      "path": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v2.json",
+      "sha256": "eb2979ff801451cca5adefccdae14671dc0791ccd35c9b26c21f1f5e86625b70",
+      "mode": "0444",
+      "preserved_immutable": true,
+      "usd_jpy_nan_payload_bits_binding": false,
+      "usd_jpy_behavior_all_equal": true
+    },
+    "issue_body_sha256": "7d843e1989d6989e91f68579ef2b15f02d73edef1d74a6487a88344e739ce188"
+  },
+  "phase_state": {
+    "last_completed_phase": "derived_data",
+    "sealed_phase_manifests": [
+      "00_source_preregistration.json",
+      "01_derived_data.json"
+    ],
+    "sealed_snapshot_regular_files": 9,
+    "sealed_feature_view_regular_files": 9,
+    "partial_unsealed_cached_parity_files": 8,
+    "partial_unsealed_provider_store_files": 7,
+    "adapter_parity_phase_sealed": false,
+    "adapter_parity_result_created": false,
+    "fit_files_created": 0,
+    "fit_phase_sealed": false,
+    "arm_phase_sealed": false,
+    "replay_start_marker_created": false,
+    "replay_result_created": false
+  },
+  "access_record": {
+    "full_2026_processed_ohlcv_and_covariates_read_for_blind_snapshot": true,
+    "pre_april_builder_prediction_gate_and_label_adapter_parity_exercised_for": [
+      "EURUSD",
+      "USDJPY"
+    ],
+    "pre_april_entry_before": "2026-04-01T00:00:00Z",
+    "april_may_replay_labels_settlement_or_outcomes_accessed": false,
+    "semantic_replay_outcomes_accessed": false,
+    "source_or_book_files_mutated": false
+  },
+  "relaunch": {
+    "required": true,
+    "contract_delta": "retain whole-matrix raw bytes as a diagnostic; bind exact finite float32 bits, identical NaN positions, clocks/schema/mapping/latest row, and reject infinities while treating only NaN sign/payload bits as nonbinding",
+    "new_phase_zero_authority": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v3.json",
+    "overwrite_prior_authority": false,
+    "reuse_preregistration": false,
+    "reuse_data_lock": false,
+    "reuse_exact_null": false
+  }
+}

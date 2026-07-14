@@ -21,6 +21,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -3919,6 +3920,45 @@ def test_live_feature_builder_provider_parity() -> None:
             refresh._live_feature_builder_parity_report(
                 pair, columns, score_rows, builder
             )
+
+        nan_position = tuple(np.argwhere(np.isnan(score_rows.X))[0])
+        payload_matrix = score_rows.X.copy()
+        payload_matrix.view("uint32")[nan_position] ^= np.uint32(1 << 31)
+        payload_report = refresh._live_feature_builder_parity_report(
+            pair,
+            columns,
+            replace(score_rows, X=np.ascontiguousarray(payload_matrix)),
+            builder,
+        )
+
+        finite_position = tuple(np.argwhere(np.isfinite(score_rows.X))[0])
+        finite_matrix = score_rows.X.copy()
+        finite_matrix.view("uint32")[finite_position] += np.uint32(1)
+        finite_report = refresh._live_feature_builder_parity_report(
+            pair,
+            columns,
+            replace(score_rows, X=np.ascontiguousarray(finite_matrix)),
+            builder,
+        )
+
+        mask_matrix = score_rows.X.copy()
+        mask_matrix[finite_position] = np.float32(np.nan)
+        mask_report = refresh._live_feature_builder_parity_report(
+            pair,
+            columns,
+            replace(score_rows, X=np.ascontiguousarray(mask_matrix)),
+            builder,
+        )
+
+        infinity_matrix = score_rows.X.copy()
+        infinity_matrix[finite_position] = np.float32(np.inf)
+        with expect_raises(refresh.RefreshError, "contains an infinity"):
+            refresh._live_feature_builder_parity_report(
+                pair,
+                columns,
+                replace(score_rows, X=np.ascontiguousarray(infinity_matrix)),
+                builder,
+            )
     check(report["all_equal"], f"actual LiveFeatureBuilder parity failed: {report}")
     equal(
         report["public_method_exercised"],
@@ -3929,6 +3969,30 @@ def test_live_feature_builder_provider_parity() -> None:
         report["ordered_float32_feature_bytes_exact"]
         and report["causal_decision_mapping_exact"],
         "public provider values/decision mapping were not exact",
+    )
+    check(
+        payload_report["ordered_float32_feature_bytes_exact"] is False
+        and payload_report["all_equal"] is False
+        and payload_report["ordered_finite_float32_values_exact"] is True
+        and payload_report["finite_mask_exact"] is True
+        and payload_report["nonfinite_nan_payload_bits_binding"] is False
+        and payload_report["behavior_all_equal"] is True,
+        "NaN payload-only drift did not preserve exact provider behavior",
+    )
+    check(
+        finite_report["ordered_finite_float32_values_exact"] is False
+        and finite_report["decoded_diagnostics"]["mismatched_cells"] == 1
+        and finite_report["behavior_all_equal"] is False,
+        "finite one-ULP provider drift did not fail behavior parity",
+    )
+    check(
+        mask_report["finite_mask_exact"] is False
+        and mask_report["ordered_finite_float32_values_exact"] is False
+        and mask_report["decoded_diagnostics"][
+            "finite_nonfinite_disagreements"
+        ] == 1
+        and mask_report["behavior_all_equal"] is False,
+        "finite-to-NaN provider drift did not fail behavior parity",
     )
 
 
@@ -5719,6 +5783,8 @@ def _provider_fixture(
     from dataclasses import asdict
 
     spec = refresh.load_spec()
+    incumbent = book_runtime.load_book(pair, spec["pairs"][pair]["book_id_A"])
+    feature_cols = list(incumbent.feature_cols)
     sources = [
         asdict(refresh.file_identity(REPO_ROOT / "scripts" / name))
         for name in (
@@ -5745,7 +5811,9 @@ def _provider_fixture(
         "feature_schema_parity": True,
         "feature_value_parity": passed,
         "runtime_scoring_and_gate_parity": passed,
-        "provider_schema_identity": hashlib.sha256(f"schema/{pair}".encode()).hexdigest(),
+        "provider_schema_identity": refresh.sha256_bytes(
+            refresh.canonical_bytes(feature_cols)
+        ),
         "provider_implementation_identity": refresh.length_prefixed_digest(
             "m15-book-refresh/provider-implementation/v1",
             [refresh.canonical_bytes(sources)],
@@ -5764,9 +5832,29 @@ def _provider_fixture(
             else {
                 "schema": "m15-live-feature-builder-parity/v1",
                 "pair": pair,
-                "all_equal": True,
+                "public_class": "live_features.LiveFeatureBuilder",
+                "public_method_exercised": "feature_row",
+                "provider_rows": 100,
+                "compared_rows": 80,
+                "feature_count": len(feature_cols),
+                "feature_order_exact": True,
+                "source_clock_subset_exact": True,
                 "causal_decision_mapping_exact": True,
-                "ordered_float32_feature_bytes_exact": True,
+                "finite_mask_exact": True,
+                "ordered_float32_feature_bytes_exact": False,
+                "ordered_finite_float32_values_exact": True,
+                "nonfinite_nan_payload_bits_binding": False,
+                "decoded_diagnostics": {
+                    "mismatched_cells": 0,
+                    "finite_nonfinite_disagreements": 0,
+                    "columns": {},
+                },
+                "public_latest_row_exact": True,
+                "public_latest_source_feature_ns": int(
+                    pd.Timestamp("2026-03-31T23:58:00Z").value
+                ),
+                "all_equal": False,
+                "behavior_all_equal": True,
             }
         ),
         "runtime_decision_clock_authority": {
@@ -6046,8 +6134,28 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
         implementation_git_sha=implementation_sha,
         parity_sha256=parity_sha,
         evaluator_id_value=evaluator,
+        expected_compared_rows=80,
     )
     check(qualified and reason is None, "passing provider was not shadow-qualified")
+    check(
+        passing_provider["live_feature_builder_parity"][
+            "ordered_float32_feature_bytes_exact"
+        ]
+        is False,
+        "shadow qualification fixture did not exercise non-binding NaN bytes",
+    )
+    bad_schema = json.loads(json.dumps(passing_provider))
+    bad_schema["provider_schema_identity"] = "0" * 64
+    with expect_raises(refresh.RefreshError, "schema identity differs"):
+        refresh._validated_shadow_provider_evidence(
+            "USDJPY",
+            bad_schema,
+            spec=spec,
+            implementation_git_sha=implementation_sha,
+            parity_sha256=parity_sha,
+            evaluator_id_value=evaluator,
+            expected_compared_rows=80,
+        )
     bad_provider = json.loads(json.dumps(passing_provider))
     bad_provider["provider_implementation_identity"] = "d" * 64
     with expect_raises(refresh.RefreshError, "implementation identity"):
@@ -6058,6 +6166,7 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
             implementation_git_sha=implementation_sha,
             parity_sha256=parity_sha,
             evaluator_id_value=evaluator,
+            expected_compared_rows=80,
         )
     misleading_provider = json.loads(json.dumps(passing_provider))
     misleading_provider["feature_value_parity"] = False
@@ -6069,7 +6178,62 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
             implementation_git_sha=implementation_sha,
             parity_sha256=parity_sha,
             evaluator_id_value=evaluator,
+            expected_compared_rows=80,
         )
+    behavior_forgery = json.loads(json.dumps(passing_provider))
+    behavior_forgery["live_feature_builder_parity"]["behavior_all_equal"] = False
+    with expect_raises(refresh.RefreshError, "LiveFeatureBuilder evidence"):
+        refresh._validated_shadow_provider_evidence(
+            "USDJPY",
+            behavior_forgery,
+            spec=spec,
+            implementation_git_sha=implementation_sha,
+            parity_sha256=parity_sha,
+            evaluator_id_value=evaluator,
+            expected_compared_rows=80,
+        )
+
+    def reject_live_forgery(mutator: Callable[[dict[str, Any]], None]) -> None:
+        forged = json.loads(json.dumps(passing_provider))
+        mutator(forged["live_feature_builder_parity"])
+        with expect_raises(refresh.RefreshError):
+            refresh._validated_shadow_provider_evidence(
+                "USDJPY",
+                forged,
+                spec=spec,
+                implementation_git_sha=implementation_sha,
+                parity_sha256=parity_sha,
+                evaluator_id_value=evaluator,
+                expected_compared_rows=80,
+            )
+
+    reject_live_forgery(lambda live: live.pop("public_class"))
+    reject_live_forgery(lambda live: live.__setitem__("unknown_field", True))
+    reject_live_forgery(lambda live: live.__setitem__("provider_rows", 1))
+    reject_live_forgery(
+        lambda live: live.update(provider_rows=1, compared_rows=1)
+    )
+    reject_live_forgery(
+        lambda live: live.__setitem__(
+            "public_latest_source_feature_ns",
+            int(pd.Timestamp("2026-04-01T00:00:00Z").value),
+        )
+    )
+    reject_live_forgery(lambda live: live.__setitem__("all_equal", True))
+    reject_live_forgery(lambda live: live.__setitem__("finite_mask_exact", False))
+    reject_live_forgery(
+        lambda live: live.__setitem__("nonfinite_nan_payload_bits_binding", True)
+    )
+    reject_live_forgery(
+        lambda live: live.__setitem__(
+            "decoded_diagnostics",
+            {
+                "mismatched_cells": 1,
+                "finite_nonfinite_disagreements": 0,
+                "columns": {},
+            },
+        )
+    )
 
     prereg_id = "d" * 64
     control_arms = [
@@ -6126,6 +6290,31 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
         shadow_root = evidence_root / "shadow"
         results_json.mkdir(parents=True)
         shadow_root.mkdir()
+        parity_path = (
+            evidence_root / "logs" / "m15_book_refresh" / "synthetic" / "parity.json"
+        )
+        parity_path.parent.mkdir(parents=True)
+        _write_read_only_json(
+            parity_path,
+            {
+                "schema": "m15-book-refresh-parity/v1",
+                "prereg_id": prereg_id,
+                "implementation_git_sha": implementation_sha,
+                "pairs": {
+                    "USDJPY": {
+                        "rows": 80,
+                        "provider_parity": passing_provider,
+                    }
+                },
+            },
+        )
+        parity_sha = sha256(parity_path)
+        common["provider_parity_result"] = parity_path.relative_to(
+            evidence_root
+        ).as_posix()
+        common["provider_parity_result_sha256"] = parity_sha
+        passing_evidence["provider_parity_result_sha256"] = parity_sha
+        passing_record["provider_evidence"] = passing_evidence
         joint_path = (
             results_json / f"m15_book_refresh_{run_id}_joint_replay_result.json"
         )
@@ -6440,7 +6629,7 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
         ), mock.patch.object(
             refresh,
             "repo_relative",
-            side_effect=lambda path: Path(path)
+            side_effect=lambda path, **_kwargs: Path(path)
             .resolve(strict=True)
             .relative_to(evidence_root.resolve(strict=True))
             .as_posix(),
@@ -6450,6 +6639,15 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
             return_value=(passing_evidence, True, None),
         ):
             refresh._validate_shadow_handoff_payload(positive, spec=spec)
+            forged_provider_copy = json.loads(json.dumps(positive))
+            forged_live = forged_provider_copy["S_records"][0][
+                "provider_evidence"
+            ]["live_feature_builder_parity"]
+            forged_live.update(provider_rows=1, compared_rows=1)
+            with expect_raises(refresh.RefreshError, "provider copy differs"):
+                refresh._validate_shadow_handoff_payload(
+                    forged_provider_copy, spec=spec
+                )
             wrong_family = dict(positive, fixed_family_size=6)
             with expect_raises(refresh.RefreshError, "positive prospective"):
                 refresh._validate_shadow_handoff_payload(wrong_family, spec=spec)
@@ -6464,25 +6662,67 @@ def test_integrity_artifacts_cli_and_shadow() -> None:
             blocked_provider,
             spec=spec,
             implementation_git_sha=implementation_sha,
-            parity_sha256=parity_sha,
+            parity_sha256="e" * 64,
             evaluator_id_value=evaluator,
+            expected_compared_rows=80,
         )
     )
     check(not blocked_qualified, "EURUSD unavailable live OF provider qualified")
-    blocked_record = _shadow_record_fixture("EURUSD", evidence=blocked_evidence)
-    blocked_record["candidate_bundle_id"] = primary_id_map[("EURUSD", "C")]
-    blocked_record["v1_bundle_id"] = primary_id_map[("EURUSD", "A")]
-    blocked_id = blocked_record["candidate_book_id"]
-    nonempty_zero = {
-        **zero,
-        "status": spec["shadow"]["statuses"]["survivors_but_zero_provider_eligible"],
-        "S": [blocked_id],
-        "S_records": [blocked_record],
-        "exclusions": {
-            blocked_id: {**blocked_record, "reason": blocked_reason},
-        },
-    }
-    refresh._validate_shadow_handoff_payload(nonempty_zero, spec=spec)
+    with tempfile.TemporaryDirectory(prefix="m15-zero-provider-contract-") as raw:
+        evidence_root = Path(raw)
+        for source in blocked_provider["provider_source_files"]:
+            copied_source = evidence_root / source["path"]
+            copied_source.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(REPO_ROOT / source["path"], copied_source)
+            copied_source.chmod(0o444)
+        parity_path = (
+            evidence_root / "logs" / "m15_book_refresh" / "synthetic" / "parity.json"
+        )
+        parity_path.parent.mkdir(parents=True)
+        _write_read_only_json(
+            parity_path,
+            {
+                "schema": "m15-book-refresh-parity/v1",
+                "prereg_id": prereg_id,
+                "implementation_git_sha": implementation_sha,
+                "pairs": {
+                    "EURUSD": {
+                        "rows": 80,
+                        "provider_parity": blocked_provider,
+                    }
+                },
+            },
+        )
+        blocked_parity_sha = sha256(parity_path)
+        blocked_evidence["provider_parity_result_sha256"] = blocked_parity_sha
+        blocked_record = _shadow_record_fixture("EURUSD", evidence=blocked_evidence)
+        blocked_record["candidate_bundle_id"] = primary_id_map[("EURUSD", "C")]
+        blocked_record["v1_bundle_id"] = primary_id_map[("EURUSD", "A")]
+        blocked_id = blocked_record["candidate_book_id"]
+        nonempty_zero = {
+            **zero,
+            "provider_parity_result": parity_path.relative_to(
+                evidence_root
+            ).as_posix(),
+            "provider_parity_result_sha256": blocked_parity_sha,
+            "status": spec["shadow"]["statuses"][
+                "survivors_but_zero_provider_eligible"
+            ],
+            "S": [blocked_id],
+            "S_records": [blocked_record],
+            "exclusions": {
+                blocked_id: {**blocked_record, "reason": blocked_reason},
+            },
+        }
+        with mock.patch.object(refresh, "REPO_ROOT", evidence_root), mock.patch.object(
+            refresh,
+            "repo_relative",
+            side_effect=lambda path, **_kwargs: Path(path)
+            .resolve(strict=True)
+            .relative_to(evidence_root.resolve(strict=True))
+            .as_posix(),
+        ):
+            refresh._validate_shadow_handoff_payload(nonempty_zero, spec=spec)
 
 
 def test_null_surface_partition() -> None:

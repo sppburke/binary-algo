@@ -45,11 +45,32 @@ RESULTS_JSON = REPO_ROOT / "results" / "json"
 WORK_ROOT = REPO_ROOT / "logs" / "m15_book_refresh"
 PROCESSED_ROOT = Path("/home/sean/git/processed")
 PHASE_ZERO_AUTHORITY_PATH = (
-    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v2.json"
+    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v3.json"
 )
 PHASE_ZERO_FLOAT32_LIVE_FEATURES_SHA256 = (
     "c485766d2dda85339938d59180056287ee5826ad275ff4d988588bdc2d201198"
 )
+_LIVE_FEATURE_BUILDER_PARITY_FIELDS = frozenset({
+    "schema",
+    "pair",
+    "public_class",
+    "public_method_exercised",
+    "provider_rows",
+    "compared_rows",
+    "feature_count",
+    "feature_order_exact",
+    "source_clock_subset_exact",
+    "causal_decision_mapping_exact",
+    "finite_mask_exact",
+    "ordered_float32_feature_bytes_exact",
+    "ordered_finite_float32_values_exact",
+    "nonfinite_nan_payload_bits_binding",
+    "decoded_diagnostics",
+    "public_latest_row_exact",
+    "public_latest_source_feature_ns",
+    "all_equal",
+    "behavior_all_equal",
+})
 TARGET_PAIR_ORDER = (
     "EURUSD", "USDJPY", "GBPUSD", "USDCHF", "AUDUSD", "NZDUSD",
 )
@@ -2600,28 +2621,10 @@ def _validate_phase_zero_authority(path: str | Path = PHASE_ZERO_AUTHORITY_PATH)
                 or live.get("ordered_finite_float32_values_exact") is not True
             ):
                 raise RefreshError(f"{pair}: public provider parity differs")
-            live_fields = {
-                "schema",
-                "pair",
-                "public_class",
-                "public_method_exercised",
-                "provider_rows",
-                "compared_rows",
-                "feature_count",
-                "feature_order_exact",
-                "source_clock_subset_exact",
-                "causal_decision_mapping_exact",
-                "finite_mask_exact",
-                "ordered_float32_feature_bytes_exact",
-                "decoded_diagnostics",
-                "public_latest_row_exact",
-                "public_latest_source_feature_ns",
-                "all_equal",
-                "ordered_finite_float32_values_exact",
-                "nonfinite_nan_payload_bits_binding",
-                "behavior_all_equal",
-            }
-            if not isinstance(live, dict) or set(live) != live_fields:
+            if (
+                not isinstance(live, dict)
+                or set(live) != _LIVE_FEATURE_BUILDER_PARITY_FIELDS
+            ):
                 raise RefreshError(f"{pair}: public provider detailed fields differ")
             provider_rows = _phase_zero_integer(
                 live.get("provider_rows"), name=f"{pair}.provider.rows", minimum=1
@@ -4198,9 +4201,28 @@ def _live_feature_builder_parity_report(
     else:
         provider_matrix = np.empty((0, len(expected)), dtype="float32")
     feature_shape_equal = provider_matrix.shape == score_rows.X.shape
+    if feature_shape_equal and (
+        np.isinf(provider_matrix).any() or np.isinf(score_rows.X).any()
+    ):
+        raise RefreshError(
+            f"{pair}: LiveFeatureBuilder parity contains an infinity"
+        )
     finite_mask_equal = bool(
         feature_shape_equal
         and np.array_equal(np.isfinite(provider_matrix), np.isfinite(score_rows.X))
+    )
+    common_finite = (
+        np.isfinite(provider_matrix) & np.isfinite(score_rows.X)
+        if feature_shape_equal
+        else np.zeros((0, 0), dtype=bool)
+    )
+    finite_values_equal = bool(
+        feature_shape_equal
+        and finite_mask_equal
+        and np.array_equal(
+            provider_matrix[common_finite].view("uint32"),
+            score_rows.X[common_finite].view("uint32"),
+        )
     )
     feature_bytes_equal = bool(
         feature_shape_equal
@@ -4243,6 +4265,8 @@ def _live_feature_builder_parity_report(
         "causal_decision_mapping_exact": decision_mapping_exact,
         "finite_mask_exact": finite_mask_equal,
         "ordered_float32_feature_bytes_exact": feature_bytes_equal,
+        "ordered_finite_float32_values_exact": finite_values_equal,
+        "nonfinite_nan_payload_bits_binding": False,
         "decoded_diagnostics": decoded_diagnostics,
         "public_latest_row_exact": public_latest_exact,
         "public_latest_source_feature_ns": int(pd.Timestamp(public_row.timestamp).value),
@@ -4255,6 +4279,17 @@ def _live_feature_builder_parity_report(
             "causal_decision_mapping_exact",
             "finite_mask_exact",
             "ordered_float32_feature_bytes_exact",
+            "public_latest_row_exact",
+        )
+    )
+    report["behavior_all_equal"] = all(
+        report[name] is True
+        for name in (
+            "feature_order_exact",
+            "source_clock_subset_exact",
+            "causal_decision_mapping_exact",
+            "finite_mask_exact",
+            "ordered_finite_float32_values_exact",
             "public_latest_row_exact",
         )
     )
@@ -4477,7 +4512,7 @@ def run_adapter_parity(prereg_id: str) -> Path:
                 rebuilt_score,
                 live_provider,
             )
-            if not live_feature_builder_parity["all_equal"]:
+            if not live_feature_builder_parity["behavior_all_equal"]:
                 raise RefreshError(
                     f"{pair}: public LiveFeatureBuilder parity failed: "
                     f"{live_feature_builder_parity}"
@@ -4509,7 +4544,7 @@ def run_adapter_parity(prereg_id: str) -> Path:
                 and (
                     pair == "EURUSD"
                     or live_feature_builder_parity is not None
-                    and live_feature_builder_parity["all_equal"]
+                    and live_feature_builder_parity["behavior_all_equal"]
                 )
             ),
             "runtime_scoring_and_gate_parity": bool(
@@ -4522,7 +4557,7 @@ def run_adapter_parity(prereg_id: str) -> Path:
                 and (
                     pair == "EURUSD"
                     or live_feature_builder_parity is not None
-                    and live_feature_builder_parity["all_equal"]
+                    and live_feature_builder_parity["behavior_all_equal"]
                 )
             ),
             "provider_schema_identity": sha256_bytes(
@@ -7000,11 +7035,17 @@ def _validated_shadow_provider_evidence(
     implementation_git_sha: str,
     parity_sha256: str,
     evaluator_id_value: str,
+    expected_compared_rows: int,
 ) -> tuple[dict[str, Any], bool, str | None]:
     """Authenticate one provider record and return its shadow qualification."""
 
     if set(provider) != _PROVIDER_PARITY_FIELDS:
         raise RefreshError(f"{pair}: provider parity fields differ")
+    expected_rows = _phase_zero_integer(
+        expected_compared_rows,
+        name=f"{pair}.shadow.expected_compared_rows",
+        minimum=1,
+    )
     if provider.get("schema") != "m15-book-refresh-provider-parity/v1":
         raise RefreshError(f"{pair}: provider parity schema differs")
     status = provider.get("status")
@@ -7027,6 +7068,17 @@ def _validated_shadow_provider_evidence(
         raise RefreshError(f"{pair}: passing provider parity has a failed requirement")
     if not _is_hex(provider.get("provider_schema_identity"), 64):
         raise RefreshError(f"{pair}: provider schema identity is malformed")
+    import book_runtime
+
+    incumbent = book_runtime.load_book(pair, spec["pairs"][pair]["book_id_A"])
+    expected_feature_count = spec["pairs"][pair]["feature_count"]
+    if len(incumbent.feature_cols) != expected_feature_count:
+        raise RefreshError(f"{pair}: incumbent feature count differs from spec")
+    expected_schema_identity = sha256_bytes(
+        canonical_bytes(list(incumbent.feature_cols))
+    )
+    if provider.get("provider_schema_identity") != expected_schema_identity:
+        raise RefreshError(f"{pair}: provider schema identity differs")
     sources = provider.get("provider_source_files")
     if not isinstance(sources, list) or not sources:
         raise RefreshError(f"{pair}: provider source inventory is malformed")
@@ -7103,15 +7155,70 @@ def _validated_shadow_provider_evidence(
     if pair == "EURUSD":
         if live is not None:
             raise RefreshError("EURUSD cannot claim unavailable live order-flow parity")
-    elif not (
-        isinstance(live, dict)
-        and live.get("schema") == "m15-live-feature-builder-parity/v1"
-        and live.get("pair") == pair
-        and live.get("all_equal") is True
-        and live.get("causal_decision_mapping_exact") is True
-        and live.get("ordered_float32_feature_bytes_exact") is True
-    ):
-        raise RefreshError(f"{pair}: public LiveFeatureBuilder evidence differs")
+    else:
+        if (
+            not isinstance(live, dict)
+            or set(live) != _LIVE_FEATURE_BUILDER_PARITY_FIELDS
+        ):
+            raise RefreshError(
+                f"{pair}: public LiveFeatureBuilder evidence fields differ"
+            )
+        provider_rows = _phase_zero_integer(
+            live.get("provider_rows"),
+            name=f"{pair}.shadow.provider_rows",
+            minimum=1,
+        )
+        compared_rows = _phase_zero_integer(
+            live.get("compared_rows"),
+            name=f"{pair}.shadow.compared_rows",
+            minimum=1,
+        )
+        feature_count = _phase_zero_integer(
+            live.get("feature_count"),
+            name=f"{pair}.shadow.feature_count",
+            minimum=1,
+        )
+        latest_source = live.get("public_latest_source_feature_ns")
+        lower_source_ns = int(
+            (pd.Timestamp("2026-01-01T00:00:00Z") - pd.Timedelta(seconds=60)).value
+        )
+        upper_source_ns = int(
+            (pd.Timestamp("2026-04-01T00:00:00Z") - pd.Timedelta(seconds=60)).value
+        )
+        if not (
+            live.get("schema") == "m15-live-feature-builder-parity/v1"
+            and live.get("pair") == pair
+            and live.get("public_class") == "live_features.LiveFeatureBuilder"
+            and live.get("public_method_exercised") == "feature_row"
+            and provider_rows >= compared_rows == expected_rows
+            and feature_count == expected_feature_count
+            and all(
+                live.get(field) is True
+                for field in (
+                    "feature_order_exact",
+                    "source_clock_subset_exact",
+                    "causal_decision_mapping_exact",
+                    "finite_mask_exact",
+                    "ordered_finite_float32_values_exact",
+                    "public_latest_row_exact",
+                    "behavior_all_equal",
+                )
+            )
+            and type(live.get("ordered_float32_feature_bytes_exact")) is bool
+            and live.get("all_equal")
+            is live.get("ordered_float32_feature_bytes_exact")
+            and live.get("nonfinite_nan_payload_bits_binding") is False
+            and live.get("decoded_diagnostics")
+            == {
+                "mismatched_cells": 0,
+                "finite_nonfinite_disagreements": 0,
+                "columns": {},
+            }
+            and isinstance(latest_source, int)
+            and not isinstance(latest_source, bool)
+            and lower_source_ns <= latest_source < upper_source_ns
+        ):
+            raise RefreshError(f"{pair}: public LiveFeatureBuilder evidence differs")
     if pair == "EURUSD" and (
         status != "BLOCKED_SCHEMA" or reason != "verified_live_OF_provider_absent"
     ):
@@ -7523,6 +7630,26 @@ def _validate_shadow_handoff_payload(
         or len(records) != len(survivors)
     ):
         raise RefreshError("prospective shadow survivor/provider sets differ")
+    parity_result: dict[str, Any] | None = None
+    if records:
+        parity_path = REPO_ROOT / payload["provider_parity_result"]
+        if (
+            parity_path.is_symlink()
+            or not parity_path.is_file()
+            or parity_path.stat().st_mode & 0o222
+            or repo_relative(parity_path) != payload["provider_parity_result"]
+            or sha256_file(parity_path) != payload["provider_parity_result_sha256"]
+        ):
+            raise RefreshError("prospective provider parity reference differs")
+        parity_result = _read_json(parity_path)
+        if (
+            parity_result.get("schema") != "m15-book-refresh-parity/v1"
+            or parity_result.get("prereg_id") != payload["prereg_id"]
+            or parity_result.get("implementation_git_sha")
+            != payload["implementation_git_sha"]
+            or not isinstance(parity_result.get("pairs"), dict)
+        ):
+            raise RefreshError("prospective provider parity artifact differs")
     record_by_id: dict[str, Mapping[str, Any]] = {}
     for record in records:
         if (
@@ -7561,13 +7688,28 @@ def _validate_shadow_handoff_payload(
             or evidence.get("evaluator_id") != payload["evaluator_id"]
         ):
             raise RefreshError(f"{pair}: prospective provider evidence binding differs")
+        parity_pair = parity_result["pairs"].get(pair) if parity_result else None
+        if not isinstance(parity_pair, dict):
+            raise RefreshError(f"{pair}: prospective provider pair evidence differs")
+        expected_compared_rows = _phase_zero_integer(
+            parity_pair.get("rows"),
+            name=f"{pair}.prospective.parity_rows",
+            minimum=1,
+        )
+        sealed_provider = parity_pair.get("provider_parity")
+        provider_projection = {
+            name: evidence[name] for name in _PROVIDER_PARITY_FIELDS
+        }
+        if sealed_provider != provider_projection:
+            raise RefreshError(f"{pair}: prospective provider copy differs")
         _validated_shadow_provider_evidence(
             pair,
-            {name: evidence[name] for name in _PROVIDER_PARITY_FIELDS},
+            provider_projection,
             spec=spec,
             implementation_git_sha=payload["implementation_git_sha"],
             parity_sha256=payload["provider_parity_result_sha256"],
             evaluator_id_value=payload["evaluator_id"],
+            expected_compared_rows=expected_compared_rows,
         )
         record_by_id[book_id] = record
     if list(record_by_id) != survivors:
@@ -7772,9 +7914,19 @@ def seal_shadow_spec(prereg_id: str) -> Path:
     exclusions: dict[str, dict[str, Any]] = {}
     for book_id in survivors:
         pair = pair_by_candidate[book_id]
-        provider = parity.get("pairs", {}).get(pair, {}).get("provider_parity")
-        if not isinstance(provider, dict):
+        parity_pair = parity.get("pairs", {}).get(pair)
+        provider = (
+            parity_pair.get("provider_parity")
+            if isinstance(parity_pair, dict)
+            else None
+        )
+        if not isinstance(provider, dict) or not isinstance(parity_pair, dict):
             raise RefreshError(f"{pair}: provider parity evidence is absent")
+        expected_compared_rows = _phase_zero_integer(
+            parity_pair.get("rows"),
+            name=f"{pair}.shadow.parity_rows",
+            minimum=1,
+        )
         provider_evidence, qualified, exclusion_reason = (
             _validated_shadow_provider_evidence(
                 pair,
@@ -7783,6 +7935,7 @@ def seal_shadow_spec(prereg_id: str) -> Path:
                 implementation_git_sha=prereg["implementation_git_sha"],
                 parity_sha256=parity_sha,
                 evaluator_id_value=binding["evaluator_id"],
+                expected_compared_rows=expected_compared_rows,
             )
         )
         record = {

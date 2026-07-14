@@ -52,11 +52,12 @@ OUTPUT_PATH = (
 # campaign acceptance authority is deliberately a separate schema and path so
 # a diagnostic (including a stopped diagnostic) can never satisfy the runner's
 # phase-zero gate by filename substitution.  The version suffix preserves the
-# immutable v1 authority from the outcome-blind launch that stopped on the
-# pandas-index Parquet projection defect before derived-data sealing.
+# immutable prior authorities from outcome-blind launches that stopped before
+# fitting or semantic replay (first on Parquet projection, then provider
+# parity on non-binding NaN sign bits).
 ACCEPTANCE_OUTPUT_PATH = (
     REPO_ROOT
-    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v2.json"
+    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v3.json"
 )
 PAIRS = ("USDJPY", "USDCAD")
 ACCEPTANCE_TARGET_PAIRS = (
@@ -815,7 +816,9 @@ def _analyze_pair(pair: str, book: book_runtime.LoadedBook) -> dict[str, Any]:
             "full_population_ordered_pre_schedule_exact": bool(
                 np.array_equal(cached_full_selected, raw_full_selected)
             ),
-            "live_feature_builder_exact": bool(live_report.get("all_equal") is True),
+            "live_feature_builder_exact": bool(
+                live_report.get("behavior_all_equal") is True
+            ),
         }
 
         mismatch_positions = np.flatnonzero(mismatch)
