@@ -45,7 +45,7 @@ RESULTS_JSON = REPO_ROOT / "results" / "json"
 WORK_ROOT = REPO_ROOT / "logs" / "m15_book_refresh"
 PROCESSED_ROOT = Path("/home/sean/git/processed")
 PHASE_ZERO_AUTHORITY_PATH = (
-    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v3.json"
+    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v4.json"
 )
 PHASE_ZERO_FLOAT32_LIVE_FEATURES_SHA256 = (
     "c485766d2dda85339938d59180056287ee5826ad275ff4d988588bdc2d201198"
@@ -1878,6 +1878,9 @@ def _validate_phase_zero_pair_behavior(
         "cached_raw_direction_exact",
         "cached_raw_gate_exact",
         "scalar_batch_direction_exact",
+        "scalar_batch_confidence_gate_exact",
+        "scalar_batch_structural_gate_exact",
+        "scalar_batch_combined_gate_exact",
         "scalar_batch_gate_exact",
         "scalar_batch_probability_bits_exact_diagnostic",
         "scalar_batch_probability_bits_binding",
@@ -1896,6 +1899,9 @@ def _validate_phase_zero_pair_behavior(
                 "cached_raw_direction_exact",
                 "cached_raw_gate_exact",
                 "scalar_batch_direction_exact",
+                "scalar_batch_confidence_gate_exact",
+                "scalar_batch_structural_gate_exact",
+                "scalar_batch_combined_gate_exact",
                 "scalar_batch_gate_exact",
                 "behavior_exact",
             )
@@ -4296,6 +4302,284 @@ def _live_feature_builder_parity_report(
     return report
 
 
+def _loaded_book_scalar_parity_report(
+    book: Any,
+    cached_matrix: np.ndarray,
+    rebuilt_matrix: np.ndarray,
+    cached_probability: np.ndarray,
+    rebuilt_probability: np.ndarray,
+    cached_components: Any,
+    rebuilt_components: Any,
+) -> dict[str, Any]:
+    """Bind scalar policy behavior while retaining batch-bit drift diagnostically."""
+
+    cached_X = np.asarray(cached_matrix)
+    rebuilt_X = np.asarray(rebuilt_matrix)
+    cached_p = np.asarray(cached_probability)
+    rebuilt_p = np.asarray(rebuilt_probability)
+    if cached_p.ndim != 1 or rebuilt_p.ndim != 1:
+        raise RefreshError("LoadedBook scalar parity inputs are malformed")
+    expected_shape = (cached_p.shape[0], len(book.feature_cols))
+    if (
+        cached_X.shape != expected_shape
+        or rebuilt_X.shape != expected_shape
+        or rebuilt_p.shape != cached_p.shape
+        or len(cached_p) < 1
+        or not np.issubdtype(cached_X.dtype, np.floating)
+        or not np.issubdtype(rebuilt_X.dtype, np.floating)
+        or cached_p.dtype != np.dtype("float64")
+        or rebuilt_p.dtype != np.dtype("float64")
+        or not np.isfinite(cached_X).all()
+        or not np.isfinite(rebuilt_X).all()
+        or not np.isfinite(cached_p).all()
+        or not np.isfinite(rebuilt_p).all()
+    ):
+        raise RefreshError("LoadedBook scalar parity inputs are malformed")
+
+    def validated_components(
+        name: str, components: Any, rows: int
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        try:
+            confidence = np.asarray(components.confidence_passed)
+            structural = np.asarray(components.structural_passed)
+            combined = np.asarray(components.gate_passed)
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise RefreshError(
+                f"LoadedBook scalar parity {name} components are malformed"
+            ) from exc
+        if (
+            confidence.shape != (rows,)
+            or structural.shape != (rows,)
+            or combined.shape != (rows,)
+            or confidence.dtype != np.bool_
+            or structural.dtype != np.bool_
+            or combined.dtype != np.bool_
+            or not np.array_equal(combined, confidence & structural)
+        ):
+            raise RefreshError(
+                f"LoadedBook scalar parity {name} components are malformed"
+            )
+        return confidence, structural, combined
+
+    cached_confidence, cached_structural, cached_combined = validated_components(
+        "cached", cached_components, len(cached_p)
+    )
+    rebuilt_confidence, rebuilt_structural, rebuilt_combined = validated_components(
+        "rebuilt", rebuilt_components, len(cached_p)
+    )
+    if (
+        isinstance(book.conf_thr, (bool, np.bool_))
+        or not isinstance(book.conf_thr, (float, np.floating))
+        or not np.isfinite(book.conf_thr)
+        or not isinstance(book.pair, str)
+        or not book.pair
+        or not isinstance(book.book_id, str)
+        or not book.book_id
+    ):
+        raise RefreshError("LoadedBook scalar parity book identity is malformed")
+    expected_threshold = np.float64(book.conf_thr)
+
+    probe_rows = min(257, len(cached_p))
+    ranks = np.unique(
+        np.floor(np.linspace(0, len(cached_p) - 1, probe_rows)).astype("int64")
+    )
+    cached_raw_probability_bits_exact = True
+    cached_raw_direction_exact = True
+    cached_raw_gate_exact = True
+    scalar_batch_direction_exact = True
+    scalar_batch_confidence_gate_exact = True
+    scalar_batch_structural_gate_exact = True
+    scalar_batch_combined_gate_exact = True
+    scalar_batch_probability_bits_exact = True
+
+    def validated_scalar_score(name: str, scalar: Any) -> tuple[bool, bool]:
+        required = (
+            "pair",
+            "book_id",
+            "proba",
+            "confidence",
+            "threshold",
+            "direction",
+            "gate_passed",
+            "gate_reasons",
+        )
+        if any(not hasattr(scalar, field) for field in required):
+            raise RefreshError(
+                f"LoadedBook scalar parity {name} score is malformed"
+            )
+        numeric = (float, np.floating)
+        if (
+            scalar.pair != book.pair
+            or scalar.book_id != book.book_id
+            or isinstance(scalar.proba, (bool, np.bool_))
+            or not isinstance(scalar.proba, numeric)
+            or isinstance(scalar.confidence, (bool, np.bool_))
+            or not isinstance(scalar.confidence, numeric)
+            or isinstance(scalar.threshold, (bool, np.bool_))
+            or not isinstance(scalar.threshold, numeric)
+            or not np.isfinite(scalar.proba)
+            or not np.isfinite(scalar.confidence)
+            or not np.isfinite(scalar.threshold)
+            or scalar.direction not in {"UP", "DOWN"}
+            or type(scalar.gate_passed) is not bool
+            or not isinstance(scalar.gate_reasons, list)
+            or any(
+                not isinstance(reason, str) or not reason
+                for reason in scalar.gate_reasons
+            )
+        ):
+            raise RefreshError(
+                f"LoadedBook scalar parity {name} score is malformed"
+            )
+        probability = np.float64(scalar.proba)
+        expected_confidence = np.float64(abs(probability - np.float64(0.5)))
+        expected_direction = "UP" if probability >= 0.5 else "DOWN"
+        confidence_reasons = [
+            reason
+            for reason in scalar.gate_reasons
+            if reason.startswith("confidence ")
+        ]
+        structural_reasons = [
+            reason
+            for reason in scalar.gate_reasons
+            if reason.startswith("15m_bb_width ")
+            or reason == "missing 15m_bb_width for strategy compression gate"
+        ]
+        if (
+            len(confidence_reasons) > 1
+            or len(structural_reasons) > 1
+            or len(confidence_reasons) + len(structural_reasons)
+            != len(scalar.gate_reasons)
+            or np.float64(scalar.confidence).view("uint64")
+            != expected_confidence.view("uint64")
+            or np.float64(scalar.threshold).view("uint64")
+            != expected_threshold.view("uint64")
+            or scalar.direction != expected_direction
+            or scalar.gate_passed is not (not scalar.gate_reasons)
+        ):
+            raise RefreshError(
+                f"LoadedBook scalar parity {name} score is inconsistent"
+            )
+        confidence_passed = not confidence_reasons
+        structural_passed = not structural_reasons
+        if scalar.gate_passed is not (
+            confidence_passed and structural_passed
+        ):
+            raise RefreshError(
+                f"LoadedBook scalar parity {name} score is inconsistent"
+            )
+        return confidence_passed, structural_passed
+
+    for rank in ranks:
+        cached_row = pd.Series(
+            cached_X[rank], index=book.feature_cols, dtype="float64"
+        )
+        rebuilt_row = pd.Series(
+            rebuilt_X[rank], index=book.feature_cols, dtype="float64"
+        )
+        cached_scalar = book.score(cached_row)
+        rebuilt_scalar = book.score(rebuilt_row)
+        cached_scalar_confidence, cached_scalar_structural = (
+            validated_scalar_score("cached", cached_scalar)
+        )
+        rebuilt_scalar_confidence, rebuilt_scalar_structural = (
+            validated_scalar_score("rebuilt", rebuilt_scalar)
+        )
+        cached_bits = np.float64(cached_scalar.proba).view("uint64")
+        rebuilt_bits = np.float64(rebuilt_scalar.proba).view("uint64")
+        cached_raw_probability_bits_exact &= bool(cached_bits == rebuilt_bits)
+        cached_raw_direction_exact &= (
+            cached_scalar.direction == rebuilt_scalar.direction
+        )
+        cached_raw_gate_exact &= bool(
+            cached_scalar.gate_passed == rebuilt_scalar.gate_passed
+            and cached_scalar.gate_reasons == rebuilt_scalar.gate_reasons
+        )
+        scalar_batch_direction_exact &= bool(
+            cached_scalar.direction
+            == ("UP" if cached_p[rank] >= 0.5 else "DOWN")
+            and rebuilt_scalar.direction
+            == ("UP" if rebuilt_p[rank] >= 0.5 else "DOWN")
+        )
+
+        cached_singleton = book.gate_components(
+            pd.DataFrame([cached_row.to_numpy()], columns=book.feature_cols),
+            np.asarray([cached_scalar.proba], dtype="float64"),
+        )
+        rebuilt_singleton = book.gate_components(
+            pd.DataFrame([rebuilt_row.to_numpy()], columns=book.feature_cols),
+            np.asarray([rebuilt_scalar.proba], dtype="float64"),
+        )
+        cached_singleton_confidence, cached_singleton_structural, (
+            cached_singleton_combined
+        ) = validated_components("cached singleton", cached_singleton, 1)
+        rebuilt_singleton_confidence, rebuilt_singleton_structural, (
+            rebuilt_singleton_combined
+        ) = validated_components("rebuilt singleton", rebuilt_singleton, 1)
+        scalar_batch_confidence_gate_exact &= bool(
+            cached_scalar_confidence
+            == cached_singleton_confidence[0]
+            == cached_confidence[rank]
+            and rebuilt_scalar_confidence
+            == rebuilt_singleton_confidence[0]
+            == rebuilt_confidence[rank]
+        )
+        scalar_batch_structural_gate_exact &= bool(
+            cached_scalar_structural
+            == cached_singleton_structural[0]
+            == cached_structural[rank]
+            and rebuilt_scalar_structural
+            == rebuilt_singleton_structural[0]
+            == rebuilt_structural[rank]
+        )
+        scalar_batch_combined_gate_exact &= bool(
+            cached_scalar.gate_passed
+            == cached_singleton_combined[0]
+            == cached_combined[rank]
+            and rebuilt_scalar.gate_passed
+            == rebuilt_singleton_combined[0]
+            == rebuilt_combined[rank]
+        )
+        scalar_batch_probability_bits_exact &= bool(
+            cached_bits == cached_p[rank].view("uint64")
+            and rebuilt_bits == rebuilt_p[rank].view("uint64")
+        )
+
+    scalar_batch_gate_exact = bool(
+        scalar_batch_confidence_gate_exact
+        and scalar_batch_structural_gate_exact
+        and scalar_batch_combined_gate_exact
+    )
+    behavior_exact = bool(
+        len(ranks) == probe_rows
+        and cached_raw_probability_bits_exact
+        and cached_raw_direction_exact
+        and cached_raw_gate_exact
+        and scalar_batch_direction_exact
+        and scalar_batch_gate_exact
+    )
+    return {
+        "probe_rows": len(ranks),
+        "cached_raw_probability_bits_exact": cached_raw_probability_bits_exact,
+        "cached_raw_direction_exact": cached_raw_direction_exact,
+        "cached_raw_gate_exact": cached_raw_gate_exact,
+        "scalar_batch_direction_exact": scalar_batch_direction_exact,
+        "scalar_batch_confidence_gate_exact": (
+            scalar_batch_confidence_gate_exact
+        ),
+        "scalar_batch_structural_gate_exact": (
+            scalar_batch_structural_gate_exact
+        ),
+        "scalar_batch_combined_gate_exact": scalar_batch_combined_gate_exact,
+        "scalar_batch_gate_exact": scalar_batch_gate_exact,
+        "scalar_batch_probability_bits_exact_diagnostic": (
+            scalar_batch_probability_bits_exact
+        ),
+        "scalar_batch_probability_bits_binding": False,
+        "behavior_exact": behavior_exact,
+    }
+
+
 def run_adapter_parity(prereg_id: str) -> Path:
     """Seal pre-April decoded diagnostics and exact policy-behavior parity."""
 
@@ -4428,21 +4712,6 @@ def run_adapter_parity(prereg_id: str) -> Path:
         )
         if not probability_bitwise:
             raise RefreshError(f"{pair}: A probabilities are not bitwise equal")
-        # Bind the batch adapter to the public scalar LoadedBook scorer on a
-        # deterministic spread of rows.  The all-row cached/rebuilt comparison
-        # above remains the behavior gate; these scalar probes prove the same
-        # model order, float conversion, direction tie, and gate authority.
-        probe_count = min(257, len(p_cached))
-        probe_ranks = np.unique(
-            np.floor(np.linspace(0, len(p_cached) - 1, probe_count)).astype("int64")
-        )
-        eligible_matrix = cached_score.X[eligible]
-        for rank in probe_ranks:
-            scalar = book.score(
-                pd.Series(eligible_matrix[rank], index=book.feature_cols, dtype="float64")
-            )
-            if np.float64(scalar.proba).view("uint64") != p_cached[rank].view("uint64"):
-                raise RefreshError(f"{pair}: batch probability differs from LoadedBook.score")
         confidence_gate_exact = np.array_equal(
             components_cached.confidence_passed,
             components_rebuilt.confidence_passed,
@@ -4455,6 +4724,20 @@ def run_adapter_parity(prereg_id: str) -> Path:
             raise RefreshError(f"{pair}: A confidence-threshold decisions differ")
         if not structural_gate_exact:
             raise RefreshError(f"{pair}: A structural-gate decisions differ")
+        scalar_parity = _loaded_book_scalar_parity_report(
+            book,
+            cached_score.X[eligible],
+            rebuilt_score.X[eligible],
+            p_cached,
+            p_rebuilt,
+            components_cached,
+            components_rebuilt,
+        )
+        if not scalar_parity["behavior_exact"]:
+            raise RefreshError(
+                f"{pair}: LoadedBook scalar policy behavior differs: "
+                f"{scalar_parity}"
+            )
         gate_cached = components_cached.gate_passed
         gate_rebuilt = components_rebuilt.gate_passed
         selected_cached = cached_score.entry_ns[eligible][gate_cached]
@@ -4552,7 +4835,7 @@ def run_adapter_parity(prereg_id: str) -> Path:
                 and confidence_gate_exact
                 and structural_gate_exact
                 and ordered_pre_schedule_exact
-                and len(probe_ranks) > 0
+                and scalar_parity["behavior_exact"]
                 and direct_builder_parity["source_to_decision_shift_exact"]
                 and (
                     pair == "EURUSD"
@@ -4619,8 +4902,9 @@ def run_adapter_parity(prereg_id: str) -> Path:
             "ordered_pre_schedule_exact": bool(ordered_pre_schedule_exact),
             "pre_schedule_count": int(gate_cached.sum()),
             "outcome_free_live_adapter_exact": True,
-            "loaded_book_scalar_probe_rows": len(probe_ranks),
-            "loaded_book_scalar_probe_exact": True,
+            "loaded_book_scalar_probe_rows": scalar_parity["probe_rows"],
+            "loaded_book_scalar_probe_exact": scalar_parity["behavior_exact"],
+            "loaded_book_scalar_parity": scalar_parity,
             "decoded_diagnostics": diagnostics,
             "provider_parity": provider_parity,
         }

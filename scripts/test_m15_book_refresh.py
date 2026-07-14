@@ -267,7 +267,7 @@ def test_target_and_feature_source_contract() -> None:
 
 
 def test_loaded_book_batch_behavior() -> None:
-    """Prove the batch refactor is bitwise the historical scalar formula."""
+    """Bind batch/scalar policy behavior without binding reduction-layout bits."""
 
     books = book_runtime.load_target_books()
     equal(tuple(books), tuple(book_runtime.TARGET_BOOKS), "loaded-book order")
@@ -294,10 +294,8 @@ def test_loaded_book_batch_behavior() -> None:
             legacy_probabilities.append(float(predictions.mean()))
         legacy = np.asarray(legacy_probabilities, dtype="float64")
         batch = book.predict_probabilities(frame)
-        check(
-            np.array_equal(batch.view("uint64"), legacy.view("uint64")),
-            f"{pair}: batch probabilities differ from pre-refactor singleton formula",
-        )
+        # Batch/singleton probability bits are diagnostic only; the exact
+        # scalar delegation and all discrete policy behavior remain binding.
         components = book.gate_components(frame, batch)
         for position, values in enumerate(rows):
             row = pd.Series(values, index=book.feature_cols, dtype="float64")
@@ -342,6 +340,331 @@ def test_loaded_book_batch_behavior() -> None:
                 "UP" if legacy[position] >= 0.5 else "DOWN",
                 f"{pair}: direction tie rule",
             )
+
+    class ScalarFixtureBook:
+        feature_cols = ["p", "15m_bb_width", "reason_marker"]
+        book_id = "TEST.scalar-parity.v1"
+        pair = "TEST"
+        strategy = {"bb_width_thr": 0.5}
+        conf_thr = 0.25
+
+        def __init__(
+            self,
+            toward: float | None,
+            *,
+            forced_direction: str | None = None,
+            force_gate_passed: bool | None = None,
+            singleton_override: Any = None,
+        ) -> None:
+            self.toward = toward
+            self.forced_direction = forced_direction
+            self.force_gate_passed = force_gate_passed
+            self.singleton_override = singleton_override
+
+        def gate_components(
+            self, frame: pd.DataFrame, probabilities: np.ndarray
+        ) -> Any:
+            if self.singleton_override is not None and len(frame) == 1:
+                return self.singleton_override
+            p = np.asarray(probabilities, dtype="float64")
+            confidence = ~(np.abs(p - 0.5) < self.conf_thr)
+            structural = ~(
+                frame["15m_bb_width"].to_numpy(dtype="float64") > 0.5
+            )
+            return book_runtime.BookGateComponents(confidence, structural)
+
+        def score(self, feature_row: pd.Series) -> book_runtime.BookScore:
+            row = pd.Series(feature_row, dtype="float64")
+            probability = np.float64(row["p"])
+            if self.toward is not None:
+                probability = np.nextafter(
+                    probability, np.float64(self.toward)
+                )
+            confidence_passed = not (
+                abs(float(probability) - 0.5) < self.conf_thr
+            )
+            structural_passed = not (float(row["15m_bb_width"]) > 0.5)
+            reasons: list[str] = []
+            if not confidence_passed:
+                reasons.append("confidence synthetic")
+            if not structural_passed:
+                marker = " marker" if row["reason_marker"] > 0 else ""
+                reasons.append(f"15m_bb_width synthetic{marker}")
+            direction = "UP" if probability >= 0.5 else "DOWN"
+            if self.forced_direction is not None:
+                direction = self.forced_direction
+            gate_passed = not reasons
+            if self.force_gate_passed is not None:
+                gate_passed = self.force_gate_passed
+            return book_runtime.BookScore(
+                pair=self.pair,
+                book_id=self.book_id,
+                proba=float(probability),
+                confidence=float(abs(probability - 0.5)),
+                threshold=self.conf_thr,
+                direction=direction,
+                gate_passed=gate_passed,
+                gate_reasons=reasons,
+            )
+
+    def scalar_report(
+        fixture_book: ScalarFixtureBook,
+        cached_matrix: np.ndarray,
+        rebuilt_matrix: np.ndarray,
+        cached_probability: np.ndarray,
+        rebuilt_probability: np.ndarray,
+        *,
+        cached_components: book_runtime.BookGateComponents | None = None,
+        rebuilt_components: book_runtime.BookGateComponents | None = None,
+    ) -> dict[str, Any]:
+        if cached_components is None:
+            cached_components = fixture_book.gate_components(
+                pd.DataFrame(cached_matrix, columns=fixture_book.feature_cols),
+                cached_probability,
+            )
+        if rebuilt_components is None:
+            rebuilt_components = fixture_book.gate_components(
+                pd.DataFrame(rebuilt_matrix, columns=fixture_book.feature_cols),
+                rebuilt_probability,
+            )
+        return refresh._loaded_book_scalar_parity_report(
+            fixture_book,
+            cached_matrix,
+            rebuilt_matrix,
+            cached_probability,
+            rebuilt_probability,
+            cached_components,
+            rebuilt_components,
+        )
+
+    class RawComponents:
+        def __init__(self, confidence: Any, structural: Any, combined: Any) -> None:
+            self.confidence_passed = np.asarray(confidence)
+            self.structural_passed = np.asarray(structural)
+            self.gate_passed = np.asarray(combined)
+
+    benign_matrix = np.asarray(
+        [[0.6, 0.4, 0.0], [0.4, 0.4, 0.0], [0.9, 0.4, 0.0]],
+        dtype="float64",
+    )
+    benign_probability = benign_matrix[:, 0].copy()
+    benign = scalar_report(
+        ScalarFixtureBook(1.0),
+        benign_matrix,
+        benign_matrix.copy(),
+        benign_probability,
+        benign_probability.copy(),
+    )
+    check(
+        benign["scalar_batch_probability_bits_exact_diagnostic"] is False
+        and benign["scalar_batch_probability_bits_binding"] is False
+        and benign["behavior_exact"] is True,
+        "nonbinding scalar/batch ULP drift did not preserve exact behavior",
+    )
+
+    changed_rebuilt = benign_matrix.copy()
+    changed_rebuilt[0, 0] = np.nextafter(changed_rebuilt[0, 0], 1.0)
+    changed_scalar = scalar_report(
+        ScalarFixtureBook(None),
+        benign_matrix,
+        changed_rebuilt,
+        benign_probability,
+        benign_probability.copy(),
+    )
+    check(
+        changed_scalar["cached_raw_probability_bits_exact"] is False
+        and changed_scalar["behavior_exact"] is False,
+        "cached/rebuilt scalar probability-bit drift did not fail",
+    )
+
+    direction_matrix = np.asarray([[0.5, 0.4, 0.0]], dtype="float64")
+    direction_probability = np.asarray([0.5], dtype="float64")
+    direction_crossing = scalar_report(
+        ScalarFixtureBook(float("-inf")),
+        direction_matrix,
+        direction_matrix.copy(),
+        direction_probability,
+        direction_probability.copy(),
+    )
+    check(
+        direction_crossing["scalar_batch_direction_exact"] is False
+        and direction_crossing["behavior_exact"] is False,
+        "scalar/batch direction crossing did not fail",
+    )
+    with expect_raises(refresh.RefreshError, "score is inconsistent"):
+        scalar_report(
+            ScalarFixtureBook(
+                float("-inf"), forced_direction="UP"
+            ),
+            direction_matrix,
+            direction_matrix.copy(),
+            direction_probability,
+            direction_probability.copy(),
+        )
+
+    confidence_matrix = np.asarray([[0.75, 0.6, 0.0]], dtype="float64")
+    confidence_probability = np.asarray([0.75], dtype="float64")
+    confidence_crossing = scalar_report(
+        ScalarFixtureBook(0.5),
+        confidence_matrix,
+        confidence_matrix.copy(),
+        confidence_probability,
+        confidence_probability.copy(),
+    )
+    check(
+        confidence_crossing["scalar_batch_confidence_gate_exact"] is False
+        and confidence_crossing["scalar_batch_combined_gate_exact"] is True
+        and confidence_crossing["behavior_exact"] is False,
+        "hidden scalar/batch confidence crossing did not fail",
+    )
+
+    structural_matrix = np.asarray([[0.6, 0.4, 0.0]], dtype="float64")
+    structural_probability = np.asarray([0.6], dtype="float64")
+    hidden_structural = book_runtime.BookGateComponents(
+        np.asarray([False]), np.asarray([False])
+    )
+    structural_crossing = scalar_report(
+        ScalarFixtureBook(None),
+        structural_matrix,
+        structural_matrix.copy(),
+        structural_probability,
+        structural_probability.copy(),
+        cached_components=hidden_structural,
+        rebuilt_components=hidden_structural,
+    )
+    check(
+        structural_crossing["scalar_batch_structural_gate_exact"] is False
+        and structural_crossing["scalar_batch_combined_gate_exact"] is True
+        and structural_crossing["behavior_exact"] is False,
+        "hidden scalar/batch structural crossing did not fail",
+    )
+
+    reason_cached = np.asarray([[0.6, 0.6, 0.0]], dtype="float64")
+    reason_rebuilt = np.asarray([[0.6, 0.6, 1.0]], dtype="float64")
+    reason_probability = np.asarray([0.6], dtype="float64")
+    reason_crossing = scalar_report(
+        ScalarFixtureBook(None),
+        reason_cached,
+        reason_rebuilt,
+        reason_probability,
+        reason_probability.copy(),
+    )
+    check(
+        reason_crossing["cached_raw_gate_exact"] is False
+        and reason_crossing["behavior_exact"] is False,
+        "cached/rebuilt scalar gate-reason drift did not fail",
+    )
+    with expect_raises(refresh.RefreshError, "score is inconsistent"):
+        scalar_report(
+            ScalarFixtureBook(None, force_gate_passed=True),
+            reason_cached,
+            reason_cached.copy(),
+            reason_probability,
+            reason_probability.copy(),
+        )
+
+    empty_components = book_runtime.BookGateComponents(
+        np.asarray([], dtype=bool), np.asarray([], dtype=bool)
+    )
+    with expect_raises(refresh.RefreshError, "inputs are malformed"):
+        refresh._loaded_book_scalar_parity_report(
+            ScalarFixtureBook(None),
+            np.empty((0, 3), dtype="float64"),
+            np.empty((0, 3), dtype="float64"),
+            np.empty(0, dtype="float64"),
+            np.empty(0, dtype="float64"),
+            empty_components,
+            empty_components,
+        )
+    benign_components = ScalarFixtureBook(None).gate_components(
+        pd.DataFrame(benign_matrix, columns=ScalarFixtureBook.feature_cols),
+        benign_probability,
+    )
+    with expect_raises(refresh.RefreshError, "inputs are malformed"):
+        refresh._loaded_book_scalar_parity_report(
+            ScalarFixtureBook(None),
+            benign_matrix,
+            benign_matrix.copy(),
+            np.asarray(0.6),
+            benign_probability.copy(),
+            benign_components,
+            benign_components,
+        )
+    for malformed_singleton in (
+        RawComponents([1], [1], [1]),
+        RawComponents([True, False], [True, False], [True, False]),
+        RawComponents([True], [True], [False]),
+    ):
+        with expect_raises(refresh.RefreshError, "components are malformed"):
+            scalar_report(
+                ScalarFixtureBook(
+                    None, singleton_override=malformed_singleton
+                ),
+                structural_matrix,
+                structural_matrix.copy(),
+                structural_probability,
+                structural_probability.copy(),
+                cached_components=ScalarFixtureBook(None).gate_components(
+                    pd.DataFrame(
+                        structural_matrix,
+                        columns=ScalarFixtureBook.feature_cols,
+                    ),
+                    structural_probability,
+                ),
+                rebuilt_components=ScalarFixtureBook(None).gate_components(
+                    pd.DataFrame(
+                        structural_matrix,
+                        columns=ScalarFixtureBook.feature_cols,
+                    ),
+                    structural_probability,
+                ),
+            )
+    inconsistent_full = RawComponents([False], [False], [True])
+    with expect_raises(refresh.RefreshError, "components are malformed"):
+        scalar_report(
+            ScalarFixtureBook(None),
+            structural_matrix,
+            structural_matrix.copy(),
+            structural_probability,
+            structural_probability.copy(),
+            cached_components=inconsistent_full,
+        )
+    for malformed_probability in (
+        benign_probability.astype("float32"),
+        benign_probability.astype("int64"),
+    ):
+        with expect_raises(refresh.RefreshError, "inputs are malformed"):
+            refresh._loaded_book_scalar_parity_report(
+                ScalarFixtureBook(None),
+                benign_matrix,
+                benign_matrix.copy(),
+                malformed_probability,
+                benign_probability.copy(),
+                benign_components,
+                benign_components,
+            )
+    with expect_raises(refresh.RefreshError, "inputs are malformed"):
+        refresh._loaded_book_scalar_parity_report(
+            ScalarFixtureBook(None),
+            benign_matrix.astype("int64"),
+            benign_matrix.copy(),
+            benign_probability,
+            benign_probability.copy(),
+            benign_components,
+            benign_components,
+        )
+    nonfinite_matrix = benign_matrix.copy()
+    nonfinite_matrix[0, 0] = np.nan
+    with expect_raises(refresh.RefreshError, "inputs are malformed"):
+        refresh._loaded_book_scalar_parity_report(
+            ScalarFixtureBook(None),
+            nonfinite_matrix,
+            benign_matrix.copy(),
+            benign_probability,
+            benign_probability.copy(),
+            benign_components,
+            benign_components,
+        )
 
     # A combined-mask comparison alone cannot see these two policy crossings:
     # cached passes confidence/fails structure, rebuilt does the reverse.
@@ -1954,6 +2277,9 @@ def test_runner_replay_hardening() -> None:
                         "cached_raw_direction_exact": True,
                         "cached_raw_gate_exact": True,
                         "scalar_batch_direction_exact": True,
+                        "scalar_batch_confidence_gate_exact": True,
+                        "scalar_batch_structural_gate_exact": True,
+                        "scalar_batch_combined_gate_exact": True,
                         "scalar_batch_gate_exact": True,
                         "scalar_batch_probability_bits_exact_diagnostic": True,
                         "scalar_batch_probability_bits_binding": False,
@@ -2322,6 +2648,69 @@ def test_runner_replay_hardening() -> None:
         refresh.atomic_json_new(truncated_scalar_path, truncated_scalar)
         with expect_raises(refresh.RefreshError, "scalar behavior"):
             validate_authority(truncated_scalar_path)
+
+        diagnostic_scalar_bits = json.loads(json.dumps(artifact))
+        diagnostic_scalar_bits["pairs"]["USDJPY"][
+            "common_loadedbook_probability"
+        ]["loadedbook_scalar_parity"][
+            "scalar_batch_probability_bits_exact_diagnostic"
+        ] = False
+        diagnostic_scalar_bits_path = repo / "phase-zero-diagnostic-scalar-bits.json"
+        refresh.atomic_json_new(
+            diagnostic_scalar_bits_path, diagnostic_scalar_bits
+        )
+        validate_authority(diagnostic_scalar_bits_path)
+
+        binding_scalar_bits = json.loads(json.dumps(artifact))
+        binding_scalar_bits["pairs"]["USDJPY"][
+            "common_loadedbook_probability"
+        ]["loadedbook_scalar_parity"][
+            "scalar_batch_probability_bits_binding"
+        ] = True
+        binding_scalar_bits_path = repo / "phase-zero-binding-scalar-bits.json"
+        refresh.atomic_json_new(binding_scalar_bits_path, binding_scalar_bits)
+        with expect_raises(refresh.RefreshError, "scalar behavior"):
+            validate_authority(binding_scalar_bits_path)
+
+        for field in (
+            "cached_raw_probability_bits_exact",
+            "cached_raw_direction_exact",
+            "cached_raw_gate_exact",
+            "scalar_batch_direction_exact",
+            "scalar_batch_confidence_gate_exact",
+            "scalar_batch_structural_gate_exact",
+            "scalar_batch_combined_gate_exact",
+            "scalar_batch_gate_exact",
+            "behavior_exact",
+        ):
+            forged_scalar = json.loads(json.dumps(artifact))
+            forged_scalar["pairs"]["USDJPY"][
+                "common_loadedbook_probability"
+            ]["loadedbook_scalar_parity"][field] = False
+            forged_scalar_path = repo / f"phase-zero-forged-scalar-{field}.json"
+            refresh.atomic_json_new(forged_scalar_path, forged_scalar)
+            with expect_raises(refresh.RefreshError, "scalar behavior"):
+                validate_authority(forged_scalar_path)
+
+        missing_scalar_field = json.loads(json.dumps(artifact))
+        missing_scalar_field["pairs"]["USDJPY"][
+            "common_loadedbook_probability"
+        ]["loadedbook_scalar_parity"].pop("scalar_batch_combined_gate_exact")
+        missing_scalar_field_path = repo / "phase-zero-missing-scalar-field.json"
+        refresh.atomic_json_new(missing_scalar_field_path, missing_scalar_field)
+        with expect_raises(refresh.RefreshError, "scalar evidence fields"):
+            validate_authority(missing_scalar_field_path)
+
+        forged_batch_probability = json.loads(json.dumps(artifact))
+        forged_batch_probability["pairs"]["USDJPY"][
+            "common_loadedbook_probability"
+        ]["bit_mismatch_count"] = 1
+        forged_batch_probability_path = repo / "phase-zero-forged-batch.json"
+        refresh.atomic_json_new(
+            forged_batch_probability_path, forged_batch_probability
+        )
+        with expect_raises(refresh.RefreshError, "probability equality"):
+            validate_authority(forged_batch_probability_path)
 
         contradictory_features = json.loads(json.dumps(artifact))
         feature_name = incumbent_contracts["USDJPY"]["feature_cols"][0]

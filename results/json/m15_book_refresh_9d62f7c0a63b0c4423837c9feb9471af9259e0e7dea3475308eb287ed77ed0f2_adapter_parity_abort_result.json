@@ -1,0 +1,167 @@
+{
+  "schema": "m15-book-refresh-adapter-parity-abort/v1",
+  "issue": 9,
+  "status": "ABORTED_PRE_REPLAY",
+  "classification": "pre_replay_loadedbook_scalar_batch_nonbinding_probability_bits_contract_inconsistency",
+  "prereg_id": "9d62f7c0a63b0c4423837c9feb9471af9259e0e7dea3475308eb287ed77ed0f2",
+  "implementation_git_sha": "4c2ebdaa235347914d68f35304bd2daa118e0eee",
+  "failed_command": "PYTHONNOUSERSITE=1 ~/binary-algo-venv/bin/python scripts/m15_book_refresh.py --adapter-parity --prereg-id 9d62f7c0a63b0c4423837c9feb9471af9259e0e7dea3475308eb287ed77ed0f2",
+  "failed_phase": "adapter_parity",
+  "failure_pair": "GBPUSD",
+  "error_type": "m15_book_refresh.RefreshError",
+  "error": "GBPUSD: batch probability differs from LoadedBook.score",
+  "captured_failure": {
+    "location": "the first mismatching rank in the fixed 257-rank scalar probe",
+    "runner_gate": "bitwise equality between the all-row batch probability and singleton LoadedBook.score probability",
+    "runner_stopped_at_first_mismatch": true,
+    "adapter_parity_phase_sealed": false,
+    "adapter_parity_result_created": false
+  },
+  "post_abort_q1_only_audit": {
+    "schema": "m15-book-refresh-loadedbook-scalar-batch-audit/v1",
+    "pair": "GBPUSD",
+    "window": {
+      "entry_at_or_after": "2026-01-01T00:00:00Z",
+      "entry_before": "2026-04-01T00:00:00Z"
+    },
+    "score_rows": 89888,
+    "common_finite_rows": 79280,
+    "fixed_probe_rows": 257,
+    "cached_rebuilt_batch_probability_bit_mismatches": 0,
+    "cached_rebuilt_scalar_probability_bit_mismatches": 0,
+    "cached_rebuilt_scalar_direction_mismatches": 0,
+    "cached_rebuilt_scalar_gate_or_reason_mismatches": 0,
+    "scalar_batch_probability_bit_mismatches_each_matrix": 83,
+    "scalar_batch_probability_ulp_distance_counts_each_matrix": {
+      "1": 77,
+      "2": 6
+    },
+    "scalar_batch_probability_max_ulp_distance": 2,
+    "scalar_batch_probability_max_abs_difference": 2.220446049250313e-16,
+    "scalar_batch_direction_mismatches_each_matrix": 0,
+    "scalar_batch_confidence_gate_mismatches_each_matrix": 0,
+    "scalar_batch_structural_gate_mismatches_each_matrix": 0,
+    "scalar_batch_combined_gate_mismatches_each_matrix": 0,
+    "per_booster_probe_rows_with_bit_mismatch": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "first_mismatch": {
+      "probe_rank": 309,
+      "decision_utc": "2026-01-13T21:10:00+00:00",
+      "scalar_probability_f64_bits_hex": "0x3fe37724cc487426",
+      "batch_probability_f64_bits_hex": "0x3fe37724cc487427",
+      "ulp_distance": 1,
+      "direction_equal": true,
+      "combined_gate_equal": true
+    },
+    "root_cause": "the eight individual LightGBM predictions are bitwise exact; numpy mean reduction association differs between the (8,N) all-row matrix and the (8,1) singleton layout",
+    "lightgbm_or_feature_drift_detected": false,
+    "probability_rounding_or_tolerance_applied": false,
+    "semantic_labels_or_outcomes_read": false
+  },
+  "precommitted_v3_authority": {
+    "path": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v3.json",
+    "sha256": "97a4373e654d52a8d117fceb5fb5b17c9310eb3f49a07ddd594d320e9bda0c24",
+    "mode": "0444",
+    "preserved_immutable": true,
+    "gbpusd_common_finite_rows": 79280,
+    "gbpusd_scalar_probe_rows": 257,
+    "cached_raw_probability_bits_exact": true,
+    "cached_raw_direction_exact": true,
+    "cached_raw_gate_exact": true,
+    "scalar_batch_direction_exact": true,
+    "scalar_batch_gate_exact": true,
+    "scalar_batch_probability_bits_exact_diagnostic": false,
+    "scalar_batch_probability_bits_binding": false,
+    "behavior_exact": true
+  },
+  "sealed_evidence": {
+    "preregistration_result": {
+      "path": "results/json/m15_book_refresh_9d62f7c0a63b0c4423837c9feb9471af9259e0e7dea3475308eb287ed77ed0f2_preregister_result.json",
+      "sha256": "37237fa466a90c3b540b0aaf0726b05373f012e94ec1738a96a00fa4749b3b7f",
+      "mode": "0444"
+    },
+    "data_lock_result": {
+      "path": "results/json/m15_book_refresh_9d62f7c0a63b0c4423837c9feb9471af9259e0e7dea3475308eb287ed77ed0f2_data_lock_result.json",
+      "sha256": "b6941d81a7bda5600756db7d0f00a1dc7a638be2e0944803f82d114dd94e0e8f",
+      "mode": "0444"
+    },
+    "source_phase": {
+      "path": "logs/m15_book_refresh/9d62f7c0a63b0c4423837c9feb9471af9259e0e7dea3475308eb287ed77ed0f2/phases/00_source_preregistration.json",
+      "sha256": "80846b2a64524c5635793511cf45aa9dc12b45ca413df6975b31c34b4e2ed8c3",
+      "mode": "0444"
+    },
+    "derived_data_phase": {
+      "path": "logs/m15_book_refresh/9d62f7c0a63b0c4423837c9feb9471af9259e0e7dea3475308eb287ed77ed0f2/phases/01_derived_data.json",
+      "sha256": "aac23a962ebd3ba292e718859699399cb9c8a767cad70584bea6adf66240ceb4",
+      "mode": "0444"
+    },
+    "exact_null_calibration": {
+      "path": "logs/m15_book_refresh/null_calibration/null_calibration_4c2ebdaa235347914d68f35304bd2daa118e0eee.json",
+      "sha256": "d214e02185d05787ad194c376769c3402aaba5e927de4faa0a5632078faee983",
+      "mode": "0444",
+      "accepted": true
+    },
+    "launch_bound_issue_body_sha256": "998e7101218b597d8fb4193df86eb7cbc064eb9413b20936d549fe0d32fb1ac9",
+    "post_abort_amendment_issue_body_sha256": "cbe81c87ff270d85131cc788090422fac01f7d47650551e1a819b988df8d66bd"
+  },
+  "phase_state": {
+    "last_completed_phase": "derived_data",
+    "sealed_phase_manifests": [
+      "00_source_preregistration.json",
+      "01_derived_data.json"
+    ],
+    "sealed_output_files_present_hash_and_mode_exact": 21,
+    "sealed_snapshot_regular_files": 9,
+    "sealed_feature_view_regular_files": 9,
+    "partial_unsealed_cached_parity_files": 8,
+    "partial_unsealed_cached_parity_mode": "0664",
+    "partial_unsealed_provider_store_files": 7,
+    "partial_unsealed_provider_store_mode": "0664",
+    "adapter_parity_phase_sealed": false,
+    "adapter_parity_result_created": false,
+    "fit_files_created": 0,
+    "model_or_strategy_files_created": 0,
+    "fit_phase_sealed": false,
+    "arm_phase_sealed": false,
+    "replay_start_marker_created": false,
+    "replay_result_created": false
+  },
+  "access_record": {
+    "full_2026_processed_ohlcv_and_covariates_read_for_blind_snapshot": true,
+    "pre_april_label_bearing_adapter_parity_completed_for": [
+      "EURUSD",
+      "USDJPY"
+    ],
+    "pre_april_outcome_free_score_prediction_and_gate_probe_reached_for": [
+      "EURUSD",
+      "USDJPY",
+      "GBPUSD"
+    ],
+    "later_pair_provider_store_covariates_prebuilt_without_pair_parity": true,
+    "pre_april_entry_before": "2026-04-01T00:00:00Z",
+    "april_may_replay_labels_settlement_or_outcomes_accessed": false,
+    "semantic_replay_outcomes_accessed": false,
+    "source_or_book_files_mutated_by_aborted_launch": false
+  },
+  "relaunch": {
+    "required": true,
+    "canonical_all_row_probability_scorer": "book_runtime.LoadedBook.predict_probabilities",
+    "contract_delta": "retain scalar-versus-batch probability bits as a nonbinding diagnostic with no tolerance; bind full cached-versus-rebuilt batch bits, cached-versus-rebuilt scalar bits/directions/gate reasons, and scalar-versus-batch direction plus separate confidence, structural, and combined-gate behavior",
+    "shared_runner_authority_helper_required": true,
+    "model_fit_replay_endpoint_inference_or_promotion_delta": false,
+    "new_phase_zero_authority": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v4.json",
+    "overwrite_prior_authority": false,
+    "reuse_preregistration": false,
+    "reuse_data_lock": false,
+    "reuse_exact_null": false,
+    "reuse_workspace": false
+  }
+}

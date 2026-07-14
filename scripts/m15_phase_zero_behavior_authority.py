@@ -53,11 +53,11 @@ OUTPUT_PATH = (
 # a diagnostic (including a stopped diagnostic) can never satisfy the runner's
 # phase-zero gate by filename substitution.  The version suffix preserves the
 # immutable prior authorities from outcome-blind launches that stopped before
-# fitting or semantic replay (first on Parquet projection, then provider
-# parity on non-binding NaN sign bits).
+# fitting or semantic replay (Parquet projection, provider NaN payload bits,
+# and scalar-versus-batch ensemble-reduction bits respectively).
 ACCEPTANCE_OUTPUT_PATH = (
     REPO_ROOT
-    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v3.json"
+    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v4.json"
 )
 PAIRS = ("USDJPY", "USDCAD")
 ACCEPTANCE_TARGET_PAIRS = (
@@ -538,25 +538,6 @@ def _timestamps(values: np.ndarray) -> list[str]:
     ]
 
 
-def _scalar_probe_exact(
-    book: book_runtime.LoadedBook, matrix: np.ndarray, probabilities: np.ndarray
-) -> tuple[int, bool]:
-    count = min(257, len(probabilities))
-    ranks = np.unique(
-        np.floor(np.linspace(0, len(probabilities) - 1, count)).astype("int64")
-    )
-    exact = True
-    for rank in ranks:
-        scalar = book.score(
-            pd.Series(matrix[rank], index=book.feature_cols, dtype="float64")
-        )
-        exact &= bool(
-            np.float64(scalar.proba).view("uint64")
-            == probabilities[rank].view("uint64")
-        )
-    return len(ranks), exact
-
-
 def _full_selection(
     book: book_runtime.LoadedBook,
     matrix: np.ndarray,
@@ -766,11 +747,14 @@ def _analyze_pair(pair: str, book: book_runtime.LoadedBook) -> dict[str, Any]:
         cached_full_set = set(int(value) for value in cached_full_selected)
         raw_full_set = set(int(value) for value in raw_full_selected)
 
-        cached_probe_rows, cached_probe_exact = _scalar_probe_exact(
-            book, cached_X[common], cached_common_probability
-        )
-        raw_probe_rows, raw_probe_exact = _scalar_probe_exact(
-            book, raw_X[common], raw_common_probability
+        scalar_parity = refresh._loaded_book_scalar_parity_report(
+            book,
+            cached_X[common],
+            raw_X[common],
+            cached_common_probability,
+            raw_common_probability,
+            cached_common_components,
+            raw_common_components,
         )
         diagnostics = refresh._decoded_diagnostics(
             book.feature_cols, cached_X, raw_X
@@ -795,10 +779,7 @@ def _analyze_pair(pair: str, book: book_runtime.LoadedBook) -> dict[str, Any]:
                 )
             ),
             "loadedbook_scalar_probes_exact": bool(
-                cached_probe_rows > 0
-                and cached_probe_rows == raw_probe_rows
-                and cached_probe_exact
-                and raw_probe_exact
+                scalar_parity["behavior_exact"]
             ),
             "common_gate_components_exact": bool(
                 np.array_equal(
@@ -952,10 +933,7 @@ def _analyze_pair(pair: str, book: book_runtime.LoadedBook) -> dict[str, Any]:
             "raw_rebuilt_f64le_sha256": _array_sha(
                 raw_common_probability, "<f8"
             ),
-            "cached_scalar_probe_rows": cached_probe_rows,
-            "cached_scalar_exact": cached_probe_exact,
-            "raw_rebuilt_scalar_probe_rows": raw_probe_rows,
-            "raw_rebuilt_scalar_exact": raw_probe_exact,
+            "loadedbook_scalar_parity": scalar_parity,
         },
         "gate_components": {
             "population": "common_finite_rows_only",
@@ -1611,81 +1589,6 @@ def _acceptance_provider_report(
     }
 
 
-def _loadedbook_scalar_parity_report(
-    book: book_runtime.LoadedBook,
-    cached_matrix: np.ndarray,
-    raw_matrix: np.ndarray,
-    cached_probability: np.ndarray,
-    raw_probability: np.ndarray,
-    cached_components: book_runtime.BookGateComponents,
-    raw_components: book_runtime.BookGateComponents,
-) -> dict[str, Any]:
-    count = min(257, len(cached_probability))
-    ranks = np.unique(
-        np.floor(np.linspace(0, len(cached_probability) - 1, count)).astype(
-            "int64"
-        )
-    )
-    cached_raw_probability_bits_exact = True
-    cached_raw_direction_exact = True
-    cached_raw_gate_exact = True
-    scalar_batch_direction_exact = True
-    scalar_batch_gate_exact = True
-    scalar_batch_probability_bits_exact = True
-    for rank in ranks:
-        cached = book.score(
-            pd.Series(
-                cached_matrix[rank], index=book.feature_cols, dtype="float64"
-            )
-        )
-        raw = book.score(
-            pd.Series(raw_matrix[rank], index=book.feature_cols, dtype="float64")
-        )
-        cached_bits = np.float64(cached.proba).view("uint64")
-        raw_bits = np.float64(raw.proba).view("uint64")
-        cached_raw_probability_bits_exact &= bool(cached_bits == raw_bits)
-        cached_raw_direction_exact &= cached.direction == raw.direction
-        cached_raw_gate_exact &= bool(
-            cached.gate_passed == raw.gate_passed
-            and cached.gate_reasons == raw.gate_reasons
-        )
-        scalar_batch_direction_exact &= bool(
-            cached.direction
-            == ("UP" if cached_probability[rank] >= 0.5 else "DOWN")
-            and raw.direction
-            == ("UP" if raw_probability[rank] >= 0.5 else "DOWN")
-        )
-        scalar_batch_gate_exact &= bool(
-            cached.gate_passed == cached_components.gate_passed[rank]
-            and raw.gate_passed == raw_components.gate_passed[rank]
-        )
-        scalar_batch_probability_bits_exact &= bool(
-            cached_bits == cached_probability[rank].view("uint64")
-            and raw_bits == raw_probability[rank].view("uint64")
-        )
-    behavior_exact = bool(
-        len(ranks) > 0
-        and cached_raw_probability_bits_exact
-        and cached_raw_direction_exact
-        and cached_raw_gate_exact
-        and scalar_batch_direction_exact
-        and scalar_batch_gate_exact
-    )
-    return {
-        "probe_rows": len(ranks),
-        "cached_raw_probability_bits_exact": cached_raw_probability_bits_exact,
-        "cached_raw_direction_exact": cached_raw_direction_exact,
-        "cached_raw_gate_exact": cached_raw_gate_exact,
-        "scalar_batch_direction_exact": scalar_batch_direction_exact,
-        "scalar_batch_gate_exact": scalar_batch_gate_exact,
-        "scalar_batch_probability_bits_exact_diagnostic": (
-            scalar_batch_probability_bits_exact
-        ),
-        "scalar_batch_probability_bits_binding": False,
-        "behavior_exact": behavior_exact,
-    }
-
-
 def _acceptance_verdict(checks: dict[str, bool]) -> str:
     required = {
         "outcome_free_score_adapter_exact",
@@ -1762,7 +1665,7 @@ def _analyze_acceptance_target(
     raw_full_probability, raw_full_components, raw_full_selected = _full_selection(
         book, raw_X, decision_ns, raw_eligible
     )
-    scalar_parity = _loadedbook_scalar_parity_report(
+    scalar_parity = refresh._loaded_book_scalar_parity_report(
         book,
         cached_X[common],
         raw_X[common],
