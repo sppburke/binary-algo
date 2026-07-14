@@ -523,10 +523,7 @@ def build_eurusd_xpof_rows(
     _validate_source_files(orderflow_dir, ("EURUSD",), years)
     xp = _import_m15_eur_builder()
     with _temporary_attrs(xp, FEAT=str(feature_dir), OFDIR=str(orderflow_dir)):
-        frame = xp.build_xp(list(years), stride)
-        xpair_cols = xp.xp_cols(frame)
-        frame = xp.augment(frame, list(years), "xpof")
-        cols = tuple(xp.feat_cols("xpof", frame, xpair_cols))
+        frame, cols = _build_eurusd_xpof_provenance_units(xp, years, stride)
     contract = CONTRACTS["EURUSD"]
     _validate_feature_contract(contract, cols)
     ts_s = _frame_seconds(frame, "EURUSD")
@@ -546,6 +543,81 @@ def build_eurusd_xpof_rows(
         fixed_utc_cal,
         stride,
     )
+
+
+def _build_eurusd_xpof_provenance_units(
+    builder: Any,
+    years: Sequence[str | int],
+    stride: int,
+) -> tuple[pd.DataFrame, tuple[str, ...]]:
+    """Build EURUSD as ordered, indivisible nominal-file provenance units.
+
+    The legacy builder already constructs cross-pair labels one nominal year at
+    a time.  Its multi-year ``augment`` path instead concatenates base and
+    order-flow inputs before joining, which can create a many-to-many product
+    where adjacent nominal files share a boundary clock.  Keep each label,
+    base, and order-flow recipe in the same nominal provenance unit, then
+    concatenate completed units without sorting or deduplicating.  The strict
+    final clock check deliberately rejects any remaining overlap or reversal.
+    """
+
+    normalized_years = _validate_years(years)
+    if isinstance(stride, bool) or not isinstance(stride, (int, np.integer)) or stride <= 0:
+        raise AdapterError("EURUSD: provenance-unit stride must be a positive integer")
+    stride = int(stride)
+    units: list[pd.DataFrame] = []
+    expected_frame_columns: tuple[str, ...] | None = None
+    expected_xpair_columns: tuple[str, ...] | None = None
+    expected_feature_columns: tuple[str, ...] | None = None
+    required_meta = {"_ts", "_fwd", "sess_ny"}
+    for year in normalized_years:
+        unit = builder.build_xp([year], stride)
+        if not isinstance(unit, pd.DataFrame):
+            raise AdapterError(f"EURUSD {year}: build_xp did not return a DataFrame")
+        raw_xpair_columns = builder.xp_cols(unit)
+        try:
+            xpair_columns = tuple(str(value) for value in raw_xpair_columns)
+        except TypeError as exc:
+            raise AdapterError(f"EURUSD {year}: xpair columns are not iterable") from exc
+        unit = builder.augment(unit, [year], "xpof")
+        if not isinstance(unit, pd.DataFrame):
+            raise AdapterError(f"EURUSD {year}: augment did not return a DataFrame")
+        if unit.columns.has_duplicates:
+            raise AdapterError(f"EURUSD {year}: augmented frame has duplicate columns")
+        frame_columns = tuple(str(value) for value in unit.columns)
+        missing_meta = sorted(required_meta.difference(frame_columns))
+        if missing_meta:
+            raise AdapterError(
+                f"EURUSD {year}: augmented frame is missing metadata {missing_meta}"
+            )
+        raw_feature_columns = builder.feat_cols("xpof", unit, list(xpair_columns))
+        try:
+            feature_columns = tuple(str(value) for value in raw_feature_columns)
+        except TypeError as exc:
+            raise AdapterError(f"EURUSD {year}: feature columns are not iterable") from exc
+        if any(column not in unit.columns for column in feature_columns):
+            raise AdapterError(f"EURUSD {year}: feature schema is absent from augmented frame")
+        _frame_seconds(unit, "EURUSD")
+        if expected_frame_columns is None:
+            expected_frame_columns = frame_columns
+            expected_xpair_columns = xpair_columns
+            expected_feature_columns = feature_columns
+        elif (
+            frame_columns != expected_frame_columns
+            or xpair_columns != expected_xpair_columns
+            or feature_columns != expected_feature_columns
+        ):
+            raise AdapterError(
+                f"EURUSD {year}: nominal provenance-unit schema/order differs"
+            )
+        units.append(unit)
+    if not units or expected_feature_columns is None:
+        raise AdapterError("EURUSD: no nominal provenance units were constructed")
+    frame = pd.concat(units, axis=0, copy=False)
+    if tuple(str(value) for value in frame.columns) != expected_frame_columns:
+        raise AdapterError("EURUSD: provenance-unit concatenation changed frame order")
+    _frame_seconds(frame, "EURUSD")
+    return frame, expected_feature_columns
 
 
 def build_xpair_rows(
@@ -667,12 +739,8 @@ def direct_incumbent_builder_parity_report(
         with _temporary_attrs(
             builder, FEAT=str(feature_path), OFDIR=str(orderflow_path)
         ):
-            frame = builder.build_xp(list(normalized_years), direct_stride)
-            xpair_cols = builder.xp_cols(frame)
-            frame = builder.augment(frame, list(normalized_years), "xpof")
-            direct_cols = tuple(
-                str(value)
-                for value in builder.feat_cols("xpof", frame, xpair_cols)
+            frame, direct_cols = _build_eurusd_xpof_provenance_units(
+                builder, normalized_years, direct_stride
             )
         source_s = _frame_seconds(frame, pair)
         fwd = np.asarray(frame["_fwd"], dtype="float64")

@@ -54,10 +54,11 @@ OUTPUT_PATH = (
 # phase-zero gate by filename substitution.  The version suffix preserves the
 # immutable prior authorities from outcome-blind launches that stopped before
 # fitting or semantic replay (Parquet projection, provider NaN payload bits,
-# and scalar-versus-batch ensemble-reduction bits respectively).
+# scalar-versus-batch ensemble-reduction bits, and historical nominal-file
+# provenance assembly respectively).
 ACCEPTANCE_OUTPUT_PATH = (
     REPO_ROOT
-    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v4.json"
+    / "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v5.json"
 )
 PAIRS = ("USDJPY", "USDCAD")
 ACCEPTANCE_TARGET_PAIRS = (

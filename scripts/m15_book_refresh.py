@@ -45,7 +45,7 @@ RESULTS_JSON = REPO_ROOT / "results" / "json"
 WORK_ROOT = REPO_ROOT / "logs" / "m15_book_refresh"
 PROCESSED_ROOT = Path("/home/sean/git/processed")
 PHASE_ZERO_AUTHORITY_PATH = (
-    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v4.json"
+    RESULTS_JSON / "m15_book_refresh_2026q1_phase_zero_acceptance_v5.json"
 )
 PHASE_ZERO_FLOAT32_LIVE_FEATURES_SHA256 = (
     "c485766d2dda85339938d59180056287ee5826ad275ff4d988588bdc2d201198"
@@ -4580,6 +4580,111 @@ def _loaded_book_scalar_parity_report(
     }
 
 
+def _fit_source_years(base_arm: str) -> tuple[list[str], list[str]]:
+    """Return the single authority for nominal fit and calibration inputs."""
+
+    if base_arm == "B":
+        return [str(year) for year in range(2012, 2022)], ["2021", "2022", "2023"]
+    if base_arm == "C":
+        return [str(year) for year in range(2012, 2026)], ["2025", "2026"]
+    raise RefreshError(f"unknown base fit arm {base_arm!r}")
+
+
+def _historical_builder_preflight_report(
+    workspace: Path,
+    spec: Mapping[str, Any],
+    expected_feature_cols: Mapping[str, Sequence[str]],
+) -> dict[str, Any]:
+    """Exercise every exact multi-year builder clock before any model attempt."""
+
+    import gc
+
+    from m15_book_refresh_adapters import build_rows, contract_for
+
+    feature_dir = workspace / "feature_views" / "fit_features"
+    orderflow_dir = workspace / "feature_views" / "fit_features_of"
+    plans: list[tuple[str, str, list[str]]] = []
+    for arm in ("B", "C"):
+        fit_years, calibration_years = _fit_source_years(arm)
+        plans.extend(
+            [
+                (f"{arm}_fit", "fit", fit_years),
+                (f"{arm}_calibration", "calibration", calibration_years),
+            ]
+        )
+    report: dict[str, Any] = {
+        "schema": "m15-book-refresh-historical-builder-preflight/v1",
+        "pair_order": list(spec["pair_order"]),
+        "window_order": [name for name, _, _ in plans],
+        "label_bearing_builder_exercised": True,
+        "april_may_replay_outcomes_accessed": False,
+        "correction_layer_calendar_clipping_sorting_or_deduplication_applied": False,
+        "incumbent_per_file_duplicate_handling_preserved": True,
+        "all_strict_clock_schema_and_alignment_checks_passed": True,
+        "pairs": {},
+    }
+    for pair in spec["pair_order"]:
+        contract = contract_for(pair)
+        expected_cols = tuple(str(value) for value in expected_feature_cols[pair])
+        if len(expected_cols) != contract.n_features:
+            raise RefreshError(f"{pair}: preflight incumbent feature contract differs")
+        pair_report: dict[str, Any] = {}
+        for name, purpose, years in plans:
+            consumers = _feature_view_consumer_paths(
+                workspace,
+                pair,
+                years,
+                feature_dir=feature_dir,
+                orderflow_dir=orderflow_dir,
+            )
+            with verified_feature_view_access(workspace, consumers):
+                rows = build_rows(
+                    pair,
+                    years,
+                    purpose=purpose,
+                    feature_dir=feature_dir,
+                    orderflow_dir=orderflow_dir,
+                )
+            expected_stride = contract.fit_stride if purpose == "fit" else 1
+            if rows.builder_stride != expected_stride:
+                raise RefreshError(f"{pair} {name}: builder stride differs")
+            if rows.feature_cols != expected_cols:
+                raise RefreshError(f"{pair} {name}: feature contract differs")
+            if rows.X.dtype != np.dtype("float32") or not rows.X.flags.c_contiguous:
+                raise RefreshError(f"{pair} {name}: feature matrix contract differs")
+            row_count = len(rows.fit_row_id)
+            if row_count < 1:
+                raise RefreshError(f"{pair} {name}: builder returned no rows")
+            pair_report[name] = {
+                "purpose": purpose,
+                "nominal_years": list(years),
+                "rows": row_count,
+                "feature_count": len(rows.feature_cols),
+                "feature_cols_sha256": sha256_bytes(
+                    canonical_bytes(list(rows.feature_cols))
+                ),
+                "feature_dtype": "float32",
+                "builder_stride": rows.builder_stride,
+                "source_feature_clock_i64le_sha256": sha256_bytes(
+                    np.asarray(rows.source_feature_ns, dtype="<i8").tobytes()
+                ),
+                "decision_clock_i64le_sha256": sha256_bytes(
+                    np.asarray(rows.fit_row_id, dtype="<i8").tobytes()
+                ),
+                "label_exit_clock_i64le_sha256": sha256_bytes(
+                    np.asarray(rows.label_exit_ns, dtype="<i8").tobytes()
+                ),
+                "strictly_increasing_unique": True,
+                "row_alignment_exact": True,
+                "feature_contract_exact": True,
+                "read_only_routes_verified": True,
+            }
+            del rows
+            gc.collect()
+        report["pairs"][pair] = pair_report
+    return report
+
+
 def run_adapter_parity(prereg_id: str) -> Path:
     """Seal pre-April decoded diagnostics and exact policy-behavior parity."""
 
@@ -4908,8 +5013,13 @@ def run_adapter_parity(prereg_id: str) -> Path:
             "decoded_diagnostics": diagnostics,
             "provider_parity": provider_parity,
         }
-    _verify_feature_view_routes(workspace)
     _remove_owned_tree(live_provider_store)
+    report["historical_builder_preflight"] = _historical_builder_preflight_report(
+        workspace,
+        spec,
+        {pair: tuple(books[pair].feature_cols) for pair in spec["pair_order"]},
+    )
+    _verify_feature_view_routes(workspace)
     path = parity_root / "parity.json"
     atomic_json_new(path, report)
     tracked = RESULTS_JSON / f"m15_book_refresh_{prereg_id}_parity_result.json"
@@ -5031,16 +5141,10 @@ def _validate_frozen_fit_contract(
     if resolved.get("model_parameters_by_seed") != expected_parameters:
         raise RefreshError(f"{pair} {arm}: model parameters differ from adapter/spec authority")
 
+    fit_years, validation_years = _fit_source_years(base_arm)
     expected_years = {
-        "fit": [
-            str(year)
-            for year in range(2012, 2022 if base_arm == "B" else 2026)
-        ],
-        "validation_and_calibration": (
-            ["2021", "2022", "2023"]
-            if base_arm == "B"
-            else ["2025", "2026"]
-        ),
+        "fit": fit_years,
+        "validation_and_calibration": validation_years,
     }
     if resolved.get("nominal_source_years") != expected_years:
         raise RefreshError(f"{pair} {arm}: nominal source-year contract differs")
@@ -5915,13 +6019,10 @@ def fit_one(prereg_id: str, pair: str, arm: str, attempt: str) -> Path:
         if base_arm == "C" and not is_control
         else f"workspace:{pair}:{arm}"
     )
-    fit_years = [str(year) for year in range(2012, 2022 if base_arm == "B" else 2026)]
     # Nominal file names are never split authority.  Include the adjacent
     # boundary file so rows whose UTC timestamp spills across its filename
     # year can be admitted (or excluded) only by the exact split masks below.
-    validation_years = (
-        ["2021", "2022", "2023"] if base_arm == "B" else ["2025", "2026"]
-    )
+    fit_years, validation_years = _fit_source_years(base_arm)
     _verify_preregistered_inventory(
         prereg,
         "historical_feature_files",

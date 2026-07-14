@@ -1835,6 +1835,246 @@ def test_direct_incumbent_builder_parity() -> None:
         )
 
 
+def test_historical_builder_provenance_preflight() -> None:
+    columns = _synthetic_contract_columns("EURUSD")
+    indexes = {
+        "2000": pd.DatetimeIndex(
+            ["2000-12-30T16:00:00Z", "2000-12-31T16:00:00Z"]
+        ),
+        "2001": pd.DatetimeIndex(
+            ["2001-01-01T16:00:00Z", "2001-01-02T16:00:00Z"]
+        ),
+    }
+
+    def unit_frame(year: str, index: pd.DatetimeIndex | None = None) -> pd.DataFrame:
+        clock = indexes[year] if index is None else index
+        offset = 10.0 if year == "2000" else 20.0
+        values = {
+            column: np.array([offset, offset + 1.0], dtype="float32")
+            for column in columns
+        }
+        values.update(
+            _ts=(clock.as_unit("ns").asi8 // adapters.NS_PER_SECOND).astype("int64"),
+            _fwd=np.array([0.1, -0.1], dtype="float64"),
+            sess_ny=np.ones(2, dtype="float64"),
+        )
+        return pd.DataFrame(values, index=clock)
+
+    calls: list[tuple[str, tuple[str, ...]]] = []
+    builder = mock.Mock(FEAT="sentinel-feat", OFDIR="sentinel-of")
+
+    def build_xp(years: list[str], stride: int) -> pd.DataFrame:
+        equal(len(years), 1, "EUR provenance build was not a singleton year")
+        calls.append(("build", tuple(years)))
+        equal(stride, adapters.contract_for("EURUSD").fit_stride, "EUR stride")
+        return unit_frame(years[0])
+
+    def augment(frame: pd.DataFrame, years: list[str], mode: str) -> pd.DataFrame:
+        equal(len(years), 1, "EUR provenance augment was not a singleton year")
+        equal(mode, "xpof", "EUR provenance augment mode")
+        calls.append(("augment", tuple(years)))
+        return frame
+
+    builder.build_xp.side_effect = build_xp
+    builder.xp_cols.side_effect = lambda frame: list(columns[:4])
+    builder.augment.side_effect = augment
+    builder.feat_cols.side_effect = lambda mode, frame, xpair: list(columns)
+    with (
+        mock.patch.object(adapters, "_validate_source_files"),
+        mock.patch.object(adapters, "_import_m15_eur_builder", return_value=builder),
+    ):
+        rows = adapters.build_rows(
+            "EURUSD",
+            ["2000", "2001"],
+            purpose="fit",
+            feature_dir="/synthetic/features",
+            orderflow_dir="/synthetic/features_of",
+        )
+        report = adapters.direct_incumbent_builder_parity_report(
+            rows,
+            ["2000", "2001"],
+            purpose="fit",
+            feature_dir="/synthetic/features",
+            orderflow_dir="/synthetic/features_of",
+            entry_at_or_after="2000-01-01T00:00:00Z",
+            label_exit_before="2002-01-01T00:00:00Z",
+            cap=3,
+        )
+    check(report["all_equal"], f"EUR provenance direct parity failed: {report}")
+    check(
+        np.array_equal(rows.X[:, 0], np.array([10.0, 11.0, 20.0, 21.0], dtype="float32")),
+        "EUR provenance units did not retain their own feature payloads",
+    )
+    equal(
+        calls,
+        [
+            ("build", ("2000",)),
+            ("augment", ("2000",)),
+            ("build", ("2001",)),
+            ("augment", ("2001",)),
+        ] * 2,
+        "EUR adapter/direct parity did not independently use singleton provenance units",
+    )
+
+    duplicate_builder = mock.Mock()
+    duplicate_builder.build_xp.side_effect = lambda years, stride: unit_frame(
+        years[0],
+        indexes[years[0]]
+        if years[0] == "2000"
+        else pd.DatetimeIndex(
+            ["2000-12-31T16:00:00Z", "2001-01-01T16:00:00Z"]
+        ),
+    )
+    duplicate_builder.xp_cols.side_effect = lambda frame: list(columns[:4])
+    duplicate_builder.augment.side_effect = lambda frame, years, mode: frame
+    duplicate_builder.feat_cols.side_effect = lambda mode, frame, xpair: list(columns)
+    with expect_raises(adapters.AdapterError, "strictly increasing and unique"):
+        adapters._build_eurusd_xpof_provenance_units(
+            duplicate_builder, ["2000", "2001"], 4
+        )
+
+    reversed_builder = mock.Mock()
+    reversed_builder.build_xp.side_effect = lambda years, stride: unit_frame(
+        years[0],
+        indexes[years[0]]
+        if years[0] == "2000"
+        else pd.DatetimeIndex(
+            ["2000-12-29T16:00:00Z", "2001-01-01T16:00:00Z"]
+        ),
+    )
+    reversed_builder.xp_cols.side_effect = lambda frame: list(columns[:4])
+    reversed_builder.augment.side_effect = lambda frame, years, mode: frame
+    reversed_builder.feat_cols.side_effect = lambda mode, frame, xpair: list(columns)
+    with expect_raises(adapters.AdapterError, "strictly increasing and unique"):
+        adapters._build_eurusd_xpof_provenance_units(
+            reversed_builder, ["2000", "2001"], 4
+        )
+
+    schema_builder = mock.Mock()
+    schema_builder.build_xp.side_effect = lambda years, stride: unit_frame(years[0])
+    schema_builder.xp_cols.side_effect = lambda frame: list(columns[:4])
+    schema_builder.augment.side_effect = lambda frame, years, mode: frame
+    schema_builder.feat_cols.side_effect = (
+        lambda mode, frame, xpair: (
+            list(columns)
+            if frame.index[0].year == 2000
+            else list(reversed(columns))
+        )
+    )
+    with expect_raises(adapters.AdapterError, "schema/order differs"):
+        adapters._build_eurusd_xpof_provenance_units(
+            schema_builder, ["2000", "2001"], 4
+        )
+    with expect_raises(adapters.AdapterError, "strictly increasing and unique"):
+        adapters._build_eurusd_xpof_provenance_units(
+            builder, ["2001", "2000"], 4
+        )
+
+    spec = refresh.load_spec()
+    expected = {
+        pair: _synthetic_contract_columns(pair) for pair in spec["pair_order"]
+    }
+    preflight_calls: list[tuple[str, tuple[str, ...], str]] = []
+
+    def synthetic_build_rows(
+        pair: str,
+        years: Sequence[str],
+        *,
+        purpose: str,
+        **kwargs: Any,
+    ) -> adapters.AdapterRows:
+        preflight_calls.append((pair, tuple(years), purpose))
+        entry = pd.date_range(
+            "2020-01-02T13:00:00Z", periods=2, freq="15min"
+        ).as_unit("ns").asi8.astype("int64")
+        return _synthetic_adapter_rows(
+            pair,
+            purpose=purpose,
+            entry_ns=entry,
+            moved=np.ones(2, dtype=bool),
+            y=np.array([1, 0], dtype="uint8"),
+            fit_session=np.ones(2, dtype=bool),
+        )
+
+    @contextmanager
+    def synthetic_route_access(*args: Any, **kwargs: Any) -> Iterator[None]:
+        yield
+
+    with (
+        mock.patch.object(adapters, "build_rows", side_effect=synthetic_build_rows),
+        mock.patch.object(
+            refresh,
+            "_feature_view_consumer_paths",
+            side_effect=lambda workspace, pair, years, **kwargs: (
+                Path(f"/synthetic/{pair}/{'-'.join(str(year) for year in years)}"),
+            ),
+        ),
+        mock.patch.object(
+            refresh, "verified_feature_view_access", synthetic_route_access
+        ),
+    ):
+        preflight = refresh._historical_builder_preflight_report(
+            Path("/synthetic/workspace"), spec, expected
+        )
+    check(
+        preflight["all_strict_clock_schema_and_alignment_checks_passed"],
+        "historical preflight did not bind all checks",
+    )
+    equal(
+        preflight["window_order"],
+        ["B_fit", "B_calibration", "C_fit", "C_calibration"],
+        "historical preflight window order",
+    )
+    equal(len(preflight_calls), 4 * len(spec["pair_order"]), "preflight call count")
+    for pair in spec["pair_order"]:
+        equal(
+            preflight["pairs"][pair]["B_fit"]["nominal_years"],
+            [str(year) for year in range(2012, 2022)],
+            f"{pair} B fit preflight years",
+        )
+        equal(
+            preflight["pairs"][pair]["B_calibration"]["nominal_years"],
+            ["2021", "2022", "2023"],
+            f"{pair} B calibration preflight years",
+        )
+        equal(
+            preflight["pairs"][pair]["C_fit"]["nominal_years"],
+            [str(year) for year in range(2012, 2026)],
+            f"{pair} C fit preflight years",
+        )
+        equal(
+            preflight["pairs"][pair]["C_calibration"]["nominal_years"],
+            ["2025", "2026"],
+            f"{pair} C calibration preflight years",
+        )
+        expected_pair_calls = [
+            (pair, tuple(str(year) for year in range(2012, 2022)), "fit"),
+            (pair, ("2021", "2022", "2023"), "calibration"),
+            (pair, tuple(str(year) for year in range(2012, 2026)), "fit"),
+            (pair, ("2025", "2026"), "calibration"),
+        ]
+        pair_calls = [row for row in preflight_calls if row[0] == pair]
+        equal(pair_calls, expected_pair_calls, f"{pair} exact preflight call contract")
+
+    drift_expected = dict(expected)
+    drift_expected["EURUSD"] = tuple(reversed(drift_expected["EURUSD"]))
+    with (
+        mock.patch.object(adapters, "build_rows", side_effect=synthetic_build_rows),
+        mock.patch.object(
+            refresh,
+            "_feature_view_consumer_paths",
+            return_value=(Path("/synthetic/drift"),),
+        ),
+        mock.patch.object(
+            refresh, "verified_feature_view_access", synthetic_route_access
+        ),
+        expect_raises(refresh.RefreshError, "feature contract differs"),
+    ):
+        refresh._historical_builder_preflight_report(
+            Path("/synthetic/workspace"), spec, drift_expected
+        )
+
+
 def _feature_route_fixture(root: Path) -> tuple[Path, Path, Path]:
     workspace = root / "workspace"
     targets = workspace / "feature_snapshot" / "features"
@@ -7355,6 +7595,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
         "direct_builder_parity": run_section(
             "direct incumbent-builder parity", test_direct_incumbent_builder_parity
+        ),
+        "historical_builder_preflight": run_section(
+            "historical provenance-unit builder preflight",
+            test_historical_builder_provenance_preflight,
         ),
         "feature_view_routing": run_section(
             "sealed feature-view routing", test_feature_view_routing

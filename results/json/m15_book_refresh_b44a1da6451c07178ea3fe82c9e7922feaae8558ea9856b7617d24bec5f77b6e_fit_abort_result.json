@@ -1,0 +1,253 @@
+{
+  "access_record": {
+    "april_may_replay_labels_settlement_or_outcomes_accessed": false,
+    "full_2026_processed_ohlcv_and_covariates_read_for_blind_snapshot": true,
+    "historical_fit_builder_access": {
+      "adapter_rows_constructed": false,
+      "fit_row_partition_or_label_hash_created": false,
+      "forward_labels_derived_inside_legacy_builder": true,
+      "nominal_years": [
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021"
+      ],
+      "pair": "EURUSD",
+      "validation_or_calibration_builder_invoked": false
+    },
+    "post_abort_audit_scope": "historical and physically pre-April clocks, builder provenance, row counts, and feature equality only; no performance result or April-May semantic replay outcome",
+    "pre_april_entry_before": "2026-04-01T00:00:00Z",
+    "pre_april_label_bearing_adapter_parity_completed_for": [
+      "EURUSD",
+      "USDJPY",
+      "GBPUSD",
+      "USDCHF",
+      "AUDUSD",
+      "NZDUSD"
+    ],
+    "semantic_replay_outcomes_accessed": false,
+    "source_or_book_files_mutated_by_aborted_launch": false
+  },
+  "boundary_provenance_audit": {
+    "affected_b_fit_timestamps": [
+      "2018-12-31T16:00:00Z",
+      "2019-12-31T16:00:00Z",
+      "2020-12-31T16:00:00Z"
+    ],
+    "all_base_and_orderflow_sources_share_same_boundary_pattern": true,
+    "all_base_sources": [
+      "EURUSD",
+      "GBPUSD",
+      "AUDUSD",
+      "NZDUSD",
+      "USDJPY",
+      "USDCHF",
+      "USDCAD"
+    ],
+    "augmented_b_frame": {
+      "duplicate_rows_keep_false": 12,
+      "duplicate_timestamps": 3,
+      "max_multiplicity": 4,
+      "nonincreasing_transitions": 9,
+      "rows": 922027,
+      "unique_timestamps": 922018
+    },
+    "classification": "multi_year_base_by_orderflow_cartesian_join",
+    "independent_right_year_invocation_comparison": [
+      {
+        "differing_feature_counts_by_cartesian_row": [
+          242,
+          224,
+          18,
+          0
+        ],
+        "only_matching_cartesian_row_zero_based": 3,
+        "right_year": "2019",
+        "timestamp": "2018-12-31T16:00:00Z"
+      },
+      {
+        "differing_feature_counts_by_cartesian_row": [
+          245,
+          227,
+          18,
+          0
+        ],
+        "only_matching_cartesian_row_zero_based": 3,
+        "right_year": "2020",
+        "timestamp": "2019-12-31T16:00:00Z"
+      },
+      {
+        "differing_feature_counts_by_cartesian_row": [
+          241,
+          223,
+          18,
+          0
+        ],
+        "only_matching_cartesian_row_zero_based": 3,
+        "right_year": "2021",
+        "timestamp": "2020-12-31T16:00:00Z"
+      }
+    ],
+    "legacy_build_xp_b_frame": {
+      "duplicate_timestamps": 0,
+      "nonincreasing_transitions": 0,
+      "rows": 922018,
+      "strictly_increasing_unique": true
+    },
+    "other_b_fit_builder_clock_audit": {
+      "AUDUSD": {
+        "rows": 619948,
+        "strictly_increasing_unique": true
+      },
+      "GBPUSD": {
+        "rows": 1239001,
+        "strictly_increasing_unique": true
+      },
+      "NZDUSD": {
+        "rows": 619877,
+        "strictly_increasing_unique": true
+      },
+      "USDCHF": {
+        "rows": 1239001,
+        "strictly_increasing_unique": true
+      },
+      "USDJPY": {
+        "rows": 620125,
+        "strictly_increasing_unique": true
+      }
+    },
+    "raw_adjacent_nominal_file_boundaries": [
+      {
+        "left_year": 2018,
+        "right_year": 2019,
+        "shared_timestamp": "2018-12-31T16:00:00Z",
+        "shared_timestamp_count_each_source": 1
+      },
+      {
+        "left_year": 2019,
+        "right_year": 2020,
+        "shared_timestamp": "2019-12-31T16:00:00Z",
+        "shared_timestamp_count_each_source": 1
+      },
+      {
+        "left_year": 2020,
+        "right_year": 2021,
+        "shared_timestamp": "2020-12-31T16:00:00Z",
+        "shared_timestamp_count_each_source": 1
+      },
+      {
+        "left_year": 2024,
+        "right_year": 2025,
+        "shared_timestamp": "2024-12-31T16:00:00Z",
+        "shared_timestamp_count_each_source": 1
+      }
+    ],
+    "raw_sources": "seven base-pair feature stores plus EURUSD order flow",
+    "right_year_base_and_right_year_orderflow_is_independent_match": true,
+    "schema": "m15-book-refresh-eurusd-boundary-provenance-audit/v1"
+  },
+  "classification": "pre_replay_eurusd_multi_year_augmentation_boundary_provenance_conflict",
+  "error": "EURUSD builder index: timestamps must be strictly increasing and unique",
+  "error_type": "m15_book_refresh_adapters.AdapterError",
+  "failed_arm": "B",
+  "failed_attempt": "canonical",
+  "failed_command": "PYTHONNOUSERSITE=1 ~/binary-algo-venv/bin/python scripts/m15_book_refresh.py --run-fits --prereg-id b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e",
+  "failed_leaf_command": "/home/sean/binary-algo-venv/bin/python /home/sean/git/binary-algo/scripts/m15_book_refresh.py --fit-one --prereg-id b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e --pair EURUSD --arm B --attempt canonical",
+  "failed_phase": "fits",
+  "failure_location": "build_fit_rows -> build_eurusd_xpof_rows -> _frame_seconds -> _datetime_index_ns",
+  "failure_pair": "EURUSD",
+  "implementation_git_sha": "aae804d1312cc1405bd39a3036312df9cf2a8ff4",
+  "issue": 9,
+  "phase_state": {
+    "arm_phase_sealed": false,
+    "empty_fit_attempt_directory": {
+      "empty": true,
+      "mode": "0775",
+      "path": "logs/m15_book_refresh/b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e/fits/EURUSD/B/canonical"
+    },
+    "fit_checkpoint_files_created": 0,
+    "fit_files_created": 0,
+    "fit_phase_sealed": false,
+    "fit_result_files_created": 0,
+    "last_completed_phase": "adapter_parity",
+    "model_or_strategy_files_created": 0,
+    "replay_result_created": false,
+    "replay_start_marker_created": false,
+    "sealed_phase_manifests": [
+      "00_source_preregistration.json",
+      "01_derived_data.json",
+      "02_adapter_parity.json"
+    ]
+  },
+  "prereg_id": "b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e",
+  "relaunch": {
+    "calendar_clipping_sorting_or_deduplication_authorized": false,
+    "contract_delta": "for EURUSD only, invoke unchanged build_xp and xpof augmentation together once per requested nominal year, require exact schema/order across provenance units, concatenate units in declared order, and fail unless the final clock is strictly increasing and unique",
+    "fresh_adapter_parity_required": true,
+    "fresh_data_lock_required": true,
+    "fresh_exact_null_required": true,
+    "fresh_preregistration_required": true,
+    "fresh_workspace_required": true,
+    "model_fit_replay_endpoint_inference_or_promotion_delta": false,
+    "new_phase_zero_authority": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v5.json",
+    "overwrite_prior_authority": false,
+    "required": true,
+    "reuse_b44_artifacts": false
+  },
+  "schema": "m15-book-refresh-fit-abort/v1",
+  "sealed_evidence": {
+    "adapter_parity_phase": {
+      "mode": "0444",
+      "path": "logs/m15_book_refresh/b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e/phases/02_adapter_parity.json",
+      "sha256": "2d9bc75010dbcf331a96cc37f315f1b9ca985e801469f565a8a3f23032da5a4c"
+    },
+    "data_lock_result": {
+      "mode": "0444",
+      "path": "results/json/m15_book_refresh_b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e_data_lock_result.json",
+      "sha256": "db297048fadd630f39be9af56a216cd00bb06ce388d96c58f532c736895dd3a7"
+    },
+    "derived_data_phase": {
+      "mode": "0444",
+      "path": "logs/m15_book_refresh/b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e/phases/01_derived_data.json",
+      "sha256": "f40a4b804be08a54323b9c6f2065db4dd418138dfac8e9469bfe8252fa3bea57"
+    },
+    "exact_null_calibration": {
+      "accepted": true,
+      "mode": "0444",
+      "path": "logs/m15_book_refresh/null_calibration/null_calibration_aae804d1312cc1405bd39a3036312df9cf2a8ff4.json",
+      "sha256": "cb955a1b7ae32aee0906c7a596690c820bf96e925bdafe5e0c7ebdf0a6676430"
+    },
+    "launch_bound_issue_body_sha256": "c26dfe7f5229c288e2f60ee232c967e019f3312cd85560390962c3b1d1485ca0",
+    "parity_result": {
+      "all_six_pairs_binding_checks_passed": true,
+      "mode": "0444",
+      "path": "results/json/m15_book_refresh_b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e_parity_result.json",
+      "semantic_replay_outcomes_accessed": false,
+      "sha256": "a707c62040b35d9d106ff26405f384eb1e8506efb5ecdc62c28a8b9e632c28ad"
+    },
+    "phase_zero_acceptance_v4": {
+      "mode": "0444",
+      "path": "results/json/m15_book_refresh_2026q1_phase_zero_acceptance_v4.json",
+      "preserved_immutable": true,
+      "sha256": "0af26bfba0369db0d623df74bf5cbe94fbf7a5dc3d4c00ad4a57ebbe4262867a"
+    },
+    "post_abort_amendment_issue_body_sha256": "f69fe0782d09ee3c248d758bdebfc470d1bc0ebf84a1ad6ccfb61965a2f60024",
+    "preregistration_result": {
+      "mode": "0444",
+      "path": "results/json/m15_book_refresh_b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e_preregister_result.json",
+      "sha256": "4a12c6a948d6662730d2812850e26ea3f915981e1f9b26284e2542053ed4860b"
+    },
+    "source_phase": {
+      "mode": "0444",
+      "path": "logs/m15_book_refresh/b44a1da6451c07178ea3fe82c9e7922feaae8558ea9856b7617d24bec5f77b6e/phases/00_source_preregistration.json",
+      "sha256": "91c18ad553db3a8450641351fd279c633364b89faf0504d7198cb2201fd5d1be"
+    }
+  },
+  "status": "ABORTED_PRE_REPLAY"
+}
