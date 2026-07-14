@@ -316,6 +316,7 @@ The best COMBINED direction book in the program. Raw AUC ≈ 0.528.
 | D5 | Meta-labeler (`m15_meta.py`) | 0.615 < 0.647 | ❌ can't exceed parent |
 | D6 | Specialist+reversion (`min15_v2.py`) | 0.642 (2024 .691/2025 .590/2026 .592) | no lift |
 | D7 | Cross-pair exog (`exp_15m_v3.py`) | +0 AUC | ❌ dead at 15m |
+| D8 | issue #9 date-only retrospective replay: A=current v1; B=clean capped legacy-date refit; C=clean capped date-refresh refit | Apr–May 2026 standardized whole-book correctness: A .5223 (n=157, yield .000316); B .5227 (n=176, .000361); C .5127 (n=316, .000361). C UP .5135 (n=185); DOWN .5115 (n=131). | ⚪ **INCONCLUSIVE — `control_not_estimable`.** Simultaneous promotion lower bounds: C−A yield −.002113, C−B yield −.001595, C-UP accuracy−.5 −.085977, C-DOWN accuracy−.5 −.127017. No survivor/candidate; incumbent unchanged. Pair: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_EURUSD_replay_result.json`; joint/shadow: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`. |
 
 ### Key results
 | Key | Result | Status |

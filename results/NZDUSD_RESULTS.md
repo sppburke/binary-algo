@@ -20,6 +20,12 @@
 | NZDUSD.m15ny.UP | NY own-pair refit-CPCV seed-ens K=3 | NZDUSD.m15ny_seedens.v1 `f599708e` | .5749 @cov2 (14/15) | — | ✅ **CERTIFIED + FROZEN** |
 | NZDUSD.m15ny.DOWN | NY own-pair refit-CPCV seed-ens K=3 | NZDUSD.m15ny_seedens.v1 `f599708e` | — | .5803 @cov2 (15/15) | ✅ **CERTIFIED + FROZEN** |
 
+## Date-refresh retrospective experiment
+
+| id | method | Apr–May 2026 standardized replay | verdict |
+|----|--------|----------------------------------|---------|
+| R9 | issue #9 date-only replay: A=current v1; B=clean capped legacy-date refit; C=clean capped date-refresh refit | Whole-book correctness: A .5859 (n=99, yield .000768); B .5575 (n=113, .000587); C .4643 (n=56, −.000181). C UP .4615 (n=52); DOWN .5000 (n=4). | ⚪ **INCONCLUSIVE — `required_endpoint_not_estimable`.** Simultaneous promotion lower bounds: C−A yield −.003103, C−B yield −.002446, C-UP accuracy−.5 −.246796; C-DOWN undefined. No survivor/candidate; incumbent unchanged. Pair: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_NZDUSD_replay_result.json`; joint/shadow: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`. |
+
 ---
 
 ## Context

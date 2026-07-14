@@ -56,3 +56,8 @@ Seeded from SWEEP_MATRIX Tier-N (also untested at USDJPY 15m): N17 anti-contempo
 - **pooled ⊕ seed-ens**: variance reduction on the pooled ranking; test if it lifts CPCV p10 (USDJPY-2m: lifted .5245→.5306 then saturated). 
 - **cross-horizon parent → 15m child**: a 30m/60m USDJPY direction model's confidence front-loads the 15m gate (longer horizon = stronger sign per gradient). Mechanism: parent carries lower-frequency drift sign. MEASURE corr(parent_conf, child_correct).
 - **mag-gate × direction**: high-|ret| bars are NOT more sign-predictable (sign-invariance theorem; EURUSD E2 null) — test once to confirm, don't assume.
+
+## CLOSED measured handoff — issue #9 date refresh (2026-07-13)
+
+- The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because its negative-control family was not estimable. The positive C point estimate did not clear the simultaneous promotion lower bounds; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_USDJPY_replay_result.json`.
+- Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and remaining separately scoped external-data ideas remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.

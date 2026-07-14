@@ -99,3 +99,8 @@ NY own-pair cov1 per-path distribution (`usdchf_15m_cpcv_session_ny_multicov_res
 - **MAGNITUDE BONUS** (sign-invariant; recorded only in `docs/MAGNITUDE_FINDINGS.md`): magAUC .728/.669/.646.
 - **DISCOVERY R1+R2+R3 all DRY. ON-DISK KEY EXHAUSTED.** Only frontier left = OFF-DISK data (traded EURCHF feed, SNB sight-deposits, VIX/risk-reversal, US-CH rate-diff) — out of on-disk scope.
 - Per-key files: `results/USDCHF_RESULTS.md`, `sweeps/USDCHF_15m.md`, `sweeps/USDCHF_15m_backlog.md`. **SWEEP CLOSED 2026-06-11.**
+
+## CLOSED measured handoff — issue #9 date refresh (2026-07-13)
+
+- The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because its negative-control family was not estimable. The positive C point estimate did not clear the simultaneous promotion lower bounds; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_USDCHF_replay_result.json`.
+- Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and the off-disk frontier remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.

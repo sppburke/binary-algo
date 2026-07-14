@@ -52,3 +52,8 @@ Ranked levers to push accuracy higher on the certified NY seed-ens book (p10 .59
 
 ## Discovery rounds
 - **R1 (2026-06-09):** workflow `audusd-15m-discovery` — 12 corpus + 10 AUD-specific levers, 25-lever subsumption map. Above is the deduplicated ranked queue. Key NEW AUD-specific mechanisms (not in EURUSD/USDJPY ledgers): AUDNZD residual-difference (#3), carry-unwind risk-bloc DOWN gate (#4), commodity-residual consensus (#6), Asia-session hypothesis (#2). NOT yet dry — these are untested.
+
+## CLOSED measured handoff — issue #9 date refresh (2026-07-13)
+
+- The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because the required C-DOWN endpoint was not estimable; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_AUDUSD_replay_result.json`.
+- Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and the external-data frontier above remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.

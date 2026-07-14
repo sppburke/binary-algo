@@ -141,3 +141,10 @@ The named "external data" frontier became available: full bid/ask + **quote-volu
 
 ## RESUMABILITY
 This ledger IS the state. On resume, continue from the first `pending`/`running` row; never repeat a `done` row. Update results/USDJPY_RESULTS.md (master table + per-tf + leaderboard) and this ledger together; commit after each row.
+
+## Issue #9 date-refresh retrospective — 2026-07-13
+
+- **Terminal status: `INCONCLUSIVE` (`control_not_estimable`).** On the standardized Apr–May 2026 replay, whole-book correctness was A .5541 (n=148, correctness yield .000723), B .5455 (n=143, .000587), and C .5777 (n=206, .001445); C UP was .5743 (n=148) and C DOWN .5862 (n=58).
+- The positive C point estimate is not decision-grade: simultaneous lower bounds were C−A yield −.001243, C−B yield −.000753, C-UP accuracy−.5 −.073627, and C-DOWN accuracy−.5 −.116478. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_USDJPY_replay_result.json`.
+- The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+- **Sweep remains CLOSED.** `USDJPY.m15ny_seedens.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.

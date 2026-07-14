@@ -126,3 +126,10 @@ Supersedes K=3 book `GBPUSD.m15ny_xpair_seedens.v1` (df279204d247f618) at both c
 
 ### Next steps (if scope ever re-opens)
 The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-restrict, distrib-skew-feat famonly, calibration, tta-norm-gate) are fast screens (~30 min each); if any survive their fast-KILL falsifier they become Tier-N rows in this ledger. The GBPUSD sweep is otherwise closed: no remaining rows to execute, both sides certified, improve+discover loops dry, books frozen.
+
+## Issue #9 date-refresh retrospective — 2026-07-13
+
+- **Terminal status: `INCONCLUSIVE` (`control_not_estimable`).** On the standardized Apr–May 2026 replay, whole-book correctness was A .5603 (n=116, correctness yield .000633), B .5339 (n=118, .000362), and C .5393 (n=89, .000317); C UP was .5593 (n=59) and C DOWN .5000 (n=30).
+- The simultaneous promotion lower bounds were C−A yield −.001708, C−B yield −.001343, C-UP accuracy−.5 −.157652, and C-DOWN accuracy−.5 −.238356. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_GBPUSD_replay_result.json`.
+- The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+- **Sweep remains CLOSED.** `GBPUSD.m15ny_xpair_seedens8.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.

@@ -93,3 +93,8 @@
 
 ## NOTES / LEARNINGS (newest first)
 - 2026-06-09 A1: 2024 base is the strongest sibling-family year (.649 cov2, .720 cov1 UP) and SYMMETRIC; 2026 frozen dead both sides. best_iter=33 → fast saturation, capacity not the constraint. No side-asymmetry signal yet.
+
+## CLOSED measured handoff — issue #9 date refresh (2026-07-13)
+
+- The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because its negative-control family was not estimable; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_GBPUSD_replay_result.json`.
+- Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and the exhausted on-disk queue remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.

@@ -95,3 +95,8 @@ KILL rule:
 **Session split (moved bars):** exact breakdown TBD after A9-ny (log shows 992,016 in-session NY)
 **Up-rate tripwire:** A1 gate (cov5) all years ∈ [0.4995, 0.5016] — clean, no fake-flat mirage
 **Tick data:** VERIFIED 2026-06-11 — `features_of/NZDUSD_*.parquet` (18 OF features, 1-min, 2012–2026) + `features_tick_xofi/NZDUSD_*_cks1s.parquet` (11.8M rows, cks_e/cks_nev) both confirmed on-disk. OFI screen run (§8, row 4): KILLED (Tier-1). CKS tick raw data subsumed by features_of aggregates.
+
+## CLOSED measured handoff — issue #9 date refresh (2026-07-13)
+
+- The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because the sparse C-DOWN endpoint was not estimable; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_NZDUSD_replay_result.json`.
+- Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and the exhausted accessible-data queue remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.

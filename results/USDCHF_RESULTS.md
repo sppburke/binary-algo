@@ -34,6 +34,7 @@
 | # | Method (file) | Result (2024 / 2025 / 2026 moved-AUC; gate cov2% COMB wr) | Verdict |
 |---|---|---|---|
 | A1 | `usdchf_15m_base.py` | moved-AUC .5288 / .5205 / .5129; gate cov2% COMB wr .6513 / .5675 / .5103; VAL moved-AUC .5301 | base floor (own-pair 239-feat); ✅ certifies under NY refit-CPCV → superseded by xpair-NY seed-ens deliverable |
+| R9 | issue #9 date-only retrospective replay: A=current v1; B=clean capped legacy-date refit; C=clean capped date-refresh refit | Apr–May 2026 standardized whole-book correctness: A .5660 (n=53, yield .000316); B .4630 (n=54, −.000181); C .6250 (n=72, .000813). C UP .6765 (n=34); DOWN .5789 (n=38). | ⚪ **INCONCLUSIVE — `control_not_estimable`.** The positive point estimate is not promotable: simultaneous lower bounds are C−A yield −.000257, C−B yield +.000159, C-UP accuracy−.5 −.055559, C-DOWN accuracy−.5 −.223734. No survivor/candidate; incumbent unchanged. Pair: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_USDCHF_replay_result.json`; joint/shadow: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`. |
 
 ### Coverage curve (step d) — `usdchf_15m_base.py` covcurve (frozen-2012-21 book; per-year, per-cov thr)
 | cov | COMB wr 2024/25/26 | UP wr 2024/25/26 | DOWN wr 2024/25/26 |

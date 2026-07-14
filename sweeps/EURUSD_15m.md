@@ -195,3 +195,10 @@ parent is low-prior; **cross-pair POOLING (I5)** — the cross-pair primary alre
 /RRL-torch (N18)** — same loss-family as the NULL |ret|-weight; **DL-stack** — info-bound (D-pass). The ONLY lever
 to break the binding-2025 wall was NEW features (cross-pair); same-feature levers all hit the wall → consistent.
 ### Remaining genuine frontier = EXTERNAL data (Tier-G in backlog), GATED ON USER "go". See FINAL CONCLUSION above.
+
+## Issue #9 date-refresh retrospective — 2026-07-13
+
+- **Terminal status: `INCONCLUSIVE` (`control_not_estimable`).** On the standardized Apr–May 2026 replay, whole-book correctness was A .5223 (n=157, correctness yield .000316), B .5227 (n=176, .000361), and C .5127 (n=316, .000361); C UP was .5135 (n=185) and C DOWN .5115 (n=131).
+- The simultaneous promotion lower bounds were C−A yield −.002113, C−B yield −.001595, C-UP accuracy−.5 −.085977, and C-DOWN accuracy−.5 −.127017. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_EURUSD_replay_result.json`.
+- The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+- **Sweep remains CLOSED.** `EURUSD.m15xp.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.

@@ -46,3 +46,10 @@ SCOPE: NZDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 
 ## Discipline reminders (strategy-eval §2)
 deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half selection, moved up-rate∈[.47,.53] tripwire, pre-registered falsifier in result JSON BEFORE OOS, full refit-CPCV to certify, adversarially verify every positive vs frozen-past forward (trap#9), one heavy job at a time (OOM), commit often.
+
+## Issue #9 date-refresh retrospective — 2026-07-13
+
+- **Terminal status: `INCONCLUSIVE` (`required_endpoint_not_estimable`).** On the standardized Apr–May 2026 replay, whole-book correctness was A .5859 (n=99, correctness yield .000768), B .5575 (n=113, .000587), and C .4643 (n=56, −.000181). C UP was .4615 (n=52); C DOWN had only n=4, so its preregistered simultaneous endpoint was not estimable.
+- The simultaneous promotion lower bounds were C−A yield −.003103, C−B yield −.002446, and C-UP accuracy−.5 −.246796; C-DOWN was undefined. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_NZDUSD_replay_result.json`.
+- The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+- **Sweep remains CLOSED.** `NZDUSD.m15ny_seedens.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.

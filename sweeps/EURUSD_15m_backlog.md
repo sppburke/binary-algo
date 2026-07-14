@@ -46,3 +46,8 @@ row until the data is acquired. Mechanism-ranked (several are DOWN-side specific
   EUR leg from USD. Prior ~.15.
 **Falsifier (any G-row):** KILL unless the external signal lifts a side's binding-year refit-CPCV p10 above the
 on-disk floor (.5475 UP / .5486 DOWN) by >1 SE under the full discipline. Acquire G1+G2 first (highest mechanism).
+
+## CLOSED measured handoff — issue #9 date refresh (2026-07-13)
+
+- The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because its negative-control family was not estimable; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_EURUSD_replay_result.json`.
+- Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and the external-data frontier above remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.

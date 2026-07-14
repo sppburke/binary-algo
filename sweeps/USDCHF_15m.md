@@ -62,3 +62,10 @@ SCOPE: USDCHF · 15m — sweep LEDGER (status of record). Backlog/executable que
 
 ## Discipline reminders (strategy-eval §2)
 deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half selection, moved up-rate∈[.47,.53] tripwire (USDCHF clean), pre-registered falsifier in result JSON BEFORE OOS, full refit-CPCV to certify, adversarially verify every positive vs frozen-past forward (trap#9), one heavy job at a time (OOM), commit often.
+
+## Issue #9 date-refresh retrospective — 2026-07-13
+
+- **Terminal status: `INCONCLUSIVE` (`control_not_estimable`).** On the standardized Apr–May 2026 replay, whole-book correctness was A .5660 (n=53, correctness yield .000316), B .4630 (n=54, −.000181), and C .6250 (n=72, .000813); C UP was .6765 (n=34) and C DOWN .5789 (n=38).
+- The positive C point estimate is not decision-grade: simultaneous lower bounds were C−A yield −.000257, C−B yield +.000159, C-UP accuracy−.5 −.055559, and C-DOWN accuracy−.5 −.223734. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_USDCHF_replay_result.json`.
+- The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+- **Sweep remains CLOSED.** `USDCHF.m15ny_xpair_seedens.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.
