@@ -74,11 +74,33 @@ name, and fsyncs the directory. An existing destination is accepted only as an
 explicit retry after its complete bytes match and validate; it is never
 overwritten or repaired.
 
+The default publication API retains that idempotent retry behavior. A domain
+that must grant a right only to the creating process may pass
+`require_new=True`; the same atomic path then rejects both a pre-existing exact
+object and a concurrent exact winner. ROS-3 uses this only for its conservative
+semantic-access receipt.
+
 Git does not preserve owner write bits, so checkout permissions are not
 evidence identity. Runtime publication creates and authenticates mode `0444`;
 verification of tracked objects relies on canonical bytes, derived identity,
 and artifact hashes so a fresh clone remains portable. Editing a tracked
 object invalidates its identity and is also visible to Git.
+
+`ArtifactRef.read_verified()` performs the hardened regular-file read once,
+checks the declared byte count and SHA-256, and returns those authenticated
+bytes. Protected-evaluation ordering and the reason protected references stay
+out of envelope `artifacts` are specified in
+`docs/PROTECTED_EVALUATION.md`.
+
+`ArtifactRef.isolated_identity()` reads metadata only and requires one stable
+regular-file inode with exactly one hard link and the declared byte count. It
+does not authenticate content; ROS-3 uses it only to reject pre-access aliases
+before the later receipt-gated `read_verified()` call.
+
+`inspect_store_metadata()` validates store entry shape, canonical envelope
+bytes, and object identity without reading artifact targets or dependency
+ancestry. It exists for pre-access discovery only; `verify-object` and
+`verify-store` remain the full artifact-and-ancestry integrity gates.
 
 ## Verification
 

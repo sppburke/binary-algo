@@ -27,11 +27,11 @@
     },
     {
       "id": "ROS-3",
-      "status": "planned",
+      "status": "accepted",
       "decision": "implement_mvp",
       "why_valuable": "prove in one slice that a hypothesis cannot adapt to protected outcomes and that the terminal decision is reproducible",
-      "unlock_trigger": "ROS-1 accepted",
-      "owner_issue": "#10"
+      "unlock_trigger": "authorized child #12",
+      "owner_issue": "#12"
     },
     {
       "id": "ROS-3A",

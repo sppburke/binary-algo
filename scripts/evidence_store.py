@@ -128,6 +128,20 @@ def _decode_canonical_json(raw: bytes) -> Any:
     return value
 
 
+def decode_canonical_json(raw: bytes) -> Any:
+    """Decode exact canonical JSON bytes with duplicate/NaN rejection."""
+
+    if not isinstance(raw, bytes):
+        raise EvidenceError("canonical JSON input must be bytes")
+    return _decode_canonical_json(raw)
+
+
+def canonical_json_bytes(value: Any) -> bytes:
+    """Encode one exact finite JSON value using the evidence canonical form."""
+
+    return _canonical_json_bytes(value)
+
+
 def _json_copy(value: Any) -> Any:
     return _decode_canonical_json(_canonical_json_bytes(value))
 
@@ -278,11 +292,15 @@ def _read_regular_at(
     return b"".join(chunks)
 
 
-def _file_identity(root: Path, relative: str) -> tuple[int, str]:
+def _file_bytes(root: Path, relative: str) -> bytes:
     canonical = _canonical_relative_path(relative)
     parts = PurePosixPath(canonical).parts
     with _open_directory_chain(root, parts[:-1], name="artifact parent") as parent:
-        raw = _read_regular_at(parent, parts[-1], name="artifact")
+        return _read_regular_at(parent, parts[-1], name="artifact")
+
+
+def _file_identity(root: Path, relative: str) -> tuple[int, str]:
+    raw = _file_bytes(root, relative)
     return len(raw), hashlib.sha256(raw).hexdigest()
 
 
@@ -320,15 +338,74 @@ class ArtifactRef:
     def as_dict(self) -> dict[str, Any]:
         return {"path": self.path, "bytes": self.bytes, "sha256": self.sha256}
 
-    def verify(self, *, repo_root: str | os.PathLike[str] = REPO_ROOT) -> None:
+    def isolated_identity(
+        self,
+        *,
+        repo_root: str | os.PathLike[str] = REPO_ROOT,
+        allow_missing: bool = False,
+    ) -> tuple[int, int] | None:
+        """Return stable device/inode metadata for a single-link regular file.
+
+        This reads no file content.  It lets a pre-access domain reject a path
+        that aliases another file through a hard link.
+        """
+
+        if type(allow_missing) is not bool:
+            raise EvidenceError("allow_missing must be a boolean")
         root = _validated_repo(repo_root)
-        size, digest = _file_identity(root, self.path)
-        if size != self.bytes:
+        parts = PurePosixPath(self.path).parts
+        with _open_directory_chain(root, parts[:-1], name="artifact parent") as parent:
+            try:
+                before = os.stat(parts[-1], dir_fd=parent, follow_symlinks=False)
+                after = os.stat(parts[-1], dir_fd=parent, follow_symlinks=False)
+            except FileNotFoundError as exc:
+                if allow_missing:
+                    return None
+                raise EvidenceError(
+                    f"cannot inspect artifact metadata: {self.path}"
+                ) from exc
+            except OSError as exc:
+                raise EvidenceError(f"cannot inspect artifact metadata: {self.path}") from exc
+            if stat.S_ISLNK(before.st_mode) or not stat.S_ISREG(before.st_mode):
+                raise EvidenceError(
+                    f"artifact metadata is not a regular non-symlink file: {self.path}"
+                )
+            if (
+                not _same_inode(before, after)
+                or before.st_size != after.st_size
+                or before.st_mtime_ns != after.st_mtime_ns
+                or before.st_ctime_ns != after.st_ctime_ns
+            ):
+                raise EvidenceError(f"artifact metadata changed: {self.path}")
+            if after.st_nlink != 1:
+                raise EvidenceError(
+                    f"artifact must have exactly one hard link: {self.path}"
+                )
+            if after.st_size != self.bytes:
+                raise EvidenceError(
+                    f"artifact size mismatch for {self.path}: "
+                    f"expected={self.bytes} actual={after.st_size}"
+                )
+            return after.st_dev, after.st_ino
+
+    def read_verified(
+        self, *, repo_root: str | os.PathLike[str] = REPO_ROOT
+    ) -> bytes:
+        """Read once through the hardened path and authenticate exact bytes."""
+
+        root = _validated_repo(repo_root)
+        raw = _file_bytes(root, self.path)
+        if len(raw) != self.bytes:
             raise EvidenceError(
-                f"artifact size mismatch for {self.path}: expected={self.bytes} actual={size}"
+                f"artifact size mismatch for {self.path}: "
+                f"expected={self.bytes} actual={len(raw)}"
             )
-        if digest != self.sha256:
+        if hashlib.sha256(raw).hexdigest() != self.sha256:
             raise EvidenceError(f"artifact hash mismatch for {self.path}")
+        return raw
+
+    def verify(self, *, repo_root: str | os.PathLike[str] = REPO_ROOT) -> None:
+        ArtifactRef.read_verified(self, repo_root=repo_root)
 
 
 def _identity_fields(
@@ -572,6 +649,57 @@ def verify_object(
         )
 
 
+def _store_object_ids(store_descriptor: int) -> tuple[str, ...]:
+    try:
+        names = os.listdir(store_descriptor)
+    except OSError as exc:
+        raise EvidenceError(f"cannot list evidence store: {exc}") from exc
+    object_ids: list[str] = []
+    for entry_name in names:
+        match = re.fullmatch(r"([0-9a-f]{64})\.json", entry_name)
+        try:
+            entry = os.stat(
+                entry_name, dir_fd=store_descriptor, follow_symlinks=False
+            )
+        except OSError as exc:
+            raise EvidenceError(
+                f"cannot inspect evidence-store entry {entry_name}: {exc}"
+            ) from exc
+        if (
+            match is None
+            or stat.S_ISLNK(entry.st_mode)
+            or not stat.S_ISREG(entry.st_mode)
+        ):
+            raise EvidenceError(f"unexpected evidence-store entry: {entry_name}")
+        object_ids.append(match.group(1))
+    return tuple(sorted(object_ids))
+
+
+def _require_store_unchanged(before: os.stat_result, after: os.stat_result) -> None:
+    if (
+        before.st_mtime_ns != after.st_mtime_ns
+        or before.st_ctime_ns != after.st_ctime_ns
+    ):
+        raise EvidenceError("evidence store changed during inspection")
+
+
+def inspect_store_metadata(
+    *, repo_root: str | os.PathLike[str] = REPO_ROOT
+) -> tuple[EvidenceEnvelope, ...]:
+    """Load canonical envelope identities without reading artifacts or ancestry."""
+
+    root = _validated_repo(repo_root)
+    store = root.joinpath(*STORE_PARTS)
+    with _open_directory_chain(root, STORE_PARTS, name="evidence store") as descriptor:
+        before = os.fstat(descriptor)
+        envelopes = tuple(
+            _load_object(store, descriptor, object_id)[0]
+            for object_id in _store_object_ids(descriptor)
+        )
+        _require_store_unchanged(before, os.fstat(descriptor))
+        return envelopes
+
+
 def verify_store(
     *,
     repo_root: str | os.PathLike[str] = REPO_ROOT,
@@ -582,27 +710,7 @@ def verify_store(
     store = root.joinpath(*STORE_PARTS)
     with _open_directory_chain(root, STORE_PARTS, name="evidence store") as descriptor:
         before = os.fstat(descriptor)
-        try:
-            names = os.listdir(descriptor)
-        except OSError as exc:
-            raise EvidenceError(f"cannot list evidence store: {exc}") from exc
-        object_ids: list[str] = []
-        for entry_name in names:
-            match = re.fullmatch(r"([0-9a-f]{64})\.json", entry_name)
-            try:
-                entry = os.stat(entry_name, dir_fd=descriptor, follow_symlinks=False)
-            except OSError as exc:
-                raise EvidenceError(
-                    f"cannot inspect evidence-store entry {entry_name}: {exc}"
-                ) from exc
-            if (
-                match is None
-                or stat.S_ISLNK(entry.st_mode)
-                or not stat.S_ISREG(entry.st_mode)
-            ):
-                raise EvidenceError(f"unexpected evidence-store entry: {entry_name}")
-            object_ids.append(match.group(1))
-        object_ids.sort()
+        object_ids = _store_object_ids(descriptor)
         verified: dict[str, EvidenceEnvelope] = {}
         for object_id in object_ids:
             _verify_object_recursive(
@@ -613,13 +721,8 @@ def verify_store(
                 visiting=set(),
                 verified=verified,
             )
-        after = os.fstat(descriptor)
-        if (
-            before.st_mtime_ns != after.st_mtime_ns
-            or before.st_ctime_ns != after.st_ctime_ns
-        ):
-            raise EvidenceError("evidence store changed during verification")
-        return tuple(object_ids)
+        _require_store_unchanged(before, os.fstat(descriptor))
+        return object_ids
 
 
 def _fsync_directory_fd(descriptor: int) -> None:
@@ -683,11 +786,14 @@ def publish(
     envelope: EvidenceEnvelope,
     *,
     repo_root: str | os.PathLike[str] = REPO_ROOT,
+    require_new: bool = False,
 ) -> Path:
-    """Atomically publish one read-only object, or authenticate an exact retry."""
+    """Publish one read-only object; optionally reject every existing retry."""
 
     if not isinstance(envelope, EvidenceEnvelope):
         raise EvidenceError("publish requires an EvidenceEnvelope")
+    if type(require_new) is not bool:
+        raise EvidenceError("require_new must be a boolean")
     envelope.verify_identity()
     root = _validated_repo(repo_root)
     for artifact in envelope.artifacts:
@@ -711,6 +817,10 @@ def publish(
             _authenticate_publication(store_fd, envelope.object_id, expected)
             _fsync_directory_fd(store_fd)
             _authenticate_publication(store_fd, envelope.object_id, expected)
+            if require_new:
+                raise EvidenceError(
+                    f"strict-new evidence object already exists: {filename}"
+                )
             return destination
 
         descriptor = -1
@@ -742,6 +852,10 @@ def publish(
                 )
             except FileExistsError:
                 _authenticate_publication(store_fd, envelope.object_id, expected)
+                if require_new:
+                    raise EvidenceError(
+                        f"strict-new evidence publication lost no-replace race: {filename}"
+                    )
             os.unlink(temporary_name, dir_fd=store_fd)
             temporary_name = None
             _fsync_directory_fd(store_fd)

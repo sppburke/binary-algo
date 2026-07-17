@@ -46,7 +46,7 @@ EXPECTED_STATUSES = {
     "ROS-1": "accepted",
     "ROS-2A": "deferred_until_trigger",
     "ROS-2B": "deferred_until_trigger",
-    "ROS-3": "planned",
+    "ROS-3": "accepted",
     "ROS-3A": "planned",
     "ROS-4": "deferred_until_trigger",
     "ROS-5": "deferred_until_trigger",
@@ -164,6 +164,18 @@ def test_identity_and_strict_contract() -> None:
         evidence._decode_canonical_json(b'{"a": 1}')
     with expect_raises(evidence.EvidenceError, "canonical"):
         evidence._decode_canonical_json(envelope.canonical_bytes() + b"\n")
+    equal(
+        evidence.decode_canonical_json(envelope.canonical_bytes()),
+        envelope.as_dict(),
+        "public canonical decoder",
+    )
+    equal(
+        evidence.canonical_json_bytes(envelope.as_dict()),
+        envelope.canonical_bytes(),
+        "public canonical encoder",
+    )
+    with expect_raises(evidence.EvidenceError, "must be bytes"):
+        evidence.decode_canonical_json("{}")  # type: ignore[arg-type]
     with expect_raises(evidence.EvidenceError, "non-finite"):
         evidence.EvidenceEnvelope.create(
             kind=evidence.LEGACY_SIDECAR_KIND, payload={"bad": float("inf")}
@@ -237,6 +249,20 @@ def test_artifacts_dependencies_and_stateless_verification() -> None:
         source.parent.mkdir()
         source.write_bytes(b"bound source bytes")
         reference = evidence.ArtifactRef.capture("data/source.bin", repo_root=root)
+        equal(
+            reference.read_verified(repo_root=root),
+            b"bound source bytes",
+            "verified one-read artifact bytes",
+        )
+        check(
+            all(type(value) is int for value in reference.isolated_identity(repo_root=root)),
+            "isolated artifact identity",
+        )
+        hard_link = source.parent / "source-hard-link.bin"
+        os.link(source, hard_link)
+        with expect_raises(evidence.EvidenceError, "hard link"):
+            reference.isolated_identity(repo_root=root)
+        hard_link.unlink()
 
         real_stat = os.stat
 
@@ -327,6 +353,16 @@ def test_artifacts_dependencies_and_stateless_verification() -> None:
             dependencies=[parent.object_id],
         )
         evidence.publish(child, repo_root=root)
+        with mock.patch.object(
+            evidence.ArtifactRef,
+            "read_verified",
+            side_effect=GateFailure("metadata inspection read an artifact"),
+        ):
+            equal(
+                tuple(item.object_id for item in evidence.inspect_store_metadata(repo_root=root)),
+                tuple(sorted([parent.object_id, child.object_id])),
+                "metadata-only store inspection",
+            )
         equal(
             evidence.verify_object(child.object_id, repo_root=root).object_id,
             child.object_id,
@@ -400,6 +436,8 @@ def test_immutable_publication() -> None:
     )
     with tempfile.TemporaryDirectory(prefix="evidence-publish-") as raw:
         root = make_repo(Path(raw))
+        with expect_raises(evidence.EvidenceError, "boolean"):
+            evidence.publish(envelope, repo_root=root, require_new=1)  # type: ignore[arg-type]
         destination = evidence.publish(envelope, repo_root=root)
         first_inode = destination.stat().st_ino
         equal(
@@ -421,6 +459,15 @@ def test_immutable_publication() -> None:
         with expect_raises(evidence.EvidenceError, "writable"):
             evidence.publish(envelope, repo_root=root)
         destination.chmod(0o444)
+
+        strict = evidence.EvidenceEnvelope.create(
+            kind=evidence.LEGACY_SIDECAR_KIND,
+            payload={"publication": "strict-new"},
+        )
+        evidence.publish(strict, repo_root=root, require_new=True)
+        with expect_raises(evidence.EvidenceError, "strict-new"):
+            evidence.publish(strict, repo_root=root, require_new=True)
+        evidence.publish(strict, repo_root=root)
 
     with tempfile.TemporaryDirectory(prefix="evidence-conflict-") as raw:
         root = make_repo(Path(raw))
@@ -537,6 +584,37 @@ def test_immutable_publication() -> None:
             evidence.verify_store(repo_root=root),
             (envelope.object_id,),
             "concurrent store",
+        )
+
+    with tempfile.TemporaryDirectory(prefix="evidence-strict-concurrent-") as raw:
+        root = make_repo(Path(raw))
+        strict = evidence.EvidenceEnvelope.create(
+            kind=evidence.LEGACY_SIDECAR_KIND,
+            payload={"publication": "strict-concurrent"},
+        )
+        code = "\n".join(
+            (
+                "import sys",
+                "sys.path.insert(0, 'scripts')",
+                "import evidence_store as e",
+                f"x = e.EvidenceEnvelope.create(kind={evidence.LEGACY_SIDECAR_KIND!r}, payload={{'publication':'strict-concurrent'}})",
+                "try:",
+                f"    e.publish(x, repo_root={str(root)!r}, require_new=True)",
+                "except e.EvidenceError:",
+                "    raise SystemExit(3)",
+            )
+        )
+        processes = [
+            subprocess.Popen([sys.executable, "-c", code], cwd=REPO_ROOT)
+            for _ in range(4)
+        ]
+        returncodes = [process.wait(timeout=20) for process in processes]
+        equal(returncodes.count(0), 1, "strict-new concurrent winner count")
+        equal(returncodes.count(3), 3, "strict-new concurrent loser count")
+        equal(
+            evidence.verify_store(repo_root=root),
+            (strict.object_id,),
+            "strict-new concurrent store",
         )
 
 
