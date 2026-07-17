@@ -1,6 +1,13 @@
 ---
 name: strategy-eval
-description: Evaluate, retarget, sweep, freeze, or record a binary-algo direction or magnitude strategy. Use for model tests, result ledgers, certified books, GitHub issue hand-offs, and exhaustive strategy sweeps. If invoked with `#<issue-number>`, treat it as issue <issue-number> in `sppburke/binary-algo`.
+description: >-
+  Evaluate, reverse-engineer, retarget, sweep, freeze, or record a binary-algo
+  direction or magnitude strategy for a `(currency, timeframe, side)` key. Use
+  for model or methodology tests, horizon/currency retargeting, exhaustive or
+  generative sweeps, result-ledger writes, certified-book creation/loading, or
+  a GitHub issue whose deliverable is measured strategy evidence. If invoked
+  with a bare issue reference such as `#9`, treat it as that issue in
+  `sppburke/binary-algo`.
 ---
 
 # Strategy evaluation & reverse-engineering (binary direction / magnitude)

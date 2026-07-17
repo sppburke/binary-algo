@@ -1,4 +1,4 @@
 interface:
   display_name: "Feature Dev"
-  short_description: "Plan binary-algo experiments and features"
-  default_prompt: "Use $feature-dev to plan a binary-algo experiment or feature before implementation."
+  short_description: "Plan experiments, infrastructure, and roadmaps"
+  default_prompt: "Use $feature-dev to create an evidence-backed binary-algo feature specification and issue handoff."

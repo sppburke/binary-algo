@@ -1,188 +1,185 @@
 ---
 name: feature-dev
-description: Plan a binary-algo experiment, method, sweep, new-key bootstrap, or infra feature before implementation. Use when the request should end in a GitHub issue hand-off artifact, not a measured result or shipped code.
+description: >-
+  Plan an evidence-backed binary-algo experiment, method, sweep, new-key
+  bootstrap, infrastructure feature, or roadmap package and file the exact
+  implementation-ready plan as a GitHub issue. Use for feature specs, "what
+  should we try for pair/timeframe", "add this idea to the backlog", "spec out
+  X", "design before building", or requests that should end in a durable
+  handoff rather than measured results or shipped code. Do not implement, fit,
+  evaluate, freeze, or continue into a delivery cycle.
 ---
 
-# Feature / Experiment Planning
+# Feature Development Planning
 
-You are helping plan a new experiment, method, sweep, new-currency bootstrap, or infra change, and capture the
-agreed plan as a durable hand-off artifact. Follow a systematic approach: understand the repo deeply, identify
-and ask about all underspecified details, design well-mechanised candidate approaches, then file the chosen plan.
-**Running and implementation are out of scope** — this skill ends at the filed artifact, which is picked up by
-`strategy-eval` (to run an experiment under the evaluation discipline) or `dev-cycle` (to build infra).
+Produce the smallest complete plan supported by the user's intent, current repository evidence,
+and binary-algo precedent. End at an exact filed issue, or at an evidence-backed no-change
+conclusion when implementation is unnecessary.
 
-## Core Principles
+Use the host runtime's equivalent primitives for progress tracking, read-only subagents, repository
+search, and GitHub access. Do not require a particular model, vendor, or number of agents.
 
-- **Ask clarifying questions**: Identify all ambiguities, edge cases, and underspecified behaviours. Ask
-  specific, concrete questions rather than assuming. Wait for answers before designing.
-- **Understand before acting**: Read existing patterns first. Most methods are already implemented and
-  horizon-parameterized — check `docs/METHODS_CATALOG.md` and the per-key `results/<PAIR>_RESULTS.md` before
-  proposing anything "new". **Don't plan to redo a measured key.**
-- **Read files identified by subagents**: When launching subagents, ask them to return the 5–10 most important files;
-  read those after the subagents return to build real context.
-- **Mechanism first**: A candidate is only worth filing if there is a plausible mechanism by which it carries
-  *direction* (sign), not just *magnitude* (size). The sign-invariance theorem kills most "direction" ideas that
-  are really vol/complexity statistics — flag it at design time, not after a wasted run.
-- **Evidence-first**: every factual premise about the repo (what exists, what was already tried, what a number
-  was) traces to a Tier-1 source per `docs/_EVIDENCE-FIRST.md`. No "probably already tried" — grep it.
-- **Use the task plan**: Track progress through the phases.
-- **GitHub issue hand-off**: The durable output of this skill is a GitHub issue in `sppburke/binary-algo`, no
-  questions asked. If the request references an existing issue like `#<issue-number>`, treat it as
-  `https://github.com/sppburke/binary-algo/issues/<issue-number>`, read it with `GH_TOKEN="$(gh auth token --user sppburke)" gh issue view <issue-number> -R sppburke/binary-algo`,
-  and update/comment that issue instead of creating a duplicate. Otherwise create a new issue with the finalized
-  plan.
-- **GitHub auth**: Use the locally configured `sppburke` GitHub token/account. Prefer commands with
-  `-R sppburke/binary-algo`. If GitHub access needs an explicit account token, use
-  `GH_TOKEN="$(gh auth token --user sppburke)" gh <your command>` and verify with `GH_TOKEN="$(gh auth token --user sppburke)" gh repo view sppburke/binary-algo --json nameWithOwner,url`.
-  Never print, extract, or paste the token.
+## Governing rules
 
----
+- Follow `docs/_EVIDENCE-FIRST.md`; define a falsifier before relying on each material premise.
+- Extend an existing semantic owner unless evidence proves a net-new surface is necessary.
+- Optimize for the minimum complete change. Reject speculative machinery and missing correctness
+  controls equally.
+- Keep `strategy-eval` authoritative for experiment execution and measured-result recording.
+- Make the filed issue self-contained. Planning does not authorize implementation or protected-data
+  access.
 
-## Phase 0: Model Preflight
+## 1. Normalize and classify
 
-**Goal**: Prefer the strongest available reasoning model for planning and mechanism-vetting.
+Establish the requested outcome, non-goals, authority, and intended handoff. If the request cites
+`#<number>`, fetch the issue from `sppburke/binary-algo` with title, body, comments, state, labels,
+and `updatedAt`; treat its consolidated body as the plan authority and comments as history or review
+evidence.
 
-**This is a preflight note, not a blocker. Do not stop solely because the model cannot be changed in Codex.**
+Classify one primary plan kind:
 
-**Actions**:
-1. Inspect the current model/context if visible.
-2. If a stronger reasoning model is available and switching is part of the user's workflow, recommend using it.
-3. Record the active model/context in the task plan when a plan is used, then proceed to Phase 1.
+- **experiment** — produces a measured strategy/method result and later runs through
+  `strategy-eval`;
+- **infrastructure** — changes reusable code, evidence controls, tooling, data contracts, runtime,
+  or documentation and later runs through `dev-cycle`;
+- **roadmap** — defines packages, dependencies, authority, and trigger-gated deferrals; child
+  implementation later runs through the appropriate delivery skill.
 
----
+Use `mixed` only when a real cross-kind contract cannot be separated. Do not force an infrastructure
+or roadmap plan into experiment keys, incumbent metrics, or result-JSON KILL semantics.
 
-## Phase 1: Discovery
+Classify planning depth from evidence:
 
-**Goal**: Understand what needs to be planned and pin the unique key.
+- **contained** — ownership, precedent, integration points, and failure shape are clear and local;
+- **complex, risky, or uncertain** — protected data, identity/immutability, concurrency or crash
+  recovery, security/authority, external contracts, persistent state, multiple packages, or unclear
+  ownership is material.
 
-Initial request: the user's description from the invoking message. If they only said "use feature-dev to plan X"
-without specifics, jump to the clarifying questions in step 2.
+One focused exploration pass is enough for contained work. Add independent lenses only for named
+material uncertainties; agent count is never a goal.
 
-If the invoking message contains a GitHub issue reference like `#<issue-number>`, fetch that issue first and use its title/body
-as the initial request. The issue number always refers to `sppburke/binary-algo`.
+## 2. Explore and falsify
 
-**Actions**:
-1. Create the todo list with all phases.
-2. Pin the scope. For an experiment/method/sweep, that means the unique key(s) `(currency, timeframe, side)` and
-   the horizon knobs (`MX_HOR` minutes for bar models; `HS`/`HSEC` for tick models). For an infra feature, the
-   module/script surface it touches. If unclear, ask the user:
-   - What problem / which key? What would "it works" look like (a number? a reusable module? a frozen book?)?
-   - Any constraints (data on disk vs acquisition, compute, deriv-faithfulness)?
-3. Summarize understanding and confirm with the user.
+Route each claim to the highest applicable authority:
 
----
+1. repository instructions and selected skills for process;
+2. current code, tests, data, registries, and issue bodies for repository state;
+3. targeted read-only commands or safe authorized experiments for runtime behavior;
+4. recent commits/issues for rationale and precedent;
+5. exact-version primary upstream documentation when an external contract decides the design.
 
-## Phase 2: Repo Exploration
+For each material finding record the source, observation, what it establishes, its falsifier, and
+any remaining `Checked / Showed / Unknown / Needed` gap. Use safe experiments only when they remain
+planning-only and inside existing authorization. Never mutate production or consume a protected look.
 
-**Goal**: Understand the relevant existing code, prior results, and conventions at both high and low levels.
+Load evidence by plan kind:
 
-**Actions**:
-1. Launch 2–3 explorer subagents in parallel when Codex exposes suitable multi-agent tooling. Each targets a different aspect and
-   returns 5–10 key files to read. Example prompts, retargeted to this repo:
-   - "Find prior experiments related to [idea] for [pair]: search `results/<PAIR>_RESULTS.md`, `sweeps/`,
-     `docs/METHODS_CATALOG.md`, `docs/IDEAS_LOG.md`, `docs/DIRECTION_FINDINGS.md` — what was tried, the verdict,
-     and WHY (diagnosed cause: common-factor / regime / info-bound / overfit). Return the exact ledger lines."
-   - "Map the reusable building blocks relevant to [idea]: trace `harness.py`, `min1_production.py`
-     (`wc_ret`/`boot`/`nonoverlap_chrono`/`mk_lgb`), the per-horizon `m{5,10,15,30}_production.py`,
-     `crosspair.py`, `cpcv_certify.py`, `manifest.py`. What can be imported vs must be written?"
-   - "Identify the leakage traps and discipline that apply to [idea] from the `strategy-eval` skill §2/§3 and
-     `docs/_EVIDENCE-FIRST.md`. Which traps does this idea risk?"
-2. Read every file the agents flag. Build deep context — especially the **incumbent** for the key (best
-   combination in `MODEL_REGISTRY.md` / `books/INDEX.json`) and its binding (worst held-out) year.
-3. Present a comprehensive summary: what already exists, what's already been tried-and-killed (with the why), the
-   incumbent to beat, and which building blocks are reusable.
+- **Experiment:** key `(pair, timeframe, side)`, horizon, mechanism/sign-invariance, current
+  incumbent, prior result ledgers, on-disk data, settlement, leakage risks, evaluation discipline,
+  and recording destinations.
+- **Infrastructure:** current owner and consumers, exact behavior/invariants, existing tests,
+  failure and recovery semantics, expected/protected files, public APIs, dependencies, and focused
+  negative verification.
+- **Roadmap:** program objective and authority, current parent issue and machine projection,
+  dependency graph, package acceptance, deferrals, unlock triggers, owners, continuity rules, and
+  program-level rejection conditions.
 
----
+If using helpers, give them bounded independent questions and raw evidence. Read every load-bearing
+source yourself and disposition each material helper finding as accepted, corrected, deduplicated,
+or rejected.
 
-## Phase 3: Clarifying Questions
+Stop with a no-change conclusion if evidence shows the behavior already exists, the request is
+obsolete, or implementation would add no justified value.
 
-**Goal**: Fill gaps and resolve all ambiguities before designing.
+## 3. Resolve material choices
 
-**CRITICAL**: One of the most important phases. DO NOT SKIP.
+Ask only about a user-owned choice whose answer changes observable behavior, authority, protected
+access, data/contract shape, persistence, lifecycle, rollout, accepted risk, or scope boundary.
+Resolve technical facts from evidence. Adopt reversible, low-risk, repository-native defaults and
+state them without ceremonial confirmation. Ask at most four prioritized questions in one batch.
 
-**Actions**:
-1. Review the Phase 2 findings against the original request.
-2. Identify underspecified aspects: the exact key(s) and sides, the label/settlement (deriv-faithful `wc_ret`?
-   ties-lose?), the evaluation target (direction win-rate vs magnitude AUC), the data substrate (on-disk
-   `features/` vs tick vs acquisition), the incumbent to beat and on which year, the KILL conditions, and whether
-   the deliverable is a number, a reusable method, or a frozen book.
-3. **Present all questions to the user in a clear, organized list.**
-4. **Wait for answers before designing.**
+Wait only when a material user-owned choice remains unresolved. Otherwise proceed with the
+evidence-selected recommendation and allow correction.
 
-If the user says "whatever you think is best", provide your recommendation (grounded in the Phase 2 evidence) and
-get explicit confirmation.
+## 4. Select the minimum-complete design
 
----
+For contained work with one evidence-dominant solution, present that solution and one credible
+rejected alternative. Name the concrete trade-off and failure mode; do not manufacture full option
+sets. Present multiple designs only when genuinely different viable ownership, data, contract,
+authority, or migration shapes remain.
 
-## Phase 4: Approach Design
+Every design must identify:
 
-**Goal**: Design 2–3 candidate approaches with different mechanisms / trade-offs.
+- the existing semantic owner and reusable surfaces;
+- every net-new durable surface and strict necessity;
+- behavior, failure/recovery semantics, and non-goals;
+- a **surface budget**: expected files, public APIs, dependencies, persistent schemas, and protected
+  surfaces;
+- acceptance and rejection criteria;
+- focused verification and any rollout/rollback required by actual risk.
 
-**Actions**:
-1. Launch 2–3 design subagents in parallel when available, with different focuses, e.g.: **minimal** (smallest retarget of an
-   existing method — reuse `METHODS_CATALOG` entry + `MX_HOR`, maximum reuse), **novel-mechanism** (a genuinely
-   new lever or cross-disciplinary transfer — physics / info-theory / point-process / causal-discovery — with an
-   explicit direction mechanism), and **combination** (gate / blend / stack / regime-route / cross-horizon of
-   existing certified edges — often the cheapest novelty).
-2. For **each** candidate, the design must state:
-   - **Mechanism** — why this could carry *sign*, and how it survives (or doesn't) the sign-invariance theorem.
-     If it's really a magnitude/gate idea, say so and reframe it as `|ret|≥Q` magnitude.
-   - **Data + reuse** — on-disk substrate vs acquisition; which building blocks it imports.
-   - **Pre-registered falsifier** — exact KILL conditions (e.g. "KILL if VAL dirAUC ≤ 0.515, OR no held-out year's
-     moved-acc CI95-lower clears breakeven 0.541"), sized to the candidate's prior so low-prior ideas die fast.
-   - **Leakage risk** — which §3 traps it must avoid, and the discipline it must run under (§2).
-   - **Incumbent comparison** — what it must beat (the best combination for the key) and on which binding year.
-3. Review all candidates; form your opinion on which fits best **for this key on this data** (honest prior:
-   ≤5m direction is near-efficient; 15m direction ~0.58 robust; magnitude is the one certified edge). Present:
-   brief summary of each, trade-offs, **your recommendation with reasoning**, and the concrete differences.
-4. **Ask the user which approach they prefer.**
+Apply the plan-kind falsifier:
 
----
+- **Experiment:** pre-register exact KILL conditions before OOS, including settlement, selection,
+  per-year evidence, incumbent comparison, leakage traps, and certification only when a deployable
+  book is the deliverable.
+- **Infrastructure:** pre-register exact `DO NOT SHIP` conditions and negative tests/audits for
+  runtime-rejectable failures; never require a result JSON unless the feature actually measures a
+  strategy.
+- **Roadmap:** define package completion and program `DO NOT SHIP` conditions. Preserve every
+  valuable deferral with `id`, `status`, `decision`, `why_valuable`, `unlock_trigger`, and
+  `owner_issue`; a fired trigger requires a new decision and never silently enters the critical
+  path.
 
-## Phase 5: Finalize and File
+Use one delivery phase unless an independently reviewable/deployable, migration, compatibility,
+cutover, or blast-radius boundary requires more. Risk adds evidence and safeguards, not fake phases.
 
-**Goal**: Capture the agreed plan as a durable hand-off artifact — printed to screen AND filed as a GitHub issue
-in `sppburke/binary-algo`. **Do not write or run any experiment code in this skill.**
+## 5. Compose, review, and file
 
-**Prerequisite**: Phase 4 ended with the user choosing one approach. If approval isn't explicit, ask once and wait.
+Compose one consolidated issue artifact with an exact title and a body containing:
 
-**Actions**:
+- authority and intended outcome;
+- plan kind and scope/key where applicable;
+- evidence-backed findings and unresolved evidence gaps;
+- resolved decisions and defaults;
+- chosen design, semantic owner, surface budget, and rejected alternative;
+- plan-kind acceptance and rejection conditions;
+- concrete implementation steps with owning paths/surfaces;
+- focused verification with expected outcomes;
+- expected and protected files;
+- non-goals and preserved deferrals/follow-ups;
+- parent/child and machine-projection continuity when named.
 
-1. **Compose the finalized plan** from prior phases. Pull only what was agreed; invent no new scope. Sections,
-   in order:
-   - **Title** — short imperative summary (e.g. "GBPUSD 15m: test Hawkes branching-ratio gate on the xpair book").
-   - **Key(s)** — `(currency, timeframe, side)` + `MX_HOR`/`HS`.
-   - **Context** — 1–3 sentences: the problem, the incumbent to beat (number + binding year + book id), why now.
-   - **Repo findings** — bulletised Phase 2 highlights: prior-tried verdicts (with the diagnosed why), reusable
-     blocks, the relevant ledger/results files.
-   - **Resolved questions** — each Phase 3 question with its final answer.
-   - **Chosen approach** — name + 1-paragraph description of the picked candidate, including its **mechanism** and
-     **sign-invariance note**. List rejected candidates one line each with the reason.
-   - **Pre-registered falsifier** — the exact KILL conditions, verbatim, to be written into the result JSON stub.
-   - **Implementation outline** — numbered concrete steps (script to retarget/write, settlement, splits,
-     evaluation, the certification check if it's a deliverable book).
-   - **Files expected to change** — script(s), the result JSON, the `results/<PAIR>_RESULTS.md` row, the sweep
-     ledger line; one-line purpose each.
-   - **Leakage traps to avoid** — the specific §3 traps this approach risks.
-   - **Out of scope** — anything explicitly deferred.
-   - **Open risks / follow-ups** — flagged uncertainties or future work.
+Map intent/decisions to acceptance criteria, steps to owning surfaces, and criteria to verification.
+Check for duplicate open issues and relevant recent changes immediately before filing.
 
-2. **Print the full plan to screen** as a single self-contained markdown block — a reader who didn't sit through
-   phases 1–4 should be able to act on it.
+Self-review the exact candidate for unsupported premises, duplication, unnecessary surfaces,
+missing failure behavior, unverifiable criteria, and surface-budget drift. Then give the exact
+candidate, intent, repository target, and raw supporting evidence—without a desired verdict—to one
+fresh read-only `plan-review` reviewer when available. A caller-launched independent review never
+launches another reviewer. If unavailable, perform a separated direct pass and disclose the
+fallback.
 
-3. **File it as a GitHub issue**:
-   - Existing issue referenced (`#<issue-number>`): post the finalized plan as a comment or update the issue body when the
-     user asked for an update. Use `GH_TOKEN="$(gh auth token --user sppburke)" gh issue comment <issue-number> -R sppburke/binary-algo --body-file <file>`.
-   - No issue referenced: create one with `GH_TOKEN="$(gh auth token --user sppburke)" gh issue create -R sppburke/binary-algo --title "<title>" --body-file <file>`.
-   - Include enough detail for `strategy-eval` or `dev-cycle` to pick it up without conversation context.
-   - Do **not** ask where to file the plan; GitHub issue filing is the default for this repo.
-   - Do **not** append repo backlog rows, `docs/IDEAS_LOG.md`, or `SWEEP_MATRIX.md` unless the user explicitly asks
-     for those legacy ledgers in addition to the issue. If a later run produces measured results, `strategy-eval`
-     remains responsible for the Tier-2 result ledger.
+Verify and disposition every finding. File only an `approve` candidate or an
+`approve with revisions` candidate after required revisions are resolved. A material change to
+scope, architecture, behavior, contract, authority, or acceptance criteria requires a fresh full
+review; a localized correction requires review of its delta and integration invariants.
 
-4. **Report what was filed** — the GitHub issue number + URL. This is the hand-off artifact: running happens in
-   `strategy-eval`, infra build in `dev-cycle`.
+Print the final title and body exactly as filed:
 
-5. **Mark all todos complete and stop.** The skill ends here. Do not run the experiment, fit a model, write a
-   result JSON, or freeze a book — those happen in a separate `strategy-eval` invocation that picks up the backlog
-   row.
+- New plan: create one issue in `sppburke/binary-algo` using the exact body file.
+- Existing authoritative plan: replace the issue body with `gh issue edit --body-file`; use comments
+  only for review receipts or change history, never as a contradictory live amendment stack.
+
+Use an exact temporary body file outside the repository and remove it after filing. Calculate its
+SHA-256 and record a compact issue comment after a successful file/update:
+
+```text
+plan-review-receipt/v1
+artifact_sha256: <exact issue-body bytes hash>
+repo_head: <reviewed git HEAD>
+verdict: approve | approve-with-revisions
+```
+
+Report the issue URL, receipt, and any incomplete metadata action. Stop. Do not implement, evaluate,
+fit, freeze, or begin a delivery cycle.

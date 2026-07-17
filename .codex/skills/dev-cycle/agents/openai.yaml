@@ -1,4 +1,4 @@
 interface:
   display_name: "Dev Cycle"
   short_description: "Full binary-algo implementation workflow"
-  default_prompt: "Use $dev-cycle to implement and ship the next binary-algo code or documentation change."
+  default_prompt: "Use $dev-cycle to implement and ship this binary-algo code, infrastructure, tooling, skill, or documentation change."
