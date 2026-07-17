@@ -1,0 +1,213 @@
+{
+  "schema": "research-os-capabilities/v1",
+  "capabilities": [
+    {
+      "id": "ROS-1",
+      "status": "accepted",
+      "decision": "implement_mvp",
+      "why_valuable": "one reusable identity, immutability, artifact-binding, dependency, legacy-sidecar, and capability-continuity kernel",
+      "unlock_trigger": "authorized child #11",
+      "owner_issue": "#11"
+    },
+    {
+      "id": "ROS-2A",
+      "status": "deferred_until_trigger",
+      "decision": "defer",
+      "why_valuable": "Point-in-time clocks, revisions, generic raw-event admission, and data-quality incidents",
+      "unlock_trigger": "A new/revised external or venue source whose availability/correction semantics cannot be represented safely by ArtifactRef",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-2B",
+      "status": "deferred_until_trigger",
+      "decision": "defer",
+      "why_valuable": "Secure archive intake, rights, source independence, conflicts, and corpus snapshots",
+      "unlock_trigger": "A right-cleared corpus is approved for automated extraction/indexing",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-3",
+      "status": "planned",
+      "decision": "implement_mvp",
+      "why_valuable": "prove in one slice that a hypothesis cannot adapt to protected outcomes and that the terminal decision is reproducible",
+      "unlock_trigger": "ROS-1 accepted",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-3A",
+      "status": "planned",
+      "decision": "implement_mvp",
+      "why_valuable": "prevent outcome accuracy, constant payout, a quote, or a framework simulation from masquerading as actual binary-contract economics",
+      "unlock_trigger": "ROS-1 accepted",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-4",
+      "status": "deferred_until_trigger",
+      "decision": "defer",
+      "why_valuable": "Full lifecycle roles, approvals, overrides, activation, rollback",
+      "unlock_trigger": "A separately authorized activation workflow needs more than existing inactive publication and fail-closed loading",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-5",
+      "status": "deferred_until_trigger",
+      "decision": "defer",
+      "why_valuable": "Evaluated retrieval/RAG and read-only AI proposal assistance",
+      "unlock_trigger": "ROS-2B admits a corpus and a concrete retrieval task has preregistered quality/abstention gates",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-6",
+      "status": "superseded_by:ROS-3",
+      "decision": "merge the one-command pilot into ROS-3 acceptance",
+      "why_valuable": "the vertical composition proof remains mandatory without a separate package",
+      "unlock_trigger": "none",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROS-7",
+      "status": "deferred_until_trigger",
+      "decision": "defer",
+      "why_valuable": "Dual-read migration, blast-radius operations, and controlled retirement",
+      "unlock_trigger": "Measured adoption or maintenance burden justifies replacing a legacy path; parity and rollback are available",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-01",
+      "status": "deferred_until_trigger",
+      "decision": "Defer object sharding/retention policy",
+      "why_valuable": "Avoid premature layout lock-in",
+      "unlock_trigger": "Measured object count, size, or scan latency violates a documented local target",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-02",
+      "status": "deferred_until_trigger",
+      "decision": "Defer JSON-schema dependency",
+      "why_valuable": "Better error quality may later justify a dependency",
+      "unlock_trigger": "Hand validation becomes duplicated or demonstrably inadequate",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-03",
+      "status": "deferred_until_trigger",
+      "decision": "Defer SQLite/index/network service",
+      "why_valuable": "Faster concurrent queries may later matter",
+      "unlock_trigger": "Direct verified-object scans fail a measured query/concurrency target",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-04",
+      "status": "deferred_until_trigger",
+      "decision": "Defer workflow engine/scheduler",
+      "why_valuable": "Complex recovery may later exceed a small phase runner",
+      "unlock_trigger": "A real workflow cannot be expressed or resumed safely by the minimal runner",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-05",
+      "status": "deferred_until_trigger",
+      "decision": "Defer vector store/model/retrieval framework",
+      "why_valuable": "May accelerate a sufficiently large admitted corpus",
+      "unlock_trigger": "ROS-2B plus a retrieval benchmark demonstrates need and benefit",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-06",
+      "status": "deferred_until_trigger",
+      "decision": "Defer UI/dashboard",
+      "why_valuable": "May improve repeated operator decisions",
+      "unlock_trigger": "Stable schemas plus measured repeated operator query burden",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-07",
+      "status": "deferred_until_trigger",
+      "decision": "Defer distributed execution",
+      "why_valuable": "May relieve a proven local ceiling",
+      "unlock_trigger": "Captured local throughput/resource SLO breach",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-08",
+      "status": "deferred_until_trigger",
+      "decision": "Defer legacy retirement order",
+      "why_valuable": "May reduce dual-path maintenance safely",
+      "unlock_trigger": "ROS-7 dual-read parity, rollback, and measured burden",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-09",
+      "status": "deferred_until_trigger",
+      "decision": "Defer approval/signing mechanism",
+      "why_valuable": "May strengthen future activation controls",
+      "unlock_trigger": "ROS-4 threat model and an authorized operator workflow",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-10",
+      "status": "deferred_until_trigger",
+      "decision": "Defer external-data/vendor priority",
+      "why_valuable": "External macro/rates/flow is the plausible route to new edge",
+      "unlock_trigger": "Point-in-time availability, rights, cost, and expected-decision-value review authorizes one source",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-11",
+      "status": "deferred_until_trigger",
+      "decision": "Defer automated supplied-archive ingestion",
+      "why_valuable": "Preserves the literature corpus opportunity",
+      "unlock_trigger": "Per-source rights resolution and ROS-2B security acceptance",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-12",
+      "status": "deferred_until_trigger",
+      "decision": "Defer model-set retention/averaging policy",
+      "why_valuable": "May represent estimator/selection uncertainty honestly",
+      "unlock_trigger": "ROS-3 has a preregistered comparison rule and applicable candidates",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-13",
+      "status": "deferred_until_trigger",
+      "decision": "Defer bespoke Rust economic reducer",
+      "why_valuable": "Preserves a fast, memory-bounded implementation option",
+      "unlock_trigger": "Three representative normal canonical runs exceed 120 seconds or 2 GiB RSS and profiling attributes at least 50% of the violated resource to the reducer",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-14",
+      "status": "deferred_until_trigger",
+      "decision": "Defer other durations, allow-equals, early sale, and other Deriv binaries",
+      "why_valuable": "Preserves product expansion without inherited semantics",
+      "unlock_trigger": "A separate target/venue contract and admissible proposal/buy/terminal evidence exist",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-15",
+      "status": "deferred_until_trigger",
+      "decision": "Defer Nautilus admission, upgrade, patch, or replacement",
+      "why_valuable": "Preserves independent differential testing and maintenance options",
+      "unlock_trigger": "The reference ledger is stable and a post-MVP bounded proposal documents incremental value, exact dependency identity, license/SBOM, and a differential gate",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSD-16",
+      "status": "deferred_until_trigger",
+      "decision": "Defer shared extraction/refactor of issue-#9/manifest primitives",
+      "why_valuable": "May reduce duplication after reuse is real",
+      "unlock_trigger": "A second production consumer plus measured duplicated maintenance/correctness cost and an exact cross-implementation parity suite",
+      "owner_issue": "#10"
+    },
+    {
+      "id": "ROSR-01",
+      "status": "resolved_non_goal",
+      "decision": "this repository implements only Deriv FX Rise/Fall economics. Equities, futures, options, and options-on-futures require a separate repository and roadmap if revived.",
+      "why_valuable": "preserves the universal-engine idea without forcing unlike venue and settlement semantics into this repository",
+      "unlock_trigger": "none in binary-algo; revival requires a separately authorized repository roadmap",
+      "owner_issue": "#10"
+    }
+  ]
+}
