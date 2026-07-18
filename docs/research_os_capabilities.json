@@ -35,11 +35,11 @@
     },
     {
       "id": "ROS-3A",
-      "status": "planned",
+      "status": "accepted",
       "decision": "implement_mvp",
       "why_valuable": "prevent outcome accuracy, constant payout, a quote, or a framework simulation from masquerading as actual binary-contract economics",
-      "unlock_trigger": "ROS-1 accepted",
-      "owner_issue": "#10"
+      "unlock_trigger": "authorized child #13",
+      "owner_issue": "#13"
     },
     {
       "id": "ROS-4",

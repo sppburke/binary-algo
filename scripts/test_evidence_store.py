@@ -47,7 +47,7 @@ EXPECTED_STATUSES = {
     "ROS-2A": "deferred_until_trigger",
     "ROS-2B": "deferred_until_trigger",
     "ROS-3": "accepted",
-    "ROS-3A": "planned",
+    "ROS-3A": "accepted",
     "ROS-4": "deferred_until_trigger",
     "ROS-5": "deferred_until_trigger",
     "ROS-6": "superseded_by:ROS-3",
@@ -622,6 +622,8 @@ def _real_sidecars() -> dict[str, evidence.EvidenceEnvelope]:
     sidecars: dict[str, evidence.EvidenceEnvelope] = {}
     for object_id in evidence.verify_store(repo_root=REPO_ROOT):
         envelope = evidence.verify_object(object_id, repo_root=REPO_ROOT)
+        if envelope.kind != evidence.LEGACY_SIDECAR_KIND:
+            continue
         fixture_class = envelope.payload["fixture_class"]
         check(fixture_class not in sidecars, f"duplicate fixture class {fixture_class}")
         sidecars[fixture_class] = envelope
