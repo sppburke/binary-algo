@@ -23,6 +23,14 @@ python scripts/usdchf_15m_cpcv_xpair.py
 | `build_panel.py` | Builds `features/{PAIR}_{year}.parquet` from raw OHLCV |
 | `build_books.py` | Freezes a trained model into `books/` |
 | `fwd_holdout.py` | Forward holdout evaluation utilities |
+| `research_campaign_v1.py` | Sealed, serial, resumable control plane for adapter-owned synthetic/retrospective campaigns; emits inactive evidence terminals only |
+
+Run or verify a campaign from the repository root:
+
+```bash
+~/binary-algo-venv/bin/python scripts/research_campaign_v1.py run --spec <canonical-json-path>
+~/binary-algo-venv/bin/python scripts/research_campaign_v1.py verify --campaign-id <id>
+```
 
 ---
 
