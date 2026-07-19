@@ -212,3 +212,15 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 - Matched legacy full-VAL selector: p10 .5603, mean .5800, min .5515; worst-half deltas were +.0019 p10, +.0021 mean, and +.0057 minimum. The audit claim is capped at .5622 and cannot replace the registered .5742 incumbent number.
 - Mandatory frozen context: 2024 DOWN .6096 (n607, CI95 [.5717,.6474]); 2025 DOWN .5306 (n571, CI95 [.4904,.5709]). Neither row is fresh OOS or a second outcome rule.
 - **SWEEP REMAINS CLOSED.** No new alpha, certification, book, leader, floor, activation, runtime mapping, or deployment authority was created; `EURUSD.m15xp.v1`, `MODEL_REGISTRY.md`, and `books/INDEX.json` remain unchanged.
+
+## Issue #16 audit-only local-tick settlement diagnostic — 2026-07-19
+
+| audit | scope | valid settlement | worst-half complete-case tick p10 | outcome | source |
+|---|---|---:|---:|---|---|
+| `historical_tick_settlement_audit.v2` | exact issue #15 EURUSD 15m DOWN rows, 2012–2025 local tick archive | **18,752/21,086 (88.93%)** | .5463 (same-subset proxy .5624; Δ −.0160) | **`not_computable` · `capability_deferred`** | `results/json/eurusd_m15_down_tick_settlement_audit_v2_result.json` |
+
+- All 15 worst-half paths missed the fixed 95% completeness gate (range 81.14%–93.41%); the 15/15 complete-case point clears are diagnostic only and cannot be interpreted as preservation. Invalid unique decisions were 1,227 entry-late and 1,107 exit-stale under the preregistered 30-second tolerance.
+- Matched legacy complete cases: tick p10 .5413 versus same-subset proxy .5545 (Δ −.0132), with 13/15 point paths clearing. Frozen 2024/2025 coverage was 79.57%/91.94%, so no frozen bootstrap CI was produced.
+- Terminal `257a78861ceb574752a89e777bcb3a82bc2fc2ca1be2da8187b12029ecd240a7` is inactive. The archive's original provenance is unknown; this does not establish Deriv quote or payout fidelity.
+- The v1 campaign blocked before attempt on frozen-list normalization; immutable v2 changed only that transport normalization and ran the same reviewed contract.
+- **SWEEP REMAINS CLOSED.** No new alpha, certification, floor, book, leader, activation, runtime mapping, or deployment authority was created; the registered .5742 proxy claim and every protected registry/index/book surface remain unchanged.
