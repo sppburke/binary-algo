@@ -202,3 +202,13 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 - The simultaneous promotion lower bounds were C−A yield −.002113, C−B yield −.001595, C-UP accuracy−.5 −.085977, and C-DOWN accuracy−.5 −.127017. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_EURUSD_replay_result.json`.
 - The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
 - **Sweep remains CLOSED.** `EURUSD.m15xp.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.
+
+## Issue #15 audit-only selector diagnostic — 2026-07-18
+
+| audit | scope | selector | historical DOWN p10 | paths clear .541 | outcome | source |
+|---|---|---|---:|---:|---|---|
+| `historical_selection_audit.v1` | EURUSD 15m, 2012–2025 bar proxy | worst validation half | **.5622** (mean .5821; min .5573) | **15/15** | `historical_selection_rule_not_falsified` · inactive | `results/json/eurusd_m15_down_selection_audit_v1_result.json` |
+
+- Matched legacy full-VAL selector: p10 .5603, mean .5800, min .5515; worst-half deltas were +.0019 p10, +.0021 mean, and +.0057 minimum. The audit claim is capped at .5622 and cannot replace the registered .5742 incumbent number.
+- Mandatory frozen context: 2024 DOWN .6096 (n607, CI95 [.5717,.6474]); 2025 DOWN .5306 (n571, CI95 [.4904,.5709]). Neither row is fresh OOS or a second outcome rule.
+- **SWEEP REMAINS CLOSED.** No new alpha, certification, book, leader, floor, activation, runtime mapping, or deployment authority was created; `EURUSD.m15xp.v1`, `MODEL_REGISTRY.md`, and `books/INDEX.json` remain unchanged.

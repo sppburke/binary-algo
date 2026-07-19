@@ -506,3 +506,11 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
 - `EURUSD.m5xp_magw_down.v1` is git-tagged but MISSING from `books/INDEX.json` — added below.
 - `EURUSD.m5xp_aci.v1` is registered with ACI .584 metrics but **ACI is DOWNGRADED** (nested-refit fail); the durable
   UP figure is the m5xp refit floor **0.553**, not ACI. Registry metric annotated.
+
+## Issue #15 historical selector audit — 2026-07-18
+
+- **Outcome: `historical_selection_rule_not_falsified` (inactive diagnostic only).** On the exact 2012–2025 bar-proxy harness, worst-validation-half DOWN selection produced 15/15 complete purged paths with mean **.5821**, p10 **.5622**, minimum **.5573**, maximum **.6143**, and **15/15** paths clearing .541. The preregistered falsifier (p10 < .541 or fewer than 12/15 clearing) did not fire. The allowed diagnostic comparison is capped at **.5622**, below the registered legacy .5742 claim.
+- The matched legacy full-VAL selector produced mean **.5800**, p10 **.5603**, minimum **.5515**, and 15/15 clearing; worst-half minus legacy was **+.0021 mean**, **+.0019 p10**, and **+.0057 minimum**. These are historical proxy diagnostics, not replacement incumbent metrics.
+- The frozen `EURUSD.m15xp.v1` context, selected on 2022–2023 by the same worst-half DOWN rule, was 2024 **.6096** (n=607, bootstrap CI95 [.5717,.6474]) and 2025 **.5306** (n=571, CI95 [.4904,.5709]). The weak 2025 row is mandatory context, not a second pass/fail rule or an outcome-informed selector.
+- Primary source: `results/json/eurusd_m15_down_selection_audit_v1_result.json`; sealed terminal `4c3b0d20013b9b6301f965ac45aae9161fa6db4fc8e5bf7f1c123f2fd0b76b8d` has `decision=inactive_candidate` and `activation=false`.
+- **Authority unchanged.** This used pre-2026 moved-bar close-direction proxies, not true next-tick Deriv settlement or fresh OOS. It does not recertify, upgrade, downgrade, activate, or alter `EURUSD.m15xp.v1`, its registered .5742 DOWN floor, any book/registry/index/runtime mapping, or the closed sweep.
