@@ -32,6 +32,21 @@ Run or verify a campaign from the repository root:
 ~/binary-algo-venv/bin/python scripts/research_campaign_v1.py verify --campaign-id <id>
 ```
 
+### USDCHF 15m current-vintage refit
+
+`usdchf_m15_current_refit_v1.py` seals, fits, and verifies one fixed
+latest-on-disk combined-policy refit. Its output belongs under
+`results/artifacts/` as a tracked inactive research package, not under
+`books/`; it publishes no efficacy measurement and performs no routing,
+deployment, or activation. See
+`docs/USDCHF_M15_CURRENT_REFIT.md` for the exact boundaries and lifecycle.
+
+```bash
+~/binary-algo-venv/bin/python scripts/usdchf_m15_current_refit_v1.py seal
+~/binary-algo-venv/bin/python scripts/usdchf_m15_current_refit_v1.py fit --seal-id <id>
+~/binary-algo-venv/bin/python scripts/usdchf_m15_current_refit_v1.py verify --seal-id <id>
+```
+
 ---
 
 ## Script Naming Convention

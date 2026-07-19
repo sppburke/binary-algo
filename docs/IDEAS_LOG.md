@@ -8,6 +8,21 @@ Generic methods: `docs/METHODS_CATALOG.md`; permutation menu: `SWEEP_MATRIX.md`;
 bars, vol-time subordination, cross-pair whitening) + GARCH/HAR/semivariance/Hawkes/BOCPD/causal-PCMCI gaps. **Every item
 gated by the §6f frozen-past forward holdout + a surrogate-null** (pooled CPCV alone is insufficient — leakage trap #9).
 
+## Deferred research-OS capabilities
+
+These capabilities remain valuable but unauthorized. A trigger permits a new
+plan; it does not activate the capability. The first bound consumer is the
+inactive refit package contract in `docs/USDCHF_M15_CURRENT_REFIT.md`
+`[USDCHF·15m]`.
+
+| ID | Value retained | Unlock trigger | Owner / pickup |
+|---|---|---|---|
+| `REFIT-PROSPECTIVE-1` | Prospective Deriv-demo evaluator with separate UP/DOWN lanes and candidate-specific routing | An exact inactive package exists and a later plan can seal a pre-outcome T0 | Standalone `feature-dev -> plan-review -> dev-cycle/strategy-eval`; no automatic activation |
+| `REFIT-PUBLISH-1` | Promotion through the book manifest/index/registry owner | A side-specific prospective trial passes its preregistered venue-economics rule | Separate reviewed publication issue; never infer survivor status from packaging |
+| `REFIT-CADENCE-1` | Operator-approved repeatable refit cadence | One policy passes prospective and later canary gates at two vintages | Separate issue; no scheduler assumed |
+| `ALPHA-COMPILER-1` | Thin typed hypothesis/operator/rejection layer over the existing campaign/evidence control plane | One authorized point-in-time macro/rates/flow sample exists, or two real adapters repeat manual structure | Separate infrastructure issue; never run on the closed on-disk feature universe |
+| `REAL-MONEY-CANARY-1` | Minimum-stake VPS-only canary with a fixed loss budget and kill switch | Demo realized-P&L lower bound exceeds zero and the user separately authorizes exact stake/loss limits | Separate issue with explicit authority; never automatic |
+
 **Tested-on-keys pointers (where these levers were instantiated):**
 - EURUSD · 1m  → `sweeps/EURUSD_1m_backlog.md`  (+ `results/EURUSD_RESULTS.md` §60s) — **CLOSED 2026-06-03: both sides certified-or-exhausted, 2 discovery rounds DRY**
 - EURUSD · 5m  → `sweeps/EURUSD_5m_backlog.md`  (+ `results/EURUSD_RESULTS.md`)

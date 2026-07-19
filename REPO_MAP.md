@@ -3,7 +3,7 @@
 **Read this first if you are an agent maintaining this repo's records.** It defines where everything goes so
 the bookkeeping stays maintainable as we add currencies and timeframes. The `strategy-eval` skill enforces it.
 
-> **Directory layout (2026-06-12 reorganisation):** All Python scripts → `scripts/` (flat). Per-pair result ledgers → `results/`. Raw experiment JSON outputs → `results/json/`. Methodology/findings docs → `docs/`. Logs → `logs/`. Books unchanged at `books/`. Data dirs (`features/`, `features_of/`, `features_tick*/`, `syn_data/`, `macro_calendar.parquet`) stay at repo root (absolute paths hardcoded in scripts — do not move).
+> **Directory layout (2026-06-12 reorganisation):** All Python scripts → `scripts/` (flat). Per-pair result ledgers → `results/`. Raw experiment JSON outputs → `results/json/`. Tracked inactive non-book research packages → `results/artifacts/`. Methodology/findings docs → `docs/`. Logs → `logs/`. Books unchanged at `books/`. Data dirs (`features/`, `features_of/`, `features_tick*/`, `syn_data/`, `macro_calendar.parquet`) stay at repo root (absolute paths hardcoded in scripts — do not move).
 
 This repo forecasts deriv.com binary **DIRECTION** (`sign(close(t+H)−close(t))`) and **MAGNITUDE** (`|ret_H|≥Q`)
 for FX pairs across timeframes. A **key** = `(PAIR, timeframe[, side])`, side ∈ {UP, DOWN}. **5m EURUSD is ONE
@@ -40,6 +40,7 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | File pattern | Role (key-specific) |
 |---|---|
 | `results/<PAIR>_RESULTS.md` | Per-**currency** results across tf×side: MASTER KEY TABLE + per-tf experiment tables + the UP/DOWN leaderboard. (e.g. `results/EURUSD_RESULTS.md`) |
+| `results/artifacts/<artifact-id>/` | Tracked, immutable, lifecycle-inactive research packages that must remain outside `books/`, `books/INDEX.json`, and `MODEL_REGISTRY.md`. They are not runtime-loadable books; promotion requires a separate reviewed publication transaction. |
 | `sweeps/<PAIR>_<tf>.md` | Per-(currency,tf) **SWEEP LEDGER** — the resumable state of the exhaustive sweep (row-by-row status). |
 | `sweeps/<PAIR>_<tf>_backlog.md` | Per-key **EXECUTABLE BACKLOG** — the ranked TOP-N experiments, FIRST-TO-RUN queue, "incumbents to beat", and key-specific discovery rounds. (Moved out of the generic `docs/IDEAS_LOG.md`.) |
 | `<PAIR>_<tf>_research_log.md` | Per-key narrative research log (the running prose journal for that key). |
