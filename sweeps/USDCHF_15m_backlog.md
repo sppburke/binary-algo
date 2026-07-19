@@ -5,6 +5,8 @@ SCOPE: USDCHF · 15m — EXECUTABLE backlog (TOP-N queue / incumbents-to-beat / 
 **STATUS: CLOSED.** Queue DRAINED, every candidate RESOLVED (verdicts below + `results/USDCHF_RESULTS.md`), R1+R2+R3 all DRY. On-disk key EXHAUSTED.
 **DELIVERABLE (frozen + git-tagged + in `books/INDEX.json`):** `USDCHF.m15ny_xpair_seedens.v1` (content_id `eb44d9992cce9734` / `eb44d999`; tag `book/USDCHF.m15ny_xpair_seedens.v1`) — EUR-bloc CROSS-PAIR POOLED, NY-session, LightGBM SEED-ENS K=3, 337 feats. ★ FIRST major to certify >65% BOTH sides (refit-CPCV p10: cov.02 UP .6533 / DOWN .6440; cov.01 .6935/.6682; cov.005 .7303/.7084; all cells CERT=True). VAL moved-AUC .5576; CPCV AUC .5479. REFIT-DEPENDENT (NY-only deploy + periodic retrain; size refit-CPCV floor −.0035 haircut; Kelly 1/8). Supersedes single-seed `USDCHF.m15ny_xpair.v1` (`7505c934`). Only frontier left = OFF-DISK data (traded EURCHF, SNB sight-deposits, VIX/risk-reversal, US-CH rate-diff) — out of on-disk scope.
 
+**Issue #18 refit receipt (2026-07-19):** **`INACTIVE_UNTESTED_PROSPECTIVE`**. Canonical/audit bytes match for `results/artifacts/USDCHF.m15ny_xpair_seedens.r202605.v1/`; the package records no efficacy measurement, does not reopen this sweep, is not a book, and has no runtime, demo-buy, activation, or real-money authority. Exact result: `results/json/usdchf_m15_current_refit_v1_result.json`.
+
 ## FIRST-TO-RUN queue — ✅ DRAINED
 1. **A1 base** — `usdchf_15m_base.py` ✅ DONE (SURVIVED; VAL AUC .5301; 2026 binding cov2 COMB .5103 sub-BE = refit-dependent).
 2. **A9 session landscape** — `usdchf_15m_cpcv_session.py {all,ny,ldn,asia}` ✅ DONE. Carrier = **NY** (all-session also certifies @cov≤.03; LDN no-cert; Asia killed). NY = the deploy session.
