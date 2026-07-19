@@ -224,3 +224,16 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 - Terminal `257a78861ceb574752a89e777bcb3a82bc2fc2ca1be2da8187b12029ecd240a7` is inactive. The archive's original provenance is unknown; this does not establish Deriv quote or payout fidelity.
 - The v1 campaign blocked before attempt on frozen-list normalization; immutable v2 changed only that transport normalization and ran the same reviewed contract.
 - **SWEEP REMAINS CLOSED.** No new alpha, certification, floor, book, leader, activation, runtime mapping, or deployment authority was created; the registered .5742 proxy claim and every protected registry/index/book surface remain unchanged.
+
+## Issue #17 audit-only daily rate-regime procurement screen — 2026-07-19
+
+| experiment | fixed feature | worst-half path lift | frozen lifts | outcome | source |
+|---|---|---:|---:|---|---|
+| `daily_rates_regime_screen.v3` | 5-common-observation Δ(`DGS2 − ECB euro-area all-ratings 2y par`), second-preceding-NY-weekday lag | mean **+.0208**, p10 **−.0250**, **12/15** positive | 2024 **+.0404**; 2025 **+.1060** | **`daily_rate_regime_falsified` · `no_candidate`** | `results/json/eurusd_m15_down_daily_rates_screen_v3_result.json` |
+
+- The preregistered procurement gate required path p10 ≥+.005, at least 12/15 positive paths, and both frozen-year lifts positive. Only the p10 tail failed; positive averages and frozen rows do not rescue it. Matched legacy-selector p10 was −.0157 (mean +.0245; 12/15 positive).
+- The result is a current-vintage, calendar-lagged slow-regime association—not point-in-time daily evidence, an exact U.S.-German spread, or an intraday lead test. No model was fit or refit and no protected/current outcome was opened.
+- Public vendor evidence was sealed before #15 access. Databento `GLBX.MDP3` declares CME coverage from June 2010 with trades/OHLCV-1m, but exact ZT inclusion/symbology remains unverified; Databento Eurex starts only in March 2025; Deutsche Boerse advertises broader order/trade history from end-November 2013. Exact ZT coverage/cost, FGBS-only price/rights, and samples remain unknown. No vendor was contacted and nothing was purchased.
+- Procurement recommendation is **do not purchase on this evidence**. A distinct minute-level ZT-versus-FGBS underreaction hypothesis remains unknown and requires a separately approved plan if ever overridden.
+- Terminal `fad191e8c764c4004a4e4d08e1c44a8bae4fb6b809d68dcefb2e53422820947c` is inactive. V1 blocked before attempt; v2 failed after attempt but before native output; immutable v3 changed runner-boundary plumbing only and completed the reviewed measurement.
+- **SWEEP REMAINS CLOSED.** No incumbent metric, certification, floor, book, leader, registry/index/runtime mapping, or activation state changed.
