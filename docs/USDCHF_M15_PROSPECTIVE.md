@@ -36,10 +36,10 @@ public command surface:
 ~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py verify [--prereg-id <64-hex>]
 ```
 
-After the implementation H0 is committed and pushed, `preflight` uses a spent,
-pre-T0 New-York session to prove candidate/incumbent feature, score, gate, clock,
-and live-tick provenance parity without computing or displaying outcomes. Its
-default output is the ignored file
+After the implementation H0 is committed and pushed, `preflight` uses the newest
+prior New-York weekday and requires its full spent session to prove
+candidate/incumbent feature, score, gate, clock, and live-tick provenance parity
+without computing or displaying outcomes. Its default output is the ignored file
 `deriv_data/prospective/preflight/usdchf_m15_prospective_v1_preflight.json`.
 `preregister` embeds that complete canonical payload and its SHA-256; the
 preflight is neither tracked nor an envelope artifact. The command requires an

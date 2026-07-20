@@ -512,6 +512,13 @@ def _parse_session_date(value: str) -> date:
     return parsed
 
 
+def _latest_prior_weekday(value: date) -> date:
+    candidate = value - timedelta(days=1)
+    while candidate.weekday() >= 5:
+        candidate -= timedelta(days=1)
+    return candidate
+
+
 def _tick_store_paths(root: Path, spec: Mapping[str, Any]) -> tuple[Path, Path]:
     shard_dir = root / spec["paths"]["tick_shards"]
     progress = root / spec["paths"]["tick_progress"]
@@ -877,10 +884,16 @@ def build_preflight(
     root = _validated_root(repo_root)
     candidate, incumbent, spec = authenticate_policies(root)
     selected_date = _parse_session_date(session_date)
-    now_utc = (now or datetime.now(UTC)).astimezone(UTC)
+    observation_start_utc = (now or datetime.now(UTC)).astimezone(UTC)
+    if selected_date != _latest_prior_weekday(
+        observation_start_utc.astimezone(NY).date()
+    ):
+        raise ProspectiveError(
+            "preflight requires the newest prior New York weekday"
+        )
     start_ny = datetime.combine(selected_date, wall_time(8, 0), tzinfo=NY)
     required_end_ny = datetime.combine(selected_date, wall_time(16, 49, 1), tzinfo=NY)
-    if required_end_ny.astimezone(UTC) >= now_utc:
+    if required_end_ny.astimezone(UTC) >= observation_start_utc:
         raise ProspectiveError("preflight provenance session is not fully spent")
     start_epoch = int(start_ny.astimezone(UTC).timestamp())
     end_epoch = int(
@@ -910,12 +923,13 @@ def build_preflight(
             f"preflight live finite-bid/ask coverage {coverage:.6f} is below 0.995"
         )
     scoring = _score_latest_store_row(root, spec, candidate, incumbent)
-    return {
+    generated_utc = (now or datetime.now(UTC)).astimezone(UTC)
+    payload = {
         "schema": PREFLIGHT_SCHEMA,
         "pair": PAIR,
         "host": os.uname().nodename,
         "spent_session_date_ny": selected_date.isoformat(),
-        "generated_utc": _canonical_utc(now_utc),
+        "generated_utc": _canonical_utc(generated_utc),
         "provider": {
             "endpoint_class": "public_Deriv_market_stream_store",
             "candle_store": spec["paths"]["candle_store"],
@@ -935,6 +949,7 @@ def build_preflight(
         "outcome_fields_present": False,
         "activation": False,
     }
+    return _validate_preflight_value(payload, spec)
 
 
 def _atomic_new(path: Path, raw: bytes, *, mode: int = 0o600) -> None:
@@ -1010,7 +1025,8 @@ def write_preflight(
 ) -> dict[str, Any]:
     root = _validated_root(repo_root)
     relative = _canonical_relative(output, "preflight output")
-    expected = _load_spec(root)["paths"]["preflight_result"]
+    spec = _load_spec(root)
+    expected = spec["paths"]["preflight_result"]
     if relative != expected:
         raise ProspectiveError(f"preflight output must be the fixed path {expected}")
     destination = root / relative
@@ -1025,14 +1041,16 @@ def write_preflight(
             raise ProspectiveError(
                 f"preflight recovery destination is not canonical JSON: {exc}"
             ) from exc
-        recovered = _validate_preflight_value(recovered, _load_spec(root))
+        recovered = _validate_preflight_value(recovered, spec)
         if recovered["spent_session_date_ny"] != _parse_session_date(
             session_date
         ).isoformat():
             raise ProspectiveError("preflight recovery session date differs")
         _atomic_new(destination, _canonical(recovered))
         return recovered
-    payload = build_preflight(session_date, repo_root=root)
+    payload = _validate_preflight_value(
+        build_preflight(session_date, repo_root=root), spec
+    )
     _ensure_directory_chain(
         root, PurePosixPath(relative).parent, "preflight output path"
     )
@@ -1069,6 +1087,10 @@ def _validate_preflight_value(
     required_end = datetime.combine(selected_date, wall_time(16, 49, 1), tzinfo=NY)
     if generated <= required_end.astimezone(UTC):
         raise ProspectiveError("preflight provenance session was not spent when generated")
+    if selected_date != _latest_prior_weekday(generated.astimezone(NY).date()):
+        raise ProspectiveError(
+            "preflight requires the newest prior New York weekday"
+        )
     paths = (spec or {}).get("paths", {})
     candle_store = paths.get("candle_store", "deriv_data/candles_1m_daemon")
     tick_shards = paths.get("tick_shards", "deriv_data/ticks_1s/_pages/USDCHF")

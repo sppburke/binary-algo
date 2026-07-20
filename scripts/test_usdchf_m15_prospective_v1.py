@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Synthetic focused gate for the issue-#19 prospective USDCHF observer.
 
-All mutable state is confined to temporary directories.  This gate never
-runs preflight, starts collection, opens the live stores, analyzes a real
-packet, connects to Deriv, or creates a trade request.
+All mutable state is confined to temporary directories.  This gate never runs
+the live preflight command, starts collection, opens the live stores, analyzes
+a real packet, connects to Deriv, or creates a trade request.
 """
 
 from __future__ import annotations
@@ -466,6 +466,126 @@ def test_spec_preflight_embedding_and_environment() -> None:
     changed["outcome_fields_present"] = True
     with expect_raises(prospective.ProspectiveError, "lifecycle"):
         prospective._validate_preflight_value(changed)
+
+
+def test_preflight_generation_and_strict_new_validation() -> None:
+    spec = _spec()
+    for current, expected in (
+        ("2026-07-17", "2026-07-16"),
+        ("2026-07-19", "2026-07-17"),
+        ("2026-07-20", "2026-07-17"),
+        ("2026-07-21", "2026-07-20"),
+        ("2026-03-09", "2026-03-06"),
+        ("2026-11-02", "2026-10-30"),
+    ):
+        equal(
+            prospective._latest_prior_weekday(
+                datetime.fromisoformat(current).date()
+            ).isoformat(),
+            expected,
+            f"latest prior weekday for {current}",
+        )
+    fixture = _preflight_fixture()
+    fixture["scoring_parity"]["incumbent"]["content_id"] = spec["incumbent"][
+        "loaded_content_id"
+    ]
+    start_epoch = fixture["tick_provenance"]["session_start_epoch"]
+    end_epoch = fixture["tick_provenance"]["session_end_epoch"]
+    epochs = np.arange(start_epoch, end_epoch + 1, dtype="int64")
+    ticks = pd.DataFrame(
+        {
+            "epoch": epochs,
+            "quote": np.ones(len(epochs), dtype="float64"),
+            "bid": np.ones(len(epochs), dtype="float64"),
+            "ask": np.ones(len(epochs), dtype="float64"),
+        }
+    )
+    ticks.loc[len(ticks) // 2, "bid"] = np.nan
+    descriptor = fixture["provider"]["tick_descriptor"]
+    first_clock = datetime(2026, 7, 17, 20, 34, 59, tzinfo=UTC)
+    generated_clock = datetime(2026, 7, 17, 20, 35, 1, tzinfo=UTC)
+    events: list[str] = []
+
+    class SequencedDateTime(datetime):
+        @classmethod
+        def now(cls, tz: Any = None) -> datetime:
+            events.append("now")
+            value = first_clock if events.count("now") == 1 else generated_clock
+            return value.astimezone(tz) if tz is not None else value.replace(tzinfo=None)
+
+    def score_after_observations(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        del args, kwargs
+        events.append("score")
+        return fixture["scoring_parity"]
+
+    def read_ticks(*args: Any, **kwargs: Any) -> tuple[pd.DataFrame, dict[str, Any]]:
+        del args, kwargs
+        events.append("ticks")
+        return ticks, descriptor
+
+    with (
+        mock.patch.object(prospective, "datetime", SequencedDateTime),
+        mock.patch.object(prospective, "_require_public_environment"),
+        mock.patch.object(prospective, "_validated_root", return_value=REPO_ROOT),
+        mock.patch.object(
+            prospective,
+            "authenticate_policies",
+            return_value=(SimpleNamespace(), SimpleNamespace(), spec),
+        ),
+        mock.patch.object(
+            prospective,
+            "_read_tick_rows",
+            side_effect=read_ticks,
+        ),
+        mock.patch.object(
+            prospective,
+            "_score_latest_store_row",
+            side_effect=score_after_observations,
+        ),
+    ):
+        built = prospective.build_preflight(
+            fixture["spent_session_date_ny"], repo_root=REPO_ROOT
+        )
+    equal(
+        events,
+        ["now", "ticks", "score", "now"],
+        "preflight generation clock ordering",
+    )
+    equal(
+        built["generated_utc"],
+        prospective._canonical_utc(generated_clock),
+        "preflight generation timestamp",
+    )
+
+    stale = json.loads(json.dumps(built))
+    stale["spent_session_date_ny"] = "2026-07-15"
+    with expect_raises(prospective.ProspectiveError, "newest prior"):
+        prospective._validate_preflight_value(stale, spec)
+
+    invalid = json.loads(json.dumps(built))
+    invalid["tick_provenance"]["recovered_or_malformed_rows_rejected"] = 0
+    invalid["tick_provenance"]["admitted_live_rows"] = invalid["tick_provenance"][
+        "rows"
+    ]
+    invalid["tick_provenance"]["finite_second_coverage"] = 1.0
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        relative = spec["paths"]["preflight_result"]
+        destination = root / relative
+        with (
+            mock.patch.object(prospective, "_validated_root", return_value=root),
+            mock.patch.object(prospective, "_load_spec", return_value=spec),
+            mock.patch.object(prospective, "build_preflight", return_value=invalid),
+            expect_raises(prospective.ProspectiveError, "tick-provenance"),
+        ):
+            prospective.write_preflight(
+                built["spent_session_date_ny"], relative, repo_root=root
+            )
+        check(not destination.exists(), "invalid fresh preflight consumed its destination")
+        check(
+            not destination.parent.exists(),
+            "invalid fresh preflight created its output directory",
+        )
 
 
 def test_score_feature_clock_and_session_parity() -> None:
@@ -3145,6 +3265,7 @@ def main() -> int:
     timings = {
         "surface": run_section("six-command buy-incapable surface", test_public_surface_and_buy_incapability),
         "spec": run_section("spec, embedded preflight, and environment", test_spec_preflight_embedding_and_environment),
+        "preflight_write": run_section("fail-closed fresh preflight write", test_preflight_generation_and_strict_new_validation),
         "parity": run_section("feature, score, clock, and session parity", test_score_feature_clock_and_session_parity),
         "identity": run_section("fixed package identities and private inactive loading", test_fixed_policy_authentication_and_inactive_loading),
         "settlement": run_section("settlement boundaries, ties, and scheduling", test_tick_settlement_boundaries_ties_and_scheduling),
