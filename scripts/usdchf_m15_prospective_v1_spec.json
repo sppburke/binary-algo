@@ -1,0 +1,108 @@
+{
+  "schema": "usdchf-m15-prospective-spec/v1",
+  "issue": {
+    "number": 19,
+    "body_sha256": "eb212b8e076e7f6ac71d065ae47189b4e1d81655215563b74f8e2c455cef8183",
+    "reviewed_repo_head": "196502d878fd30da25430c0b934813fea3520885"
+  },
+  "pair": "USDCHF",
+  "horizon_seconds": 900,
+  "candidate": {
+    "artifact_id": "USDCHF.m15ny_xpair_seedens.r202605.v1",
+    "package_path": "results/artifacts/USDCHF.m15ny_xpair_seedens.r202605.v1",
+    "source_spec_path": "scripts/usdchf_m15_current_refit_v1_spec.json",
+    "result_path": "results/json/usdchf_m15_current_refit_v1_result.json",
+    "result_sha256": "eb797bb5df99e0a03724c0bdf874dbd1c4148cefcf45f6a34a88082b1d9bd969",
+    "manifest_sha256": "d7e00addda31f8f065c1c7f3cf86e6208f4b5beaec3e8a8722569205db2f9963",
+    "seal_id": "c955ab958c536b06f18830aea864324afaccdbd6b5c84e31559717cd900ea778",
+    "terminal_id": "16b1fd46951248bf3f5120fbdc164808aa6b9edbca9ed9dc18e2b22ea5ac661e",
+    "h1_git_sha": "b37a58a4fd6dc1139e3b61038720c3a84a5feaf8",
+    "information_cutoff": "2026-05-09T00:00:00Z",
+    "feature_count": 337,
+    "feature_dtype": "float32",
+    "seed_order": [0, 1, 2],
+    "confidence_threshold": 0.04310172144482041,
+    "probability_rule": "p>=0.5_is_UP"
+  },
+  "incumbent": {
+    "book_id": "USDCHF.m15ny_xpair_seedens.v1",
+    "index_path": "books/INDEX.json",
+    "metric_content_id": "eb44d9992cce9734",
+    "loaded_content_id": "5e657b008e12daa8",
+    "manifest_path": "books/USDCHF.m15ny_xpair_seedens.v1.manifest.json",
+    "manifest_sha256": "d820976e6656e60d7fffdaf5f776271146bcf9bb207603398cff869cf30959fa",
+    "strategy_path": "books/USDCHF.m15ny_xpair_seedens.v1/m15xpny_USDCHF_strategy.json",
+    "strategy_sha256": "d7df4e9e323390e60ac8ab939df82d515306f347d4d90813b12b2b174b8871fe",
+    "model_order": [
+      {
+        "path": "books/USDCHF.m15ny_xpair_seedens.v1/m15xpny_USDCHF_s0.txt",
+        "sha256": "29db196807946be49a8db10675b838d552a098c0a929249e19be6d56f853eb85"
+      },
+      {
+        "path": "books/USDCHF.m15ny_xpair_seedens.v1/m15xpny_USDCHF_s1.txt",
+        "sha256": "de926b9064f4d97fd9b443237d97a9cfce64ebb48eaf45ffc625b7f71db637cb"
+      },
+      {
+        "path": "books/USDCHF.m15ny_xpair_seedens.v1/m15xpny_USDCHF_s2.txt",
+        "sha256": "8de4cd8acc7999a995ce71665b7d9db2935e94c2b35a1d2bbfcde307a398a7b3"
+      }
+    ],
+    "confidence_threshold": 0.16933929389708485
+  },
+  "paths": {
+    "candle_store": "deriv_data/candles_1m_daemon",
+    "tick_shards": "deriv_data/ticks_1s/_pages/USDCHF",
+    "tick_progress": "deriv_data/ticks_1s/USDCHF_progress.json",
+    "preflight_result": "deriv_data/prospective/preflight/usdchf_m15_prospective_v1_preflight.json",
+    "trial_template": "deriv_data/prospective/USDCHF.m15ny_xpair_seedens.r202605.v1/{prereg_id}/trial.sqlite",
+    "result": "results/json/usdchf_m15_prospective_v1_result.json",
+    "service": "ops/deriv-usdchf-prospective.service"
+  },
+  "runtime": {
+    "timezone": "America/New_York",
+    "session_start_ny": "08:00:00",
+    "session_end_ny": "16:35:00",
+    "last_decision_close_ny": "16:34:00",
+    "capture_delay_seconds": 20,
+    "decision_shift_seconds": 60,
+    "entry_lag_seconds": 1,
+    "settlement_tolerance_seconds": 10,
+    "persistence_grace_seconds": 659
+  },
+  "fixed_look": {
+    "week_start_ny": "Monday 08:00:00",
+    "week_end_ny": "Friday 17:00:00",
+    "earliest_weeks": 8,
+    "minimum_candidate_per_side": 100,
+    "cap_weeks": 26
+  },
+  "statistics": {
+    "endpoint_order": [
+      "candidate_minus_v1_yield",
+      "candidate_UP_accuracy_minus_0.541",
+      "candidate_DOWN_accuracy_minus_0.541"
+    ],
+    "breakeven": 0.541,
+    "tail": "lower_only",
+    "alpha": 0.05,
+    "bootstrap_seed": 9003,
+    "bootstrap_replicates": 10000,
+    "block_lengths": [5, 10, 20],
+    "activity_ratio_minimum": 0.8
+  },
+  "evidence_kinds": {
+    "prereg": "research.usdchf_m15_prospective.prereg/v1",
+    "collection_access_receipt": "research.usdchf_m15_prospective.collection_access_receipt/v1",
+    "sealed_source": "research.usdchf_m15_prospective.sealed_source/v1",
+    "analysis_access_receipt": "research.usdchf_m15_prospective.analysis_access_receipt/v1",
+    "terminal": "research.usdchf_m15_prospective.terminal/v1"
+  },
+  "terminal_statuses": [
+    "SHADOW_SURVIVOR_INACTIVE",
+    "SHADOW_REJECTED",
+    "INCONCLUSIVE",
+    "INVALID"
+  ],
+  "claim_limit": "Prospective public Deriv tick-settled directional shadow support only (OUTCOME_ONLY_TICK_PROXY); no realized economics, profitability, deployment, activation, credential, account, proposal, or purchase authority.",
+  "activation": false
+}

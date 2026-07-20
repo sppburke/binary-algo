@@ -33,7 +33,7 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `docs/PROTECTED_EVALUATION.md` + `scripts/protected_evaluation.py` | Minimal seal-before-read vertical: fixed family, strict-new access receipt, existing evaluator reference, deterministic inactive/no-candidate terminal, and zero-read resume. |
 | `docs/RESEARCH_CAMPAIGN.md` + `scripts/research_campaign_v1.py` | Adapter-driven unprotected campaign control plane: sealed ordered family, serial execution, exact crash recovery, native-result evidence bindings, and reproducible inactive terminal. |
 | `docs/DERIV_ECONOMICS_LEDGER.md` + `scripts/deriv_economics_ledger_v2.py` (with frozen v1 predecessor) | Fixed one-chain Deriv demo Rise/Fall reference: preregistered supplier acquisition, sanitized packet, strict-new reducing access, Decimal reconciliation, and self-contained inactive receipt. |
-| `ops/` | **Deployment templates** (systemd user units + logrotate) for the Deriv demo runtime: market stream, runtime supervisor, production candle-refresh timer + quote-audit sampler (issue #5; old executor units retained deprecated). Placeholder-only — secrets/env live outside git; deploy + cutover runbook in `docs/DERIV_DEMO_EXECUTOR.md`. |
+| `ops/` | **Deployment templates** (systemd user units + logrotate): the Deriv demo runtime plus isolated credential-free public-data observers. Secrets/env live outside git; observer sandbox/launch contracts live in their key-specific docs. Demo deploy/cutover remains in `docs/DERIV_DEMO_EXECUTOR.md`. |
 
 ## TIER 2 — KEY-SPECIFIC (named/labeled by the key — ALL incumbents, numbers, results, backlogs live here)
 
@@ -41,6 +41,7 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 |---|---|
 | `results/<PAIR>_RESULTS.md` | Per-**currency** results across tf×side: MASTER KEY TABLE + per-tf experiment tables + the UP/DOWN leaderboard. (e.g. `results/EURUSD_RESULTS.md`) |
 | `results/artifacts/<artifact-id>/` | Tracked, immutable, lifecycle-inactive research packages that must remain outside `books/`, `books/INDEX.json`, and `MODEL_REGISTRY.md`. They are not runtime-loadable books; promotion requires a separate reviewed publication transaction. |
+| `docs/USDCHF_M15_PROSPECTIVE.md` + `scripts/usdchf_m15_prospective_v1.py`/`usdchf_m15_prospective_v1_spec.json`/`test_usdchf_m15_prospective_v1.py` + `ops/deriv-usdchf-prospective.service` | `[USDCHF·15m]` Fixed public-data prospective-shadow contract, operator/spec/tests, and buy-incapable VPS observer. Ignored trial state lives only under `deriv_data/prospective/USDCHF.m15ny_xpair_seedens.r202605.v1/<prereg-id>/`. |
 | `sweeps/<PAIR>_<tf>.md` | Per-(currency,tf) **SWEEP LEDGER** — the resumable state of the exhaustive sweep (row-by-row status). |
 | `sweeps/<PAIR>_<tf>_backlog.md` | Per-key **EXECUTABLE BACKLOG** — the ranked TOP-N experiments, FIRST-TO-RUN queue, "incumbents to beat", and key-specific discovery rounds. (Moved out of the generic `docs/IDEAS_LOG.md`.) |
 | `<PAIR>_<tf>_research_log.md` | Per-key narrative research log (the running prose journal for that key). |

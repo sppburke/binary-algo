@@ -47,6 +47,30 @@ deployment, or activation. See
 ~/binary-algo-venv/bin/python scripts/usdchf_m15_current_refit_v1.py verify --seal-id <id>
 ```
 
+### USDCHF 15m prospective shadow
+
+`usdchf_m15_prospective_v1.py` and its companion
+`usdchf_m15_prospective_v1_spec.json` operate the issue-#19 public-data,
+buy-incapable fixed-look shadow for the exact inactive refit package. It records
+UP and DOWN separately and can establish only `OUTCOME_ONLY_TICK_PROXY` support;
+it provides no realized-economics, publication, routing, or activation
+authority. See `docs/USDCHF_M15_PROSPECTIVE.md` for the lifecycle and service
+boundary.
+
+```bash
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py preflight --session-date YYYY-MM-DD [--output <repo-relative-path>]
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py preregister --t0-utc <ISO-8601-Z> --t0-ny <ISO-8601-NY-offset> --preflight <repo-relative-path> --user-approved-t0
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py collect [--prereg-id <64-hex>]
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py status [--prereg-id <64-hex>]
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py analyze [--prereg-id <64-hex>]
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py verify [--prereg-id <64-hex>]
+```
+
+The systemd unit runs bare `collect`; omitting the ID must discover exactly one
+launchable preregistration or fail closed. No manual backfill, source-supply,
+seal, T0-reset, or relook command exists. The default preflight output is the
+ignored `deriv_data/prospective/preflight/usdchf_m15_prospective_v1_preflight.json`.
+
 ---
 
 ## Script Naming Convention

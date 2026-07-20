@@ -1,0 +1,32 @@
+[Unit]
+Description=binary-algo USDCHF 15m prospective public-data shadow (issue #19)
+After=deriv-market-stream.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/sean/git/binary-algo
+# Store-only observer: no EnvironmentFile, credentials, buyer modes, or network
+# socket families. The market-stream service owns the public Deriv connection.
+UnsetEnvironment=DERIV_APP_ID DERIV_PAT DERIV_ACCOUNT_ID DERIV_RUNTIME_LOCK_ROOT DERIV_OPTIONS_WS_URL DERIV_LEGACY_WS_URL MX_HOR
+UnsetEnvironment=DERIV_SUPERVISOR_MODE_ARGS DERIV_ALLOW_EXPERIMENTAL_SHIFTED_DEMO_BUY DERIV_DEMO_EXECUTOR DERIV_DEMO_MODE_ARGS DERIV_DEMO_STAKE DERIV_DEMO_PAIRS DERIV_DEMO_DISABLED_PAIR_SIDES
+UnsetEnvironment=DERIV_DEMO_ABSOLUTE_BREAKEVEN_CEILING DERIV_DEMO_ALLOCATION_ARBITRATION_MS DERIV_DEMO_ALLOCATION_BATCH_SIZE DERIV_DEMO_CONTRACT_EXPIRY_GRACE_SECONDS DERIV_DEMO_LOG_DIR DERIV_DEMO_MAX_BREAKEVEN DERIV_DEMO_MAX_USD_FACTOR_OPEN DERIV_DEMO_PAYOUT_EDGE_MARGIN DERIV_DEMO_QUOTE_SNAPSHOTS DERIV_DEMO_RECONCILE_BATCH_SIZE DERIV_DEMO_RECONCILE_INTERVAL_SECONDS DERIV_DEMO_SAME_PAIR_MIN_GAP_SECONDS DERIV_DEMO_STORE_DIR
+# No ID is intentional: collect must discover exactly one launchable preregistration
+# and fail closed when discovery finds zero or more than one.
+ExecStart=/home/sean/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py collect
+Restart=on-failure
+RestartPreventExitStatus=2
+RestartSec=10
+KillSignal=SIGINT
+Nice=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+InaccessiblePaths=-/home/sean/.config/binary-algo
+ReadOnlyPaths=/home/sean/git/binary-algo/deriv_data/candles_1m_daemon /home/sean/git/binary-algo/deriv_data/ticks_1s
+ReadWritePaths=/home/sean/git/binary-algo/deriv_data/prospective/USDCHF.m15ny_xpair_seedens.r202605.v1 /home/sean/git/binary-algo/evidence/objects
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=default.target
