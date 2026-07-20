@@ -32,8 +32,8 @@ import json
 import math
 import shutil
 import socket
-import statistics
 import sys
+import tempfile
 import time
 from collections import deque
 from datetime import datetime, timezone
@@ -62,6 +62,8 @@ GATE_RESULT_PATH = Path("deriv_market_stream_gate_result.json")
 DEFAULT_TICK_STORE = Path("deriv_data/ticks_1s")
 DEFAULT_CANDLE_STORE = Path("deriv_data/candles_1m_daemon")
 PRODUCTION_CANDLE_STORE = Path("deriv_data/candles_1m")
+MARKET_CLOSED_RETRY_SECONDS = 60.0
+STREAM_QUEUE_POLL_SECONDS = 5.0
 
 
 def now_utc_iso() -> str:
@@ -73,6 +75,10 @@ def pct(values: list[float], q: float) -> float | None:
         return None
     xs = sorted(values)
     return round(xs[min(len(xs) - 1, int(q * (len(xs) - 1)))], 3)
+
+
+def is_market_closed_error(exc: DerivAPIError) -> bool:
+    return exc.code == "MarketIsClosed"
 
 
 # ---------------------------------------------------------------- shifted aggregator (pure)
@@ -191,8 +197,14 @@ def flush_pair(store_dir: Path, st: PairState) -> int:
     if not st.write_buf:
         return 0
     buf, st.write_buf = st.write_buf, []
-    frame = pd.DataFrame(buf, columns=["epoch", "quote", "bid", "ask"])
-    write_page_shard(store_dir, st.pair, st.page_n, frame)
+    try:
+        frame = pd.DataFrame(buf, columns=["epoch", "quote", "bid", "ask"])
+        write_page_shard(store_dir, st.pair, st.page_n, frame)
+    except Exception:
+        # The drain may append while the writer is in a thread. Restore the
+        # detached batch ahead of those newer ticks so final flush can retry it.
+        st.write_buf[:0] = buf
+        raise
     st.page_n += 1
     st.persisted += len(buf)
     st.persisted_last_epoch = max(b[0] for b in buf)
@@ -330,13 +342,35 @@ class MarketStream:
 
     async def drain_pair(self, pair: str) -> None:
         st = self.states[pair]
-        sub = await self.client.subscribe({"ticks": PAIR_TO_SYMBOL[pair]})
+        while not self.stop.is_set():
+            try:
+                sub = await self.client.subscribe({"ticks": PAIR_TO_SYMBOL[pair]})
+                break
+            except DerivAPIError as exc:
+                if not is_market_closed_error(exc):
+                    raise
+                self.log(
+                    "subscribe_market_closed",
+                    pair=pair,
+                    error_class=type(exc).__name__,
+                    error=str(exc)[:200],
+                    retry_seconds=MARKET_CLOSED_RETRY_SECONDS,
+                )
+                try:
+                    await asyncio.wait_for(self.stop.wait(), timeout=MARKET_CLOSED_RETRY_SECONDS)
+                    return
+                except asyncio.TimeoutError:
+                    pass
+        else:
+            return
         recovering = False
         while not self.stop.is_set():
             try:
-                frame = await asyncio.wait_for(sub.queue.get(), timeout=5.0)
+                frame = await asyncio.wait_for(sub.queue.get(), timeout=STREAM_QUEUE_POLL_SECONDS)
             except asyncio.TimeoutError:
                 continue
+            if "error" in frame:
+                raise DerivAPIError(f"{pair} tick subscription error: {frame['error']}")
             tick = frame.get("tick")
             if not isinstance(tick, dict):
                 continue
@@ -557,49 +591,402 @@ class MarketStream:
         await self.client.connect()
         self.log("start", pairs=self.pairs, args={k: str(v) for k, v in vars(self.args).items()})
         await asyncio.gather(*(self.warmup_pair(p) for p in self.pairs))
-        writer_task = asyncio.create_task(self.writer())
-        tasks = [asyncio.create_task(t) for t in (
-            *(self.drain_pair(p) for p in self.pairs), self.aggregator(), self.refresher())]
+        workers: dict[asyncio.Task, str] = {}
+        failure: dict[str, str] | None = None
+
+        def remember_failure(worker: str, error_class: str, error: str) -> None:
+            nonlocal failure
+            if failure is not None:
+                return
+            failure = {"worker": worker, "error_class": error_class, "error": error[:200]}
+            self.stop.set()
+            try:
+                self.log("worker_failed", **failure)
+            except Exception:
+                pass
+
+        def start_worker(name: str, coro: Any) -> asyncio.Task:
+            task = asyncio.create_task(coro, name=f"market-stream:{name}")
+            workers[task] = name
+
+            def completed(done: asyncio.Task) -> None:
+                stopping = self.stop.is_set()
+                if done.cancelled():
+                    if not stopping:
+                        remember_failure(name, "CancelledError", "cancelled before stop")
+                    return
+                exc = done.exception()
+                if exc is not None:
+                    remember_failure(name, type(exc).__name__, str(exc))
+                elif not stopping:
+                    remember_failure(name, "UnexpectedReturn", "returned before stop")
+
+            task.add_done_callback(completed)
+            return task
+
+        writer_task = start_worker("writer", self.writer())
+        for pair in self.pairs:
+            start_worker(f"drain:{pair}", self.drain_pair(pair))
+        start_worker("aggregator", self.aggregator())
+        start_worker("refresher", self.refresher())
+        start_worker("client-background", self.client.wait_for_background_failure())
+
         if self.args.duration_minutes > 0:
             try:
                 await asyncio.wait_for(self.stop.wait(), timeout=self.args.duration_minutes * 60.0)
             except asyncio.TimeoutError:
                 pass
         else:
-            await self.stop.wait()  # until SIGINT/SIGTERM (handled above)
+            await self.stop.wait()
         self.stop.set()
+
         # The writer exits via `stop` and is AWAITED, never cancelled: a
         # cancelled to_thread flush keeps running and races the final flush
-        # on the same PairState (review finding M4, empirically confirmed)
-        await writer_task
-        for t in tasks:
-            t.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
-        for st in self.states.values():  # final flush: zero-loss accounting
-            flush_pair(self.tick_store, st)
-        run_record = self.rollup()
-        doc = {"gate": "issue#4 Phase 2 market stream", "runs": []}
-        if GATE_RESULT_PATH.exists():
+        # on the same PairState (review finding M4, empirically confirmed).
+        writer_result = (await asyncio.gather(writer_task, return_exceptions=True))[0]
+        if isinstance(writer_result, BaseException):
+            remember_failure("writer", type(writer_result).__name__, str(writer_result))
+
+        non_writer_tasks = [task for task in workers if task is not writer_task]
+        for task in non_writer_tasks:
+            if not task.done():
+                task.cancel()
+        results = await asyncio.gather(*non_writer_tasks, return_exceptions=True)
+        for task, result in zip(non_writer_tasks, results):
+            if isinstance(result, BaseException) and not isinstance(result, asyncio.CancelledError):
+                remember_failure(workers[task], type(result).__name__, str(result))
+
+        for pair, st in self.states.items():  # final flush: zero-loss accounting
             try:
-                doc = json.loads(GATE_RESULT_PATH.read_text())
-            except json.JSONDecodeError:
-                pass
-        doc.setdefault("runs", []).append(run_record)
-        tmp = GATE_RESULT_PATH.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
-        tmp.replace(GATE_RESULT_PATH)
-        self.log("rollup", **{p: v["gate_pass"] for p, v in run_record["pairs"].items()})
-        self.log_fh.close()
-        await self.client.close()
-        ok = all(v["gate_pass"] for v in run_record["pairs"].values())
-        print(json.dumps({p: {k: v[k] for k in ("live_ticks_received", "coverage_vs_elapsed", "window_rate",
-                                                "ticks_lost_ring_to_store", "gate_pass")}
-                          for p, v in run_record["pairs"].items()}, indent=1, sort_keys=True))
+                flush_pair(self.tick_store, st)
+            except Exception as exc:
+                remember_failure(f"final-flush:{pair}", type(exc).__name__, str(exc))
+
+        run_record: dict[str, Any] | None = None
+        gate_written = False
+        try:
+            run_record = self.rollup()
+        except Exception as exc:
+            remember_failure("rollup", type(exc).__name__, str(exc))
+        try:
+            await self.client.close()
+        except Exception as exc:
+            remember_failure("client-close", type(exc).__name__, str(exc))
+        if run_record is not None:
+            try:
+                self.log(
+                    "rollup",
+                    runtime_gate_pass=failure is None,
+                    **{p: v["gate_pass"] for p, v in run_record["pairs"].items()},
+                )
+            except Exception as exc:
+                remember_failure("rollup-log", type(exc).__name__, str(exc))
+        try:
+            self.log_fh.close()
+        except Exception as exc:
+            remember_failure("log-close", type(exc).__name__, str(exc))
+
+        if run_record is not None:
+            run_record["runtime_gate"] = {"pass": failure is None, "failure": failure}
+        try:
+            if run_record is None:
+                raise RuntimeError("rollup unavailable")
+            doc = {"gate": "issue#4 Phase 2 market stream", "runs": []}
+            if GATE_RESULT_PATH.exists():
+                try:
+                    doc = json.loads(GATE_RESULT_PATH.read_text())
+                except json.JSONDecodeError:
+                    pass
+            doc.setdefault("runs", []).append(run_record)
+            tmp = GATE_RESULT_PATH.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
+            tmp.replace(GATE_RESULT_PATH)
+            gate_written = True
+        except Exception as exc:
+            remember_failure("gate-record", type(exc).__name__, str(exc))
+
+        ok = bool(
+            run_record is not None
+            and gate_written
+            and all(v["gate_pass"] for v in run_record["pairs"].values())
+            and run_record["runtime_gate"]["pass"]
+        )
+        summary = {} if run_record is None else {
+            p: {k: v[k] for k in ("live_ticks_received", "coverage_vs_elapsed", "window_rate",
+                                  "ticks_lost_ring_to_store", "gate_pass")}
+            for p, v in run_record["pairs"].items()
+        }
+        print(json.dumps(summary, indent=1, sort_keys=True))
         print(f"{'RUN GATE PASS' if ok else 'RUN GATE FAIL'} -> {GATE_RESULT_PATH}")
         return 0 if ok else 1
 
 
 # ---------------------------------------------------------------- smoke
+
+
+async def _run_liveness_smoke(check: Any, root: Path) -> None:
+    """Exercise closed-market recovery and fail-visible runtime cleanup offline."""
+    global GATE_RESULT_PATH, MARKET_CLOSED_RETRY_SECONDS, STREAM_QUEUE_POLL_SECONDS, write_page_shard
+
+    class SmokeSubscription:
+        def __init__(self, frame: dict[str, Any] | None = None):
+            self.queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+            if frame is not None:
+                self.queue.put_nowait(frame)
+
+    class SmokeClient:
+        def __init__(self, mode: str = "ok"):
+            self.mode = mode
+            self.subscribe_calls = 0
+            self.closed = False
+            self.stats: dict[str, Any] = {"resubscribe_latency_s": []}
+            self._never = asyncio.Event()
+
+        async def connect(self) -> None:
+            return None
+
+        async def close(self) -> None:
+            self.closed = True
+
+        async def subscribe(self, _payload: dict[str, Any]) -> SmokeSubscription:
+            self.subscribe_calls += 1
+            if self.mode == "market_closed_once" and self.subscribe_calls == 1:
+                raise DerivAPIError("Deriv error: {'code': 'MarketIsClosed'}", code="MarketIsClosed")
+            if self.mode == "market_closed_once":
+                return SmokeSubscription({"tick": {"epoch": 1000, "quote": 1.25}})
+            if self.mode == "market_closed_always":
+                raise DerivAPIError("Deriv error: {'code': 'MarketIsClosed'}", code="MarketIsClosed")
+            if self.mode == "market_closed_mentioned":
+                raise DerivAPIError(
+                    "Deriv error: {'code': 'OtherFailure', "
+                    "'message': \"upstream said 'code': 'MarketIsClosed'\"}",
+                    code="OtherFailure",
+                )
+            if self.mode == "queued_error":
+                return SmokeSubscription({"error": {"code": "InjectedStreamFailure"}})
+            return SmokeSubscription()
+
+        async def wait_for_background_failure(self) -> None:
+            if self.mode == "background_failure":
+                await asyncio.sleep(0)
+                raise DerivAPIError("latched stable client failure")
+            await self._never.wait()
+
+    def bare_stream(client: SmokeClient) -> MarketStream:
+        stream = object.__new__(MarketStream)
+        stream.states = {"USDCHF": PairState("USDCHF", ring_seconds=120, page_n=0)}
+        stream.client = client
+        stream.stop = asyncio.Event()
+        stream.events = []
+        stream.log = lambda event, **fields: stream.events.append({"event": event, **fields})
+        return stream
+
+    old_gate = GATE_RESULT_PATH
+    old_retry = MARKET_CLOSED_RETRY_SECONDS
+    old_poll = STREAM_QUEUE_POLL_SECONDS
+    old_write_page_shard = write_page_shard
+    GATE_RESULT_PATH = root / "gate.json"
+    MARKET_CLOSED_RETRY_SECONDS = 0.01
+    STREAM_QUEUE_POLL_SECONDS = 0.01
+    try:
+        restored = PairState("USDCHF", ring_seconds=120, page_n=0)
+        restored.add_tick(1000, 1.25, math.nan, math.nan, persist=True)
+        restore_calls = 0
+
+        def fail_with_new_tick(*_args: Any, **_kwargs: Any) -> Path:
+            nonlocal restore_calls
+            restore_calls += 1
+            restored.add_tick(1001, 1.26, math.nan, math.nan, persist=True)
+            raise OSError("injected pre-commit shard failure")
+
+        write_page_shard = fail_with_new_tick
+        try:
+            flush_pair(root / "buffer-restore", restored)
+        except OSError:
+            pass
+        write_page_shard = old_write_page_shard
+        restored_epochs = [row[0] for row in restored.write_buf]
+        flush_pair(root / "buffer-restore", restored)
+        check(
+            "failed shard write restores detached ticks ahead of newer ticks",
+            restore_calls == 1
+            and restored_epochs == [1000, 1001]
+            and restored.persisted == restored.received == 2,
+        )
+
+        # Initial MarketIsClosed waits in-process, then consumes and persists the
+        # first recovered tick instead of depending on a systemd crash loop.
+        recovering_client = SmokeClient("market_closed_once")
+        recovering = bare_stream(recovering_client)
+        drain = asyncio.create_task(recovering.drain_pair("USDCHF"))
+        deadline = time.monotonic() + 0.2
+        while recovering.states["USDCHF"].received == 0 and time.monotonic() < deadline:
+            await asyncio.sleep(0.002)
+        recovering.stop.set()
+        await asyncio.wait_for(drain, 0.1)
+        recovering_store = root / "closed-recovery"
+        flush_pair(recovering_store, recovering.states["USDCHF"])
+        progress = json.loads((recovering_store / "USDCHF_progress.json").read_text())
+        check(
+            "MarketIsClosed retry recovers and persists the first tick",
+            recovering_client.subscribe_calls == 2
+            and recovering.states["USDCHF"].persisted == 1
+            and progress["last_persisted_epoch"] == 1000,
+        )
+
+        # Continuous closure is bounded by the fixed wait and remains promptly
+        # cancellable when systemd sends SIGINT/SIGTERM.
+        closed_client = SmokeClient("market_closed_always")
+        closed = bare_stream(closed_client)
+        attempts_started = time.monotonic()
+        drain = asyncio.create_task(closed.drain_pair("USDCHF"))
+        deadline = time.monotonic() + 0.1
+        while closed_client.subscribe_calls < 2 and time.monotonic() < deadline:
+            await asyncio.sleep(0.001)
+        second_attempt_s = time.monotonic() - attempts_started
+        stopped_at = time.monotonic()
+        closed.stop.set()
+        await asyncio.wait_for(drain, 0.05)
+        check(
+            "continuous MarketIsClosed is bounded and stop-aware",
+            2 <= closed_client.subscribe_calls <= 3
+            and second_attempt_s >= 0.008
+            and time.monotonic() - stopped_at < 0.05,
+            f"attempts={closed_client.subscribe_calls}",
+        )
+
+        mentioned_client = SmokeClient("market_closed_mentioned")
+        mentioned = bare_stream(mentioned_client)
+        propagated = False
+        try:
+            await mentioned.drain_pair("USDCHF")
+        except DerivAPIError as exc:
+            propagated = exc.code == "OtherFailure"
+        check(
+            "MarketIsClosed text under another code propagates",
+            propagated and mentioned_client.subscribe_calls == 1,
+        )
+
+        class SmokeLog:
+            def __init__(self) -> None:
+                self.closed_observed = False
+
+            def close(self) -> None:
+                self.closed_observed = True
+
+        class SmokeRuntime(MarketStream):
+            def __init__(self, case: str, case_root: Path, *, preload: bool = False):
+                self.args = argparse.Namespace(duration_minutes=0.0005, flush_seconds=0.01)
+                self.pairs = ["USDCHF"]
+                self.tick_store = case_root / "ticks"
+                self.tick_store.mkdir(parents=True)
+                self.client = SmokeClient("background_failure" if case == "client" else
+                                          "queued_error" if case == "drain" else "ok")
+                self.stop = asyncio.Event()
+                self.states = {"USDCHF": PairState("USDCHF", ring_seconds=120, page_n=0)}
+                self.case = case
+                self.events: list[dict[str, Any]] = []
+                self.log_fh = SmokeLog()
+                if preload:
+                    self.states["USDCHF"].add_tick(1000, 1.25, math.nan, math.nan, persist=True)
+
+            def log(self, event: str, **fields: Any) -> None:
+                self.events.append({"event": event, **fields})
+
+            async def warmup_pair(self, pair: str) -> None:
+                self.states[pair].warm_at_epoch = self.states[pair].last_epoch or 1
+
+            async def writer(self) -> None:
+                if self.case == "writer":
+                    self.states["USDCHF"].add_tick(1001, 1.26, math.nan, math.nan, persist=True)
+                    await asyncio.to_thread(flush_pair, self.tick_store, self.states["USDCHF"])
+                    return
+                if self.case == "ordered":
+                    raise RuntimeError("injected first worker failure")
+                await self.stop.wait()
+
+            async def aggregator(self) -> None:
+                if self.case == "aggregator":
+                    return
+                if self.case == "ordered":
+                    raise RuntimeError("injected second worker failure")
+                await self.stop.wait()
+
+            async def refresher(self) -> None:
+                await self.stop.wait()
+
+            def rollup(self) -> dict[str, Any]:
+                return {
+                    "pairs": {
+                        "USDCHF": {
+                            "live_ticks_received": self.states["USDCHF"].received,
+                            "coverage_vs_elapsed": 1.0,
+                            "window_rate": 1.0,
+                            "ticks_lost_ring_to_store": 0,
+                            "gate_pass": True,
+                        }
+                    }
+                }
+
+        async def run_case(case: str, *, preload: bool = False) -> tuple[int, SmokeRuntime]:
+            global write_page_shard
+            stream = SmokeRuntime(case, root / case, preload=preload)
+            stream.write_attempts = 0
+            if case != "writer":
+                return await stream.run(), stream
+
+            def fail_first_write(*args: Any, **kwargs: Any) -> Path:
+                stream.write_attempts += 1
+                if stream.write_attempts == 1:
+                    raise OSError("injected writer shard failure")
+                return old_write_page_shard(*args, **kwargs)
+
+            write_page_shard = fail_first_write
+            try:
+                return await stream.run(), stream
+            finally:
+                write_page_shard = old_write_page_shard
+
+        failure_cases = (
+            ("drain", "drain:USDCHF", "queued subscription error"),
+            ("writer", "writer", "writer failure"),
+            ("aggregator", "aggregator", "unexpected non-writer return"),
+            ("client", "client-background", "latched client failure"),
+            ("ordered", "writer", "ordered simultaneous failures"),
+        )
+        for case, worker, label in failure_cases:
+            rc, stream = await run_case(case, preload=case != "writer")
+            runtime_gate = json.loads(GATE_RESULT_PATH.read_text())["runs"][-1]["runtime_gate"]
+            worker_events = [e for e in stream.events if e.get("event") == "worker_failed"]
+            first_event = worker_events[0] if worker_events else {}
+            recorded_failure = {k: first_event.get(k) for k in ("worker", "error_class", "error")}
+            check(
+                f"{label} exits nonzero after flush and close",
+                rc == 1
+                and stream.states["USDCHF"].persisted == 1
+                and stream.client.closed
+                and stream.log_fh.closed_observed
+                and first_event.get("worker") == worker
+                and runtime_gate == {"pass": False, "failure": recorded_failure}
+                and (case != "writer" or stream.write_attempts == 2),
+            )
+
+        rc, stream = await run_case("graceful", preload=True)
+        runtime_gate = json.loads(GATE_RESULT_PATH.read_text())["runs"][-1]["runtime_gate"]
+        check(
+            "graceful duration stop flushes and closes without worker failure",
+            rc == 0
+            and stream.states["USDCHF"].persisted == 1
+            and stream.client.closed
+            and stream.log_fh.closed_observed
+            and not any(e["event"] == "worker_failed" for e in stream.events)
+            and runtime_gate == {"pass": True, "failure": None},
+        )
+    finally:
+        GATE_RESULT_PATH = old_gate
+        MARKET_CLOSED_RETRY_SECONDS = old_retry
+        STREAM_QUEUE_POLL_SECONDS = old_poll
+        write_page_shard = old_write_page_shard
 
 
 def run_smoke() -> int:
@@ -708,6 +1095,9 @@ def run_smoke() -> int:
         check("overlapping upsert keeps last", float(m2.loc[m2["epoch"] == now_min - 120, "close"].iloc[0]) == 1.7)
     finally:
         shutil.rmtree(smoke_dir, ignore_errors=True)
+
+    with tempfile.TemporaryDirectory(prefix="deriv-market-stream-smoke-") as tmp_dir:
+        asyncio.run(_run_liveness_smoke(check, Path(tmp_dir)))
 
     print(f"\n{'SMOKE ALL PASS' if not failures else f'SMOKE {len(failures)} FAILURES: {failures}'}")
     return 1 if failures else 0

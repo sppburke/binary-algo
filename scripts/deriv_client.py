@@ -23,7 +23,11 @@ PUBLIC_WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public"
 
 
 class DerivAPIError(RuntimeError):
-    """Raised when Deriv returns an error payload or a malformed response."""
+    """Deriv request failure; `code` preserves a structured response code when present."""
+
+    def __init__(self, message: str, *, code: str | None = None):
+        super().__init__(message)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -131,7 +135,9 @@ class DerivOptionsClient:
             if resp.get("req_id") != req_id:
                 continue
             if "error" in resp:
-                raise DerivAPIError(f"Deriv error for {payload}: {resp['error']}")
+                error = resp["error"]
+                code = error.get("code") if isinstance(error, dict) else None
+                raise DerivAPIError(f"Deriv error for {payload}: {error}", code=code)
             return resp
 
     def recv(self, timeout: float | None = None) -> dict[str, Any]:

@@ -7,8 +7,8 @@ disconnect, stream errors are marked on the subscription, and unroutable
 frames are counted and retained in a ring buffer, never silently dropped.
 
 Raises `deriv_client.DerivAPIError` so existing callers' error handling
-(`call_deriv`-style) works unchanged. `scripts/deriv_client.py` (sync) stays
-untouched as the one-shot fallback transport.
+(`call_deriv`-style) works unchanged. `scripts/deriv_client.py` (sync) remains
+the one-shot fallback transport.
 
 Built-in Phase-1 gates (run from repo root):
     ~/binary-algo-venv/bin/python scripts/deriv_async_client.py --smoke
@@ -112,6 +112,8 @@ class DerivAsyncClient:
         self._closing = False
         self._dead: str | None = None
         self._connected = asyncio.Event()
+        self._background_failed = asyncio.Event()
+        self._background_error: str | None = None
         self.stats: dict[str, Any] = {
             "frames": 0,
             "request_frames": 0,
@@ -139,9 +141,11 @@ class DerivAsyncClient:
             return
         self._ws = await self._open()
         self._connected.set()
-        self._reader_task = asyncio.create_task(self._read_loop())
+        self._reader_task = asyncio.create_task(self._read_loop(), name="deriv-reader")
+        self._watch_background_task("reader", self._reader_task)
         if self.silence_timeout_s:
-            self._watchdog_task = asyncio.create_task(self._silence_watchdog())
+            self._watchdog_task = asyncio.create_task(self._silence_watchdog(), name="deriv-watchdog")
+            self._watch_background_task("watchdog", self._watchdog_task)
         self._emit("connected", endpoint=_safe_endpoint(self.url), authenticated="/demo" in self.url)
 
     async def close(self) -> None:
@@ -220,6 +224,42 @@ class DerivAsyncClient:
             "reconnects": self.stats.get("reconnects", 0),
             "last_frame_age_s": round(time.monotonic() - self._last_frame_at, 3),
         }
+
+    async def wait_for_background_failure(self) -> None:
+        """Raise when an essential client background task stops unexpectedly."""
+        await self._background_failed.wait()
+        raise DerivAPIError(self._background_error or "client background task failed")
+
+    def _watch_background_task(self, worker: str, task: asyncio.Task) -> None:
+        def completed(done: asyncio.Task) -> None:
+            if done.cancelled():
+                error_class = "CancelledError"
+                error = "cancelled unexpectedly"
+            else:
+                exc = done.exception()  # retrieve it even during intentional close
+                error_class = type(exc).__name__ if exc is not None else "UnexpectedReturn"
+                error = str(exc) if exc is not None else "returned unexpectedly"
+            if self._dead and error_class == "UnexpectedReturn":
+                error = self._dead
+            self._latch_background_failure(worker, error_class, error, mark_dead=True)
+
+        task.add_done_callback(completed)
+
+    def _latch_background_failure(
+        self, worker: str, error_class: str, error: str, *, mark_dead: bool = False
+    ) -> None:
+        if self._closing:
+            return
+        detail = f"client {worker} {error_class}: {error}"
+        if mark_dead:
+            self._dead = detail
+            self._connected.clear()
+            self._fail_pending(DerivAPIError(detail))
+        if self._background_failed.is_set():
+            return
+        self._background_error = detail
+        self._emit("background_failed", worker=worker, error_class=error_class, error=error[:200])
+        self._background_failed.set()
 
     # ------------------------------------------------------------ requests
 
@@ -309,7 +349,9 @@ class DerivAsyncClient:
         if fut is not None and not fut.done():
             if "error" in frame:
                 self.stats["error_frames"] += 1
-                fut.set_exception(DerivAPIError(f"Deriv error for req_id={rid}: {frame['error']}"))
+                error = frame["error"]
+                code = error.get("code") if isinstance(error, dict) else None
+                fut.set_exception(DerivAPIError(f"Deriv error for req_id={rid}: {error}", code=code))
             else:
                 fut.set_result(frame)
             self.stats["request_frames"] += 1
@@ -325,6 +367,7 @@ class DerivAsyncClient:
                 self.stats["error_frames"] += 1
                 sub.error = str(frame["error"])
                 self._emit("stream_error", sub_id=sub_id, error=sub.error)
+                self._latch_background_failure("subscription", "StreamError", sub.error)
             self._offer(sub, frame)
             self.stats["stream_frames"] += 1
             return
@@ -405,6 +448,7 @@ class DerivAsyncClient:
         # recv pump. Deriv subscribe calls run ~0.85s each — done serially six
         # subscriptions blow the 5s gate; batched they cost ~one round trip.
         pending_subs: dict[int, Subscription] = {}
+        transport_failed = False
         try:
             for sub in list(self._registry):
                 if not sub.active:
@@ -445,12 +489,13 @@ class DerivAsyncClient:
                 else:
                     self._dispatch(frame)
         except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed) as exc:
-            # transport died mid-resubscribe: the read loop will re-enter
-            # reconnect and resubscribe the whole registry again
-            self._emit("resubscribe_transport_failure", error=str(exc)[:200])
-        for sub in pending_subs.values():
-            sub.error = "resubscribe timeout"
-            self._emit("resubscribe_failed", payload=sub.payload, error=sub.error)
+            transport_failed = isinstance(exc, websockets.exceptions.ConnectionClosed)
+            event = "resubscribe_transport_failure" if transport_failed else "resubscribe_timeout"
+            self._emit(event, error=str(exc)[:200])
+        if not transport_failed:
+            for sub in pending_subs.values():
+                sub.error = "resubscribe timeout"
+                self._emit("resubscribe_failed", payload=sub.payload, error=sub.error)
         # Breakdown: connect time is bounded by SERVER availability (attempts x
         # open_timeout + backoff); the client-controlled recovery work is the
         # post-connect resubscribe. Both recorded; gates judge what each
@@ -461,9 +506,18 @@ class DerivAsyncClient:
         self.stats.setdefault("reconnect_breakdown", []).append(
             {"total_s": latency, "connect_attempts": attempts, "connect_s": round(t_connected - t0, 3),
              "resubscribe_s": resubscribe_s})
+        if transport_failed:
+            return True  # read-loop recv observes the closed transport and retries the whole transaction
         self._connected.set()
         self._emit("resubscribed", latency_s=latency, resubscribe_s=resubscribe_s,
                    connect_attempts=attempts, subs=len(self._subs))
+        active_subs = [sub for sub in self._registry if sub.active]
+        failed_subs = [sub for sub in active_subs if sub not in self._subs.values()]
+        if failed_subs:
+            self._latch_background_failure(
+                "subscriptions", "ResubscribeFailed",
+                f"{len(failed_subs)} of {len(active_subs)} active lanes did not recover",
+            )
         return True
 
 
@@ -498,17 +552,30 @@ async def _fake_server_handler(conn: Any, state: dict[str, Any]) -> None:
 
                 asyncio.get_running_loop().create_task(delayed_echo(marker, rid))
             elif "ticks" in msg and msg.get("subscribe") == 1:
+                symbol = msg["ticks"]
+                if symbol in state.get("reject_symbols_once", set()):
+                    state["reject_symbols_once"].remove(symbol)
+                    await conn.send(json.dumps({
+                        "msg_type": "tick",
+                        "error": {"code": "InjectedSubscribeFailure", "message": "deterministic smoke"},
+                        "req_id": rid,
+                    }))
+                    continue
+                if symbol == state.get("close_subscribe_once"):
+                    state["close_subscribe_once"] = None
+                    await conn.close(code=1011, reason="injected mid-resubscribe drop")
+                    return
                 state["sub_n"] += 1
                 sub_id = f"sub-{state['sub_n']}"
-                state["streams"][sub_id] = msg["ticks"]
+                state["streams"][sub_id] = symbol
                 state["epoch"] += 1
                 await conn.send(json.dumps({
                     "msg_type": "tick",
-                    "tick": {"symbol": msg["ticks"], "epoch": state["epoch"], "quote": 1.0, "id": sub_id},
+                    "tick": {"symbol": symbol, "epoch": state["epoch"], "quote": 1.0, "id": sub_id},
                     "subscription": {"id": sub_id},
                     "req_id": rid,
                 }))
-                asyncio.get_running_loop().create_task(stream_ticks(msg["ticks"], sub_id))
+                asyncio.get_running_loop().create_task(stream_ticks(symbol, sub_id))
             elif "forget" in msg:
                 state["streams"].pop(msg["forget"], None)
                 await conn.send(json.dumps({"msg_type": "forget", "forget": 1, "req_id": rid}))
@@ -536,10 +603,25 @@ async def run_smoke() -> int:
         if not ok:
             failures.append(name)
 
-    state: dict[str, Any] = {"sub_n": 0, "epoch": 0, "streams": {}}
+    state: dict[str, Any] = {
+        "sub_n": 0,
+        "epoch": 0,
+        "streams": {},
+        "reject_symbols_once": set(),
+        "close_subscribe_once": None,
+    }
 
     async def handler(conn: Any) -> None:
         await _fake_server_handler(conn, state)
+
+    async def observed_failure(client: DerivAsyncClient, timeout: float = 2.0) -> str | None:
+        try:
+            await asyncio.wait_for(client.wait_for_background_failure(), timeout)
+        except DerivAPIError as exc:
+            return str(exc)
+        except asyncio.TimeoutError:
+            return None
+        return None
 
     async with websockets.serve(handler, "127.0.0.1", 0) as server:
         port = server.sockets[0].getsockname()[1]
@@ -553,6 +635,19 @@ async def run_smoke() -> int:
         check("correlation 20/20 under shuffled delays", matched == 20, f"{matched}/20")
         check("zero unmatched after correlation burst", client.stats["unmatched_frames"] == 0)
 
+        # Structured response codes survive the request exception boundary so
+        # callers never classify a free-form message as a MarketIsClosed code.
+        state["reject_symbols_once"] = {"CODEUSD"}
+        registry_before = len(client._registry)
+        propagated_code = None
+        try:
+            await client.subscribe({"ticks": "CODEUSD"})
+        except DerivAPIError as exc:
+            propagated_code = exc.code
+        check("initial subscription error preserves exact response code",
+              propagated_code == "InjectedSubscribeFailure"
+              and len(client._registry) == registry_before)
+
         # 2. subscription stream: consecutive epochs prove zero first-frame loss
         # (the fake server's 20ms stream beats subscribe() registration — the
         # pre-sub buffer must hand every early frame over in order)
@@ -561,6 +656,7 @@ async def run_smoke() -> int:
         check("10 stream ticks consecutive (no first-frame loss)", epochs == list(range(epochs[0], epochs[0] + 10)), str(epochs))
 
         # 3. injected drop: pending request fails closed; auto resubscribe < 5s; stream resumes
+        healthy_waiter = asyncio.create_task(client.wait_for_background_failure())
         try:
             await client.request({"drop_now": 1})
             check("pending request fails closed on drop", False, "request unexpectedly succeeded")
@@ -572,6 +668,9 @@ async def run_smoke() -> int:
         check("stream resumes after reconnect", frame.get("msg_type") == "tick")
         check("resubscribe < 5s", resume_s < 5.0, f"{resume_s:.2f}s")
         check("resubscribe counted once", sub.resubscribes == 1, str(sub.resubscribes))
+        check("successful reconnect does not signal background failure", not healthy_waiter.done())
+        healthy_waiter.cancel()
+        await asyncio.gather(healthy_waiter, return_exceptions=True)
         post = [(await asyncio.wait_for(sub.queue.get(), 2.0))["tick"]["epoch"] for _ in range(5)]
         check("post-reconnect epochs continue increasing", min(post) > max(epochs), f"{max(epochs)} -> {min(post)}")
 
@@ -663,6 +762,86 @@ async def run_smoke() -> int:
             check("request after close raises", True)
         check("zero queue overflow", client.stats["queue_overflow"] == 0)
         check("zero decode errors", client.stats["decode_errors"] == 0)
+
+        async def rejected_round(symbols: tuple[str, ...], rejected: set[str]) -> tuple[str | None, str | None]:
+            rejected_client = DerivAsyncClient(
+                f"ws://127.0.0.1:{port}", request_timeout=1.0, reconnect_base_s=0.01)
+            await rejected_client.connect()
+            rejected_subs = [await rejected_client.subscribe({"ticks": sym}) for sym in symbols]
+            for rejected_sub in rejected_subs:
+                await asyncio.wait_for(rejected_sub.queue.get(), 1.0)
+            state["reject_symbols_once"] = set(rejected)
+            try:
+                await rejected_client.request({"drop_now": 1})
+            except DerivAPIError:
+                pass
+            first = await observed_failure(rejected_client)
+            latched = await observed_failure(rejected_client, timeout=0.1)
+            await rejected_client.close()
+            return first, latched
+
+        # 7. A stable partial resubscribe rejection is terminal and latched.
+        partial_failure, partial_latched = await rejected_round(
+            ("PARTIALA", "PARTIALB"), {"PARTIALB"})
+        check("partial stable resubscribe rejection signals failure",
+              partial_failure is not None and "1 of 2" in partial_failure, str(partial_failure))
+        check("first client failure remains latched", partial_latched == partial_failure)
+
+        # 8. Total stable rejection is also terminal (no healthy lane can mask it).
+        total_failure, _ = await rejected_round(("TOTALA", "TOTALB"), {"TOTALA", "TOTALB"})
+        check("all-lane stable resubscribe rejection signals failure",
+              total_failure is not None and "2 of 2" in total_failure, str(total_failure))
+
+        # 9. A transport loss during resubscribe retries the entire transaction;
+        # it is not a stable lane failure and every queue routes again.
+        mid = DerivAsyncClient(f"ws://127.0.0.1:{port}", request_timeout=1.0, reconnect_base_s=0.01)
+        await mid.connect()
+        mid_subs = {sym: await mid.subscribe({"ticks": sym}) for sym in ("MIDA", "MIDB")}
+        for mid_sub in mid_subs.values():
+            await asyncio.wait_for(mid_sub.queue.get(), 1.0)
+        mid_waiter = asyncio.create_task(mid.wait_for_background_failure())
+        state["close_subscribe_once"] = "MIDB"
+        try:
+            await mid.request({"drop_now": 1})
+        except DerivAPIError:
+            pass
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline and not (mid.is_connected()
+                                                    and all(s.resubscribes >= 1 for s in mid_subs.values())):
+            await asyncio.sleep(0.01)
+        for mid_sub in mid_subs.values():
+            while not mid_sub.queue.empty():
+                mid_sub.queue.get_nowait()
+        routed = {
+            sym: (await asyncio.wait_for(mid_sub.queue.get(), 1.0)).get("tick", {}).get("symbol")
+            for sym, mid_sub in mid_subs.items()
+        }
+        check("mid-resubscribe disconnect recovers routing for every lane",
+              routed == {sym: sym for sym in mid_subs}, str(routed))
+        check("mid-resubscribe disconnect does not signal stable failure", not mid_waiter.done())
+        mid_waiter.cancel()
+        await asyncio.gather(mid_waiter, return_exceptions=True)
+        await mid.close()
+
+        # 10. Reconnect exhaustion terminates the reader and wakes the public latch.
+        exhausted = DerivAsyncClient(f"ws://127.0.0.1:{port}", reconnect_max_attempts=0)
+        await exhausted.connect()
+        await exhausted._ws.close(code=1011, reason="injected exhaustion")
+        exhausted_failure = await observed_failure(exhausted)
+        check("reader reconnect exhaustion signals failure",
+              exhausted_failure is not None and "reconnect exhausted" in exhausted_failure,
+              str(exhausted_failure))
+        await exhausted.close()
+
+        # 11. Intentional close must not look like a background failure.
+        intentional = DerivAsyncClient(f"ws://127.0.0.1:{port}")
+        await intentional.connect()
+        intentional_waiter = asyncio.create_task(intentional.wait_for_background_failure())
+        await intentional.close()
+        await asyncio.sleep(0)
+        check("intentional close does not signal background failure", not intentional_waiter.done())
+        intentional_waiter.cancel()
+        await asyncio.gather(intentional_waiter, return_exceptions=True)
 
     print(f"\n{'SMOKE ALL PASS' if not failures else f'SMOKE {len(failures)} FAILURES: {failures}'}")
     return 1 if failures else 0

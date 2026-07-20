@@ -78,6 +78,19 @@ persisted as a feature store. Per-run gate rollups append to
 `deriv_market_stream_gate_result.json` (archived in `results/json/`); the
 Phase-2 gate needs >=3 full NY sessions passing coverage >= 99.5%, window
 rate >= 99%, writer lag p95 <= 30s / max <= 120s, zero ring-to-store loss.
+Every run also records `runtime_gate.pass` and its first failure (or null); a
+session counts only when that run-level gate and every per-pair gate pass.
+
+At startup, an initial tick-subscription error with the exact Deriv code
+`MarketIsClosed` waits in-process and retries every 60 seconds; the wait is
+stop-aware, and an open subscription with no market frames is not itself a
+failure. A routed stream error, a stable incomplete resubscription round, or
+unexpected completion of the writer, any pair drain, aggregator, refresher,
+or async-client reader/watchdog is fail-visible: the daemon logs the worker
+and error, stops its peers, completes the writer/final flush, closes the
+client, and exits nonzero so the existing systemd `Restart=on-failure` policy
+can recover the full service. A transport that closes during resubscription
+retries the entire transaction and is not misreported as a stable lane loss.
 
 ## Experimental Deriv Models
 
