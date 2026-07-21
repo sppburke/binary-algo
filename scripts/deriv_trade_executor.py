@@ -31,11 +31,12 @@ from deriv_runtime_core import (
     after_last_start_cutoff,
     canonical_lock_root,
     check_kill_switch,
+    evaluate_payout_gate,
     executor_lock_path,
     is_ny_session,
     last_start_cutoff_info,
     normalize_absolute_breakeven_ceiling,
-    parse_quote,
+    PayoutGateDecision,
 )
 from deriv_trade_queue import (
     ALLOCATION_ARBITRATION_MS,
@@ -121,6 +122,20 @@ def _parse_pair_sides(raw: str | None) -> set[tuple[str, str]]:
             raise ExecutorError(f"disabled side must be UP/DOWN, got {item!r}")
         out.add((pair.strip().upper(), side_u))
     return out
+
+
+def trade_executor_payout_gate(
+    prop: dict[str, Any],
+    *,
+    effective_floor: float,
+    absolute_breakeven_ceiling: float,
+) -> PayoutGateDecision:
+    """Named production wrapper used by both proposal paths and KILL #0b."""
+    return evaluate_payout_gate(
+        prop,
+        effective_floor=effective_floor,
+        absolute_breakeven_ceiling=absolute_breakeven_ceiling,
+    )
 
 
 class TradeExecutor:
@@ -320,24 +335,37 @@ class TradeExecutor:
             conn.close()
             return
         prop = proposal_resp.get("proposal") or {}
-        ask, payout, live_breakeven, invalid_reason = parse_quote(prop)
+        decision = trade_executor_payout_gate(
+            prop,
+            effective_floor=float(payload["effective_floor"]),
+            absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling,
+        )
+        ask = decision.ask
+        payout = decision.payout
+        live_breakeven = decision.live_breakeven
         self.logger.write("proposal_selected", signal_id=claim.signal_id, proposal_source=source,
                           proposal_id=prop.get("id"), ask=ask, payout=payout,
                           live_breakeven=live_breakeven, worker_id=worker_id, **payload)
-        if invalid_reason:
+        self.logger.write(
+            "payout_gate_decision", wrapper="deriv_trade_executor.TradeExecutor.execute_claim",
+            signal_id=claim.signal_id, passed=decision.passed, reason=decision.reason,
+            ask=ask, payout=payout, live_breakeven=live_breakeven, net_edge=decision.net_edge,
+            absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling, **payload,
+        )
+        if decision.reason in {"missing_or_invalid_ask", "missing_or_invalid_payout"}:
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
-                              reason=invalid_reason, source=source, raw_hash_value=_raw_hash(proposal_resp))
-            self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason=invalid_reason, **payload)
+                              reason=decision.reason, source=source, raw_hash_value=_raw_hash(proposal_resp))
+            self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason=decision.reason, **payload)
             conn.close()
             return
-        if float(payload["effective_floor"]) <= float(live_breakeven):
+        if decision.reason == "edge_not_positive":
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
                               reason="edge_not_positive", source=source, raw_hash_value=_raw_hash(proposal_resp))
             self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason="edge_not_positive",
                               live_breakeven=live_breakeven, **payload)
             conn.close()
             return
-        if float(live_breakeven) > self.args.absolute_breakeven_ceiling:
+        if decision.reason == "breakeven_too_high":
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
                               reason="breakeven_too_high", source=source, raw_hash_value=_raw_hash(proposal_resp))
             self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason="breakeven_too_high",
@@ -436,19 +464,32 @@ class TradeExecutor:
             return None
 
         prop = proposal_resp.get("proposal") or {}
-        ask, payout, live_breakeven, invalid_reason = parse_quote(prop)
-        net_edge = float(payload["effective_floor"]) - float(live_breakeven) if live_breakeven is not None else None
+        decision = trade_executor_payout_gate(
+            prop,
+            effective_floor=float(payload["effective_floor"]),
+            absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling,
+        )
+        ask = decision.ask
+        payout = decision.payout
+        live_breakeven = decision.live_breakeven
+        net_edge = decision.net_edge
         self.logger.write("proposal_selected", signal_id=claim.signal_id, proposal_source=source,
                           proposal_id=prop.get("id"), ask=ask, payout=payout,
                           live_breakeven=live_breakeven, net_edge=net_edge, worker_id=owner, **payload)
-        if invalid_reason:
+        self.logger.write(
+            "payout_gate_decision", wrapper="deriv_trade_executor.TradeExecutor.evaluate_candidate",
+            signal_id=claim.signal_id, passed=decision.passed, reason=decision.reason,
+            ask=ask, payout=payout, live_breakeven=live_breakeven, net_edge=net_edge,
+            absolute_breakeven_ceiling=self.args.absolute_breakeven_ceiling, **payload,
+        )
+        if decision.reason in {"missing_or_invalid_ask", "missing_or_invalid_payout"}:
             conn = connect_queue(self.db_path)
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
-                              reason=invalid_reason, source=source, raw_hash_value=_raw_hash(proposal_resp), tx_stats=self.db_tx_ms)
+                              reason=decision.reason, source=source, raw_hash_value=_raw_hash(proposal_resp), tx_stats=self.db_tx_ms)
             conn.close()
-            self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason=invalid_reason, **payload)
+            self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason=decision.reason, **payload)
             return None
-        if float(payload["effective_floor"]) <= float(live_breakeven):
+        if decision.reason == "edge_not_positive":
             conn = connect_queue(self.db_path)
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
                               reason="edge_not_positive", source=source, raw_hash_value=_raw_hash(proposal_resp), tx_stats=self.db_tx_ms)
@@ -456,7 +497,7 @@ class TradeExecutor:
             self.logger.write("payout_gate_failed", signal_id=claim.signal_id, reason="edge_not_positive",
                               live_breakeven=live_breakeven, net_edge=net_edge, **payload)
             return None
-        if float(live_breakeven) > self.args.absolute_breakeven_ceiling:
+        if decision.reason == "breakeven_too_high":
             conn = connect_queue(self.db_path)
             transition_signal(conn, claim.signal_id, ["claimed"], "terminal_skip",
                               reason="breakeven_too_high", source=source, raw_hash_value=_raw_hash(proposal_resp), tx_stats=self.db_tx_ms)
@@ -829,6 +870,128 @@ def _sample_signal(i: int, *, pair: str = "USDJPY", side: str | None = None, boo
     }
 
 
+async def _payout_wrapper_fake_gate(tmp: Path) -> dict[str, Any]:
+    """Exercise both production proposal wrappers without authority to buy."""
+    cases = [
+        ("ask_missing", {"payout": 2.0}, 0.58, "missing_or_invalid_ask"),
+        ("ask_zero", {"ask_price": 0.0, "payout": 2.0}, 0.58, "missing_or_invalid_ask"),
+        ("ask_nonnumeric", {"ask_price": "bad", "payout": 2.0}, 0.58, "missing_or_invalid_ask"),
+        ("payout_missing", {"ask_price": 1.0}, 0.58, "missing_or_invalid_payout"),
+        ("payout_zero", {"ask_price": 1.0, "payout": 0.0}, 0.58, "missing_or_invalid_payout"),
+        ("payout_nonnumeric", {"ask_price": 1.0, "payout": "bad"}, 0.58, "missing_or_invalid_payout"),
+        ("floor_equality", {"ask_price": 0.58, "payout": 1.0}, 0.58, "edge_not_positive"),
+        ("negative_edge", {"ask_price": 0.59, "payout": 1.0}, 0.58, "edge_not_positive"),
+        ("ceiling_only", {"ask_price": 0.61, "payout": 1.0}, 0.70, "breakeven_too_high"),
+        ("edge_precedes_ceiling", {"ask_price": 0.61, "payout": 1.0}, 0.58, "edge_not_positive"),
+        ("pass_without_proposal_id", {"ask_price": 0.50, "payout": 1.0}, 0.58, None),
+    ]
+
+    class FakePayoutExecutor(TradeExecutor):
+        def __init__(self, namespace: argparse.Namespace, logger: JsonlLogger):
+            super().__init__(namespace, logger)
+            self.proposals = {name: prop for name, prop, _, _ in cases}
+            self.forbidden_calls: list[str] = []
+
+        def pre_money_gate(self, claim: ClaimedSignal) -> str | None:
+            return None
+
+        async def get_proposal(self, payload: dict[str, Any]) -> tuple[dict[str, Any], str]:
+            return {"proposal": dict(self.proposals[str(payload["payout_case"])])}, "fake_recorded"
+
+        async def fresh_demo_ws_url(self) -> str:
+            self.forbidden_calls.append("credential_or_account")
+            raise ExecutorError("fake payout gate attempted credential/account access")
+
+        async def connect_async_client(self) -> None:
+            self.forbidden_calls.append("network_connect")
+            raise ExecutorError("fake payout gate attempted network access")
+
+        async def proposal_async(self, *_: Any, **__: Any) -> tuple[dict[str, Any], str]:
+            self.forbidden_calls.append("network_proposal_async")
+            raise ExecutorError("fake payout gate attempted network access")
+
+        def proposal_sync(self, *_: Any, **__: Any) -> tuple[dict[str, Any], str]:
+            self.forbidden_calls.append("network_proposal_sync")
+            raise ExecutorError("fake payout gate attempted network access")
+
+        async def buy_async(self, *_: Any, **__: Any) -> dict[str, Any]:
+            self.forbidden_calls.append("buy_async")
+            raise ExecutorError("fake payout gate attempted buy")
+
+        def buy_sync(self, *_: Any, **__: Any) -> dict[str, Any]:
+            self.forbidden_calls.append("buy_sync")
+            raise ExecutorError("fake payout gate attempted buy")
+
+    wrappers: dict[str, dict[str, dict[str, Any]]] = {}
+    forbidden: list[str] = []
+    for wrapper in ("execute_claim", "evaluate_candidate"):
+        db = tmp / f"payout_{wrapper}.sqlite"
+        log_dir = tmp / f"payout_{wrapper}_logs"
+        logger = JsonlLogger(log_dir)
+        namespace = argparse.Namespace(
+            queue_db=str(db),
+            queue_wakeup_socket=str(tmp / f"{wrapper}.sock"),
+            log_dir=str(log_dir),
+            sync_fallback_max_concurrency=1,
+            absolute_breakeven_ceiling=0.60,
+            disabled_pair_sides_set=set(),
+        )
+        executor = FakePayoutExecutor(namespace, logger)
+        conn = connect_queue(db)
+        try:
+            for idx, (name, _, floor, _) in enumerate(cases):
+                signal = _sample_signal(idx + (0 if wrapper == "execute_claim" else 100))
+                signal["effective_floor"] = floor
+                signal["payout_case"] = name
+                enqueue_signal(conn, signal)
+            claims = claim_batch(conn, owner=f"fake-{wrapper}", limit=len(cases))
+        finally:
+            conn.close()
+        production_connect = globals()["connect_queue"]
+
+        def guarded_connect(path: Path | str) -> Any:
+            if Path(path).resolve() != db.resolve():
+                executor.forbidden_calls.append(f"persistent_queue:{path}")
+                raise ExecutorError("fake payout gate attempted a non-temporary queue")
+            return production_connect(path)
+
+        globals()["connect_queue"] = guarded_connect
+        try:
+            for claim in claims:
+                if wrapper == "execute_claim":
+                    await executor.execute_claim(claim, f"fake-{wrapper}")
+                else:
+                    await executor.evaluate_candidate(claim, f"fake-{wrapper}")
+        finally:
+            globals()["connect_queue"] = production_connect
+        rows: list[dict[str, Any]] = []
+        for path in log_dir.glob("*.jsonl"):
+            rows.extend(json.loads(line) for line in path.read_text(encoding="utf-8").splitlines())
+        decisions = {
+            str(row["payout_case"]): {"passed": row["passed"], "reason": row["reason"]}
+            for row in rows if row.get("event") == "payout_gate_decision"
+        }
+        wrappers[wrapper] = decisions
+        forbidden.extend(executor.forbidden_calls)
+
+    expected = {
+        name: {"passed": reason is None, "reason": reason}
+        for name, _, _, reason in cases
+    }
+    return {
+        "case_count": len(cases),
+        "expected": expected,
+        "execute_claim": wrappers.get("execute_claim", {}),
+        "evaluate_candidate": wrappers.get("evaluate_candidate", {}),
+        "forbidden_calls": forbidden,
+        "passed": (
+            wrappers.get("execute_claim") == expected
+            and wrappers.get("evaluate_candidate") == expected
+            and not forbidden
+        ),
+    }
+
+
 async def run_fake_gate() -> int:
     prior_queue_smoke = None
     if GATE_RESULT_PATH.exists():
@@ -838,7 +1001,8 @@ async def run_fake_gate() -> int:
                 prior_queue_smoke = prior.get("fake")
         except json.JSONDecodeError:
             prior_queue_smoke = None
-    tmp = Path(tempfile.mkdtemp(prefix="deriv_trade_executor_gate_"))
+    temp_root = tempfile.TemporaryDirectory(prefix="deriv_trade_executor_gate_")
+    tmp = Path(temp_root.name)
     db = tmp / "trade_queue.sqlite"
     conn = connect_queue(db)
     tx_ms: list[float] = []
@@ -930,6 +1094,7 @@ async def run_fake_gate() -> int:
     )
     transition_signal(recon_conn, future_id, ["buy_intent"], "bought", reason="fake_buy", source="fake", tx_stats=tx_ms)
     reconcile_future_before_grace = len(open_contracts_for_reconcile(recon_conn, limit=200, expiry_grace_seconds=600))
+    payout_wrapper_gate = await _payout_wrapper_fake_gate(tmp)
 
     counts = queue_counts(conn)
     allocator_wait_samples = [4.0, 6.0, 7.0]
@@ -958,6 +1123,7 @@ async def run_fake_gate() -> int:
             "queue_counts": counts,
             "db_transaction_ms_p99": pct(tx_ms, 0.99),
             "db_transaction_ms_max": round(max(tx_ms), 3) if tx_ms else None,
+            "payout_wrapper_gate": payout_wrapper_gate,
         },
         "live": {
             "ny_session_demo_buy": None,
@@ -1004,11 +1170,15 @@ async def run_fake_gate() -> int:
         and len(reconcile_batch) == 12
         and remaining_open == 159
         and reconcile_future_before_grace == remaining_open
+        and payout_wrapper_gate["passed"]
         and (pct(allocator_wait_samples, 0.99) or 9999) <= ALLOCATION_ARBITRATION_MS + 50
         and (not tx_ms or max(tx_ms) <= 250)
     )
     print(f"{'FAKE GATE PASS' if ok else 'FAKE GATE FAIL'} -> {GATE_RESULT_PATH}")
     print(json.dumps(doc["fake"], indent=2, sort_keys=True))
+    for connection in (conn, pair_conn, lock_conn, settle_conn, recon_conn):
+        connection.close()
+    temp_root.cleanup()
     return 0 if ok else 1
 
 

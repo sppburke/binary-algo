@@ -200,8 +200,9 @@ Secrets, account IDs, JSONL logs, and `deriv_data/` artifacts must stay out of g
 
 The hot 5s runtime shares this executor's decision chain — `deriv_runtime_core.py`
 holds the extracted gate/monitor/reconcile/state helpers, pair + floor
-resolution, `effective_floor_for`, and the fake test harness; both binaries
-import it (parity by construction). Modules:
+resolution, the canonical effective floor, and the pure payout decision. The
+one-shot, hot diagnostic, and both trade-executor proposal paths consume those
+owners. Modules:
 
 - `deriv_async_client.py` — websockets transport: req_id futures, subscription
   registry, batched auto-resubscribe (<1s live), fail-closed error surface.
@@ -210,8 +211,9 @@ import it (parity by construction). Modules:
   daemon candle refresher (see `docs/DERIV_DATA_STORE.md`). **Must run before
   the supervisor** — the daemon store health gate fails closed when stale.
 - `deriv_hot_daemon.py` — offset-0 wall-clock scoring, books loaded once,
-  per-minute store snapshots + `--parity-replay` (KILL #0a: the deterministic
-  tuple recomputed from archived snapshots must match 100%).
+  immutable per-minute store snapshots + `--parity-replay`. The issue-#20
+  replay checks both the hot scorer and the one-shot `process_pair` reference,
+  then checks recorded quotes through the active trade-executor payout wrapper.
 - `deriv_quote_workers.py` — hot CALL/PUT quote state via proposal
   subscriptions on the PUBLIC socket (buy-incapable by construction; the
   `--smoke` AST gate proves no buy-shaped node exists in the module).
@@ -268,6 +270,53 @@ Buy exclusivity: do not run legacy demo-buy modes. Cutover verifies
 **Parity re-check rule:** any change to the registry, a book,
 `live_features.py`, or `deriv_runtime_core.py` re-arms the 1-session KILL #0
 re-check before the next demo-buy session.
+
+### KILL #0 complete-session re-arm (issue #20)
+
+KILL #0 is an AND gate, not a spot smoke. A passing result requires one exact
+New York weekday session: all 540 candidate closes from 08:00 through 16:59
+for each of the six enabled pairs (3,240 unique accepted keys), every logged
+attempt replayed from an unchanged snapshot, and at least one recorded quote
+checked with identical payout verdict/reason through both the one-shot and
+active production trade-executor wrappers. Any missing, duplicate, pruned,
+malformed, mixed-run, identity-drifted, or divergent record fails the result.
+
+The capture is deliberately standalone, public, proposal-only, and
+buy-incapable. Before running it, complete issue #19's exact VPS environment
+alignment and verify clean `HEAD == origin/main`, adequate disk, fresh public
+candles, absent credential variables, and inactive supervisor/trade-executor/
+prospective units. Use new empty roots, launch between 07:50 and 07:59 New
+York, and let the finite capture cross 17:00:
+
+```bash
+unset DERIV_APP_ID DERIV_PAT DERIV_ACCOUNT_ID
+~/binary-algo-venv/bin/python scripts/deriv_hot_daemon.py \
+  --duration-minutes 565 \
+  --snapshot-keep-minutes 0 \
+  --log-dir logs/deriv_parity_rearm_4b4e4d9 \
+  --snapshot-dir deriv_data/parity_rearm_4b4e4d9_snapshots
+```
+
+`--snapshot-keep-minutes 0` means retain all; a positive value keeps exactly
+that many newest snapshot directories. Stop only after the 17:00 boundary,
+then replay without credentials or network/account/buy access:
+
+```bash
+~/binary-algo-venv/bin/python scripts/deriv_hot_daemon.py \
+  --parity-replay logs/deriv_parity_rearm_4b4e4d9/YYYY-MM-DD.jsonl \
+  --require-full-ny-session YYYY-MM-DD
+```
+
+Replay writes the ignored scratch file `deriv_parity_result.json` atomically
+and exits nonzero unless deterministic parity, payout-wrapper parity, the exact
+session grid, and capture/replay identities all pass. It records tuple/quote
+logged-versus-checked counts, pruning and divergences, missing/duplicate keys,
+repo/tracked-byte/runtime identities, and the final AND verdict. The tracked
+2026-07-02 `results/json/deriv_parity_result.json` is historical 12-tuple
+self-replay evidence and must never be overwritten. Only after a complete
+result passes and receives independent review may it be archived as
+`results/json/deriv_parity_rearm_4b4e4d9_result.json` and receipted to issues
+#4 and #19. Deployment alone leaves KILL #0 pending.
 
 Phase gate status lives in issue #4 and the per-gate result JSONs under
 `results/json/` (`deriv_async_soak_result.json`,

@@ -1,16 +1,13 @@
 """Shared Deriv runtime core (issue #4 Phase 3).
 
 Gate/monitor/reconcile/state helpers, pair + floor resolution, and the fake
-test-harness classes extracted verbatim from scripts/deriv_demo_executor.py so
-the one-shot executor and the hot daemon share one implementation — parity by
-construction. The executor re-imports everything here; its behaviour is
-unchanged and covered by its own smokes (--fake-client-smoke, --check-books,
---replay-schema-check).
+test-harness classes shared by the one-shot executor and hot daemon. The pure
+parity owners below are covered by the one-shot, hot-daemon, and trade-executor
+smokes.
 
-The only non-verbatim addition is `effective_floor_for` — the payout-gate
-formula previously inlined in process_pair (effective_floor = side_floor -
-haircut_abs - payout_edge_margin); both binaries must compute it through this
-one function.
+The parity-critical additions are deliberately pure: `effective_floor_for`,
+`feature_row_sha256`, and `evaluate_payout_gate`.  They own the canonical
+floor, feature identity, and payout decision shared by every runtime wrapper.
 """
 
 from __future__ import annotations
@@ -45,8 +42,13 @@ from live_features import FeatureRow
 
 
 def effective_floor_for(resolution: PairFloorResolution, direction: str, payout_edge_margin: float) -> float:
-    """The authoritative payout-gate floor: side_refit_p10 - haircut - margin."""
-    return resolution.side_floor(direction) - resolution.haircut_abs - payout_edge_margin
+    """Authoritative floor, canonicalized to the tuple/queue precision."""
+    return round(resolution.side_floor(direction) - resolution.haircut_abs - payout_edge_margin, 12)
+
+
+def feature_row_sha256(row: pd.Series, cols: list[str]) -> str:
+    """Canonical identity for the ordered float64 feature vector."""
+    return hashlib.sha256(row[cols].astype("float64").to_numpy().tobytes()).hexdigest()[:16]
 
 
 HORIZON_MINUTES = 15
@@ -333,6 +335,42 @@ def parse_quote(prop: dict[str, Any]) -> tuple[float | None, float | None, float
     if payout is None:
         return ask, None, None, "missing_or_invalid_payout"
     return ask, payout, ask / payout, None
+
+
+@dataclass(frozen=True)
+class PayoutGateDecision:
+    ask: float | None
+    payout: float | None
+    live_breakeven: float | None
+    net_edge: float | None
+    reason: str | None
+
+    @property
+    def passed(self) -> bool:
+        return self.reason is None
+
+
+def evaluate_payout_gate(
+    prop: dict[str, Any],
+    *,
+    effective_floor: float,
+    absolute_breakeven_ceiling: float,
+) -> PayoutGateDecision:
+    """Apply the authoritative payout gate without IO or execution authority."""
+    ask, payout, live_breakeven, reason = parse_quote(prop)
+    net_edge = effective_floor - live_breakeven if live_breakeven is not None else None
+    if reason is None and effective_floor <= live_breakeven:
+        reason = "edge_not_positive"
+    if reason is None and live_breakeven > absolute_breakeven_ceiling:
+        reason = "breakeven_too_high"
+    return PayoutGateDecision(
+        ask=ask,
+        payout=payout,
+        live_breakeven=live_breakeven,
+        net_edge=net_edge,
+        reason=reason,
+    )
+
 
 def monitor_contract(
     client: DerivOptionsClient,

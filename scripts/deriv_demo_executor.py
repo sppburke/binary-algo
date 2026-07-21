@@ -61,13 +61,16 @@ from deriv_runtime_core import (
     check_kill_switch,
     count_events,
     empty_state,
+    evaluate_payout_gate,
     fixture_resolution,
+    feature_row_sha256,
     is_ny_session,
     last_pair_buy_seconds,
     load_state,
     monitor_contract,
     normalize_absolute_breakeven_ceiling,
     parse_quote,
+    PayoutGateDecision,
     pending_contracts,
     raw_hash,
     reconcile_open_state,
@@ -80,6 +83,20 @@ from deriv_runtime_core import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOG_DIR = REPO_ROOT / "logs" / "paper_trades"
+
+
+def one_shot_payout_gate(
+    prop: dict[str, Any],
+    *,
+    effective_floor: float,
+    absolute_breakeven_ceiling: float,
+) -> PayoutGateDecision:
+    """Named one-shot wrapper used by process_pair and KILL #0b replay."""
+    return evaluate_payout_gate(
+        prop,
+        effective_floor=effective_floor,
+        absolute_breakeven_ceiling=absolute_breakeven_ceiling,
+    )
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -426,6 +443,11 @@ def process_pair(
         logger.write("feature_row_failed", pair=pair, error=str(exc))
         raise ExecutorError(str(exc)) from exc
 
+    # Compute the canonical floor before the book gate so every accepted
+    # feature-row attempt exposes the complete deterministic parity tuple.
+    side_floor = resolution.side_floor(score.direction)
+    effective_floor = effective_floor_for(resolution, score.direction, args.payout_edge_margin)
+    candidate_bar_close_utc = (row.timestamp + pd.Timedelta(minutes=1)).isoformat()
     logger.write(
         "book_score",
         pair=pair,
@@ -440,6 +462,9 @@ def process_pair(
         direction=score.direction,
         gate_passed=score.gate_passed,
         gate_reasons=score.gate_reasons,
+        candidate_bar_close_utc=candidate_bar_close_utc,
+        feature_sha256=feature_row_sha256(row.row, book.feature_cols),
+        effective_floor=effective_floor,
     )
     if not score.gate_passed:
         logger.write("signal_skipped", pair=pair, reason="book_gate", gate_reasons=score.gate_reasons)
@@ -461,10 +486,6 @@ def process_pair(
     symbol = DERIV_SYMBOLS[pair]
     # Side-specific documented floor for the model-selected side; raw proba is
     # never used as a calibrated win probability.
-    side_floor = resolution.side_floor(score.direction)
-    # Shared parity-critical formula: both the executor and the hot daemon
-    # must compute the payout-gate floor through deriv_runtime_core.
-    effective_floor = effective_floor_for(resolution, score.direction, args.payout_edge_margin)
     logger.write(
         "proposal_requested",
         pair=pair,
@@ -491,8 +512,15 @@ def process_pair(
     )
     prop = proposal.get("proposal", {})
     proposal_id = prop.get("id")
-    ask, payout, live_breakeven, invalid_reason = parse_quote(prop)
-    net_edge = effective_floor - live_breakeven if live_breakeven is not None else None
+    decision = one_shot_payout_gate(
+        prop,
+        effective_floor=effective_floor,
+        absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
+    )
+    ask = decision.ask
+    payout = decision.payout
+    live_breakeven = decision.live_breakeven
+    net_edge = decision.net_edge
     logger.write(
         "proposal_received",
         pair=pair,
@@ -522,10 +550,23 @@ def process_pair(
         absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
         raw_hash=raw_hash(proposal),
     )
-    if invalid_reason is not None:
-        logger.write("signal_skipped", pair=pair, reason=invalid_reason, ask=ask, payout=payout)
+    logger.write(
+        "payout_gate_decision",
+        wrapper="deriv_demo_executor.process_pair",
+        pair=pair,
+        passed=decision.passed,
+        reason=decision.reason,
+        ask=ask,
+        payout=payout,
+        live_breakeven=live_breakeven,
+        net_edge=net_edge,
+        effective_floor=effective_floor,
+        absolute_breakeven_ceiling=args.absolute_breakeven_ceiling,
+    )
+    if decision.reason in {"missing_or_invalid_ask", "missing_or_invalid_payout"}:
+        logger.write("signal_skipped", pair=pair, reason=decision.reason, ask=ask, payout=payout)
         return False
-    if effective_floor <= live_breakeven:
+    if decision.reason == "edge_not_positive":
         logger.write(
             "signal_skipped",
             pair=pair,
@@ -535,7 +576,7 @@ def process_pair(
             net_edge=net_edge,
         )
         return False
-    if live_breakeven > args.absolute_breakeven_ceiling:
+    if decision.reason == "breakeven_too_high":
         logger.write(
             "signal_skipped",
             pair=pair,
@@ -680,8 +721,18 @@ def _smoke_resolver() -> None:
             "barclose_haircut": -0.0035,
         },
     }
-    xp_entry = {"metrics": {"deploy_cov": 0.01, "cov": 0.01, "barclose_haircut": -0.0035, "content_id": "fixture"}}
-    xp_manifest = {"created_utc": "2026-06-11", "metrics": {"refit_cpcv_p10_cov1_UP": 0.69, "refit_cpcv_p10_cov1_DOWN": 0.66}}
+    xp_entry = {
+        "id": "USDCHF.fixture",
+        "lifecycle_status": "active",
+        "metrics": {"deploy_cov": 0.01, "cov": 0.01, "barclose_haircut": -0.0035, "content_id": "fixture"},
+    }
+    xp_manifest = {
+        "id": "USDCHF.fixture",
+        "schema": "book-manifest/v1",
+        "lifecycle_status": "active",
+        "created_utc": "2026-06-11",
+        "metrics": {"refit_cpcv_p10_cov1_UP": 0.69, "refit_cpcv_p10_cov1_DOWN": 0.66},
+    }
     res = resolve_book("USDCHF", "USDCHF.fixture", xp_entry, xp_manifest, xp_strategy, "fixture")
     if res.confidence_threshold != 0.169 or res.coverage != 0.01:
         raise ExecutorError("FAIL: xpair fixture did not select the cov1 gates entry (0.02 fallback used)")
@@ -736,6 +787,14 @@ def run_fake_client_smoke() -> None:
         skip = _require_fields(_last_event(logger.path, "signal_skipped"), ["reason"], "signal_skipped")
         if skip["reason"] != "dry_run_proposal_only":
             raise ExecutorError(f"FAIL: positive-edge dry run skipped for {skip['reason']}, not dry_run_proposal_only")
+        payout_decision = _require_fields(
+            _last_event(logger.path, "payout_gate_decision"),
+            ["wrapper", "passed", "reason", "ask", "payout", "live_breakeven", "net_edge",
+             "effective_floor", "absolute_breakeven_ceiling"],
+            "payout_gate_decision",
+        )
+        if payout_decision["wrapper"] != "deriv_demo_executor.process_pair" or not payout_decision["passed"]:
+            raise ExecutorError("FAIL: positive quote did not pass the one-shot payout wrapper")
         _require_fields(
             _last_event(logger.path, "proposal_received"),
             ["pair", "contract_type", "direction", "ask", "payout", "live_breakeven", "side_refit_p10",
