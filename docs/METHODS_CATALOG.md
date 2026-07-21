@@ -7,7 +7,7 @@
 
 **Technique-centric, timeframe-agnostic.** Every methodology used in this program gets a self-contained entry: *what it is · how to use it · why to use it · process notes (leakage traps / discipline) · status*. Each entry cites its implementing file and points STATUS at where the verified result lives. For per-horizon **results** and the **up/down leaderboard**, see the companion `results/EURUSD_RESULTS.md`.
 
-All scripts live in `/home/sean/git/binary-algo/`. Last updated 2026-06-08 (**Neural-forecaster + spectral DIRECTION sweep** from mining external repos `directional-prediction`/`n-hits`: N-BEATS/N-HiTS path→sign, DLinear/Autoformer/FEDformer/TFT-quantile, causal DWT/SSA band-split — run at ALL 6 EURUSD tf single+cross-pair on GPU, deriv-faithful forward-holdout; **84 arms, 0 survivors, ALL KILLED** (valAUC ≤.519, no held-out CI95-lo ≥.541); flips `docs/CORPUS_LEVER_INVENTORY.md` 333/356/357/359 UNTESTED→killed; `nbeats_nhits_dir.py`/`decomp_dir.py`/`spectral_dir.py` + `neural_spectral_dir_sweep_result.json`; full record `results/EURUSD_RESULTS.md`/`docs/DIRECTION_FINDINGS.md` §2026-06-08). Prior 2026-06-07 (Phase 4 cross-sectional DIRECTION campaign: D1 lead-lag signature + D6 HAVOK both KILLED; D7 signed-semivariance REAL-but-sub-breakeven — entries 3.7/3.8/4.6/9.7).
+All scripts live in `/home/sean/git/binary-algo/`. Last major campaign update 2026-06-08 (**Neural-forecaster + spectral DIRECTION sweep** from mining external repos `directional-prediction`/`n-hits`: N-BEATS/N-HiTS path→sign, DLinear/Autoformer/FEDformer/TFT-quantile, causal DWT/SSA band-split — run at ALL 6 EURUSD tf single+cross-pair on GPU, deriv-faithful forward-holdout; **84 arms, 0 survivors, ALL KILLED** (valAUC ≤.519, no held-out CI95-lo ≥.541); flips `docs/CORPUS_LEVER_INVENTORY.md` 333/356/357/359 UNTESTED→killed; `nbeats_nhits_dir.py`/`decomp_dir.py`/`spectral_dir.py` + `neural_spectral_dir_sweep_result.json`; full record `results/EURUSD_RESULTS.md`/`docs/DIRECTION_FINDINGS.md` §2026-06-08). Prior 2026-06-07 (Phase 4 cross-sectional DIRECTION campaign: D1 lead-lag signature + D6 HAVOK both KILLED; D7 signed-semivariance REAL-but-sub-breakeven — entries 3.7/3.8/4.6/9.7).
 
 ---
 
@@ -308,6 +308,12 @@ All scripts live in `/home/sean/git/binary-algo/`. Last updated 2026-06-08 (**Ne
 - **What.** Self-exciting up-tick vs down-tick arrival intensity (Hawkes), directed info flow volume→price (transfer entropy), order-flow toxicity (VPIN).
 - **How.** `docs/IDEAS_LOG.md` B.9, D.16/18. Need trade-signed/depth-resolved LOB (on-disk feed is indicative quote, no trade signs).
 - **STATUS.** **not run** — blocked on data.
+
+### 7.11 Paired venue-proposal skew — payout-aware, no-fill
+- **What.** Pair contemporaneous CALL and PUT proposals, normalize each quoted ask by its payout to obtain comparable breakeven prices, and treat their imbalance as an indicative direction feature. A proposal is not a fill, so the method supports only `QUOTE_CONDITIONED_NO_FILL` claims until separately measured execution exists.
+- **How.** Authenticate source identity, causal pairing, and preregistered minimum coverage before outcome access. The v1 operator, `gbpusd_m15_down_quote_skew_screen_v1.py` [GBPUSD·15m DOWN], implements only that outcome-blind source-feasibility gate; it does not compute skew efficacy or settlement.
+- **Process notes.** Exact shared-cycle/source clocks and adequate retention are prerequisites for a prospective test. Source insufficiency is a capability result, not a directional null, and it authorizes neither new capture nor buying.
+- **STATUS.** **SOURCE-FEASIBILITY TESTED; EFFICACY UNTESTED** [GBPUSD·15m DOWN]. Tier-2 records: `results/GBPUSD_RESULTS.md`, `sweeps/GBPUSD_15m.md`.
 
 ---
 

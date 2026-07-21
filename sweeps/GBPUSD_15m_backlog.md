@@ -98,3 +98,15 @@
 
 - The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because its negative-control family was not estimable; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_GBPUSD_replay_result.json`.
 - Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and the exhausted on-disk queue remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+
+## CLOSED measured handoff — issue #21 paired-quote screen (2026-07-21)
+
+- The outcome-blind source gate ended `not_computable` / `capability_deferred`: fixed tick-shard filename bounds represent 3 New York dates versus the required 10. Tick prices, outcomes, settlement, inference, fills, and P&L were not read or computed, so this is not evidence for or against quote-skew efficacy. Sources: `results/json/gbpusd_m15_down_quote_skew_screen_v1_result.json`, `results/json/gbpusd_m15_down_quote_skew_source_snapshot_v1.json`.
+- The result unlocks none of the preserved follow-ups. They remain outside the first-to-run queue, and the GBPUSD 15m sweep remains closed.
+
+| ID | Status | Value retained | Original unlock trigger | Owner / pickup |
+|---|---|---|---|---|
+| `GBP-QUOTE-UP-1` | deferred—not unlocked | Test `(GBPUSD,15m,UP)` without borrowing DOWN evidence | DOWN is positive or inconclusive, or a new outcome-blind power audit independently prioritizes UP | separate `feature-dev -> plan-review -> strategy-eval` |
+| `GBP-QUOTE-PROSPECTIVE-1` | deferred—not unlocked | Fresh aligned proposal/tick capture with explicit shared-cycle/source clocks and adequate power | this screen is `positive_screen_requires_prospective` or `inconclusive_positive` | separate prospective experiment; add only fields proved necessary |
+| `GBP-QUOTE-INCUMBENT-1` | deferred—not unlocked | Test quote skew as an incremental filter for the active/refit GBPUSD book | a prospective standalone quote experiment is positive and a current book vintage/parity receipt exists | separate experiment; no automatic runtime change |
+| `GBP-QUOTE-DEMO-1` | deferred—not unlocked | Measure actual proposal→buy→terminal virtual-funds P&L | positive prospective quote-conditioned lower bound plus applicable parity, buyer, and reconciliation gates | separate reviewed issue with explicit demo-buy authority |

@@ -133,3 +133,10 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 - The simultaneous promotion lower bounds were C−A yield −.001708, C−B yield −.001343, C-UP accuracy−.5 −.157652, and C-DOWN accuracy−.5 −.238356. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_GBPUSD_replay_result.json`.
 - The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
 - **Sweep remains CLOSED.** `GBPUSD.m15ny_xpair_seedens8.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.
+
+## Issue #21 paired-quote source-feasibility handoff — 2026-07-21
+
+- **Terminal: `not_computable` / `capability_deferred`.** The fixed tick-shard filename bounds represent only 3 New York dates versus the preregistered minimum 10: `tick_source_cannot_represent_minimum_dates:3<10`. Source: `results/json/gbpusd_m15_down_quote_skew_screen_v1_result.json`.
+- The outcome-blind screen authenticated 633,552 quote rows, 52,796 complete 12-lane quote blocks, and 15,072 opaque tick shards. The sealed source identity is in `results/json/gbpusd_m15_down_quote_skew_source_snapshot_v1.json`.
+- This is a source-capability failure, **not a quote-skew null**. Tick prices were not interpreted; outcomes, settlement, inference, fills, and realized P&L were not computed.
+- **Sweep remains CLOSED.** The incumbent book is unchanged, no candidate or activation exists, and this result opens no automatic follow-up.
