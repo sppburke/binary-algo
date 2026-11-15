@@ -69,7 +69,7 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E9BLOCKVAL | E1t with a time-block validation set (last 15% of training rows, purged) setting the threshold; all 800 trees (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e18lowcap_AUDUSD_15m_result.json` |
 | E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
@@ -81,7 +81,7 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E26PA | E1t + SWEEP_MATRIX F2 price-action block (pa_: RSI, Bollinger %b, NR7, NY-day open/range/previous-day levels) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E27FAMALL | E1t + all eight SWEEP_MATRIX family blocks together (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E28RESID | E1t fit on the SWEEP_MATRIX F4 residualized target (own 15m return minus beta x USD-basket return); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E29LOGIT | E1t features, L2 logistic regression (C = 0.05, fit-pool median imputation, z-scored, clipped at 5): low-capacity linear model for the ~15-month data ceiling (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E29LOGIT | E1t features, L2 logistic regression (C = 0.05, fit-pool median imputation, z-scored, clipped at 5): low-capacity linear model for the ~15-month data ceiling (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e29logit_AUDUSD_15m_result.json` |
 | E30NYSTROEM | E1t features, SWEEP_MATRIX B6 kernel model: RBF Nystroem features (500) + logistic SGD (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E31ENS3 | E1t features, SWEEP_MATRIX A1 three-GBM ensemble (LightGBM + XGBoost + CatBoost mean; 400 trees at lr 0.04, CatBoost depth 6; capped fast-KILL screen without the forward walk) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E32SPEC | E1t features, SWEEP_MATRIX A8 side specialists (scripts/min1_upspec.py recipe at 15m): in the compression regime an UP model fit only on dip setups (ret_15m < 0) trades only UP, a DOWN model fit only on rally setups trades only DOWN (`cpcv_deriv_x.py`) | 15m | pending | — | — |
@@ -91,5 +91,7 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E36ACI | E1t with an adaptive-conformal confidence gate (Tier-I: threshold += 0.002 x (loss - 0.44) as each taken trade settles, causal, per test path) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E37META | E1t + SWEEP_MATRIX A4 meta-labeler gate: out-of-fold primary (two purged chronological halves of the fit pool), meta model of P(primary side correct), keep the top 50%; operating coverage 0.06 of gated validation rows (pre-set so the overall trade share stays near 0.03) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E38RELEASE | E1t features, SWEEP_MATRIX A3 compression-release x reversion specialists: after a volatility burst (volratio_15_240 >= fit-pool 75% quantile) an UP model fit on dips trades only UP, a DOWN model fit on rallies trades only DOWN (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E40FOREST | E1t features, shallow bagged extra-trees (300 trees, depth 8, min leaf 200; literature: weak-signal tree baseline) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E41POOL | E1t features, equal-weight probability pool of LightGBM, L2 logistic, extra-trees and RBF-kernel models (literature: heterogeneous equal-weight pooling) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->

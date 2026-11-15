@@ -175,6 +175,8 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDCAD.m15ny_seedens.v1` 0.5463 [0.5073, 0.5854] n=615 (NOT SUPPORTED); DOWN best `USDCAD.m15ny_seedens.v1` 0.4621 [0.4223, 0.5036] n=554 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): e16nyeve 15m DOWN (cov 0.03: no (2/15, 2 clear); forward 0/0).
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e17nyam` 7/9 clear, p10 0.494, excess +0.082; `e7fitall` 7/15 clear, p10 0.459, excess +0.031; `e14nylate` 6/14 clear, p10 0.476, excess +0.052.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e1t` 7/14 clear, p10 0.446, excess +0.044; `e7fitall` 5/14 clear, p10 0.471, excess +0.035; `e17nyam` 4/8 clear, p10 0.459, excess +0.052.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -211,7 +213,9 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 | e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5055 (.4867) | .4770 · .267 · .5213 | 1/1 · .5556 | .3472 · .000 · .3861 | 0/0 · — | .5105 / .4747 | KILLED / KILLED | no (15/15, 4 clear) / no (6/15, 0 clear) | 0.20 / 0.00 | `deriv_e15nypm_USDCAD_15m_result.json` |
 | e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5244 (.5111) | .3897 · .333 · .5075 | 0/0 · — | .6401 · 1.0 · .6405 | 0/0 · — | .4903 / .4870 | KILLED / CERTIFIED | no (6/15, 2 clear) / no (2/15, 2 clear) | 0.33 / 1.00 | `deriv_e16nyeve_USDCAD_15m_result.json` |
 | e17nyam | e17nyam: all (66), nseed 1 | 15m | 0.03 | .5132 (.4953) | .4940 · .778 · .5743 | 0/0 · — | .4585 · .500 · .5485 | 0/0 · — | .4941 / .4959 | KILLED / KILLED | no (9/15, 7 clear) / no (8/15, 4 clear) | 0.67 / 0.38 | `deriv_e17nyam_USDCAD_15m_result.json` |
+| e18lowcap | e18lowcap: all (66), nseed 1 | 15m | 0.03 | .5077 (.4988) | .4526 · .000 · .4949 | 1/4 · .5034 | .4417 · .067 · .4840 | 1/4 · .4510 | .5014 / .4866 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 1 clear) | 0.00 / 0.00 | `deriv_e18lowcap_USDCAD_15m_result.json` |
 | e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5159 (.5075) | .4496 · .467 · .5256 | 2/3 · .6109 | .4805 · .286 · .5244 | 1/2 · .5197 | .5008 / .4873 | KILLED / KILLED | no (15/15, 7 clear) / no (14/15, 4 clear) | 0.33 / 0.14 | `deriv_e1_USDCAD_15m_result.json` |
 | e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5103 (.5023) | .4793 · .267 · .5192 | 1/2 · .5139 | .4456 · .500 · .5310 | 0/0 · — | .5014 / .4866 | KILLED / KILLED | no (15/15, 4 clear) / no (14/15, 7 clear) | 0.20 / 0.36 | `deriv_e1t_USDCAD_15m_result.json` |
+| e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5032 (.4951) | .4716 · .200 · .5097 | 2/4 · .5305 | .3964 · .000 · .4680 | 1/3 · .5142 | .5014 / .4866 | KILLED / KILLED | no (15/15, 3 clear) / no (15/15, 0 clear) | 0.07 / 0.00 | `deriv_e29logit_USDCAD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5125 (.5008) | .4594 · .467 · .5321 | 1/2 · .5837 | .4707 · .357 · .5220 | 2/2 · .6111 | .5014 / .4866 | KILLED / KILLED | no (15/15, 7 clear) / no (14/15, 5 clear) | 0.20 / 0.21 | `deriv_e7fitall_USDCAD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->
