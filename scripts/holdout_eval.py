@@ -32,7 +32,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 from cpcv_deriv_x import LOCAL_WINDOWS, session as x_session  # noqa: E402
 
-HOLDOUT_VERSION = 'holdout_eval/0.3'   # 0.3: --model (cpcv_deriv_x model classes); 0.2: blackout excluded; local NY windows
+HOLDOUT_VERSION = 'holdout_eval/0.4'   # 0.4: one-sided bootstrap p (Holm across a key's finalists) and the NY-hour
+#                                        drift-matched always-side baseline per side (paired excess + CI; context);
+#                                        0.3: --model (cpcv_deriv_x model classes); 0.2: blackout excluded; local NY windows
 
 
 def boot(corr, nb=5000, seed=7, alpha=0.05):
@@ -43,6 +45,17 @@ def boot(corr, nb=5000, seed=7, alpha=0.05):
     n = len(corr)
     a = np.array([corr[rng.integers(0, n, n)].mean() for _ in range(nb)])
     return float(np.percentile(a, 100 * alpha / 2)), float(np.percentile(a, 100 * (1 - alpha / 2)))
+
+
+def boot_p(corr, thr, nb=5000, seed=7):
+    """One-sided bootstrap p-value of mean <= thr (same resamples as boot); the input of a Holm step-down."""
+    corr = np.asarray(corr, dtype=float)
+    if len(corr) < 5:
+        return float('nan')
+    rng = np.random.default_rng(seed)
+    n = len(corr)
+    a = np.array([corr[rng.integers(0, n, n)].mean() for _ in range(nb)])
+    return float((a <= thr).mean())
 
 
 def fit_predict(X, fwd, train_idx, score_mask, a, rng, others=None):
@@ -177,6 +190,10 @@ def main():
     f, t = fwd[idx], ts[idx]
     mv = f != 0
     mlabel = pd.to_datetime(t, unit='s', utc=True).strftime('%Y-%m').to_numpy()
+    # drift-matched context: each side's always-side win rate (ties lose) per America/New_York hour over every holdout row
+    nyh = pd.to_datetime(t, unit='s', utc=True).tz_convert('America/New_York').hour.to_numpy()
+    hour_rate = {s: {int(h): float(((f[nyh == h] > 0) if s == 'UP' else (f[nyh == h] < 0)).mean()) for h in np.unique(nyh)}
+                 for s in ('UP', 'DOWN')}
     for name, p, thr in (('PRIMARY_monthly_refit', p_all[idx], thr_all[idx]), ('CONTEXT_frozen_dev_end', p_frozen[idx], np.full(len(idx), thr0))):
         r = {'auc_moved': round(float(cd.roc_auc_score((f[mv] > 0).astype(int), p[mv])), 4), 'sides': {}}
         conf = np.abs(p - 0.5)
@@ -194,6 +211,13 @@ def main():
                                 'by_month': bym}
             if side != 'COMBINED':
                 r['sides'][side]['SOTA_ELIGIBLE'] = bool(name.startswith('PRIMARY') and len(win) >= 50 and np.isfinite(alo) and alo >= cd.BE)
+                r['sides'][side]['p_boot_le_breakeven'] = round(boot_p(win, cd.BE), 5)
+                if len(win):
+                    hb = np.array([hour_rate[side][int(h)] for h in nyh[tr]])
+                    elo, ehi = boot(win - hb)
+                    r['sides'][side]['drift_matched'] = {'baseline_mean': round(float(hb.mean()), 4),
+                                                         'excess': round(float((win - hb).mean()), 4),
+                                                         'excess_ci95': [round(elo, 4), round(ehi, 4)]}
         readings[name] = r
         s = r['sides']
         print(f'{name}: AUC {r["auc_moved"]} | UP {s["UP"]["n"]} {s["UP"]["win_rate"]} {s["UP"]["ci95"]} | '

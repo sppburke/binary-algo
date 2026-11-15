@@ -28,12 +28,23 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.4'   # 0.4: --families (SWEEP_MATRIX family blocks), --train-label resid, --model; 0.3: shared
-#                                  unrounded aggregation (cpcv_deriv 0.4); 0.2: blackout excluded
+X_VERSION = 'cpcv_deriv_x/0.7.1'  # 0.7.1: --monotone catchup (discovery D2-02); defaults unchanged
+#                                  0.7: discovery round 1 - --drift-fe (D1-01), --train-label agree3 (D1-02), play
+#                                  families hy_/hr_ (D1-03); defaults unchanged
+#                                  0.6.1: --multi-horizon (literature rank 24); --boot-gate seeds from str(label) (0.6
+#                                  crashed on forward-walk labels); 0.6: literature items --model stack / lgbord4,
+#                                  --mag-model har, --boot-gate, --weight recency (defaults unchanged)
+#                                  0.5: logit / forest / nystroem honour training weights (mean-1; before 0.5 they ignored
+#                                  --weight, so a uniform reflect weight is unchanged); --meta-keep half-pool primaries use
+#                                  the selected model (were always LightGBM, no early stopping); 0.4: --families (SWEEP_MATRIX family
+#                                  blocks), --train-label resid, --model; 0.3: shared unrounded aggregation (cpcv_deriv 0.4);
+#                                  0.2: blackout excluded
 # Column prefixes of the SWEEP_MATRIX family blocks (tools/deriv_features_family.py, merged into dataset_dev_v0.3)
 FAMILY_PREFIXES = ('tf_', 'sg_', 'kf_', 'rm_', 'fd_', 'cx_', 'tk_', 'pa_',   # SWEEP_MATRIX blocks (dataset_dev_v0.3+)
                    'cm_',                                                    # CCM block (v0.4+)
-                   'fx_', 'ck_', 'rl_', 'rs_')                               # literature blocks (v0.5)
+                   'fx_', 'ck_', 'rl_', 'rs_',                               # literature blocks (v0.5)
+                   'hy_', 'hr_',                                             # discovery D1-03 play blocks (v0.6play)
+                   'd2_')                                                    # discovery D2-01 shock block (v0.6d2)
 # Extra local-time windows (America/New_York, [start, end) hours) beyond sessions.py. 'nylate' = 13:00-22:00 ET: the
 # TRUE hours selected by session_mask('ny') on the Dukascopy-derived stores before 2025-08-22, whose timestamps were
 # true UTC - 5 h (see docs/DERIV_SOTA_PROGRAM.md) - i.e. where the incumbents' "NY" certifications actually lived.
@@ -104,8 +115,25 @@ class XFitter(cd.Fitter):
         """One seed of the selected model class: (validation probabilities, test probabilities, iterations)."""
         a = self.a
         pv, pt, its = [], [], []
-        if a.model in ('lgb', 'ens3', 'pool'):
+        # sklearn models get the training weights rescaled to mean 1 (per-row loss scale unchanged against the penalty)
+        skw = {} if self.wfit is None else {'sample_weight': self.wfit / (self.wfit.mean() + 1e-18)}
+        if a.drift_fe:
+            return self.fit_drift_fe(sd, Xf, yf, Xv, yv, Xt, skw)
+        if a.model == 'lgbord4':                    # literature rank 25: ordinal signed bins (4-class), P(up) = P(bin 2) + P(bin 3)
+            m = cd.lgb.LGBMClassifier(objective='multiclass', num_class=4, learning_rate=a.lr, num_leaves=a.num_leaves,
+                                      min_child_samples=a.min_child, subsample=0.8, subsample_freq=1, colsample_bytree=a.colsample,
+                                      reg_lambda=a.reg_lambda, n_estimators=a.n_estimators, n_jobs=a.n_jobs, verbosity=-1,
+                                      random_state=sd, bagging_seed=sd, feature_fraction_seed=sd)
+            kw = {} if self.wfit is None else {'sample_weight': self.wfit}
+            m.fit(Xf, yf, eval_set=[(Xv, yv)], eval_metric='multi_logloss',
+                  callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
+            pv.append(m.predict_proba(Xv)[:, 2:].sum(axis=1)); pt.append(m.predict_proba(Xt)[:, 2:].sum(axis=1))
+            self.gain += m.booster_.feature_importance(importance_type='gain')
+            its.append(int(m.best_iteration_ or 0))
+        if a.model in ('lgb', 'ens3', 'pool', 'stack'):
             m = make_model(a, sd)
+            if getattr(self, 'mono', None) is not None:     # discovery D2-02 monotone constraints (--monotone)
+                m.set_params(monotone_constraints=self.mono)
             kw = {} if self.wfit is None else {'sample_weight': self.wfit}
             if a.no_early_stop:                     # validation rows only set the threshold
                 m.fit(Xf, yf, **kw)
@@ -149,32 +177,83 @@ class XFitter(cd.Fitter):
             c.fit(fill(Xf), yf, eval_set=(fill(Xv), yv))
             pv.append(c.predict_proba(fill(Xv))[:, 1]); pt.append(c.predict_proba(fill(Xt))[:, 1])
             its.append(int(c.get_best_iteration() or 0))
-        if a.model in ('logit', 'pool'):            # low-capacity linear model (L2, fixed C chosen before any run)
+        if a.model in ('logit', 'pool', 'stack'):   # low-capacity linear model (L2, fixed C chosen before any run)
             from sklearn.linear_model import LogisticRegression
             F, V, T = standardize(Xf, Xv, Xt)
             m = LogisticRegression(C=a.logit_c, max_iter=3000)
-            m.fit(F, yf)
+            m.fit(F, yf, **skw)
             pv.append(m.predict_proba(V)[:, 1]); pt.append(m.predict_proba(T)[:, 1])
             its.append(int(np.max(m.n_iter_)))
-        if a.model in ('forest', 'pool'):           # shallow bagged extremely-randomized trees (literature: weak-signal baseline)
+        if a.model in ('forest', 'pool', 'stack'):  # shallow bagged extremely-randomized trees (literature: weak-signal baseline)
             from sklearn.ensemble import ExtraTreesClassifier
             F, V, T = standardize(Xf, Xv, Xt)
             m = ExtraTreesClassifier(n_estimators=300, max_depth=8, min_samples_leaf=200, max_features=0.3,
                                      bootstrap=True, max_samples=0.5, n_jobs=a.n_jobs, random_state=sd)
-            m.fit(F, yf)
+            m.fit(F, yf, **skw)
             pv.append(m.predict_proba(V)[:, 1]); pt.append(m.predict_proba(T)[:, 1])
             its.append(300)
-        if a.model in ('nystroem', 'pool'):         # SWEEP_MATRIX B6: RBF kernel (Nystroem features) + logistic SGD
+        if a.model in ('nystroem', 'pool', 'stack'):  # SWEEP_MATRIX B6: RBF kernel (Nystroem features) + logistic SGD
             from sklearn.kernel_approximation import Nystroem
             from sklearn.linear_model import SGDClassifier
             F, V, T = standardize(Xf, Xv, Xt)
             ny = Nystroem(kernel='rbf', gamma=a.nys_gamma_mult / F.shape[1], n_components=a.nys_components, random_state=sd)
             Fk = ny.fit_transform(F)
             m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd)
-            m.fit(Fk, yf)
+            m.fit(Fk, yf, **skw)
             pv.append(m.predict_proba(ny.transform(V))[:, 1]); pt.append(m.predict_proba(ny.transform(T))[:, 1])
             its.append(int(m.n_iter_))
+        if a.model == 'stack':
+            # literature rank 6, SHRUNK SIMPLEX STACK of lgb, logit, forest, nystroem: simplex weights minimise the validation
+            # log-loss (softmax parameters), then shrink toward equal weights by stack_shrink (1 = the equal-weight pool).
+            # The validation rows also set early stopping and the threshold: 3 free weights, a declared double use.
+            from scipy.optimize import minimize
+            P = np.clip(np.column_stack(pv), 1e-6, 1 - 1e-6)
+            def nll(th):
+                w = np.exp(th - th.max()); w /= w.sum()
+                q = np.clip(P @ w, 1e-6, 1 - 1e-6)
+                return -float(np.mean(yv * np.log(q) + (1 - yv) * np.log(1 - q)))
+            th = minimize(nll, np.zeros(P.shape[1]), method='L-BFGS-B').x
+            w = np.exp(th - th.max()); w /= w.sum()
+            w = (1 - a.stack_shrink) * w + a.stack_shrink / len(w)
+            if not hasattr(self, 'stack_w'):
+                self.stack_w = []
+            self.stack_w.append(w.tolist())
+            return P @ w, np.column_stack(pt) @ w, its
         return np.mean(pv, axis=0), np.mean(pt, axis=0), (its[0] if len(its) == 1 else its)
+
+    def fit_drift_fe(self, sd, Xf, yf, Xv, yv, Xt, skw):
+        """Discovery D1-01, DRIFT-NEUTRAL fit: one-hot strata (ISO week x NY 3-hour bucket x fit-pool rv_60m tercile,
+        columns x10 so the L2 penalty barely touches them, no global intercept) absorb every stratum's direction rate
+        during the fit; validation and test scores use the non-stratum coefficients only. logit = the signed
+        coordinates (reflection map: negated columns, rangepos - 0.5), scaled without centring, missing = 0;
+        nystroem = the usual kernel features (declared approximation: the kernel keeps even functions)."""
+        import scipy.sparse as sp
+        a = self.a
+        _, inv = np.unique(self.strata_f, return_inverse=True)
+        D = sp.csr_matrix((np.full(len(inv), 10.0), (np.arange(len(inv)), inv)))
+        sigm = lambda f: 1.0 / (1.0 + np.exp(-f))
+        if a.model == 'logit':
+            from sklearn.linear_model import LogisticRegression
+            def signed(Z):
+                V = Z[:, self.signed_cols].astype(np.float64)
+                V[:, self.signed_rng] -= 0.5
+                return np.nan_to_num(V, nan=0.0)
+            F = signed(Xf)
+            sc = F.std(axis=0) + 1e-12
+            z = lambda V: np.clip(V / sc, -5, 5)
+            m = LogisticRegression(C=a.logit_c, max_iter=3000, fit_intercept=False)
+            m.fit(sp.hstack([sp.csr_matrix(z(F)), D]).tocsr(), yf, **skw)
+            w = m.coef_[0, :F.shape[1]]
+            return sigm(z(signed(Xv)) @ w), sigm(z(signed(Xt)) @ w), int(np.max(m.n_iter_))
+        from sklearn.kernel_approximation import Nystroem
+        from sklearn.linear_model import SGDClassifier
+        F, V, T = standardize(Xf, Xv, Xt)
+        ny = Nystroem(kernel='rbf', gamma=a.nys_gamma_mult / F.shape[1], n_components=a.nys_components, random_state=sd)
+        Fk = ny.fit_transform(F)
+        m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd, fit_intercept=False)
+        m.fit(sp.hstack([sp.csr_matrix(Fk), D]).tocsr(), yf, **skw)
+        w = m.coef_[0, :Fk.shape[1]]
+        return sigm(ny.transform(V) @ w), sigm(ny.transform(T) @ w), int(m.n_iter_)
 
     def split2(self, tr_idx, val_pool, test_mask, rng, label):
         """Fit on tr_idx; validation = random VAL_FRAC of the evaluation-session rows among tr_idx (val_pool mask)."""
@@ -196,6 +275,13 @@ class XFitter(cd.Fitter):
             fit_pool = rng.choice(fit_pool, cd.SUB_FIT, replace=False)     # sampled order kept, as the reference
         ytr = (fwd[fit_pool] > 0).astype(int) if self.ytrain is None else self.ytrain[fit_pool].astype(int)
         yval = (fwd[val_idx] > 0).astype(int)
+        yv_fit = yval                               # labels fit_one sees for validation (early stopping, stack weights)
+        self.stack_w = []
+        if a.model == 'lgbord4':
+            # ordinal signed bins by the fit pool's median |return|: 0 big down, 1 small down (and ties), 2 small up, 3 big up
+            med = float(np.median(np.abs(fwd[fit_pool])))
+            ord4 = lambda f: np.where(f > 0, np.where(f >= med, 3, 2), np.where(f <= -med, 0, 1)).astype(int)
+            ytr, yv_fit = ord4(fwd[fit_pool]), ord4(fwd[val_idx])
         pval = np.zeros(len(val_idx))
         ptst = np.zeros(int(test_mask.sum()))
         iters = []
@@ -204,6 +290,35 @@ class XFitter(cd.Fitter):
         if a.weight == 'absret':                    # |return|-weighted training (GMADL-style emphasis on large moves)
             w = np.abs(fwd[fit_pool])
             self.wfit = w / (w.mean() + 1e-18)
+        if a.weight == 'recency':
+            # literature rank 7, RECENCY WEIGHTS: half-life halflife_days back from the latest fit row. In a CPCV path the
+            # latest fit rows can postdate the test groups, so the pre-registered reading is the forward walk only.
+            age = (ts[fit_pool].max() - ts[fit_pool]) / 86400.0
+            w = 0.5 ** (age / a.halflife_days)
+            self.wfit = w / (w.mean() + 1e-18)
+        if a.drift_fe:                              # D1-01 strata of the fit rows (fit_one gets Xf in fit_pool order)
+            tf_ = pd.to_datetime(ts[fit_pool], unit='s', utc=True)
+            iso = tf_.isocalendar()
+            wk = iso['year'].to_numpy(np.int64) * 100 + iso['week'].to_numpy(np.int64)
+            b3 = tf_.tz_convert('America/New_York').hour.to_numpy() // 3
+            jrv = self.feats.index('rv_60m')
+            q = np.nanquantile(X[fit_pool, jrv], [1 / 3, 2 / 3])
+            terc = np.digitize(np.nan_to_num(X[fit_pool, jrv], nan=q[0]), q)
+            self.strata_f = wk * 100 + b3 * 10 + terc
+        gain_mh = None
+        if a.multi_horizon:
+            # literature rank 24, SHARED-HORIZON PARTITIONS: each fit row outside the 30-minute purge also enters as a
+            # 30-minute row (label = 30-minute settlement sign, indicator column 1); validation and test rows are 15-minute
+            # rows (indicator 0), so one model shares its partitions across both horizons and is scored at 15 minutes only.
+            f30 = self.fwd30[fit_pool]
+            d = fit_pool[self.ok30[fit_pool] & np.isfinite(f30) & (f30 != 0)]
+            Xf = np.vstack([np.column_stack([Xf, np.zeros(len(Xf), np.float32)]),
+                            np.column_stack([X[d], np.ones(len(d), np.float32)])])
+            ytr = np.concatenate([ytr, (self.fwd30[d] > 0).astype(int)])
+            Xv = np.column_stack([Xv, np.zeros(len(Xv), np.float32)])
+            Xt = np.column_stack([Xt, np.zeros(len(Xt), np.float32)])
+            gain_mh, self.gain = self.gain, np.zeros(len(self.gain) + 1)
+            self.mh_info = {'rows_15m': int(len(fit_pool)), 'rows_30m': int(len(d))}
         if a.reflect:
             # WITHIN-PAIR SIGN REFLECTION (literature rank 8): every fit row gets a mirrored copy - signed features negated,
             # range positions reflected (1 - x), unsigned features kept - with the label flipped; both halves weigh 0.5,
@@ -236,7 +351,7 @@ class XFitter(cd.Fitter):
                 pv_s, pt_s = np.zeros(int(vm.sum())), np.zeros(int(tm.sum()))
                 self.wfit = None if wall is None else wall[fm]
                 for sd in range(a.nseed):
-                    pv, pt, it = self.fit_one(sd, Xf[fm], ytr[fm], Xv[vm], yval[vm], Xt[tm])
+                    pv, pt, it = self.fit_one(sd, Xf[fm], ytr[fm], Xv[vm], yv_fit[vm], Xt[tm])
                     pv_s += pv
                     pt_s += pt
                     iters.append(it)
@@ -244,14 +359,34 @@ class XFitter(cd.Fitter):
                 pval[vm] = clip(pv_s / a.nseed, 0.5)
                 ptst[tm] = clip(pt_s / a.nseed, 0.5)
             self.spec_info = {'compression_thr': comp_thr, 'fit_up': int(setups(Xf)[0].sum()), 'fit_down': int(setups(Xf)[1].sum())}
+        elif a.boot_gate:
+            # literature rank 16, CALIBRATION-UNCERTAINTY GATE: boot_gate bootstrap replicas of the fit pool (own generator per
+            # path and replica, so the shared validation/sub-fit stream is unchanged); the score keeps the replica-mean side
+            # and ranks by the lower bound |mean - 0.5| - boot_z * sd (floored at 0), for validation and test alike.
+            PV, PT = [], []
+            wall = self.wfit
+            for b in range(a.boot_gate):
+                bi = np.random.default_rng([1009, b] + [ord(c) for c in str(label)]).integers(0, len(Xf), len(Xf))
+                self.wfit = None if wall is None else wall[bi]
+                pv, pt, it = self.fit_one(b, Xf[bi], ytr[bi], Xv, yv_fit, Xt)
+                PV.append(pv); PT.append(pt); iters.append(it)
+            self.wfit = wall
+            lcb = lambda M: 0.5 + np.sign(M.mean(0) - 0.5) * np.maximum(np.abs(M.mean(0) - 0.5) - a.boot_z * M.std(0, ddof=1), 0.0)
+            PV, PT = np.array(PV), np.array(PT)
+            pval, ptst = lcb(PV), lcb(PT)
+            self.boot_info = {'replicas': a.boot_gate, 'z': a.boot_z, 'sd_test_median': float(np.median(PT.std(0, ddof=1))),
+                              'zero_lcb_share_test': float((ptst == 0.5).mean())}
         else:
             for sd in range(a.nseed):
-                pv, pt, it = self.fit_one(sd, Xf, ytr, Xv, yval, Xt)
+                pv, pt, it = self.fit_one(sd, Xf, ytr, Xv, yv_fit, Xt)
                 pval += pv
                 ptst += pt
                 iters.append(it)
             pval /= a.nseed
             ptst /= a.nseed
+        if gain_mh is not None:                     # fold the indicator column's gain out of the per-feature report
+            gain_mh += self.gain[:-1]
+            self.gain = gain_mh
         vconf = np.abs(pval - 0.5)
         ftst = fwd[test_mask]
         ttst = ts[test_mask]
@@ -262,16 +397,39 @@ class XFitter(cd.Fitter):
                'best_iter': iters, 'auc': auc, 'up_rate': uprate, 'always': {}, 'bycov': {}}
         if a.specialist:
             row['specialist'] = self.spec_info              # AUC above is over every test row (non-setup rows at 0.5)
+        if a.boot_gate:
+            row['boot_gate'] = self.boot_info               # AUC above is over the lower-bound scores
+        if self.stack_w:
+            row['stack_weights_mean'] = np.mean(self.stack_w, axis=0).round(4).tolist()   # order lgb, logit, forest, nystroem
+        if a.multi_horizon:
+            row['multi_horizon'] = self.mh_info
         vgate = np.ones(len(val_idx), bool)
         if a.mag_keep is not None:
             # MAGNITUDE GATE (sign-invariant): a second model ranks "big move" (|ret| >= the fit pool's median |ret|);
             # keep only the top mag_keep share (threshold = validation quantile); the direction threshold is then the
             # coverage quantile among validation rows that pass the gate, so coverage is relative to gated rows.
             med = float(np.median(np.abs(fwd[fit_pool])))
-            mm = make_model(a, 0)
-            mm.fit(X[fit_pool], (np.abs(fwd[fit_pool]) >= med).astype(int))
-            mval = mm.predict_proba(X[val_idx])[:, 1]
-            mtst = mm.predict_proba(X[test_mask])[:, 1]
+            if a.mag_model == 'har':
+                # literature ranks 12-15, HAR SIZE MODEL: OLS of log|return| on log realized volatility at 15 m, 60 m, 4 h and
+                # 1 d plus the intraday clock (hour sin/cos), fit-pool medians for missing values; ranks rows by predicted size
+                cols = [self.feats.index(c) for c in ('rv_15m', 'rv_60m', 'rv_240m', 'rv_1440m')]
+                clk = [self.feats.index(c) for c in ('hour_sin', 'hour_cos') if c in self.feats]
+                def design(Z, fill=None):
+                    V = np.log(np.maximum(Z[:, cols], 1e-12))
+                    fill = np.nanmedian(V, axis=0) if fill is None else fill
+                    V = np.where(np.isfinite(V), V, fill)
+                    return np.column_stack([np.ones(len(Z)), V] + ([Z[:, clk]] if clk else [])), fill
+                D, fill = design(X[fit_pool])
+                D = np.where(np.isfinite(D), D, 0.0)
+                yl = np.log(np.abs(fwd[fit_pool]) + 1e-12)
+                beta = np.linalg.lstsq(D, yl, rcond=None)[0]
+                pred = lambda Z: np.where(np.isfinite(design(Z, fill)[0]), design(Z, fill)[0], 0.0) @ beta
+                mval, mtst = pred(X[val_idx]), pred(X[test_mask])
+            else:
+                mm = make_model(a, 0)
+                mm.fit(X[fit_pool], (np.abs(fwd[fit_pool]) >= med).astype(int))
+                mval = mm.predict_proba(X[val_idx])[:, 1]
+                mtst = mm.predict_proba(X[test_mask])[:, 1]
             gthr = float(np.quantile(mval, 1 - a.mag_keep))
             vgate = mval >= gthr
             tgate = mtst >= gthr
@@ -289,14 +447,18 @@ class XFitter(cd.Fitter):
             # [features, primary confidence, primary side]; validation and test use the full-pool primary (more confident
             # than the half-pool OOF primary: a declared approximation); keep the top meta_keep share by meta score
             # (validation quantile); the direction threshold is the coverage quantile among validation rows in the gate.
+            # (0.5: the half-pool primaries are fit by fit_one - the selected model class and recipe, seed 0, early stopping
+            # on the validation rows - so a kernel or pooled primary gets a meta model learned on its own errors)
             tf_ = ts[fit_pool]
             mid = float(np.median(tf_))
             halves = (tf_ < mid - gap, tf_ >= mid)
             oof = np.full(len(fit_pool), np.nan)
+            wall, gain0, nstack = self.wfit, self.gain.copy(), len(self.stack_w)
             for trm, tem in ((halves[0], halves[1]), (halves[1], halves[0])):
-                m1 = make_model(a, 0)
-                m1.fit(Xf[trm], ytr[trm])
-                oof[tem] = m1.predict_proba(Xf[tem])[:, 1]
+                self.wfit = None if wall is None else wall[trm]
+                _, oof[tem], _ = self.fit_one(0, Xf[trm], ytr[trm], Xv, yv_fit, Xf[tem])
+            self.wfit, self.gain = wall, gain0        # the reported gain and stack weights stay the primary's
+            del self.stack_w[nstack:]
             fwf = fwd[fit_pool]
             ok = np.isfinite(oof) & (fwf != 0)
             Zf = np.column_stack([Xf, np.abs(oof - 0.5), (oof > 0.5).astype(np.float32)])
@@ -351,11 +513,24 @@ def main():
     ap.add_argument('--n-estimators', type=int, default=800)
     ap.add_argument('--colsample', type=float, default=0.5)
     ap.add_argument('--reg-lambda', type=float, default=20.0)
-    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool', 'lgbbrier'),
+    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool', 'lgbbrier',
+                                                       'stack', 'lgbord4'),
                     help='lgb (default, the mirror); ens3 = LightGBM + XGBoost + CatBoost mean (SWEEP_MATRIX A1; XGB/Cat use '
                          '--n-estimators/--lr); logit = L2 logistic regression on fit-pool-standardized features; '
                          'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6); forest = shallow bagged '
-                         'extra-trees; pool = equal-weight probability mean of lgb, logit, forest and nystroem')
+                         'extra-trees; pool = equal-weight probability mean of lgb, logit, forest and nystroem; stack = the '
+                         'same four with validation-log-loss simplex weights shrunk toward equal (--stack-shrink); lgbord4 = '
+                         'LightGBM on 4 ordinal signed bins, P(up) = P(small up) + P(big up)')
+    ap.add_argument('--stack-shrink', type=float, default=0.5, help='stack: weight on the equal-weight pool (0 = fitted weights)')
+    ap.add_argument('--mag-model', default='lgb', choices=('lgb', 'har'),
+                    help='--mag-keep size model: lgb big-move classifier (default) or har (OLS of log|ret| on log rv 15m/60m/4h/1d + clock)')
+    ap.add_argument('--boot-gate', type=int, default=None,
+                    help='calibration-uncertainty gate: B bootstrap replicas; rank by |mean-0.5| - boot_z*sd (replaces --nseed)')
+    ap.add_argument('--boot-z', type=float, default=1.0)
+    ap.add_argument('--halflife-days', type=float, default=60.0, help='--weight recency half-life in days')
+    ap.add_argument('--multi-horizon', action='store_true',
+                    help='literature rank 24: fit rows also enter with the 30-minute label and an indicator (30-minute purge); '
+                         'scored at 15 minutes only')
     ap.add_argument('--cat-depth', type=int, default=8)
     ap.add_argument('--nys-gamma-mult', type=float, default=1.0, help='RBF gamma = mult / n_features (nystroem, pool)')
     ap.add_argument('--nys-components', type=int, default=500)
@@ -367,8 +542,9 @@ def main():
                     help='literature rank 8: add sign-mirrored copies of the fit rows (v0.1 features only; label flipped)')
     ap.add_argument('--null-shift-weeks', type=int, default=0,
                     help='analysis only: replace every label by the label W weeks later (sign-null replay); never certifies')
-    ap.add_argument('--weight', default='none', choices=('none', 'absret'),
-                    help='absret: LightGBM sample weights |settled return| / mean (fit rows only)')
+    ap.add_argument('--weight', default='none', choices=('none', 'absret', 'recency'),
+                    help='absret: sample weights |settled return| / mean (fit rows only); recency: half-life --halflife-days '
+                         'back from the latest fit row (reading: forward walk only)')
     ap.add_argument('--aci-gamma', type=float, default=None,
                     help='adaptive-conformal confidence gate step (e.g. 0.002): threshold += gamma * (loss - (1 - target)) '
                          'as each taken trade settles')
@@ -383,10 +559,18 @@ def main():
     ap.add_argument('--val-mode', default='random', choices=('random', 'block'),
                     help='random = repository protocol (15%% random rows); block = last 15%% of training rows in time, purged')
     ap.add_argument('--no-early-stop', action='store_true', help='fit all n_estimators; validation only sets the threshold')
-    ap.add_argument('--train-label', default='sign', choices=('sign', 'tb1', 'tb2', 'resid'),
-                    help='fit target: Deriv settlement sign (default), triple-barrier first touch k=1/2, or the USD-basket '
-                         'residualized sign (SWEEP_MATRIX F4); validation, thresholds and scoring always use the settlement sign')
-    ap.add_argument('--label-dir', default=None, help='default: cache/labels_tb_dev_v0.1 (tb1/tb2), cache/labels_resid_dev_v0.1 (resid)')
+    ap.add_argument('--train-label', default='sign', choices=('sign', 'tb1', 'tb2', 'resid', 'agree3'),
+                    help='fit target: Deriv settlement sign (default), triple-barrier first touch k=1/2, the USD-basket '
+                         'residualized sign (SWEEP_MATRIX F4), or agree3 (discovery D1-02: the side agreed at entry delays '
+                         '1/5/15 s, other rows dropped); validation, thresholds and scoring always use the settlement sign')
+    ap.add_argument('--label-dir', default=None, help='default: cache/labels_tb_dev_v0.1 (tb1/tb2), cache/labels_resid_dev_v0.1 '
+                                                      '(resid), cache/labels_agree_dev_v0.1 (agree3)')
+    ap.add_argument('--monotone', default='none', choices=('none', 'catchup'),
+                    help='discovery D2-02 (LightGBM only): catchup = decreasing in own ret_15m; x_usd_weak_15m increasing '
+                         'for XXX/USD pairs, decreasing for USD/XXX pairs; every other feature unconstrained')
+    ap.add_argument('--drift-fe', action='store_true',
+                    help='discovery D1-01: drift-neutral fit with stratum fixed effects (logit on signed coordinates, or nystroem); '
+                         'scores exclude every stratum effect')
     ap.add_argument('--families', default=None,
                     help='SWEEP_MATRIX family blocks to keep (comma list of tf,sg,kf,rm,fd,cx,tk,pa,cm, or all / none); every '
                          'other block column is dropped from the --features selection')
@@ -401,6 +585,20 @@ def main():
     ap.add_argument('--max-paths', type=int, default=15)
     a = ap.parse_args()
     a.train_session = a.train_session or a.session
+    if a.reflect and a.meta_keep is not None:      # the meta gate's half-pool split indexes the unmirrored fit pool
+        raise SystemExit('--reflect and --meta-keep are exclusive')
+    if a.boot_gate is not None and (a.boot_gate < 2 or a.nseed != 1 or a.specialist):
+        raise SystemExit('--boot-gate needs B >= 2 replicas, --nseed 1 and no --specialist')
+    if a.model == 'lgbord4' and (a.reflect or a.train_label != 'sign'):
+        raise SystemExit('--model lgbord4 defines its own target: no --reflect, no --train-label')
+    if a.drift_fe and (a.model not in ('logit', 'nystroem') or a.reflect or a.meta_keep is not None or a.specialist
+                       or a.boot_gate or a.multi_horizon):
+        raise SystemExit('--drift-fe needs --model logit or nystroem and no reflect / meta / specialist / boot / multi-horizon')
+    if a.multi_horizon and (a.horizon != 15 or a.reflect or a.meta_keep is not None or a.specialist or a.boot_gate
+                            or a.model == 'lgbord4' or a.comp_gate is not None or a.weight != 'none'
+                            or a.train_label != 'sign' or a.null_shift_weeks):
+        raise SystemExit('--multi-horizon runs at --horizon 15 with no reflect / meta / specialist / boot / lgbord4 / comp '
+                         'gate / weights / train label / null shift')
     covs = [float(c) for c in a.covs.split(',')]
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_{a.session}_x_cpcv_result.json')
@@ -419,7 +617,8 @@ def main():
         listed = [c for c in cd.feature_list(cols, a.features) if not c.startswith(FAMILY_PREFIXES) or c[:3] in want]
         if want and not any(c[:3] in want for c in listed):
             raise SystemExit(f'dataset {a.dataset} has no columns for families {sorted(want)}')
-    label_dir = a.label_dir or str(cd.LAB / 'cache' / ('labels_resid_dev_v0.1' if a.train_label == 'resid' else 'labels_tb_dev_v0.1'))
+    label_dir = a.label_dir or str(cd.LAB / 'cache' / {'resid': 'labels_resid_dev_v0.1', 'agree3': 'labels_agree_dev_v0.1'}.get(
+        a.train_label, 'labels_tb_dev_v0.1'))
     X, fwd, ts, feats = cd.load(a.dataset, a.pair, a.horizon, a.features, 1, listed)
     if a.null_shift_weeks:
         # SIGN-NULL REPLAY (literature: full-search null replay / reality check): every decision gets the settled label of
@@ -445,7 +644,8 @@ def main():
                                         'val_mode', 'no_early_stop', 'train_label', 'mag_keep', 'include_blackout', 'families',
                                         'model', 'cat_depth', 'logit_c', 'specialist', 'comp_gate', 'weight',
                                         'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime', 'nys_gamma_mult',
-                                        'nys_components', 'null_shift_weeks', 'reflect')}
+                                        'nys_components', 'null_shift_weeks', 'reflect', 'stack_shrink', 'mag_model',
+                                        'boot_gate', 'boot_z', 'halflife_days', 'multi_horizon', 'drift_fe', 'monotone')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
@@ -477,10 +677,22 @@ def main():
     fitter.ytrain = None
     fitter.feats = feats
     fitter.dumps = []
+    if a.multi_horizon:
+        d30 = pd.read_parquet(Path(a.dataset) / f'{a.pair}.parquet', columns=['decision_ts', 'ret_fwd_30m', 'valid_30m'])
+        f30 = d30['ret_fwd_30m'].to_numpy(np.float64).copy()
+        f30[~d30['valid_30m'].to_numpy(bool)] = np.nan
+        s30 = pd.Series(f30, index=d30['decision_ts'].to_numpy(np.int64))
+        if not s30.index.is_unique:
+            raise SystemExit('--multi-horizon: duplicate decision_ts in the dataset')
+        fitter.fwd30 = s30.reindex(ts).to_numpy(np.float64)
+        res['multi_horizon'] = {'label': 'sign of ret_fwd_30m where valid_30m', 'purge_30m_s': 1800,
+                                'aligned_finite': int(np.isfinite(fitter.fwd30).sum())}
     if a.specialist and not {'ret_15m', 'volratio_15_240'} <= set(feats):
         raise SystemExit('--specialist needs the v0.1 columns ret_15m and volratio_15_240')
     if a.comp_gate is not None and 'rv_60m' not in feats:
         raise SystemExit('--comp-gate needs the v0.1 column rv_60m')
+    if a.mag_keep is not None and a.mag_model == 'har' and not {'rv_15m', 'rv_60m', 'rv_240m', 'rv_1440m'} <= set(feats):
+        raise SystemExit('--mag-model har needs the v0.1 columns rv_15m, rv_60m, rv_240m, rv_1440m')
     if a.reflect:
         import re as _re
         neg = _re.compile(r'^(ret_\d+m|emadist_\d+m|stretch_\d+m|x_[A-Z]{6}_ret_\d+m|x_usd_weak_15m|bar_body|skew_240m)$')
@@ -493,6 +705,23 @@ def main():
         fitter.reflect_neg = np.array([i for i, c in enumerate(feats) if neg.match(c)], dtype=int)
         fitter.reflect_rng = np.array([i for i, c in enumerate(feats) if rng_.match(c)], dtype=int)
         res['reflect_map'] = {'negated': [feats[i] for i in fitter.reflect_neg], 'reflected_1_minus_x': [feats[i] for i in fitter.reflect_rng]}
+    if a.monotone == 'catchup':
+        if a.model != 'lgb' or not {'ret_15m', 'x_usd_weak_15m'} <= set(feats):
+            raise SystemExit('--monotone catchup needs --model lgb and the v0.1 columns ret_15m, x_usd_weak_15m')
+        usd_side = -1 if a.pair in ('USDJPY', 'USDCHF', 'USDCAD') else 1   # pair UP = USD weakness for XXX/USD
+        fitter.mono = [-1 if c == 'ret_15m' else usd_side if c == 'x_usd_weak_15m' else 0 for c in feats]
+        res['monotone'] = {'ret_15m': -1, 'x_usd_weak_15m': usd_side, 'others': 0}
+    if a.drift_fe:
+        import re as _re
+        if 'rv_60m' not in feats:
+            raise SystemExit('--drift-fe needs the v0.1 column rv_60m for its strata')
+        neg = _re.compile(r'^(ret_\d+m|emadist_\d+m|stretch_\d+m|x_[A-Z]{6}_ret_\d+m|x_usd_weak_15m|bar_body|skew_240m)$')
+        rng_ = _re.compile(r'^rangepos_\d+m$')
+        cols = [i for i, c in enumerate(feats) if neg.match(c) or rng_.match(c)]
+        fitter.signed_cols = np.array(cols, dtype=int)
+        fitter.signed_rng = np.array([k for k, i in enumerate(cols) if rng_.match(feats[i])], dtype=int)
+        res['drift_fe'] = {'strata': 'ISO week x America/New_York 3-hour bucket x fit-pool rv_60m tercile (one-hot x10, no intercept)',
+                           'logit_signed_columns': [feats[i] for i in cols]}
     if a.train_label != 'sign':
         lab = pd.read_parquet(Path(label_dir) / f'{a.pair}.parquet').set_index('bar_start_ts')[f'{a.train_label}_{a.horizon}m']
         fitter.ytrain = lab.reindex(ts - 60).to_numpy(np.float64)      # decision = bar start + 60 s
@@ -507,10 +736,13 @@ def main():
             break
         tin = np.zeros(len(ts), bool)
         purged = np.zeros(len(ts), bool)
+        purged30 = np.zeros(len(ts), bool)
         for g in testg:
             lo, hi = groups[g]
             tin |= (ts >= lo) & (ts < hi)
             purged |= (ts >= lo - gap) & (ts < hi + gap)
+            purged30 |= (ts >= lo - 1800) & (ts < hi + 1800)    # --multi-horizon: 30-minute labels need a 30-minute purge
+        fitter.ok30 = ~purged30
         row = fitter.split2(np.where((~purged) & moved & tsess)[0], sess, tin & sess & np.isfinite(fwd), rng, list(testg))
         pathinfo.append(row)
         print(f'  path {fi + 1:2d}/15 g{list(testg)} AUC={row["auc"]:.4f} n_fit={row["n_fit"]} iters={row["best_iter"]} | '
@@ -520,6 +752,7 @@ def main():
         frng = np.random.default_rng(17)
         for g in range(2, cd.N_GROUPS):
             lo, hi = groups[g]
+            fitter.ok30 = ts < lo - 1800
             row = fitter.split2(np.where((ts < lo - gap) & moved & tsess)[0], sess, (ts >= lo) & (ts < hi) & sess & np.isfinite(fwd),
                                 frng, f'forward g{g}')
             forward.append(row)

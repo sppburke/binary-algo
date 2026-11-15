@@ -61,7 +61,13 @@ Variant harnesses: `cpcv_deriv_x.py` (fit session, local NY windows `nylate` 13â
 family blocks `--families`, the residualized training label, model classes `--model ens3|logit|nystroem`, side
 specialists, a compression gate, |return| weights, an adaptive-conformal gate and `--dump-preds`; defaults reproduce the
 base mirror), `cpcv_deriv_pool.py` (pooled training for the EURUSD/GBPUSD/USDCHF targets) and `cpcv_deriv_online.py`
-(prequential online learner scored on the same groups and paths; forward-only by construction).
+(prequential online learner scored on the same groups and paths; forward-only by construction). `cpcv_deriv_x` 0.5
+lets the logit, extra-trees and kernel models use training weights (before 0.5 they ignored `--weight`) and fits the
+meta gate's half-pool primaries with the selected model; 0.6 / 0.6.1 add the literature options (shrunk stack, ordinal
+bins, HAR size gate, bootstrap calibration-uncertainty gate, recency weights, multi-horizon training); 0.7 / 0.7.1
+add the discovery options (drift fixed effects, entry-delay agreement label, play-operator and shock-curvature
+blocks, monotone catch-up constraints). Each of 0.5 .. 0.7.1 reproduced path 1 of a stored 0.4 LightGBM result and a
+stored 0.4 kernel result exactly before it was used (lab registry tests `x-regress-06` .. `x-regress-071`).
 
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
@@ -206,6 +212,13 @@ zero-parameter rules `r4fixldn` / `r5fixecb` (`scripts/cpcv_rule.py`: a rule sco
 fitted). The high-prior items are all validation upgrades; the sign-null replay (`scripts/run_nullreplay.sh`) applies
 the "full-search null replay" to the selected configuration. Literature blocks: `scripts/deriv_features_lit.py`
 (truncation-tested), merged as `dataset_dev_v0.5` (a superset of v0.3 and v0.4, which were removed).
+
+Literature feature blocks, measured (2026-11-15; per key in `results/<PAIR>_RESULTS.md`; paired against `e1t`, same
+rows and splits). Every key-side is KILLED by the goal rule. The fixing-window block `e51fx` is the only block with a
+consistent gain: the median paired path moved-AUC gain is positive on all seven pairs but between +0.001 and +0.003,
+below the pre-registered 0.005 line. The kernel blocks `e52ck` / `e53ckcompact` / `e54ckcompactlogit` give no gain.
+The round-level block `e55rl` beats its shifted-grid placebo `e56rs` on paths clear and p10 on only 4 of 14
+key-sides; where it lifts AUC (AUDUSD), the placebo lifts it as much, so there is no round-level effect.
 
 ## Closures respected
 

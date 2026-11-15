@@ -40,9 +40,9 @@ document supplies a high-prior direction lever that the program could test with 
 
 | Rank | Item | Enters | Sign or size | Prior | Disposition (experiment ids; results per key in `results/<PAIR>_RESULTS.md`) |
 |---:|---|---|---|---|---|
-| 1 | fixing-window response | features | SIGN | medium | `e51fx` (block), `r4fixldn` / `r5fixecb` (zero-parameter post-fix reversal rules) |
-| 2 | compact return kernels | features | SIGN | medium | `e52ck` (block), `e53ckcompact` (compact dictionary alone) |
-| 3 | round-level response vs shifted placebo | features | SIGN | medium | `e55rl` (real grid) vs `e56rs` (half-grid shifted placebo); `e10v02` |
+| 1 | fixing-window response | features | SIGN | medium | `e51fx` (block): KILLED on every key (median paired path AUC gain +0.001..+0.003, below 0.005); `r4fixldn` / `r5fixecb` (zero-parameter post-fix reversal rules): KILLED |
+| 2 | compact return kernels | features | SIGN | medium | `e52ck` (block), `e53ckcompact` (compact dictionary alone): KILLED, no AUC gain |
+| 3 | round-level response vs shifted placebo | features | SIGN | medium | `e55rl` (real grid) vs `e56rs` (half-grid shifted placebo): KILLED (real beats placebo on 4 of 14 key-sides; lifts match the placebo's); `e10v02` |
 | 4 | Brier-loss sign training | loss | SIGN | medium | `e59brier` (LightGBM on the Brier score) |
 | 5 | heterogeneous equal-weight pool | ensemble | SIGN | medium | `e41pool` |
 | 6 | shrunk simplex stack | ensemble | SIGN | medium | pending (equal weights = its large-shrinkage limit, `e41pool`) |
@@ -50,7 +50,7 @@ document supplies a high-prior direction lever that the program could test with 
 | 8 | within-pair sign reflection | features | SIGN | low | `e57reflect` (LightGBM), `e58nysreflect` (kernel) |
 | 9 | group-fused lag penalty | loss | SIGN | low | pending |
 | 10 | USD-factor residual | features | SIGN | low | covered by `e21kf` (time-varying basket beta and residual) and `e22rm` (eigen-residual) |
-| 11 | compact sign logistic | model | SIGN | low | `e54ckcompactlogit` |
+| 11 | compact sign logistic | model | SIGN | low | `e54ckcompactlogit`: KILLED |
 | 12-15 | HAR / multi-decay / filtered-historical / clock-scale size models | gate | SIZE | medium | magnitude gate `e13mag50` (learned on features that include multi-window realized volatility); specific variants pending |
 | 16 | calibration-uncertainty gate | gate | SIGN selection | medium | adaptive-conformal gate `e36aci`; bootstrap-map variant pending |
 | 17-22 | synchronized-block inference, trial registry, step-down FWER, conditional calibration, episode influence, peer audit | validation | — | medium-high | trial registry: the lab registry (every test event); full-search null replay of the selected configuration: `run_nullreplay.sh` (`a5null`); drift placebo and entry-delay audits (`analyze_drift_placebo.py`, `analyze_entry_delay.py`); step-down FWER pending |

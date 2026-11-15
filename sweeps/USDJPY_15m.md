@@ -205,12 +205,12 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | E41POOL | E1t features, equal-weight probability pool of LightGBM, L2 logistic, extra-trees and RBF-kernel models (literature: heterogeneous equal-weight pooling) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | R4FIXLDN | Zero-parameter rule (literature rank 1, pre-registered post-fix reversal): in the hour after the London 16:00 fix trade against the pair's move over the hour before the fix (cpcv_rule; every signalled decision) (`cpcv_rule.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 1.0) | `deriv_r4fixldn_USDJPY_15m_result.json` |
 | R5FIXECB | Zero-parameter rule: post-fix reversal after the ECB 14:15 Frankfurt reference rate (cpcv_rule) (`cpcv_rule.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 1.0) | `deriv_r5fixecb_USDJPY_15m_result.json` |
-| E51FX | E1t + literature rank 1 fixing-window block (fx_: London 16:00 and ECB 14:15 relative time, triangular pre/post bases and their products with USD-oriented 15/60-min returns, pre-fix move) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E52CK | E1t + literature rank 2 compact return-kernel block (ck_: scaled cumulative and exponentially weighted returns, fast-minus-slow) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E53CKCOMPACT | Literature rank 2 compact dictionary alone (14 features: ck_ kernels, scale, clock) with LightGBM (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E54CKCOMPACTLOGIT | Literature rank 11 compact sign logistic: the 14 compact features with L2 logistic regression (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E55RL | E1t + literature rank 3 round-level block on the REAL 50/100-pip grids (rl_) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E56RS | E1t + the same round-level block on half-grid SHIFTED placebo levels (rs_); falsifier: e55rl must beat it (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E51FX | E1t + literature rank 1 fixing-window block (fx_: London 16:00 and ECB 14:15 relative time, triangular pre/post bases and their products with USD-oriented 15/60-min returns, pre-fix move) (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e51fx_USDJPY_15m_result.json` |
+| E52CK | E1t + literature rank 2 compact return-kernel block (ck_: scaled cumulative and exponentially weighted returns, fast-minus-slow) (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e52ck_USDJPY_15m_result.json` |
+| E53CKCOMPACT | Literature rank 2 compact dictionary alone (14 features: ck_ kernels, scale, clock) with LightGBM (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e53ckcompact_USDJPY_15m_result.json` |
+| E54CKCOMPACTLOGIT | Literature rank 11 compact sign logistic: the 14 compact features with L2 logistic regression (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e54ckcompactlogit_USDJPY_15m_result.json` |
+| E55RL | E1t + literature rank 3 round-level block on the REAL 50/100-pip grids (rl_) (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e55rl_USDJPY_15m_result.json` |
+| E56RS | E1t + the same round-level block on half-grid SHIFTED placebo levels (rs_); falsifier: e55rl must beat it (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e56rs_USDJPY_15m_result.json` |
 | E57REFLECT | E1t with within-pair sign reflection (literature rank 8): mirrored fit rows, label flipped, half weight each - no drift, only sign-symmetric structure (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E58NYSREFLECT | e30nystroem with within-pair sign reflection (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E59BRIER | E1t features, LightGBM fit on the Brier score (literature rank 4; custom objective, probabilities from the raw score) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
@@ -223,4 +223,23 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | E48NYSC1000 | e30nystroem with 1,000 Nystroem components (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e48nysc1000_USDJPY_15m_result.json` |
 | E49NYS30 | e30nystroem at the 30-minute horizon (`cpcv_deriv_x.py`) | 30m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e49nys30_USDJPY_30m_result.json` |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| C2NYSABS | Kernel base with |return| training weights (mean-1 SGD sample weights, harness 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| C4NYSMETA | Kernel base with the meta-label gate (keep 0.5; half-pool primaries are the kernel, harness 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| C5NYSMAG | Kernel base with the learned magnitude gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E60STACK | E1t features, shrunk simplex stack of LightGBM, L2 logistic, extra-trees and RBF kernel (validation log-loss weights shrunk 0.5 toward equal; literature rank 6) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E61ORD4 | E1t features, LightGBM on 4 ordinal signed bins (fit-pool median |return|), P(up) = P(small up) + P(big up) (literature rank 25) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E62HAR | E1t + HAR size gate (OLS of log|return| on log realized volatility 15 m / 60 m / 4 h / 1 d and the clock; keep 0.5; literature ranks 12-15) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E63BOOTNYS | Kernel base with the calibration-uncertainty gate (5 bootstrap replicas, rank by |mean - 0.5| - 1 sd; literature rank 16) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E64BOOT | E1t with the calibration-uncertainty gate (5 bootstrap replicas, rank by |mean - 0.5| - 1 sd; literature rank 16) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E65RECENCY | E1t with recency training weights (half-life 60 days back from the latest fit row; literature rank 7; pre-registered reading: the forward walk only) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E66MH | E1t with shared-horizon partitions: fit rows also enter with the 30-minute label and an indicator column (30-minute purge), scored at 15 minutes (literature rank 24; harness 0.6.1) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E67DRFE | Drift-neutral L2 logistic on the signed coordinates with ISO-week x NY-3-hour x rv tercile fixed effects excluded from scores (discovery D1-01) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E67DRFENYS | RBF kernel with the same drift fixed effects excluded from scores (discovery D1-01 kernel variant) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E68AGREE | E1t fit on the side agreed by settlements at entry delays 1, 5 and 15 s (discovery D1-02) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E69AGREENYS | RBF kernel fit on the entry-delay agreement label (discovery D1-02 kernel variant) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E70PLAY | E1t + hysteretic play-operator block hy_ (240-minute replays; discovery D1-03) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E71PLAYRESET | E1t + play-operator control block hr_ (15-minute replays; discovery D1-03 memory control) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E72SHOCK | E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E73MONO | E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->
