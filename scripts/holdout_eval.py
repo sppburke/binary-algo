@@ -35,7 +35,8 @@ from cpcv_deriv_x import LOCAL_WINDOWS, session as x_session  # noqa: E402
 if Path(sys.modules['cpcv_deriv_x'].__file__).resolve().parent != Path(__file__).resolve().parent:
     raise SystemExit(f'holdout_eval: cpcv_deriv_x resolved to {sys.modules["cpcv_deriv_x"].__file__}, not the harness next to this file')
 
-HOLDOUT_VERSION = 'holdout_eval/0.6.1'  # 0.6.1: falsifier text names owner decision 6 (two-look seq_decision); numbers unchanged
+HOLDOUT_VERSION = 'holdout_eval/0.6.2'  # 0.6.2: PRIMARY UP/DOWN trade lists [ts, win] and sessions.py hash for seq_decision 1.2
+# 0.6.1: falsifier text names owner decision 6 (two-look seq_decision); numbers unchanged
 # 0.6: --weight absret (as cpcv_deriv_x); drift test unavailable without volatility cut
 #                                        points; Bonferroni flag renamed to context (binding = caller's Holm); harness provenance
 #                                        enforced (next to this file)
@@ -171,10 +172,12 @@ def main():
                                              'drift_matched.passes (owner decision 1) and every incumbent book beaten on the '
                                              'same window; the earlier Holm and Bonferroni readings are superseded',
                          'bonferroni_context_iff': 'PRIMARY n >= 50 AND the Bonferroni (1 - 0.05/n_candidates) bootstrap '
-                                                   'lower bound >= 0.541 (context only; superseded by Holm)'},
+                                                   'lower bound >= 0.541 (context only; superseded by owner decision 6)'},
            'code': {'holdout_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__),
                     'x_harness': {'file': sys.modules['cpcv_deriv_x'].__file__,
-                                  'sha256': cd.sha256(Path(sys.modules['cpcv_deriv_x'].__file__))}}}
+                                  'sha256': cd.sha256(Path(sys.modules['cpcv_deriv_x'].__file__))},
+                    'sessions': {'file': sys.modules['sessions'].__file__,
+                                 'sha256': cd.sha256(Path(sys.modules['sessions'].__file__))}}}
     Path(a.out).write_text(json.dumps(res, indent=1))
 
     def pool_rows(cut):
@@ -242,6 +245,8 @@ def main():
                                 'ci95': [round(lo_, 4), round(hi_, 4)],
                                 'ci_bonferroni': {'level': round(1 - 0.05 / a.n_candidates, 4), 'interval': [round(alo, 4), round(ahi, 4)]},
                                 'by_month': bym}
+            if side != 'COMBINED' and name.startswith('PRIMARY'):   # exact trades for seq_decision (cumulative-look check)
+                r['sides'][side]['trades'] = [[int(x), int(y)] for x, y in zip(t[tr], win)]
             if side != 'COMBINED':
                 r['sides'][side]['bonferroni_context_eligible'] = bool(name.startswith('PRIMARY') and len(win) >= 50
                                                                        and np.isfinite(alo) and alo >= cd.BE)

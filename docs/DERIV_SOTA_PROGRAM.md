@@ -135,14 +135,15 @@ Every DEV-window variant tried for a key belongs to that key's search family (al
 **two finalized candidates per key** are opened on the holdout, chosen on DEV evidence only (CPCV verdict, forward walk,
 no-clock ablation) and named in the key's sweep ledger before the holdout is scored. Reading per candidate
 (`holdout_eval.py`): PRIMARY = walk-forward monthly refit (train on everything before each holdout month, purged),
-CONTEXT = one model frozen at the end of DEV. A side is SOTA-eligible iff the PRIMARY reading has n >= 50, it passes
-the Holm step-down across the key's finalists (one-sided family alpha 0.025 on `holdout_eval.py` `p_boot_le_breakeven`:
-the j-th smallest of k passes iff it and every smaller one are <= 0.025 / (k - j + 1), so its CI95 lower bound is
->= 0.541 too), its point win rate beats every incumbent book of the key scored on the same window as deployed, and -
-for a key under owner decision 1 - its drift-matched excess passes. Then the full per-fold-refit CPCV at the operating
-gate certifies it. (Holm replaced the first registration's single-step Bonferroni interval at 2026-11-15 13:21 UTC,
-before any holdout data was read; lab `holdout/REGISTER.md`. `holdout_eval.py` still reports the Bonferroni reading as
-`bonferroni_context_eligible`, context only.)
+CONTEXT = one model frozen at the end of DEV. As registered before owner decision 6 (which now governs the opened keys,
+below), a side was SOTA-eligible iff the PRIMARY reading had n >= 50, it passed the Holm step-down across the key's
+finalists (one-sided family alpha 0.025 on `holdout_eval.py` `p_boot_le_breakeven`: the j-th smallest of k passes iff it
+and every smaller one are <= 0.025 / (k - j + 1), so its CI95 lower bound is >= 0.541 too), its point win rate beats
+every incumbent book of the key scored on the same window as deployed, and - for a key under owner decision 1 - its
+drift-matched excess passes. Then the full per-fold-refit CPCV at the operating gate certifies it. (Holm replaced the
+first registration's single-step Bonferroni interval at 2026-11-15 13:21 UTC, before any holdout data was read; lab
+`holdout/REGISTER.md`. `holdout_eval.py` still reports the Bonferroni reading as `bonferroni_context_eligible`, context
+only.)
 
 **Two-look sequential holdout (owner decision 6, 2026-11-15; supersedes the single look and the Holm step-down for the
 opened keys).** A DEV-only power estimate showed that one look at the 15-week window would pass a real DEV-sized edge
@@ -157,8 +158,10 @@ the exact family-wise error is at most 0.025 by construction (0.018-0.0225 on a 
 50, the drift-matched test and a win fraction above every incumbent book's on the same window; otherwise the test
 continues to look 2. The null model - nonoverlapping trade outcomes independent given the past, the same assumption as
 the single-look CI95 rule - was checked on the finalists' DEV trades (day- and week-clustered variance inflation
-0.71-0.89, no overdispersion). The exact rule, finalist commands and the decision tool (`scripts/seq_decision.py`, lab
-`holdout/seq_decision.py`) are in lab `holdout/REGISTER.md`.
+0.71-0.89, no overdispersion). Both looks run frozen, hash-registered copies of the evaluation code, wins are counted
+from the evaluator's trade list, and at look 2 the trades inside the look-1 window must equal the look-1 trades exactly.
+The exact rule, finalist commands and the decision tool (`scripts/seq_decision.py`, lab `holdout/seq_decision.py`) are
+in lab `holdout/REGISTER.md`.
 
 ## Experiment record
 

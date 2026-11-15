@@ -124,7 +124,7 @@ SCOPE: USDCAD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | C5NYSMAG | Kernel base with the learned magnitude gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c5nysmag_USDCAD_15m_result.json` |
 | C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c6nyscomp_USDCAD_15m_result.json` |
 | E60STACK | E1t features, shrunk simplex stack of LightGBM, L2 logistic, extra-trees and RBF kernel (validation log-loss weights shrunk 0.5 toward equal; literature rank 6) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e60stack_USDCAD_15m_result.json` |
-| E61ORD4 | E1t features, LightGBM on 4 ordinal signed bins (fit-pool median |return|), P(up) = P(small up) + P(big up) (literature rank 25) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E61ORD4 | E1t features, LightGBM on 4 ordinal signed bins (fit-pool median |return|), P(up) = P(small up) + P(big up) (literature rank 25) (`cpcv_deriv_x.py`) | 15m | running | — | — |
 | E62HAR | E1t + HAR size gate (OLS of log|return| on log realized volatility 15 m / 60 m / 4 h / 1 d and the clock; keep 0.5; literature ranks 12-15) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E63BOOTNYS | Kernel base with the calibration-uncertainty gate (5 bootstrap replicas, rank by |mean - 0.5| - 1 sd; literature rank 16) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E64BOOT | E1t with the calibration-uncertainty gate (5 bootstrap replicas, rank by |mean - 0.5| - 1 sd; literature rank 16) (`cpcv_deriv_x.py`) | 15m | pending | — | — |

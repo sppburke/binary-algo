@@ -336,7 +336,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > matched excess +0.063 on 15 of 15 paths - SKILL BEYOND DRIFT TIMING (rebuilt trades match the run). Entry-delay stress
 > `deriv_a7delay_USDJPY_15m_result.json`: 15 of 15 paths clear at +0 / +2 / +4 s (p10 0.576 / 0.579 / 0.575) -
 > OPERATIONALLY ROBUST. It was chosen as the best of about ten kernel levers on DEV p10, so its DEV number carries
-> selection inflation; the holdout (Holm across the key's finalists) is the test.
+> selection inflation. Owner decision 6 opened only `e30nystroem` for this key in the two-look sequential holdout;
+> `c2nysabs` stays DEV-certified and unopened.
 > The other pre-registered levers on the kernel do not improve it (paths clear >= 15 and p10 > 0.5587 needed):
 > `e44nysseed3` (3 seeds, the c1 lever; 15, 0.5579), `e45nysaci` (ACI gate, the c3 lever; 15, 0.5515), `c4nysmeta`
 > (meta gate keep 0.5, coverage doubled to 0.06 by design; 15, 0.5582), `c5nysmag` (magnitude gate keep 0.5; 14,
