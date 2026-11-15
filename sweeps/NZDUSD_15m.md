@@ -113,7 +113,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E54CKCOMPACTLOGIT | Literature rank 11 compact sign logistic: the 14 compact features with L2 logistic regression (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e54ckcompactlogit_NZDUSD_15m_result.json` |
 | E55RL | E1t + literature rank 3 round-level block on the REAL 50/100-pip grids (rl_) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e55rl_NZDUSD_15m_result.json` |
 | E56RS | E1t + the same round-level block on half-grid SHIFTED placebo levels (rs_); falsifier: e55rl must beat it (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e56rs_NZDUSD_15m_result.json` |
-| E57REFLECT | E1t with within-pair sign reflection (literature rank 8): mirrored fit rows, label flipped, half weight each - no drift, only sign-symmetric structure (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E57REFLECT | E1t with within-pair sign reflection (literature rank 8): mirrored fit rows, label flipped, half weight each - no drift, only sign-symmetric structure (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e57reflect_NZDUSD_15m_result.json` |
 | E58NYSREFLECT | e30nystroem with within-pair sign reflection (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E59BRIER | E1t features, LightGBM fit on the Brier score (literature rank 4; custom objective, probabilities from the raw score) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |

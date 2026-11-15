@@ -45,14 +45,14 @@ document supplies a high-prior direction lever that the program could test with 
 | 3 | round-level response vs shifted placebo | features | SIGN | medium | `e55rl` (real grid) vs `e56rs` (half-grid shifted placebo): KILLED (real beats placebo on 4 of 14 key-sides; lifts match the placebo's); `e10v02` |
 | 4 | Brier-loss sign training | loss | SIGN | medium | `e59brier` (LightGBM on the Brier score) |
 | 5 | heterogeneous equal-weight pool | ensemble | SIGN | medium | `e41pool` |
-| 6 | shrunk simplex stack | ensemble | SIGN | medium | pending (equal weights = its large-shrinkage limit, `e41pool`) |
-| 7 | recency-weighted training | loss | SIGN | low | pending (walk-forward form belongs to the holdout reading) |
-| 8 | within-pair sign reflection | features | SIGN | low | `e57reflect` (LightGBM), `e58nysreflect` (kernel) |
-| 9 | group-fused lag penalty | loss | SIGN | low | pending |
+| 6 | shrunk simplex stack | ensemble | SIGN | medium | `e60stack` (queued; equal weights = its large-shrinkage limit, `e41pool`) |
+| 7 | recency-weighted training | loss | SIGN | low | `e65recency` (queued; read on the forward walk only, since a CPCV fit pool can postdate its test groups) |
+| 8 | within-pair sign reflection | features | SIGN | low | `e57reflect` (LightGBM): KILLED - no key-side passes the goal path test (best USDCAD UP 9/15 clear, p10 0.505); `e58nysreflect` (kernel, queued) |
+| 9 | group-fused lag penalty | loss | SIGN | low | subsumed by `e29logit`: on the nested trailing returns an L2 penalty on the cumulative-return coefficients is a fused ridge on adjacent block coefficients (weighted by the standardisation scales; lab PROGRESS.md 13:20 UTC note) |
 | 10 | USD-factor residual | features | SIGN | low | covered by `e21kf` (time-varying basket beta and residual) and `e22rm` (eigen-residual) |
 | 11 | compact sign logistic | model | SIGN | low | `e54ckcompactlogit`: KILLED |
-| 12-15 | HAR / multi-decay / filtered-historical / clock-scale size models | gate | SIZE | medium | magnitude gate `e13mag50` (learned on features that include multi-window realized volatility); specific variants pending |
-| 16 | calibration-uncertainty gate | gate | SIGN selection | medium | adaptive-conformal gate `e36aci`; bootstrap-map variant pending |
-| 17-22 | synchronized-block inference, trial registry, step-down FWER, conditional calibration, episode influence, peer audit | validation | — | medium-high | trial registry: the lab registry (every test event); full-search null replay of the selected configuration: `run_nullreplay.sh` (`a5null`); drift placebo and entry-delay audits (`analyze_drift_placebo.py`, `analyze_entry_delay.py`); step-down FWER pending |
+| 12-15 | HAR / multi-decay / filtered-historical / clock-scale size models | gate | SIZE | medium | magnitude gate `e13mag50` (learned on features that include multi-window realized volatility); HAR size gate `e62har` (queued) |
+| 16 | calibration-uncertainty gate | gate | SIGN selection | medium | adaptive-conformal gate `e36aci`; bootstrap-map variants `e63bootnys` / `e64boot` (queued) |
+| 17-22 | synchronized-block inference, trial registry, step-down FWER, conditional calibration, episode influence, peer audit | validation | — | medium-high | trial registry: the lab registry (every test event); label-shift null replay of the selected configuration - a pre-registered diagnostic of that one configuration, not a replay of the search: `run_nullreplay.sh` (`a5null`); drift placebo and entry-delay audits (`analyze_drift_placebo.py`, `analyze_entry_delay.py`); step-down FWER: Holm step-down per key across the holdout finalists (`docs/DERIV_SOTA_PROGRAM.md`, Holdout discipline) |
 | 23 | affine-logit calibration map | gate | SIGN probabilities | medium | a monotone map does not change which decisions clear a symmetric confidence quantile; folded into the ACI gate |
-| 24-25 | shared-horizon tree partitions; ordinal signed bins | loss / label | SIGN | low | pending |
+| 24-25 | shared-horizon tree partitions; ordinal signed bins | loss / label | SIGN | low | `e66mh` (30-minute rows with an indicator) and `e61ord4` (4 ordinal bins), queued |
