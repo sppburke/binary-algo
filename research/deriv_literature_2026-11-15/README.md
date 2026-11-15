@@ -43,16 +43,16 @@ document supplies a high-prior direction lever that the program could test with 
 | 1 | fixing-window response | features | SIGN | medium | `e51fx` (block), `r4fixldn` / `r5fixecb` (zero-parameter post-fix reversal rules) |
 | 2 | compact return kernels | features | SIGN | medium | `e52ck` (block), `e53ckcompact` (compact dictionary alone) |
 | 3 | round-level response vs shifted placebo | features | SIGN | medium | `e55rl` (real grid) vs `e56rs` (half-grid shifted placebo); `e10v02` |
-| 4 | Brier-loss sign training | loss | SIGN | medium | pending |
+| 4 | Brier-loss sign training | loss | SIGN | medium | `e59brier` (LightGBM on the Brier score) |
 | 5 | heterogeneous equal-weight pool | ensemble | SIGN | medium | `e41pool` |
 | 6 | shrunk simplex stack | ensemble | SIGN | medium | pending (equal weights = its large-shrinkage limit, `e41pool`) |
 | 7 | recency-weighted training | loss | SIGN | low | pending (walk-forward form belongs to the holdout reading) |
-| 8 | within-pair sign reflection | features | SIGN | low | pending |
+| 8 | within-pair sign reflection | features | SIGN | low | `e57reflect` (LightGBM), `e58nysreflect` (kernel) |
 | 9 | group-fused lag penalty | loss | SIGN | low | pending |
 | 10 | USD-factor residual | features | SIGN | low | covered by `e21kf` (time-varying basket beta and residual) and `e22rm` (eigen-residual) |
 | 11 | compact sign logistic | model | SIGN | low | `e54ckcompactlogit` |
 | 12-15 | HAR / multi-decay / filtered-historical / clock-scale size models | gate | SIZE | medium | magnitude gate `e13mag50` (learned on features that include multi-window realized volatility); specific variants pending |
 | 16 | calibration-uncertainty gate | gate | SIGN selection | medium | adaptive-conformal gate `e36aci`; bootstrap-map variant pending |
-| 17-22 | synchronized-block inference, trial registry, step-down FWER, conditional calibration, episode influence, peer audit | validation | — | medium-high | trial registry: the lab registry (every test event); drift placebo and entry-delay audits (`analyze_drift_placebo.py`, `analyze_entry_delay.py`); step-down FWER over the search pending |
+| 17-22 | synchronized-block inference, trial registry, step-down FWER, conditional calibration, episode influence, peer audit | validation | — | medium-high | trial registry: the lab registry (every test event); full-search null replay of the selected configuration: `run_nullreplay.sh` (`a5null`); drift placebo and entry-delay audits (`analyze_drift_placebo.py`, `analyze_entry_delay.py`); step-down FWER pending |
 | 23 | affine-logit calibration map | gate | SIGN probabilities | medium | a monotone map does not change which decisions clear a symmetric confidence quantile; folded into the ACI gate |
 | 24-25 | shared-horizon tree partitions; ordinal signed bins | loss / label | SIGN | low | pending |

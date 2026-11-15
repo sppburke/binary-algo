@@ -546,7 +546,7 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): e15nypm 15m UP (cov 0.03: no (1/15, 1 clear); forward 0/0).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e17nyam` 9/13 clear, p10 0.500, excess +0.080; `e14nylate` 9/12 clear, p10 0.434, excess +0.070; `e7fitall` 6/15 clear, p10 0.504, excess +0.050.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e14nylate` 7/15 clear, p10 0.475, excess +0.043; `e6pool` 6/15 clear, p10 0.473, excess +0.027; `e33comp33` 5/15 clear, p10 0.471, excess +0.029.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `r4fixldn` 9/15 clear, p10 0.520, excess +0.038; `r5fixecb` 8/15 clear, p10 0.505, excess +0.039; `e14nylate` 7/15 clear, p10 0.475, excess +0.043.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -605,4 +605,6 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
 | e34online | e34online: all (66), nseed 1 | 15m | 0.03 | .5050 (.4972) | .4652 · .000 · .4809 | 0/0 · — | .4773 · .133 · .5050 | 0/0 · — | .4872 / .5006 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 2 clear) | 0.00 / 0.00 | `deriv_e34online_EURUSD_15m_result.json` |
 | e6pool | e6pool: own (41), nseed 1, pooled +6 pairs | 15m | 0.03 | .5064 (.4906) | .4489 · .267 · .5155 | 1/4 · .5073 | .4727 · .400 · .5278 | 4/4 · .5976 | .4872 / .5006 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 6 clear) | 0.13 / 0.13 | `deriv_e6pool_EURUSD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5073 (.4963) | .5038 · .400 · .5369 | 1/2 · .5658 | .4250 · .133 · .4917 | 2/4 · .5094 | .4872 / .5006 | KILLED / KILLED | no (15/15, 6 clear) / no (15/15, 2 clear) | 0.27 / 0.07 | `deriv_e7fitall_EURUSD_15m_result.json` |
+| r4fixldn | r4fixldn: rule:fx_ldn_prefix_u60 (1), nseed 0 | 15m | 1.0 | .5315 (.5144) | .4705 · .200 · .5060 | 0/0 · — | .5202 · .600 · .5381 | 0/0 · — | .4872 / .5006 | KILLED / KILLED | no (15/15, 3 clear) / no (15/15, 9 clear) | 0.00 / 0.07 | `deriv_r4fixldn_EURUSD_15m_result.json` |
+| r5fixecb | r5fixecb: rule:fx_ecb_prefix_u60 (1), nseed 0 | 15m | 1.0 | .5271 (.5107) | .4950 · .000 · .5098 | 0/0 · — | .5052 · .533 · .5398 | 0/0 · — | .4872 / .5006 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 8 clear) | 0.00 / 0.20 | `deriv_r5fixecb_EURUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

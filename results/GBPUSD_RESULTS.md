@@ -124,8 +124,8 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-07-
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `GBPUSD.m15ny_xpair_seedens.v1` 0.5299 [0.4701, 0.5896] n=268 (NOT SUPPORTED); DOWN best `GBPUSD.m15ny_xpair_seedens8.v1` 0.5751 [0.5107, 0.6352] n=233 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): e16nyeve 15m UP (cov 0.03: no (4/15, 4 clear); forward 0/0).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e14nylate` 8/14 clear, p10 0.468, excess +0.045; `e16nyeve` 4/4 clear, p10 0.567, excess +0.095; `e7fitall` 4/15 clear, p10 0.435, excess +0.009.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e16nyeve` 4/6 clear, p10 0.471, excess +0.075; `e32spec` 3/15 clear, p10 0.457, excess +0.007; `e6pool` 3/15 clear, p10 0.428, excess -0.012.
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e14nylate` 8/14 clear, p10 0.468, excess +0.045; `r5fixecb` 5/15 clear, p10 0.490, excess +0.038; `e16nyeve` 4/4 clear, p10 0.567, excess +0.095.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `r4fixldn` 6/15 clear, p10 0.489, excess +0.029; `e16nyeve` 4/6 clear, p10 0.471, excess +0.075; `e32spec` 3/15 clear, p10 0.457, excess +0.007.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -176,4 +176,6 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-07-
 | e34online | e34online: all (66), nseed 1 | 15m | 0.03 | .5042 (.5010) | .4725 · .000 · .4980 | 0/0 · — | .4688 · .000 · .4898 | 0/0 · — | .4908 / .4988 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 0 clear) | 0.00 / 0.00 | `deriv_e34online_GBPUSD_15m_result.json` |
 | e6pool | e6pool: own (41), nseed 1, pooled +6 pairs | 15m | 0.03 | .4957 (.4822) | .4160 · .267 · .4839 | 1/4 · .5305 | .4279 · .200 · .4864 | 2/4 · .5241 | .4908 / .4988 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 3 clear) | 0.13 / 0.07 | `deriv_e6pool_GBPUSD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .4960 (.4861) | .4349 · .267 · .4999 | 1/2 · .5241 | .3909 · .133 · .4495 | 0/4 · .4039 | .4908 / .4988 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 2 clear) | 0.20 / 0.13 | `deriv_e7fitall_GBPUSD_15m_result.json` |
+| r4fixldn | r4fixldn: rule:fx_ldn_prefix_u60 (1), nseed 0 | 15m | 1.0 | .5224 (.4994) | .4787 · .200 · .5113 | 0/0 · — | .4893 · .400 · .5280 | 0/0 · — | .4908 / .4988 | KILLED / KILLED | no (15/15, 3 clear) / no (15/15, 6 clear) | 0.00 / 0.13 | `deriv_r4fixldn_GBPUSD_15m_result.json` |
+| r5fixecb | r5fixecb: rule:fx_ecb_prefix_u60 (1), nseed 0 | 15m | 1.0 | .5181 (.5013) | .4900 · .333 · .5285 | 0/0 · — | .4866 · .000 · .5041 | 0/0 · — | .4908 / .4988 | KILLED / KILLED | no (15/15, 5 clear) / no (15/15, 0 clear) | 0.13 / 0.00 | `deriv_r5fixecb_GBPUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

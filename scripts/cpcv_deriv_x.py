@@ -115,6 +115,23 @@ class XFitter(cd.Fitter):
             pv.append(m.predict_proba(Xv)[:, 1]); pt.append(m.predict_proba(Xt)[:, 1])
             self.gain += m.booster_.feature_importance(importance_type='gain')
             its.append(int(m.best_iteration_ or 0))
+        if a.model == 'lgbbrier':                   # literature rank 4: LightGBM fit on the Brier score (custom objective)
+            def brier(y, f):
+                p = 1.0 / (1.0 + np.exp(-f))
+                g = 2.0 * (p - y) * p * (1 - p)
+                h = 2.0 * p * (1 - p) * (p * (1 - p) + (p - y) * (1 - 2 * p))
+                return g, np.maximum(h, 1e-6)
+            m = cd.lgb.LGBMClassifier(objective=brier, learning_rate=a.lr, num_leaves=a.num_leaves, min_child_samples=a.min_child,
+                                      subsample=0.8, subsample_freq=1, colsample_bytree=a.colsample, reg_lambda=a.reg_lambda,
+                                      n_estimators=a.n_estimators, n_jobs=a.n_jobs, verbosity=-1, random_state=sd,
+                                      bagging_seed=sd, feature_fraction_seed=sd)
+            kw = {} if self.wfit is None else {'sample_weight': self.wfit}
+            m.fit(Xf, yf, eval_set=[(Xv, yv)], eval_metric='auc',
+                  callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
+            sig = lambda Z: 1.0 / (1.0 + np.exp(-m.booster_.predict(Z, raw_score=True, num_iteration=m.best_iteration_ or None)))
+            pv.append(sig(Xv)); pt.append(sig(Xt))
+            self.gain += m.booster_.feature_importance(importance_type='gain')
+            its.append(int(m.best_iteration_ or 0))
         if a.model == 'ens3':                       # SWEEP_MATRIX A1: + XGBoost + CatBoost (scripts/m15_production.py recipe)
             import xgboost as xgb
             from catboost import CatBoostClassifier
@@ -187,6 +204,17 @@ class XFitter(cd.Fitter):
         if a.weight == 'absret':                    # |return|-weighted training (GMADL-style emphasis on large moves)
             w = np.abs(fwd[fit_pool])
             self.wfit = w / (w.mean() + 1e-18)
+        if a.reflect:
+            # WITHIN-PAIR SIGN REFLECTION (literature rank 8): every fit row gets a mirrored copy - signed features negated,
+            # range positions reflected (1 - x), unsigned features kept - with the label flipped; both halves weigh 0.5,
+            # so the fit sees no drift and only sign-symmetric structure. Validation and test rows are never mirrored.
+            Xr = Xf.copy()
+            Xr[:, self.reflect_neg] *= -1.0
+            Xr[:, self.reflect_rng] = 1.0 - Xr[:, self.reflect_rng]
+            Xf = np.vstack([Xf, Xr])
+            ytr = np.concatenate([ytr, 1 - ytr])
+            w0 = np.ones(len(fit_pool)) if self.wfit is None else self.wfit
+            self.wfit = 0.5 * np.concatenate([w0, w0])
         if a.specialist:
             # SWEEP_MATRIX A8 side specialists (scripts/min1_upspec.py recipe at 15m): in the compression regime
             # (volratio_15_240 <= its fit-pool median) an UP model is fit only on dip setups (ret_15m < 0) and trades only
@@ -323,7 +351,7 @@ def main():
     ap.add_argument('--n-estimators', type=int, default=800)
     ap.add_argument('--colsample', type=float, default=0.5)
     ap.add_argument('--reg-lambda', type=float, default=20.0)
-    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool'),
+    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool', 'lgbbrier'),
                     help='lgb (default, the mirror); ens3 = LightGBM + XGBoost + CatBoost mean (SWEEP_MATRIX A1; XGB/Cat use '
                          '--n-estimators/--lr); logit = L2 logistic regression on fit-pool-standardized features; '
                          'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6); forest = shallow bagged '
@@ -335,6 +363,8 @@ def main():
                     help='SWEEP_MATRIX A2 compression gate: trade only rows with rv_60m <= its fit-pool quantile q (e.g. 0.33)')
     ap.add_argument('--meta-keep', type=float, default=None,
                     help='SWEEP_MATRIX A4 meta-labeler gate: keep the top share (e.g. 0.5) by P(primary side correct)')
+    ap.add_argument('--reflect', action='store_true',
+                    help='literature rank 8: add sign-mirrored copies of the fit rows (v0.1 features only; label flipped)')
     ap.add_argument('--null-shift-weeks', type=int, default=0,
                     help='analysis only: replace every label by the label W weeks later (sign-null replay); never certifies')
     ap.add_argument('--weight', default='none', choices=('none', 'absret'),
@@ -415,7 +445,7 @@ def main():
                                         'val_mode', 'no_early_stop', 'train_label', 'mag_keep', 'include_blackout', 'families',
                                         'model', 'cat_depth', 'logit_c', 'specialist', 'comp_gate', 'weight',
                                         'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime', 'nys_gamma_mult',
-                                        'nys_components', 'null_shift_weeks')}
+                                        'nys_components', 'null_shift_weeks', 'reflect')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
@@ -451,6 +481,18 @@ def main():
         raise SystemExit('--specialist needs the v0.1 columns ret_15m and volratio_15_240')
     if a.comp_gate is not None and 'rv_60m' not in feats:
         raise SystemExit('--comp-gate needs the v0.1 column rv_60m')
+    if a.reflect:
+        import re as _re
+        neg = _re.compile(r'^(ret_\d+m|emadist_\d+m|stretch_\d+m|x_[A-Z]{6}_ret_\d+m|x_usd_weak_15m|bar_body|skew_240m)$')
+        rng_ = _re.compile(r'^rangepos_\d+m$')
+        keep = _re.compile(r'^(rv_\d+m|volratio_\d+_\d+|kurt_240m|bar_range|activity_\d+m|ticks_per_bar_15m|bar_gap_s|hour_sin|'
+                           r'hour_cos|dow|x_[A-Z]{6}_stale_s)$')
+        unmapped = [c for c in feats if not (neg.match(c) or rng_.match(c) or keep.match(c))]
+        if unmapped:
+            raise SystemExit(f'--reflect has no audited reflection map for {unmapped[:6]}')
+        fitter.reflect_neg = np.array([i for i, c in enumerate(feats) if neg.match(c)], dtype=int)
+        fitter.reflect_rng = np.array([i for i, c in enumerate(feats) if rng_.match(c)], dtype=int)
+        res['reflect_map'] = {'negated': [feats[i] for i in fitter.reflect_neg], 'reflected_1_minus_x': [feats[i] for i in fitter.reflect_rng]}
     if a.train_label != 'sign':
         lab = pd.read_parquet(Path(label_dir) / f'{a.pair}.parquet').set_index('bar_start_ts')[f'{a.train_label}_{a.horizon}m']
         fitter.ytrain = lab.reindex(ts - 60).to_numpy(np.float64)      # decision = bar start + 60 s

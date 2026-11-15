@@ -115,4 +115,6 @@ KILL rule:
 | 5 | heterogeneous equal pool | `e41pool` | CPCV KILL rule |
 | 10 | USD-factor residual | covered by `e21kf`, `e22rm` | — |
 | 11 | compact sign logistic | `e54ckcompactlogit` | CPCV KILL rule |
-| 4, 6-9, 12-25 | Brier loss, shrunk stack, recency loss, sign reflection, fused lag penalty, size models, calibration-uncertainty gate, validation upgrades | pending (README dispositions) | per item in `consolidated_backlog.jsonl.gz` |
+| 4 | Brier-loss training | `e59brier` | CPCV KILL rule |
+| 8 | within-pair sign reflection | `e57reflect`, `e58nysreflect` | CPCV KILL rule |
+| 6-7, 9, 12-25 | shrunk stack, recency loss, fused lag penalty, size models, calibration-uncertainty gate, validation upgrades | pending (README dispositions) | per item in `consolidated_backlog.jsonl.gz` |

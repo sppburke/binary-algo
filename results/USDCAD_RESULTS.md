@@ -176,7 +176,7 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): e16nyeve 15m DOWN (cov 0.03: no (2/15, 2 clear); forward 0/0).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e30nystroem` 7/15 clear, p10 0.516, excess +0.036; `e17nyam` 7/9 clear, p10 0.494, excess +0.082; `e7fitall` 7/15 clear, p10 0.459, excess +0.031.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e1t` 7/14 clear, p10 0.446, excess +0.044; `e7fitall` 5/14 clear, p10 0.471, excess +0.035; `e17nyam` 4/8 clear, p10 0.459, excess +0.052.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e1t` 7/14 clear, p10 0.446, excess +0.044; `e34online` 6/15 clear, p10 0.496, excess +0.038; `e7fitall` 5/14 clear, p10 0.471, excess +0.035.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -220,5 +220,8 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 | e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5039 (.4946) | .5158 · .467 · .5374 | 1/3 · .5088 | .4178 · .154 · .4803 | 1/3 · .4951 | .5014 / .4866 | KILLED / KILLED | no (15/15, 7 clear) / no (13/15, 2 clear) | 0.00 / 0.00 | `deriv_e30nystroem_USDCAD_15m_result.json` |
 | e32spec | e32spec: all (66), nseed 1 | 15m | 0.03 | .5055 (.5018) | .4769 · .000 · .4963 | 2/4 · .5015 | .4590 · .200 · .5010 | 1/4 · .5026 | .5014 / .4866 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 3 clear) | 0.00 / 0.00 | `deriv_e32spec_USDCAD_15m_result.json` |
 | e33comp33 | e33comp33: all (66), nseed 1 | 15m | 0.1 | .5103 (.5023) | .5110 · .400 · .5395 | 2/3 · .5438 | .3067 · .000 · .4314 | 0/1 · .3871 | .5014 / .4866 | KILLED / KILLED | no (15/15, 6 clear) / no (12/15, 0 clear) | 0.13 / 0.00 | `deriv_e33comp33_USDCAD_15m_result.json` |
+| e34online | e34online: all (66), nseed 1 | 15m | 0.03 | .5095 (.5025) | .4978 · .000 · .5133 | 0/0 · — | .4963 · .400 · .5249 | 0/0 · — | .5014 / .4866 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 6 clear) | 0.00 / 0.20 | `deriv_e34online_USDCAD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5125 (.5008) | .4594 · .467 · .5321 | 1/2 · .5837 | .4707 · .357 · .5220 | 2/2 · .6111 | .5014 / .4866 | KILLED / KILLED | no (15/15, 7 clear) / no (14/15, 5 clear) | 0.20 / 0.21 | `deriv_e7fitall_USDCAD_15m_result.json` |
+| r4fixldn | r4fixldn: rule:fx_ldn_prefix_u60 (1), nseed 0 | 15m | 1.0 | .4988 (.4780) | .4654 · .000 · .4929 | 0/0 · — | .4343 · .067 · .4846 | 0/0 · — | .5014 / .4866 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 1 clear) | 0.00 / 0.00 | `deriv_r4fixldn_USDCAD_15m_result.json` |
+| r5fixecb | r5fixecb: rule:fx_ecb_prefix_u60 (1), nseed 0 | 15m | 1.0 | .4897 (.4538) | .4536 · .333 · .5144 | 0/0 · — | .4315 · .000 · .4740 | 0/0 · — | .5014 / .4866 | KILLED / KILLED | no (15/15, 5 clear) / no (15/15, 0 clear) | 0.07 / 0.00 | `deriv_r5fixecb_USDCAD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

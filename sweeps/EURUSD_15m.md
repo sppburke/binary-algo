@@ -290,13 +290,16 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 | E38RELEASE | E1t features, SWEEP_MATRIX A3 compression-release x reversion specialists: after a volatility burst (volratio_15_240 >= fit-pool 75% quantile) an UP model fit on dips trades only UP, a DOWN model fit on rallies trades only DOWN (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E40FOREST | E1t features, shallow bagged extra-trees (300 trees, depth 8, min leaf 200; literature: weak-signal tree baseline) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E41POOL | E1t features, equal-weight probability pool of LightGBM, L2 logistic, extra-trees and RBF-kernel models (literature: heterogeneous equal-weight pooling) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| R4FIXLDN | Zero-parameter rule (literature rank 1, pre-registered post-fix reversal): in the hour after the London 16:00 fix trade against the pair's move over the hour before the fix (cpcv_rule; every signalled decision) (`cpcv_rule.py`) | 15m | pending | — | — |
-| R5FIXECB | Zero-parameter rule: post-fix reversal after the ECB 14:15 Frankfurt reference rate (cpcv_rule) (`cpcv_rule.py`) | 15m | pending | — | — |
-| E51FX | E1t + literature rank 1 fixing-window block (fx_: London 16:00 and ECB 14:15 relative time, triangular pre/post bases and their products with USD-oriented 15/60-min returns, pre-fix move) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| R4FIXLDN | Zero-parameter rule (literature rank 1, pre-registered post-fix reversal): in the hour after the London 16:00 fix trade against the pair's move over the hour before the fix (cpcv_rule; every signalled decision) (`cpcv_rule.py`) | 15m | killed | KILLED / KILLED (cov 1.0) | `deriv_r4fixldn_EURUSD_15m_result.json` |
+| R5FIXECB | Zero-parameter rule: post-fix reversal after the ECB 14:15 Frankfurt reference rate (cpcv_rule) (`cpcv_rule.py`) | 15m | killed | KILLED / KILLED (cov 1.0) | `deriv_r5fixecb_EURUSD_15m_result.json` |
+| E51FX | E1t + literature rank 1 fixing-window block (fx_: London 16:00 and ECB 14:15 relative time, triangular pre/post bases and their products with USD-oriented 15/60-min returns, pre-fix move) (`cpcv_deriv_x.py`) | 15m | running | — | — |
 | E52CK | E1t + literature rank 2 compact return-kernel block (ck_: scaled cumulative and exponentially weighted returns, fast-minus-slow) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E53CKCOMPACT | Literature rank 2 compact dictionary alone (14 features: ck_ kernels, scale, clock) with LightGBM (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E54CKCOMPACTLOGIT | Literature rank 11 compact sign logistic: the 14 compact features with L2 logistic regression (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E55RL | E1t + literature rank 3 round-level block on the REAL 50/100-pip grids (rl_) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E56RS | E1t + the same round-level block on half-grid SHIFTED placebo levels (rs_); falsifier: e55rl must beat it (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E57REFLECT | E1t with within-pair sign reflection (literature rank 8): mirrored fit rows, label flipped, half weight each - no drift, only sign-symmetric structure (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E58NYSREFLECT | e30nystroem with within-pair sign reflection (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E59BRIER | E1t features, LightGBM fit on the Brier score (literature rank 4; custom objective, probabilities from the raw score) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->
