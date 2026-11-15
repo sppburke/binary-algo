@@ -62,7 +62,7 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_AUDUSD_15m_result.json` |
 | R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e7fitall_AUDUSD_15m_result.json` |
 | E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | pending | — | — |
@@ -71,4 +71,25 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E21KF | E1t + SWEEP_MATRIX C2 Kalman block (kf_: local-linear-trend slope/innovation, time-varying basket beta and residual) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E22RM | E1t + SWEEP_MATRIX C3 random-matrix eigen-residual block (rm_: residual after Marchenko-Pastur modes, 15-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E24CX | E1t + SWEEP_MATRIX E3 complexity/regime block (cx_: permutation entropy, autocorrelation, variance ratio, two-state volatility-regime filter) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E25TK | E1t + SWEEP_MATRIX E4 tick-clock (information-bar) block (tk_: returns over the last 100/500/2,000 mid changes) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E26PA | E1t + SWEEP_MATRIX F2 price-action block (pa_: RSI, Bollinger %b, NR7, NY-day open/range/previous-day levels) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E27FAMALL | E1t + all eight SWEEP_MATRIX family blocks together (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E28RESID | E1t fit on the SWEEP_MATRIX F4 residualized target (own 15m return minus beta x USD-basket return); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E29LOGIT | E1t features, L2 logistic regression (C = 0.05, fit-pool median imputation, z-scored, clipped at 5): low-capacity linear model for the ~15-month data ceiling (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E30NYSTROEM | E1t features, SWEEP_MATRIX B6 kernel model: RBF Nystroem features (500) + logistic SGD (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E31ENS3 | E1t features, SWEEP_MATRIX A1 three-GBM ensemble (LightGBM + XGBoost + CatBoost mean; 400 trees at lr 0.04, CatBoost depth 6; capped fast-KILL screen without the forward walk) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E32SPEC | E1t features, SWEEP_MATRIX A8 side specialists (scripts/min1_upspec.py recipe at 15m): in the compression regime an UP model fit only on dip setups (ret_15m < 0) trades only UP, a DOWN model fit only on rally setups trades only DOWN (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E33COMP33 | E1t + SWEEP_MATRIX A2 compression gate: trade only when rv_60m <= its fit-pool 33% quantile; operating coverage 0.10 of gated validation rows (pre-set so the overall trade share stays near the ungated 0.03) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E34ONLINE | E1t features, SWEEP_MATRIX C5 online learner: river Adaptive Random Forest (10 trees, ADWIN) learned prequentially (each decision only after it settles), causal rolling threshold, scored on the CPCV group pairs (forward-only by construction; no per-fold refit) (`cpcv_deriv_online.py`) | 15m | pending | — | — |
+| E35ABSRET | E1t with |return|-weighted training (Tier-I loss lever: LightGBM sample weight |settled return| / mean) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E36ACI | E1t with an adaptive-conformal confidence gate (Tier-I: threshold += 0.002 x (loss - 0.44) as each taken trade settles, causal, per test path) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E37META | E1t + SWEEP_MATRIX A4 meta-labeler gate: out-of-fold primary (two purged chronological halves of the fit pool), meta model of P(primary side correct), keep the top 50%; operating coverage 0.06 of gated validation rows (pre-set so the overall trade share stays near 0.03) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E38RELEASE | E1t features, SWEEP_MATRIX A3 compression-release x reversion specialists: after a volatility burst (volratio_15_240 >= fit-pool 75% quantile) an UP model fit on dips trades only UP, a DOWN model fit on rallies trades only DOWN (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->

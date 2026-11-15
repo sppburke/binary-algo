@@ -41,6 +41,9 @@ disk and they are not evaluated.
 |---|---|
 | `scripts/deriv_dataset.py` | Deriv-native features v0.1: own-pair wall-clock returns, volatility, range position, EMA distance, activity (share of seconds with a price change), clock; other pairs' returns joined as-of (backward only) with a staleness column; labels at 15m and 30m |
 | `scripts/deriv_features_b239.py` | the incumbent books' schemas rebuilt from Deriv ticks with the repository's own recipe code (`pipeline.build_features`, `live_features.build_cross_pair_features`); volume = ticks per minute (the live path's proxy); EURUSD order-flow columns cannot be built from mid ticks |
+| `scripts/deriv_features_family.py` | 52 causal SWEEP_MATRIX family features in 8 prefixed blocks (tick-rule flow, Lévy areas, Kalman, RMT residual, fractional differencing, complexity/regime, tick-clock returns, price action); merged onto v0.1 as `dataset_dev_v0.3` |
+| `scripts/deriv_features_ccm.py` | the C4 convergent cross-mapping block (`cm_`); merged onto v0.3 as `dataset_dev_v0.4` |
+| `scripts/deriv_labels_resid.py` | the F4 residualized TRAINING label (own settled return minus beta × USD-basket return; training target only) |
 
 ## Certification harness
 
@@ -48,8 +51,11 @@ Harness builds: `cpcv_deriv/0.2` (SHA-256 prefix `6705cf9f49a0dcd8`) differs fro
 a2f5ed8) only by a defensive copy of the feature matrix and the version string; results are unaffected. `0.3` added the
 venue tradeability filter; `0.4` the review fixes below (each result JSON records its harness version and SHA-256).
 Variant harnesses: `cpcv_deriv_x.py` (fit session, local NY windows `nylate` 13–22 / `nypm` 13–17 / `nyeve` 17–22 /
-`nyam` 8–13, time-block validation, triple-barrier training label, magnitude gate, model knobs; defaults reproduce the
-base mirror) and `cpcv_deriv_pool.py` (pooled training for the EURUSD/GBPUSD/USDCHF targets).
+`nyam` 8–13, time-block validation, triple-barrier training label, magnitude gate, model knobs; 0.4 adds SWEEP_MATRIX
+family blocks `--families`, the residualized training label, model classes `--model ens3|logit|nystroem`, side
+specialists, a compression gate, |return| weights, an adaptive-conformal gate and `--dump-preds`; defaults reproduce the
+base mirror), `cpcv_deriv_pool.py` (pooled training for the EURUSD/GBPUSD/USDCHF targets) and `cpcv_deriv_online.py`
+(prequential online learner scored on the same groups and paths; forward-only by construction).
 
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
@@ -130,6 +136,62 @@ deployed. Then the full per-fold-refit CPCV at the operating gate certifies it.
 Lab registry `/mnt/data/deriv-sota-lab/registry/tests.jsonl` (append-only: start, run, finish, clean for every test;
 snapshot committed as `results/json/deriv_lab_registry.jsonl`). Result JSONs: `results/json/deriv_<exp>_<PAIR>_<H>m_result.json`
 and `results/json/deriv_r1_frozen_books_<window>_result.json`. Per-key tables are rendered from those JSONs.
+
+## SWEEP_MATRIX family coverage on the Deriv feed (2026-11-15)
+
+Every SWEEP_MATRIX family is mapped once to a Deriv-feed experiment or to the reason it is not run. Family feature
+blocks are built causally by `scripts/deriv_features_family.py` (truncation test: rebuilding on a longer window changes
+no earlier value of any of the 52 features) and merged onto v0.1 as `dataset_dev_v0.3`; each block is evaluated as
+"E1t + block" with `cpcv_deriv_x.py --families`. Model-class families use `cpcv_deriv_x.py --model / --specialist /
+--comp-gate`; C5 uses the prequential `cpcv_deriv_online.py`. Results per key: the DERIV-FEED tables of
+`results/<PAIR>_RESULTS.md`.
+
+| Family | Deriv-feed experiment or disposition |
+|---|---|
+| A1 three-GBM ensemble | `e31ens3` (LightGBM + XGBoost + CatBoost; capped fast-KILL screen) |
+| A2 compression × session × coverage gate | `e33comp33` (rv_60m <= fit-pool 33% quantile); sessions `e1t`, `e14`–`e17`; every run reports coverages 0.02/0.03/0.05 |
+| A3 compression-release × reversion specialist | `e38release` (the A8 specialists trained and traded only after a volatility burst, volratio_15_240 >= fit-pool 75% quantile) |
+| A4 meta-labeler | `e37meta` (out-of-fold primary from two purged chronological halves of each fit pool; meta gate keeps the top 50%) |
+| A5 cross-horizon stack | the family's mechanism (a longer-trained parent book) needs the Dukascopy-trained frozen parents, excluded by the Deriv-only constraint (open owner decision 2); a Deriv-trained parent sees the child's rows and features; the 30m horizon itself is `e5h30` |
+| A6 cross-pair residual / lead-lag | v0.1 cross-pair as-of block in every run; incumbent cross-pair blocks `e3union`; RMT residual `e22rm`; Lévy area vs the USD basket `e20sg` |
+| A7 walk-forward retrain | forward walk in every CPCV run; holdout PRIMARY reading is a monthly walk-forward refit |
+| A8 side filter vs specialist | filter: every run's UP/DOWN split; specialist `e32spec` |
+| A9 DST-correct sessions | `e1t` (08:00–16:35), `e14nylate`, `e15nypm`, `e16nyeve`, `e17nyam` |
+| B1 tick microstructure ensemble (seconds horizons) | out of scope: horizons below 15 minutes |
+| B2 order-book imbalance, B3 CKS event-OFI, B4 cross-impact OFI | not computable: Deriv's feed is a 1-second mid (no book, sizes or trades) |
+| B5 per-side signed flow | `e19tf` (tick-rule imbalance of mid changes) |
+| B6 kernel SVM | `e30nystroem` |
+| B7 path signature | `e20sg` |
+| C1 HMM regime | `e24cx` (two-state volatility-regime forward filter, sign-invariant) |
+| C2 Kalman | `e21kf` |
+| C3 RMT eigen-residual | `e22rm` |
+| C4 CCM coupling gate | `e39cm` (`scripts/deriv_features_ccm.py`: rolling CCM skill of each other pair onto the target from a 240-bar shadow manifold, every 15 bars, plus the coupled drivers' 15-minute push; truncation-tested; merged as `dataset_dev_v0.4`) |
+| C5 online drift learner | `e34online` (river ARF + ADWIN, prequential) |
+| C6 SSA / fractional differencing / particle filter | `e23fd` (fractional differencing); ESN closed |
+| D1–D3, D6–D9 (CNN/GRU/NCDE/TabNet, TSFM/Kronos, bar-image CNN) | closed (AGENTS.md neural/spectral, image, GRU/ESN, TSFM nulls) |
+| D4–D5 deep RL (DQN, IQN) | closed with the neural family (AGENTS.md); reopen only by owner decision |
+| E1 magnitude classifier | a gate only (goal scope): `e13mag50` |
+| E2 direction conditioned on magnitude | `e13mag50` |
+| E3 complexity gates | `e24cx` |
+| E4 information bars | `e25tk` (tick-clock returns); volume/dollar bars not computable (no volume) |
+| F1 macro-release impulse | excluded: non-Deriv input (`macro_calendar.parquet`; open owner decision 4) |
+| F2 structural / price action | `e26pa`; round-number and same-slot seasonality in `e10v02` |
+| F3 external cross-asset lead-lag | excluded: needs data acquisition (no ES/NQ on Deriv) |
+| F4 residualized target | `e28resid` |
+| Low-capacity models (data-ceiling response) | `e18lowcap` (LightGBM), `e29logit` (L2 logistic) |
+
+Tier-I improvers named by the goal: seed ensemble `e4seed3`; |return|-weighted loss `e35absret`; adaptive-conformal gate
+`e36aci` (causal: the threshold moves only when a taken trade has settled; with step 0 it reproduces the plain scorer
+exactly); pooling where not closed `e6pool`; capped tuning `e18lowcap`; calibration does not change which decisions clear
+a symmetric confidence quantile, so it is folded into the ACI gate; the DL+GBM stack is closed with the neural family.
+Harness regression for every option added to `cpcv_deriv_x` 0.4: with defaults, CPCV path 1 of `e1t` USDJPY is
+reproduced exactly (trade counts and unrounded win rates at every coverage and side).
+
+**Drift-neutral diagnostic.** Every CPCV result stores, per side, the excess of the path win rate over the always-side
+baseline on the same path (`excess_vs_always`). `analyze_drift_placebo.py` (run by `run_placebo.sh`) re-runs a model with
+`--dump-preds` and compares its trades with always-side baselines matched on New York hour and on hour × rv_60m tercile
+within each path; its reading (skill beyond timing the drift iff the hour × volatility excess is positive on >= 12
+counted paths with mean >= 0.02) is written into the output before the predictions are opened.
 
 ## Closures respected
 
