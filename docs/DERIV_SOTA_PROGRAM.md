@@ -238,7 +238,10 @@ describe different true hours than the live Deriv feed. The closures are kept, n
    amendment is mirage diagnostics (tie rate, forward-fill share) plus a drift-neutral requirement (the side beats its
    always-side baseline matched on New York hour × volatility on >= 80% of counted paths: `analyze_drift_placebo.py`).
    This decision is material: the USDJPY 15m UP side of `e1t` meets every other DEV condition of the goal rule (see the
-   USDJPY ablation and placebo note) and is INVALID only by the band.
+   USDJPY ablation and placebo note) and is INVALID only by the band. The same holds for the kernel model
+   `e30nystroem` (15/15 paths, p10 0.5587), which is also SIGNIFICANT against the pre-registered sign-null replay
+   `a5null` (labels shifted 3..48 weeks, keeping drift and calendar structure: real p10 rank 17 of 17, no null meets
+   the goal path test; `results/json/deriv_a5null_USDJPY_15m_result.json`). The sealed holdout remains the binding test.
 2. **Frozen books as an operational option.** The only DEV-supported edges so far are frozen Dukascopy-trained USDJPY
    books scored on their training clock in true NY 13:00–16:35 / 18:00–22:00. They are benchmarks under the Deriv-only
    constraint, not deliverables, unless the owner decides otherwise.

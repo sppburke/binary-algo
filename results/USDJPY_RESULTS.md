@@ -316,6 +316,14 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > decision 1 (docs/DERIV_SOTA_PROGRAM.md) decides whether it can be certified; the sealed holdout decides whether it
 > holds out of sample.
 
+> **`e30nystroem` UP vs the sign-null replay (2026-11-15, hand-written; `deriv_a5null_USDJPY_15m_result.json`).** The
+> same configuration re-run 16 times with every label replaced by the label W weeks later (W = 3, 6, .., 48, circular;
+> the moved up-rate stays 0.522-0.532 and the time-of-day / day-of-week structure is kept, the feature-label link is
+> broken). Null p10 median 0.491, 95% quantile 0.529, maximum 0.530 (W = 30); the most paths any null cleared is 12/15
+> (W = 27, p10 0.529); no null meets the goal path test; null moved AUC 0.497-0.521 vs 0.526 real. Real p10 0.5587
+> ranks 17 of 17. Pre-registered reading (in the JSON before any null ran): SIGNIFICANT. Together with the drift
+> placebo, the edge needs the feature-label link; drift and calendar structure alone do not reproduce it.
+
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
 

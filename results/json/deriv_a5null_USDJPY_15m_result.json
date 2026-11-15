@@ -1,0 +1,173 @@
+{
+ "analysis": "run_nullreplay/0.1",
+ "registered_utc": "2026-11-15T14:55:40Z",
+ "real_result": "/home/sean/git/binary-algo/results/json/deriv_e30nystroem_USDJPY_15m_result.json",
+ "side": "UP",
+ "harness_args": "--session ny --model nystroem --covs 0.03,0.02,0.05 --nseed 1",
+ "null_shifts_weeks": [
+  3,
+  6,
+  9,
+  12,
+  15,
+  18,
+  21,
+  24,
+  27,
+  30,
+  33,
+  36,
+  39,
+  42,
+  45,
+  48
+ ],
+ "pre_registered_reading": "SIGNIFICANT iff the real p10 at the operating coverage exceeds every null p10 except at most one (rank >= 16 of 17) AND at most 1 of the 16 nulls meets the goal-rule path test (>= 12 of 15 counted paths clearing 0.541 with p10 >= 0.541)",
+ "real": {
+  "p10": 0.5586854460093897,
+  "paths_counted": 15,
+  "paths_clear": 15,
+  "goal_path_test": true,
+  "auc_mean": 0.5260468239836598,
+  "up_rate": 0.5315088224702916
+ },
+ "nulls": {
+  "12": {
+   "p10": 0.46673268927604183,
+   "paths_counted": 15,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.49695985090682143,
+   "up_rate": 0.5288878576400664
+  },
+  "15": {
+   "p10": 0.49094782098886064,
+   "paths_counted": 15,
+   "paths_clear": 5,
+   "goal_path_test": false,
+   "auc_mean": 0.4965532893856823,
+   "up_rate": 0.5259298206774408
+  },
+  "18": {
+   "p10": 0.44240645634629494,
+   "paths_counted": 15,
+   "paths_clear": 1,
+   "goal_path_test": false,
+   "auc_mean": 0.5030234841088537,
+   "up_rate": 0.5251716137902063
+  },
+  "21": {
+   "p10": 0.4308605919003115,
+   "paths_counted": 15,
+   "paths_clear": 2,
+   "goal_path_test": false,
+   "auc_mean": 0.49779130111766606,
+   "up_rate": 0.5243814151832201
+  },
+  "24": {
+   "p10": 0.46951793062904174,
+   "paths_counted": 15,
+   "paths_clear": 3,
+   "goal_path_test": false,
+   "auc_mean": 0.5011289302114715,
+   "up_rate": 0.5217359989299201
+  },
+  "27": {
+   "p10": 0.5289971808296415,
+   "paths_counted": 15,
+   "paths_clear": 12,
+   "goal_path_test": false,
+   "auc_mean": 0.5062252925100846,
+   "up_rate": 0.5256652874448043
+  },
+  "3": {
+   "p10": 0.5045222726910511,
+   "paths_counted": 15,
+   "paths_clear": 9,
+   "goal_path_test": false,
+   "auc_mean": 0.516880830216202,
+   "up_rate": 0.5309632375053848
+  },
+  "30": {
+   "p10": 0.530018192844148,
+   "paths_counted": 15,
+   "paths_clear": 9,
+   "goal_path_test": false,
+   "auc_mean": 0.5115049944401754,
+   "up_rate": 0.5245201135035887
+  },
+  "33": {
+   "p10": 0.5019300991131976,
+   "paths_counted": 15,
+   "paths_clear": 8,
+   "goal_path_test": false,
+   "auc_mean": 0.520625825707791,
+   "up_rate": 0.5257182177877172
+  },
+  "36": {
+   "p10": 0.4916624040920716,
+   "paths_counted": 15,
+   "paths_clear": 7,
+   "goal_path_test": false,
+   "auc_mean": 0.5122451250152346,
+   "up_rate": 0.5288265855819188
+  },
+  "39": {
+   "p10": 0.477807486631016,
+   "paths_counted": 15,
+   "paths_clear": 7,
+   "goal_path_test": false,
+   "auc_mean": 0.5100958913754278,
+   "up_rate": 0.5289324471480605
+  },
+  "42": {
+   "p10": 0.4716116504854369,
+   "paths_counted": 15,
+   "paths_clear": 6,
+   "goal_path_test": false,
+   "auc_mean": 0.5100788907669273,
+   "up_rate": 0.5289374311637909
+  },
+  "45": {
+   "p10": 0.4542564655172414,
+   "paths_counted": 14,
+   "paths_clear": 4,
+   "goal_path_test": false,
+   "auc_mean": 0.5118953201071467,
+   "up_rate": 0.5246709620573821
+  },
+  "48": {
+   "p10": 0.4925090909090909,
+   "paths_counted": 15,
+   "paths_clear": 3,
+   "goal_path_test": false,
+   "auc_mean": 0.51368837461003,
+   "up_rate": 0.526193686835733
+  },
+  "6": {
+   "p10": 0.4913294797687861,
+   "paths_counted": 15,
+   "paths_clear": 4,
+   "goal_path_test": false,
+   "auc_mean": 0.49714245163594506,
+   "up_rate": 0.5318958223383847
+  },
+  "9": {
+   "p10": 0.49233418367346937,
+   "paths_counted": 15,
+   "paths_clear": 7,
+   "goal_path_test": false,
+   "auc_mean": 0.5060228368122147,
+   "up_rate": 0.5285195747990666
+  }
+ },
+ "n_nulls": 16,
+ "real_p10_rank_of": "17 of 17",
+ "nulls_meeting_goal_path_test": 0,
+ "null_p10_quantiles": {
+  "50": 0.49113865037882337,
+  "90": 0.5167597267603463,
+  "95": 0.5292524338332681
+ },
+ "verdict": "SIGNIFICANT vs sign-null replay"
+}
