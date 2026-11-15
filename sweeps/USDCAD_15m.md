@@ -53,3 +53,19 @@ SCOPE: USDCAD · 15m — sweep LEDGER (status of record). Backlog/executable que
 - 2026-06-10 — **All-session refit-CPCV DONE → NO CERT (any cov).** AUC mean .516 (thin; < AUDUSD all-session .5213). Best p10: UP .5325@cov3 (frac .53), COMB .5329@cov1 (frac .8), DOWN .524@cov1 — all sub-BE. **v3 model:** all-session USDCAD 15m direction is essentially EFFICIENT on-disk (sub-BE refit floor) → the edge (if any) is SESSION-concentrated. This is the **USDJPY pattern** (all-session weak, needs NY), NOT the AUDUSD pattern (all-session DOWN certified @cov1). Note on the per-era REFIT floor UP≥DOWN (UP p10 .527-.533 vs DOWN .519-.524) — REVERSES the frozen-book coverage curve (where DOWN led); the frozen DOWN-strength was partly a 2024-regime artifact. NEXT: NY refit-CPCV (running; USDCAD=most-NA pair → strongest concentration prior). If NY null too → LDN (oil/early-NY overlap), then asia (low prior).
 - 2026-06-10 — **A1 base DONE → SURVIVED.** All-session single-pair LGBM: VAL moved-AUC .5234, per-year AUC .523/.522/.516 (refit-dependent decay). cov2% COMB .650/.552/.545; CI-lo clears BE in 2024 only (2025/26 binding hover at/just-below BE frozen — refit-dependent, same as EURUSD/USDJPY/AUDUSD). **v0 side-asymmetry prediction (UP) REVERSED by data:** DOWN is the stronger side at tight cov in all 3 years (cov1 DOWN .750/.608/.654 vs UP .644/.550/.545). **Mechanistic update:** USDCAD's forecastable side = CAD-strength (oil-up/USDCAD-down), not USD-strength (USD side shared/diluted across USD-majors; CAD-strength oil-idiosyncratic). NEXT: all-session refit-CPCV (recovers per-era floor; running) → NY-session restriction (strongest prior, most-NA pair) → seed-ens. DOWN the more robust side; confirm forward (trap#9).
 - 2026-06-10 — sweep OPEN. Confirmed USDCAD bar features 2012–2026 (15 parquets, no tick data); harness.feature_cols=239, sessions.py works (NY≈37% rows), moved up-rate tripwire clean (.506/.501/.501 for 2018/24/26, flat_frac <1% → no fake-flat mirage). Bootstrapped results/USDCAD_RESULTS.md + ledger + backlog. Forked usdcad_15m_base.py (PAIR=USDCAD). Launched A1 base. Mechanistic v0 above.
+
+## DERIV-FEED PROGRAM LEDGER (Deriv-only data; opened 2026-11-15)
+
+> Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/USDCAD_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
+
+<!-- DERIV-FEED-LEDGER:BEGIN -->
+| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+|---|---|---|---|---|---|
+| R1 | Frozen incumbent books scored as deployed (NY DST session + strategy gate) on Deriv-rebuilt features | 15m/30m | done | USDCAD.m15ny_seedens.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1_frozen_books_dev_result.json` |
+| E1 | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e1_USDCAD_15m_result.json` |
+| E2NOCLOCK | E1 without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E7FITALL | E1 fit on all hours, evaluated on the NY session (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E3UNION | E1 features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E4SEED3 | E1 with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E5H30 | E1 at the 30-minute horizon (`cpcv_deriv.py`) | 30m | pending | — | — |
+<!-- DERIV-FEED-LEDGER:END -->

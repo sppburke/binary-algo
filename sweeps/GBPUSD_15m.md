@@ -140,3 +140,20 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 - The outcome-blind screen authenticated 633,552 quote rows, 52,796 complete 12-lane quote blocks, and 15,072 opaque tick shards. The sealed source identity is in `results/json/gbpusd_m15_down_quote_skew_source_snapshot_v1.json`.
 - This is a source-capability failure, **not a quote-skew null**. Tick prices were not interpreted; outcomes, settlement, inference, fills, and realized P&L were not computed.
 - **Sweep remains CLOSED.** The incumbent book is unchanged, no candidate or activation exists, and this result opens no automatic follow-up.
+
+## DERIV-FEED PROGRAM LEDGER (Deriv-only data; opened 2026-11-15)
+
+> Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/GBPUSD_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
+
+<!-- DERIV-FEED-LEDGER:BEGIN -->
+| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+|---|---|---|---|---|---|
+| R1 | Frozen incumbent books scored as deployed (NY DST session + strategy gate) on Deriv-rebuilt features | 15m/30m | done | GBPUSD.m15ny_xpair_seedens.v1: NOT SUPPORTED / NOT SUPPORTED; GBPUSD.m15ny_xpair_seedens8.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1_frozen_books_dev_result.json` |
+| E1 | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e1_GBPUSD_15m_result.json` |
+| E2NOCLOCK | E1 without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E6POOL | E1 own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | pending | — | — |
+| E7FITALL | E1 fit on all hours, evaluated on the NY session (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E3UNION | E1 features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E4SEED3 | E1 with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E5H30 | E1 at the 30-minute horizon (`cpcv_deriv.py`) | 30m | pending | — | — |
+<!-- DERIV-FEED-LEDGER:END -->

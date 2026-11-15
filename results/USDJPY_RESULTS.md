@@ -12,6 +12,8 @@
 
 ## MASTER KEY TABLE — one row per (USDJPY, timeframe, side)
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "USDJPY — DERIV-FEED PROGRAM" at the end of this file.
+
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
 | USDJPY · **1m** · UP | **~0.534–0.545** ⚠ **sub-breakeven, honestly EXHAUSTED on-disk** | best-available: s6/l255 LGBM up-preds (`usdjpy_1m_base.py 6 255`) | Faint MONOTONE-in-confidence dip-buy UP edge: cov2% .547/.534/.538, cov1% .538/.540/.545; OOS-persistent but **worst-year CI-lo never clears 0.541**. EXHAUSTED under full (a)-(e): more-data/cross-pair/regime-gate/signed-feats(N1/N2)/OF-residual(N3)/seed-ens/gotobi(N5) all sub-BE; discovery 2 rounds (R2 DRY). The ~1pp gap is informational (efficiency), not model/coverage. NOT certified, NOT deployable. | **MEASURED, sub-breakeven, EXHAUSTED on-disk** |
@@ -253,3 +255,29 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 - Every number traces to an on-disk result JSON (Tier-1). Flag n<50 + VAL-acc-max as non-robust.
 - Unseat a side-leader only if the challenger beats the incumbent's binding (worst held-out) year with CI95-lower clearing it under the discipline, ideally refit-CPCV-certified.
 - Update the master table + leaderboard + `sweeps/USDJPY_1m.md` ledger + `sweeps/USDJPY_1m_backlog.md` together; commit often.
+
+## USDJPY — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 3 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `USDJPY.m15ny_seedens.v1` UP 0.5253 [0.4822, 0.5666] n=533.
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5323 (min 0.5195); UP p10 0.5646, 100% of paths clear, forward walk 2/3 counted paths clear (mean 0.5353); DOWN p10 0.5317, 80% of paths clear, forward walk 2/3 counted paths clear (mean 0.6105); verdict UP CERTIFIED, DOWN KILLED. DEV-CPCV certification is necessary, not sufficient: the forward walk is weaker than the CPCV paths (trap #9 risk from slow and clock features), so the side stays a candidate until the no-clock ablation and the sealed holdout (2026-08-01..2026-11-14) decide.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/USDJPY_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `USDJPY.m15ny.v1` | .5208 | .0478 | 725 · .5228 [.4855, .5600] | 231 · .4805 [.4156, .5455] | 952 · .5137 | NOT SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_seedens.v1` | .5201 | .0358 | 533 · .5253 [.4822, .5666] | 211 · .5071 [.4408, .5735] | 741 · .5209 | NOT SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_tbft_seedens.v1` | .5217 | .0324 | 517 · .5203 [.4778, .5648] | 150 · .5133 [.4333, .5933] | 665 · .5188 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5323 (.5195) | .5646 · 1.0 · .5935 | 2/3 · .5353 | .5317 · .800 · .5935 | 2/3 · .6105 | .5121 / .4771 | CERTIFIED / KILLED | `deriv_e1_USDJPY_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->

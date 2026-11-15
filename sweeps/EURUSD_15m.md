@@ -237,3 +237,20 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 - Procurement recommendation is **do not purchase on this evidence**. A distinct minute-level ZT-versus-FGBS underreaction hypothesis remains unknown and requires a separately approved plan if ever overridden.
 - Terminal `fad191e8c764c4004a4e4d08e1c44a8bae4fb6b809d68dcefb2e53422820947c` is inactive. V1 blocked before attempt; v2 failed after attempt but before native output; immutable v3 changed runner-boundary plumbing only and completed the reviewed measurement.
 - **SWEEP REMAINS CLOSED.** No incumbent metric, certification, floor, book, leader, registry/index/runtime mapping, or activation state changed.
+
+## DERIV-FEED PROGRAM LEDGER (Deriv-only data; opened 2026-11-15)
+
+> Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/EURUSD_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
+
+<!-- DERIV-FEED-LEDGER:BEGIN -->
+| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+|---|---|---|---|---|---|
+| R1 | Frozen incumbent books scored as deployed (NY DST session + strategy gate) on Deriv-rebuilt features | 15m/30m | done | EURUSD.m15.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30xp.v1: SCHEMA_UNAVAILABLE; EURUSD.m15xp.v1: SCHEMA_UNAVAILABLE | `deriv_r1_frozen_books_dev_result.json` |
+| E1 | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e1_EURUSD_15m_result.json` |
+| E2NOCLOCK | E1 without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E6POOL | E1 own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | pending | — | — |
+| E7FITALL | E1 fit on all hours, evaluated on the NY session (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E3UNION | E1 features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E4SEED3 | E1 with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E5H30 | E1 at the 30-minute horizon (`cpcv_deriv.py`) | 30m | pending | — | — |
+<!-- DERIV-FEED-LEDGER:END -->

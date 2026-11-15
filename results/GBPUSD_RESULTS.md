@@ -14,6 +14,8 @@
 
 ## MASTER KEY TABLE — one row per (GBPUSD, timeframe, side)
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "GBPUSD — DERIV-FEED PROGRAM" at the end of this file.
+
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
 | GBPUSD · **15m** · UP | **xpair-NY K=8 refit-CPCV p10 .6251 @cov2 / .6552 @cov1 (15/15 every cov); means .6535 / .6874** ✅ CERTIFIED, REFIT-DEPENDENT | `GBPUSD.m15ny_xpair_seedens8.v1` `9ee9a4634a6b73e0` (340 feats, K=8 seed-ens, NY session, cov-gate .01); `gbpusd_15m_cpcv_xpair_ny_seedens8_result.json`; frozen `books/GBPUSD.m15ny_xpair_seedens8.v1/` | **K=8 unseats K=3** (+.0082 p10 @cov1; K=8 LIFTS unlike 3/3 own-pair siblings — xpair 340-feat richer diversity). Borderline-65%+ floor at cov1. EUR-bloc discriminator resolved (pooling wins at GBPUSD, same as EURUSD, not JPY/AUD). Refit-dependent confirmed; deploy with periodic retrain; tick haircut ~1pp. K=3 book `df279204d247f618` superseded but preserved. | ✅ CERTIFIED + FROZEN (xpair-NY K=8 refit-CPCV) 2026-06-10 |
@@ -112,3 +114,28 @@ Falsifier: ADDS iff ΔVal-AUC > .005 AND 2026 cov2 > base (.4892). None pass eit
 | _(superseded)_ all-session own-pair | UP .5532 / DOWN .5527 @cov2 (14/15) | .568 / .567 | — | subsumed by NY |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-07-21 (issue #21 source-feasibility handoff; sweep and K=8 deliverable unchanged)._
+
+## GBPUSD — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 2 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `GBPUSD.m15ny_xpair_seedens8.v1` DOWN 0.5751 [0.5107, 0.6352] n=233.
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5036 (min 0.4956); UP p10 0.4606, 27% of paths clear, forward walk 1/2 counted paths clear (mean 0.52); DOWN p10 0.4359, 27% of paths clear, forward walk 1/3 counted paths clear (mean 0.5029); verdict UP KILLED, DOWN KILLED.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/GBPUSD_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `GBPUSD.m15ny_xpair_seedens.v1` | .5164 | .0145 | 270 · .5333 [.4741, .5926] | 243 · .5720 [.5062, .6296] | 505 · .5505 | NOT SUPPORTED / NOT SUPPORTED |
+| `GBPUSD.m15ny_xpair_seedens8.v1` | .5169 | .0147 | 269 · .5167 [.4572, .5762] | 233 · .5751 [.5107, .6352] | 496 · .5444 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5036 (.4956) | .4606 · .267 · .5170 | 1/2 · .5200 | .4359 · .267 · .5084 | 1/3 · .5029 | .4915 / .4980 | KILLED / KILLED | `deriv_e1_GBPUSD_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->

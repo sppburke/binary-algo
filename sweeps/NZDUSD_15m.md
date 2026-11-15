@@ -53,3 +53,19 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 - The simultaneous promotion lower bounds were C−A yield −.003103, C−B yield −.002446, and C-UP accuracy−.5 −.246796; C-DOWN was undefined. Primary source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_NZDUSD_replay_result.json`.
 - The sealed joint status set is `S=[]`; publication emitted no candidate and the shadow handoff is `status=no_candidates`. Joint sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json` and `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
 - **Sweep remains CLOSED.** `NZDUSD.m15ny_seedens.v1` is unchanged; this retrospective replay neither recertifies nor activates a book.
+
+## DERIV-FEED PROGRAM LEDGER (Deriv-only data; opened 2026-11-15)
+
+> Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/NZDUSD_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
+
+<!-- DERIV-FEED-LEDGER:BEGIN -->
+| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+|---|---|---|---|---|---|
+| R1 | Frozen incumbent books scored as deployed (NY DST session + strategy gate) on Deriv-rebuilt features | 15m/30m | done | NZDUSD.m15ny_seedens.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1_frozen_books_dev_result.json` |
+| E1 | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e1_NZDUSD_15m_result.json` |
+| E2NOCLOCK | E1 without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E7FITALL | E1 fit on all hours, evaluated on the NY session (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E3UNION | E1 features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E4SEED3 | E1 with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E5H30 | E1 at the 30-minute horizon (`cpcv_deriv.py`) | 30m | pending | — | — |
+<!-- DERIV-FEED-LEDGER:END -->

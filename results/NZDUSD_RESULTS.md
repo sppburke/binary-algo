@@ -15,6 +15,8 @@
 
 ## MASTER KEY TABLE
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "NZDUSD — DERIV-FEED PROGRAM" at the end of this file.
+
 | key | best method | book | UP p10@cov | DOWN p10@cov | status |
 |-----|-------------|------|------------|--------------|--------|
 | NZDUSD.m15ny.UP | NY own-pair refit-CPCV seed-ens K=3 | NZDUSD.m15ny_seedens.v1 `f599708e` | .5749 @cov2 (14/15) | — | ✅ **CERTIFIED + FROZEN** |
@@ -646,3 +648,27 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 **Discovery loops dry:** R1 CLOSED (on-disk topics covered, off-disk externally blocked); R2 CLOSED (academic void).
 **>65% is provably unreachable on-disk or via accessible external data** (AUC ceiling ~.535 → p10 max ~.58; see §AUC Information Bound Wall). Required: AUC ~.550 for p10=.65 (see §AUC Bound Wall); gap = +.015 from mean .5321 (or +.009 from max path .5412). No on-disk or accessible-external lever provides .010 AUC lift across 4 own-pair-family majors; F6 9-ticker comprehensive daily screen (VIX/DXY/US10Y/Gold/NZX50/ASX200/AUDNZD/Copper/HSI) confirms accessible external ceiling = +.004 AUC. NOVEL_METHODS_RESEARCH §3 convergent verdict confirms: "direction beyond the engineered cross-pair book is EFFICIENT on existing data; the only frontier is EXTERNAL data."
 **Path forward:** NZD-specific externally blocked features (dairy/GDT, RBNZ surprise, China PMI, NZ-US rate diff). All accessible daily market data (9 tickers) + all on-disk xpair avenues (AUDUSD ERA-STRUCTURAL, USDCAD +.0080 SUBSUMED) + all novel methods (T2 FFD/D1/D6/D7/M1-M3 all KILLED) exhausted 2026-06-11. **D7 realized signed-semivariance closed at Tier-1 own-pair 2026-06-11** (RS+/RS- HURTS own-pair by −.0017; every NOVEL_METHODS_RESEARCH avenue now closed with Tier-1 NZDUSD evidence). True external data pipeline remains the only path to >65%.
+
+## NZDUSD — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 1 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `NZDUSD.m15ny_seedens.v1` DOWN 0.4955 [0.4318, 0.5591] n=220.
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5150 (min 0.5087); UP p10 0.4765, 40% of paths clear, forward walk 0/1 counted paths clear (mean 0.44); DOWN p10 0.4746, 53% of paths clear, forward walk 0/2 counted paths clear (mean 0.4888); verdict UP KILLED, DOWN KILLED.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/NZDUSD_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `NZDUSD.m15ny_seedens.v1` | .5125 | .0289 | 354 · .4774 [.4266, .5283] | 220 · .4955 [.4318, .5591] | 574 · .4843 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5150 (.5087) | .4765 · .400 · .5390 | 0/1 · .4400 | .4746 · .533 · .5459 | 0/2 · .4888 | .4870 / .4959 | KILLED / KILLED | `deriv_e1_NZDUSD_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->

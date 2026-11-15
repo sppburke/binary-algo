@@ -17,6 +17,8 @@
 
 ## MASTER KEY TABLE — one row per (USDCAD, timeframe, side)
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "USDCAD — DERIV-FEED PROGRAM" at the end of this file.
+
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
 | USDCAD · **15m** · UP | **NY seed-ens K=3 refit-CPCV p10 .5968 @cov2 / .604 @cov1 / .5891 @cov3 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate (`usdcad_15m_cpcv_session.py ny 2 .. 3`); book `USDCAD.m15ny_seedens.v1` ✅ FROZEN (content_id ddb4a78c) | NY-concentrated own-pair GBM; all-session sub-BE, NY rescues (USDJPY pattern). UP is the stronger side on the refit floor (vindicates v0 USD-strength/risk-off prediction; frozen DOWN-lead was a 2024 artifact). Seed-ens ~parity vs single-seed (single-seed peak UP .6044@cov2). REFIT-DEPENDENT. | **CERTIFIED (NY seed-ens refit-CPCV) 2026-06-10** |
@@ -163,3 +165,27 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). K=8 saturation c
 | **15m DOWN** | **.5814 @cov5 / .5805 @cov3 / .577 @cov2** (NY seed-ens K=3, 15/15) | .5972 / .6092 mean (cov5/3) | **`USDCAD.m15ny_seedens.v1`** ✅ FROZEN (content_id ddb4a78c) | ✅ CERTIFIED (NY seed-ens refit-CPCV); REFIT-DEPENDENT |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
+
+## USDCAD — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 1 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `USDCAD.m15ny_seedens.v1` UP 0.5463 [0.5073, 0.5854] n=615.
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5159 (min 0.5075); UP p10 0.4496, 47% of paths clear, forward walk 2/3 counted paths clear (mean 0.6109); DOWN p10 0.4805, 29% of paths clear, forward walk 1/2 counted paths clear (mean 0.5197); verdict UP KILLED, DOWN KILLED.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/USDCAD_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `USDCAD.m15ny_seedens.v1` | .5183 | .0553 | 615 · .5463 [.5073, .5854] | 554 · .4621 [.4223, .5036] | 1104 · .5118 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5159 (.5075) | .4496 · .467 · .5256 | 2/3 · .6109 | .4805 · .286 · .5244 | 1/2 · .5197 | .5008 / .4873 | KILLED / KILLED | `deriv_e1_USDCAD_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->

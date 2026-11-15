@@ -15,6 +15,8 @@
 
 ## MASTER KEY TABLE — one row per (AUDUSD, timeframe, side)
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "AUDUSD — DERIV-FEED PROGRAM" at the end of this file.
+
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
 | AUDUSD · **15m** · UP | **NY seed-ens(K=3) refit-CPCV p10 .596 @cov2 / .576 @cov5 (15/15)** ✅ **CERTIFIED, REFIT-DEPENDENT** | NY own-pair LGBM **seed-ens K=3**, cov-gate (`audusd_15m_cpcv_session.py ny 2 .. 3`); book `AUDUSD.m15ny_seedens.v1` ✅ FROZEN (content_id 9b0e0ed3) | NY-concentrated own-pair GBM; all-session UP was sub-BE, NY rescues it; seed-ens lifts p10 (+.013 @cov2). p10 ≥ BE every cov, all 15 paths. **Frozen-2021 fwd decays (.61→.58→.53 cov5), sub-BE by 2026 → deploy w/ periodic retrain, size on refit floor.** | **CERTIFIED (NY seed-ens refit-CPCV), refit-dependent 2026-06-09** |
@@ -139,3 +141,27 @@ corr(p30_NY, p15_NY) = **0.8117** (n270k) — BELOW the .90 collinearity kill-th
 **Deployment spec (both sides, book `AUDUSD.m15ny_seedens.v1`):** trade AUDUSD 15m Rise/Fall when `ts ∈ NY session` (America/New_York 08:00–17:00, DST-correct) AND `|p̄−0.5| ≥ conf_thr` where `p̄` = mean of K=3 seed probabilities; cov3% gate (thr frozen on VAL NY worst-half). Two-sided via confidence selection (bet UP if p̄>0.5 else DOWN). **REFIT-DEPENDENT: retrain periodically (frozen-2012-21 vintage decays to sub-BE by 2026); size on the refit per-era floor (~.57–.60), 1/8-Kelly, NOT the stale frozen book.** Breakeven 0.541. Deriv-FX-deployable (15m = forex Rise/Fall minimum expiry).
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
+
+## AUDUSD — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 1 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `AUDUSD.m15ny_seedens.v1` UP 0.5168 [0.4538, 0.5798] n=238.
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5099 (min 0.5014); UP p10 0.4951, 53% of paths clear, forward walk 0/2 counted paths clear (mean 0.4579); DOWN p10 0.4907, 60% of paths clear, forward walk 0/3 counted paths clear (mean 0.4448); verdict UP KILLED, DOWN KILLED.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/AUDUSD_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `AUDUSD.m15ny_seedens.v1` | .5201 | .0503 | 238 · .5168 [.4538, .5798] | 696 · .5129 [.4741, .5503] | 931 · .5134 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5099 (.5014) | .4951 · .533 · .5588 | 0/2 · .4579 | .4907 · .600 · .5646 | 0/3 · .4448 | .4881 / .4945 | KILLED / KILLED | `deriv_e1_AUDUSD_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->

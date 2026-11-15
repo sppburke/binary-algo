@@ -14,6 +14,8 @@ A note on "combined / symmetric" books: most models trade BOTH sides and report 
 
 ## MASTER KEY TABLE — one row per (EURUSD, timeframe, side)
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "EURUSD — DERIV-FEED PROGRAM" at the end of this file.
+
 One row per key = **best OOS % | model id · content_id | description**. `OOS = 2026` (the strict held-out year; test = 2024–2025). The model id resolves to `books/<id>.manifest.json` (verbatim-recreatable; `content_id` = byte-unique hash of the artifact hashes). "MEASURED" = side-split actually run; "untested" = only the COMBINED book exists (shown as the best-available proxy — its OOS is NOT a true side number).
 
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
@@ -533,3 +535,30 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
 - **Procurement decision: `do_not_recommend_purchase` on this evidence.** A true intraday underreaction mechanism remains scientifically unknown rather than disproved, but the preregistered free screen does not earn the paid-data spend. Any override requires a new plan and explicit user approval of exact quote/terms after sample checks.
 - Primary source: `results/json/eurusd_m15_down_daily_rates_screen_v3_result.json`; sealed terminal `fad191e8c764c4004a4e4d08e1c44a8bae4fb6b809d68dcefb2e53422820947c` has `decision=no_candidate` and `activation=false`. V1 sealed the source/spec then blocked before attempt on frozen-container normalization; v2 fixed that boundary, published an attempt, and failed before native output on an unsupported run-call argument; v3 changed only the runner boundary and binds both preserved predecessors.
 - **Authority unchanged.** This does not alter `EURUSD.m15xp.v1`, its registered .5742 DOWN floor, any book/registry/index/runtime mapping, or the closed sweep.
+
+## EURUSD — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 2 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `EURUSD.m15.v1` UP 0.5833 [0.4762, 0.6905] n=84; not scorable from Deriv mid ticks: `EURUSD.m30xp.v1`, `EURUSD.m15xp.v1` (order-flow columns need a volume feed).
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5116 (min 0.5044); UP p10 0.4500, 14% of paths clear, forward walk 1/2 counted paths clear (mean 0.5333); DOWN p10 0.5000, 40% of paths clear, forward walk 2/4 counted paths clear (mean 0.5481); verdict UP KILLED, DOWN KILLED.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/EURUSD_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `EURUSD.m15.v1` | .5226 | .0042 | 84 · .5833 [.4762, .6905] | 39 · .5128 [.3590, .6667] | 120 · .5583 | NOT SUPPORTED / NOT SUPPORTED |
+| `EURUSD.m30.v1` | .5256 | .0253 | 247 · .4858 [.4251, .5466] | 52 · .5385 [.4038, .6731] | 298 · .4966 | NOT SUPPORTED / NOT SUPPORTED |
+| `EURUSD.m30xp.v1` | — | — | — | — | — | SCHEMA_UNAVAILABLE: columns not computable from Deriv mid ticks (EURUSD order-flow needs a volume feed) |
+| `EURUSD.m15xp.v1` | — | — | — | — | — | SCHEMA_UNAVAILABLE: columns not computable from Deriv mid ticks (EURUSD order-flow needs a volume feed) |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5116 (.5044) | .4500 · .143 · .4912 | 1/2 · .5333 | .5000 · .400 · .5360 | 2/4 · .5481 | .4869 / .5006 | KILLED / KILLED | `deriv_e1_EURUSD_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->

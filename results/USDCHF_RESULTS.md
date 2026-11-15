@@ -18,6 +18,8 @@
 
 ## MASTER KEY TABLE — one row per (USDCHF, timeframe, side)
 
+> **Deriv-feed program (2026-11-15):** the numbers in this table are Dukascopy-era evidence. On the Deriv feed (DEV 2025-08-11..2026-07-31) none of this pair's frozen 15m/30m books is SUPPORTED as deployed — see "USDCHF — DERIV-FEED PROGRAM" at the end of this file.
+
 | Key (currency · timeframe · side) | **Best OOS % (2026)** | Model id · content_id | Description | Status |
 |---|---|---|---|---|
 | USDCHF · **15m** · UP | **xpair-NY seed-ens K=3 refit-CPCV p10 .6533 @cov2 / .6935 @cov1 / .7303 @cov.5 (15/15)** ✅✅ CERTIFIED **>65%** | **`USDCHF.m15ny_xpair_seedens.v1`** · `eb44d999` ✅ FROZEN | EUR-bloc pooling WINS (adversarially verified vs trap#9); seed-ens K=3 SUPERSEDES single-seed (mean↑ 15/15 cells, p10↑ 13/15) | ✅ certified >65%, improved |
@@ -138,3 +140,28 @@
 | **15m DOWN** | **.644 @cov2 / .6682 @cov1 / .7084 @cov.5** (xpair-NY seed-ens K=3 refit-CPCV, 15/15) | .723 / .7632 mean (cov1/.5) | **`USDCHF.m15ny_xpair_seedens.v1`** ✅ FROZEN (`eb44d999`) | ✅✅ CERTIFIED **>65%**; pooling verified vs trap#9; **seed-ens K=3 SUPERSEDED single-seed** |
 
 _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows complete._
+
+## USDCHF — DERIV-FEED PROGRAM (Deriv-only data; opened 2026-11-15)
+
+> **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
+
+<!-- DERIV-FEED-NOTES:BEGIN -->
+- **R1 (frozen books as deployed, DEV window):** 2 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `USDCHF.m15ny_xpair_seedens.v1` UP 0.5965 [0.4737, 0.7193] n=57.
+- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5049 (min 0.4998); UP p10 0.4600, 60% of paths clear, forward walk 1/3 counted paths clear (mean 0.548); DOWN p10 0.4825, 60% of paths clear, forward walk 1/1 counted paths clear (mean 0.6579); verdict UP KILLED, DOWN KILLED.
+- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/USDCHF_15m.md`, DERIV-FEED PROGRAM LEDGER).
+<!-- DERIV-FEED-NOTES:END -->
+
+<!-- DERIV-FEED-TABLES:BEGIN -->
+**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `USDCHF.m15ny_xpair.v1` | .5080 | .0028 | 58 · .5517 [.4310, .6724] | 106 · .4906 [.3962, .5849] | 164 · .5122 | NOT SUPPORTED / NOT SUPPORTED |
+| `USDCHF.m15ny_xpair_seedens.v1` | .5088 | .0026 | 57 · .5965 [.4737, .7193] | 99 · .4848 [.3838, .5859] | 156 · .5256 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
+
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5049 (.4998) | .4600 · .600 · .5556 | 1/3 · .5480 | .4825 · .600 · .5612 | 1/1 · .6579 | .4975 / .4866 | KILLED / KILLED | `deriv_e1_USDCHF_15m_result.json` |
+<!-- DERIV-FEED-TABLES:END -->
