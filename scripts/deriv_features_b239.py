@@ -58,8 +58,14 @@ def m1_frame(bars):
 
 
 def main():
-    out = Path(sys.argv[1]); first = date.fromisoformat(sys.argv[2]); last = date.fromisoformat(sys.argv[3])
-    pairs = sys.argv[4:] or dd.PAIRS
+    args = [x for x in sys.argv[1:] if not x.startswith('--clock-shift-h=')]
+    shifts = [int(x.split('=', 1)[1]) for x in sys.argv[1:] if x.startswith('--clock-shift-h=')]
+    shift_h = shifts[0] if shifts else 0
+    # --clock-shift-h=-5 computes every feature on timestamps shifted by -5 h (the clock the frozen books were trained on:
+    # the Dukascopy-derived store was true UTC - 5 h before 2025-08-22); only clock features and 4h bar boundaries change.
+    # Decision times and labels stay on the TRUE clock.
+    out = Path(args[0]); first = date.fromisoformat(args[1]); last = date.fromisoformat(args[2])
+    pairs = args[3:] or dd.PAIRS
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
     ticks, files_used, m1 = {}, {}, {}
@@ -67,6 +73,8 @@ def main():
         files_used[pair] = dd.day_files(pair, first, last)
         ticks[pair] = dd.load_ticks(files_used[pair])
         m1[pair] = m1_frame(dd.minute_bars(*ticks[pair]))
+        if shift_h:
+            m1[pair].index = m1[pair].index + pd.Timedelta(hours=shift_h)
     closes = pd.DataFrame({p: m1[p]['close'] for p in live_features.PAIRS}).dropna()
     manifest = {'builder': BUILDER_VERSION, 'first_day': first.isoformat(), 'last_day': last.isoformat(),
                 'lag_s': dd.LAG_S, 'horizons': {str(k): {'seconds': v[0], 'tol_s': v[1]} for k, v in dd.HORIZONS.items()},
@@ -74,7 +82,7 @@ def main():
                 'recipe_code': {'pipeline.py': sha256(REPO / 'scripts' / 'pipeline.py'),
                                 'live_features.py': sha256(REPO / 'scripts' / 'live_features.py'),
                                 'deriv_dataset.py': sha256(TOOLS / 'deriv_dataset.py')},
-                'joint_clock_rows': int(len(closes)), 'pairs': {}, 'inputs': {}}
+                'joint_clock_rows': int(len(closes)), 'clock_shift_h': shift_h, 'pairs': {}, 'inputs': {}}
     for pair in pairs:
         base = pipeline.build_features(m1[pair])
         if pair in XPAIR:
@@ -85,7 +93,7 @@ def main():
             X = base
             kind = 'B239 base on the pair clock'
         X = X.astype('float32')
-        start = X.index.as_unit('s').asi8           # epoch seconds whatever the index resolution (pandas 3 infers it)
+        start = X.index.as_unit('s').asi8 - shift_h * 3600   # TRUE epoch seconds whatever the index resolution
         dec = start + 60
         ts, px = ticks[pair]
         sanity = {}

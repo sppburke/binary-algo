@@ -38,7 +38,15 @@ sys.path.insert(0, str(REPO / 'scripts'))
 import book_runtime as br  # noqa: E402
 from sessions import session_mask  # noqa: E402
 
-SCORER_VERSION = 'score_frozen_books/0.1'
+SCORER_VERSION = 'score_frozen_books/0.4'   # 0.4: runtime compression-gate column by default (--gate-source)   # 0.3: Deriv purchase-blackout decisions excluded by default; 0.2 window filter
+
+
+def tradeable_mask(ts, horizon_min):
+    """Deriv rejects an FX Rise/Fall purchase whose expiry lands in 16:50-18:00 New York (docs/DERIV_DEMO_EXECUTOR.md (g)):
+    decisions with start in [16:50 - H, 18:00) NY are untradeable."""
+    t = pd.to_datetime(np.asarray(ts), unit='s', utc=True).tz_convert('America/New_York')
+    m = t.hour.values * 60 + t.minute.values
+    return ~((m >= 16 * 60 + 50 - horizon_min) & (m < 18 * 60))
 BE = 0.541
 
 
@@ -91,13 +99,22 @@ def feature_names(strategy, boosters):
     raise RuntimeError('no feature names in the strategy or the booster')
 
 
-def compression_gate(strategy):
+def compression_gate(strategy, source='runtime'):
+    """runtime (default, as deployed): book_runtime.LoadedBook applies any bb_width threshold to 15m_bb_width;
+    strategy: the column the strategy JSON names (differs only for the 30m EURUSD books)."""
     thr = None
     for key in ('bb_width_thr', 'bbw_thr'):
         if isinstance(strategy.get(key), (int, float)):
             thr = float(strategy[key])
+    gate = strategy.get('gate')
+    if thr is None and isinstance(gate, dict):
+        for key in ('bb_width_thr', 'bbw_thr'):
+            if isinstance(gate.get(key), (int, float)):
+                thr = float(gate[key])
     if thr is None:
         return None, None
+    if source == 'runtime':
+        return '15m_bb_width', thr
     col = strategy.get('gate_feat') or (f'{strategy["comp_tf"]}_bb_width' if strategy.get('comp_tf') else '15m_bb_width')
     return col, thr
 
@@ -107,7 +124,19 @@ def main():
     ap.add_argument('--dataset', required=True)
     ap.add_argument('--books', default=None)
     ap.add_argument('--out', default='frozen_books_deriv_result.json')
+    ap.add_argument('--session', default='ny', choices=('ny', 'nylate'),
+                    help="ny = America/New_York 08-17 (live executor); nylate = 13-22 ET, the true hours the books' Dukascopy "
+                         "'NY' gate selected before 2025-08-22 (stored = true UTC - 5 h)")
+    ap.add_argument('--gate-source', default='runtime', choices=('runtime', 'strategy'),
+                    help='compression-gate column: runtime = 15m_bb_width as book_runtime applies it (as deployed); '
+                         'strategy = the column the strategy JSON names')
+    ap.add_argument('--include-blackout', action='store_true',
+                    help='keep decisions inside the Deriv purchase blackout (0.1/0.2 behavior; not tradeable)')
+    ap.add_argument('--from-day', default=None, help='first decision day (UTC) to score, e.g. 2026-08-01 for the holdout')
+    ap.add_argument('--to-day', default=None, help='last decision day (UTC) to score, inclusive')
     a = ap.parse_args()
+    lo_ts = int(pd.Timestamp(a.from_day, tz='UTC').timestamp()) if a.from_day else -1
+    hi_ts = int((pd.Timestamp(a.to_day, tz='UTC') + pd.Timedelta(days=1)).timestamp()) if a.to_day else 1 << 62
     t0 = time.time()
     index = json.loads((REPO / 'books' / 'INDEX.json').read_text())['books']
     wanted = set(a.books.split(',')) if a.books else None
@@ -116,7 +145,9 @@ def main():
     res = {'scorer': SCORER_VERSION, 'dataset': {'dir': a.dataset, 'manifest_sha256': sha256(manifest),
                                                   'builder': json.loads(manifest.read_text()).get('builder')},
            'data': 'Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy data; frozen book artifacts are scored, not refit',
-           'session': 'ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask) on the decision time',
+           'session': ('ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask)' if a.session == 'ny'
+                       else 'nylate (America/New_York 13:00-22:00, DST-correct)') + ' on the decision time',
+           'window_filter': [a.from_day, a.to_day], 'tradeable_only': not a.include_blackout, 'gate_source': a.gate_source,
            'breakeven': BE,
            'falsifier': {'registered_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'when': 'before scoring',
                          'SUPPORTED_iff': 'per book and side: n >= 50 AND CI95-lower >= 0.541 (else NOT SUPPORTED)'},
@@ -148,11 +179,12 @@ def main():
             cache[pair] = pd.read_parquet(Path(a.dataset) / f'{pair}.parquet')
         df = cache[pair]
         missing = [c for c in cols if c not in df.columns]
-        bb_col, bb_thr = compression_gate(strategy)
+        bb_col, bb_thr = compression_gate(strategy, a.gate_source)
         out.update(n_models=len(boosters), n_features=len(cols), features_from=cols_src, coverage=cov,
                    coverage_source=cov_src, conf_thr=thr, compression_gate=[bb_col, bb_thr] if bb_col else None)
-        if bb_col and bb_col != '15m_bb_width':
-            out['runtime_note'] = f'book_runtime applies the compression threshold to 15m_bb_width; the strategy names {bb_col}'
+        intended, _ = compression_gate(strategy, 'strategy')
+        if bb_col and intended != bb_col:
+            out['gate_note'] = f'gate column {bb_col} ({a.gate_source}); the strategy JSON names {intended}'
         if missing:
             out.update(status='SCHEMA_UNAVAILABLE', missing=len(missing), missing_examples=missing[:20],
                        reason='columns not computable from Deriv mid ticks (EURUSD order-flow needs a volume feed)')
@@ -164,7 +196,14 @@ def main():
         valid = df[f'valid_{h}m'].to_numpy(bool) & np.isfinite(fwd)
         Xdf = df[cols].astype('float64')
         finite = np.isfinite(Xdf.to_numpy()).all(axis=1)
-        sess = session_mask(ts, 'ny')
+        if a.session == 'ny':
+            sess = session_mask(ts, 'ny')
+        else:
+            hh = pd.to_datetime(ts, unit='s', utc=True).tz_convert('America/New_York').hour.values
+            sess = (hh >= 13) & (hh < 22)
+        if not a.include_blackout:
+            sess = sess & tradeable_mask(ts, h)
+        sess = sess & (ts >= lo_ts) & (ts < hi_ts)
         rows = np.where(sess & valid & finite)[0]
         rows = rows[np.argsort(ts[rows], kind='stable')]
         frame = pd.DataFrame(Xdf.to_numpy()[rows], columns=cols)

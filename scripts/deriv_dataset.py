@@ -72,6 +72,7 @@ def settle(dec_t, ts, px, horizon_s, tol_s):
     eic = np.clip(ei, 0, n - 1); xic = np.clip(xi, 0, n - 1)
     valid = (ei < n) & (xi > ei) & ((ts[eic] - entry_t) <= tol_s) & ((exit_t - ts[xic]) <= tol_s)
     ret = np.where(valid, px[xic] / px[eic] - 1.0, np.nan)
+    valid &= np.isfinite(ret)                      # as wc_ret: a non-finite return is not a valid label
     return ret, valid
 
 

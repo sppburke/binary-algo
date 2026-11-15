@@ -245,12 +245,26 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 <!-- DERIV-FEED-LEDGER:BEGIN -->
 | id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
 |---|---|---|---|---|---|
-| R1 | Frozen incumbent books scored as deployed (NY DST session + strategy gate) on Deriv-rebuilt features | 15m/30m | done | EURUSD.m15.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30xp.v1: SCHEMA_UNAVAILABLE; EURUSD.m15xp.v1: SCHEMA_UNAVAILABLE | `deriv_r1_frozen_books_dev_result.json` |
-| E1 | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e1_EURUSD_15m_result.json` |
-| E2NOCLOCK | E1 without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E6POOL | E1 own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | pending | — | — |
-| E7FITALL | E1 fit on all hours, evaluated on the NY session (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E3UNION | E1 features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E4SEED3 | E1 with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E5H30 | E1 at the 30-minute horizon (`cpcv_deriv.py`) | 30m | pending | — | — |
+| R1 | frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout (`score_frozen_books.py`) | 15m/30m | done | EURUSD.m15.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30xp.v1: SCHEMA_UNAVAILABLE; EURUSD.m15xp.v1: SCHEMA_UNAVAILABLE | `deriv_r1_frozen_books_dev_result.json` |
+| R1b | frozen books as trained (clock -5 h, 13-22 ET), ALL decisions incl. the blackout (`score_frozen_books.py`) | 15m/30m | done | EURUSD.m15.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30xp.v1: SCHEMA_UNAVAILABLE; EURUSD.m15xp.v1: SCHEMA_UNAVAILABLE | `deriv_r1b_frozen_books_trainclock_nylate_dev_result.json` |
+| R1t | frozen books as deployed (true clock, NY 08-17), tradeable decisions only (`score_frozen_books.py`) | 15m/30m | done | EURUSD.m15.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30xp.v1: SCHEMA_UNAVAILABLE; EURUSD.m15xp.v1: SCHEMA_UNAVAILABLE | `deriv_r1t_frozen_books_dev_tradeable_result.json` |
+| R1bt | frozen books as trained (clock -5 h, 13:00-16:35 + 18:00-22:00 ET), tradeable only (`score_frozen_books.py`) | 15m/30m | done | EURUSD.m15.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30.v1: NOT SUPPORTED / NOT SUPPORTED; EURUSD.m30xp.v1: SCHEMA_UNAVAILABLE; EURUSD.m15xp.v1: SCHEMA_UNAVAILABLE | `deriv_r1bt_frozen_books_trainclock_nylate_dev_tradeable_result.json` |
+| E1 | SUPERSEDED (pre-tradeable-filter, harness 0.2/0.2.1): LightGBM on Deriv-native features v0.1, NY 08-17 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e1_EURUSD_15m_result.json` |
+| E1T | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1, NY 08:00-16:35 tradeable (`cpcv_deriv.py`) | 15m | running | — | — |
+| R2T | Incumbent recipe refit on Deriv data (deployed book's exact columns, seeds, deploy coverage), true clock, NY 08:00-16:35 tradeable (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E14NYLATE | E1t model in true NY 13:00-16:35 + 18:00-22:00 (the hours the Dukascopy-era NY gate actually selected), tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E6POOL | E1t own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | pending | — | — |
+| E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | pending | — | — |
+| E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E9BLOCKVAL | E1t with a time-block validation set (last 15% of training rows, purged) setting the threshold; all 800 trees (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->

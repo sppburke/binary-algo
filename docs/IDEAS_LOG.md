@@ -535,3 +535,29 @@ selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell)
 > **★ Seed-ensemble K=3 LIFTS a POOLED/cross-pair book on BOTH the mean AND the p10 — re-run seed-ens after a pooling win, not just on own-pair books.** [USDCHF·15m, generic] On the EUR-bloc xpair book, K=3 raised path-MEAN in 15/15 cov×side cells AND p10 in 13/15 (only the thin cov0.01/0.005 UP p10 dips, mean still rises) over the single-seed parent — a genuine variance-reduction FLOOR lift, not TB-style redistribution, so it became the certified deliverable. This is STRONGER than the seed-ens effect on own-pair-haven books, where the prior pattern was a modest/asymmetric lift near parity (own-pair UP can saturate at K=1, only DOWN gains). **Mechanism: a pooled/cross-pair feature space gives the per-seed boosters more diverse, decorrelated training rows, so averaging 3 seeds cuts conditional-mean variance MORE than on a single-pair space → the worst-regime p10 rises, not just the mean. Lesson: after a POOLING win certifies a book, always re-run the K=3 seed-ensemble — expect a two-sided mean+p10 floor lift (unlike the ~parity it gives an own-pair-haven book).** Cite: `usdchf_15m_cpcv_xpair_ny_seedens3_result.json`; book `USDCHF.m15ny_xpair_seedens.v1` supersedes single-seed `USDCHF.m15ny_xpair.v1`.
 
 > **★ A TB-first-touch / refit-CPCV "improvement" on the OWN-PAIR book can be REAL yet SUBSUMED by a cross-pair-pooled deliverable — always compare a lever against the BEST combination, not the base.** [USDCHF·15m, generic] Triple-barrier first-touch labelling (TB_K=1.5) certified AND scored IMPROVES=True vs the OWN-PAIR NY base at every cov (a genuine label lift on the weaker own-pair space) — yet the EUR-bloc xpair seed-ens deliverable DOMINATES it at every cov/side by +.008…+.048, so it was SUBSUMED, not promoted. Scored only against the own-pair base it looked like a win; scored against the best standing combination (xpair + seed-ens) it adds nothing. **It was also an un-frozen-forward-gated refit-CPCV positive — the refit-overfit signature already seen on the own-pair havens (USDCAD/USDJPY), so a frozen-forward gate is mandatory before trusting any such "improvement." Lesson: a lever's baseline is the BEST current deliverable, never the bare base book; a real improvement over the base can be entirely inside the gap a stronger orthogonal lever (pooling) already closed.** Cite: `usdchf_15m_cpcv_tbfirsttouch_ny_multicov_result.json` (TB IMPROVES own-pair base), `usdchf_15m_cpcv_xpair_ny_seedens3_result.json` (deliverable dominates TB).
+
+---
+## Transferable lessons from the Deriv-feed program (2026-11-15) — generic; per-key numbers in `results/<PAIR>_RESULTS.md` (DERIV-FEED PROGRAM) and `docs/DERIV_SOTA_PROGRAM.md`
+
+> **★ A store's clock offset silently moves every session gate.** If a feature store's timestamps are not true UTC, a
+> DST-correct session mask selects different TRUE hours than its name says (here: stored = true UTC − 5 h made the "NY
+> 08–17" gate select true NY 13–22). Before re-measuring an incumbent on a new feed, rebuild its features on the clock it
+> was trained on and score it in the true hours its gate selected; otherwise a real edge can look like a null (or vice
+> versa). Falsifier template: the book's realized gate rate on the new feed should match its design coverage on the
+> right clock and not on the wrong one.
+
+> **★ Rollover-window mirage (new mirage class).** Price behavior across the FX daily close/rollover can be highly
+> predictable on a retail feed while the venue refuses to sell contracts then (Deriv: no FX Rise/Fall purchase whose expiry
+> lands in 16:50–18:00 NY). A session-gated certification that includes those decisions is not tradeable. Always exclude
+> the venue's purchase blackout (start in [16:50 − H, 18:00) NY on Deriv) from training, validation and test, and audit
+> win rates by hour before believing a large edge.
+
+> **Payout sensitivity.** The only venue-recorded 15m trade on disk paid 1.77 per 1.00 (breakeven ≈ 0.565, not 0.541).
+> Report the share of CPCV paths clearing both bars until payouts are measured systematically. Deriv also lists Rise/Fall
+> Equal contracts (ties win) at 15m–1d; unpriced offline.
+
+> **Queued Deriv-native levers (untested at the time of writing):** same-time-of-day seasonality of the settled return
+> over previous days (recurring session flows); round-number geometry (distance to the 100/50-pip grid, crossings,
+> approach); realized semivariance asymmetry; a magnitude model used only as a gate (it halves the tie rate in the
+> traded set — ties lose for both sides); time-block validation for thresholds; fitting on all tradeable hours while
+> evaluating one window. Each runs under the pre-registered CPCV falsifier plus the forward-walk trap-#9 check.

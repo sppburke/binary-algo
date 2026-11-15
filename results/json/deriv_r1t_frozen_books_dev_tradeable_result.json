@@ -1,0 +1,1542 @@
+{
+ "scorer": "score_frozen_books/0.3",
+ "dataset": {
+  "dir": "/mnt/data/deriv-sota-lab/cache/dataset_dev_b239_v0.1",
+  "manifest_sha256": "bf1ec7344400233163980ca303ff4d9cdd8a22c6bb6215d35985b8188d397560",
+  "builder": "deriv_features_b239/0.1"
+ },
+ "data": "Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy data; frozen book artifacts are scored, not refit",
+ "session": "ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask) on the decision time",
+ "window_filter": [
+  null,
+  null
+ ],
+ "tradeable_only": true,
+ "breakeven": 0.541,
+ "falsifier": {
+  "registered_utc": "2026-11-15T07:31:03Z",
+  "when": "before scoring",
+  "SUPPORTED_iff": "per book and side: n >= 50 AND CI95-lower >= 0.541 (else NOT SUPPORTED)"
+ },
+ "code": {
+  "scorer_sha256": "8a03d65fed051302742f4214a1483ef313bae7e5cf7f6524a8455e70fca3b51f",
+  "book_runtime_sha256": "fb299d8adc8b585e0c19294a362c32811912eadf5d87f5a92397c7aba77e916d",
+  "sessions_sha256": "2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493",
+  "lightgbm": "4.6.0"
+ },
+ "books": [
+  {
+   "book_id": "EURUSD.m15.v1",
+   "pair": "EURUSD",
+   "timeframe": "15m",
+   "n_models": 1,
+   "n_features": 239,
+   "features_from": "strategy.feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy",
+   "conf_thr": 0.10259909813593122,
+   "compression_gate": [
+    "15m_bb_width",
+    0.0015868406044319272
+   ],
+   "status": "SCORED",
+   "rows_session": 129610,
+   "rows_scored": 125161,
+   "rows_dropped_nonfinite": 4120,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5193,
+   "moved_up_rate": 0.4925,
+   "realized_gate_rate": 0.0044,
+   "mean_p": 0.507,
+   "sides": {
+    "UP": {
+     "n": 81,
+     "win_rate": 0.5802,
+     "ci95": [
+      0.4691,
+      0.6914
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       2,
+       1.0
+      ],
+      "2025Q4": [
+       26,
+       0.5385
+      ],
+      "2026Q1": [
+       6,
+       0.8333
+      ],
+      "2026Q2": [
+       37,
+       0.5676
+      ],
+      "2026Q3": [
+       10,
+       0.5
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 39,
+     "win_rate": 0.5128,
+     "ci95": [
+      0.359,
+      0.6667
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       3,
+       0.0
+      ],
+      "2025Q4": [
+       9,
+       0.3333
+      ],
+      "2026Q1": [
+       6,
+       0.5
+      ],
+      "2026Q2": [
+       17,
+       0.7647
+      ],
+      "2026Q3": [
+       4,
+       0.25
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 117,
+     "win_rate": 0.5556,
+     "ci95": [
+      0.4615,
+      0.6496
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       5,
+       0.4
+      ],
+      "2025Q4": [
+       35,
+       0.4857
+      ],
+      "2026Q1": [
+       12,
+       0.6667
+      ],
+      "2026Q2": [
+       51,
+       0.6275
+      ],
+      "2026Q3": [
+       14,
+       0.4286
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "EURUSD.m30.v1",
+   "pair": "EURUSD",
+   "timeframe": "30m",
+   "n_models": 1,
+   "n_features": 239,
+   "features_from": "strategy.feature_names",
+   "coverage": 0.05,
+   "coverage_source": "strategy",
+   "conf_thr": 0.04567736626988506,
+   "compression_gate": [
+    "1h_bb_width",
+    0.0037716724909842014
+   ],
+   "runtime_note": "book_runtime applies the compression threshold to 15m_bb_width; the strategy names 1h_bb_width",
+   "status": "SCORED",
+   "rows_session": 126085,
+   "rows_scored": 121527,
+   "rows_dropped_nonfinite": 4000,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:19:00+00:00"
+   ],
+   "auc_moved": 0.5185,
+   "moved_up_rate": 0.4918,
+   "realized_gate_rate": 0.0259,
+   "mean_p": 0.5043,
+   "sides": {
+    "UP": {
+     "n": 234,
+     "win_rate": 0.4786,
+     "ci95": [
+      0.4145,
+      0.5427
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       12,
+       0.5
+      ],
+      "2025Q4": [
+       72,
+       0.5139
+      ],
+      "2026Q1": [
+       60,
+       0.4333
+      ],
+      "2026Q2": [
+       57,
+       0.4386
+      ],
+      "2026Q3": [
+       33,
+       0.5455
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 52,
+     "win_rate": 0.5385,
+     "ci95": [
+      0.4038,
+      0.6731
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       6,
+       0.6667
+      ],
+      "2025Q4": [
+       17,
+       0.5294
+      ],
+      "2026Q1": [
+       11,
+       0.4545
+      ],
+      "2026Q2": [
+       11,
+       0.6364
+      ],
+      "2026Q3": [
+       7,
+       0.4286
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 285,
+     "win_rate": 0.4912,
+     "ci95": [
+      0.4316,
+      0.5474
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       18,
+       0.5556
+      ],
+      "2025Q4": [
+       88,
+       0.5227
+      ],
+      "2026Q1": [
+       71,
+       0.4366
+      ],
+      "2026Q2": [
+       68,
+       0.4706
+      ],
+      "2026Q3": [
+       40,
+       0.525
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "EURUSD.m30xp.v1",
+   "pair": "EURUSD",
+   "timeframe": "30m",
+   "n_models": 1,
+   "n_features": 331,
+   "features_from": "strategy.primary_feats",
+   "coverage": 0.05,
+   "coverage_source": "strategy",
+   "conf_thr": 0.09365747304424467,
+   "compression_gate": [
+    "1h_bb_width",
+    0.004637321922928095
+   ],
+   "runtime_note": "book_runtime applies the compression threshold to 15m_bb_width; the strategy names 1h_bb_width",
+   "status": "SCHEMA_UNAVAILABLE",
+   "missing": 18,
+   "missing_examples": [
+    "OF_of_norm_1",
+    "OF_of_sum_1",
+    "OF_of_norm_3",
+    "OF_of_sum_3",
+    "OF_of_norm_5",
+    "OF_of_sum_5",
+    "OF_of_norm_10",
+    "OF_of_sum_10",
+    "OF_of_norm_15",
+    "OF_of_sum_15",
+    "OF_of_norm_30",
+    "OF_of_sum_30",
+    "OF_of_uptick_5",
+    "OF_of_uptick_15",
+    "OF_kyle_5",
+    "OF_kyle_15",
+    "OF_of_accel",
+    "OF_of_persist"
+   ],
+   "reason": "columns not computable from Deriv mid ticks (EURUSD order-flow needs a volume feed)"
+  },
+  {
+   "book_id": "EURUSD.m15xp.v1",
+   "pair": "EURUSD",
+   "timeframe": "15m",
+   "n_models": 1,
+   "n_features": 331,
+   "features_from": "strategy.primary_feats",
+   "coverage": 0.1,
+   "coverage_source": "strategy",
+   "conf_thr": 0.07183111768862435,
+   "compression_gate": [
+    "15m_bb_width",
+    0.001939652138389647
+   ],
+   "status": "SCHEMA_UNAVAILABLE",
+   "missing": 18,
+   "missing_examples": [
+    "OF_of_norm_1",
+    "OF_of_sum_1",
+    "OF_of_norm_3",
+    "OF_of_sum_3",
+    "OF_of_norm_5",
+    "OF_of_sum_5",
+    "OF_of_norm_10",
+    "OF_of_sum_10",
+    "OF_of_norm_15",
+    "OF_of_sum_15",
+    "OF_of_norm_30",
+    "OF_of_sum_30",
+    "OF_of_uptick_5",
+    "OF_of_uptick_15",
+    "OF_kyle_5",
+    "OF_kyle_15",
+    "OF_of_accel",
+    "OF_of_persist"
+   ],
+   "reason": "columns not computable from Deriv mid ticks (EURUSD order-flow needs a volume feed)"
+  },
+  {
+   "book_id": "USDJPY.m15ny.v1",
+   "pair": "USDJPY",
+   "timeframe": "15m",
+   "n_models": 1,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.03,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.10695747759623107,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129611,
+   "rows_scored": 125164,
+   "rows_dropped_nonfinite": 4120,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5158,
+   "moved_up_rate": 0.5314,
+   "realized_gate_rate": 0.0497,
+   "mean_p": 0.5039,
+   "sides": {
+    "UP": {
+     "n": 725,
+     "win_rate": 0.5228,
+     "ci95": [
+      0.4855,
+      0.56
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       111,
+       0.4775
+      ],
+      "2025Q4": [
+       185,
+       0.5676
+      ],
+      "2026Q1": [
+       180,
+       0.5389
+      ],
+      "2026Q2": [
+       162,
+       0.5185
+      ],
+      "2026Q3": [
+       87,
+       0.4598
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 231,
+     "win_rate": 0.4805,
+     "ci95": [
+      0.4156,
+      0.5455
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       12,
+       0.5833
+      ],
+      "2025Q4": [
+       49,
+       0.449
+      ],
+      "2026Q1": [
+       39,
+       0.4615
+      ],
+      "2026Q2": [
+       92,
+       0.4783
+      ],
+      "2026Q3": [
+       39,
+       0.5128
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 952,
+     "win_rate": 0.5137,
+     "ci95": [
+      0.4821,
+      0.5452
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       123,
+       0.4878
+      ],
+      "2025Q4": [
+       233,
+       0.5408
+      ],
+      "2026Q1": [
+       219,
+       0.5251
+      ],
+      "2026Q2": [
+       252,
+       0.5119
+      ],
+      "2026Q3": [
+       125,
+       0.472
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDJPY.m15ny_seedens.v1",
+   "pair": "USDJPY",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.12624352649499532,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129611,
+   "rows_scored": 125164,
+   "rows_dropped_nonfinite": 4120,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5149,
+   "moved_up_rate": 0.5314,
+   "realized_gate_rate": 0.0372,
+   "mean_p": 0.504,
+   "sides": {
+    "UP": {
+     "n": 533,
+     "win_rate": 0.5253,
+     "ci95": [
+      0.4822,
+      0.5666
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       87,
+       0.4598
+      ],
+      "2025Q4": [
+       114,
+       0.5877
+      ],
+      "2026Q1": [
+       146,
+       0.5342
+      ],
+      "2026Q2": [
+       107,
+       0.5421
+      ],
+      "2026Q3": [
+       79,
+       0.4684
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 211,
+     "win_rate": 0.5071,
+     "ci95": [
+      0.4408,
+      0.5735
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       10,
+       0.6
+      ],
+      "2025Q4": [
+       52,
+       0.5962
+      ],
+      "2026Q1": [
+       33,
+       0.4545
+      ],
+      "2026Q2": [
+       84,
+       0.4762
+      ],
+      "2026Q3": [
+       32,
+       0.4688
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 741,
+     "win_rate": 0.5209,
+     "ci95": [
+      0.4845,
+      0.5574
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       97,
+       0.4742
+      ],
+      "2025Q4": [
+       166,
+       0.5904
+      ],
+      "2026Q1": [
+       179,
+       0.5251
+      ],
+      "2026Q2": [
+       188,
+       0.5106
+      ],
+      "2026Q3": [
+       111,
+       0.4685
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDJPY.m15ny_tbft_seedens.v1",
+   "pair": "USDJPY",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.10524394366576979,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129611,
+   "rows_scored": 125164,
+   "rows_dropped_nonfinite": 4120,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5173,
+   "moved_up_rate": 0.5314,
+   "realized_gate_rate": 0.0337,
+   "mean_p": 0.5009,
+   "sides": {
+    "UP": {
+     "n": 517,
+     "win_rate": 0.5203,
+     "ci95": [
+      0.4778,
+      0.5648
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       84,
+       0.4881
+      ],
+      "2025Q4": [
+       113,
+       0.5841
+      ],
+      "2026Q1": [
+       116,
+       0.5345
+      ],
+      "2026Q2": [
+       128,
+       0.5
+      ],
+      "2026Q3": [
+       76,
+       0.4737
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 150,
+     "win_rate": 0.5133,
+     "ci95": [
+      0.4333,
+      0.5933
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       7,
+       0.5714
+      ],
+      "2025Q4": [
+       16,
+       0.5625
+      ],
+      "2026Q1": [
+       20,
+       0.5
+      ],
+      "2026Q2": [
+       74,
+       0.473
+      ],
+      "2026Q3": [
+       33,
+       0.5758
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 665,
+     "win_rate": 0.5188,
+     "ci95": [
+      0.4812,
+      0.5564
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       91,
+       0.5055
+      ],
+      "2025Q4": [
+       129,
+       0.5814
+      ],
+      "2026Q1": [
+       136,
+       0.5294
+      ],
+      "2026Q2": [
+       200,
+       0.485
+      ],
+      "2026Q3": [
+       109,
+       0.5046
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "GBPUSD.m15ny_xpair_seedens.v1",
+   "pair": "GBPUSD",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 340,
+   "features_from": "strategy.feature_cols",
+   "coverage": 0.01,
+   "coverage_source": "books/INDEX.json metrics",
+   "conf_thr": 0.13257981598204907,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129610,
+   "rows_scored": 125154,
+   "rows_dropped_nonfinite": 4119,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.513,
+   "moved_up_rate": 0.4976,
+   "realized_gate_rate": 0.015,
+   "mean_p": 0.5004,
+   "sides": {
+    "UP": {
+     "n": 268,
+     "win_rate": 0.5299,
+     "ci95": [
+      0.4701,
+      0.5896
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       25,
+       0.52
+      ],
+      "2025Q4": [
+       85,
+       0.5765
+      ],
+      "2026Q1": [
+       69,
+       0.5797
+      ],
+      "2026Q2": [
+       68,
+       0.4853
+      ],
+      "2026Q3": [
+       21,
+       0.3333
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 243,
+     "win_rate": 0.572,
+     "ci95": [
+      0.5062,
+      0.6296
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       24,
+       0.7917
+      ],
+      "2025Q4": [
+       94,
+       0.5745
+      ],
+      "2026Q1": [
+       43,
+       0.5814
+      ],
+      "2026Q2": [
+       44,
+       0.6591
+      ],
+      "2026Q3": [
+       38,
+       0.3158
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 503,
+     "win_rate": 0.5487,
+     "ci95": [
+      0.505,
+      0.5924
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       47,
+       0.6383
+      ],
+      "2025Q4": [
+       176,
+       0.5739
+      ],
+      "2026Q1": [
+       110,
+       0.5818
+      ],
+      "2026Q2": [
+       111,
+       0.5586
+      ],
+      "2026Q3": [
+       59,
+       0.322
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "GBPUSD.m15ny_xpair_seedens8.v1",
+   "pair": "GBPUSD",
+   "timeframe": "15m",
+   "n_models": 8,
+   "n_features": 340,
+   "features_from": "strategy.feature_cols",
+   "coverage": 0.01,
+   "coverage_source": "books/INDEX.json metrics",
+   "conf_thr": 0.13209766255390926,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129610,
+   "rows_scored": 125154,
+   "rows_dropped_nonfinite": 4119,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5134,
+   "moved_up_rate": 0.4976,
+   "realized_gate_rate": 0.0153,
+   "mean_p": 0.5003,
+   "sides": {
+    "UP": {
+     "n": 267,
+     "win_rate": 0.5131,
+     "ci95": [
+      0.4532,
+      0.573
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       26,
+       0.5
+      ],
+      "2025Q4": [
+       81,
+       0.5432
+      ],
+      "2026Q1": [
+       69,
+       0.5797
+      ],
+      "2026Q2": [
+       70,
+       0.4571
+      ],
+      "2026Q3": [
+       21,
+       0.381
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 233,
+     "win_rate": 0.5751,
+     "ci95": [
+      0.5107,
+      0.6352
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       25,
+       0.8
+      ],
+      "2025Q4": [
+       91,
+       0.5714
+      ],
+      "2026Q1": [
+       44,
+       0.6136
+      ],
+      "2026Q2": [
+       36,
+       0.6667
+      ],
+      "2026Q3": [
+       37,
+       0.2973
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 494,
+     "win_rate": 0.5425,
+     "ci95": [
+      0.498,
+      0.587
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       49,
+       0.6327
+      ],
+      "2025Q4": [
+       171,
+       0.5614
+      ],
+      "2026Q1": [
+       111,
+       0.5946
+      ],
+      "2026Q2": [
+       105,
+       0.5333
+      ],
+      "2026Q3": [
+       58,
+       0.3276
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "AUDUSD.m15ny_seedens.v1",
+   "pair": "AUDUSD",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.03,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.06624753336867155,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129611,
+   "rows_scored": 125160,
+   "rows_dropped_nonfinite": 4118,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5164,
+   "moved_up_rate": 0.5007,
+   "realized_gate_rate": 0.052,
+   "mean_p": 0.4995,
+   "sides": {
+    "UP": {
+     "n": 235,
+     "win_rate": 0.5106,
+     "ci95": [
+      0.4468,
+      0.5745
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       23,
+       0.5217
+      ],
+      "2025Q4": [
+       54,
+       0.5
+      ],
+      "2026Q1": [
+       81,
+       0.4568
+      ],
+      "2026Q2": [
+       55,
+       0.5455
+      ],
+      "2026Q3": [
+       22,
+       0.6364
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 696,
+     "win_rate": 0.5129,
+     "ci95": [
+      0.4741,
+      0.5503
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       90,
+       0.5333
+      ],
+      "2025Q4": [
+       194,
+       0.5464
+      ],
+      "2026Q1": [
+       193,
+       0.487
+      ],
+      "2026Q2": [
+       147,
+       0.551
+      ],
+      "2026Q3": [
+       72,
+       0.3889
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 928,
+     "win_rate": 0.5119,
+     "ci95": [
+      0.4795,
+      0.5431
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       113,
+       0.531
+      ],
+      "2025Q4": [
+       246,
+       0.5366
+      ],
+      "2026Q1": [
+       273,
+       0.4762
+      ],
+      "2026Q2": [
+       202,
+       0.5495
+      ],
+      "2026Q3": [
+       94,
+       0.4468
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDCAD.m15ny_seedens.v1",
+   "pair": "USDCAD",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.06189305393772768,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129611,
+   "rows_scored": 125151,
+   "rows_dropped_nonfinite": 4120,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5157,
+   "moved_up_rate": 0.5049,
+   "realized_gate_rate": 0.0575,
+   "mean_p": 0.4997,
+   "sides": {
+    "UP": {
+     "n": 615,
+     "win_rate": 0.5463,
+     "ci95": [
+      0.5073,
+      0.5854
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       72,
+       0.5694
+      ],
+      "2025Q4": [
+       187,
+       0.5561
+      ],
+      "2026Q1": [
+       157,
+       0.535
+      ],
+      "2026Q2": [
+       142,
+       0.5352
+      ],
+      "2026Q3": [
+       57,
+       0.5439
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 554,
+     "win_rate": 0.4621,
+     "ci95": [
+      0.4223,
+      0.5036
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       56,
+       0.3929
+      ],
+      "2025Q4": [
+       171,
+       0.4678
+      ],
+      "2026Q1": [
+       143,
+       0.4336
+      ],
+      "2026Q2": [
+       139,
+       0.518
+      ],
+      "2026Q3": [
+       45,
+       0.4444
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 1104,
+     "win_rate": 0.5118,
+     "ci95": [
+      0.4819,
+      0.5417
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       123,
+       0.4959
+      ],
+      "2025Q4": [
+       332,
+       0.5151
+      ],
+      "2026Q1": [
+       289,
+       0.4983
+      ],
+      "2026Q2": [
+       266,
+       0.5338
+      ],
+      "2026Q3": [
+       94,
+       0.5
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDCHF.m15ny_xpair.v1",
+   "pair": "USDCHF",
+   "timeframe": "15m",
+   "n_models": 1,
+   "n_features": 337,
+   "features_from": "strategy.feature_cols",
+   "coverage": 0.01,
+   "coverage_source": "books/INDEX.json metrics",
+   "conf_thr": 0.1865451577848208,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129610,
+   "rows_scored": 125162,
+   "rows_dropped_nonfinite": 4118,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5047,
+   "moved_up_rate": 0.5086,
+   "realized_gate_rate": 0.0029,
+   "mean_p": 0.4998,
+   "sides": {
+    "UP": {
+     "n": 58,
+     "win_rate": 0.5517,
+     "ci95": [
+      0.431,
+      0.6724
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       4,
+       0.25
+      ],
+      "2025Q4": [
+       20,
+       0.55
+      ],
+      "2026Q1": [
+       18,
+       0.6667
+      ],
+      "2026Q2": [
+       9,
+       0.5556
+      ],
+      "2026Q3": [
+       7,
+       0.4286
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 106,
+     "win_rate": 0.4906,
+     "ci95": [
+      0.3962,
+      0.5849
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       10,
+       0.3
+      ],
+      "2025Q4": [
+       26,
+       0.5385
+      ],
+      "2026Q1": [
+       28,
+       0.4286
+      ],
+      "2026Q2": [
+       32,
+       0.5938
+      ],
+      "2026Q3": [
+       10,
+       0.4
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 164,
+     "win_rate": 0.5122,
+     "ci95": [
+      0.4329,
+      0.5854
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       14,
+       0.2857
+      ],
+      "2025Q4": [
+       46,
+       0.5435
+      ],
+      "2026Q1": [
+       46,
+       0.5217
+      ],
+      "2026Q2": [
+       41,
+       0.5854
+      ],
+      "2026Q3": [
+       17,
+       0.4118
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDCHF.m15ny_xpair_seedens.v1",
+   "pair": "USDCHF",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 337,
+   "features_from": "strategy.feature_cols",
+   "coverage": 0.01,
+   "coverage_source": "books/INDEX.json metrics",
+   "conf_thr": 0.16933929389708485,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129610,
+   "rows_scored": 125162,
+   "rows_dropped_nonfinite": 4118,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5054,
+   "moved_up_rate": 0.5086,
+   "realized_gate_rate": 0.0027,
+   "mean_p": 0.4998,
+   "sides": {
+    "UP": {
+     "n": 57,
+     "win_rate": 0.5965,
+     "ci95": [
+      0.4737,
+      0.7193
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       5,
+       0.4
+      ],
+      "2025Q4": [
+       18,
+       0.6667
+      ],
+      "2026Q1": [
+       19,
+       0.6316
+      ],
+      "2026Q2": [
+       8,
+       0.625
+      ],
+      "2026Q3": [
+       7,
+       0.4286
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 99,
+     "win_rate": 0.4848,
+     "ci95": [
+      0.3838,
+      0.5859
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       10,
+       0.3
+      ],
+      "2025Q4": [
+       26,
+       0.5
+      ],
+      "2026Q1": [
+       26,
+       0.4231
+      ],
+      "2026Q2": [
+       30,
+       0.6
+      ],
+      "2026Q3": [
+       7,
+       0.4286
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 156,
+     "win_rate": 0.5256,
+     "ci95": [
+      0.4487,
+      0.6026
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       15,
+       0.3333
+      ],
+      "2025Q4": [
+       44,
+       0.5682
+      ],
+      "2026Q1": [
+       45,
+       0.5111
+      ],
+      "2026Q2": [
+       38,
+       0.6053
+      ],
+      "2026Q3": [
+       14,
+       0.4286
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "NZDUSD.m15ny_seedens.v1",
+   "pair": "NZDUSD",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.0835073173947228,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 129610,
+   "rows_scored": 125146,
+   "rows_dropped_nonfinite": 4119,
+   "window": [
+    "2025-08-21T12:00:00+00:00",
+    "2026-07-31T20:34:00+00:00"
+   ],
+   "auc_moved": 0.5103,
+   "moved_up_rate": 0.4938,
+   "realized_gate_rate": 0.0298,
+   "mean_p": 0.501,
+   "sides": {
+    "UP": {
+     "n": 352,
+     "win_rate": 0.4773,
+     "ci95": [
+      0.4261,
+      0.5312
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       41,
+       0.5122
+      ],
+      "2025Q4": [
+       94,
+       0.4574
+      ],
+      "2026Q1": [
+       110,
+       0.5091
+      ],
+      "2026Q2": [
+       94,
+       0.4574
+      ],
+      "2026Q3": [
+       13,
+       0.3846
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 220,
+     "win_rate": 0.4955,
+     "ci95": [
+      0.4318,
+      0.5591
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       15,
+       0.5333
+      ],
+      "2025Q4": [
+       53,
+       0.434
+      ],
+      "2026Q1": [
+       81,
+       0.5062
+      ],
+      "2026Q2": [
+       41,
+       0.6341
+      ],
+      "2026Q3": [
+       30,
+       0.3667
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 572,
+     "win_rate": 0.4843,
+     "ci95": [
+      0.4441,
+      0.5262
+     ],
+     "by_quarter": {
+      "2025Q3": [
+       56,
+       0.5179
+      ],
+      "2025Q4": [
+       147,
+       0.449
+      ],
+      "2026Q1": [
+       191,
+       0.5079
+      ],
+      "2026Q2": [
+       135,
+       0.5111
+      ],
+      "2026Q3": [
+       43,
+       0.3721
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  }
+ ],
+ "seconds": 87.6
+}

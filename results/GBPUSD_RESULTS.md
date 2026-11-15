@@ -120,22 +120,44 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-07-
 > **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
 
 <!-- DERIV-FEED-NOTES:BEGIN -->
-- **R1 (frozen books as deployed, DEV window):** 2 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `GBPUSD.m15ny_xpair_seedens8.v1` DOWN 0.5751 [0.5107, 0.6352] n=233.
-- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5036 (min 0.4956); UP p10 0.4606, 27% of paths clear, forward walk 1/2 counted paths clear (mean 0.52); DOWN p10 0.4359, 27% of paths clear, forward walk 1/3 counted paths clear (mean 0.5029); verdict UP KILLED, DOWN KILLED.
-- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/GBPUSD_15m.md`, DERIV-FEED PROGRAM LEDGER).
+- **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `GBPUSD.m15ny_xpair_seedens.v1` 0.6300 [0.5300, 0.7200] n=100 (NOT SUPPORTED); DOWN best `GBPUSD.m15ny_xpair_seedens.v1` 0.5303 [0.4091, 0.6515] n=66 (NOT SUPPORTED).
+- **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `GBPUSD.m15ny_xpair_seedens.v1` 0.5299 [0.4701, 0.5896] n=268 (NOT SUPPORTED); DOWN best `GBPUSD.m15ny_xpair_seedens8.v1` 0.5751 [0.5107, 0.6352] n=233 (NOT SUPPORTED).
+- **DEV-CPCV certified sides (tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
-**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+**Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
 
 | Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
 |---|---|---|---|---|---|---|
 | `GBPUSD.m15ny_xpair_seedens.v1` | .5164 | .0145 | 270 · .5333 [.4741, .5926] | 243 · .5720 [.5062, .6296] | 505 · .5505 | NOT SUPPORTED / NOT SUPPORTED |
 | `GBPUSD.m15ny_xpair_seedens8.v1` | .5169 | .0147 | 269 · .5167 [.4572, .5762] | 233 · .5751 [.5107, .6352] | 496 · .5444 | NOT SUPPORTED / NOT SUPPORTED |
 
+**Frozen books on the Deriv feed — training clock (true UTC - 5 h), nylate (America/New_York 13:00-22:00, DST-correct), ALL decisions incl. the untradeable blackout** (`deriv_r1b_frozen_books_trainclock_nylate_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `GBPUSD.m15ny_xpair_seedens.v1` | .5504 | .0177 | 342 · .7339 [.6842, .7807] | 271 · .7491 [.6974, .8007] | 525 · .7295 | SUPPORTED / SUPPORTED |
+| `GBPUSD.m15ny_xpair_seedens8.v1` | .5506 | .0181 | 351 · .7379 [.6895, .7807] | 270 · .7333 [.6778, .7852] | 532 · .7199 | SUPPORTED / SUPPORTED |
+
+**Frozen books on the Deriv feed — training clock (true UTC - 5 h), nylate (America/New_York 13:00-22:00, DST-correct), tradeable decisions only (Deriv purchase blackout excluded)** (`deriv_r1bt_frozen_books_trainclock_nylate_dev_tradeable_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `GBPUSD.m15ny_xpair_seedens.v1` | .5255 | .0048 | 100 · .6300 [.5300, .7200] | 66 · .5303 [.4091, .6515] | 162 · .5802 | NOT SUPPORTED / NOT SUPPORTED |
+| `GBPUSD.m15ny_xpair_seedens8.v1` | .5255 | .0048 | 101 · .6238 [.5347, .7129] | 67 · .5224 [.4030, .6418] | 165 · .5758 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), tradeable decisions only (Deriv purchase blackout excluded)** (`deriv_r1t_frozen_books_dev_tradeable_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `GBPUSD.m15ny_xpair_seedens.v1` | .5130 | .0150 | 268 · .5299 [.4701, .5896] | 243 · .5720 [.5062, .6296] | 503 · .5487 | NOT SUPPORTED / NOT SUPPORTED |
+| `GBPUSD.m15ny_xpair_seedens8.v1` | .5134 | .0153 | 267 · .5131 [.4532, .5730] | 233 · .5751 [.5107, .6352] | 494 · .5425 | NOT SUPPORTED / NOT SUPPORTED |
+
 **Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
 
-| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5036 (.4956) | .4606 · .267 · .5170 | 1/2 · .5200 | .4359 · .267 · .5084 | 1/3 · .5029 | .4915 / .4980 | KILLED / KILLED | `deriv_e1_GBPUSD_15m_result.json` |
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5036 (.4956) | .4606 · .267 · .5170 | 1/2 · .5200 | .4359 · .267 · .5084 | 1/3 · .5029 | .4915 / .4980 | KILLED / KILLED | 0.07 / 0.13 | `deriv_e1_GBPUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

@@ -261,13 +261,14 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > **SCOPE:** this key on the Deriv feed only — Deriv 1-second mid ticks (`/mnt/data/deriv`), no Dukascopy data. Labels settle on Deriv ticks (entry first tick >= decision + 1 s, exit last tick <= entry target + H, ties lose); DEV window 2025-08-11..2026-07-31 for training, selection and CPCV; HOLDOUT 2026-08-01..2026-11-14 sealed (opened once per finalized candidate). Protocol and tools: `docs/DERIV_SOTA_PROGRAM.md`. Tables below are rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).
 
 <!-- DERIV-FEED-NOTES:BEGIN -->
-- **R1 (frozen books as deployed, DEV window):** 3 scorable book(s), none SUPPORTED (no side with n >= 50 and CI95-lo >= .541); best side point estimate `USDJPY.m15ny_seedens.v1` UP 0.5253 [0.4822, 0.5666] n=533.
-- **E1 (Deriv-native features, LightGBM, NY, 15m, cov 0.03):** moved AUC mean 0.5323 (min 0.5195); UP p10 0.5646, 100% of paths clear, forward walk 2/3 counted paths clear (mean 0.5353); DOWN p10 0.5317, 80% of paths clear, forward walk 2/3 counted paths clear (mean 0.6105); verdict UP CERTIFIED, DOWN KILLED. DEV-CPCV certification is necessary, not sufficient: the forward walk is weaker than the CPCV paths (trap #9 risk from slow and clock features), so the side stays a candidate until the no-clock ablation and the sealed holdout (2026-08-01..2026-11-14) decide.
-- Status 2026-11-15: no Deriv-feed SOTA claim for this pair yet; R2 (incumbent recipe refit on Deriv data) and E2-E7 are queued (see `sweeps/USDJPY_15m.md`, DERIV-FEED PROGRAM LEDGER).
+- **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `USDJPY.m15ny_seedens.v1` 0.6500 [0.5750, 0.7188] n=160 (SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.6250 [0.5250, 0.7250] n=80 (NOT SUPPORTED).
+- **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDJPY.m15ny_seedens.v1` 0.5253 [0.4822, 0.5666] n=533 (NOT SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.5133 [0.4333, 0.5933] n=150 (NOT SUPPORTED).
+- **DEV-CPCV certified sides (tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
-**Frozen books scored as deployed on the Deriv feed** (`deriv_r1_frozen_books_dev_result.json`; NY DST session + strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+**Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
 
 | Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
 |---|---|---|---|---|---|---|
@@ -275,9 +276,34 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 | `USDJPY.m15ny_seedens.v1` | .5201 | .0358 | 533 · .5253 [.4822, .5666] | 211 · .5071 [.4408, .5735] | 741 · .5209 | NOT SUPPORTED / NOT SUPPORTED |
 | `USDJPY.m15ny_tbft_seedens.v1` | .5217 | .0324 | 517 · .5203 [.4778, .5648] | 150 · .5133 [.4333, .5933] | 665 · .5188 | NOT SUPPORTED / NOT SUPPORTED |
 
+**Frozen books on the Deriv feed — training clock (true UTC - 5 h), nylate (America/New_York 13:00-22:00, DST-correct), ALL decisions incl. the untradeable blackout** (`deriv_r1b_frozen_books_trainclock_nylate_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `USDJPY.m15ny.v1` | .5464 | .0361 | 535 · .6449 [.6037, .6860] | 194 · .6443 [.5773, .7113] | 710 · .6380 | SUPPORTED / SUPPORTED |
+| `USDJPY.m15ny_seedens.v1` | .5435 | .0255 | 417 · .6835 [.6379, .7266] | 152 · .6184 [.5395, .6974] | 559 · .6583 | SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_tbft_seedens.v1` | .5468 | .0272 | 426 · .6432 [.5962, .6878] | 135 · .7333 [.6593, .8074] | 543 · .6519 | SUPPORTED / SUPPORTED |
+
+**Frozen books on the Deriv feed — training clock (true UTC - 5 h), nylate (America/New_York 13:00-22:00, DST-correct), tradeable decisions only (Deriv purchase blackout excluded)** (`deriv_r1bt_frozen_books_trainclock_nylate_dev_tradeable_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `USDJPY.m15ny.v1` | .5322 | .0175 | 227 · .6300 [.5683, .6916] | 142 · .5352 [.4577, .6127] | 367 · .5940 | SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_seedens.v1` | .5292 | .0120 | 160 · .6500 [.5750, .7188] | 111 · .5045 [.4144, .6036] | 270 · .5889 | SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_tbft_seedens.v1` | .5331 | .0099 | 150 · .6067 [.5267, .6867] | 80 · .6250 [.5250, .7250] | 229 · .6114 | NOT SUPPORTED / NOT SUPPORTED |
+
+**Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), tradeable decisions only (Deriv purchase blackout excluded)** (`deriv_r1t_frozen_books_dev_tradeable_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
+
+| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |
+|---|---|---|---|---|---|---|
+| `USDJPY.m15ny.v1` | .5158 | .0497 | 725 · .5228 [.4855, .5600] | 231 · .4805 [.4156, .5455] | 952 · .5137 | NOT SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_seedens.v1` | .5149 | .0372 | 533 · .5253 [.4822, .5666] | 211 · .5071 [.4408, .5735] | 741 · .5209 | NOT SUPPORTED / NOT SUPPORTED |
+| `USDJPY.m15ny_tbft_seedens.v1` | .5173 | .0337 | 517 · .5203 [.4778, .5648] | 150 · .5133 [.4333, .5933] | 665 · .5188 | NOT SUPPORTED / NOT SUPPORTED |
+
 **Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
 
-| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5323 (.5195) | .5646 · 1.0 · .5935 | 2/3 · .5353 | .5317 · .800 · .5935 | 2/3 · .6105 | .5121 / .4771 | CERTIFIED / KILLED | `deriv_e1_USDJPY_15m_result.json` |
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5323 (.5195) | .5646 · 1.0 · .5935 | 2/3 · .5353 | .5317 · .800 · .5935 | 2/3 · .6105 | .5121 / .4771 | CERTIFIED / KILLED | 0.80 / 0.47 | `deriv_e1_USDJPY_15m_result.json` |
+| r2 | r2: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5263 (.5047) | .6200 · 1.0 · .6589 | 0/0 · — | .5698 · 1.0 · .5698 | 0/0 · — | .5121 / .4771 | CERTIFIED / CERTIFIED | 1.00 / 1.00 | `deriv_r2_USDJPY_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

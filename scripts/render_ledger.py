@@ -24,13 +24,15 @@ def main():
     a = ap.parse_args()
     R = Path(a.results)
     out = []
-    for f in sorted(R.glob('deriv_r1_frozen_books_*_result.json')):
+    for f in sorted(R.glob('deriv_r1*_frozen_books_*_result.json')):
         r = json.loads(f.read_text())
         rows = [b for b in r['books'] if b['pair'] == a.pair]
         if not rows:
             continue
-        out.append(f'**Frozen books scored as deployed on the Deriv feed** (`{f.name}`; NY DST session + strategy gate, '
-                   f'tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):\n')
+        clock = 'training clock (true UTC - 5 h)' if 'shift-5' in r['dataset']['dir'] else 'true clock'
+        trd = 'tradeable decisions only (Deriv purchase blackout excluded)' if r.get('tradeable_only') else 'ALL decisions incl. the untradeable blackout'
+        out.append(f'**Frozen books on the Deriv feed — {clock}, {r["session"].split(" on the")[0]}, {trd}** (`{f.name}`; '
+                   f'strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):\n')
         out.append('| Book | AUC (moved) | gate rate | UP n · WR [CI95] | DOWN n · WR [CI95] | COMB n · WR | verdict UP / DOWN |')
         out.append('|---|---|---|---|---|---|---|')
         for b in rows:
@@ -54,12 +56,15 @@ def main():
                    'p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 '
                    'and their mean):\n')
         out.append('| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | '
-                   'DOWN fwd | always UP / DOWN | verdict UP / DOWN | result JSON |')
-        out.append('|---|---|---|---|---|---|---|---|---|---|---|---|')
+                   'DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |')
+        out.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|')
         for f, r in runs:
             c = str(r['operating_cov'])
             b = r['bycov'][c]
             v, sm, fw = b['verdict'], b['summary'], b['forward']
+            def frac565(s):                         # payout sensitivity: one recorded venue trade paid 1.77 (BE 1/1.77)
+                w = [p['bycov'][c][s][1] for p in r['paths'] if p['bycov'][c][s][0] >= 25]
+                return f'{sum(x >= 1 / 1.77 for x in w) / len(w):.2f}' if w else '—'
             model = f'{r.get("tag", "")}: {r["feature_set"]} ({r["n_features"]}), nseed {r["nseed"]}'
             if 'pool' in r:
                 model += f', pooled +{len(r["pool"])} pairs'
@@ -68,7 +73,7 @@ def main():
             out.append(f'| {r.get("tag", "")} | {model} | {r["horizon_min"]}m | {c} | {fmt(r["auc_summary"]["mean"])} '
                        f'({fmt(r["auc_summary"]["min"])}) | {side("UP")} | {fwds("UP")} | {side("DOWN")} | {fwds("DOWN")} | '
                        f'{fmt(r["baseline_always"]["UP"].get("mean"))} / {fmt(r["baseline_always"]["DOWN"].get("mean"))} | '
-                       f'{r["verdict"]["UP"]} / {r["verdict"]["DOWN"]} | `{f.name}` |')
+                       f'{r["verdict"]["UP"]} / {r["verdict"]["DOWN"]} | {frac565("UP")} / {frac565("DOWN")} | `{f.name}` |')
     print('\n'.join(out))
 
 
