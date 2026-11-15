@@ -289,6 +289,17 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > paths positive (pre-registered reading met: SKILL BEYOND DRIFT TIMING); forward folds +0.045, 3/3 positive. DOWN:
 > +0.077 on 8/8 counted paths, below the 12-path reading (too thin). The analysis' first version pooled the forward
 > folds into the reading; the JSON records the correction.
+>
+> **Entry-delay stress (2026-11-15, `deriv_a2delay_USDJPY_15m_result.json`).** The `e1t` UP trades, frozen as selected,
+> re-settled from the ticks with the contract started 2 / 4 / 9 / 29 s later (zero extra delay reproduces the dataset
+> labels exactly): paths clear 14 / 13 / 13 / 12 / 13 of 15, p10 0.555 / 0.531 / 0.540 / 0.527 / 0.532, mean 0.595 /
+> 0.592 / 0.594 / 0.591 / 0.587, excess over always-UP +0.080 / +0.078 / +0.079 / +0.077 / +0.070. Pre-registered
+> reading (still >= 12 of 15 paths clear with p10 >= 0.541 at +4 s): FRAGILE, by 0.0014. The selection skill is
+> stable under delay; the certification margin is not. Staleness: the excess is positive both for trades whose last mid
+> change was <= 2 s old (n 932, +0.076) and older (n 573, +0.083); the run's tercile verdict is void (tied age
+> quantiles left one bin empty; correction recorded in the JSON). The incumbent recipe refit on Deriv data on its
+> training clock (`r3`, NY 13:00-16:35 + 18:00-22:00) is too thin to read at its deploy coverage 0.02 (1 of 15 paths
+> reaches 25 trades) and INVALID by drift.
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -339,4 +350,5 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 | e4seed3 | e4seed3: all (66), nseed 3 | 15m | 0.03 | .5261 (.5155) | .5394 · .867 · .5915 | 2/3 · .5754 | .4674 · .250 · .5137 | 0/1 · .5333 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (8/15, 2 clear) | 0.80 / 0.12 | `deriv_e4seed3_USDJPY_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5275 (.5179) | .5167 · .867 · .5848 | 2/4 · .5575 | .5085 · .750 · .5923 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (8/15, 6 clear) | 0.67 / 0.75 | `deriv_e7fitall_USDJPY_15m_result.json` |
 | r2 | r2: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5263 (.5047) | .6200 · 1.0 · .6589 | 0/0 · — | .5698 · 1.0 · .5698 | 0/0 · — | .5121 / .4771 | CERTIFIED / CERTIFIED | no (7/15, 7 clear) / no (1/15, 1 clear) | 1.00 / 1.00 | `deriv_r2_USDJPY_15m_result.json` |
+| r3 | r3: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5222 (.5124) | .6800 · 1.0 · .6800 | 0/0 · — | nan · .000 · — | 0/0 · — | .5196 / .4660 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (1/15, 1 clear) / no (0/15, 0 clear) | 1.00 / — | `deriv_r3_USDJPY_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

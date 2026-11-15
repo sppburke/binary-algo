@@ -102,7 +102,7 @@ class XFitter(cd.Fitter):
         """One seed of the selected model class: (validation probabilities, test probabilities, iterations)."""
         a = self.a
         pv, pt, its = [], [], []
-        if a.model in ('lgb', 'ens3'):
+        if a.model in ('lgb', 'ens3', 'pool'):
             m = make_model(a, sd)
             kw = {} if self.wfit is None else {'sample_weight': self.wfit}
             if a.no_early_stop:                     # validation rows only set the threshold
@@ -130,14 +130,22 @@ class XFitter(cd.Fitter):
             c.fit(fill(Xf), yf, eval_set=(fill(Xv), yv))
             pv.append(c.predict_proba(fill(Xv))[:, 1]); pt.append(c.predict_proba(fill(Xt))[:, 1])
             its.append(int(c.get_best_iteration() or 0))
-        if a.model == 'logit':                      # low-capacity linear model (L2, fixed C chosen before any run)
+        if a.model in ('logit', 'pool'):            # low-capacity linear model (L2, fixed C chosen before any run)
             from sklearn.linear_model import LogisticRegression
             F, V, T = standardize(Xf, Xv, Xt)
             m = LogisticRegression(C=a.logit_c, max_iter=3000)
             m.fit(F, yf)
             pv.append(m.predict_proba(V)[:, 1]); pt.append(m.predict_proba(T)[:, 1])
             its.append(int(np.max(m.n_iter_)))
-        if a.model == 'nystroem':                   # SWEEP_MATRIX B6: RBF kernel (Nystroem features) + logistic SGD
+        if a.model in ('forest', 'pool'):           # shallow bagged extremely-randomized trees (literature: weak-signal baseline)
+            from sklearn.ensemble import ExtraTreesClassifier
+            F, V, T = standardize(Xf, Xv, Xt)
+            m = ExtraTreesClassifier(n_estimators=300, max_depth=8, min_samples_leaf=200, max_features=0.3,
+                                     bootstrap=True, max_samples=0.5, n_jobs=a.n_jobs, random_state=sd)
+            m.fit(F, yf)
+            pv.append(m.predict_proba(V)[:, 1]); pt.append(m.predict_proba(T)[:, 1])
+            its.append(300)
+        if a.model in ('nystroem', 'pool'):         # SWEEP_MATRIX B6: RBF kernel (Nystroem features) + logistic SGD
             from sklearn.kernel_approximation import Nystroem
             from sklearn.linear_model import SGDClassifier
             F, V, T = standardize(Xf, Xv, Xt)
@@ -313,10 +321,11 @@ def main():
     ap.add_argument('--n-estimators', type=int, default=800)
     ap.add_argument('--colsample', type=float, default=0.5)
     ap.add_argument('--reg-lambda', type=float, default=20.0)
-    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem'),
+    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool'),
                     help='lgb (default, the mirror); ens3 = LightGBM + XGBoost + CatBoost mean (SWEEP_MATRIX A1; XGB/Cat use '
                          '--n-estimators/--lr); logit = L2 logistic regression on fit-pool-standardized features; '
-                         'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6)')
+                         'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6); forest = shallow bagged '
+                         'extra-trees; pool = equal-weight probability mean of lgb, logit, forest and nystroem')
     ap.add_argument('--cat-depth', type=int, default=8)
     ap.add_argument('--comp-gate', type=float, default=None,
                     help='SWEEP_MATRIX A2 compression gate: trade only rows with rv_60m <= its fit-pool quantile q (e.g. 0.33)')
