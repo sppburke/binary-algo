@@ -116,15 +116,12 @@ discipline, not a replay of the live executor's concurrency; v0.1 cross-pair sta
 ## Deriv history depth (data ceiling)
 
 Deriv serves tick history for about **365 days** (archive README `/mnt/data/deriv/README.md`: on 2026-11-14, Friday
-2025-11-14 18:00 UTC was no longer served, Monday 2025-11-17 00:00 UTC was). The "retention >= 26.5 years" recorded by
-`scripts/deriv_api_probe.py` probe (d) (`results/json/deriv_api_probe_result.json` `decisions.tick_retention_days_min`,
-quoted in `docs/DERIV_DEMO_EXECUTOR.md` (d)) is an artifact: its `_has_ticks_at_or_before` requests `ticks_history` with
-`end` and no `start` and only tests that the reply is non-empty, while the API ignores `end` without `start` and returns
-recent ticks (archive README, reply-shape check of 2026-11-15). The lab archive (from 2025-08-11) is therefore the
-maximum Deriv-only history; it grows only forward. Deriv-only models are data-limited (about 15 months of DEV); this is
-the main structural constraint behind the null results of 15-month models in hours where 10-year frozen books still
-carry signal (R1bt). That docs/DERIV_DEMO_EXECUTOR.md (d) needs a correction is recorded here; the edit itself is a
-separate dev-cycle change.
+2025-11-14 18:00 UTC was no longer served, Monday 2025-11-17 00:00 UTC was). The "retention >= 26.5 years" of
+`scripts/deriv_api_probe.py` probe (d) is an artifact; the mechanism and the corrected reading are in
+`docs/DERIV_DEMO_EXECUTOR.md` (d). The lab archive (from 2025-08-11) is therefore the maximum Deriv-only history; it
+grows only forward: about 12 months of DEV and about 15 months across DEV and the holdout. Whether this short history
+explains the null results in hours where 10-year frozen books still score on the Deriv feed (R1bt; per-key results
+files) is a hypothesis that no experiment here has isolated.
 
 ## Holdout discipline (registered 2026-11-15, before any holdout data is opened)
 
