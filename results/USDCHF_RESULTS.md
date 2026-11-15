@@ -152,6 +152,15 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
+> **USDCHF 15m UP — drift placebo (2026-11-15, hand-written; numbers from the cited JSONs).** `e1t` (NY 08:00-16:35
+> tradeable, coverage 0.03) is VALID (in-session moved up-rate 0.5090) and KILLED: UP p10 0.5292, 10 of 15 paths clear
+> .541, moved AUC 0.500 over all rows. Its UP trades nevertheless beat always-UP on 14 of 15 paths (mean +0.069), and
+> the drift placebo `deriv_a1placebo_USDCHF_15m_result.json` (E1t re-run with predictions dumped; rebuilt trades match
+> the run exactly) finds +0.066 over always-UP baselines matched on New York hour × rv_60m tercile with 14 of 15 CPCV
+> paths positive (pre-registered reading met: SKILL BEYOND DRIFT TIMING; forward folds +0.061, 3/3). The selection skill
+> sits on a baseline near 0.50, so the side's absolute win rate does not reach the certification bar. DOWN: +0.008, 8 of
+> 14 paths positive (no skill).
+
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
 

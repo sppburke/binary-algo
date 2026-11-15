@@ -26,7 +26,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-VERSION = 'analyze_drift_placebo/0.1'
+VERSION = 'analyze_drift_placebo/0.2'   # 0.2: the reading is computed on the 15 CPCV paths only (0.1 pooled the forward-walk folds in)
 
 
 def main():
@@ -87,13 +87,19 @@ def one_side(a, d, labels, rv, side, gap, ref):
             row.update({'wr_model': wr, 'base_always': b_all, 'base_hour': b_h, 'base_hour_vol': b_hv,
                         'excess_always': wr - b_all, 'excess_hour': wr - b_h, 'excess_hour_vol': wr - b_hv})
         paths.append(row)
-    cnt = [r for r in paths if r['n_trades'] >= cd.MIN_TRADES]
-    summ = {}
-    for k in ('excess_always', 'excess_hour', 'excess_hour_vol'):
-        x = [r[k] for r in cnt]
-        summ[k] = {'mean': float(np.mean(x)) if x else None, 'n_positive': int(sum(e > 0 for e in x)), 'n_counted': len(x)}
+    def summarize(rows):
+        cnt = [r for r in rows if r['n_trades'] >= cd.MIN_TRADES]
+        out = {}
+        for k in ('excess_always', 'excess_hour', 'excess_hour_vol'):
+            x = [r[k] for r in cnt]
+            out[k] = {'mean': float(np.mean(x)) if x else None, 'n_positive': int(sum(e > 0 for e in x)), 'n_counted': len(x)}
+        return out
+    # the reading is on the 15 CPCV paths only; the forward-walk folds (labels 'forward g*') are reported apart
+    summ = summarize([r for r in paths if not str(r['test']).startswith('forward')])
+    summ_fwd = summarize([r for r in paths if str(r['test']).startswith('forward')])
     hv = summ['excess_hour_vol']
-    return {'paths': paths, 'summary': summ, 'rebuild_matches_run': bool(match) if ref is not None else None,
+    return {'paths': paths, 'summary': summ, 'summary_forward_walk': summ_fwd,
+            'rebuild_matches_run': bool(match) if ref is not None else None,
             'verdict': ('SKILL BEYOND DRIFT TIMING' if hv['n_counted'] and hv['n_positive'] >= 12 and hv['mean'] >= 0.02
                         else 'EXPLAINED BY DRIFT TIMING (hour x volatility) or too thin')}
 

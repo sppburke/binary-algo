@@ -277,6 +277,19 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > (rule unchanged); whether to replace the band with mirage diagnostics plus a drift-neutral requirement is an open
 > owner decision (docs/DERIV_SOTA_PROGRAM.md).
 
+> **USDJPY 15m UP — ablations and drift placebo (2026-11-15, hand-written; numbers from the cited JSONs).** At the
+> operating coverage 0.03 (NY 08:00-16:35 tradeable), removing the clock or the slow (480/1440-minute) features or both
+> keeps the moved AUC (0.5256 `e1t`, 0.5244 `e2noclock`, 0.5267 `e11noslow`, 0.5248 `e12noslowclock`) and the UP excess
+> over always-UP (+0.080 on 15/15 paths, +0.084 on 15/15, +0.062 on 14/15, +0.050 on 14/15); UP p10 0.5554 / 0.5425 /
+> 0.5345 / 0.5288 with 14 / 14 / 11 / 12 of 15 paths clearing .541. Forward walks have about 50 trades per fold
+> (3/3, 0/3, 4/4, 2/4 counted folds clear) and do not separate the variants. Every run is INVALID by the moved up-rate
+> band (drift), so none certifies. Drift placebo `deriv_a1placebo_USDJPY_15m_result.json` (E1t re-run with its
+> predictions dumped; the rebuilt trades match the run exactly): against always-UP baselines matched on New York hour
+> and on hour × rv_60m tercile within each path, the UP trades' excess is +0.066 (hour × volatility) with 14 of 15 CPCV
+> paths positive (pre-registered reading met: SKILL BEYOND DRIFT TIMING); forward folds +0.045, 3/3 positive. DOWN:
+> +0.077 on 8/8 counted paths, below the 12-path reading (too thin). The analysis' first version pooled the forward
+> folds into the reading; the JSON records the correction.
+
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
 
@@ -314,6 +327,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 
 | Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e11noslow | e11noslow: list:v01_noslow_USDJPY.json (61), nseed 1 | 15m | 0.03 | .5267 (.5195) | .5345 · .733 · .5773 | 4/4 · .5734 | .4543 · .500 · .5304 | 2/3 · .5576 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 11 clear) / no (14/15, 7 clear) | 0.53 / 0.29 | `deriv_e11noslow_USDJPY_15m_result.json` |
+| e12noslowclock | e12noslowclock: list:v01_noslow_noclock_USDJPY.json (58), nseed 1 | 15m | 0.03 | .5248 (.5140) | .5288 · .800 · .5656 | 2/4 · .5628 | .4321 · .400 · .5217 | 0/3 · .4752 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 12 clear) / no (15/15, 6 clear) | 0.40 / 0.40 | `deriv_e12noslowclock_USDJPY_15m_result.json` |
 | e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5234 (.5138) | .5100 · .533 · .5731 | 3/3 · .6004 | .3544 · .500 · .4961 | 0/0 · — | .5193 / .4663 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 8 clear) / no (8/15, 4 clear) | 0.40 / 0.38 | `deriv_e14nylate_USDJPY_15m_result.json` |
 | e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5276 (.5082) | .5397 · .786 · .6119 | 1/1 · .6452 | nan · .000 · — | 0/0 · — | .5332 / .4520 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (14/15, 11 clear) / no (0/15, 0 clear) | 0.79 / — | `deriv_e15nypm_USDJPY_15m_result.json` |
 | e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5096 (.4975) | .4111 · .500 · .5369 | 2/2 · .6333 | .4171 · .000 · .4625 | 0/0 · — | .5053 / .4807 | KILLED / KILLED | no (14/15, 7 clear) / no (7/15, 0 clear) | 0.36 / 0.00 | `deriv_e16nyeve_USDJPY_15m_result.json` |

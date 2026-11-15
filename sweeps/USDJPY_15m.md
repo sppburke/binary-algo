@@ -177,8 +177,8 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E9BLOCKVAL | E1t with a time-block validation set (last 15% of training rows, purged) setting the threshold; all 800 trees (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E11NOSLOW | E1t without the slow features (480/1440-minute windows): trap #9 ablation (`cpcv_deriv.py`) | 15m | running | — | — |
-| E12NOSLOWCLOCK | E1t without slow and clock features: trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E11NOSLOW | E1t without the slow features (480/1440-minute windows): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e11noslow_USDJPY_15m_result.json` |
+| E12NOSLOWCLOCK | E1t without slow and clock features: trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e12noslowclock_USDJPY_15m_result.json` |
 | E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
