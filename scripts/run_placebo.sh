@@ -8,12 +8,13 @@ LAB=/mnt/data/deriv-sota-lab
 T=$LAB/tools/lab_test.sh
 PY=/home/sean/binary-algo-venv/bin/python
 pair=$1
+H=${HORIZON:-15}                            # horizon in minutes (HORIZON=30 for the 30-minute key)
 exp=${2:-a1placebo}
 shift; [[ $# -gt 0 ]] && shift
-id="$exp-$pair-15m"
-out=/home/sean/git/binary-algo/results/json/deriv_${exp}_${pair}_15m_result.json
-$T start "$id" "$exp: cpcv_deriv_x.py $pair [$*] 15m NY with --dump-preds, then hour / hour x volatility matched always-side baselines per CPCV path" > /dev/null || exit 1
-$T run "$id" 5400 14 -- bash -c "$PY -B $LAB/tools/cpcv_deriv_x.py --pair $pair --horizon 15 --tag $exp --out result.json --dump-preds dump.npz $* > x.log 2>&1 && $PY -B $LAB/tools/analyze_drift_placebo.py dump.npz $LAB/cache/dataset_dev_v0.1 $pair placebo.json --result result.json" > /dev/null
+id="$exp-$pair-${H}m"
+out=/home/sean/git/binary-algo/results/json/deriv_${exp}_${pair}_${H}m_result.json
+$T start "$id" "$exp: cpcv_deriv_x.py $pair [$*] ${H}m NY with --dump-preds, then hour / hour x volatility matched always-side baselines per CPCV path" > /dev/null || exit 1
+$T run "$id" 5400 14 -- bash -c "$PY -B $LAB/tools/cpcv_deriv_x.py --pair $pair --horizon $H --tag $exp --out result.json --dump-preds dump.npz $* > x.log 2>&1 && $PY -B $LAB/tools/analyze_drift_placebo.py dump.npz $LAB/cache/dataset_dev_v0.1 $pair placebo.json --result result.json --horizon $H" > /dev/null
 rc=$?
 if [[ $rc -eq 0 && -s $LAB/tests/$id/placebo.json ]]; then
   cp "$LAB/tests/$id/placebo.json" "$out"

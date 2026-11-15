@@ -35,7 +35,8 @@ from cpcv_deriv_x import LOCAL_WINDOWS, session as x_session  # noqa: E402
 if Path(sys.modules['cpcv_deriv_x'].__file__).resolve().parent != Path(__file__).resolve().parent:
     raise SystemExit(f'holdout_eval: cpcv_deriv_x resolved to {sys.modules["cpcv_deriv_x"].__file__}, not the harness next to this file')
 
-HOLDOUT_VERSION = 'holdout_eval/0.6'   # 0.6: --weight absret (as cpcv_deriv_x); drift test unavailable without volatility cut
+HOLDOUT_VERSION = 'holdout_eval/0.6.1'  # 0.6.1: falsifier text names owner decision 6 (two-look seq_decision); numbers unchanged
+# 0.6: --weight absret (as cpcv_deriv_x); drift test unavailable without volatility cut
 #                                        points; Bonferroni flag renamed to context (binding = caller's Holm); harness provenance
 #                                        enforced (next to this file)
 #                                        0.5: drift_matched = NY hour x rv_60m tercile (binding, owner decision 1) with
@@ -163,10 +164,12 @@ def main():
            'session': a.session, 'cov': a.cov, 'holdout': [a.holdout_start, a.holdout_end], 'breakeven': cd.BE,
            'n_candidates_opened_for_key': a.n_candidates,
            'falsifier': {'registered_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'when': 'before the holdout is scored',
-                         'binding_decision': 'made by the caller per holdout/REGISTER.md: Holm step-down across the key\'s '
-                                             'finalists on PRIMARY p_boot_le_breakeven (one-sided family alpha 0.025), PRIMARY '
-                                             'n >= 50, a higher point win rate than every incumbent book on the same window, '
-                                             'and for a drift-amended key drift_matched.passes (owner decision 1)',
+                         'binding_decision': 'made by holdout/seq_decision.py per holdout/REGISTER.md (owner decision 6: '
+                                             'two-look group-sequential test, one finalist per key, one-sided family alpha '
+                                             '0.025): exact binomial boundaries on the cumulative PRIMARY wins with floors '
+                                             'z >= 2.80 (look 1) and z >= 1.98 (look 2), plus PRIMARY n >= 50, '
+                                             'drift_matched.passes (owner decision 1) and every incumbent book beaten on the '
+                                             'same window; the earlier Holm and Bonferroni readings are superseded',
                          'bonferroni_context_iff': 'PRIMARY n >= 50 AND the Bonferroni (1 - 0.05/n_candidates) bootstrap '
                                                    'lower bound >= 0.541 (context only; superseded by Holm)'},
            'code': {'holdout_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__),

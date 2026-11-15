@@ -144,6 +144,22 @@ gate certifies it. (Holm replaced the first registration's single-step Bonferron
 before any holdout data was read; lab `holdout/REGISTER.md`. `holdout_eval.py` still reports the Bonferroni reading as
 `bonferroni_context_eligible`, context only.)
 
+**Two-look sequential holdout (owner decision 6, 2026-11-15; supersedes the single look and the Holm step-down for the
+opened keys).** A DEV-only power estimate showed that one look at the 15-week window would pass a real DEV-sized edge
+only about 26-29% of the time for the USDJPY 15m kernel and 15-53% for the 30m kernel (estimates: DEV trade rate and win
+rate, normal approximation). The owner chose one finalist per key - USDJPY 15m UP `e30nystroem`, USDJPY 30m UP
+`e49nys30` - and a two-look group-sequential test with one-sided alpha 0.025 per key, on the cumulative PRIMARY wins
+from 2026-08-01: look 1 on the window to 2026-11-14, look 2 on the window to 2027-02-26 (Deriv ticks backfilled after
+that date). The boundaries are exact binomial win counts at the null win rate 0.541 (look 1 spends 0.00258, look 2 the
+rest given the realized trade counts), with the owner's quoted z >= 2.80 and z >= 1.98 as floors that are never relaxed;
+the exact family-wise error is at most 0.025 by construction (0.018-0.0225 on a grid of trade counts from 50/100 to
+400/800; e.g. 128 wins of 199 trades at look 1, 236 of 398 at look 2). Certification at a look also needs PRIMARY n >=
+50, the drift-matched test and a win fraction above every incumbent book's on the same window; otherwise the test
+continues to look 2. The null model - nonoverlapping trade outcomes independent given the past, the same assumption as
+the single-look CI95 rule - was checked on the finalists' DEV trades (day- and week-clustered variance inflation
+0.71-0.89, no overdispersion). The exact rule, finalist commands and the decision tool (`scripts/seq_decision.py`, lab
+`holdout/seq_decision.py`) are in lab `holdout/REGISTER.md`.
+
 ## Experiment record
 
 Lab registry `/mnt/data/deriv-sota-lab/registry/tests.jsonl` (append-only: start, run, finish, clean for every test;
@@ -258,8 +274,8 @@ describe different true hours than the live Deriv feed. The closures are kept, n
      unavailable, and never passes, unless the rv_60m tercile cut points are finite and distinct.
    - *Staging*: "DEV-certified under the amendment" = the goal path test + mirage check + DEV placebo (generated in
      `results/<PAIR>_RESULTS.md` by `scripts/render_ledger.py` `amended_verdict`). Final certification additionally
-     needs the holdout drift test and the unchanged holdout conditions (Holm test, PRIMARY n >= 50, beating every
-     incumbent book; Holdout discipline above) and then the full per-fold-refit CPCV. A configuration without its own
+     needs the holdout drift test and the holdout conditions (owner decision 6's two-look test, PRIMARY n >= 50,
+     beating every incumbent book; Holdout discipline above) and then the full per-fold-refit CPCV. A configuration without its own
      placebo run stays INVALID. This is an owner exception for this program; strategy-eval §2 is unchanged elsewhere.
 
 ## Open owner decisions

@@ -9,12 +9,13 @@ LAB=/mnt/data/deriv-sota-lab
 T=$LAB/tools/lab_test.sh
 PY=/home/sean/binary-algo-venv/bin/python
 pair=$1
+H=${HORIZON:-15}                            # horizon in minutes (HORIZON=30 for the 30-minute key)
 exp=${2:-a2delay}
 shift; [[ $# -gt 0 ]] && shift
-id="$exp-$pair-15m"
-out=/home/sean/git/binary-algo/results/json/deriv_${exp}_${pair}_15m_result.json
-$T start "$id" "$exp: cpcv_deriv_x.py $pair [$*] 15m NY with --dump-preds, frozen trades re-settled with +0/2/4/9/29 s extra entry delay; staleness terciles" > /dev/null || exit 1
-$T run "$id" 5400 14 -- bash -c "$PY -B $LAB/tools/cpcv_deriv_x.py --pair $pair --horizon 15 --tag $exp --out result.json --dump-preds dump.npz $* > x.log 2>&1 && DERIV_ALLOW_INCOMPLETE=1 $PY -B $LAB/tools/analyze_entry_delay.py dump.npz $pair delay.json" > /dev/null
+id="$exp-$pair-${H}m"
+out=/home/sean/git/binary-algo/results/json/deriv_${exp}_${pair}_${H}m_result.json
+$T start "$id" "$exp: cpcv_deriv_x.py $pair [$*] ${H}m NY with --dump-preds, frozen trades re-settled with +0/2/4/9/29 s extra entry delay; staleness terciles" > /dev/null || exit 1
+$T run "$id" 5400 14 -- bash -c "$PY -B $LAB/tools/cpcv_deriv_x.py --pair $pair --horizon $H --tag $exp --out result.json --dump-preds dump.npz $* > x.log 2>&1 && DERIV_ALLOW_INCOMPLETE=1 $PY -B $LAB/tools/analyze_entry_delay.py dump.npz $pair delay.json --horizon $H" > /dev/null
 rc=$?
 if [[ $rc -eq 0 && -s $LAB/tests/$id/delay.json ]]; then
   cp "$LAB/tests/$id/delay.json" "$out"

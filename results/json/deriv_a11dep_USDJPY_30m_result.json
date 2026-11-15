@@ -1,0 +1,232 @@
+{
+ "analysis": "analyze_dependence/0.1",
+ "pair": "USDJPY",
+ "horizon_min": 30,
+ "cov": "0.03",
+ "side": "UP",
+ "dump": "dump30.npz",
+ "pre_registered_reading": "SUPPORTED iff the median vif_day and the median vif_week over counted paths (>= 25 trades) are both <= 1.15, else OVERDISPERSED",
+ "registered_utc": "2026-11-15T23:31:51Z",
+ "paths": [
+  {
+   "test": "[0, 1]",
+   "n_trades": 160,
+   "win_rate": 0.6875,
+   "vif_day": 0.9620454545454545,
+   "days": 51,
+   "vif_week": 0.8301988636363636,
+   "weeks": 17,
+   "acf1": -0.050275229357798164,
+   "trades_per_day": 3.1372549019607843
+  },
+  {
+   "test": "[0, 2]",
+   "n_trades": 170,
+   "win_rate": 0.6235294117647059,
+   "vif_day": 0.8648419811320753,
+   "days": 51,
+   "vif_week": 0.6666052476415093,
+   "weeks": 17,
+   "acf1": -0.005952380952380876,
+   "trades_per_day": 3.3333333333333335
+  },
+  {
+   "test": "[0, 3]",
+   "n_trades": 138,
+   "win_rate": 0.6086956521739131,
+   "vif_day": 0.6824956316168156,
+   "days": 48,
+   "vif_week": 0.9449582087263245,
+   "weeks": 16,
+   "acf1": -0.14998965244083376,
+   "trades_per_day": 2.875
+  },
+  {
+   "test": "[0, 4]",
+   "n_trades": 155,
+   "win_rate": 0.6645161290322581,
+   "vif_day": 0.7867713427610076,
+   "days": 49,
+   "vif_week": 0.6629698206585147,
+   "weeks": 15,
+   "acf1": 0.012820512820512763,
+   "trades_per_day": 3.163265306122449
+  },
+  {
+   "test": "[0, 5]",
+   "n_trades": 164,
+   "win_rate": 0.6219512195121951,
+   "vif_day": 0.810306845003934,
+   "days": 51,
+   "vif_week": 1.0899308287437712,
+   "weeks": 17,
+   "acf1": -0.03140035342866049,
+   "trades_per_day": 3.215686274509804
+  },
+  {
+   "test": "[1, 2]",
+   "n_trades": 136,
+   "win_rate": 0.6029411764705882,
+   "vif_day": 0.849349593495935,
+   "days": 51,
+   "vif_week": 0.9752862407516808,
+   "weeks": 18,
+   "acf1": 0.024770769902665433,
+   "trades_per_day": 2.6666666666666665
+  },
+  {
+   "test": "[1, 3]",
+   "n_trades": 131,
+   "win_rate": 0.5954198473282443,
+   "vif_day": 0.8991203329048579,
+   "days": 48,
+   "vif_week": 0.7091808942413868,
+   "weeks": 17,
+   "acf1": -0.08974358974358995,
+   "trades_per_day": 2.7291666666666665
+  },
+  {
+   "test": "[1, 4]",
+   "n_trades": 111,
+   "win_rate": 0.6216216216216216,
+   "vif_day": 0.9410905470688076,
+   "days": 49,
+   "vif_week": 1.1174199409493524,
+   "weeks": 18,
+   "acf1": -0.01095793566631317,
+   "trades_per_day": 2.2653061224489797
+  },
+  {
+   "test": "[1, 5]",
+   "n_trades": 121,
+   "win_rate": 0.6611570247933884,
+   "vif_day": 0.5717952974376608,
+   "days": 52,
+   "vif_week": 0.2662372386971318,
+   "weeks": 18,
+   "acf1": -0.2596480395183699,
+   "trades_per_day": 2.326923076923077
+  },
+  {
+   "test": "[2, 3]",
+   "n_trades": 128,
+   "win_rate": 0.609375,
+   "vif_day": 0.7028627622377622,
+   "days": 45,
+   "vif_week": 0.608789592760181,
+   "weeks": 18,
+   "acf1": -0.09654631083202529,
+   "trades_per_day": 2.8444444444444446
+  },
+  {
+   "test": "[2, 4]",
+   "n_trades": 98,
+   "win_rate": 0.673469387755102,
+   "vif_day": 1.0093339661445975,
+   "days": 44,
+   "vif_week": 0.787651424206046,
+   "weeks": 18,
+   "acf1": 0.02067307692307683,
+   "trades_per_day": 2.227272727272727
+  },
+  {
+   "test": "[2, 5]",
+   "n_trades": 148,
+   "win_rate": 0.5945945945945946,
+   "vif_day": 1.0830474705474709,
+   "days": 53,
+   "vif_week": 1.3756467697644168,
+   "weeks": 18,
+   "acf1": 0.17892912172573236,
+   "trades_per_day": 2.792452830188679
+  },
+  {
+   "test": "[3, 4]",
+   "n_trades": 106,
+   "win_rate": 0.6415094339622641,
+   "vif_day": 0.6056941438624035,
+   "days": 42,
+   "vif_week": 0.3604883462819091,
+   "weeks": 16,
+   "acf1": -0.09917203007501164,
+   "trades_per_day": 2.5238095238095237
+  },
+  {
+   "test": "[3, 5]",
+   "n_trades": 84,
+   "win_rate": 0.6547619047619048,
+   "vif_day": 0.9548130591023779,
+   "days": 42,
+   "vif_week": 0.49642434194158325,
+   "weeks": 16,
+   "acf1": -0.07792207792207784,
+   "trades_per_day": 2.0
+  },
+  {
+   "test": "[4, 5]",
+   "n_trades": 46,
+   "win_rate": 0.6521739130434783,
+   "vif_day": 0.45119565217391316,
+   "days": 21,
+   "vif_week": 0.5454849498327758,
+   "weeks": 14,
+   "acf1": -0.3000000000000004,
+   "trades_per_day": 2.1904761904761907
+  },
+  {
+   "test": "forward g2",
+   "n_trades": 47,
+   "win_rate": 0.574468085106383,
+   "vif_day": 1.060260047281324,
+   "days": 21,
+   "vif_week": 0.7556737588652482,
+   "weeks": 9,
+   "acf1": -0.06153846153846145,
+   "trades_per_day": 2.238095238095238
+  },
+  {
+   "test": "forward g3",
+   "n_trades": 70,
+   "win_rate": 0.5285714285714286,
+   "vif_day": 0.6246246246246249,
+   "days": 22,
+   "vif_week": 0.5242697242697244,
+   "weeks": 7,
+   "acf1": -0.36677961089022204,
+   "trades_per_day": 3.1818181818181817
+  },
+  {
+   "test": "forward g4",
+   "n_trades": 29,
+   "win_rate": 0.6206896551724138,
+   "vif_day": 0.8025949146638802,
+   "days": 13,
+   "vif_week": 1.2157038363934916,
+   "weeks": 8,
+   "acf1": 0.010901165669462153,
+   "trades_per_day": 2.230769230769231
+  },
+  {
+   "test": "forward g5",
+   "n_trades": 59,
+   "win_rate": 0.6101694915254238,
+   "vif_day": 0.9152051093097521,
+   "days": 26,
+   "vif_week": 0.7087324981577009,
+   "weeks": 9,
+   "acf1": -0.09848484848484848,
+   "trades_per_day": 2.269230769230769
+  }
+ ],
+ "summary": {
+  "paths_counted": 15,
+  "median_vif_day": 0.849349593495935,
+  "median_vif_week": 0.7091808942413868,
+  "median_acf1": -0.050275229357798164,
+  "median_trades_per_day": 2.7291666666666665,
+  "z_inflation_estimate": 1.0
+ },
+ "rebuild_matches_run": true,
+ "verdict": "SUPPORTED",
+ "code_sha256": "5cb82cce1c08961b3602cf526127071448db359055545aacac345ab5f54e27b4"
+}
