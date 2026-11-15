@@ -658,7 +658,7 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `NZDUSD.m15ny_seedens.v1` 0.4773 [0.4261, 0.5312] n=352 (NOT SUPPORTED); DOWN best `NZDUSD.m15ny_seedens.v1` 0.4955 [0.4318, 0.5591] n=220 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e17nyam` 7/12 clear, p10 0.436, excess +0.033; `e1t` 6/15 clear, p10 0.418, excess +0.031; `e30nystroem` 5/12 clear, p10 0.473, excess +0.036.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e15nypm` 5/12 clear, p10 0.470, excess +0.010; `e1t` 5/15 clear, p10 0.436, excess +0.017; `e17nyam` 5/11 clear, p10 0.385, excess +0.012.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e33comp33` 10/15 clear, p10 0.489, excess +0.066; `e15nypm` 5/12 clear, p10 0.470, excess +0.010; `e1t` 5/15 clear, p10 0.436, excess +0.017.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -701,5 +701,6 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5024 (.4961) | .4748 · .133 · .5017 | 1/4 · .5180 | .4675 · .000 · .4909 | 0/4 · .4478 | .4885 / .4951 | KILLED / KILLED | no (15/15, 2 clear) / no (15/15, 0 clear) | 0.13 / 0.00 | `deriv_e29logit_NZDUSD_15m_result.json` |
 | e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5069 (.5008) | .4729 · .417 · .5238 | 1/3 · .4842 | .4665 · .200 · .5031 | 0/3 · .4977 | .4885 / .4951 | KILLED / KILLED | no (12/15, 5 clear) / no (15/15, 3 clear) | 0.25 / 0.07 | `deriv_e30nystroem_NZDUSD_15m_result.json` |
 | e32spec | e32spec: all (66), nseed 1 | 15m | 0.03 | .5058 (.4997) | .4169 · .200 · .4918 | 1/4 · .5173 | .4729 · .267 · .5255 | 1/4 · .5316 | .4885 / .4951 | KILLED / KILLED | no (15/15, 3 clear) / no (15/15, 4 clear) | 0.00 / 0.20 | `deriv_e32spec_NZDUSD_15m_result.json` |
+| e33comp33 | e33comp33: all (66), nseed 1 | 15m | 0.1 | .5105 (.5022) | .4149 · .267 · .5078 | 0/1 · .4773 | .4887 · .667 · .5615 | 0/0 · — | .4885 / .4951 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 10 clear) | 0.20 / 0.60 | `deriv_e33comp33_NZDUSD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5061 (.4998) | .4093 · .067 · .4740 | 0/1 · .5349 | .4077 · .267 · .5133 | 0/3 · .4275 | .4885 / .4951 | KILLED / KILLED | no (15/15, 1 clear) / no (15/15, 4 clear) | 0.00 / 0.20 | `deriv_e7fitall_NZDUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 from cpcv_deriv_x import LOCAL_WINDOWS, session as x_session  # noqa: E402
 
-HOLDOUT_VERSION = 'holdout_eval/0.2'   # 0.2: Deriv purchase-blackout decisions excluded; local NY windows accepted
+HOLDOUT_VERSION = 'holdout_eval/0.3'   # 0.3: --model (cpcv_deriv_x model classes); 0.2: blackout excluded; local NY windows
 
 
 def boot(corr, nb=5000, seed=7, alpha=0.05):
@@ -59,12 +59,25 @@ def fit_predict(X, fwd, train_idx, score_mask, a, rng, others=None):
     yval = (fwd[val_idx] > 0).astype(int)
     pval = np.zeros(len(val_idx))
     ps = np.zeros(int(score_mask.sum()))
-    for sd in range(a.nseed):
-        m = cd.mk_lgb(sd, a.num_leaves, a.n_jobs)
-        m.fit(Xfit, yfit, eval_set=[(X[val_idx], yval)], eval_metric='auc',
-              callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)])
-        pval += m.predict_proba(X[val_idx])[:, 1]
-        ps += m.predict_proba(X[score_mask])[:, 1]
+    if a.model != 'lgb':                    # the CPCV variant harness's own model code (cpcv_deriv_x.XFitter.fit_one)
+        import cpcv_deriv_x as cx
+        from types import SimpleNamespace
+        ns = SimpleNamespace(model=a.model, nseed=a.nseed, n_jobs=a.n_jobs, lr=0.02, num_leaves=a.num_leaves, min_child=400,
+                             colsample=0.5, reg_lambda=20.0, n_estimators=800, no_early_stop=False, cat_depth=a.cat_depth,
+                             logit_c=a.logit_c, nys_gamma_mult=a.nys_gamma_mult, nys_components=a.nys_components)
+        fx = cx.XFitter(X, fwd, np.zeros(len(fwd), dtype=np.int64), ns, 0, [a.cov])
+        fx.wfit = None
+        for sd in range(a.nseed):
+            pv, pt, _ = fx.fit_one(sd, Xfit, yfit, X[val_idx], yval, X[score_mask])
+            pval += pv
+            ps += pt
+    else:
+        for sd in range(a.nseed):
+            m = cd.mk_lgb(sd, a.num_leaves, a.n_jobs)
+            m.fit(Xfit, yfit, eval_set=[(X[val_idx], yval)], eval_metric='auc',
+                  callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)])
+            pval += m.predict_proba(X[val_idx])[:, 1]
+            ps += m.predict_proba(X[score_mask])[:, 1]
     pval /= a.nseed
     ps /= a.nseed
     return ps, float(np.quantile(np.abs(pval - 0.5), 1 - a.cov)), int(len(yfit))
@@ -80,6 +93,12 @@ def main():
     ap.add_argument('--pool', default=None)
     ap.add_argument('--nseed', type=int, default=3)
     ap.add_argument('--num-leaves', type=int, default=255)
+    ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool'),
+                    help='lgb = repository mk_lgb (default); otherwise cpcv_deriv_x.py --model, same code')
+    ap.add_argument('--nys-gamma-mult', type=float, default=1.0)
+    ap.add_argument('--nys-components', type=int, default=500)
+    ap.add_argument('--logit-c', type=float, default=0.05)
+    ap.add_argument('--cat-depth', type=int, default=8)
     ap.add_argument('--session', default='ny')
     ap.add_argument('--cov', type=float, required=True)
     ap.add_argument('--holdout-start', default='2026-08-01')
@@ -110,6 +129,8 @@ def main():
            'data': 'Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy',
            'dataset': a.dataset, 'features': feats, 'n_features': len(feats), 'feature_set': a.feature_list or a.features,
            'pool': a.pool.split(',') if a.pool else None, 'nseed': a.nseed, 'num_leaves': a.num_leaves,
+           'model': {'model': a.model, 'nys_gamma_mult': a.nys_gamma_mult, 'nys_components': a.nys_components,
+                     'logit_c': a.logit_c, 'cat_depth': a.cat_depth},
            'session': a.session, 'cov': a.cov, 'holdout': [a.holdout_start, a.holdout_end], 'breakeven': cd.BE,
            'n_candidates_opened_for_key': a.n_candidates,
            'falsifier': {'registered_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'when': 'before the holdout is scored',

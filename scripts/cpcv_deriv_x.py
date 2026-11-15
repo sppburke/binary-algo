@@ -31,7 +31,9 @@ import cpcv_deriv as cd  # noqa: E402
 X_VERSION = 'cpcv_deriv_x/0.4'   # 0.4: --families (SWEEP_MATRIX family blocks), --train-label resid, --model; 0.3: shared
 #                                  unrounded aggregation (cpcv_deriv 0.4); 0.2: blackout excluded
 # Column prefixes of the SWEEP_MATRIX family blocks (tools/deriv_features_family.py, merged into dataset_dev_v0.3)
-FAMILY_PREFIXES = ('tf_', 'sg_', 'kf_', 'rm_', 'fd_', 'cx_', 'tk_', 'pa_', 'cm_')   # cm_: CCM block (dataset_dev_v0.4)
+FAMILY_PREFIXES = ('tf_', 'sg_', 'kf_', 'rm_', 'fd_', 'cx_', 'tk_', 'pa_',   # SWEEP_MATRIX blocks (dataset_dev_v0.3+)
+                   'cm_',                                                    # CCM block (v0.4+)
+                   'fx_', 'ck_', 'rl_', 'rs_')                               # literature blocks (v0.5)
 # Extra local-time windows (America/New_York, [start, end) hours) beyond sessions.py. 'nylate' = 13:00-22:00 ET: the
 # TRUE hours selected by session_mask('ny') on the Dukascopy-derived stores before 2025-08-22, whose timestamps were
 # true UTC - 5 h (see docs/DERIV_SOTA_PROGRAM.md) - i.e. where the incumbents' "NY" certifications actually lived.
@@ -149,7 +151,7 @@ class XFitter(cd.Fitter):
             from sklearn.kernel_approximation import Nystroem
             from sklearn.linear_model import SGDClassifier
             F, V, T = standardize(Xf, Xv, Xt)
-            ny = Nystroem(kernel='rbf', gamma=1.0 / F.shape[1], n_components=500, random_state=sd)
+            ny = Nystroem(kernel='rbf', gamma=a.nys_gamma_mult / F.shape[1], n_components=a.nys_components, random_state=sd)
             Fk = ny.fit_transform(F)
             m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd)
             m.fit(Fk, yf)
@@ -327,10 +329,14 @@ def main():
                          'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6); forest = shallow bagged '
                          'extra-trees; pool = equal-weight probability mean of lgb, logit, forest and nystroem')
     ap.add_argument('--cat-depth', type=int, default=8)
+    ap.add_argument('--nys-gamma-mult', type=float, default=1.0, help='RBF gamma = mult / n_features (nystroem, pool)')
+    ap.add_argument('--nys-components', type=int, default=500)
     ap.add_argument('--comp-gate', type=float, default=None,
                     help='SWEEP_MATRIX A2 compression gate: trade only rows with rv_60m <= its fit-pool quantile q (e.g. 0.33)')
     ap.add_argument('--meta-keep', type=float, default=None,
                     help='SWEEP_MATRIX A4 meta-labeler gate: keep the top share (e.g. 0.5) by P(primary side correct)')
+    ap.add_argument('--null-shift-weeks', type=int, default=0,
+                    help='analysis only: replace every label by the label W weeks later (sign-null replay); never certifies')
     ap.add_argument('--weight', default='none', choices=('none', 'absret'),
                     help='absret: LightGBM sample weights |settled return| / mean (fit rows only)')
     ap.add_argument('--aci-gamma', type=float, default=None,
@@ -385,6 +391,13 @@ def main():
             raise SystemExit(f'dataset {a.dataset} has no columns for families {sorted(want)}')
     label_dir = a.label_dir or str(cd.LAB / 'cache' / ('labels_resid_dev_v0.1' if a.train_label == 'resid' else 'labels_tb_dev_v0.1'))
     X, fwd, ts, feats = cd.load(a.dataset, a.pair, a.horizon, a.features, 1, listed)
+    if a.null_shift_weeks:
+        # SIGN-NULL REPLAY (literature: full-search null replay / reality check): every decision gets the settled label of
+        # the decision exactly W weeks later (circular over the dataset span; same weekday and UTC time of day), which keeps
+        # the label's drift and intraday structure and breaks any feature-label link. Missing matches become NaN.
+        span = int(ts.max() - ts.min()) + 60
+        tgt = ts.min() + ((ts - ts.min() + a.null_shift_weeks * 7 * 86400) % span)
+        fwd = pd.Series(fwd, index=ts).reindex(tgt).to_numpy(np.float64)
     sess = session(ts, a.session)
     tsess = session(ts, a.train_session)
     if not a.include_blackout:                   # Deriv purchase blackout: untradeable decisions out of every role
@@ -401,7 +414,8 @@ def main():
     knobs = {k: getattr(a, k) for k in ('train_session', 'num_leaves', 'min_child', 'lr', 'n_estimators', 'colsample', 'reg_lambda',
                                         'val_mode', 'no_early_stop', 'train_label', 'mag_keep', 'include_blackout', 'families',
                                         'model', 'cat_depth', 'logit_c', 'specialist', 'comp_gate', 'weight',
-                                        'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime')}
+                                        'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime', 'nys_gamma_mult',
+                                        'nys_components', 'null_shift_weeks')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
@@ -470,11 +484,14 @@ def main():
             print(f'  forward g{g} AUC={row["auc"]:.4f} | cov{covs[0]}: {cd.fmt_side(row["bycov"][f"{covs[0]}"])} '
                   f'({time.time() - t0:.0f}s)', flush=True)
     cd.aggregate(res, pathinfo, forward, covs, data_uprate, fitter.gain, feats)
-    if a.max_paths < 15:                         # smoke runs never certify
+    if a.max_paths < 15 or a.null_shift_weeks:   # smoke runs and null replays never certify
         for k in res['bycov']:
             for s in cd.SIDES:
                 res['bycov'][k]['verdict'][s]['CERTIFIED'] = False
-        res['verdict'] = {s: f'SMOKE ({a.max_paths} paths)' for s in ('UP', 'DOWN')}
+        tag = f'SMOKE ({a.max_paths} paths)' if a.max_paths < 15 else f'NULL REPLAY (labels shifted {a.null_shift_weeks} weeks)'
+        res['verdict'] = {s: tag for s in ('UP', 'DOWN')}
+        for s in res.get('verdict_goal', {}):
+            res['verdict_goal'][s]['CERTIFIED'] = False
     res['seconds'] = round(time.time() - t0, 1)
     out.write_text(json.dumps(res, indent=1))
     if a.dump_preds:

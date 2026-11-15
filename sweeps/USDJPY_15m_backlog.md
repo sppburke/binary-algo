@@ -61,3 +61,25 @@ Seeded from SWEEP_MATRIX Tier-N (also untested at USDJPY 15m): N17 anti-contempo
 
 - The preregistered Apr–May 2026 retrospective ended `INCONCLUSIVE` because its negative-control family was not estimable. The positive C point estimate did not clear the simultaneous promotion lower bounds; pair source: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_USDJPY_replay_result.json`.
 - Joint survivor set `S=[]`; no inactive candidate and no prospective shadow were opened. Do not rerun, retune, or reinterpret this spent one-look window. The incumbent and remaining separately scoped external-data ideas remain unchanged. Joint/shadow sources: `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_joint_replay_result.json`, `results/json/m15_book_refresh_53547498c599f2877a2f6616ae725f8f27e11070e3b550e82eb26ec039fb23f6_shadow_spec_result.json`.
+
+## DERIV-FEED PROGRAM backlog (literature-driven, 2026-11-15)
+
+> Deriv-only data, 15m/30m keys; protocol `docs/DERIV_SOTA_PROGRAM.md`; status and numbers per run in
+> `sweeps/USDJPY_15m.md` (DERIV-FEED PROGRAM LEDGER) and `results/USDJPY_RESULTS.md`. Source of every row: the literature
+> backlog `research/deriv_literature_2026-11-15/` (ranked, with spec and fast-kill falsifier).
+
+| Rank | Lever | Run id(s) for this key | Fast-kill falsifier (pre-registered) |
+|---:|---|---|---|
+| 1 | fixing-window response (London 16:00, ECB 14:15) | `e51fx`; rules `r4fixldn`, `r5fixecb` | CPCV KILL rule; the rule must clear .541 on >= 12 of 15 paths |
+| 2 | compact return kernels | `e52ck`, `e53ckcompact` | CPCV KILL rule; moved-AUC gain over `e1t` < .005 = no lift |
+| 3 | round levels vs shifted placebo | `e55rl` vs `e56rs` | real grid must beat the shifted grid on paths clear and p10 |
+| 5 | heterogeneous equal pool | `e41pool` | CPCV KILL rule |
+| 10 | USD-factor residual | covered by `e21kf`, `e22rm` | — |
+| 11 | compact sign logistic | `e54ckcompactlogit` | CPCV KILL rule |
+| 4, 6-9, 12-25 | Brier loss, shrunk stack, recency loss, sign reflection, fused lag penalty, size models, calibration-uncertainty gate, validation upgrades | pending (README dispositions) | per item in `consolidated_backlog.jsonl.gz` |
+
+**USDJPY-specific (best DEV edge: `e30nystroem` UP).** Levers on the edge: `e42nysnoclock`, `e43nysnoslow`,
+`e44nysseed3`, `e45nysaci`, `e46nysg05`, `e47nysg2`, `e48nysc1000`, `e49nys30` (done); adversarial checks `a3placebo`,
+`a4delay` (done); sign-null replay `a5null` (queued; pre-registered: SIGNIFICANT iff the real p10 out-ranks all but at
+most one of 16 nulls and at most 1 null meets the goal path test). Holdout finalist candidates are named in
+`/mnt/data/deriv-sota-lab/holdout/REGISTER.md` before the holdout is opened.

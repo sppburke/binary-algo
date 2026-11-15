@@ -561,3 +561,26 @@ selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell)
 > approach); realized semivariance asymmetry; a magnitude model used only as a gate (it halves the tie rate in the
 > traded set — ties lose for both sides); time-block validation for thresholds; fitting on all tradeable hours while
 > evaluating one window. Each runs under the pre-registered CPCV falsifier plus the forward-walk trap-#9 check.
+
+## Deriv-feed literature fan-out (2026-11-15) — every lever recorded, ranked and dispositioned
+
+Full corpus read (13,846 documents, one structured record each), 21,270 levers, 4,059 synthesis candidates and 2,420
+consolidated items with status, spec, sign-or-size, fast-kill falsifier, prior and quote checks:
+`research/deriv_literature_2026-11-15/` (README has the dispositions; `consolidated_backlog.jsonl.gz` is the
+machine-readable backlog). Generic lessons:
+
+> **No high-prior direction lever exists for a mid-only feed at 15-30 minutes.** All 9 high-prior items are validation
+> upgrades; the medium-prior direction items are regularization / pooling, fixing-window and round-level session
+> structure, and compact return kernels. Plan for nulls; size falsifiers to fail fast.
+
+> **Search-wide inference beats per-candidate inference.** When a key's best configuration is chosen from many variants,
+> certify it against a replay of the same procedure on sign-null labels that keep the drift and intraday structure
+> (labels shifted by whole weeks: `run_nullreplay.sh`), not only against the per-path breakeven.
+
+> **Adversarial checks that separated real selection skill from artifacts:** an always-side baseline matched on hour ×
+> volatility within each path (drift timing), an entry-delay stress with frozen trades re-settled from ticks (latency),
+> feed-staleness strata (stale-quote artifacts), and clock / slow-feature ablations with a forward walk (trap #9).
+
+> **Try a kernel model class before concluding a key is null.** On one key an RBF Nystrom + logistic model kept its
+> path results under the entry-delay stress where the LightGBM model of the same features did not [USDJPY·15m: see
+> `results/USDJPY_RESULTS.md`]; on the other keys both classes were null.

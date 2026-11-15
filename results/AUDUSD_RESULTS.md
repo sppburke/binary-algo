@@ -151,7 +151,7 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `AUDUSD.m15ny_seedens.v1` 0.5106 [0.4468, 0.5745] n=235 (NOT SUPPORTED); DOWN best `AUDUSD.m15ny_seedens.v1` 0.5129 [0.4741, 0.5503] n=696 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e29logit` 8/15 clear, p10 0.492, excess +0.048; `e7fitall` 7/15 clear, p10 0.498, excess +0.057; `e17nyam` 6/11 clear, p10 0.452, excess +0.026.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e1t` 6/15 clear, p10 0.464, excess +0.029; `e14nylate` 5/14 clear, p10 0.410, excess +0.000; `e7fitall` 4/15 clear, p10 0.417, excess -0.004.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e33comp33` 7/15 clear, p10 0.471, excess +0.043; `e1t` 6/15 clear, p10 0.464, excess +0.029; `e14nylate` 5/14 clear, p10 0.410, excess +0.000.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -194,5 +194,6 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5087 (.5005) | .4922 · .533 · .5379 | 1/4 · .5303 | .4470 · .067 · .4898 | 1/3 · .5052 | .4899 / .4926 | KILLED / KILLED | no (15/15, 8 clear) / no (15/15, 1 clear) | 0.27 / 0.00 | `deriv_e29logit_AUDUSD_15m_result.json` |
 | e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5110 (.5011) | .4636 · .000 · .5102 | 2/2 · .5946 | .4770 · .067 · .5090 | 0/4 · .4879 | .4899 / .4926 | KILLED / KILLED | no (13/15, 0 clear) / no (15/15, 1 clear) | 0.00 / 0.07 | `deriv_e30nystroem_AUDUSD_15m_result.json` |
 | e32spec | e32spec: all (66), nseed 1 | 15m | 0.03 | .5041 (.4960) | .4327 · .000 · .4661 | 1/4 · .5224 | .4440 · .067 · .4990 | 1/4 · .4739 | .4899 / .4926 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 1 clear) | 0.00 / 0.07 | `deriv_e32spec_AUDUSD_15m_result.json` |
+| e33comp33 | e33comp33: all (66), nseed 1 | 15m | 0.1 | .5042 (.4949) | .4405 · .154 · .4969 | 0/3 · .4233 | .4707 · .467 · .5360 | 0/2 · .4327 | .4899 / .4926 | KILLED / KILLED | no (13/15, 2 clear) / no (15/15, 7 clear) | 0.15 / 0.27 | `deriv_e33comp33_AUDUSD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5037 (.4951) | .4978 · .467 · .5465 | 0/3 · .4684 | .4169 · .267 · .4882 | 0/3 · .4660 | .4899 / .4926 | KILLED / KILLED | no (15/15, 7 clear) / no (15/15, 4 clear) | 0.27 / 0.07 | `deriv_e7fitall_AUDUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

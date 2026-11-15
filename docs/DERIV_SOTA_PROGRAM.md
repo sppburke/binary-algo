@@ -199,6 +199,17 @@ baseline on the same path (`excess_vs_always`). `analyze_drift_placebo.py` (run 
 within each path; its reading (skill beyond timing the drift iff the hour × volatility excess is positive on >= 12
 counted paths with mean >= 0.02) is written into the output before the predictions are opened.
 
+## Literature (phase 1, 2026-11-15)
+
+All 13,846 corpus documents were read into structured records; 21,270 levers were synthesized into 4,059 candidates
+and consolidated into 2,420 items mapped against this program's runs (`research/deriv_literature_2026-11-15/`: README
+with dispositions, compressed records and backlog). The ranked testable direction levers enter as `e51fx`, `e52ck`,
+`e53ckcompact`, `e54ckcompactlogit`, `e55rl` / `e56rs` (with a shifted-level placebo), `e40forest`, `e41pool` and the
+zero-parameter rules `r4fixldn` / `r5fixecb` (`scripts/cpcv_rule.py`: a rule scored on the CPCV paths with nothing
+fitted). The high-prior items are all validation upgrades; the sign-null replay (`scripts/run_nullreplay.sh`) applies
+the "full-search null replay" to the selected configuration. Literature blocks: `scripts/deriv_features_lit.py`
+(truncation-tested), merged as `dataset_dev_v0.5` (a superset of v0.3 and v0.4, which were removed).
+
 ## Closures respected
 
 The repository closures in AGENTS.md stand for this program unless the owner reopens them: no re-mining of the

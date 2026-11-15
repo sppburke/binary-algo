@@ -110,3 +110,19 @@
 | `GBP-QUOTE-PROSPECTIVE-1` | deferred—not unlocked | Fresh aligned proposal/tick capture with explicit shared-cycle/source clocks and adequate power | this screen is `positive_screen_requires_prospective` or `inconclusive_positive` | separate prospective experiment; add only fields proved necessary |
 | `GBP-QUOTE-INCUMBENT-1` | deferred—not unlocked | Test quote skew as an incremental filter for the active/refit GBPUSD book | a prospective standalone quote experiment is positive and a current book vintage/parity receipt exists | separate experiment; no automatic runtime change |
 | `GBP-QUOTE-DEMO-1` | deferred—not unlocked | Measure actual proposal→buy→terminal virtual-funds P&L | positive prospective quote-conditioned lower bound plus applicable parity, buyer, and reconciliation gates | separate reviewed issue with explicit demo-buy authority |
+
+## DERIV-FEED PROGRAM backlog (literature-driven, 2026-11-15)
+
+> Deriv-only data, 15m/30m keys; protocol `docs/DERIV_SOTA_PROGRAM.md`; status and numbers per run in
+> `sweeps/GBPUSD_15m.md` (DERIV-FEED PROGRAM LEDGER) and `results/GBPUSD_RESULTS.md`. Source of every row: the literature
+> backlog `research/deriv_literature_2026-11-15/` (ranked, with spec and fast-kill falsifier).
+
+| Rank | Lever | Run id(s) for this key | Fast-kill falsifier (pre-registered) |
+|---:|---|---|---|
+| 1 | fixing-window response (London 16:00, ECB 14:15) | `e51fx`; rules `r4fixldn`, `r5fixecb` | CPCV KILL rule; the rule must clear .541 on >= 12 of 15 paths |
+| 2 | compact return kernels | `e52ck`, `e53ckcompact` | CPCV KILL rule; moved-AUC gain over `e1t` < .005 = no lift |
+| 3 | round levels vs shifted placebo | `e55rl` vs `e56rs` | real grid must beat the shifted grid on paths clear and p10 |
+| 5 | heterogeneous equal pool | `e41pool` | CPCV KILL rule |
+| 10 | USD-factor residual | covered by `e21kf`, `e22rm` | — |
+| 11 | compact sign logistic | `e54ckcompactlogit` | CPCV KILL rule |
+| 4, 6-9, 12-25 | Brier loss, shrunk stack, recency loss, sign reflection, fused lag penalty, size models, calibration-uncertainty gate, validation upgrades | pending (README dispositions) | per item in `consolidated_backlog.jsonl.gz` |

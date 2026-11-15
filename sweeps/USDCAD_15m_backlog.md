@@ -59,3 +59,19 @@ Order-flow/OFI direction (USDJPY+EURUSD 15m, sign-invariance) [kept as R1-5 conf
 
 ### Earlier R1 cross-pair-transfer queue (pre-corpus, superseded by the above)
 Original FIRST-TO-RUN queue (NY session ✅done, all-session ✅done, seed-ens running) retained in the FIRST-TO-RUN table at top.
+
+## DERIV-FEED PROGRAM backlog (literature-driven, 2026-11-15)
+
+> Deriv-only data, 15m/30m keys; protocol `docs/DERIV_SOTA_PROGRAM.md`; status and numbers per run in
+> `sweeps/USDCAD_15m.md` (DERIV-FEED PROGRAM LEDGER) and `results/USDCAD_RESULTS.md`. Source of every row: the literature
+> backlog `research/deriv_literature_2026-11-15/` (ranked, with spec and fast-kill falsifier).
+
+| Rank | Lever | Run id(s) for this key | Fast-kill falsifier (pre-registered) |
+|---:|---|---|---|
+| 1 | fixing-window response (London 16:00, ECB 14:15) | `e51fx`; rules `r4fixldn`, `r5fixecb` | CPCV KILL rule; the rule must clear .541 on >= 12 of 15 paths |
+| 2 | compact return kernels | `e52ck`, `e53ckcompact` | CPCV KILL rule; moved-AUC gain over `e1t` < .005 = no lift |
+| 3 | round levels vs shifted placebo | `e55rl` vs `e56rs` | real grid must beat the shifted grid on paths clear and p10 |
+| 5 | heterogeneous equal pool | `e41pool` | CPCV KILL rule |
+| 10 | USD-factor residual | covered by `e21kf`, `e22rm` | — |
+| 11 | compact sign logistic | `e54ckcompactlogit` | CPCV KILL rule |
+| 4, 6-9, 12-25 | Brier loss, shrunk stack, recency loss, sign reflection, fused lag penalty, size models, calibration-uncertainty gate, validation upgrades | pending (README dispositions) | per item in `consolidated_backlog.jsonl.gz` |
