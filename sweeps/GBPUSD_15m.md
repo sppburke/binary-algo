@@ -158,7 +158,7 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 | E14NYLATE | E1t model in true NY 13:00-16:35 + 18:00-22:00 (the hours the Dukascopy-era NY gate actually selected), tradeable (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e14nylate_GBPUSD_15m_result.json` |
 | E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e15nypm_GBPUSD_15m_result.json` |
 | E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_e16nyeve_GBPUSD_15m_result.json` |
-| E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_GBPUSD_15m_result.json` |
 | R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E6POOL | E1t own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | pending | — | — |
