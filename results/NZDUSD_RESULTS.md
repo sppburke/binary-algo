@@ -657,10 +657,18 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `NZDUSD.m15ny_seedens.v1` 0.4510 [0.3725, 0.5294] n=153 (NOT SUPPORTED); DOWN best `NZDUSD.m15ny_seedens.v1` 0.5571 [0.4429, 0.6714] n=70 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `NZDUSD.m15ny_seedens.v1` 0.4773 [0.4261, 0.5312] n=352 (NOT SUPPORTED); DOWN best `NZDUSD.m15ny_seedens.v1` 0.4955 [0.4318, 0.5591] n=220 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e51fx` 9/15 clear, p10 0.437, excess +0.042; `e17nyam` 7/12 clear, p10 0.436, excess +0.033; `e56rs` 7/14 clear, p10 0.431, excess +0.049.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e33comp33` 10/15 clear, p10 0.489, excess +0.066; `e56rs` 7/15 clear, p10 0.458, excess +0.025; `e52ck` 6/15 clear, p10 0.429, excess +0.022.
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e51fx` 9/15 clear, p10 0.437, excess +0.042; `c7comp3b` 7/15 clear, p10 0.445, excess +0.036; `e17nyam` 7/12 clear, p10 0.436, excess +0.033.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e33comp33` 10/15 clear, p10 0.489, excess +0.066; `c8compabs` 9/15 clear, p10 0.520, excess +0.061; `c9compaci` 9/15 clear, p10 0.478, excess +0.055.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
+
+> **NZDUSD 15m DOWN — Tier-I levers on the gate base (2026-11-15, hand-written; numbers from the cited JSONs).** Base
+> `e33comp33` (LightGBM + compression gate 0.33, operating coverage 0.10): 10 of 15 paths clear, p10 0.4887, VALID.
+> Pre-registered reading (lab PROGRESS.md, by 13:11 UTC): a lever IMPROVES iff paths clear >= the base's and p10 > the
+> base's at the operating coverage on a VALID run. None does: `c8compabs` (|return| weights; 9, 0.5199 - higher p10,
+> one path fewer), `c9compaci` (9, 0.4780), `c7comp3b` (7, 0.4535), `c6nyscompb` (2, 0.4707), `c10compmeta` (coverage
+> doubled to 0.20 by design; 5, 0.4842). `c11compmag` leaves no path with 25 trades (at most 4 on a path). `c6nyscomp`
+> and `c7comp3` ran at coverage 0.03 by a queueing error and are recorded as coverage variants, not comparisons.
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -691,6 +699,14 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 
 | Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| c10compmeta | c10compmeta: all (66), nseed 1 | 15m | 0.2 | .5105 (.5022) | .4706 · .267 · .5182 | 1/2 · .5357 | .4842 · .333 · .5286 | 1/3 · .5338 | .4885 / .4951 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 5 clear) | 0.07 / 0.13 | `deriv_c10compmeta_NZDUSD_15m_result.json` |
+| c11compmag | c11compmag: all (66), nseed 1 | 15m | 0.1 | .5105 (.5022) | nan · .000 · — | 0/0 · — | nan · .000 · — | 0/0 · — | .4885 / .4951 | KILLED / KILLED | no (0/15, 0 clear) / no (0/15, 0 clear) | — / — | `deriv_c11compmag_NZDUSD_15m_result.json` |
+| c6nyscomp | c6nyscomp: all (66), nseed 1 | 15m | 0.03 | .5069 (.5008) | .4922 · .667 · .5581 | 0/0 · — | .3891 · .214 · .4927 | 0/1 · .4750 | .4885 / .4951 | KILLED / KILLED | no (6/15, 4 clear) / no (14/15, 3 clear) | 0.50 / 0.07 | `deriv_c6nyscomp_NZDUSD_15m_result.json` |
+| c6nyscompb | c6nyscompb: all (66), nseed 1 | 15m | 0.1 | .5069 (.5008) | .4911 · .500 · .5456 | 0/3 · .4766 | .4707 · .133 · .5013 | 2/2 · .5585 | .4885 / .4951 | KILLED / KILLED | no (10/15, 5 clear) / no (15/15, 2 clear) | 0.30 / 0.00 | `deriv_c6nyscompb_NZDUSD_15m_result.json` |
+| c7comp3 | c7comp3: all (66), nseed 3 | 15m | 0.03 | .5106 (.5024) | nan · .000 · — | 0/0 · — | .5262 · .667 · .5462 | 0/0 · — | .4885 / .4951 | KILLED / KILLED | no (0/15, 0 clear) / no (3/15, 2 clear) | — / 0.33 | `deriv_c7comp3_NZDUSD_15m_result.json` |
+| c7comp3b | c7comp3b: all (66), nseed 3 | 15m | 0.1 | .5106 (.5024) | .4447 · .467 · .5247 | 0/1 · .4750 | .4535 · .467 · .5465 | 0/0 · — | .4885 / .4951 | KILLED / KILLED | no (15/15, 7 clear) / no (15/15, 7 clear) | 0.20 / 0.40 | `deriv_c7comp3b_NZDUSD_15m_result.json` |
+| c8compabs | c8compabs: all (66), nseed 1 | 15m | 0.1 | .5096 (.4967) | .4215 · .308 · .4930 | 2/2 · .5648 | .5199 · .600 · .5566 | 0/0 · — | .4885 / .4951 | KILLED / KILLED | no (13/15, 4 clear) / no (15/15, 9 clear) | 0.23 / 0.40 | `deriv_c8compabs_NZDUSD_15m_result.json` |
+| c9compaci | c9compaci: all (66), nseed 1 | 15m | 0.1 | .5105 (.5022) | .3863 · .267 · .4990 | 0/1 · .4884 | .4780 · .600 · .5504 | 0/0 · — | .4885 / .4951 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 9 clear) | 0.13 / 0.60 | `deriv_c9compaci_NZDUSD_15m_result.json` |
 | e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5060 (.4899) | .3733 · .250 · .4745 | 0/0 · — | .4057 · .231 · .4810 | 0/0 · — | .4873 / .4906 | KILLED / KILLED | no (12/15, 3 clear) / no (13/15, 3 clear) | 0.25 / 0.08 | `deriv_e14nylate_NZDUSD_15m_result.json` |
 | e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5162 (.4909) | .3625 · .000 · .3723 | 0/0 · — | .4695 · .417 · .5152 | 0/1 · .3939 | .4711 / .5073 | KILLED / KILLED | no (2/15, 0 clear) / no (12/15, 5 clear) | 0.00 / 0.08 | `deriv_e15nypm_NZDUSD_15m_result.json` |
 | e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5063 (.4901) | .4172 · .500 · .5366 | 0/0 · — | nan · .000 · — | 0/0 · — | .5050 / .4729 | KILLED / KILLED | no (4/15, 2 clear) / no (0/15, 0 clear) | 0.50 / — | `deriv_e16nyeve_NZDUSD_15m_result.json` |

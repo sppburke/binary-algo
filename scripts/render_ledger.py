@@ -13,19 +13,58 @@ from pathlib import Path
 DEFAULT = Path('/home/sean/git/binary-algo/results/json')
 
 
-def goal_verdict(r, c, s, be=0.541):
-    """The /goal's certification reading, from the stored per-path data of any harness version: of the 15 purged paths,
-    at least 80% (12) must have >= 25 trades AND a win rate >= .541, and the p10 of the counted paths must be >= .541;
-    an invalid run (moved up-rate checks) certifies nothing."""
+def path_test(r, c, s, be=0.541):
+    """The /goal's path test from the stored per-path data of any harness version: of the 15 purged paths, at least 12
+    must have >= 25 trades AND a win rate >= .541, and the p10 of the counted paths must be >= .541.
+    Returns (passes, counted, clear, p10)."""
     import numpy as np
     w = [p['bycov'][c][s][1] for p in r['paths'] if p['bycov'][c][s][0] >= 25]
-    n_all = len(r['paths'])
-    valid = r.get('validity', {}).get('VALID', r.get('validity', {}).get('in_session_up_rate_in_band', True) and
-                                      r.get('validity', {}).get('paths_up_rate_in_tripwire', True))
     clear = sum(x >= be for x in w)
     p10 = float(np.percentile(w, 10)) if w else float('nan')
-    ok = bool(valid and n_all == 15 and len(w) >= 12 and clear >= 12 and p10 >= be)
-    return f'{"CERTIFIED" if ok else "no"} ({len(w)}/{n_all}, {clear} clear)'
+    return bool(len(r['paths']) == 15 and len(w) >= 12 and clear >= 12 and p10 >= be), len(w), clear, p10
+
+
+def goal_verdict(r, c, s, be=0.541):
+    """The /goal's certification reading: the path test on a VALID run; an invalid run (moved up-rate checks)
+    certifies nothing here (see amended_verdict for the owner's drift amendment)."""
+    ok, n, clear, _ = path_test(r, c, s, be)
+    valid = r.get('validity', {}).get('VALID', r.get('validity', {}).get('in_session_up_rate_in_band', True) and
+                                      r.get('validity', {}).get('paths_up_rate_in_tripwire', True))
+    return f'{"CERTIFIED" if ok and valid else "no"} ({n}/{len(r["paths"])}, {clear} clear)'
+
+
+# Owner decision 1 (docs/DERIV_SOTA_PROGRAM.md "Owner decisions", 2026-11-15): DRIFT AMENDMENT. A run INVALID through the
+# moved up-rate checks (in-session band and per-path tripwire) is DEV-certified iff the path test holds, a drift placebo
+# of exactly that configuration - same tag, pair, horizon and operating coverage, per the lab registry's commands -
+# reads SKILL BEYOND DRIFT TIMING for the side, and the pair passes the mirage check. Final certification additionally
+# needs the holdout drift-matched excess (hour x volatility) CI95 lower bound > 0 and the holdout conditions.
+PLACEBO_OF = {('e1t', 'USDJPY', 15, '0.03'): 'a1placebo', ('e30nystroem', 'USDJPY', 15, '0.03'): 'a3placebo',
+              ('c2nysabs', 'USDJPY', 15, '0.03'): 'a6placebo', ('e49nys30', 'USDJPY', 30, '0.03'): 'a8placebo'}
+MIRAGE_OK = {   # (pair, horizon) -> mirage-check evidence (dataset_dev_v0.1, NY in-session tradeable, valid labels)
+    ('USDJPY', 15): '15m tie share 0.0119 (1,542 / 129,284), the other six pairs 0.0109-0.0182; tick-settled labels, no forward fill',
+    ('USDJPY', 30): '30m tie share 0.0081 (1,016 / 125,528), the other six pairs 0.0073-0.0131; tick-settled labels, no forward fill',
+}
+
+
+def amended_verdict(r, c, s, pair, results_dir=DEFAULT):
+    """'' unless the run is DEV-certified under the drift amendment; then a short status naming the placebo."""
+    if r.get('validity', {}).get('VALID', True) or (pair, int(r['horizon_min'])) not in MIRAGE_OK:
+        return ''
+    pl = PLACEBO_OF.get((r.get('tag'), pair, int(r['horizon_min']), c))
+    if pl is None or not path_test(r, c, s)[0]:
+        return ''
+    pf = Path(results_dir) / f'deriv_{pl}_{pair}_{int(r["horizon_min"])}m_result.json'
+    if not pf.exists():
+        return ''
+    pj = json.loads(pf.read_text())
+    if str(pj.get('cov')) != c or int(pj.get('horizon_min', -1)) != int(r['horizon_min']):
+        return ''
+    return f'DEV-CERT (drift amendment, placebo `{pl}`)' if pj['sides'][s]['verdict'] == 'SKILL BEYOND DRIFT TIMING' else ''
+
+
+def effective(original, amended):
+    """One status string that names the rule behind each part."""
+    return original if not amended else f'original rule: {original}; effective (owner decision 1): {amended}'
 
 
 def fmt(x, nd=4):
@@ -83,7 +122,7 @@ def main():
                 return f'{sum(x >= 1 / 1.77 for x in w) / len(w):.2f}' if w else '—'
 
             def goal(s):                            # goal-faithful: >= 12 of the 15 paths counted AND clearing .541, p10 >= .541
-                return goal_verdict(r, c, s)
+                return effective(goal_verdict(r, c, s), amended_verdict(r, c, s, a.pair, R))
             model = f'{r.get("tag", "")}: {r["feature_set"]} ({r["n_features"]}), nseed {r["nseed"]}'
             if 'pool' in r:
                 model += f', pooled +{len(r["pool"])} pairs'

@@ -105,12 +105,14 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E58NYSREFLECT | e30nystroem with within-pair sign reflection (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E59BRIER | E1t features, LightGBM fit on the Brier score (literature rank 4; custom objective, probabilities from the raw score) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C7COMP3 | Compression-gate base (e33comp33) with 3 seeds (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C8COMPABS | Compression-gate base with |return| training weights (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C9COMPACI | Compression-gate base with the adaptive-conformal gate (step 0.002, target 0.56) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C10COMPMETA | Compression-gate base with the meta-label gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C11COMPMAG | Compression-gate base with the learned magnitude gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c6nyscomp_AUDUSD_15m_result.json` |
+| C7COMP3 | Compression-gate base with 3 seeds at coverage 0.03 (not the base 0.10: a coverage variant; see c7comp3b) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c7comp3_AUDUSD_15m_result.json` |
+| C8COMPABS | Compression-gate base with |return| training weights (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c8compabs_AUDUSD_15m_result.json` |
+| C9COMPACI | Compression-gate base with the adaptive-conformal gate (step 0.002, target 0.56) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c9compaci_AUDUSD_15m_result.json` |
+| C10COMPMETA | Compression-gate base with the meta-label gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.2) | `deriv_c10compmeta_AUDUSD_15m_result.json` |
+| C11COMPMAG | Compression-gate base with the learned magnitude gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c11compmag_AUDUSD_15m_result.json` |
+| C7COMP3B | Compression-gate base with 3 seeds at the base coverage 0.10 (c7comp3 ran at 0.03 by mistake) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c7comp3b_AUDUSD_15m_result.json` |
+| C6NYSCOMPB | Kernel + compression gate on the gate keys at the base coverage 0.10 (c6 ran at 0.03) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c6nyscompb_AUDUSD_15m_result.json` |
 | E60STACK | E1t features, shrunk simplex stack of LightGBM, L2 logistic, extra-trees and RBF kernel (validation log-loss weights shrunk 0.5 toward equal; literature rank 6) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E61ORD4 | E1t features, LightGBM on 4 ordinal signed bins (fit-pool median |return|), P(up) = P(small up) + P(big up) (literature rank 25) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E62HAR | E1t + HAR size gate (OLS of log|return| on log realized volatility 15 m / 60 m / 4 h / 1 d and the clock; keep 0.5; literature ranks 12-15) (`cpcv_deriv_x.py`) | 15m | pending | — | — |

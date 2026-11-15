@@ -151,7 +151,7 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `AUDUSD.m15ny_seedens.v1` 0.5106 [0.4468, 0.5745] n=235 (NOT SUPPORTED); DOWN best `AUDUSD.m15ny_seedens.v1` 0.5129 [0.4741, 0.5503] n=696 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e29logit` 8/15 clear, p10 0.492, excess +0.048; `e7fitall` 7/15 clear, p10 0.498, excess +0.057; `e55rl` 6/13 clear, p10 0.457, excess +0.050.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e55rl` 9/15 clear, p10 0.464, excess +0.060; `e33comp33` 7/15 clear, p10 0.471, excess +0.043; `e1t` 6/15 clear, p10 0.464, excess +0.029.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e55rl` 9/15 clear, p10 0.464, excess +0.060; `c9compaci` 8/15 clear, p10 0.449, excess +0.032; `c7comp3b` 7/15 clear, p10 0.481, excess +0.055.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -160,6 +160,15 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 > path moved-AUC gain over `e1t` is +0.0088 for the real grid (`deriv_e55rl_AUDUSD_15m_result.json`) and +0.0081 for
 > the half-grid shifted placebo (`deriv_e56rs_AUDUSD_15m_result.json`), so the lift comes from the block's generic
 > price-grid structure, not from round numbers.
+
+> **AUDUSD 15m DOWN — Tier-I levers on the gate base (2026-11-15, hand-written; numbers from the cited JSONs).** Base
+> `e33comp33` (LightGBM + compression gate 0.33, operating coverage 0.10): 7 of 15 paths clear, p10 0.4707, VALID.
+> Pre-registered reading (lab PROGRESS.md, by 13:11 UTC): a lever IMPROVES iff paths clear >= the base's and p10 > the
+> base's at the operating coverage on a VALID run. `c7comp3b` (3 seeds) IMPROVES by that reading (7 of 15, p10
+> 0.4808) but stays KILLED by the goal rule (7 < 12 paths, p10 < 0.541), so it is not a finalist. No improvement:
+> `c9compaci` (8, 0.4491), `c8compabs` (4, 0.4770), `c6nyscompb` (3, 0.4625), `c10compmeta` (coverage doubled to 0.20
+> by design; 4, 0.4738). `c11compmag` leaves no path with 25 trades (at most 7 on a path). `c6nyscomp` and `c7comp3`
+> ran at coverage 0.03 by a queueing error and are recorded as coverage variants, not comparisons.
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -190,6 +199,14 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 
 | Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| c10compmeta | c10compmeta: all (66), nseed 1 | 15m | 0.2 | .5042 (.4949) | .4527 · .200 · .5010 | 0/3 · .4309 | .4738 · .267 · .5192 | 0/2 · .4454 | .4899 / .4926 | KILLED / KILLED | no (15/15, 3 clear) / no (15/15, 4 clear) | 0.13 / 0.13 | `deriv_c10compmeta_AUDUSD_15m_result.json` |
+| c11compmag | c11compmag: all (66), nseed 1 | 15m | 0.1 | .5042 (.4949) | nan · .000 · — | 0/0 · — | nan · .000 · — | 0/0 · — | .4899 / .4926 | KILLED / KILLED | no (0/15, 0 clear) / no (0/15, 0 clear) | — / — | `deriv_c11compmag_AUDUSD_15m_result.json` |
+| c6nyscomp | c6nyscomp: all (66), nseed 1 | 15m | 0.03 | .5110 (.5011) | .4552 · .429 · .5227 | 0/0 · — | .4842 · .286 · .5290 | 1/2 · .5434 | .4899 / .4926 | KILLED / KILLED | no (7/15, 3 clear) / no (14/15, 4 clear) | 0.29 / 0.21 | `deriv_c6nyscomp_AUDUSD_15m_result.json` |
+| c6nyscompb | c6nyscompb: all (66), nseed 1 | 15m | 0.1 | .5110 (.5011) | .4686 · .250 · .5124 | 1/2 · .5417 | .4625 · .200 · .5129 | 2/4 · .5312 | .4899 / .4926 | KILLED / KILLED | no (12/15, 3 clear) / no (15/15, 3 clear) | 0.00 / 0.13 | `deriv_c6nyscompb_AUDUSD_15m_result.json` |
+| c7comp3 | c7comp3: all (66), nseed 3 | 15m | 0.03 | .5040 (.4946) | .4510 · .000 · .4554 | 0/0 · — | .4603 · .250 · .5101 | 0/0 · — | .4899 / .4926 | KILLED / KILLED | no (3/15, 0 clear) / no (4/15, 1 clear) | 0.00 / 0.25 | `deriv_c7comp3_AUDUSD_15m_result.json` |
+| c7comp3b | c7comp3b: all (66), nseed 3 | 15m | 0.1 | .5040 (.4946) | .4417 · .333 · .5120 | 0/3 · .4446 | .4808 · .467 · .5479 | 0/2 · .4138 | .4899 / .4926 | KILLED / KILLED | no (12/15, 4 clear) / no (15/15, 7 clear) | 0.25 / 0.47 | `deriv_c7comp3b_AUDUSD_15m_result.json` |
+| c8compabs | c8compabs: all (66), nseed 1 | 15m | 0.1 | .5031 (.4891) | .4515 · .214 · .5052 | 0/3 · .4634 | .4770 · .267 · .5159 | 2/3 · .5670 | .4899 / .4926 | KILLED / KILLED | no (14/15, 3 clear) / no (15/15, 4 clear) | 0.14 / 0.07 | `deriv_c8compabs_AUDUSD_15m_result.json` |
+| c9compaci | c9compaci: all (66), nseed 1 | 15m | 0.1 | .5042 (.4949) | .4418 · .231 · .5051 | 0/3 · .4075 | .4491 · .533 · .5244 | 0/2 · .4241 | .4899 / .4926 | KILLED / KILLED | no (13/15, 3 clear) / no (15/15, 8 clear) | 0.15 / 0.27 | `deriv_c9compaci_AUDUSD_15m_result.json` |
 | e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5100 (.4982) | .3945 · .308 · .4936 | 1/2 · .5037 | .4101 · .357 · .4940 | 1/2 · .4643 | .4850 / .4933 | KILLED / KILLED | no (13/15, 4 clear) / no (14/15, 5 clear) | 0.08 / 0.14 | `deriv_e14nylate_AUDUSD_15m_result.json` |
 | e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5101 (.4906) | .3590 · .222 · .4468 | 0/1 · .3077 | .4000 · .286 · .5026 | 0/1 · .5278 | .4729 / .5013 | KILLED / KILLED | no (9/15, 2 clear) / no (14/15, 4 clear) | 0.11 / 0.14 | `deriv_e15nypm_AUDUSD_15m_result.json` |
 | e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5106 (.4926) | .4948 · .375 · .5348 | 1/1 · .6061 | .4365 · .429 · .5204 | 0/0 · — | .4977 / .4848 | KILLED / KILLED | no (8/15, 3 clear) / no (7/15, 3 clear) | 0.25 / 0.43 | `deriv_e16nyeve_AUDUSD_15m_result.json` |

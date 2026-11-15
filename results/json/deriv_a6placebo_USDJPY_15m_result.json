@@ -1,0 +1,510 @@
+{
+ "analysis": "analyze_drift_placebo/0.2",
+ "pair": "USDJPY",
+ "horizon_min": 15,
+ "cov": "0.03",
+ "dump": "dump.npz",
+ "pre_registered_reading": "per side: skill beyond timing the drift iff the hour_vol excess is > 0 on >= 12 counted paths (>= 25 trades) AND its mean over counted paths >= 0.02",
+ "registered_utc": "2026-11-15T15:10:53Z",
+ "sides": {
+  "UP": {
+   "paths": [
+    {
+     "test": "[0, 1]",
+     "n_trades": 288,
+     "wr_model": 0.5833333333333334,
+     "base_always": 0.5133893349422194,
+     "base_hour": 0.5277245772959666,
+     "base_hour_vol": 0.5287434990289175,
+     "excess_always": 0.06994399839111398,
+     "excess_hour": 0.05560875603736681,
+     "excess_hour_vol": 0.054589834304415885
+    },
+    {
+     "test": "[0, 2]",
+     "n_trades": 277,
+     "wr_model": 0.6137184115523465,
+     "base_always": 0.5151873767258383,
+     "base_hour": 0.5318737429248109,
+     "base_hour_vol": 0.5354606930743199,
+     "excess_always": 0.09853103482650827,
+     "excess_hour": 0.08184466862753559,
+     "excess_hour_vol": 0.07825771847802665
+    },
+    {
+     "test": "[0, 3]",
+     "n_trades": 288,
+     "wr_model": 0.6145833333333334,
+     "base_always": 0.51712535387757,
+     "base_hour": 0.533002100342554,
+     "base_hour_vol": 0.5341292105684922,
+     "excess_always": 0.0974579794557634,
+     "excess_hour": 0.08158123299077935,
+     "excess_hour_vol": 0.08045412276484121
+    },
+    {
+     "test": "[0, 4]",
+     "n_trades": 244,
+     "wr_model": 0.5778688524590164,
+     "base_always": 0.5284958462895066,
+     "base_hour": 0.5388284682124217,
+     "base_hour_vol": 0.5384722004476117,
+     "excess_always": 0.04937300616950979,
+     "excess_hour": 0.03904038424659473,
+     "excess_hour_vol": 0.03939665201140474
+    },
+    {
+     "test": "[0, 5]",
+     "n_trades": 234,
+     "wr_model": 0.5555555555555556,
+     "base_always": 0.528089105464671,
+     "base_hour": 0.5350149495455888,
+     "base_hour_vol": 0.5382569658131525,
+     "excess_always": 0.027466450090884553,
+     "excess_hour": 0.020540606009966766,
+     "excess_hour_vol": 0.01729858974240306
+    },
+    {
+     "test": "[1, 2]",
+     "n_trades": 115,
+     "wr_model": 0.6260869565217392,
+     "base_always": 0.5151873767258383,
+     "base_hour": 0.5254236441974627,
+     "base_hour_vol": 0.5355191191088909,
+     "excess_always": 0.11089957979590093,
+     "excess_hour": 0.1006633123242765,
+     "excess_hour_vol": 0.09056783741284824
+    },
+    {
+     "test": "[1, 3]",
+     "n_trades": 229,
+     "wr_model": 0.5764192139737991,
+     "base_always": 0.51712535387757,
+     "base_hour": 0.5252697303713677,
+     "base_hour_vol": 0.5233176113575608,
+     "excess_always": 0.05929386009622917,
+     "excess_hour": 0.051149483602431434,
+     "excess_hour_vol": 0.05310160261623831
+    },
+    {
+     "test": "[1, 4]",
+     "n_trades": 138,
+     "wr_model": 0.6159420289855072,
+     "base_always": 0.5284958462895066,
+     "base_hour": 0.5321663188011567,
+     "base_hour_vol": 0.5299717478678369,
+     "excess_always": 0.08744618269600057,
+     "excess_hour": 0.08377571018435048,
+     "excess_hour_vol": 0.08597028111767036
+    },
+    {
+     "test": "[1, 5]",
+     "n_trades": 102,
+     "wr_model": 0.5784313725490197,
+     "base_always": 0.528089105464671,
+     "base_hour": 0.5370578125458456,
+     "base_hour_vol": 0.5419028593218413,
+     "excess_always": 0.050342267084348635,
+     "excess_hour": 0.04137356000317405,
+     "excess_hour_vol": 0.036528513227178316
+    },
+    {
+     "test": "[2, 3]",
+     "n_trades": 189,
+     "wr_model": 0.5925925925925926,
+     "base_always": 0.5189233089685579,
+     "base_hour": 0.5241067212112072,
+     "base_hour_vol": 0.5255538364902883,
+     "excess_always": 0.07366928362403469,
+     "excess_hour": 0.0684858713813854,
+     "excess_hour_vol": 0.06703875610230425
+    },
+    {
+     "test": "[2, 4]",
+     "n_trades": 99,
+     "wr_model": 0.5757575757575758,
+     "base_always": 0.5302935375333565,
+     "base_hour": 0.5400994701482384,
+     "base_hour_vol": 0.539063413297583,
+     "excess_always": 0.045464038224219294,
+     "excess_hour": 0.035658105609337354,
+     "excess_hour_vol": 0.036694162459992796
+    },
+    {
+     "test": "[2, 5]",
+     "n_trades": 151,
+     "wr_model": 0.5894039735099338,
+     "base_always": 0.529886764432894,
+     "base_hour": 0.5350284607856917,
+     "base_hour_vol": 0.5414464535705754,
+     "excess_always": 0.059517209077039834,
+     "excess_hour": 0.054375512724242125,
+     "excess_hour_vol": 0.04795751993935837
+    },
+    {
+     "test": "[3, 4]",
+     "n_trades": 67,
+     "wr_model": 0.6865671641791045,
+     "base_always": 0.5322318652248573,
+     "base_hour": 0.5375879438641349,
+     "base_hour_vol": 0.5398481219670304,
+     "excess_always": 0.15433529895424714,
+     "excess_hour": 0.14897922031496957,
+     "excess_hour_vol": 0.1467190422120741
+    },
+    {
+     "test": "[3, 5]",
+     "n_trades": 156,
+     "wr_model": 0.6089743589743589,
+     "base_always": 0.5318250377073906,
+     "base_hour": 0.5392183556365185,
+     "base_hour_vol": 0.539648669821411,
+     "excess_always": 0.07714932126696827,
+     "excess_hour": 0.06975600333784038,
+     "excess_hour_vol": 0.0693256891529479
+    },
+    {
+     "test": "[4, 5]",
+     "n_trades": 43,
+     "wr_model": 0.6046511627906976,
+     "base_always": 0.5431952662721894,
+     "base_hour": 0.5496142038249999,
+     "base_hour_vol": 0.5589056832925919,
+     "excess_always": 0.061455896518508246,
+     "excess_hour": 0.05503695896569771,
+     "excess_hour_vol": 0.0457454794981057
+    },
+    {
+     "test": "forward g2",
+     "n_trades": 94,
+     "wr_model": 0.5425531914893617,
+     "base_always": 0.5169853350658994,
+     "base_hour": 0.5170200196511994,
+     "base_hour_vol": 0.5177997689618471,
+     "excess_always": 0.025567856423462265,
+     "excess_hour": 0.025533171838162283,
+     "excess_hour_vol": 0.024753422527514557
+    },
+    {
+     "test": "forward g3",
+     "n_trades": 100,
+     "wr_model": 0.55,
+     "base_always": 0.5208613728129206,
+     "base_hour": 0.5316790836658041,
+     "base_hour_vol": 0.5216050025408699,
+     "excess_always": 0.02913862718707949,
+     "excess_hour": 0.01832091633419597,
+     "excess_hour_vol": 0.0283949974591301
+    },
+    {
+     "test": "forward g4",
+     "n_trades": 24,
+     "wr_model": 0.5833333333333334,
+     "base_always": 0.543602357636794,
+     "base_hour": 0.5471549446753987,
+     "base_hour_vol": 0.56650918390508,
+     "excess_always": 0.03973097569653938,
+     "excess_hour": 0.03617838865793466,
+     "excess_hour_vol": 0.016824149428253388
+    },
+    {
+     "test": "forward g5",
+     "n_trades": 42,
+     "wr_model": 0.6428571428571429,
+     "base_always": 0.5427881937998886,
+     "base_hour": 0.5473576933144854,
+     "base_hour_vol": 0.549999052500453,
+     "excess_always": 0.10006894905725428,
+     "excess_hour": 0.09549944954265754,
+     "excess_hour_vol": 0.0928580903566899
+    }
+   ],
+   "summary": {
+    "excess_always": {
+     "mean": 0.07482302708475179,
+     "n_positive": 15,
+     "n_counted": 15
+    },
+    "excess_hour": {
+     "mean": 0.06585795909066322,
+     "n_positive": 15,
+     "n_counted": 15
+    },
+    "excess_hour_vol": {
+     "mean": 0.06330972006932066,
+     "n_positive": 15,
+     "n_counted": 15
+    }
+   },
+   "summary_forward_walk": {
+    "excess_always": {
+     "mean": 0.051591810889265344,
+     "n_positive": 3,
+     "n_counted": 3
+    },
+    "excess_hour": {
+     "mean": 0.0464511792383386,
+     "n_positive": 3,
+     "n_counted": 3
+    },
+    "excess_hour_vol": {
+     "mean": 0.04866883678111152,
+     "n_positive": 3,
+     "n_counted": 3
+    }
+   },
+   "rebuild_matches_run": true,
+   "verdict": "SKILL BEYOND DRIFT TIMING"
+  },
+  "DOWN": {
+   "paths": [
+    {
+     "test": "[0, 1]",
+     "n_trades": 18,
+     "wr_model": 0.3333333333333333,
+     "base_always": 0.47602914558871307,
+     "base_hour": 0.48737398059830217,
+     "base_hour_vol": 0.4817824205099382,
+     "excess_always": -0.14269581225537975,
+     "excess_hour": -0.15404064726496886,
+     "excess_hour_vol": -0.14844908717660488
+    },
+    {
+     "test": "[0, 2]",
+     "n_trades": 128,
+     "wr_model": 0.5390625,
+     "base_always": 0.47365123564218586,
+     "base_hour": 0.48690642590950306,
+     "base_hour_vol": 0.4884250797492673,
+     "excess_always": 0.06541126435781414,
+     "excess_hour": 0.05215607409049694,
+     "excess_hour_vol": 0.0506374202507327
+    },
+    {
+     "test": "[0, 3]",
+     "n_trades": 111,
+     "wr_model": 0.44144144144144143,
+     "base_always": 0.47278043347101684,
+     "base_hour": 0.47660562783593685,
+     "base_hour_vol": 0.47040278510743916,
+     "excess_always": -0.03133899202957541,
+     "excess_hour": -0.03516418639449542,
+     "excess_hour_vol": -0.02896134366599773
+    },
+    {
+     "test": "[0, 4]",
+     "n_trades": 59,
+     "wr_model": 0.5254237288135594,
+     "base_always": 0.45876456119181325,
+     "base_hour": 0.4706384918814911,
+     "base_hour_vol": 0.481709587587307,
+     "excess_always": 0.06665916762174612,
+     "excess_hour": 0.05478523693206827,
+     "excess_hour_vol": 0.04371414122625239
+    },
+    {
+     "test": "[0, 5]",
+     "n_trades": 42,
+     "wr_model": 0.47619047619047616,
+     "base_always": 0.45852187028657615,
+     "base_hour": 0.4608179437181672,
+     "base_hour_vol": 0.4543427564376012,
+     "excess_always": 0.017668605903900014,
+     "excess_hour": 0.015372532472308964,
+     "excess_hour_vol": 0.021847719752874972
+    },
+    {
+     "test": "[1, 2]",
+     "n_trades": 193,
+     "wr_model": 0.538860103626943,
+     "base_always": 0.47416173570019726,
+     "base_hour": 0.4886427034523984,
+     "base_hour_vol": 0.4865721352948157,
+     "excess_always": 0.06469836792674577,
+     "excess_hour": 0.050217400174544624,
+     "excess_hour_vol": 0.052287968332127344
+    },
+    {
+     "test": "[1, 3]",
+     "n_trades": 17,
+     "wr_model": 0.5882352941176471,
+     "base_always": 0.47329094537522626,
+     "base_hour": 0.47079039388773014,
+     "base_hour_vol": 0.4628823587706689,
+     "excess_always": 0.11494434874242082,
+     "excess_hour": 0.11744490022991694,
+     "excess_hour_vol": 0.12535293534697817
+    },
+    {
+     "test": "[1, 4]",
+     "n_trades": 9,
+     "wr_model": 0.6666666666666666,
+     "base_always": 0.45927507309602267,
+     "base_hour": 0.4648988870641601,
+     "base_hour_vol": 0.44957026095579233,
+     "excess_always": 0.20739159357064396,
+     "excess_hour": 0.20176777960250653,
+     "excess_hour_vol": 0.2170964057108743
+    },
+    {
+     "test": "[1, 5]",
+     "n_trades": 141,
+     "wr_model": 0.44680851063829785,
+     "base_always": 0.45903237034458755,
+     "base_hour": 0.459218684086194,
+     "base_hour_vol": 0.4553952743395415,
+     "excess_always": -0.012223859706289697,
+     "excess_hour": -0.012410173447896133,
+     "excess_hour_vol": -0.008586763701243671
+    },
+    {
+     "test": "[2, 3]",
+     "n_trades": 174,
+     "wr_model": 0.5114942528735632,
+     "base_always": 0.47091309896739764,
+     "base_hour": 0.489976452259923,
+     "base_hour_vol": 0.4912507206695262,
+     "excess_always": 0.04058115390616557,
+     "excess_hour": 0.021517800613640226,
+     "excess_hour_vol": 0.020243532204037018
+    },
+    {
+     "test": "[2, 4]",
+     "n_trades": 99,
+     "wr_model": 0.48484848484848486,
+     "base_always": 0.45689755192017634,
+     "base_hour": 0.46799884692489474,
+     "base_hour_vol": 0.4734661856834787,
+     "excess_always": 0.027950932928308525,
+     "excess_hour": 0.01684963792359012,
+     "excess_hour_vol": 0.01138229916500616
+    },
+    {
+     "test": "[2, 5]",
+     "n_trades": 28,
+     "wr_model": 0.6071428571428571,
+     "base_always": 0.45665490996844255,
+     "base_hour": 0.47451935857071614,
+     "base_hour_vol": 0.48312286998674553,
+     "excess_always": 0.15048794717441455,
+     "excess_hour": 0.13262349857214095,
+     "excess_hour_vol": 0.12401998715611157
+    },
+    {
+     "test": "[3, 4]",
+     "n_trades": 203,
+     "wr_model": 0.4827586206896552,
+     "base_always": 0.45602636097832644,
+     "base_hour": 0.4662271516545022,
+     "base_hour_vol": 0.468098524081892,
+     "excess_always": 0.026732259711328754,
+     "excess_hour": 0.016531469035153012,
+     "excess_hour_vol": 0.014660096607763184
+    },
+    {
+     "test": "[3, 5]",
+     "n_trades": 35,
+     "wr_model": 0.5714285714285714,
+     "base_always": 0.4557837336117879,
+     "base_hour": 0.46131520104912604,
+     "base_hour_vol": 0.45005060456648655,
+     "excess_always": 0.11564483781678347,
+     "excess_hour": 0.11011337037944535,
+     "excess_hour_vol": 0.12137796686208485
+    },
+    {
+     "test": "[4, 5]",
+     "n_trades": 56,
+     "wr_model": 0.6071428571428571,
+     "base_always": 0.4417681865645667,
+     "base_hour": 0.44279007173545154,
+     "base_hour_vol": 0.437621795827106,
+     "excess_always": 0.16537467057829042,
+     "excess_hour": 0.16435278540740555,
+     "excess_hour_vol": 0.16952106131575112
+    },
+    {
+     "test": "forward g2",
+     "n_trades": 28,
+     "wr_model": 0.5357142857142857,
+     "base_always": 0.4717839242621125,
+     "base_hour": 0.49384265523628296,
+     "base_hour_vol": 0.4982467396550267,
+     "excess_always": 0.06393036145217318,
+     "excess_hour": 0.04187163047800274,
+     "excess_hour_vol": 0.037467546059259005
+    },
+    {
+     "test": "forward g3",
+     "n_trades": 7,
+     "wr_model": 0.14285714285714285,
+     "base_always": 0.47004223325753003,
+     "base_hour": 0.48881626149475804,
+     "base_hour_vol": 0.4823768642116225,
+     "excess_always": -0.3271850904003872,
+     "excess_hour": -0.3459591186376152,
+     "excess_hour_vol": -0.33951972135447966
+    },
+    {
+     "test": "forward g4",
+     "n_trades": 136,
+     "wr_model": 0.47794117647058826,
+     "base_always": 0.44201048869912285,
+     "base_hour": 0.4449875756339739,
+     "base_hour_vol": 0.4430443508785511,
+     "excess_always": 0.03593068777146541,
+     "excess_hour": 0.03295360083661436,
+     "excess_hour_vol": 0.03489682559203716
+    },
+    {
+     "test": "forward g5",
+     "n_trades": 26,
+     "wr_model": 0.38461538461538464,
+     "base_always": 0.44152589567477263,
+     "base_hour": 0.4284751340633448,
+     "base_hour_vol": 0.42572668936144525,
+     "excess_always": -0.05691051105938799,
+     "excess_hour": -0.04385974944796017,
+     "excess_hour_vol": -0.04111130474606062
+    }
+   ],
+   "summary": {
+    "excess_always": {
+     "mean": 0.05813719634913602,
+     "n_positive": 10,
+     "n_counted": 12
+    },
+    "excess_hour": {
+     "mean": 0.04891212047986687,
+     "n_positive": 10,
+     "n_counted": 12
+    },
+    "excess_hour_vol": {
+     "mean": 0.04934534045879166,
+     "n_positive": 10,
+     "n_counted": 12
+    }
+   },
+   "summary_forward_walk": {
+    "excess_always": {
+     "mean": 0.014316846054750199,
+     "n_positive": 2,
+     "n_counted": 3
+    },
+    "excess_hour": {
+     "mean": 0.010321827288885643,
+     "n_positive": 2,
+     "n_counted": 3
+    },
+    "excess_hour_vol": {
+     "mean": 0.01041768896841185,
+     "n_positive": 2,
+     "n_counted": 3
+    }
+   },
+   "rebuild_matches_run": true,
+   "verdict": "EXPLAINED BY DRIFT TIMING (hour x volatility) or too thin"
+  }
+ },
+ "code_sha256": "b91043a26bdc71c6390340516e258a169235dda01a63b59563a76a92af6cef97"
+}

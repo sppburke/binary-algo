@@ -30,9 +30,17 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # cpcv_deriv puts the repository scripts first; the lab harness wins
 from cpcv_deriv_x import LOCAL_WINDOWS, session as x_session  # noqa: E402
+if Path(sys.modules['cpcv_deriv_x'].__file__).resolve().parent != Path(__file__).resolve().parent:
+    raise SystemExit(f'holdout_eval: cpcv_deriv_x resolved to {sys.modules["cpcv_deriv_x"].__file__}, not the harness next to this file')
 
-HOLDOUT_VERSION = 'holdout_eval/0.4'   # 0.4: one-sided bootstrap p (Holm across a key's finalists) and the NY-hour
+HOLDOUT_VERSION = 'holdout_eval/0.6'   # 0.6: --weight absret (as cpcv_deriv_x); drift test unavailable without volatility cut
+#                                        points; Bonferroni flag renamed to context (binding = caller's Holm); harness provenance
+#                                        enforced (next to this file)
+#                                        0.5: drift_matched = NY hour x rv_60m tercile (binding, owner decision 1) with
+#                                        'passes' (CI95 lower > 0); the hour-only baseline kept as drift_matched_hour
+#                                        0.4: one-sided bootstrap p (Holm across a key's finalists) and the NY-hour
 #                                        drift-matched always-side baseline per side (paired excess + CI; context);
 #                                        0.3: --model (cpcv_deriv_x model classes); 0.2: blackout excluded; local NY windows
 
@@ -63,12 +71,15 @@ def fit_predict(X, fwd, train_idx, score_mask, a, rng, others=None):
     val_idx = train_idx[valsel]
     own_fit = train_idx[~valsel]
     Xfit, yfit = X[own_fit], (fwd[own_fit] > 0).astype(int)
+    afit = np.abs(fwd[own_fit])                                       # |settled return| of the fit rows (moved rows only)
     if others is not None:
         Xo, yo = others
         Xfit, yfit = np.vstack([Xfit, Xo]), np.concatenate([yfit, yo])
     if len(yfit) > cd.SUB_FIT:
         pick = rng.choice(len(yfit), cd.SUB_FIT, replace=False)        # sampled order kept (no sort)
         Xfit, yfit = Xfit[pick], yfit[pick]
+        afit = afit[pick] if others is None else afit
+    wfit = None if a.weight == 'none' else afit / (afit.mean() + 1e-18)   # as cpcv_deriv_x --weight absret (mean 1)
     yval = (fwd[val_idx] > 0).astype(int)
     pval = np.zeros(len(val_idx))
     ps = np.zeros(int(score_mask.sum()))
@@ -79,7 +90,7 @@ def fit_predict(X, fwd, train_idx, score_mask, a, rng, others=None):
                              colsample=0.5, reg_lambda=20.0, n_estimators=800, no_early_stop=False, cat_depth=a.cat_depth,
                              logit_c=a.logit_c, nys_gamma_mult=a.nys_gamma_mult, nys_components=a.nys_components)
         fx = cx.XFitter(X, fwd, np.zeros(len(fwd), dtype=np.int64), ns, 0, [a.cov])
-        fx.wfit = None
+        fx.wfit = wfit
         for sd in range(a.nseed):
             pv, pt, _ = fx.fit_one(sd, Xfit, yfit, X[val_idx], yval, X[score_mask])
             pval += pv
@@ -88,7 +99,8 @@ def fit_predict(X, fwd, train_idx, score_mask, a, rng, others=None):
         for sd in range(a.nseed):
             m = cd.mk_lgb(sd, a.num_leaves, a.n_jobs)
             m.fit(Xfit, yfit, eval_set=[(X[val_idx], yval)], eval_metric='auc',
-                  callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)])
+                  callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)],
+                  **({} if wfit is None else {'sample_weight': wfit}))
             pval += m.predict_proba(X[val_idx])[:, 1]
             ps += m.predict_proba(X[score_mask])[:, 1]
     pval /= a.nseed
@@ -106,6 +118,8 @@ def main():
     ap.add_argument('--pool', default=None)
     ap.add_argument('--nseed', type=int, default=3)
     ap.add_argument('--num-leaves', type=int, default=255)
+    ap.add_argument('--weight', default='none', choices=('none', 'absret'),
+                    help='training weights as cpcv_deriv_x --weight: absret = |settled return| of each fit row, mean 1')
     ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool'),
                     help='lgb = repository mk_lgb (default); otherwise cpcv_deriv_x.py --model, same code')
     ap.add_argument('--nys-gamma-mult', type=float, default=1.0)
@@ -122,6 +136,8 @@ def main():
     ap.add_argument('--n-candidates', type=int, required=True,
                     help='finalized candidates opened on the holdout for this key (Bonferroni: CI at 1 - 0.05/n)')
     a = ap.parse_args()
+    if a.weight != 'none' and a.pool:
+        raise SystemExit('--weight needs the own-pair fit rows; it is not defined with --pool')
     gap = a.horizon * 60
     t0 = time.time()
     hs = int(pd.Timestamp(a.holdout_start, tz='UTC').timestamp())
@@ -143,14 +159,19 @@ def main():
            'dataset': a.dataset, 'features': feats, 'n_features': len(feats), 'feature_set': a.feature_list or a.features,
            'pool': a.pool.split(',') if a.pool else None, 'nseed': a.nseed, 'num_leaves': a.num_leaves,
            'model': {'model': a.model, 'nys_gamma_mult': a.nys_gamma_mult, 'nys_components': a.nys_components,
-                     'logit_c': a.logit_c, 'cat_depth': a.cat_depth},
+                     'logit_c': a.logit_c, 'cat_depth': a.cat_depth, 'weight': a.weight},
            'session': a.session, 'cov': a.cov, 'holdout': [a.holdout_start, a.holdout_end], 'breakeven': cd.BE,
            'n_candidates_opened_for_key': a.n_candidates,
            'falsifier': {'registered_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'when': 'before the holdout is scored',
-                         'SOTA_ELIGIBLE_iff': 'PRIMARY (monthly walk-forward refit): side n >= 50 AND the Bonferroni-adjusted '
-                                              '(1 - 0.05/n_candidates) bootstrap lower bound >= 0.541; and a higher point win rate '
-                                              'than every incumbent book on the same window (checked by the caller)'},
-           'code': {'holdout_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__)}}
+                         'binding_decision': 'made by the caller per holdout/REGISTER.md: Holm step-down across the key\'s '
+                                             'finalists on PRIMARY p_boot_le_breakeven (one-sided family alpha 0.025), PRIMARY '
+                                             'n >= 50, a higher point win rate than every incumbent book on the same window, '
+                                             'and for a drift-amended key drift_matched.passes (owner decision 1)',
+                         'bonferroni_context_iff': 'PRIMARY n >= 50 AND the Bonferroni (1 - 0.05/n_candidates) bootstrap '
+                                                   'lower bound >= 0.541 (context only; superseded by Holm)'},
+           'code': {'holdout_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__),
+                    'x_harness': {'file': sys.modules['cpcv_deriv_x'].__file__,
+                                  'sha256': cd.sha256(Path(sys.modules['cpcv_deriv_x'].__file__))}}}
     Path(a.out).write_text(json.dumps(res, indent=1))
 
     def pool_rows(cut):
@@ -190,10 +211,19 @@ def main():
     f, t = fwd[idx], ts[idx]
     mv = f != 0
     mlabel = pd.to_datetime(t, unit='s', utc=True).strftime('%Y-%m').to_numpy()
-    # drift-matched context: each side's always-side win rate (ties lose) per America/New_York hour over every holdout row
+    # drift-matched baselines: each side's always-side win rate (ties lose) over every holdout row, per America/New_York
+    # hour x rv_60m tercile (BINDING under owner decision 1; terciles over the holdout rows, as analyze_drift_placebo does
+    # within a path) and per hour only (context)
     nyh = pd.to_datetime(t, unit='s', utc=True).tz_convert('America/New_York').hour.to_numpy()
     hour_rate = {s: {int(h): float(((f[nyh == h] > 0) if s == 'UP' else (f[nyh == h] < 0)).mean()) for h in np.unique(nyh)}
                  for s in ('UP', 'DOWN')}
+    rv = pd.read_parquet(Path(a.dataset) / f'{a.pair}.parquet', columns=['decision_ts', 'rv_60m']).set_index(
+        'decision_ts')['rv_60m'].reindex(t).to_numpy(np.float64)
+    q1, q2 = np.nanquantile(rv, [1 / 3, 2 / 3]) if np.isfinite(rv).any() else (np.nan, np.nan)
+    vol_ok = bool(np.isfinite(q1) and np.isfinite(q2) and q1 < q2)   # else the binding test is unavailable (never passes)
+    terc = np.where(np.isnan(rv), -1, np.digitize(rv, [q1, q2])) if vol_ok else np.full(len(rv), -1)
+    hv_rate = {s: pd.Series(((f > 0) if s == 'UP' else (f < 0)).astype(float)).groupby([nyh, terc]).mean().to_dict()
+               for s in ('UP', 'DOWN')}
     for name, p, thr in (('PRIMARY_monthly_refit', p_all[idx], thr_all[idx]), ('CONTEXT_frozen_dev_end', p_frozen[idx], np.full(len(idx), thr0))):
         r = {'auc_moved': round(float(cd.roc_auc_score((f[mv] > 0).astype(int), p[mv])), 4), 'sides': {}}
         conf = np.abs(p - 0.5)
@@ -210,14 +240,24 @@ def main():
                                 'ci_bonferroni': {'level': round(1 - 0.05 / a.n_candidates, 4), 'interval': [round(alo, 4), round(ahi, 4)]},
                                 'by_month': bym}
             if side != 'COMBINED':
-                r['sides'][side]['SOTA_ELIGIBLE'] = bool(name.startswith('PRIMARY') and len(win) >= 50 and np.isfinite(alo) and alo >= cd.BE)
+                r['sides'][side]['bonferroni_context_eligible'] = bool(name.startswith('PRIMARY') and len(win) >= 50
+                                                                       and np.isfinite(alo) and alo >= cd.BE)
                 r['sides'][side]['p_boot_le_breakeven'] = round(boot_p(win, cd.BE), 5)
                 if len(win):
+                    hbv = np.array([hv_rate[side][(int(h), int(k))] for h, k in zip(nyh[tr], terc[tr])])
+                    elo, ehi = boot(win - hbv)
+                    r['sides'][side]['drift_matched'] = {'match': 'NY hour x rv_60m tercile (binding, owner decision 1)',
+                                                         'available': vol_ok, 'rv_60m_finite_share': round(float(np.isfinite(rv).mean()), 4),
+                                                         'baseline_mean': round(float(hbv.mean()), 4),
+                                                         'excess': round(float((win - hbv).mean()), 4),
+                                                         'excess_ci95': [round(elo, 4), round(ehi, 4)],
+                                                         'passes': bool(vol_ok and np.isfinite(elo) and elo > 0)}
                     hb = np.array([hour_rate[side][int(h)] for h in nyh[tr]])
-                    elo, ehi = boot(win - hb)
-                    r['sides'][side]['drift_matched'] = {'baseline_mean': round(float(hb.mean()), 4),
-                                                         'excess': round(float((win - hb).mean()), 4),
-                                                         'excess_ci95': [round(elo, 4), round(ehi, 4)]}
+                    hlo, hhi = boot(win - hb)
+                    r['sides'][side]['drift_matched_hour'] = {'match': 'NY hour only (context)',
+                                                              'baseline_mean': round(float(hb.mean()), 4),
+                                                              'excess': round(float((win - hb).mean()), 4),
+                                                              'excess_ci95': [round(hlo, 4), round(hhi, 4)]}
         readings[name] = r
         s = r['sides']
         print(f'{name}: AUC {r["auc_moved"]} | UP {s["UP"]["n"]} {s["UP"]["win_rate"]} {s["UP"]["ci95"]} | '

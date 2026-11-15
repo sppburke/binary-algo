@@ -117,12 +117,12 @@ SCOPE: USDCAD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E58NYSREFLECT | e30nystroem with within-pair sign reflection (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E59BRIER | E1t features, LightGBM fit on the Brier score (literature rank 4; custom objective, probabilities from the raw score) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C1NYS3 | Kernel base (e30nystroem) with 3 seeds; USDCAD (USDJPY = e44nysseed3) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C2NYSABS | Kernel base with |return| training weights (mean-1 SGD sample weights, harness 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C3NYSACI | Kernel base with the adaptive-conformal gate (step 0.002, target 0.56); USDCAD (USDJPY = e45nysaci) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C4NYSMETA | Kernel base with the meta-label gate (keep 0.5; half-pool primaries are the kernel, harness 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C5NYSMAG | Kernel base with the learned magnitude gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| C1NYS3 | Kernel base (e30nystroem) with 3 seeds; USDCAD (USDJPY = e44nysseed3) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c1nys3_USDCAD_15m_result.json` |
+| C2NYSABS | Kernel base with |return| training weights (mean-1 SGD sample weights, harness 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c2nysabs_USDCAD_15m_result.json` |
+| C3NYSACI | Kernel base with the adaptive-conformal gate (step 0.002, target 0.56); USDCAD (USDJPY = e45nysaci) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c3nysaci_USDCAD_15m_result.json` |
+| C4NYSMETA | Kernel base with the meta-label gate (keep 0.5; half-pool primaries are the kernel, harness 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.06) | `deriv_c4nysmeta_USDCAD_15m_result.json` |
+| C5NYSMAG | Kernel base with the learned magnitude gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c5nysmag_USDCAD_15m_result.json` |
+| C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c6nyscomp_USDCAD_15m_result.json` |
 | E60STACK | E1t features, shrunk simplex stack of LightGBM, L2 logistic, extra-trees and RBF kernel (validation log-loss weights shrunk 0.5 toward equal; literature rank 6) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E61ORD4 | E1t features, LightGBM on 4 ordinal signed bins (fit-pool median |return|), P(up) = P(small up) + P(big up) (literature rank 25) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E62HAR | E1t + HAR size gate (OLS of log|return| on log realized volatility 15 m / 60 m / 4 h / 1 d and the clock; keep 0.5; literature ranks 12-15) (`cpcv_deriv_x.py`) | 15m | pending | — | — |

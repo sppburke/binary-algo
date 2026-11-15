@@ -264,9 +264,10 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `USDJPY.m15ny_seedens.v1` 0.6500 [0.5750, 0.7188] n=160 (SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.6250 [0.5250, 0.7250] n=80 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDJPY.m15ny_seedens.v1` 0.5253 [0.4822, 0.5666] n=533 (NOT SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.5133 [0.4333, 0.5933] n=150 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e48nysc1000` 15/15 clear, p10 0.565, excess +0.076, INVALID (up-rate band); `e43nysnoslow` 15/15 clear, p10 0.564, excess +0.074, INVALID (up-rate band); `e30nystroem` 15/15 clear, p10 0.559, excess +0.081, INVALID (up-rate band).
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e32spec` 7/15 clear, p10 0.459, excess +0.049, INVALID (up-rate band); `e11noslow` 7/14 clear, p10 0.454, excess +0.057, INVALID (up-rate band); `e7fitall` 6/8 clear, p10 0.509, excess +0.118, INVALID (up-rate band).
-- **DEV leaderboard 30m UP** (closest to the goal rule at each run's operating coverage): `e49nys30` 15/15 clear, p10 0.598, excess +0.095, INVALID (up-rate band).
+- **DEV-CPCV certified under the owner's drift amendment** (decision 1, 2026-11-15: for a genuinely drifting pair the moved up-rate checks - in-session band and per-path tripwire - are replaced by the hour x volatility drift placebo of the same configuration; mirage check: 15m tie share 0.0119 (1,542 / 129,284), the other six pairs 0.0109-0.0182; tick-settled labels, no forward fill): c2nysabs 15m UP (cov 0.03: 15/15 clear, p10 0.5760; DEV-CERT (drift amendment, placebo `a6placebo`)); e1t 15m UP (cov 0.03: 14/15 clear, p10 0.5554; DEV-CERT (drift amendment, placebo `a1placebo`)); e30nystroem 15m UP (cov 0.03: 15/15 clear, p10 0.5587; DEV-CERT (drift amendment, placebo `a3placebo`)). Configurations without a placebo run stay INVALID. Final certification also needs the holdout (drift-matched excess CI95 lower bound > 0 and the holdout conditions).
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `c2nysabs` 15/15 clear, p10 0.576, excess +0.085, original rule: INVALID (up-rate checks); effective (owner decision 1): DEV-CERT (drift amendment, placebo `a6placebo`); `e48nysc1000` 15/15 clear, p10 0.565, excess +0.076, INVALID (up-rate checks); `e43nysnoslow` 15/15 clear, p10 0.564, excess +0.074, INVALID (up-rate checks).
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e57reflect` 8/15 clear, p10 0.475, excess +0.092, INVALID (up-rate checks); `e32spec` 7/15 clear, p10 0.459, excess +0.049, INVALID (up-rate checks); `e11noslow` 7/14 clear, p10 0.454, excess +0.057, INVALID (up-rate checks).
+- **DEV leaderboard 30m UP** (closest to the goal rule at each run's operating coverage): `e49nys30` 15/15 clear, p10 0.598, excess +0.095, INVALID (up-rate checks).
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -278,7 +279,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > 147.658, last tick 2026-07-31 157.657; 162.636 on 2026-07-01), with all-hours monthly up-rates above 0.50 every month
 > (0.5484 in May 2026). The `e1t` UP win rate exceeds the always-UP baseline on all 15 paths. The verdict stays INVALID
 > (rule unchanged); whether to replace the band with mirage diagnostics plus a drift-neutral requirement is an open
-> owner decision (docs/DERIV_SOTA_PROGRAM.md).
+> owner decision (docs/DERIV_SOTA_PROGRAM.md). [Superseded 2026-11-15: owner decision 1 adopted the drift amendment;
+> the generated lines above give the current status.]
 
 > **USDJPY 15m UP — ablations and drift placebo (2026-11-15, hand-written; numbers from the cited JSONs).** At the
 > operating coverage 0.03 (NY 08:00-16:35 tradeable), removing the clock or the slow (480/1440-minute) features or both
@@ -286,7 +288,7 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > over always-UP (+0.080 on 15/15 paths, +0.084 on 15/15, +0.062 on 14/15, +0.050 on 14/15); UP p10 0.5554 / 0.5425 /
 > 0.5345 / 0.5288 with 14 / 14 / 11 / 12 of 15 paths clearing .541. Forward walks have about 50 trades per fold
 > (3/3, 0/3, 4/4, 2/4 counted folds clear) and do not separate the variants. Every run is INVALID by the moved up-rate
-> band (drift), so none certifies. Drift placebo `deriv_a1placebo_USDJPY_15m_result.json` (E1t re-run with its
+> band (drift), so none certified under the rule then in force (superseded 2026-11-15 by owner decision 1). Drift placebo `deriv_a1placebo_USDJPY_15m_result.json` (E1t re-run with its
 > predictions dumped; the rebuilt trades match the run exactly): against always-UP baselines matched on New York hour
 > and on hour × rv_60m tercile within each path, the UP trades' excess is +0.066 (hour × volatility) with 14 of 15 CPCV
 > paths positive (pre-registered reading met: SKILL BEYOND DRIFT TIMING); forward folds +0.045, 3/3 positive. DOWN:
@@ -304,7 +306,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > training clock (`r3`, NY 13:00-16:35 + 18:00-22:00) is too thin to read at its deploy coverage 0.02 (1 of 15 paths
 > reaches 25 trades) and INVALID by drift.
 >
-> **Strongest DEV candidate: `e30nystroem` UP (E1t features, RBF Nystroem features + logistic SGD; 2026-11-15).** At
+> **Base kernel candidate: `e30nystroem` UP (E1t features, RBF Nystroem features + logistic SGD; 2026-11-15; on DEV p10
+> it is now behind `c2nysabs`, note below).** At
 > the operating coverage 0.03: p10 0.5587 with 15 of 15 paths clearing .541 (path minimum 0.5488, mean 0.5963, median
 > 228 trades per path), excess over always-UP +0.081 on 15/15 paths, forward walk 3 of 4 counted folds clear (mean
 > 0.587); coverage 0.02: p10 0.576, 15/15; coverage 0.05: p10 0.539, 13/15. Drift placebo
@@ -312,17 +315,32 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > (forward folds 4/4, +0.048) - SKILL BEYOND DRIFT TIMING. Entry-delay stress `deriv_a4delay_USDJPY_15m_result.json`:
 > 15 of 15 paths clear at +0 / 2 / 4 / 9 / 29 s with p10 0.559 / 0.561 / 0.559 / 0.560 / 0.564 - OPERATIONALLY ROBUST;
 > excess positive in every rank tercile of feed staleness (+0.091 / +0.077 / +0.061). Verdict under the program's rule:
-> INVALID (moved up-rate 0.5315, paths to 0.5515) - it meets every other DEV condition of the goal rule. Open owner
-> decision 1 (docs/DERIV_SOTA_PROGRAM.md) decides whether it can be certified; the sealed holdout decides whether it
-> holds out of sample.
+> INVALID (moved up-rate 0.5315, paths to 0.5515) - it meets every other DEV condition of the goal rule. Owner
+> decision 1 (docs/DERIV_SOTA_PROGRAM.md, resolved 2026-11-15: drift amendment adopted) makes it DEV-certified (generated
+> line above); the sealed holdout decides whether it holds out of sample.
 
 > **`e30nystroem` UP vs the sign-null replay (2026-11-15, hand-written; `deriv_a5null_USDJPY_15m_result.json`).** The
 > same configuration re-run 16 times with every label replaced by the label W weeks later (W = 3, 6, .., 48, circular;
 > the moved up-rate stays 0.522-0.532 and the time-of-day / day-of-week structure is kept, the feature-label link is
 > broken). Null p10 median 0.491, 95% quantile 0.529, maximum 0.530 (W = 30); the most paths any null cleared is 12/15
 > (W = 27, p10 0.529); no null meets the goal path test; null moved AUC 0.497-0.521 vs 0.526 real. Real p10 0.5587
-> ranks 17 of 17. Pre-registered reading (in the JSON before any null ran): SIGNIFICANT. Together with the drift
-> placebo, the edge needs the feature-label link; drift and calendar structure alone do not reproduce it.
+> ranks 17 of 17. Pre-registered reading (in the JSON before any null ran): SIGNIFICANT. Within this diagnostic none
+> of the 16 label shifts - which keep the drift and the calendar structure - reproduced the result; it tests this one
+> selected configuration, not the selection across the program's search, so it is not a search-adjusted significance
+> claim.
+
+> **`c2nysabs` UP: the kernel with |return| training weights (2026-11-15, hand-written; numbers from the cited JSONs).**
+> A Tier-I lever on the base kernel, pre-registered in the lab before it ran (lab PROGRESS.md). Operating coverage 0.03:
+> 15 of 15 paths clear, p10 0.5760 (base 0.5587), forward walk 3 of 3 counted folds clear (mean 0.5785;
+> `deriv_c2nysabs_USDJPY_15m_result.json`). Drift placebo `deriv_a6placebo_USDJPY_15m_result.json`: hour x volatility
+> matched excess +0.063 on 15 of 15 paths - SKILL BEYOND DRIFT TIMING (rebuilt trades match the run). Entry-delay stress
+> `deriv_a7delay_USDJPY_15m_result.json`: 15 of 15 paths clear at +0 / +2 / +4 s (p10 0.576 / 0.579 / 0.575) -
+> OPERATIONALLY ROBUST. It was chosen as the best of about ten kernel levers on DEV p10, so its DEV number carries
+> selection inflation; the holdout (Holm across the key's finalists) is the test.
+> The other pre-registered levers on the kernel do not improve it (paths clear >= 15 and p10 > 0.5587 needed):
+> `e44nysseed3` (3 seeds, the c1 lever; 15, 0.5579), `e45nysaci` (ACI gate, the c3 lever; 15, 0.5515), `c4nysmeta`
+> (meta gate keep 0.5, coverage doubled to 0.06 by design; 15, 0.5582), `c5nysmag` (magnitude gate keep 0.5; 14,
+> 0.5433), `c6nyscomp` (compression gate; 11 of 14 counted, 0.5114).
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -361,6 +379,10 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 
 | Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| c2nysabs | c2nysabs: all (66), nseed 1 | 15m | 0.03 | .5169 (.5045) | .5760 · 1.0 · .6000 | 3/3 · .5785 | .4497 · .250 · .5194 | 0/3 · .4661 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | original rule: no (15/15, 15 clear); effective (owner decision 1): DEV-CERT (drift amendment, placebo `a6placebo`) / no (12/15, 3 clear) | 0.93 / 0.25 | `deriv_c2nysabs_USDJPY_15m_result.json` |
+| c4nysmeta | c4nysmeta: all (66), nseed 1 | 15m | 0.06 | .5260 (.5184) | .5582 · 1.0 · .5901 | 4/4 · .6035 | .4795 · .000 · .4795 | 0/1 · .4510 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 15 clear) / no (1/15, 0 clear) | 0.80 / 0.00 | `deriv_c4nysmeta_USDJPY_15m_result.json` |
+| c5nysmag | c5nysmag: all (66), nseed 1 | 15m | 0.03 | .5260 (.5184) | .5433 · .933 · .5739 | 3/4 · .5705 | .4310 · .000 · .4310 | 0/1 · .4872 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (1/15, 0 clear) | 0.47 / 0.00 | `deriv_c5nysmag_USDJPY_15m_result.json` |
+| c6nyscomp | c6nyscomp: all (66), nseed 1 | 15m | 0.03 | .5260 (.5184) | .5114 · .786 · .5969 | 3/3 · .6354 | .4524 · .000 · .4524 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (14/15, 11 clear) / no (1/15, 0 clear) | 0.71 / 0.00 | `deriv_c6nyscomp_USDJPY_15m_result.json` |
 | e11noslow | e11noslow: list:v01_noslow_USDJPY.json (61), nseed 1 | 15m | 0.03 | .5267 (.5195) | .5345 · .733 · .5773 | 4/4 · .5734 | .4543 · .500 · .5304 | 2/3 · .5576 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 11 clear) / no (14/15, 7 clear) | 0.53 / 0.29 | `deriv_e11noslow_USDJPY_15m_result.json` |
 | e12noslowclock | e12noslowclock: list:v01_noslow_noclock_USDJPY.json (58), nseed 1 | 15m | 0.03 | .5248 (.5140) | .5288 · .800 · .5656 | 2/4 · .5628 | .4321 · .400 · .5217 | 0/3 · .4752 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 12 clear) / no (15/15, 6 clear) | 0.40 / 0.40 | `deriv_e12noslowclock_USDJPY_15m_result.json` |
 | e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5234 (.5138) | .5100 · .533 · .5731 | 3/3 · .6004 | .3544 · .500 · .4961 | 0/0 · — | .5193 / .4663 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 8 clear) / no (8/15, 4 clear) | 0.40 / 0.38 | `deriv_e14nylate_USDJPY_15m_result.json` |
@@ -369,10 +391,10 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 | e17nyam | e17nyam: all (66), nseed 1 | 15m | 0.03 | .5190 (.4969) | .5022 · .714 · .5767 | 2/2 · .6571 | .4600 · .000 · .4960 | 0/2 · .4115 | .5023 / .4898 | KILLED / KILLED | no (14/15, 10 clear) / no (7/15, 0 clear) | 0.57 / 0.00 | `deriv_e17nyam_USDJPY_15m_result.json` |
 | e18lowcap | e18lowcap: all (66), nseed 1 | 15m | 0.03 | .5251 (.5163) | .5560 · .933 · .5808 | 3/4 · .6233 | .4418 · .200 · .5283 | 1/3 · .5229 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (5/15, 1 clear) | 0.80 / 0.20 | `deriv_e18lowcap_USDJPY_15m_result.json` |
 | e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5323 (.5195) | .5646 · 1.0 · .5935 | 2/3 · .5353 | .5317 · .800 · .5935 | 2/3 · .6105 | .5121 / .4771 | CERTIFIED / KILLED | CERTIFIED (15/15, 15 clear) / no (15/15, 12 clear) | 0.80 / 0.47 | `deriv_e1_USDJPY_15m_result.json` |
-| e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5256 (.5141) | .5554 · .933 · .5948 | 3/3 · .5791 | .4636 · .250 · .5336 | 1/1 · .6250 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (8/15, 2 clear) | 0.80 / 0.25 | `deriv_e1t_USDJPY_15m_result.json` |
+| e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5256 (.5141) | .5554 · .933 · .5948 | 3/3 · .5791 | .4636 · .250 · .5336 | 1/1 · .6250 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | original rule: no (15/15, 14 clear); effective (owner decision 1): DEV-CERT (drift amendment, placebo `a1placebo`) / no (8/15, 2 clear) | 0.80 / 0.25 | `deriv_e1t_USDJPY_15m_result.json` |
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5210 (.5054) | .5212 · .733 · .5622 | 3/4 · .5563 | .4266 · .000 · .4818 | 1/3 · .4798 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 11 clear) / no (9/15, 0 clear) | 0.53 / 0.00 | `deriv_e29logit_USDJPY_15m_result.json` |
 | e2noclock | e2noclock: noclock (63), nseed 1 | 15m | 0.03 | .5244 (.5150) | .5425 · .933 · .5989 | 0/3 · .4818 | .4242 · .273 · .4982 | 1/1 · .7097 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (11/15, 3 clear) | 0.67 / 0.18 | `deriv_e2noclock_USDJPY_15m_result.json` |
-| e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5260 (.5184) | .5587 · 1.0 · .5963 | 3/4 · .5871 | .4647 · .000 · .4647 | 0/1 · .5179 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 15 clear) / no (1/15, 0 clear) | 0.80 / 0.00 | `deriv_e30nystroem_USDJPY_15m_result.json` |
+| e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5260 (.5184) | .5587 · 1.0 · .5963 | 3/4 · .5871 | .4647 · .000 · .4647 | 0/1 · .5179 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | original rule: no (15/15, 15 clear); effective (owner decision 1): DEV-CERT (drift amendment, placebo `a3placebo`) / no (1/15, 0 clear) | 0.80 / 0.00 | `deriv_e30nystroem_USDJPY_15m_result.json` |
 | e32spec | e32spec: all (66), nseed 1 | 15m | 0.03 | .5124 (.5008) | .5345 · .867 · .5728 | 3/4 · .6024 | .4588 · .467 · .5235 | 3/4 · .5429 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (15/15, 7 clear) | 0.53 / 0.27 | `deriv_e32spec_USDJPY_15m_result.json` |
 | e33comp33 | e33comp33: all (66), nseed 1 | 15m | 0.1 | .5256 (.5141) | .4913 · .643 · .5512 | 3/3 · .5976 | .4684 · .600 · .5798 | 2/3 · .5444 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (14/15, 9 clear) / no (5/15, 3 clear) | 0.43 / 0.40 | `deriv_e33comp33_USDJPY_15m_result.json` |
 | e34online | e34online: all (66), nseed 1 | 15m | 0.03 | .5070 (.5013) | .5191 · .467 · .5408 | 0/0 · — | .4582 · .067 · .4929 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 7 clear) / no (15/15, 1 clear) | 0.13 / 0.00 | `deriv_e34online_USDJPY_15m_result.json` |
@@ -391,6 +413,7 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 | e54ckcompactlogit | e54ckcompactlogit: list:compact_kernels.json (14), nseed 1 | 15m | 0.03 | .5204 (.5076) | .5313 · .733 · .5673 | 2/4 · .5620 | nan · .000 · — | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 11 clear) / no (0/15, 0 clear) | 0.53 / — | `deriv_e54ckcompactlogit_USDJPY_15m_result.json` |
 | e55rl | e55rl: all+fam:rl (72), nseed 1 | 15m | 0.03 | .5258 (.5144) | .5146 · .733 · .5830 | 3/3 · .5844 | .4361 · .400 · .5043 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 11 clear) / no (5/15, 2 clear) | 0.73 / 0.20 | `deriv_e55rl_USDJPY_15m_result.json` |
 | e56rs | e56rs: all+fam:rs (72), nseed 1 | 15m | 0.03 | .5241 (.5131) | .5510 · 1.0 · .6121 | 3/3 · .6020 | .5077 · .333 · .5271 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 15 clear) / no (3/15, 1 clear) | 0.80 / 0.00 | `deriv_e56rs_USDJPY_15m_result.json` |
+| e57reflect | e57reflect: all (66), nseed 1 | 15m | 0.03 | .5247 (.5115) | .5294 · .818 · .5936 | 0/0 · — | .4745 · .533 · .5666 | 0/1 · .4889 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (11/15, 9 clear) / no (15/15, 8 clear) | 0.64 / 0.40 | `deriv_e57reflect_USDJPY_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5275 (.5179) | .5167 · .867 · .5848 | 2/4 · .5575 | .5085 · .750 · .5923 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (8/15, 6 clear) | 0.67 / 0.75 | `deriv_e7fitall_USDJPY_15m_result.json` |
 | r2 | r2: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5263 (.5047) | .6200 · 1.0 · .6589 | 0/0 · — | .5698 · 1.0 · .5698 | 0/0 · — | .5121 / .4771 | CERTIFIED / CERTIFIED | no (7/15, 7 clear) / no (1/15, 1 clear) | 1.00 / 1.00 | `deriv_r2_USDJPY_15m_result.json` |
 | r3 | r3: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5222 (.5124) | .6800 · 1.0 · .6800 | 0/0 · — | nan · .000 · — | 0/0 · — | .5196 / .4660 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (1/15, 1 clear) / no (0/15, 0 clear) | 1.00 / — | `deriv_r3_USDJPY_15m_result.json` |

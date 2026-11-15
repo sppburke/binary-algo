@@ -135,10 +135,14 @@ Every DEV-window variant tried for a key belongs to that key's search family (al
 **two finalized candidates per key** are opened on the holdout, chosen on DEV evidence only (CPCV verdict, forward walk,
 no-clock ablation) and named in the key's sweep ledger before the holdout is scored. Reading per candidate
 (`holdout_eval.py`): PRIMARY = walk-forward monthly refit (train on everything before each holdout month, purged),
-CONTEXT = one model frozen at the end of DEV. A side is SOTA-eligible iff the PRIMARY reading has n >= 50 and its
-CI95-lower (Bonferroni-adjusted for the number of candidates opened for that key, i.e. a 97.5% interval when two are
-opened) is >= 0.541, and its point win rate beats every incumbent book of the key scored on the same window as
-deployed. Then the full per-fold-refit CPCV at the operating gate certifies it.
+CONTEXT = one model frozen at the end of DEV. A side is SOTA-eligible iff the PRIMARY reading has n >= 50, it passes
+the Holm step-down across the key's finalists (one-sided family alpha 0.025 on `holdout_eval.py` `p_boot_le_breakeven`:
+the j-th smallest of k passes iff it and every smaller one are <= 0.025 / (k - j + 1), so its CI95 lower bound is
+>= 0.541 too), its point win rate beats every incumbent book of the key scored on the same window as deployed, and -
+for a key under owner decision 1 - its drift-matched excess passes. Then the full per-fold-refit CPCV at the operating
+gate certifies it. (Holm replaced the first registration's single-step Bonferroni interval at 2026-11-15 13:21 UTC,
+before any holdout data was read; lab `holdout/REGISTER.md`. `holdout_eval.py` still reports the Bonferroni reading as
+`bonferroni_context_eligible`, context only.)
 
 ## Experiment record
 
@@ -209,8 +213,9 @@ and consolidated into 2,420 items mapped against this program's runs (`research/
 with dispositions, compressed records and backlog). The ranked testable direction levers enter as `e51fx`, `e52ck`,
 `e53ckcompact`, `e54ckcompactlogit`, `e55rl` / `e56rs` (with a shifted-level placebo), `e40forest`, `e41pool` and the
 zero-parameter rules `r4fixldn` / `r5fixecb` (`scripts/cpcv_rule.py`: a rule scored on the CPCV paths with nothing
-fitted). The high-prior items are all validation upgrades; the sign-null replay (`scripts/run_nullreplay.sh`) applies
-the "full-search null replay" to the selected configuration. Literature blocks: `scripts/deriv_features_lit.py`
+fitted). The high-prior items are all validation upgrades; the sign-null replay (`scripts/run_nullreplay.sh`) is a
+pre-registered label-shift diagnostic of the selected configuration only - it does not replay the search, as the
+literature's "full-search null replay" would. Literature blocks: `scripts/deriv_features_lit.py`
 (truncation-tested), merged as `dataset_dev_v0.5` (a superset of v0.3 and v0.4, which were removed).
 
 Literature feature blocks, measured (2026-11-15; per key in `results/<PAIR>_RESULTS.md`; paired against `e1t`, same
@@ -230,21 +235,46 @@ summer / + 8 h in US winter from 2025-08-25; evidence and reference correction i
 `/mnt/data/deriv/checks/clock_corrected_agreement.py`, outside this repository). Their session-gated numbers therefore
 describe different true hours than the live Deriv feed. The closures are kept, not re-litigated, unless reopened.
 
+## Owner decisions (resolved)
+
+1. **Validity band vs genuine drift — drift amendment adopted by the owner on 2026-11-15.** The owner selected, verbatim
+   (about 18:05 UTC): "Outside the band, certify only if the side also beats its New-York-hour × volatility matched
+   always-side baseline: DEV placebo positive on >= 12/15 paths AND holdout drift-matched excess CI95-lower > 0, plus
+   mirage checks (tie rate, no forward-fill)." Asked separately (between 18:15 and 18:30 UTC), the owner confirmed
+   that the amendment also covers the per-path up-rate tripwire [0.45, 0.55] - the same drift seen path by path
+   (USDJPY paths reach 0.5515). Operational definitions, recorded before the holdout is opened:
+   - *Mirage check* (an observation, not a fitted threshold): the pair's NY in-session tradeable tie share at the
+     configuration's horizon is compared with the other six pairs' range, and labels must be tick-settled with no
+     forward fill. USDJPY 15m: 0.0119 (1,542 / 129,284) against 0.0109-0.0182 for the other six pairs; USDJPY 30m:
+     0.0081 (1,016 / 125,528) against 0.0073-0.0131 (`dataset_dev_v0.1`); labels from `scripts/deriv_dataset.py`
+     settle, no forward fill.
+   - *DEV placebo*: `analyze_drift_placebo.py` on exactly that configuration (same pair, horizon and operating coverage;
+     the lab registry records the command), baseline matched on New York hour × rv_60m tercile within each path. Its
+     pre-registered verdict SKILL BEYOND DRIFT TIMING - excess > 0 on >= 12 counted paths AND mean excess >= 0.02 - is
+     retained; the mean floor is a pre-registered program requirement, stricter than the owner's words.
+   - *Holdout*: the drift-matched excess with the baseline matched on New York hour × rv_60m tercile over the holdout
+     rows (`holdout_eval.py` `drift_matched`, from version 0.5) must have a CI95 lower bound > 0. Version 0.6 adds
+     `--weight absret`, so a |return|-weighted configuration such as `c2nysabs` is scored as configured; the test is
+     unavailable, and never passes, unless the rv_60m tercile cut points are finite and distinct.
+   - *Staging*: "DEV-certified under the amendment" = the goal path test + mirage check + DEV placebo (generated in
+     `results/<PAIR>_RESULTS.md` by `scripts/render_ledger.py` `amended_verdict`). Final certification additionally
+     needs the holdout drift test and the unchanged holdout conditions (Holm test, PRIMARY n >= 50, beating every
+     incumbent book; Holdout discipline above) and then the full per-fold-refit CPCV. A configuration without its own
+     placebo run stays INVALID. This is an owner exception for this program; strategy-eval §2 is unchanged elsewhere.
+
 ## Open owner decisions
 
-1. **Validity band vs genuine drift.** strategy-eval §2 treats a moved up-rate outside [0.47, 0.53] as a fake-flat mirage
-   ("invalid regardless of accuracy"). On tick-settled Deriv labels (no forward fill) the band also fires on genuine
-   drift (USDJPY +6.8% over DEV: `results/USDJPY_RESULTS.md`, drift diagnosis). The program keeps the rule; a possible
-   amendment is mirage diagnostics (tie rate, forward-fill share) plus a drift-neutral requirement (the side beats its
-   always-side baseline matched on New York hour × volatility on >= 80% of counted paths: `analyze_drift_placebo.py`).
-   This decision is material: the USDJPY 15m UP side of `e1t` meets every other DEV condition of the goal rule (see the
-   USDJPY ablation and placebo note) and is INVALID only by the band. The same holds for the kernel model
-   `e30nystroem` (15/15 paths, p10 0.5587), which is also SIGNIFICANT against the pre-registered sign-null replay
-   `a5null` (labels shifted 3..48 weeks, keeping drift and calendar structure: real p10 rank 17 of 17, no null meets
-   the goal path test; `results/json/deriv_a5null_USDJPY_15m_result.json`). The sealed holdout remains the binding test.
-2. **Frozen books as an operational option.** The only DEV-supported edges so far are frozen Dukascopy-trained USDJPY
-   books scored on their training clock in true NY 13:00–16:35 / 18:00–22:00. They are benchmarks under the Deriv-only
-   constraint, not deliverables, unless the owner decides otherwise.
+(Decision 1 is resolved above. Its background: strategy-eval §2 treats a moved up-rate outside [0.47, 0.53] as a
+fake-flat mirage; on tick-settled Deriv labels the band also fires on genuine drift - USDJPY +6.8% over DEV,
+`results/USDJPY_RESULTS.md` drift diagnosis. The USDJPY 15m UP kernel `e30nystroem` (15/15 paths, p10 0.5587) also
+passed the pre-registered 16-shift sign-null diagnostic `a5null` for this one selected configuration (labels shifted
+3..48 weeks, keeping drift and calendar structure; real p10 rank 17 of 17; none of the shifts met the goal path test;
+`results/json/deriv_a5null_USDJPY_15m_result.json`); it does not replay the search, so it is not a search-adjusted
+significance test. The sealed holdout remains the binding test.)
+
+2. **Frozen books as an operational option.** Before owner decision 1, the only DEV-supported edges were frozen
+   Dukascopy-trained USDJPY books scored on their training clock in true NY 13:00–16:35 / 18:00–22:00. They are
+   benchmarks under the Deriv-only constraint, not deliverables, unless the owner decides otherwise.
 3. **Repository closures** measured on mis-clocked data (neural/spectral/GRU/TSFM/Optuna nulls; pooling for the
    JPY/CAD/AUD/NZD family): kept unless reopened.
 4. **Non-Deriv inputs** (e.g. `macro_calendar.parquet`): excluded unless approved.

@@ -28,7 +28,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.7.1'  # 0.7.1: --monotone catchup (discovery D2-02); defaults unchanged
+X_VERSION = 'cpcv_deriv_x/0.7.2'  # 0.7.2: fit_one reads drift_fe with getattr (holdout_eval's namespace lacks it)
+#                                  0.7.1: --monotone catchup (discovery D2-02); defaults unchanged
 #                                  0.7: discovery round 1 - --drift-fe (D1-01), --train-label agree3 (D1-02), play
 #                                  families hy_/hr_ (D1-03); defaults unchanged
 #                                  0.6.1: --multi-horizon (literature rank 24); --boot-gate seeds from str(label) (0.6
@@ -117,7 +118,7 @@ class XFitter(cd.Fitter):
         pv, pt, its = [], [], []
         # sklearn models get the training weights rescaled to mean 1 (per-row loss scale unchanged against the penalty)
         skw = {} if self.wfit is None else {'sample_weight': self.wfit / (self.wfit.mean() + 1e-18)}
-        if a.drift_fe:
+        if getattr(a, 'drift_fe', False):          # (getattr: holdout_eval passes a reduced namespace)
             return self.fit_drift_fe(sd, Xf, yf, Xv, yv, Xt, skw)
         if a.model == 'lgbord4':                    # literature rank 25: ordinal signed bins (4-class), P(up) = P(bin 2) + P(bin 3)
             m = cd.lgb.LGBMClassifier(objective='multiclass', num_class=4, learning_rate=a.lr, num_leaves=a.num_leaves,

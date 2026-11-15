@@ -175,10 +175,19 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDCAD.m15ny_seedens.v1` 0.5463 [0.5073, 0.5854] n=615 (NOT SUPPORTED); DOWN best `USDCAD.m15ny_seedens.v1` 0.4621 [0.4223, 0.5036] n=554 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): e16nyeve 15m DOWN (cov 0.03: no (2/15, 2 clear); forward 0/0).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e56rs` 8/15 clear, p10 0.484, excess +0.044; `e30nystroem` 7/15 clear, p10 0.516, excess +0.036; `e53ckcompact` 7/15 clear, p10 0.498, excess +0.048.
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `c6nyscomp` 11/15 clear, p10 0.508, excess +0.073; `e56rs` 8/15 clear, p10 0.484, excess +0.044; `e30nystroem` 7/15 clear, p10 0.516, excess +0.036.
 - **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e53ckcompact` 7/15 clear, p10 0.485, excess +0.044; `e1t` 7/14 clear, p10 0.446, excess +0.044; `e34online` 6/15 clear, p10 0.496, excess +0.038.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
+
+> **USDCAD 15m UP — Tier-I levers on the kernel base (2026-11-15, hand-written; numbers from the cited JSONs).** Base
+> `e30nystroem` (RBF kernel, operating coverage 0.03): 7 of 15 paths clear, p10 0.5158, VALID. Pre-registered reading
+> (lab PROGRESS.md, by 13:11 UTC): a lever IMPROVES iff paths clear >= the base's and p10 > the base's at the operating
+> coverage on a VALID run. None does: `c1nys3` (3 seeds; 6, 0.5080), `c2nysabs` (|return| weights; 7, 0.4726),
+> `c3nysaci` (ACI gate; 6, 0.4780), `c4nysmeta` (meta gate keep 0.5, coverage doubled to 0.06 by design; 3, 0.4990),
+> `c5nysmag` (magnitude gate keep 0.5; 2 of 11 counted, 0.4583). `c6nyscomp` (compression gate) clears more paths (11
+> of 15) but at a lower p10 (0.5080), so it does not improve by the pre-registered reading and is KILLED by the goal rule
+> (11 < 12 paths, p10 < 0.541).
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -209,6 +218,12 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 
 | Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| c1nys3 | c1nys3: all (66), nseed 3 | 15m | 0.03 | .5046 (.4946) | .5080 · .400 · .5337 | 2/3 · .5485 | .3737 · .000 · .4568 | 0/2 · .4275 | .5014 / .4866 | KILLED / KILLED | no (15/15, 6 clear) / no (15/15, 0 clear) | 0.07 / 0.00 | `deriv_c1nys3_USDCAD_15m_result.json` |
+| c2nysabs | c2nysabs: all (66), nseed 1 | 15m | 0.03 | .5019 (.4902) | .4726 · .467 · .5274 | 0/4 · .4954 | .4264 · .071 · .4725 | 0/4 · .4428 | .5014 / .4866 | KILLED / KILLED | no (15/15, 7 clear) / no (14/15, 1 clear) | 0.13 / 0.00 | `deriv_c2nysabs_USDCAD_15m_result.json` |
+| c3nysaci | c3nysaci: all (66), nseed 1 | 15m | 0.03 | .5039 (.4946) | .4780 · .400 · .5174 | 1/3 · .4995 | .4102 · .154 · .4615 | 1/3 · .5208 | .5014 / .4866 | KILLED / KILLED | no (15/15, 6 clear) / no (13/15, 2 clear) | 0.00 / 0.00 | `deriv_c3nysaci_USDCAD_15m_result.json` |
+| c4nysmeta | c4nysmeta: all (66), nseed 1 | 15m | 0.06 | .5039 (.4946) | .4990 · .200 · .5234 | 1/3 · .5363 | .4522 · .167 · .4910 | 0/2 · .4203 | .5014 / .4866 | KILLED / KILLED | no (15/15, 3 clear) / no (12/15, 2 clear) | 0.07 / 0.08 | `deriv_c4nysmeta_USDCAD_15m_result.json` |
+| c5nysmag | c5nysmag: all (66), nseed 1 | 15m | 0.03 | .5039 (.4946) | .4583 · .182 · .5029 | 0/2 · .4249 | .4239 · .000 · .4712 | 0/2 · .4024 | .5014 / .4866 | KILLED / KILLED | no (11/15, 2 clear) / no (14/15, 0 clear) | 0.18 / 0.00 | `deriv_c5nysmag_USDCAD_15m_result.json` |
+| c6nyscomp | c6nyscomp: all (66), nseed 1 | 15m | 0.03 | .5039 (.4946) | .5080 · .733 · .5747 | 1/2 · .5563 | .3922 · .273 · .4768 | 0/2 · .3333 | .5014 / .4866 | KILLED / KILLED | no (15/15, 11 clear) / no (11/15, 3 clear) | 0.53 / 0.18 | `deriv_c6nyscomp_USDCAD_15m_result.json` |
 | e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5215 (.5076) | .4756 · .429 · .5519 | 1/2 · .5364 | .4195 · .200 · .4925 | 0/0 · — | .5005 / .4806 | KILLED / KILLED | no (14/15, 6 clear) / no (10/15, 2 clear) | 0.29 / 0.10 | `deriv_e14nylate_USDCAD_15m_result.json` |
 | e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5055 (.4867) | .4770 · .267 · .5213 | 1/1 · .5556 | .3472 · .000 · .3861 | 0/0 · — | .5105 / .4747 | KILLED / KILLED | no (15/15, 4 clear) / no (6/15, 0 clear) | 0.20 / 0.00 | `deriv_e15nypm_USDCAD_15m_result.json` |
 | e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5244 (.5111) | .3897 · .333 · .5075 | 0/0 · — | .6401 · 1.0 · .6405 | 0/0 · — | .4903 / .4870 | KILLED / CERTIFIED | no (6/15, 2 clear) / no (2/15, 2 clear) | 0.33 / 1.00 | `deriv_e16nyeve_USDCAD_15m_result.json` |
