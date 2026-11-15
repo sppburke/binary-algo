@@ -17,6 +17,7 @@ parameters, row counts, label sanity per pair).
 """
 import hashlib
 import json
+import os
 import sys
 import time
 from datetime import date, timedelta
@@ -31,15 +32,28 @@ PAIRS = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'USDCAD', 'AUDUSD', 'NZDUSD']
 USD_BASE = {'USDJPY', 'USDCHF', 'USDCAD'}          # USD is the base currency: invert for a "USD strength" view
 HORIZONS = {15: (900, 30), 30: (1800, 60)}       # minutes -> (seconds, tolerance seconds)
 LAG_S = 1
-BUILDER_VERSION = 'deriv_dataset/0.1'
+BUILDER_VERSION = 'deriv_dataset/0.2'   # 0.2: only days whose sidecar says complete (0.1 read every existing file)
+
+
+SKIPPED_INCOMPLETE = []                           # (pair, day) whose tick file exists but whose sidecar is not complete
 
 
 def day_files(pair, first, last):
+    """Tick files of first..last, reading ONLY days whose downloader sidecar says complete = true (the archive may be
+    filling; owner's rule). DERIV_ALLOW_INCOMPLETE=1 reproduces builds made before 0.2, which also read the two DEV days
+    marked incomplete (2025-12-24 and 2025-12-31: holiday early closes, gap 17:40-19:00 ET; no tradeable decision's
+    15m/30m label crosses either gap)."""
+    allow = os.environ.get('DERIV_ALLOW_INCOMPLETE') == '1'
     d, out = first, []
     while d <= last:
         f = ARCHIVE / pair / f'{pair}_{d.isoformat()}_ticks.parquet'
+        m = ARCHIVE / pair / f'{pair}_{d.isoformat()}_ticks.meta.json'
         if f.exists():
-            out.append(f)
+            ok = allow or (m.exists() and json.loads(m.read_text()).get('complete') is True)
+            if ok:
+                out.append(f)
+            else:
+                SKIPPED_INCOMPLETE.append((pair, d.isoformat()))
         d += timedelta(days=1)
     return out
 
@@ -176,6 +190,8 @@ def main():
         print(pair, manifest['pairs'][pair], flush=True)
     for pair in PAIRS:
         manifest['inputs'][pair] = [{'file': f.name, 'bytes': f.stat().st_size, 'sha256': file_sha(f)} for f in files_used[pair]]
+    manifest['skipped_incomplete_days'] = [list(x) for x in SKIPPED_INCOMPLETE]
+    manifest['allow_incomplete'] = os.environ.get('DERIV_ALLOW_INCOMPLETE') == '1'
     manifest['seconds'] = round(time.time() - t0, 1)
     (out / 'manifest.json').write_text(json.dumps(manifest, indent=1))
     print('done in', manifest['seconds'], 's')

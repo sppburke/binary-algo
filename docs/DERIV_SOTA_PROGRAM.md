@@ -18,6 +18,12 @@ recorded and cleaned, and runs under `/mnt/data/deriv-sota-lab/`.
 ## Data and windows
 
 - Source: the Deriv tick archive `/mnt/data/deriv/ticks` (one mid price per second, true UTC), read-only.
+- Completeness: from `deriv_dataset` 0.2 (2026-11-15) every builder reads only days whose downloader sidecar says
+  `complete: true`. The DEV datasets were built before that and also read the tick files of the only two DEV days marked
+  incomplete, identical for all 7 pairs: 2025-12-24 and 2025-12-31, holiday early closes whose gap is the last 80
+  minutes of the UTC day (17:40-19:00 ET). Checked on the cached datasets: no decision falls inside either gap, and no
+  valid 15m or 30m label of any tradeable decision (NY 08:00-16:35, nylate, nyeve, nyam, nypm, all hours) crosses one;
+  features after a gap see a closure, as after a weekend. `DERIV_ALLOW_INCOMPLETE=1` reproduces the old selection.
 - DEV window **2025-08-11 .. 2026-07-31**: all training, selection and CPCV.
 - HOLDOUT **2026-08-01 .. 2026-11-14**: sealed; opened once per finalized candidate (and for the incumbents on the
   same window). Per-calendar-year held-out evaluation is not applicable to ~15 months of Deriv-only data.

@@ -168,11 +168,11 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e15nypm_USDJPY_15m_result.json` |
 | E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e16nyeve_USDJPY_15m_result.json` |
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_USDJPY_15m_result.json` |
-| R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | running | — | — |
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e2noclock_USDJPY_15m_result.json` |
 | E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e7fitall_USDJPY_15m_result.json` |
 | E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e4seed3_USDJPY_15m_result.json` |
 | E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | pending | — | — |
 | E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E9BLOCKVAL | E1t with a time-block validation set (last 15% of training rows, purged) setting the threshold; all 800 trees (`cpcv_deriv_x.py`) | 15m | pending | — | — |
