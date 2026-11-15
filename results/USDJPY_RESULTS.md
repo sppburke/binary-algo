@@ -264,8 +264,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `USDJPY.m15ny_seedens.v1` 0.6500 [0.5750, 0.7188] n=160 (SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.6250 [0.5250, 0.7250] n=80 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDJPY.m15ny_seedens.v1` 0.5253 [0.4822, 0.5666] n=533 (NOT SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.5133 [0.4333, 0.5933] n=150 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e18lowcap` 14/15 clear, p10 0.556, excess +0.066, INVALID (up-rate band); `e1t` 14/15 clear, p10 0.555, excess +0.080, INVALID (up-rate band); `e2noclock` 14/15 clear, p10 0.542, excess +0.084, INVALID (up-rate band).
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e11noslow` 7/14 clear, p10 0.454, excess +0.057, INVALID (up-rate band); `e7fitall` 6/8 clear, p10 0.509, excess +0.118, INVALID (up-rate band); `e12noslowclock` 6/15 clear, p10 0.432, excess +0.048, INVALID (up-rate band).
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e30nystroem` 15/15 clear, p10 0.559, excess +0.081, INVALID (up-rate band); `e18lowcap` 14/15 clear, p10 0.556, excess +0.066, INVALID (up-rate band); `e1t` 14/15 clear, p10 0.555, excess +0.080, INVALID (up-rate band).
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e32spec` 7/15 clear, p10 0.459, excess +0.049, INVALID (up-rate band); `e11noslow` 7/14 clear, p10 0.454, excess +0.057, INVALID (up-rate band); `e7fitall` 6/8 clear, p10 0.509, excess +0.118, INVALID (up-rate band).
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -302,6 +302,18 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 > quantiles left one bin empty; correction recorded in the JSON). The incumbent recipe refit on Deriv data on its
 > training clock (`r3`, NY 13:00-16:35 + 18:00-22:00) is too thin to read at its deploy coverage 0.02 (1 of 15 paths
 > reaches 25 trades) and INVALID by drift.
+>
+> **Strongest DEV candidate: `e30nystroem` UP (E1t features, RBF Nystroem features + logistic SGD; 2026-11-15).** At
+> the operating coverage 0.03: p10 0.5587 with 15 of 15 paths clearing .541 (path minimum 0.5488, mean 0.5963, median
+> 228 trades per path), excess over always-UP +0.081 on 15/15 paths, forward walk 3 of 4 counted folds clear (mean
+> 0.587); coverage 0.02: p10 0.576, 15/15; coverage 0.05: p10 0.539, 13/15. Drift placebo
+> `deriv_a3placebo_USDJPY_15m_result.json`: +0.061 over hour × volatility-matched always-UP, 15 of 15 CPCV paths positive
+> (forward folds 4/4, +0.048) - SKILL BEYOND DRIFT TIMING. Entry-delay stress `deriv_a4delay_USDJPY_15m_result.json`:
+> 15 of 15 paths clear at +0 / 2 / 4 / 9 / 29 s with p10 0.559 / 0.561 / 0.559 / 0.560 / 0.564 - OPERATIONALLY ROBUST;
+> excess positive in every rank tercile of feed staleness (+0.091 / +0.077 / +0.061). Verdict under the program's rule:
+> INVALID (moved up-rate 0.5315, paths to 0.5515) - it meets every other DEV condition of the goal rule. Open owner
+> decision 1 (docs/DERIV_SOTA_PROGRAM.md) decides whether it can be certified; the sealed holdout decides whether it
+> holds out of sample.
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -351,6 +363,8 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 | e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5256 (.5141) | .5554 · .933 · .5948 | 3/3 · .5791 | .4636 · .250 · .5336 | 1/1 · .6250 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (8/15, 2 clear) | 0.80 / 0.25 | `deriv_e1t_USDJPY_15m_result.json` |
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5210 (.5054) | .5212 · .733 · .5622 | 3/4 · .5563 | .4266 · .000 · .4818 | 1/3 · .4798 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 11 clear) / no (9/15, 0 clear) | 0.53 / 0.00 | `deriv_e29logit_USDJPY_15m_result.json` |
 | e2noclock | e2noclock: noclock (63), nseed 1 | 15m | 0.03 | .5244 (.5150) | .5425 · .933 · .5989 | 0/3 · .4818 | .4242 · .273 · .4982 | 1/1 · .7097 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (11/15, 3 clear) | 0.67 / 0.18 | `deriv_e2noclock_USDJPY_15m_result.json` |
+| e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5260 (.5184) | .5587 · 1.0 · .5963 | 3/4 · .5871 | .4647 · .000 · .4647 | 0/1 · .5179 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 15 clear) / no (1/15, 0 clear) | 0.80 / 0.00 | `deriv_e30nystroem_USDJPY_15m_result.json` |
+| e32spec | e32spec: all (66), nseed 1 | 15m | 0.03 | .5124 (.5008) | .5345 · .867 · .5728 | 3/4 · .6024 | .4588 · .467 · .5235 | 3/4 · .5429 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (15/15, 7 clear) | 0.53 / 0.27 | `deriv_e32spec_USDJPY_15m_result.json` |
 | e4seed3 | e4seed3: all (66), nseed 3 | 15m | 0.03 | .5261 (.5155) | .5394 · .867 · .5915 | 2/3 · .5754 | .4674 · .250 · .5137 | 0/1 · .5333 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (8/15, 2 clear) | 0.80 / 0.12 | `deriv_e4seed3_USDJPY_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .5275 (.5179) | .5167 · .867 · .5848 | 2/4 · .5575 | .5085 · .750 · .5923 | 0/0 · — | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 13 clear) / no (8/15, 6 clear) | 0.67 / 0.75 | `deriv_e7fitall_USDJPY_15m_result.json` |
 | r2 | r2: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5263 (.5047) | .6200 · 1.0 · .6589 | 0/0 · — | .5698 · 1.0 · .5698 | 0/0 · — | .5121 / .4771 | CERTIFIED / CERTIFIED | no (7/15, 7 clear) / no (1/15, 1 clear) | 1.00 / 1.00 | `deriv_r2_USDJPY_15m_result.json` |

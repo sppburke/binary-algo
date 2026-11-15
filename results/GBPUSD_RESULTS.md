@@ -125,7 +125,7 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-07-
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): e16nyeve 15m UP (cov 0.03: no (4/15, 4 clear); forward 0/0).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e14nylate` 8/14 clear, p10 0.468, excess +0.045; `e16nyeve` 4/4 clear, p10 0.567, excess +0.095; `e7fitall` 4/15 clear, p10 0.435, excess +0.009.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e16nyeve` 4/6 clear, p10 0.471, excess +0.075; `e6pool` 3/15 clear, p10 0.428, excess -0.012; `e18lowcap` 3/15 clear, p10 0.418, excess -0.013.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e16nyeve` 4/6 clear, p10 0.471, excess +0.075; `e32spec` 3/15 clear, p10 0.457, excess +0.007; `e6pool` 3/15 clear, p10 0.428, excess -0.012.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -170,6 +170,8 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated 2026-07-
 | e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5036 (.4956) | .4606 · .267 · .5170 | 1/2 · .5200 | .4359 · .267 · .5084 | 1/3 · .5029 | .4915 / .4980 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 4 clear) | 0.07 / 0.13 | `deriv_e1_GBPUSD_15m_result.json` |
 | e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .4975 (.4886) | .4248 · .286 · .5026 | 1/2 · .4755 | .3948 · .067 · .4772 | 2/3 · .4921 | .4908 / .4988 | KILLED / KILLED | no (14/15, 4 clear) / no (15/15, 1 clear) | 0.21 / 0.00 | `deriv_e1t_GBPUSD_15m_result.json` |
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .4966 (.4836) | .4287 · .000 · .4716 | 1/4 · .4814 | .4217 · .000 · .4671 | 0/4 · .4420 | .4908 / .4988 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 0 clear) | 0.00 / 0.00 | `deriv_e29logit_GBPUSD_15m_result.json` |
+| e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .4927 (.4799) | .4452 · .000 · .4686 | 1/3 · .5580 | .4434 · .067 · .4957 | 0/4 · .4946 | .4908 / .4988 | KILLED / KILLED | no (11/15, 0 clear) / no (15/15, 1 clear) | 0.00 / 0.07 | `deriv_e30nystroem_GBPUSD_15m_result.json` |
+| e32spec | e32spec: all (66), nseed 1 | 15m | 0.03 | .5016 (.4926) | .3582 · .000 · .4450 | 0/4 · .4483 | .4566 · .200 · .5057 | 1/4 · .5505 | .4908 / .4988 | KILLED / KILLED | no (15/15, 0 clear) / no (15/15, 3 clear) | 0.00 / 0.07 | `deriv_e32spec_GBPUSD_15m_result.json` |
 | e6pool | e6pool: own (41), nseed 1, pooled +6 pairs | 15m | 0.03 | .4957 (.4822) | .4160 · .267 · .4839 | 1/4 · .5305 | .4279 · .200 · .4864 | 2/4 · .5241 | .4908 / .4988 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 3 clear) | 0.13 / 0.07 | `deriv_e6pool_GBPUSD_15m_result.json` |
 | e7fitall | e7fitall: all (66), nseed 1 | 15m | 0.03 | .4960 (.4861) | .4349 · .267 · .4999 | 1/2 · .5241 | .3909 · .133 · .4495 | 0/4 · .4039 | .4908 / .4988 | KILLED / KILLED | no (15/15, 4 clear) / no (15/15, 2 clear) | 0.20 / 0.13 | `deriv_e7fitall_GBPUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->
