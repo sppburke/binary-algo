@@ -173,7 +173,8 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 <!-- DERIV-FEED-NOTES:BEGIN -->
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `USDCAD.m15ny_seedens.v1` 0.6016 [0.5156, 0.6875] n=128 (NOT SUPPORTED); DOWN best `USDCAD.m15ny_seedens.v1` 0.5918 [0.4997, 0.6939] n=98 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDCAD.m15ny_seedens.v1` 0.5463 [0.5073, 0.5854] n=615 (NOT SUPPORTED); DOWN best `USDCAD.m15ny_seedens.v1` 0.4621 [0.4223, 0.5036] n=554 (NOT SUPPORTED).
-- **DEV-CPCV certified sides (tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- Certified only under the repository rule (too few counted paths for the goal rule): e16nyeve 15m DOWN (cov 0.03: no (2/15, 2 clear); forward 0/0).
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -204,7 +205,11 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 
 **Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
 
-| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5159 (.5075) | .4496 · .467 · .5256 | 2/3 · .6109 | .4805 · .286 · .5244 | 1/2 · .5197 | .5008 / .4873 | KILLED / KILLED | 0.33 / 0.14 | `deriv_e1_USDCAD_15m_result.json` |
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5215 (.5076) | .4756 · .429 · .5519 | 1/2 · .5364 | .4195 · .200 · .4925 | 0/0 · — | .5005 / .4806 | KILLED / KILLED | no (14/15, 6 clear) / no (10/15, 2 clear) | 0.29 / 0.10 | `deriv_e14nylate_USDCAD_15m_result.json` |
+| e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5055 (.4867) | .4770 · .267 · .5213 | 1/1 · .5556 | .3472 · .000 · .3861 | 0/0 · — | .5105 / .4747 | KILLED / KILLED | no (15/15, 4 clear) / no (6/15, 0 clear) | 0.20 / 0.00 | `deriv_e15nypm_USDCAD_15m_result.json` |
+| e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5244 (.5111) | .3897 · .333 · .5075 | 0/0 · — | .6401 · 1.0 · .6405 | 0/0 · — | .4903 / .4870 | KILLED / CERTIFIED | no (6/15, 2 clear) / no (2/15, 2 clear) | 0.33 / 1.00 | `deriv_e16nyeve_USDCAD_15m_result.json` |
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5159 (.5075) | .4496 · .467 · .5256 | 2/3 · .6109 | .4805 · .286 · .5244 | 1/2 · .5197 | .5008 / .4873 | KILLED / KILLED | no (15/15, 7 clear) / no (14/15, 4 clear) | 0.33 / 0.14 | `deriv_e1_USDCAD_15m_result.json` |
+| e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5103 (.5023) | .4793 · .267 · .5192 | 1/2 · .5139 | .4456 · .500 · .5310 | 0/0 · — | .5014 / .4866 | KILLED / KILLED | no (15/15, 4 clear) / no (14/15, 7 clear) | 0.20 / 0.36 | `deriv_e1t_USDCAD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

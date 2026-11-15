@@ -101,6 +101,19 @@ Documented, not changed: research features use the full history while the live b
 state differs slightly — a deployment-parity item); the de-overlapped side streams are the repository's evaluation
 discipline, not a replay of the live executor's concurrency; v0.1 cross-pair staleness measures bar age, not tick age.
 
+## Deriv history depth (data ceiling)
+
+Deriv serves tick history for about **365 days** (archive README `/mnt/data/deriv/README.md`: on 2026-11-14, Friday
+2025-11-14 18:00 UTC was no longer served, Monday 2025-11-17 00:00 UTC was). The "retention >= 26.5 years" recorded by
+`scripts/deriv_api_probe.py` probe (d) (`results/json/deriv_api_probe_result.json` `decisions.tick_retention_days_min`,
+quoted in `docs/DERIV_DEMO_EXECUTOR.md` (d)) is an artifact: its `_has_ticks_at_or_before` requests `ticks_history` with
+`end` and no `start` and only tests that the reply is non-empty, while the API ignores `end` without `start` and returns
+recent ticks (archive README, reply-shape check of 2026-11-15). The lab archive (from 2025-08-11) is therefore the
+maximum Deriv-only history; it grows only forward. Deriv-only models are data-limited (about 15 months of DEV); this is
+the main structural constraint behind the null results of 15-month models in hours where 10-year frozen books still
+carry signal (R1bt). That docs/DERIV_DEMO_EXECUTOR.md (d) needs a correction is recorded here; the edit itself is a
+separate dev-cycle change.
+
 ## Holdout discipline (registered 2026-11-15, before any holdout data is opened)
 
 Every DEV-window variant tried for a key belongs to that key's search family (all logged in the lab registry). At most
@@ -127,3 +140,18 @@ are not true UTC (verified 2026-11-14: stored = true UTC − 5 h for files label
 summer / + 8 h in US winter from 2025-08-25; evidence and reference correction in
 `/mnt/data/deriv/checks/clock_corrected_agreement.py`, outside this repository). Their session-gated numbers therefore
 describe different true hours than the live Deriv feed. The closures are kept, not re-litigated, unless reopened.
+
+## Open owner decisions
+
+1. **Validity band vs genuine drift.** strategy-eval §2 treats a moved up-rate outside [0.47, 0.53] as a fake-flat mirage
+   ("invalid regardless of accuracy"). On tick-settled Deriv labels (no forward fill) the band also fires on genuine
+   drift (USDJPY +6.8% over DEV: `results/USDJPY_RESULTS.md`, drift diagnosis). The program keeps the rule; a possible
+   amendment is mirage diagnostics (tie rate, forward-fill share) plus a drift-neutral requirement (each side beating its
+   always-side baseline on every counted path).
+2. **Frozen books as an operational option.** The only DEV-supported edges so far are frozen Dukascopy-trained USDJPY
+   books scored on their training clock in true NY 13:00–16:35 / 18:00–22:00. They are benchmarks under the Deriv-only
+   constraint, not deliverables, unless the owner decides otherwise.
+3. **Repository closures** measured on mis-clocked data (neural/spectral/GRU/TSFM/Optuna nulls; pooling for the
+   JPY/CAD/AUD/NZD family): kept unless reopened.
+4. **Non-Deriv inputs** (e.g. `macro_calendar.parquet`): excluded unless approved.
+5. **Payout**: one recorded venue trade implies breakeven ≈ 0.565; the goal's rule uses 0.541.

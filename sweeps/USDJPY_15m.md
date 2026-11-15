@@ -162,11 +162,11 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | R1bt | frozen books as trained (clock -5 h, 13:00-16:35 + 18:00-22:00 ET), tradeable only (`score_frozen_books.py`) | 15m/30m | done | USDJPY.m15ny.v1: SUPPORTED / NOT SUPPORTED; USDJPY.m15ny_seedens.v1: SUPPORTED / NOT SUPPORTED; USDJPY.m15ny_tbft_seedens.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1bt_frozen_books_trainclock_nylate_dev_tradeable_result.json` |
 | R2 | SUPERSEDED (pre-tradeable-filter, harness 0.2.1): incumbent recipe refit on Deriv data, NY 08-17 (`cpcv_deriv.py`) | 15m | done | CERTIFIED / CERTIFIED (cov 0.02) | `deriv_r2_USDJPY_15m_result.json` |
 | E1 | SUPERSEDED (pre-tradeable-filter, harness 0.2/0.2.1): LightGBM on Deriv-native features v0.1, NY 08-17 (`cpcv_deriv.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_e1_USDJPY_15m_result.json` |
-| E1T | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1, NY 08:00-16:35 tradeable (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E1T | LightGBM on Deriv-native features v0.1 (66: own-pair wall-clock returns, volatility, range, EMA, activity; clock; other pairs as-of), nseed 1, NY 08:00-16:35 tradeable (`cpcv_deriv.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e1t_USDJPY_15m_result.json` |
 | R2T | Incumbent recipe refit on Deriv data (deployed book's exact columns, seeds, deploy coverage), true clock, NY 08:00-16:35 tradeable (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E14NYLATE | E1t model in true NY 13:00-16:35 + 18:00-22:00 (the hours the Dukascopy-era NY gate actually selected), tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E14NYLATE | E1t model in true NY 13:00-16:35 + 18:00-22:00 (the hours the Dukascopy-era NY gate actually selected), tradeable (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e14nylate_USDJPY_15m_result.json` |
+| E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_e15nypm_USDJPY_15m_result.json` |
+| E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e16nyeve_USDJPY_15m_result.json` |
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
@@ -179,5 +179,6 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E11NOSLOW | E1t without the slow features (480/1440-minute windows): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E12NOSLOWCLOCK | E1t without slow and clock features: trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->

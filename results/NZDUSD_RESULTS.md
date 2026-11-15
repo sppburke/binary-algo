@@ -656,7 +656,7 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 <!-- DERIV-FEED-NOTES:BEGIN -->
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `NZDUSD.m15ny_seedens.v1` 0.4510 [0.3725, 0.5294] n=153 (NOT SUPPORTED); DOWN best `NZDUSD.m15ny_seedens.v1` 0.5571 [0.4429, 0.6714] n=70 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `NZDUSD.m15ny_seedens.v1` 0.4773 [0.4261, 0.5312] n=352 (NOT SUPPORTED); DOWN best `NZDUSD.m15ny_seedens.v1` 0.4955 [0.4318, 0.5591] n=220 (NOT SUPPORTED).
-- **DEV-CPCV certified sides (tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 
@@ -687,7 +687,11 @@ All SWEEP_MATRIX tiers addressed with either NZDUSD Tier-1 runs or explicit Tier
 
 **Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
 
-| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5150 (.5087) | .4765 · .400 · .5390 | 0/1 · .4400 | .4746 · .533 · .5459 | 0/2 · .4888 | .4870 / .4959 | KILLED / KILLED | 0.27 / 0.33 | `deriv_e1_NZDUSD_15m_result.json` |
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5060 (.4899) | .3733 · .250 · .4745 | 0/0 · — | .4057 · .231 · .4810 | 0/0 · — | .4873 / .4906 | KILLED / KILLED | no (12/15, 3 clear) / no (13/15, 3 clear) | 0.25 / 0.08 | `deriv_e14nylate_NZDUSD_15m_result.json` |
+| e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5162 (.4909) | .3625 · .000 · .3723 | 0/0 · — | .4695 · .417 · .5152 | 0/1 · .3939 | .4711 / .5073 | KILLED / KILLED | no (2/15, 0 clear) / no (12/15, 5 clear) | 0.00 / 0.08 | `deriv_e15nypm_NZDUSD_15m_result.json` |
+| e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5063 (.4901) | .4172 · .500 · .5366 | 0/0 · — | nan · .000 · — | 0/0 · — | .5050 / .4729 | KILLED / KILLED | no (4/15, 2 clear) / no (0/15, 0 clear) | 0.50 / — | `deriv_e16nyeve_NZDUSD_15m_result.json` |
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5150 (.5087) | .4765 · .400 · .5390 | 0/1 · .4400 | .4746 · .533 · .5459 | 0/2 · .4888 | .4870 / .4959 | KILLED / KILLED | no (15/15, 6 clear) / no (15/15, 8 clear) | 0.27 / 0.33 | `deriv_e1_NZDUSD_15m_result.json` |
+| e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5105 (.5022) | .4179 · .400 · .5196 | 2/2 · .5877 | .4360 · .333 · .5120 | 1/3 · .4694 | .4885 / .4951 | KILLED / KILLED | no (15/15, 6 clear) / no (15/15, 5 clear) | 0.27 / 0.20 | `deriv_e1t_NZDUSD_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

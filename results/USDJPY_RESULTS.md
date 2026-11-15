@@ -263,9 +263,19 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 <!-- DERIV-FEED-NOTES:BEGIN -->
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `USDJPY.m15ny_seedens.v1` 0.6500 [0.5750, 0.7188] n=160 (SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.6250 [0.5250, 0.7250] n=80 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDJPY.m15ny_seedens.v1` 0.5253 [0.4822, 0.5666] n=533 (NOT SUPPORTED); DOWN best `USDJPY.m15ny_tbft_seedens.v1` 0.5133 [0.4333, 0.5933] n=150 (NOT SUPPORTED).
-- **DEV-CPCV certified sides (tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
+
+> **Drift diagnosis for the moved up-rate validity check (2026-11-15, hand-written; evidence re-checkable).** `e1t` (NY
+> 08:00-16:35 tradeable) is INVALID under the pre-registered rule because the in-session moved up-rate is 0.5315 (band
+> [0.47, 0.53]) and the Apr-Jul 2026 path reaches 0.5515 (tripwire 0.55). The rule exists to catch forward-fill
+> fake-flat mirages; here the labels are tick-settled with no forward fill, the tie rate is normal (about 1% in NY
+> hours, every month), and the excess is genuine drift: USDJPY rose 6.8% over the DEV window (first tick 2025-08-11
+> 147.658, last tick 2026-07-31 157.657; 162.636 on 2026-07-01), with all-hours monthly up-rates above 0.50 every month
+> (0.5484 in May 2026). The `e1t` UP win rate exceeds the always-UP baseline on all 15 paths. The verdict stays INVALID
+> (rule unchanged); whether to replace the band with mirage diagnostics plus a drift-neutral requirement is an open
+> owner decision (docs/DERIV_SOTA_PROGRAM.md).
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -302,8 +312,12 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 
 **Per-fold-refit CPCV on the Deriv feed** (DEV 2025-08-11..2026-07-31, NY DST session, 15 paths; p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 and their mean):
 
-| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5323 (.5195) | .5646 · 1.0 · .5935 | 2/3 · .5353 | .5317 · .800 · .5935 | 2/3 · .6105 | .5121 / .4771 | CERTIFIED / KILLED | 0.80 / 0.47 | `deriv_e1_USDJPY_15m_result.json` |
-| r2 | r2: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5263 (.5047) | .6200 · 1.0 · .6589 | 0/0 · — | .5698 · 1.0 · .5698 | 0/0 · — | .5121 / .4771 | CERTIFIED / CERTIFIED | 1.00 / 1.00 | `deriv_r2_USDJPY_15m_result.json` |
+| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | frac @.565 UP / DOWN | result JSON |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5234 (.5138) | .5100 · .533 · .5731 | 3/3 · .6004 | .3544 · .500 · .4961 | 0/0 · — | .5193 / .4663 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 8 clear) / no (8/15, 4 clear) | 0.40 / 0.38 | `deriv_e14nylate_USDJPY_15m_result.json` |
+| e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5276 (.5082) | .5397 · .786 · .6119 | 1/1 · .6452 | nan · .000 · — | 0/0 · — | .5332 / .4520 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (14/15, 11 clear) / no (0/15, 0 clear) | 0.79 / — | `deriv_e15nypm_USDJPY_15m_result.json` |
+| e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5096 (.4975) | .4111 · .500 · .5369 | 2/2 · .6333 | .4171 · .000 · .4625 | 0/0 · — | .5053 / .4807 | KILLED / KILLED | no (14/15, 7 clear) / no (7/15, 0 clear) | 0.36 / 0.00 | `deriv_e16nyeve_USDJPY_15m_result.json` |
+| e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5323 (.5195) | .5646 · 1.0 · .5935 | 2/3 · .5353 | .5317 · .800 · .5935 | 2/3 · .6105 | .5121 / .4771 | CERTIFIED / KILLED | CERTIFIED (15/15, 15 clear) / no (15/15, 12 clear) | 0.80 / 0.47 | `deriv_e1_USDJPY_15m_result.json` |
+| e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5256 (.5141) | .5554 · .933 · .5948 | 3/3 · .5791 | .4636 · .250 · .5336 | 1/1 · .6250 | .5151 / .4741 | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) | no (15/15, 14 clear) / no (8/15, 2 clear) | 0.80 / 0.25 | `deriv_e1t_USDJPY_15m_result.json` |
+| r2 | r2: list:USDJPY.m15ny_seedens.v1.json (239), nseed 3 | 15m | 0.02 | .5263 (.5047) | .6200 · 1.0 · .6589 | 0/0 · — | .5698 · 1.0 · .5698 | 0/0 · — | .5121 / .4771 | CERTIFIED / CERTIFIED | no (7/15, 7 clear) / no (1/15, 1 clear) | 1.00 / 1.00 | `deriv_r2_USDJPY_15m_result.json` |
 <!-- DERIV-FEED-TABLES:END -->

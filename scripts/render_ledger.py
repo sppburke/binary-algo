@@ -13,6 +13,21 @@ from pathlib import Path
 DEFAULT = Path('/home/sean/git/binary-algo/results/json')
 
 
+def goal_verdict(r, c, s, be=0.541):
+    """The /goal's certification reading, from the stored per-path data of any harness version: of the 15 purged paths,
+    at least 80% (12) must have >= 25 trades AND a win rate >= .541, and the p10 of the counted paths must be >= .541;
+    an invalid run (moved up-rate checks) certifies nothing."""
+    import numpy as np
+    w = [p['bycov'][c][s][1] for p in r['paths'] if p['bycov'][c][s][0] >= 25]
+    n_all = len(r['paths'])
+    valid = r.get('validity', {}).get('VALID', r.get('validity', {}).get('in_session_up_rate_in_band', True) and
+                                      r.get('validity', {}).get('paths_up_rate_in_tripwire', True))
+    clear = sum(x >= be for x in w)
+    p10 = float(np.percentile(w, 10)) if w else float('nan')
+    ok = bool(valid and n_all == 15 and len(w) >= 12 and clear >= 12 and p10 >= be)
+    return f'{"CERTIFIED" if ok else "no"} ({len(w)}/{n_all}, {clear} clear)'
+
+
 def fmt(x, nd=4):
     return '—' if x is None else (f'{x:.{nd}f}'.lstrip('0') if isinstance(x, float) and 0 <= x < 1 else str(x))
 
@@ -56,8 +71,9 @@ def main():
                    'p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 '
                    'and their mean):\n')
         out.append('| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | '
-                   'DOWN fwd | always UP / DOWN | verdict UP / DOWN | frac @.565 UP / DOWN | result JSON |')
-        out.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|')
+                   'DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | '
+                   'frac @.565 UP / DOWN | result JSON |')
+        out.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
         for f, r in runs:
             c = str(r['operating_cov'])
             b = r['bycov'][c]
@@ -65,6 +81,9 @@ def main():
             def frac565(s):                         # payout sensitivity: one recorded venue trade paid 1.77 (BE 1/1.77)
                 w = [p['bycov'][c][s][1] for p in r['paths'] if p['bycov'][c][s][0] >= 25]
                 return f'{sum(x >= 1 / 1.77 for x in w) / len(w):.2f}' if w else '—'
+
+            def goal(s):                            # goal-faithful: >= 12 of the 15 paths counted AND clearing .541, p10 >= .541
+                return goal_verdict(r, c, s)
             model = f'{r.get("tag", "")}: {r["feature_set"]} ({r["n_features"]}), nseed {r["nseed"]}'
             if 'pool' in r:
                 model += f', pooled +{len(r["pool"])} pairs'
@@ -73,7 +92,8 @@ def main():
             out.append(f'| {r.get("tag", "")} | {model} | {r["horizon_min"]}m | {c} | {fmt(r["auc_summary"]["mean"])} '
                        f'({fmt(r["auc_summary"]["min"])}) | {side("UP")} | {fwds("UP")} | {side("DOWN")} | {fwds("DOWN")} | '
                        f'{fmt(r["baseline_always"]["UP"].get("mean"))} / {fmt(r["baseline_always"]["DOWN"].get("mean"))} | '
-                       f'{r["verdict"]["UP"]} / {r["verdict"]["DOWN"]} | {frac565("UP")} / {frac565("DOWN")} | `{f.name}` |')
+                       f'{r["verdict"]["UP"]} / {r["verdict"]["DOWN"]} | {goal("UP")} / {goal("DOWN")} | '
+                       f'{frac565("UP")} / {frac565("DOWN")} | `{f.name}` |')
     print('\n'.join(out))
 
 

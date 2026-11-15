@@ -46,7 +46,7 @@ sys.path.insert(0, str(REPO / 'scripts'))
 from sessions import session_mask  # noqa: E402  (the repository's single source of truth for sessions)
 
 warnings.filterwarnings('ignore', message='X does not have valid feature names')
-HARNESS_VERSION = 'cpcv_deriv/0.4'   # 0.4: unrounded aggregation, no fit-pool sort, consistent VALID, schema-aware groups
+HARNESS_VERSION = 'cpcv_deriv/0.4.1'   # 0.4.1: + verdict_goal field (no other change); 0.4: review fixes
 LAB = Path('/mnt/data/deriv-sota-lab')
 BE = 0.541
 N_GROUPS, K_TEST = 6, 2
@@ -214,6 +214,17 @@ def aggregate(res, pathinfo, forward, covs, data_uprate, gain, feats):
     op = res['bycov'][f'{covs[0]}']['verdict']
     res['verdict'] = {s: ('CERTIFIED' if op[s]['CERTIFIED'] else 'KILLED' if valid else
                           'INVALID (moved up-rate validity check failed)') for s in ('UP', 'DOWN')}
+    # The /goal's reading of "15 purged paths, p10 >= .541, >= 80% of paths clear": at least 12 of the 15 paths must be
+    # counted (>= 25 trades) AND clear .541 - the repository rule above can certify from as few as one counted path.
+    k0 = f'{covs[0]}'
+    gv = {}
+    for s in ('UP', 'DOWN'):
+        w = [p['bycov'][k0][s][1] for p in pathinfo if p['bycov'][k0][s][0] >= MIN_TRADES]
+        clear = int(sum(x >= BE for x in w))
+        p10 = float(np.percentile(w, 10)) if w else float('nan')
+        gv[s] = {'CERTIFIED': bool(valid and len(pathinfo) == 15 and len(w) >= 12 and clear >= 12 and p10 >= BE),
+                 'paths_counted': len(w), 'paths_clear': clear, 'p10': p10}
+    res['verdict_goal'] = gv
     order = np.argsort(-gain)[:20]
     res['top_gain_features'] = [[feats[i], float(gain[i] / gain.sum())] for i in order]
 
