@@ -163,7 +163,7 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e2noclock_GBPUSD_15m_result.json` |
 | E6POOL | E1t own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e6pool_GBPUSD_15m_result.json` |
 | E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e7fitall_GBPUSD_15m_result.json` |
-| E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e3union_GBPUSD_15m_result.json` |
 | E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | pending | — | — |
 | E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |

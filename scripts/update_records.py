@@ -182,6 +182,17 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
                  'of discovery D4-01 (tail auxiliary weight 0)', 'cpcv_deriv_x.py'),
     'e82tailaux': ('Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating '
                    '3% confidence tail of gated fit rows, mass held fixed; discovery D4-01)', 'cpcv_deriv_x.py'),
+    'e83nysrefcomp': ('Kernel with within-pair sign reflection inside the compression gate (discovery D5-02; USDCAD UP)',
+                      'cpcv_deriv_x.py'),
+    'e84bootcomp': ('Compression-gate base with the calibration-uncertainty gate (5 bootstrap replicas, rank by |mean - 0.5| '
+                    '- 1 sd; discovery D5-04; USDCHF UP)', 'cpcv_deriv_x.py'),
+    'e85bootcomp0': ('Compression-gate base on the mean of the same 5 bootstrap replicas, no uncertainty penalty: the matched '
+                     'control of discovery D5-04', 'cpcv_deriv_x.py'),
+    'e86blendsel': ('Compression-gate base: blend of the unweighted and |return|-weighted LightGBM, weight in {0, 0.5, 1} '
+                    'chosen on the worse chronological half of the validation DOWN trades (discovery D5-01; NZDUSD DOWN)',
+                    'cpcv_deriv_x.py'),
+    'e87fixrank': ('London 16:00 fix-reversal rule offers (as r4fixldn, DOWN side) ranked by the compact logistic at 3% '
+                   'overall coverage (discovery D5-03; EURUSD DOWN)', 'cpcv_deriv_x.py'),
     'a12b02': ('ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
     'a13b02': ('ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
 }
