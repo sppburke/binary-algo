@@ -28,7 +28,11 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.9'    # 0.9: discovery round 4 - --model nystail --tail-aux L (D4-01 fixed-mass tail auxiliary on
+X_VERSION = 'cpcv_deriv_x/0.10'   # 0.10: discovery round 5 - --blend-absret SIDE (D5-01 selected blend of the unweighted
+#                                  and |return|-weighted LightGBM; --blend-force-alpha for regression only) and --rule-gate
+#                                  COL (D5-03 zero-parameter rule offers ranked by the model); defaults and every 0.9 option
+#                                  unchanged
+#                                  0.9: discovery round 4 - --model nystail --tail-aux L (D4-01 fixed-mass tail auxiliary on
 #                                  the kernel features, full-batch L-BFGS; --tail-aux 0 = its matched control); defaults
 #                                  and every 0.8 option unchanged
 #                                  0.8: discovery round 3 - --signed-only (logit / lgb on e67drfe's signed coordinates; the
@@ -53,6 +57,10 @@ FAMILY_PREFIXES = ('tf_', 'sg_', 'kf_', 'rm_', 'fd_', 'cx_', 'tk_', 'pa_',   # S
                    'hy_', 'hr_',                                             # discovery D1-03 play blocks (v0.6play)
                    'd2_',                                                    # discovery D2-01 shock block (v0.6d2)
                    'qo_', 'qp_')                                             # discovery D3-05 order block + permuted control (v0.6qo)
+BLEND_ALPHAS = (0.0, 0.5, 1.0)                  # D5-01: weight of the |return|-weighted model in the selected blend
+RULE_USD_BASE = {'USDJPY', 'USDCHF', 'USDCAD'}  # D5-03 --rule-usd-oriented: as tools/cpcv_rule.py (USD strength = + quote)
+RULE_SIGNALS = ('fx_ldn_prefix_u60', 'fx_ecb_prefix_u60')   # D5-03: audited causal rule columns (never an outcome column)
+RULE_EPS = 1e-9                                 # an encoded offer stays strictly on its side of 0.5
 # Extra local-time windows (America/New_York, [start, end) hours) beyond sessions.py. 'nylate' = 13:00-22:00 ET: the
 # TRUE hours selected by session_mask('ny') on the Dukascopy-derived stores before 2025-08-22, whose timestamps were
 # true UTC - 5 h (see docs/DERIV_SOTA_PROGRAM.md) - i.e. where the incumbents' "NY" certifications actually lived.
@@ -116,6 +124,34 @@ def aci_score_row(row, ptst, ftst, ttst, vconf, covs, gap, gamma, target):
         for s in cd.SIDES:
             row['bycov'][f'{c}'][s] = list(aci_side(ptst, ftst, ttst, thr, s, gap, gamma, target))
     return row
+
+
+def blend_select(pv0, pv1, vg, tv, fv, cov, side, gap, force=None):
+    """D5-01: choose alpha in BLEND_ALPHAS for p = (1 - alpha) pv0 + alpha pv1 on VALIDATION rows only. vg = validation rows
+    inside the compression gate (all rows without it), tv / fv = their times and settled returns. Each alpha: threshold =
+    the coverage quantile of |p - 0.5| over vg; in each chronological half of vg (split at the median time) the first-come
+    win rate on `side` (cpcv_deriv.side_wr: ties lose, gap de-overlap); objective = the smaller half (a half without trades
+    scores -inf). The largest objective wins; equal objectives go to the smaller alpha. Returns (alpha, diagnostics)."""
+    mid = float(np.median(tv[vg])) if vg.any() else 0.0
+    sel = {}
+    for al in BLEND_ALPHAS:
+        pa_ = (1.0 - al) * pv0 + al * pv1
+        thr = float(np.quantile(np.abs(pa_ - 0.5)[vg], 1 - cov)) if vg.any() else None
+        halves = [cd.side_wr(pa_[vg & hm], fv[vg & hm], tv[vg & hm], thr, side, gap) if thr is not None else (0, float('nan'))
+                  for hm in (tv < mid, tv >= mid)]
+        fin = [(int(n), float(wr)) if n > 0 and np.isfinite(wr) else (int(n), None) for n, wr in halves]
+        worst = min(wr if wr is not None else -np.inf for _, wr in fin)
+        sel[f'{al}'] = {'worst_half_wr': worst if np.isfinite(worst) else None, 'halves': [list(h) for h in fin], 'thr': thr}
+    obj = lambda al_: (-np.inf if sel[f'{al_}']['worst_half_wr'] is None else sel[f'{al_}']['worst_half_wr'], -al_)
+    return (force if force is not None else max(BLEND_ALPHAS, key=obj)), sel
+
+
+def rule_encode(p, side):
+    """D5-03: encode rule offers for the shared scorer. side -1 (DOWN offer): p' = p_UP / 2, side +1 (UP offer): p' = 0.5 +
+    p_UP / 2, each kept strictly on its side of 0.5 (RULE_EPS); side 0 (no offer): 0.5. |p' - 0.5| is half the model
+    probability of the offered side, so offers rank by it."""
+    return np.where(side < 0, np.minimum(0.5 * p, 0.5 - RULE_EPS),
+                    np.where(side > 0, np.maximum(0.5 + 0.5 * p, 0.5 + RULE_EPS), 0.5))
 
 
 def sigm(f):
@@ -583,6 +619,28 @@ class XFitter(cd.Fitter):
                 pval[vm] = clip(pv_s / a.nseed, 0.5)
                 ptst[tm] = clip(pt_s / a.nseed, 0.5)
             self.spec_info = {'compression_thr': comp_thr, 'fit_up': int(setups(Xf)[0].sum()), 'fit_down': int(setups(Xf)[1].sum())}
+        elif a.blend_absret:
+            # DISCOVERY D5-01, SELECTED |RETURN|-WEIGHT BLEND: the unweighted and the |return|-weighted model (weights as
+            # --weight absret) are fitted on the same fit rows with seed 0. On the validation rows inside the compression
+            # gate (all validation rows without it) each alpha in BLEND_ALPHAS scores p = (1 - alpha) p_unw + alpha p_abs
+            # at the operating coverage on side blend_absret: first-come win rate (ties lose) in each chronological half
+            # of those rows (split at their median time); alpha maximizes the smaller half (equal values: smaller alpha).
+            # The validation threshold and every gate below then run on the chosen blend as usual.
+            wabs = np.abs(fwd[fit_pool])
+            pv0, pt0, it0 = self.fit_one(0, Xf, ytr, Xv, yv_fit, Xt)
+            self.wfit = wabs / (wabs.mean() + 1e-18)
+            pv1, pt1, it1 = self.fit_one(0, Xf, ytr, Xv, yv_fit, Xt)
+            self.wfit = None
+            iters += [it0, it1]
+            vg = np.ones(len(val_idx), bool)
+            if a.comp_gate is not None:                     # the same mask as the compression gate below
+                jg = self.feats.index('rv_60m')
+                vg = Xv[:, jg] <= float(np.nanquantile(Xf[:, jg], a.comp_gate))
+            alpha, sel = blend_select(pv0, pv1, vg, ts[val_idx], fwd[val_idx], self.covs[0], a.blend_absret, gap,
+                                      a.blend_force_alpha)
+            pval, ptst = (1.0 - alpha) * pv0 + alpha * pv1, (1.0 - alpha) * pt0 + alpha * pt1
+            self.blend_info = {'side': a.blend_absret, 'alpha': alpha, 'forced': a.blend_force_alpha is not None,
+                               'gated_val_rows': int(vg.sum()), 'by_alpha': sel}
         elif a.boot_gate:
             # literature rank 16, CALIBRATION-UNCERTAINTY GATE: boot_gate bootstrap replicas of the fit pool (own generator per
             # path and replica, so the shared validation/sub-fit stream is unchanged); the score keeps the replica-mean side
@@ -611,6 +669,17 @@ class XFitter(cd.Fitter):
         if gain_mh is not None:                     # fold the indicator column's gain out of the per-feature report
             gain_mh += self.gain[:-1]
             self.gain = gain_mh
+        if a.rule_gate:
+            # DISCOVERY D5-03, RULE-OFFER RANKING: only the zero-parameter rule's offers can trade, on the rule's side, ranked
+            # by the model's probability of that side (a DOWN offer gets p' = p_UP / 2, an UP offer 0.5 + p_UP / 2); every
+            # other row gets 0.5, i.e. zero confidence, so the coverage threshold is a quantile over ALL validation rows
+            # (overall coverage) and a non-offer row is never traded.
+            rv_, rt_ = self.rule_side[val_idx], self.rule_side[test_mask]
+            pval, ptst = rule_encode(pval, rv_), rule_encode(ptst, rt_)
+            self.rule_offer_t = rt_ != 0                    # scoring below: only offers can trade, on every side
+            self.rule_info = {'offer_share_val': float((rv_ != 0).mean()), 'offer_share_test': float((rt_ != 0).mean()),
+                              'offers_test': int((rt_ != 0).sum()),
+                              'insufficient_support': bool((rv_ != 0).mean() < self.covs[0])}
         vconf = np.abs(pval - 0.5)
         ftst = fwd[test_mask]
         ttst = ts[test_mask]
@@ -623,6 +692,10 @@ class XFitter(cd.Fitter):
             row['specialist'] = self.spec_info              # AUC above is over every test row (non-setup rows at 0.5)
         if a.boot_gate:
             row['boot_gate'] = self.boot_info               # AUC above is over the lower-bound scores
+        if a.blend_absret:
+            row['blend'] = self.blend_info                  # D5-01 selection (AUC above is over the chosen blend)
+        if a.rule_gate:
+            row['rule_gate'] = self.rule_info               # D5-03 offers (AUC above is over the offer-ranked scores)
         if self.stack_w:
             row['stack_weights_mean'] = np.mean(self.stack_w, axis=0).round(4).tolist()   # order lgb, logit, forest, nystroem
         if a.multi_horizon:
@@ -723,6 +796,13 @@ class XFitter(cd.Fitter):
                                'thr': {f'{c}': float(np.quantile(vconf[vgate], 1 - c)) for c in self.covs}})
         if a.aci_gamma is not None:
             return aci_score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap, a.aci_gamma, a.aci_target)
+        if a.rule_gate:
+            # D5-03: a non-offer row never trades on any side (COMBINED included, even when the threshold is zero): its
+            # settlement is hidden from the side scorer; the always-side baselines stay over every test row
+            row = cd.score_row(row, ptst, np.where(self.rule_offer_t, ftst, np.nan), ttst, vconf[vgate], self.covs, gap)
+            for s in ('UP', 'DOWN'):
+                row['always'][s] = list(cd.always(ftst, ttst, s, gap))
+            return row
         return cd.score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap)
 
 
@@ -804,6 +884,21 @@ def main():
     ap.add_argument('--tail-aux', type=float, default=None,
                     help='0.9 discovery D4-01 (--model nystail only): weight of the fixed-mass tail auxiliary (0 = the matched '
                          'control: the same L-BFGS kernel fit without it)')
+    ap.add_argument('--blend-absret', default=None, choices=('UP', 'DOWN'),
+                    help='0.10 discovery D5-01 (--model lgb): fit the unweighted and the |return|-weighted model on the same '
+                         'fit rows; choose alpha in {0, 0.5, 1} for p = (1 - alpha) p_unw + alpha p_abs by the smaller SIDE win '
+                         'rate over the two chronological halves of the (gated) validation rows at the operating coverage')
+    ap.add_argument('--blend-force-alpha', type=float, default=None,
+                    help='regression only (never a candidate run): use this alpha (0, 0.5 or 1) instead of selecting it')
+    ap.add_argument('--rule-gate', default=None, choices=RULE_SIGNALS,
+                    help='0.10 discovery D5-03: offers = rows where this audited rule column (read for the gate only, never a '
+                         'model feature) is finite and non-zero, side = sign(direction x signal) as tools/cpcv_rule.py; offers '
+                         'ranked by the model probability of that side; other rows never trade')
+    ap.add_argument('--rule-direction', type=int, default=None, choices=(1, -1), help='--rule-gate: 1 (default) or -1')
+    ap.add_argument('--rule-usd-oriented', action='store_true',
+                    help='--rule-gate: the column is USD-oriented (converted to the quote direction as tools/cpcv_rule.py)')
+    ap.add_argument('--rule-side', default=None, choices=('UP', 'DOWN'),
+                    help='--rule-gate: keep only this side\'s offers (default: both sides)')
     ap.add_argument('--signed-only', action='store_true',
                     help='0.8 same-input controls: logit (e67drfe inputs and scaling, global intercept, no strata) or lgb '
                          '(the usual booster) on the signed coordinates only')
@@ -855,6 +950,24 @@ def main():
                             or a.train_label != 'sign' or a.null_shift_weeks):
         raise SystemExit('--multi-horizon runs at --horizon 15 with no reflect / meta / specialist / boot / lgbord4 / comp '
                          'gate / weights / train label / null shift')
+    if a.blend_absret and (a.model != 'lgb' or a.weight != 'none' or a.nseed != 1 or a.reflect or a.meta_keep is not None
+                           or a.specialist or a.boot_gate or a.multi_horizon or a.aci_gamma is not None
+                           or a.mag_keep is not None or a.drift_fe or a.signed_only or a.monotone != 'none'
+                           or a.train_label != 'sign' or a.rule_gate is not None):
+        raise SystemExit('--blend-absret needs --model lgb, --weight none and --nseed 1, and no reflect / meta / specialist / '
+                         'boot / multi-horizon / ACI / magnitude gate / drift-fe / signed-only / monotone / train label / '
+                         'rule gate')
+    if a.blend_force_alpha is not None and (not a.blend_absret or a.blend_force_alpha not in BLEND_ALPHAS
+                                            or a.max_paths != 1 or not a.no_forward):
+        raise SystemExit('--blend-force-alpha is regression only: it needs --blend-absret, a value in {0, 0.5, 1}, '
+                         '--max-paths 1 and --no-forward')
+    if a.rule_gate is None and (a.rule_direction is not None or a.rule_usd_oriented or a.rule_side is not None):
+        raise SystemExit('--rule-direction, --rule-usd-oriented and --rule-side need --rule-gate')
+    if a.rule_gate is not None and (a.comp_gate is not None or a.meta_keep is not None or a.mag_keep is not None
+                                    or a.specialist or a.boot_gate or a.aci_gamma is not None or a.multi_horizon
+                                    or a.model in ('nysagree', 'nystail')):
+        raise SystemExit('--rule-gate takes no other gate (compression / meta / magnitude / specialist / boot / ACI / '
+                         'nysagree / nystail) and no multi-horizon')
     covs = [float(c) for c in a.covs.split(',')]
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_{a.session}_x_cpcv_result.json')
@@ -876,6 +989,8 @@ def main():
     label_dir = a.label_dir or str(cd.LAB / 'cache' / {'resid': 'labels_resid_dev_v0.1', 'agree3': 'labels_agree_dev_v0.1'}.get(
         a.train_label, 'labels_tb_dev_v0.1'))
     X, fwd, ts, feats = cd.load(a.dataset, a.pair, a.horizon, a.features, 1, listed)
+    if a.rule_gate is not None and a.rule_gate in feats:
+        raise SystemExit(f'--rule-gate {a.rule_gate} is also a model feature: the gate column must stay outside the model')
     if a.null_shift_weeks:
         # SIGN-NULL REPLAY (literature: full-search null replay / reality check): every decision gets the settled label of
         # the decision exactly W weeks later (circular over the dataset span; same weekday and UTC time of day), which keeps
@@ -902,7 +1017,8 @@ def main():
                                         'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime', 'nys_gamma_mult',
                                         'nys_components', 'null_shift_weeks', 'reflect', 'stack_shrink', 'mag_model',
                                         'boot_gate', 'boot_z', 'halflife_days', 'multi_horizon', 'drift_fe', 'monotone',
-                                        'signed_only', 'tail_aux')}
+                                        'signed_only', 'tail_aux', 'blend_absret', 'blend_force_alpha', 'rule_gate',
+                                        'rule_direction', 'rule_usd_oriented', 'rule_side')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
@@ -944,6 +1060,34 @@ def main():
         fitter.fwd30 = s30.reindex(ts).to_numpy(np.float64)
         res['multi_horizon'] = {'label': 'sign of ret_fwd_30m where valid_30m', 'purge_30m_s': 1800,
                                 'aligned_finite': int(np.isfinite(fitter.fwd30).sum())}
+    if a.rule_gate is not None:
+        # D5-03: the rule column is read for the gate only (never a model feature), aligned on decision_ts like
+        # --multi-horizon's labels; side = sign(direction x signal) after the USD orientation, exactly tools/cpcv_rule.py
+        dr = pd.read_parquet(Path(a.dataset) / f'{a.pair}.parquet', columns=['decision_ts', a.rule_gate])
+        sr = pd.Series(dr[a.rule_gate].to_numpy(np.float64), index=dr['decision_ts'].to_numpy(np.int64))
+        if not sr.index.is_unique:
+            raise SystemExit('--rule-gate: duplicate decision_ts in the dataset')
+        sig = sr.reindex(ts).to_numpy(np.float64)
+        if a.rule_usd_oriented:
+            sig = sig * (1.0 if a.pair in RULE_USD_BASE else -1.0)
+        sig = (a.rule_direction or 1) * sig
+        side_ = np.where(np.isfinite(sig), np.sign(sig), 0.0)
+        if a.rule_side == 'UP':
+            side_ = np.where(side_ > 0, side_, 0.0)
+        elif a.rule_side == 'DOWN':
+            side_ = np.where(side_ < 0, side_, 0.0)
+        fitter.rule_side = side_
+        res['rule_gate'] = {'column': a.rule_gate, 'direction': a.rule_direction or 1, 'usd_oriented': a.rule_usd_oriented,
+                            'side': a.rule_side or 'both',
+                            'offers_in_session': int(((side_ != 0) & sess).sum()), 'rows_in_session': int(sess.sum()),
+                            'scoring': 'offer p\' = p_UP / 2 (DOWN) or 0.5 + p_UP / 2 (UP); other rows 0.5 (never traded); '
+                                       'threshold = coverage quantile over all validation rows (overall coverage)'}
+    if a.blend_absret:
+        res['blend_absret'] = {'side': a.blend_absret, 'alphas': list(BLEND_ALPHAS),
+                               'models': 'the --model lgb recipe, seed 0, unweighted and |return| / mean weighted, same fit rows',
+                               'selection': 'max over alpha of the smaller first-come win rate on SIDE in the two chronological '
+                                            'halves of the gated validation rows at the operating coverage; ties to smaller alpha',
+                               'forced_alpha': a.blend_force_alpha}
     if a.specialist and not {'ret_15m', 'volratio_15_240'} <= set(feats):
         raise SystemExit('--specialist needs the v0.1 columns ret_15m and volratio_15_240')
     if a.comp_gate is not None and 'rv_60m' not in feats:

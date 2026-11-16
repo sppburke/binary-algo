@@ -147,5 +147,5 @@ SCOPE: USDCAD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E80QPERM | E1t + the permuted-order control block qp_ (discovery D3-05 control) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e80qperm_USDCAD_15m_result.json` |
 | E81TAIL0 | Kernel features fitted by full-batch L-BFGS (BCE + ridge), compression gate 0.33: the matched control of discovery D4-01 (tail auxiliary weight 0) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e81tail0_USDCAD_15m_result.json` |
 | E82TAILAUX | Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating 3% confidence tail of gated fit rows, mass held fixed; discovery D4-01) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e82tailaux_USDCAD_15m_result.json` |
-| E83NYSREFCOMP | Kernel with within-pair sign reflection inside the compression gate (discovery D5-02; USDCAD UP) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E83NYSREFCOMP | Kernel with within-pair sign reflection inside the compression gate (discovery D5-02; USDCAD UP) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e83nysrefcomp_USDCAD_15m_result.json` |
 <!-- DERIV-FEED-LEDGER:END -->
