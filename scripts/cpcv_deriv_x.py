@@ -28,7 +28,10 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.7.2'  # 0.7.2: fit_one reads drift_fe with getattr (holdout_eval's namespace lacks it)
+X_VERSION = 'cpcv_deriv_x/0.8'    # 0.8: discovery round 3 - --signed-only (logit / lgb on e67drfe's signed coordinates; the
+#                                  same-input controls), --drift-fe for --model lgb (D3-01 profiled stratum offsets),
+#                                  --model nysagree (D3-04 agreement gate); defaults and every 0.7.2 option unchanged
+#                                  0.7.2: fit_one reads drift_fe with getattr (holdout_eval's namespace lacks it)
 #                                  0.7.1: --monotone catchup (discovery D2-02); defaults unchanged
 #                                  0.7: discovery round 1 - --drift-fe (D1-01), --train-label agree3 (D1-02), play
 #                                  families hy_/hr_ (D1-03); defaults unchanged
@@ -45,7 +48,8 @@ FAMILY_PREFIXES = ('tf_', 'sg_', 'kf_', 'rm_', 'fd_', 'cx_', 'tk_', 'pa_',   # S
                    'cm_',                                                    # CCM block (v0.4+)
                    'fx_', 'ck_', 'rl_', 'rs_',                               # literature blocks (v0.5)
                    'hy_', 'hr_',                                             # discovery D1-03 play blocks (v0.6play)
-                   'd2_')                                                    # discovery D2-01 shock block (v0.6d2)
+                   'd2_',                                                    # discovery D2-01 shock block (v0.6d2)
+                   'qo_', 'qp_')                                             # discovery D3-05 order block + permuted control (v0.6qo)
 # Extra local-time windows (America/New_York, [start, end) hours) beyond sessions.py. 'nylate' = 13:00-22:00 ET: the
 # TRUE hours selected by session_mask('ny') on the Dukascopy-derived stores before 2025-08-22, whose timestamps were
 # true UTC - 5 h (see docs/DERIV_SOTA_PROGRAM.md) - i.e. where the incumbents' "NY" certifications actually lived.
@@ -111,7 +115,62 @@ def aci_score_row(row, ptst, ftst, ttst, vconf, covs, gap, gamma, target):
     return row
 
 
+def sigm(f):
+    return 1.0 / (1.0 + np.exp(-f))
+
+
 class XFitter(cd.Fitter):
+    def signed(self, Z):
+        """e67drfe's signed coordinates (reflection map: negated columns, rangepos - 0.5), missing = 0."""
+        V = Z[:, self.signed_cols].astype(np.float64)
+        V[:, self.signed_rng] -= 0.5
+        return np.nan_to_num(V, nan=0.0)
+
+    def add_gain(self, imp):
+        """Accumulate a booster's gain; a booster fit on the signed coordinates maps back onto their columns."""
+        if len(imp) == len(self.gain):
+            self.gain += imp
+        else:
+            self.gain[self.signed_cols] += imp
+
+    def signed_logit(self, Xf, yf, Xv, Xt, skw, fe):
+        """L2 logistic on the signed coordinates, scaled by their fit-pool sd without centring and clipped to [-5, 5].
+        fe=True (e67drfe): one-hot strata x10 and no intercept, scores WITHOUT the strata; fe=False (the same-input
+        plain twin): a global intercept, scores with it. Returns raw validation and test scores and iterations."""
+        import scipy.sparse as sp
+        from sklearn.linear_model import LogisticRegression
+        a = self.a
+        F = self.signed(Xf)
+        sc = F.std(axis=0) + 1e-12
+        z = lambda V: np.clip(V / sc, -5, 5)
+        if fe:
+            _, inv = np.unique(self.strata_f, return_inverse=True)
+            D = sp.csr_matrix((np.full(len(inv), 10.0), (np.arange(len(inv)), inv)))
+            m = LogisticRegression(C=a.logit_c, max_iter=3000, fit_intercept=False)
+            m.fit(sp.hstack([sp.csr_matrix(z(F)), D]).tocsr(), yf, **skw)
+            w = m.coef_[0, :F.shape[1]]
+            return z(self.signed(Xv)) @ w, z(self.signed(Xt)) @ w, int(np.max(m.n_iter_))
+        m = LogisticRegression(C=a.logit_c, max_iter=3000)
+        m.fit(z(F), yf, **skw)
+        w, b = m.coef_[0], float(m.intercept_[0])
+        return z(self.signed(Xv)) @ w + b, z(self.signed(Xt)) @ w + b, int(np.max(m.n_iter_))
+
+    @staticmethod
+    def profile_alpha(inv, y, off, w, alpha=None):
+        """Per-stratum ridge offsets: alpha_s = argmin sum_{i in s} w_i BCE(y_i, sigmoid(off_i + alpha_s)) + 0.5 alpha_s^2,
+        by safeguarded Newton steps (curvature >= 1, steps clipped to [-2, 2])."""
+        S = int(inv.max()) + 1
+        al = np.zeros(S) if alpha is None else alpha.astype(np.float64).copy()
+        for _ in range(100):
+            p = sigm(off + al[inv])
+            g = np.bincount(inv, w * (p - y), S) + al
+            h = np.bincount(inv, w * p * (1 - p), S) + 1.0
+            step = np.clip(g / h, -2.0, 2.0)
+            al -= step
+            if np.max(np.abs(step)) < 1e-10:
+                break
+        return al
+
     def fit_one(self, sd, Xf, yf, Xv, yv, Xt):
         """One seed of the selected model class: (validation probabilities, test probabilities, iterations)."""
         a = self.a
@@ -120,6 +179,13 @@ class XFitter(cd.Fitter):
         skw = {} if self.wfit is None else {'sample_weight': self.wfit / (self.wfit.mean() + 1e-18)}
         if getattr(a, 'drift_fe', False):          # (getattr: holdout_eval passes a reduced namespace)
             return self.fit_drift_fe(sd, Xf, yf, Xv, yv, Xt, skw)
+        if a.model == 'nysagree':
+            return self.fit_nysagree(sd, Xf, yf, Xv, yv, Xt, skw)
+        if getattr(a, 'signed_only', False):
+            if a.model == 'logit':                  # e74logitsig: e67drfe's inputs and scaling, global intercept, no strata
+                fv, ft, it = self.signed_logit(Xf, yf, Xv, Xt, skw, fe=False)
+                return sigm(fv), sigm(ft), it
+            Xf, Xv, Xt = self.signed(Xf), self.signed(Xv), self.signed(Xt)    # lgb: the usual booster on these columns
         if a.model == 'lgbord4':                    # literature rank 25: ordinal signed bins (4-class), P(up) = P(bin 2) + P(bin 3)
             m = cd.lgb.LGBMClassifier(objective='multiclass', num_class=4, learning_rate=a.lr, num_leaves=a.num_leaves,
                                       min_child_samples=a.min_child, subsample=0.8, subsample_freq=1, colsample_bytree=a.colsample,
@@ -142,7 +208,7 @@ class XFitter(cd.Fitter):
                 m.fit(Xf, yf, eval_set=[(Xv, yv)], eval_metric='auc',
                       callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
             pv.append(m.predict_proba(Xv)[:, 1]); pt.append(m.predict_proba(Xt)[:, 1])
-            self.gain += m.booster_.feature_importance(importance_type='gain')
+            self.add_gain(m.booster_.feature_importance(importance_type='gain'))
             its.append(int(m.best_iteration_ or 0))
         if a.model == 'lgbbrier':                   # literature rank 4: LightGBM fit on the Brier score (custom objective)
             def brier(y, f):
@@ -227,25 +293,38 @@ class XFitter(cd.Fitter):
         columns x10 so the L2 penalty barely touches them, no global intercept) absorb every stratum's direction rate
         during the fit; validation and test scores use the non-stratum coefficients only. logit = the signed
         coordinates (reflection map: negated columns, rangepos - 0.5), scaled without centring, missing = 0;
-        nystroem = the usual kernel features (declared approximation: the kernel keeps even functions)."""
+        nystroem = the usual kernel features (declared approximation: the kernel keeps even functions).
+        lgb (0.8, discovery D3-01) = LightGBM on the signed coordinates with the strata as profiled offsets: alpha
+        (BCE + 0.5 alpha^2 per stratum) enters as init_score; alpha0 at f = 0, booster 1, alpha1 given booster 1's f,
+        booster 2 fit afresh; validation (early stopping) and scores use f alone, centred on the fit rows."""
         import scipy.sparse as sp
         a = self.a
         _, inv = np.unique(self.strata_f, return_inverse=True)
         D = sp.csr_matrix((np.full(len(inv), 10.0), (np.arange(len(inv)), inv)))
-        sigm = lambda f: 1.0 / (1.0 + np.exp(-f))
         if a.model == 'logit':
-            from sklearn.linear_model import LogisticRegression
-            def signed(Z):
-                V = Z[:, self.signed_cols].astype(np.float64)
-                V[:, self.signed_rng] -= 0.5
-                return np.nan_to_num(V, nan=0.0)
-            F = signed(Xf)
-            sc = F.std(axis=0) + 1e-12
-            z = lambda V: np.clip(V / sc, -5, 5)
-            m = LogisticRegression(C=a.logit_c, max_iter=3000, fit_intercept=False)
-            m.fit(sp.hstack([sp.csr_matrix(z(F)), D]).tocsr(), yf, **skw)
-            w = m.coef_[0, :F.shape[1]]
-            return sigm(z(signed(Xv)) @ w), sigm(z(signed(Xt)) @ w), int(np.max(m.n_iter_))
+            fv, ft, it = self.signed_logit(Xf, yf, Xv, Xt, skw, fe=True)
+            return sigm(fv), sigm(ft), it
+        if a.model == 'lgb':
+            F, V, T = self.signed(Xf), self.signed(Xv), self.signed(Xt)
+            yb = np.asarray(yf, dtype=np.float64)
+            w = np.ones(len(yb)) if self.wfit is None else self.wfit / (self.wfit.mean() + 1e-18)
+            kw = {} if self.wfit is None else {'sample_weight': self.wfit}
+            alpha = self.profile_alpha(inv, yb, np.zeros(len(yb)), w)
+            info = {'strata': int(len(alpha)), 'alpha0_sd': float(alpha.std())}
+            for k in range(2):
+                m = make_model(a, sd)
+                m.fit(F, yf, init_score=alpha[inv], eval_set=[(V, yv)], eval_init_score=[np.zeros(len(V))],
+                      eval_metric='auc', callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
+                it = int(m.best_iteration_ or 0)
+                raw = lambda Z, m=m, it=it: m.booster_.predict(Z, raw_score=True, num_iteration=it or None)
+                if k == 0:
+                    alpha = self.profile_alpha(inv, yb, raw(F), w, alpha)
+                    info['alpha1_sd'], info['iter1'] = float(alpha.std()), it
+            c = float(np.mean(raw(F)))
+            info.update(iter2=it, f_centre=c)
+            self.lgbfe_info = info
+            self.add_gain(m.booster_.feature_importance(importance_type='gain'))
+            return sigm(raw(V) - c), sigm(raw(T) - c), it
         from sklearn.kernel_approximation import Nystroem
         from sklearn.linear_model import SGDClassifier
         F, V, T = standardize(Xf, Xv, Xt)
@@ -255,6 +334,32 @@ class XFitter(cd.Fitter):
         m.fit(sp.hstack([sp.csr_matrix(Fk), D]).tocsr(), yf, **skw)
         w = m.coef_[0, :Fk.shape[1]]
         return sigm(ny.transform(V) @ w), sigm(ny.transform(T) @ w), int(m.n_iter_)
+
+    def fit_nysagree(self, sd, Xf, yf, Xv, yv, Xt, skw):
+        """Discovery D3-04 AGREEMENT GATE (0.8): kernel proposals (the nystroem recipe with the run's training weights)
+        are kept only where the drift-neutral logistic (e67drfe, unweighted) takes the kernel's side and its same-input
+        plain twin (global intercept, unweighted) takes the other side; every other row gets probability 0.5, so the
+        coverage quantile is over ALL validation rows (overall coverage). Exact zero scores abstain."""
+        from sklearn.kernel_approximation import Nystroem
+        from sklearn.linear_model import SGDClassifier
+        a = self.a
+        F, V, T = standardize(Xf, Xv, Xt)
+        ny = Nystroem(kernel='rbf', gamma=a.nys_gamma_mult / F.shape[1], n_components=a.nys_components, random_state=sd)
+        Fk = ny.fit_transform(F)
+        m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd)
+        m.fit(Fk, yf, **skw)
+        kv, kt = m.predict_proba(ny.transform(V))[:, 1], m.predict_proba(ny.transform(T))[:, 1]
+        nv, nt, _ = self.signed_logit(Xf, yf, Xv, Xt, {}, fe=True)
+        rv, rt, _ = self.signed_logit(Xf, yf, Xv, Xt, {}, fe=False)
+
+        def gate(k, n, r):
+            d = np.sign(k - 0.5)
+            return (d != 0) & (np.sign(n) == d) & (np.sign(r) == -d)
+        gv, gt = gate(kv, nv, rv), gate(kt, nt, rt)
+        self.agree_info = {'val_share': float(gv.mean()), 'test_share': float(gt.mean()),
+                           'kernel_vs_neutral_agree_val': float((np.sign(kv - 0.5) == np.sign(nv)).mean()),
+                           'neutral_vs_plain_agree_val': float((np.sign(nv) == np.sign(rv)).mean())}
+        return np.where(gv, kv, 0.5), np.where(gt, kt, 0.5), int(m.n_iter_)
 
     def split2(self, tr_idx, val_pool, test_mask, rng, label):
         """Fit on tr_idx; validation = random VAL_FRAC of the evaluation-session rows among tr_idx (val_pool mask)."""
@@ -297,7 +402,7 @@ class XFitter(cd.Fitter):
             age = (ts[fit_pool].max() - ts[fit_pool]) / 86400.0
             w = 0.5 ** (age / a.halflife_days)
             self.wfit = w / (w.mean() + 1e-18)
-        if a.drift_fe:                              # D1-01 strata of the fit rows (fit_one gets Xf in fit_pool order)
+        if a.drift_fe or a.model == 'nysagree':     # D1-01 strata of the fit rows (fit_one gets Xf in fit_pool order)
             tf_ = pd.to_datetime(ts[fit_pool], unit='s', utc=True)
             iso = tf_.isocalendar()
             wk = iso['year'].to_numpy(np.int64) * 100 + iso['week'].to_numpy(np.int64)
@@ -404,6 +509,10 @@ class XFitter(cd.Fitter):
             row['stack_weights_mean'] = np.mean(self.stack_w, axis=0).round(4).tolist()   # order lgb, logit, forest, nystroem
         if a.multi_horizon:
             row['multi_horizon'] = self.mh_info
+        if a.drift_fe and a.model == 'lgb':
+            row['lgb_drift_fe'] = self.lgbfe_info
+        if a.model == 'nysagree':
+            row['agree_gate'] = self.agree_info             # AUC above is over every test row (gated-out rows at 0.5)
         vgate = np.ones(len(val_idx), bool)
         if a.mag_keep is not None:
             # MAGNITUDE GATE (sign-invariant): a second model ranks "big move" (|ret| >= the fit pool's median |ret|);
@@ -515,7 +624,7 @@ def main():
     ap.add_argument('--colsample', type=float, default=0.5)
     ap.add_argument('--reg-lambda', type=float, default=20.0)
     ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool', 'lgbbrier',
-                                                       'stack', 'lgbord4'),
+                                                       'stack', 'lgbord4', 'nysagree'),
                     help='lgb (default, the mirror); ens3 = LightGBM + XGBoost + CatBoost mean (SWEEP_MATRIX A1; XGB/Cat use '
                          '--n-estimators/--lr); logit = L2 logistic regression on fit-pool-standardized features; '
                          'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6); forest = shallow bagged '
@@ -570,8 +679,11 @@ def main():
                     help='discovery D2-02 (LightGBM only): catchup = decreasing in own ret_15m; x_usd_weak_15m increasing '
                          'for XXX/USD pairs, decreasing for USD/XXX pairs; every other feature unconstrained')
     ap.add_argument('--drift-fe', action='store_true',
-                    help='discovery D1-01: drift-neutral fit with stratum fixed effects (logit on signed coordinates, or nystroem); '
-                         'scores exclude every stratum effect')
+                    help='discovery D1-01: drift-neutral fit with stratum fixed effects (logit on signed coordinates, or nystroem; '
+                         '0.8: lgb on signed coordinates with profiled stratum offsets, D3-01); scores exclude every stratum effect')
+    ap.add_argument('--signed-only', action='store_true',
+                    help='0.8 same-input controls: logit (e67drfe inputs and scaling, global intercept, no strata) or lgb '
+                         '(the usual booster) on the signed coordinates only')
     ap.add_argument('--families', default=None,
                     help='SWEEP_MATRIX family blocks to keep (comma list of tf,sg,kf,rm,fd,cx,tk,pa,cm, or all / none); every '
                          'other block column is dropped from the --features selection')
@@ -592,9 +704,20 @@ def main():
         raise SystemExit('--boot-gate needs B >= 2 replicas, --nseed 1 and no --specialist')
     if a.model == 'lgbord4' and (a.reflect or a.train_label != 'sign'):
         raise SystemExit('--model lgbord4 defines its own target: no --reflect, no --train-label')
-    if a.drift_fe and (a.model not in ('logit', 'nystroem') or a.reflect or a.meta_keep is not None or a.specialist
-                       or a.boot_gate or a.multi_horizon):
-        raise SystemExit('--drift-fe needs --model logit or nystroem and no reflect / meta / specialist / boot / multi-horizon')
+    if a.drift_fe and (a.model not in ('logit', 'nystroem', 'lgb') or a.reflect or a.meta_keep is not None or a.specialist
+                       or a.boot_gate or a.multi_horizon or a.signed_only or (a.model == 'lgb' and (a.no_early_stop
+                                                                                                    or a.monotone != 'none'))):
+        raise SystemExit('--drift-fe needs --model logit, nystroem or lgb (with early stopping, no monotone) and no reflect / '
+                         'meta / specialist / boot / multi-horizon / signed-only')
+    if a.signed_only and (a.model not in ('logit', 'lgb') or a.reflect or a.meta_keep is not None or a.specialist
+                          or a.boot_gate or a.multi_horizon or a.monotone != 'none' or a.mag_keep is not None):
+        raise SystemExit('--signed-only needs --model logit or lgb and no reflect / meta / specialist / boot / multi-horizon / '
+                         'monotone / magnitude gate')
+    if a.model == 'nysagree' and (a.nseed != 1 or a.reflect or a.meta_keep is not None or a.specialist or a.boot_gate
+                                  or a.multi_horizon or a.monotone != 'none' or a.aci_gamma is not None
+                                  or a.mag_keep is not None or a.comp_gate is not None):
+        raise SystemExit('--model nysagree needs --nseed 1 and no other gate, reflect, meta, specialist, boot, '
+                         'multi-horizon, monotone or ACI')
     if a.multi_horizon and (a.horizon != 15 or a.reflect or a.meta_keep is not None or a.specialist or a.boot_gate
                             or a.model == 'lgbord4' or a.comp_gate is not None or a.weight != 'none'
                             or a.train_label != 'sign' or a.null_shift_weeks):
@@ -646,7 +769,8 @@ def main():
                                         'model', 'cat_depth', 'logit_c', 'specialist', 'comp_gate', 'weight',
                                         'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime', 'nys_gamma_mult',
                                         'nys_components', 'null_shift_weeks', 'reflect', 'stack_shrink', 'mag_model',
-                                        'boot_gate', 'boot_z', 'halflife_days', 'multi_horizon', 'drift_fe', 'monotone')}
+                                        'boot_gate', 'boot_z', 'halflife_days', 'multi_horizon', 'drift_fe', 'monotone',
+                                        'signed_only')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
@@ -712,17 +836,31 @@ def main():
         usd_side = -1 if a.pair in ('USDJPY', 'USDCHF', 'USDCAD') else 1   # pair UP = USD weakness for XXX/USD
         fitter.mono = [-1 if c == 'ret_15m' else usd_side if c == 'x_usd_weak_15m' else 0 for c in feats]
         res['monotone'] = {'ret_15m': -1, 'x_usd_weak_15m': usd_side, 'others': 0}
-    if a.drift_fe:
+    if a.drift_fe or a.signed_only or a.model == 'nysagree':
         import re as _re
-        if 'rv_60m' not in feats:
-            raise SystemExit('--drift-fe needs the v0.1 column rv_60m for its strata')
+        if (a.drift_fe or a.model == 'nysagree') and 'rv_60m' not in feats:
+            raise SystemExit('--drift-fe / nysagree need the v0.1 column rv_60m for their strata')
         neg = _re.compile(r'^(ret_\d+m|emadist_\d+m|stretch_\d+m|x_[A-Z]{6}_ret_\d+m|x_usd_weak_15m|bar_body|skew_240m)$')
         rng_ = _re.compile(r'^rangepos_\d+m$')
         cols = [i for i, c in enumerate(feats) if neg.match(c) or rng_.match(c)]
         fitter.signed_cols = np.array(cols, dtype=int)
         fitter.signed_rng = np.array([k for k, i in enumerate(cols) if rng_.match(feats[i])], dtype=int)
-        res['drift_fe'] = {'strata': 'ISO week x America/New_York 3-hour bucket x fit-pool rv_60m tercile (one-hot x10, no intercept)',
-                           'logit_signed_columns': [feats[i] for i in cols]}
+        if a.drift_fe:
+            res['drift_fe'] = {'strata': 'ISO week x America/New_York 3-hour bucket x fit-pool rv_60m tercile (one-hot x10, no intercept)',
+                               'logit_signed_columns': [feats[i] for i in cols]}
+            if a.model == 'lgb':
+                res['drift_fe'] = {'strata': 'ISO week x America/New_York 3-hour bucket x fit-pool rv_60m tercile',
+                                   'offsets': 'per-stratum ridge Newton (BCE + 0.5 alpha^2) as init_score; 2 alternations; '
+                                              'scores = booster f alone, centred on the fit rows',
+                                   'signed_columns': [feats[i] for i in cols]}
+        if a.signed_only:
+            res['signed_only'] = {'columns': [feats[i] for i in cols],
+                                  'model': 'logit: sd-scaled, clipped, global intercept' if a.model == 'logit' else 'lgb booster'}
+        if a.model == 'nysagree':
+            res['nysagree'] = {'primary': 'nystroem recipe with the run weights',
+                               'gate': 'keep iff drift-neutral logit (e67drfe) side == kernel side AND plain same-input logit '
+                                       'side == opposite; others p = 0.5; overall coverage',
+                               'signed_columns': [feats[i] for i in cols]}
     if a.train_label != 'sign':
         lab = pd.read_parquet(Path(label_dir) / f'{a.pair}.parquet').set_index('bar_start_ts')[f'{a.train_label}_{a.horizon}m']
         fitter.ytrain = lab.reindex(ts - 60).to_numpy(np.float64)      # decision = bar start + 60 s

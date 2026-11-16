@@ -66,8 +66,11 @@ lets the logit, extra-trees and kernel models use training weights (before 0.5 t
 meta gate's half-pool primaries with the selected model; 0.6 / 0.6.1 add the literature options (shrunk stack, ordinal
 bins, HAR size gate, bootstrap calibration-uncertainty gate, recency weights, multi-horizon training); 0.7 / 0.7.1
 add the discovery options (drift fixed effects, entry-delay agreement label, play-operator and shock-curvature
-blocks, monotone catch-up constraints). Each of 0.5 .. 0.7.1 reproduced path 1 of a stored 0.4 LightGBM result and a
-stored 0.4 kernel result exactly before it was used (lab registry tests `x-regress-06` .. `x-regress-071`).
+blocks, monotone catch-up constraints); 0.8 adds discovery round 3 (`--signed-only` same-input controls, `--drift-fe`
+for LightGBM with profiled stratum offsets, the `nysagree` agreement gate, the quote-update order block `qo_` and its
+permuted control `qp_` from `scripts/deriv_features_qorder.py`). Each of 0.5 .. 0.8 reproduced path 1 of a stored 0.4
+LightGBM result and a stored 0.4 kernel result exactly before it was used (lab registry tests `x-regress-06` ..
+`x-regress-08b`; 0.8 also reproduced the drift fixed-effect runs `e67drfe` and `e67drfenys` and `c2nysabs`).
 
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
