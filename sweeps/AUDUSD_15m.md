@@ -64,8 +64,8 @@ SCOPE: AUDUSD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e2noclock_AUDUSD_15m_result.json` |
 | E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e7fitall_AUDUSD_15m_result.json` |
 | E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e3union_AUDUSD_15m_result.json` |
-| E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | pending | — | — |
-| E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | pending | — | — |
+| E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e4seed3_AUDUSD_15m_result.json` |
+| E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | killed | KILLED / KILLED (cov 0.03) | `deriv_e5h30_AUDUSD_30m_result.json` |
 | E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E9BLOCKVAL | E1t with a time-block validation set (last 15% of training rows, purged) setting the threshold; all 800 trees (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | pending | — | — |
