@@ -38,8 +38,21 @@ sys.path.insert(0, str(REPO / 'scripts'))
 import book_runtime as br  # noqa: E402
 from sessions import session_mask  # noqa: E402
 
-SCORER_VERSION = 'score_frozen_books/0.4'   # 0.4: runtime compression-gate column by default (--gate-source)   # 0.3: Deriv purchase-blackout decisions excluded by default; 0.2 window filter
+SCORER_VERSION = 'score_frozen_books/0.4.1'   # 0.4.1: code.module_hashes (repository + own-directory import closure)
+# SCORER_VERSION = 'score_frozen_books/0.4'   # 0.4: runtime compression-gate column by default (--gate-source)   # 0.3: Deriv purchase-blackout decisions excluded by default; 0.2 window filter
 
+
+
+def module_hashes(*roots):
+    """sha256 of every loaded module whose file lies under one of the roots (the run's own code closure)."""
+    import hashlib
+    roots = [str(Path(r).resolve()) + '/' for r in roots]
+    out = {}
+    for m in list(sys.modules.values()):
+        f = getattr(m, '__file__', None)
+        if f and f.endswith('.py') and any(str(Path(f).resolve()).startswith(r) for r in roots):
+            out[str(Path(f).resolve())] = hashlib.sha256(Path(f).read_bytes()).hexdigest()
+    return dict(sorted(out.items()))
 
 def tradeable_mask(ts, horizon_min):
     """Deriv rejects an FX Rise/Fall purchase whose expiry lands in 16:50-18:00 New York (docs/DERIV_DEMO_EXECUTOR.md (g)):
@@ -242,6 +255,7 @@ def main():
               f'COMB {s["COMBINED"]["n"]} {s["COMBINED"]["win_rate"]} ({time.time() - t0:.0f}s)', flush=True)
         Path(a.out).write_text(json.dumps(res, indent=1))
     res['seconds'] = round(time.time() - t0, 1)
+    res['code']['module_hashes'] = module_hashes(REPO / 'scripts', Path(__file__).resolve().parent)
     Path(a.out).write_text(json.dumps(res, indent=1))
     print('done', res['seconds'], 's ->', a.out)
 

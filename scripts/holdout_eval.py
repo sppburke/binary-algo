@@ -15,9 +15,10 @@ Deriv-settled labels, side filter, threshold, first-come de-overlap gap H, ties 
   CONTEXT  one model frozen at the end of DEV, scored over the whole holdout.
 Optional pooling (--pool) follows tools/cpcv_deriv_pool.py: other pairs' rows in the fit pool only.
 Per side: n, win rate, CI95 (iid bootstrap 5000, seed 7), by month; moved-row AUC; always-UP/DOWN baselines.
-Falsifier (written before the holdout is scored): a side is SOTA-ELIGIBLE iff the PRIMARY reading has
-n >= 50 and CI95-lower >= 0.541; comparison with the incumbents' holdout numbers is done by the caller
-(score_frozen_books.py on the same window) and must show a higher point win rate.
+The binding decision is NOT made here: holdout/seq_decision.py applies owner decision 6 (two-look group-sequential
+test, one finalist per key, exact binomial win-count boundaries on the PRIMARY trade list, plus n >= 50, the
+drift-matched test and every incumbent book beaten on the same window; holdout/REGISTER.md). The bootstrap CIs, the
+one-sided bootstrap p and the Bonferroni reading below are context only.
 """
 import argparse
 import json
@@ -35,7 +36,8 @@ from cpcv_deriv_x import LOCAL_WINDOWS, session as x_session  # noqa: E402
 if Path(sys.modules['cpcv_deriv_x'].__file__).resolve().parent != Path(__file__).resolve().parent:
     raise SystemExit(f'holdout_eval: cpcv_deriv_x resolved to {sys.modules["cpcv_deriv_x"].__file__}, not the harness next to this file')
 
-HOLDOUT_VERSION = 'holdout_eval/0.6.2'  # 0.6.2: PRIMARY UP/DOWN trade lists [ts, win] and sessions.py hash for seq_decision 1.2
+HOLDOUT_VERSION = 'holdout_eval/0.6.3'  # 0.6.3: code.module_hashes (repository + own-directory import closure); docstring
+# 0.6.2: PRIMARY UP/DOWN trade lists [ts, win] and sessions.py hash for seq_decision 1.2
 # 0.6.1: falsifier text names owner decision 6 (two-look seq_decision); numbers unchanged
 # 0.6: --weight absret (as cpcv_deriv_x); drift test unavailable without volatility cut
 #                                        points; Bonferroni flag renamed to context (binding = caller's Holm); harness provenance
@@ -45,6 +47,18 @@ HOLDOUT_VERSION = 'holdout_eval/0.6.2'  # 0.6.2: PRIMARY UP/DOWN trade lists [ts
 #                                        0.4: one-sided bootstrap p (Holm across a key's finalists) and the NY-hour
 #                                        drift-matched always-side baseline per side (paired excess + CI; context);
 #                                        0.3: --model (cpcv_deriv_x model classes); 0.2: blackout excluded; local NY windows
+
+
+def module_hashes(*roots):
+    """sha256 of every loaded module whose file lies under one of the roots (the run's own code closure)."""
+    import hashlib
+    roots = [str(Path(r).resolve()) + '/' for r in roots]
+    out = {}
+    for m in list(sys.modules.values()):
+        f = getattr(m, '__file__', None)
+        if f and f.endswith('.py') and any(str(Path(f).resolve()).startswith(r) for r in roots):
+            out[str(Path(f).resolve())] = hashlib.sha256(Path(f).read_bytes()).hexdigest()
+    return dict(sorted(out.items()))
 
 
 def boot(corr, nb=5000, seed=7, alpha=0.05):
@@ -277,6 +291,7 @@ def main():
     res.update(readings=readings, monthly_fits=fit_info, frozen_fit={'n_fit': nfit0, 'thr': round(thr0, 5)},
                holdout_rows=int(hold.sum()), holdout_moved_up_rate=round(float((f[mv] > 0).mean()), 4),
                baseline_always=base, seconds=round(time.time() - t0, 1))
+    res['code']['module_hashes'] = module_hashes(cd.REPO / 'scripts', Path(__file__).resolve().parent)
     Path(a.out).write_text(json.dumps(res, indent=1))
     print('done', res['seconds'], 's ->', a.out)
 

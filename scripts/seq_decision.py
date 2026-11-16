@@ -28,6 +28,10 @@ Provenance (1.2): both looks run the frozen code in holdout/frozen_v1 (hashes in
 sessions.py / book_runtime.py); wins are counted from the evaluator's PRIMARY trade list, and at look 2 the trades
 dated inside the look-1 window must equal the look-1 trades exactly (timestamps and outcomes). An incumbent book
 without UP trades on the window cannot be compared: the tool refuses (owner decision needed).
+1.3: frozen_v2 code; each producer's whole repository/own-directory import closure must equal the registered module
+hashes; trades must be >= H minutes apart (the evaluator's first-come de-overlap) and eligible (NY session, not in the
+Deriv purchase blackout) by the frozen cpcv_deriv; by_month must match the trade list month by month; drift flags must
+be real booleans consistent with a finite CI.
 """
 import argparse
 import json
@@ -37,28 +41,34 @@ from pathlib import Path
 
 from scipy.stats import binom, norm
 
-VERSION = 'seq_decision/1.2'
+VERSION = 'seq_decision/1.3'
 P0, ALPHA = 0.541, 0.025
 ALPHA1 = float(1 - norm.cdf(2.797))
 Z1_FLOOR, Z2_FLOOR = 2.80, 1.98
 INDEX = Path('/home/sean/git/binary-algo/books/INDEX.json')
-FROZEN = '/mnt/data/deriv-sota-lab/holdout/frozen_v1/'
-CODE = {'holdout_eval': 'ad6b133fceb3977b8f2b350d58830e955c737fd7c2787e35ae02963128f57926',      # 0.6.2
+FROZEN = '/mnt/data/deriv-sota-lab/holdout/frozen_v2/'
+CODE = {'holdout_eval': 'eb6856ad81c603facdb7796550944ca6ce0f5f2df62ee5e10e8dbaa79726880e',      # 0.6.3
         'cpcv_deriv': '9118fffdc0b4860109e9ea3caa5d12f77dda845f3a48f074b856ef2d985898d4',        # 0.4.1
         'cpcv_deriv_x': 'f0798bd33e65ce3c128b7b742497e4211ed70d13074d5c2b8f4cb4a8ca97e15a',      # 0.7.2
         'sessions': '2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493',          # repository scripts
-        'score_frozen_books': 'b1c9cd6e30f0f5bd6a717c7ab36a80e8a13986d24f872006fcc036228087f84b',  # 0.4
-        'book_runtime': 'fb299d8adc8b585e0c19294a362c32811912eadf5d87f5a92397c7aba77e916d'}       # repository scripts
+        'score_frozen_books': '533de9452d78d339d9769146f9a0936ed0f1027a0038f5d51e07cb4122ac8df5',  # 0.4.1
+        'book_runtime': 'fb299d8adc8b585e0c19294a362c32811912eadf5d87f5a92397c7aba77e916d',       # repository scripts
+        'harness': '7793b3d60fff48330a99d1b10c6bcb313365d6502185f5f18a230215a78f253a'}            # repository scripts
+REPO_SCRIPTS = '/home/sean/git/binary-algo/scripts/'
+EVAL_MODULES = {FROZEN + 'holdout_eval.py': CODE['holdout_eval'], FROZEN + 'cpcv_deriv.py': CODE['cpcv_deriv'],
+                FROZEN + 'cpcv_deriv_x.py': CODE['cpcv_deriv_x'], REPO_SCRIPTS + 'sessions.py': CODE['sessions']}
+SCORER_MODULES = {FROZEN + 'score_frozen_books.py': CODE['score_frozen_books'], REPO_SCRIPTS + 'book_runtime.py': CODE['book_runtime'],
+                  REPO_SCRIPTS + 'harness.py': CODE['harness'], REPO_SCRIPTS + 'sessions.py': CODE['sessions']}
 LOOK_WINDOWS = {1: ['2026-08-01', '2026-11-14'], 2: ['2026-08-01', '2027-02-26']}
 LOOK_DATASET = {1: 'dataset_full_v0.1', 2: 'dataset_full_v0.2'}
 LOOK_BOOK_DATASETS = {1: {'ny': 'dataset_full_b239_v0.1', 'nylate': 'dataset_full_b239_shift-5_v0.1'},
                       2: {'ny': 'dataset_full_b239_v0.2', 'nylate': 'dataset_full_b239_shift-5_v0.2'}}
 KERNEL = {'model': 'nystroem', 'nys_gamma_mult': 1.0, 'nys_components': 500, 'weight': 'none'}
 REGISTERED = {
-    'USDJPY.15m': {'finalist': 'e30nystroem', 'side': 'UP', 'model': KERNEL, 'nseed': 1, 'cov': 0.03, 'session': 'ny',
+    'USDJPY.15m': {'finalist': 'e30nystroem', 'side': 'UP', 'horizon': 15, 'model': KERNEL, 'nseed': 1, 'cov': 0.03, 'session': 'ny',
                    'features': ('all', 66),
                    'incumbents': ['USDJPY.m15ny.v1', 'USDJPY.m15ny_seedens.v1', 'USDJPY.m15ny_tbft_seedens.v1']},
-    'USDJPY.30m': {'finalist': 'e49nys30', 'side': 'UP', 'model': KERNEL, 'nseed': 1, 'cov': 0.03, 'session': 'ny',
+    'USDJPY.30m': {'finalist': 'e49nys30', 'side': 'UP', 'horizon': 30, 'model': KERNEL, 'nseed': 1, 'cov': 0.03, 'session': 'ny',
                    'features': ('all', 66), 'incumbents': []},
 }
 
@@ -111,13 +121,15 @@ def load_finalist(path, look):
     key = r.get('key')
     need(key in REGISTERED, f'{path}: key {key!r} is not a registered finalist key')
     reg = REGISTERED[key]
-    need(r.get('holdout_eval') == 'holdout_eval/0.6.2', f'{path}: evaluator {r.get("holdout_eval")!r} is not the frozen 0.6.2')
+    need(r.get('holdout_eval') == 'holdout_eval/0.6.3', f'{path}: evaluator {r.get("holdout_eval")!r} is not the frozen 0.6.3')
     code = r.get('code') or {}
     need(code.get('holdout_sha256') == CODE['holdout_eval'], f'{path}: holdout_eval hash differs from the frozen code')
     need(code.get('base_harness_sha256') == CODE['cpcv_deriv'], f'{path}: cpcv_deriv hash differs from the frozen code')
     need((code.get('x_harness') or {}).get('sha256') == CODE['cpcv_deriv_x'], f'{path}: cpcv_deriv_x hash differs from the frozen code')
     need(str((code.get('x_harness') or {}).get('file', '')).startswith(FROZEN), f'{path}: the model code did not run from {FROZEN}')
     need((code.get('sessions') or {}).get('sha256') == CODE['sessions'], f'{path}: sessions.py hash differs from the registration')
+    need(code.get('module_hashes') == EVAL_MODULES, f'{path}: the evaluator import closure {code.get("module_hashes")} '
+                                                    f'differs from the registered modules')
     need(r.get('holdout') == LOOK_WINDOWS[look], f'{path}: window {r.get("holdout")} is not the look-{look} window {LOOK_WINDOWS[look]}')
     need(Path(str(r.get('dataset', ''))).name == LOOK_DATASET[look], f'{path}: dataset {r.get("dataset")!r} is not {LOOK_DATASET[look]}')
     need(r.get('n_candidates_opened_for_key') == 1, f'{path}: --n-candidates must be 1 (registered k = 1)')
@@ -131,19 +143,49 @@ def load_finalist(path, look):
     trades = s.get('trades')
     need(isinstance(trades, list), f'{path}: no PRIMARY trade list (evaluator older than 0.6.2?)')
     lo, hi = window_seconds(LOOK_WINDOWS[look])
-    prev = None
+    prev, gap = None, reg['horizon'] * 60
     for tr in trades:
-        need(isinstance(tr, list) and len(tr) == 2 and all(isinstance(v, int) for v in tr) and tr[1] in (0, 1),
+        need(isinstance(tr, list) and len(tr) == 2 and all(type(v) is int for v in tr) and tr[1] in (0, 1),
              f'{path}: malformed trade {tr!r}')
         need(lo <= tr[0] < hi, f'{path}: trade at {tr[0]} outside the look-{look} window')
-        need(prev is None or tr[0] > prev, f'{path}: trades not strictly increasing in time')
+        need(prev is None or tr[0] - prev >= gap, f'{path}: trades at {prev} and {tr[0]} are closer than {gap} s (overlap)')
         prev = tr[0]
+    if trades:
+        ok = eligible([tr[0] for tr in trades], reg['horizon'])
+        need(bool(ok.all()), f'{path}: {int((~ok).sum())} trade(s) outside the NY session or inside the purchase blackout')
     n, w = len(trades), sum(tr[1] for tr in trades)
     need(isinstance(s.get('n'), int) and s['n'] == n, f'{path}: n {s.get("n")} differs from the {n} listed trades')
     need(n == 0 or (s.get('win_rate') is not None and abs(s['win_rate'] - round(w / n, 4)) < 1e-9),
          f'{path}: win_rate {s.get("win_rate")} differs from the listed trades ({w}/{n})')
-    need(sum(v[0] for v in s.get('by_month', {}).values()) == n, f'{path}: by_month counts do not sum to n')
+    check_months(path, s.get('by_month'), trades)
     return r, reg, s, n, w, trades
+
+
+def eligible(ts, horizon):
+    """NY-session and tradeable (not in the Deriv purchase blackout) decision times, by the FROZEN cpcv_deriv."""
+    import numpy as np
+    if FROZEN not in sys.path:
+        sys.path.insert(0, FROZEN)
+    import cpcv_deriv as cd
+    need(str(Path(cd.__file__).resolve()).startswith(FROZEN), f'eligibility check loaded {cd.__file__}, not the frozen code')
+    t = np.asarray(ts, dtype=np.int64)
+    return np.asarray(cd.session_mask(t, 'ny')) & np.asarray(cd.tradeable(t, horizon))
+
+
+def check_months(path, bm, trades):
+    """by_month must equal the trade list month by month ([count, rounded win rate]; [0, None] for empty months)."""
+    import datetime as dt
+    need(isinstance(bm, dict), f'{path}: by_month missing')
+    months = {}
+    for ts_, w_ in trades:
+        c = months.setdefault(dt.datetime.fromtimestamp(ts_, dt.timezone.utc).strftime('%Y-%m'), [0, 0])
+        c[0] += 1
+        c[1] += w_
+    for m, (c, k) in months.items():
+        need(m in bm and isinstance(bm[m], list) and bm[m][0] == c and bm[m][1] is not None
+             and abs(bm[m][1] - round(k / c, 4)) < 1e-9, f'{path}: by_month[{m}] = {bm.get(m)} but the trades give [{c}, {round(k / c, 4)}]')
+    for m, v in bm.items():
+        need(m in months or v == [0, None], f'{path}: by_month[{m}] = {v} but no trade falls in that month')
 
 
 def window_seconds(win):
@@ -179,7 +221,10 @@ def incumbents(paths, reg, look, cand_w, cand_n):
         need(Path(d['dataset']['dir']).name == LOOK_BOOK_DATASETS[look][sess], f'{p}: dataset {d["dataset"]["dir"]} is not {LOOK_BOOK_DATASETS[look][sess]}')
         need(d.get('tradeable_only') is True, f'{p}: incumbents must be scored on tradeable decisions only')
         dc = d.get('code') or {}
+        need(d.get('scorer') == 'score_frozen_books/0.4.1', f'{p}: scorer {d.get("scorer")!r} is not the frozen 0.4.1')
         need(dc.get('scorer_sha256') == CODE['score_frozen_books'], f'{p}: score_frozen_books hash differs from the frozen code')
+        need(dc.get('module_hashes') == SCORER_MODULES, f'{p}: the scorer import closure {dc.get("module_hashes")} differs '
+                                                        f'from the registered modules')
         need(dc.get('book_runtime_sha256') == CODE['book_runtime'] and dc.get('sessions_sha256') == CODE['sessions'],
              f'{p}: book_runtime / sessions hash differs from the registration')
         books = {b['book_id']: b for b in d.get('books', [])}
@@ -215,9 +260,17 @@ def decide(look, result, look1_result=None, incumbent_paths=None):
         thr, spent, total = look2_threshold(n1, n, t1) if n else (None, 0.0, 0.0)
     crossed = bool(n and w >= thr)
     dm = s.get('drift_matched') or {}
+    avail = passes = False
+    if n:
+        need(type(dm.get('available')) is bool and type(dm.get('passes')) is bool, 'drift_matched flags must be booleans')
+        ci = dm.get('excess_ci95')
+        ci_ok = (isinstance(ci, list) and len(ci) == 2 and all(type(v) in (int, float) and math.isfinite(v) for v in ci))
+        need(dm['passes'] == bool(dm['available'] and ci_ok and ci[0] > 0),
+             f'drift_matched.passes = {dm["passes"]} contradicts available = {dm["available"]} / excess_ci95 = {ci}')
+        avail, passes = dm['available'], dm['passes']
     inc_ok, inc_rows = incumbents(incumbent_paths or [], reg, look, w, n)
-    conds = {'n_ge_50': n >= 50, 'drift_matched_available': bool(dm.get('available')),
-             'drift_matched_passes': bool(dm.get('passes')), 'beats_every_incumbent': bool(inc_ok)}
+    conds = {'n_ge_50': n >= 50, 'drift_matched_available': avail,
+             'drift_matched_passes': passes, 'beats_every_incumbent': bool(inc_ok)}
     cert = bool(crossed and all(conds.values()))
     return {'tool': VERSION, 'look': look, 'key': r['key'], 'finalist': reg['finalist'], 'side': side, 'window': r['holdout'],
             'result': str(result), 'look1_result': None if look1_result is None else str(look1_result),

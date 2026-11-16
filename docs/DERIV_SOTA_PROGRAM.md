@@ -158,10 +158,10 @@ the exact family-wise error is at most 0.025 by construction (0.018-0.0225 on a 
 50, the drift-matched test and a win fraction above every incumbent book's on the same window; otherwise the test
 continues to look 2. The null model - nonoverlapping trade outcomes independent given the past, the same assumption as
 the single-look CI95 rule - was checked on the finalists' DEV trades (day- and week-clustered variance inflation
-0.71-0.89, no overdispersion). Both looks run frozen, hash-registered copies of the evaluation code, wins are counted
-from the evaluator's trade list, and at look 2 the trades inside the look-1 window must equal the look-1 trades exactly.
-The exact rule, finalist commands and the decision tool (`scripts/seq_decision.py`, lab `holdout/seq_decision.py`) are
-in lab `holdout/REGISTER.md`.
+0.71-0.89, no overdispersion). Both looks run frozen, hash-registered copies of the evaluation code (their whole import
+closure is checked), wins are counted from the evaluator's trade list, and at look 2 the trades inside the look-1 window
+must equal the look-1 trades exactly. The exact rule, finalist commands and the decision tool
+(`scripts/seq_decision.py`, lab `holdout/seq_decision.py`) are in lab `holdout/REGISTER.md`.
 
 ## Experiment record
 
