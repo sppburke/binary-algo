@@ -609,3 +609,15 @@ machine-readable backlog). Generic lessons:
 > [per key: `results/<PAIR>_RESULTS.md`, tags `e82tailaux` vs `e81tail0`]. The tail held about 715 fit rows per fit, which 500 kernel
 > features fit easily; selection-aware objectives need held-out tail rows (or strong capacity limits), not the fit
 > rows' own tail.
+
+> **Pairing two near-miss levers did not lift a near-miss key; discovery on the Deriv feed is dry for now.**
+> Deriv-feed discovery round 5 (SWEEP_MATRIX N71-N74) combined existing levers for the four VALID key-sides closest
+> to the rule: a reflected kernel inside the compression gate, a bootstrap-uncertainty gate inside it, a selected blend
+> of unweighted and |return|-weighted models, and fixing-rule offers ranked by the compact logistic [per key:
+> `results/<PAIR>_RESULTS.md`, tags `e83nysrefcomp`, `e84bootcomp`, `e86blendsel`, `e87fixrank`]. None beat its
+> comparators by the registered rule, and none passed the path test. With rounds 4 and 5 both dry, the loop-until-dry
+> rule ends discovery. Two method notes: (1) a choice made from validation outcomes must use `--val-mode block`,
+> because the default random validation rows sit one minute from fit rows with overlapping labels (validation win
+> rates near 0.96); (2) block validation sharply lowered a compression-gated LightGBM's path result
+> [NZDUSD·15m DOWN, `e88comp33blk` vs `e33comp33`] while its pooled forward win rate rose, so which validation mode
+> transfers forward is an open measurement (`e9blockval`).

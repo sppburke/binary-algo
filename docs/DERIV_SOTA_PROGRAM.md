@@ -260,6 +260,15 @@ below the pre-registered 0.005 line. The kernel blocks `e52ck` / `e53ckcompact` 
 The round-level block `e55rl` beats its shifted-grid placebo `e56rs` on paths clear and p10 on only 4 of 14
 key-sides; where it lifts AUC (AUDUSD), the placebo lifts it as much, so there is no round-level effect.
 
+## Discovery loop (2026-11-15 .. 2026-11-16)
+
+Five lens-driven rounds proposed, vetted and pre-registered new candidates on development data only. They are in lab
+`PROGRESS.md`, as SWEEP_MATRIX rows N60-N74, and their lessons are in `docs/IDEAS_LOG.md`; results per key are in
+`results/<PAIR>_RESULTS.md`. Rounds 1-3 were not dry under their pre-registered readings. Rounds 4 and 5 were dry: no
+candidate improved on its key-sides, and none passed the goal path test on a VALID key-side. Under the dryness rule
+amended on 2026-11-16 at 06:07 UTC (two consecutive dry rounds, counted from round 3), discovery ended on 2026-11-16 at
+13:39 UTC. The queue's remaining sweep rows still run, and the final report follows them.
+
 ## Closures respected
 
 The repository closures in AGENTS.md stand for this program unless the owner reopens them: no re-mining of the
