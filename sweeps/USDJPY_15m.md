@@ -250,4 +250,6 @@ This ledger IS the state. On resume, continue from the first `pending`/`running`
 | E71PLAYRESET | E1t + play-operator control block hr_ (15-minute replays; discovery D1-03 memory control) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E72SHOCK | E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E73MONO | E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| A12B02 | ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder) (`cpcv_deriv_x.py`) | 15m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_a12b02_USDJPY_15m_result.json` |
+| A13B02 | ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder) (`cpcv_deriv_x.py`) | 30m | killed | INVALID (moved up-rate validity check failed) / INVALID (moved up-rate validity check failed) (cov 0.03) | `deriv_a13b02_USDJPY_30m_result.json` |
 <!-- DERIV-FEED-LEDGER:END -->

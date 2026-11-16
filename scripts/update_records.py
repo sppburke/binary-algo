@@ -168,6 +168,8 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
     'e71playreset': ('E1t + play-operator control block hr_ (15-minute replays; discovery D1-03 memory control)', 'cpcv_deriv_x.py'),
     'e72shock': ('E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01)', 'cpcv_deriv_x.py'),
     'e73mono': ('E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02)', 'cpcv_deriv_x.py'),
+    'a12b02': ('ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
+    'a13b02': ('ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
 }
 R1_FILES = {   # frozen-book readings: file stem -> description
     'deriv_r1_frozen_books_dev_result.json': 'R1: frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout',
