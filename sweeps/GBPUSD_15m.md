@@ -170,9 +170,9 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 | E9BLOCKVAL | E1t with a time-block validation set (last 15% of training rows, purged) setting the threshold; all 800 trees (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e9blockval_GBPUSD_15m_result.json` |
 | E10V02 | E1t + 16 literature-driven causal features (same-slot seasonality, round-number geometry, semivariances): dataset v0.2 (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e10v02_GBPUSD_15m_result.json` |
 | E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e18lowcap_GBPUSD_15m_result.json` |
-| E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e13mag50_GBPUSD_15m_result.json` |
+| E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e19tf_GBPUSD_15m_result.json` |
+| E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e20sg_GBPUSD_15m_result.json` |
 | E21KF | E1t + SWEEP_MATRIX C2 Kalman block (kf_: local-linear-trend slope/innovation, time-varying basket beta and residual) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E22RM | E1t + SWEEP_MATRIX C3 random-matrix eigen-residual block (rm_: residual after Marchenko-Pastur modes, 15-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | pending | — | — |

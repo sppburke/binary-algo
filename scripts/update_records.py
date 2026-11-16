@@ -199,6 +199,10 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
                       'of the amended D5-01', 'cpcv_deriv_x.py'),
     'a12b02': ('ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
     'a13b02': ('ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
+    'e20sgnc': ('ROBUSTNESS CHECK, not a candidate: e20sg without the clock features (USDCHF 15m UP survivor check S1, the '
+                'registered no-clock ablation)', 'cpcv_deriv_x.py'),
+    'e20sgs3': ('ROBUSTNESS CHECK, not a candidate: e20sg with seeds 0-2 averaged (USDCHF 15m UP survivor check S2)',
+                'cpcv_deriv_x.py'),
 }
 NOT_CANDIDATES = {k for k, v in EXPERIMENTS.items() if v[0].startswith('ROBUSTNESS CHECK')}
 

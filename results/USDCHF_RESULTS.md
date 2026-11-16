@@ -148,10 +148,10 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 <!-- DERIV-FEED-NOTES:BEGIN -->
 - **Incumbent benchmark on TRADEABLE decisions, books as trained (R1bt, 13:00-16:35 + 18:00-22:00 ET):** UP best `USDCHF.m15ny_xpair_seedens.v1` 0.5854 [0.4390, 0.7317] n=41 (NOT SUPPORTED); DOWN best `USDCHF.m15ny_xpair.v1` 0.6905 [0.5476, 0.8333] n=42 (NOT SUPPORTED).
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDCHF.m15ny_xpair_seedens.v1` 0.5965 [0.4737, 0.7193] n=57 (NOT SUPPORTED); DOWN best `USDCHF.m15ny_xpair.v1` 0.4906 [0.3962, 0.5849] n=106 (NOT SUPPORTED).
-- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
+- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** e20sg 15m UP (cov 0.03: CERTIFIED (15/15, 14 clear); forward 1/2). DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): c7comp3 15m UP (cov 0.03: no (10/15, 10 clear); forward 0/0); e3union 15m UP (cov 0.03: no (5/15, 4 clear); forward 0/0).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `c9compaci` 11/15 clear, p10 0.536, excess +0.069; `e33comp33` 11/15 clear, p10 0.526, excess +0.064; `e2noclock` 11/15 clear, p10 0.517, excess +0.084.
-- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e67drfe` 6/15 clear, p10 0.457, excess +0.035; `e70play` 6/14 clear, p10 0.413, excess +0.038; `r4fixldn` 5/15 clear, p10 0.477, excess +0.044.
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e20sg` 14/15 clear, p10 0.551, excess +0.098; `e19tf` 12/15 clear, p10 0.503, excess +0.079; `c9compaci` 11/15 clear, p10 0.536, excess +0.069.
+- **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e67drfe` 6/15 clear, p10 0.457, excess +0.035; `e70play` 6/14 clear, p10 0.413, excess +0.038; `e20sg` 6/14 clear, p10 0.398, excess +0.035.
 - **DEV leaderboard 30m UP** (closest to the goal rule at each run's operating coverage): `e5h30` 1/11 clear, p10 0.462, excess -0.003.
 - **DEV leaderboard 30m DOWN** (closest to the goal rule at each run's operating coverage): `e5h30` 1/2 clear, p10 0.471, excess +0.038.
 - **Deployment status (Deriv feed):** DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a sealed-holdout look, and deployment needs both.
@@ -184,6 +184,21 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 > 0.10 was fixed before the run; it is the only pass among 596 secondary-coverage readings on the six non-USDJPY pairs,
 > so it carries that search's selection; no forward-walk fold reaches 25 trades at 0.05; and (estimate) its median 45
 > trades per path (two ~8.5-week groups) implies about 40 trades on the ~15-week holdout, below n >= 50.
+
+> **USDCHF 15m UP — `e20sg` passes the goal rule on DEV (2026-11-16, hand-written; numbers from
+> `deriv_e20sg_USDCHF_15m_result.json` and the other USDCHF 15m result JSONs).** E1t + the B7 path-signature block
+> (`sg_`), coverage 0.03: 15 of 15 paths counted, 14 clear .541, p10 0.5513, VALID (moved up-rate 0.5089). It is the
+> first VALID goal-rule pass outside USDJPY, and it does not pass at the neighbouring coverages: 0.02 gives 10 of 13 counted paths
+> clear (p10 0.527), 0.05 gives 11 of 15 (p10 0.526). Forward walk at 0.03: 2 of 4 folds reach 25 trades, 1 clears;
+> pooled, 63 of 104 trades won. Mean moved AUC 0.503. Selection: it ranks first among the 59 VALID USDCHF 15m UP runs
+> with >= 12 counted paths, whose p10 averages 0.4876 (sd 0.0268); at +2.4 sd it sits about where the best of ~60
+> correlated tries would land without a real effect, on a side where the E1t drift placebo above found a small
+> selection skill. A survivor check was pre-registered (lab PROGRESS.md, 18:41 UTC) before any of its runs: the
+> registered no-clock ablation `e20sgnc`, three seeds `e20sgs3`, entry-delay stress `a14delay`, then the sign-null
+> replay `a15null`. Not a finalist yet: the USDCHF slate is named on DEV evidence after the queue drains, and opening
+> the sealed window needs the owner's decision. Holdout power (estimate from the DEV forward walk's 13.4 trades a
+> month): about 46 trades by 2026-11-14, below n >= 50; about 92 by 2027-02-26, where even the DEV win rate (0.597)
+> would pass a single 0.025 look with probability about 0.17 (exact binomial, 60 of 92 needed).
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -227,13 +242,16 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 | c8compabs | c8compabs: all (66), nseed 1 | 15m | 0.1 | .5012 (.4920) | .5132 · .600 · .5722 | 1/1 · .5833 | .3953 · .273 · .4950 | 0/1 · .5152 | .4987 / .4855 | KILLED / KILLED | no (15/15, 9 clear) / no (11/15, 3 clear) | 0.53 / 0.27 | `deriv_c8compabs_USDCHF_15m_result.json` |
 | c9compaci | c9compaci: all (66), nseed 1 | 15m | 0.1 | .5000 (.4900) | .5361 · .733 · .5675 | 0/1 · .5000 | .4468 · .182 · .4953 | 0/1 · .5000 | .4987 / .4855 | KILLED / KILLED | no (15/15, 11 clear) / no (11/15, 2 clear) | 0.47 / 0.18 | `deriv_c9compaci_USDCHF_15m_result.json` |
 | e10v02 | e10v02: all (82), nseed 1 | 15m | 0.03 | .5016 (.4921) | .4303 · .571 · .5404 | 0/0 · — | .3963 · .500 · .5022 | 0/0 · — | .4987 / .4855 | KILLED / KILLED | no (14/15, 8 clear) / no (6/15, 3 clear) | 0.36 / 0.33 | `deriv_e10v02_USDCHF_15m_result.json` |
+| e13mag50 | e13mag50: all (66), nseed 1 | 15m | 0.03 | .5000 (.4900) | .4048 · .375 · .5048 | 0/0 · — | .3257 · .333 · .4516 | 0/0 · — | .4987 / .4855 | KILLED / KILLED | no (8/15, 3 clear) / no (3/15, 1 clear) | 0.12 / 0.33 | `deriv_e13mag50_USDCHF_15m_result.json` |
 | e14nylate | e14nylate: all (66), nseed 1 | 15m | 0.03 | .5141 (.5030) | .5080 · .733 · .5704 | 1/2 · .4961 | .3864 · .500 · .4870 | 0/0 · — | .5017 / .4735 | KILLED / KILLED | no (15/15, 11 clear) / no (6/15, 3 clear) | 0.60 / 0.33 | `deriv_e14nylate_USDCHF_15m_result.json` |
 | e15nypm | e15nypm: all (66), nseed 1 | 15m | 0.03 | .5121 (.4874) | .4839 · .667 · .5825 | 1/1 · .6154 | .3219 · .500 · .4837 | 0/0 · — | .5073 / .4701 | KILLED / KILLED | no (15/15, 10 clear) / no (4/15, 2 clear) | 0.60 / 0.50 | `deriv_e15nypm_USDCHF_15m_result.json` |
 | e16nyeve | e16nyeve: all (66), nseed 1 | 15m | 0.03 | .5143 (.4938) | .4575 · .400 · .5266 | 1/1 · .5429 | .5180 · .000 · .5238 | 0/0 · — | .4962 / .4773 | KILLED / KILLED | no (5/15, 2 clear) / no (3/15, 0 clear) | 0.40 / 0.00 | `deriv_e16nyeve_USDCHF_15m_result.json` |
 | e17nyam | e17nyam: all (66), nseed 1 | 15m | 0.03 | .4981 (.4864) | .4508 · .400 · .5051 | 0/0 · — | .4743 · .429 · .5330 | 0/0 · — | .4930 / .4962 | KILLED / KILLED | no (10/15, 4 clear) / no (7/15, 3 clear) | 0.20 / 0.43 | `deriv_e17nyam_USDCHF_15m_result.json` |
 | e18lowcap | e18lowcap: all (66), nseed 1 | 15m | 0.03 | .5006 (.4929) | .4983 · .067 · .5176 | 2/4 · .5588 | .4251 · .067 · .4675 | 0/3 · .4817 | .4987 / .4855 | KILLED / KILLED | no (15/15, 1 clear) / no (15/15, 1 clear) | 0.07 / 0.07 | `deriv_e18lowcap_USDCHF_15m_result.json` |
+| e19tf | e19tf: all+fam:tf (74), nseed 1 | 15m | 0.03 | .5024 (.4908) | .5030 · .800 · .5777 | 0/1 · .4231 | .3773 · .231 · .4752 | 0/1 · .5000 | .4987 / .4855 | KILLED / KILLED | no (15/15, 12 clear) / no (13/15, 3 clear) | 0.67 / 0.15 | `deriv_e19tf_USDCHF_15m_result.json` |
 | e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5049 (.4998) | .4600 · .600 · .5556 | 1/3 · .5480 | .4825 · .600 · .5612 | 1/1 · .6579 | .4975 / .4866 | KILLED / KILLED | no (15/15, 9 clear) / no (15/15, 9 clear) | 0.60 / 0.40 | `deriv_e1_USDCHF_15m_result.json` |
 | e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5000 (.4900) | .5292 · .667 · .5681 | 1/3 · .5538 | .4045 · .214 · .4898 | 1/1 · .6071 | .4987 / .4855 | KILLED / KILLED | no (15/15, 10 clear) / no (14/15, 3 clear) | 0.40 / 0.07 | `deriv_e1t_USDCHF_15m_result.json` |
+| e20sg | e20sg: all+fam:sg (71), nseed 1 | 15m | 0.03 | .5028 (.4916) | .5513 · .933 · .5966 | 1/2 · .5887 | .3979 · .429 · .5206 | 1/1 · .6333 | .4987 / .4855 | CERTIFIED / KILLED | CERTIFIED (15/15, 14 clear) / no (14/15, 6 clear) | 0.67 / 0.29 | `deriv_e20sg_USDCHF_15m_result.json` |
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5010 (.4909) | .4529 · .067 · .4813 | 0/4 · .4568 | .4459 · .333 · .5151 | 2/4 · .5015 | .4987 / .4855 | KILLED / KILLED | no (15/15, 1 clear) / no (15/15, 5 clear) | 0.00 / 0.13 | `deriv_e29logit_USDCHF_15m_result.json` |
 | e2noclock | e2noclock: noclock (63), nseed 1 | 15m | 0.03 | .5007 (.4928) | .5167 · .733 · .5823 | 2/3 · .6289 | .3800 · .267 · .4904 | 2/2 · .5911 | .4987 / .4855 | KILLED / KILLED | no (15/15, 11 clear) / no (15/15, 4 clear) | 0.53 / 0.07 | `deriv_e2noclock_USDCHF_15m_result.json` |
 | e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5059 (.4962) | .4834 · .071 · .5050 | 1/4 · .5291 | .4637 · .000 · .4893 | 0/2 · .5000 | .4987 / .4855 | KILLED / KILLED | no (14/15, 1 clear) / no (12/15, 0 clear) | 0.00 / 0.00 | `deriv_e30nystroem_USDCHF_15m_result.json` |
