@@ -102,7 +102,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e13mag50_USDCHF_15m_result.json` |
 | E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e19tf_USDCHF_15m_result.json` |
 | E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_e20sg_USDCHF_15m_result.json` |
-| E21KF | E1t + SWEEP_MATRIX C2 Kalman block (kf_: local-linear-trend slope/innovation, time-varying basket beta and residual) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E21KF | E1t + SWEEP_MATRIX C2 Kalman block (kf_: local-linear-trend slope/innovation, time-varying basket beta and residual) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e21kf_USDCHF_15m_result.json` |
 | E22RM | E1t + SWEEP_MATRIX C3 random-matrix eigen-residual block (rm_: residual after Marchenko-Pastur modes, 15-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E24CX | E1t + SWEEP_MATRIX E3 complexity/regime block (cx_: permutation entropy, autocorrelation, variance ratio, two-state volatility-regime filter) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
@@ -163,6 +163,6 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E82TAILAUX | Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating 3% confidence tail of gated fit rows, mass held fixed; discovery D4-01) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e82tailaux_USDCHF_15m_result.json` |
 | E84BOOTCOMP | Compression-gate base with the calibration-uncertainty gate (5 bootstrap replicas, rank by |mean - 0.5| - 1 sd; discovery D5-04; USDCHF UP) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_e84bootcomp_USDCHF_15m_result.json` |
 | E85BOOTCOMP0 | Compression-gate base on the mean of the same 5 bootstrap replicas, no uncertainty penalty: the matched control of discovery D5-04 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_e85bootcomp0_USDCHF_15m_result.json` |
-| E20SGNC | ROBUSTNESS CHECK, not a candidate: e20sg without the clock features (USDCHF 15m UP survivor check S1, the registered no-clock ablation) (`cpcv_deriv_x.py`) | 15m | running | — | — |
-| E20SGS3 | ROBUSTNESS CHECK, not a candidate: e20sg with seeds 0-2 averaged (USDCHF 15m UP survivor check S2) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E20SGNC | ROBUSTNESS CHECK, not a candidate: e20sg without the clock features (USDCHF 15m UP survivor check S1, the registered no-clock ablation) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e20sgnc_USDCHF_15m_result.json` |
+| E20SGS3 | ROBUSTNESS CHECK, not a candidate: e20sg with seeds 0-2 averaged (USDCHF 15m UP survivor check S2) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e20sgs3_USDCHF_15m_result.json` |
 <!-- DERIV-FEED-LEDGER:END -->

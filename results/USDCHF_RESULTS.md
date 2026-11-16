@@ -150,12 +150,13 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **Books as deployed today (R1t, true clock, NY 08:00-16:35, tradeable):** UP best `USDCHF.m15ny_xpair_seedens.v1` 0.5965 [0.4737, 0.7193] n=57 (NOT SUPPORTED); DOWN best `USDCHF.m15ny_xpair.v1` 0.4906 [0.3962, 0.5849] n=106 (NOT SUPPORTED).
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** e20sg 15m UP (cov 0.03: CERTIFIED (15/15, 14 clear); forward 1/2). DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - Certified only under the repository rule (too few counted paths for the goal rule): c7comp3 15m UP (cov 0.03: no (10/15, 10 clear); forward 0/0); e3union 15m UP (cov 0.03: no (5/15, 4 clear); forward 0/0).
-- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e20sg` 14/15 clear, p10 0.551, excess +0.098; `e19tf` 12/15 clear, p10 0.503, excess +0.079; `c9compaci` 11/15 clear, p10 0.536, excess +0.069.
+- **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e20sg` 14/15 clear, p10 0.551, excess +0.098; `e19tf` 12/15 clear, p10 0.503, excess +0.079; `e21kf` 12/15 clear, p10 0.495, excess +0.094.
 - **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e67drfe` 6/15 clear, p10 0.457, excess +0.035; `e70play` 6/14 clear, p10 0.413, excess +0.038; `e20sg` 6/14 clear, p10 0.398, excess +0.035.
 - **DEV leaderboard 30m UP** (closest to the goal rule at each run's operating coverage): `e5h30` 1/11 clear, p10 0.462, excess -0.003.
 - **DEV leaderboard 30m DOWN** (closest to the goal rule at each run's operating coverage): `e5h30` 1/2 clear, p10 0.471, excess +0.038.
 - **Deployment status (Deriv feed):** DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a sealed-holdout look, and deployment needs both.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
+- Robustness checks, not candidates (excluded from the lists and leaderboards above; tables below): `e20sgnc`, `e20sgs3`.
 <!-- DERIV-FEED-NOTES:END -->
 
 > **USDCHF 15m UP — drift placebo (2026-11-15, hand-written; numbers from the cited JSONs).** `e1t` (NY 08:00-16:35
@@ -185,20 +186,26 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 > so it carries that search's selection; no forward-walk fold reaches 25 trades at 0.05; and (estimate) its median 45
 > trades per path (two ~8.5-week groups) implies about 40 trades on the ~15-week holdout, below n >= 50.
 
-> **USDCHF 15m UP — `e20sg` passes the goal rule on DEV (2026-11-16, hand-written; numbers from
-> `deriv_e20sg_USDCHF_15m_result.json` and the other USDCHF 15m result JSONs).** E1t + the B7 path-signature block
+> **USDCHF 15m UP — `e20sg` passes the goal rule on DEV, then fails its survivor check (2026-11-16, hand-written;
+> numbers from `deriv_e20sg_USDCHF_15m_result.json` and the other USDCHF 15m result JSONs).** E1t + the B7 path-signature block
 > (`sg_`), coverage 0.03: 15 of 15 paths counted, 14 clear .541, p10 0.5513, VALID (moved up-rate 0.5089). It is the
 > first VALID goal-rule pass outside USDJPY, and it does not pass at the neighbouring coverages: 0.02 gives 10 of 13 counted paths
 > clear (p10 0.527), 0.05 gives 11 of 15 (p10 0.526). Forward walk at 0.03: 2 of 4 folds reach 25 trades, 1 clears;
 > pooled, 63 of 104 trades won. Mean moved AUC 0.503. Selection: it ranks first among the 59 VALID USDCHF 15m UP runs
 > with >= 12 counted paths, whose p10 averages 0.4876 (sd 0.0268); at +2.4 sd it sits about where the best of ~60
 > correlated tries would land without a real effect, on a side where the E1t drift placebo above found a small
-> selection skill. A survivor check was pre-registered (lab PROGRESS.md, 18:41 UTC) before any of its runs: the
-> registered no-clock ablation `e20sgnc`, three seeds `e20sgs3`, entry-delay stress `a14delay`, then the sign-null
-> replay `a15null`. Not a finalist yet: the USDCHF slate is named on DEV evidence after the queue drains, and opening
-> the sealed window needs the owner's decision. Holdout power (estimate from the DEV forward walk's 13.4 trades a
-> month): about 46 trades by 2026-11-14, below n >= 50; about 92 by 2027-02-26, where even the DEV win rate (0.597)
-> would pass a single 0.025 look with probability about 0.17 (exact binomial, 60 of 92 needed).
+> selection skill. A survivor check was pre-registered (lab PROGRESS.md, 18:41 UTC) before any of its runs, and it
+> failed at its last step. The registered no-clock ablation `e20sgnc` (15 counted, 13 clear, p10 0.5358), three seeds
+> `e20sgs3` (15, 13, 0.5358) and the entry-delay stress `a14delay` (UP operationally robust: 14 of 15 clear at +4 s,
+> p10 0.558; not a stale-feed artifact) passed. The sign-null replay `a15null` (`deriv_a15null_USDCHF_15m_result.json`:
+> the same configuration re-run 16 times with labels shifted 3..48 weeks) did not read SIGNIFICANT. No null met the
+> goal path test, but at coverage 0.03 eleven nulls left no UP path with 25 trades and five left one (p10 0.320-0.481),
+> so the real p10 ranks 6 of 6 comparable values instead of the required >= 16 of 17. The replay could not build the
+> null distribution its rule needs, so it neither confirms nor refutes the edge; the pre-registered reading counts that
+> as a failure. `e20sg` is therefore recorded as a DEV goal-path pass that failed its survivor check: not a finalist,
+> and the key stays DO NOT DEPLOY. A pass would have met a weak holdout in any case (estimate from the DEV forward
+> walk's 13.4 trades a month): about 46 trades by 2026-11-14, below n >= 50; about 92 by 2027-02-26, where even the
+> DEV win rate (0.597) would pass a single 0.025 look with probability about 0.17 (exact binomial, 60 of 92 needed).
 
 <!-- DERIV-FEED-TABLES:BEGIN -->
 **Frozen books on the Deriv feed — true clock, ny (America/New_York 08:00-17:00, DST-correct, sessions.session_mask), ALL decisions incl. the untradeable blackout** (`deriv_r1_frozen_books_dev_result.json`; strategy gate, tick-settled, ties lose; SUPPORTED iff n >= 50 and CI95-lo >= .541):
@@ -252,6 +259,9 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 | e1 | e1: all (66), nseed 1 | 15m | 0.03 | .5049 (.4998) | .4600 · .600 · .5556 | 1/3 · .5480 | .4825 · .600 · .5612 | 1/1 · .6579 | .4975 / .4866 | KILLED / KILLED | no (15/15, 9 clear) / no (15/15, 9 clear) | 0.60 / 0.40 | `deriv_e1_USDCHF_15m_result.json` |
 | e1t | e1t: all (66), nseed 1 | 15m | 0.03 | .5000 (.4900) | .5292 · .667 · .5681 | 1/3 · .5538 | .4045 · .214 · .4898 | 1/1 · .6071 | .4987 / .4855 | KILLED / KILLED | no (15/15, 10 clear) / no (14/15, 3 clear) | 0.40 / 0.07 | `deriv_e1t_USDCHF_15m_result.json` |
 | e20sg | e20sg: all+fam:sg (71), nseed 1 | 15m | 0.03 | .5028 (.4916) | .5513 · .933 · .5966 | 1/2 · .5887 | .3979 · .429 · .5206 | 1/1 · .6333 | .4987 / .4855 | CERTIFIED / KILLED | CERTIFIED (15/15, 14 clear) / no (14/15, 6 clear) | 0.67 / 0.29 | `deriv_e20sg_USDCHF_15m_result.json` |
+| e20sgnc | e20sgnc: noclock+fam:sg (68), nseed 1 | 15m | 0.03 | .5037 (.4961) | .5358 · .867 · .6032 | 1/3 · .5998 | .4127 · .467 · .5211 | 2/2 · .5662 | .4987 / .4855 | KILLED / KILLED | no (15/15, 13 clear) / no (15/15, 7 clear) | 0.73 / 0.27 | `deriv_e20sgnc_USDCHF_15m_result.json` |
+| e20sgs3 | e20sgs3: all+fam:sg (71), nseed 3 | 15m | 0.03 | .5029 (.4935) | .5358 · .867 · .6071 | 1/1 · .7778 | .3754 · .417 · .5131 | 0/1 · .5385 | .4987 / .4855 | KILLED / KILLED | no (15/15, 13 clear) / no (12/15, 5 clear) | 0.73 / 0.42 | `deriv_e20sgs3_USDCHF_15m_result.json` |
+| e21kf | e21kf: all+fam:kf (73), nseed 1 | 15m | 0.03 | .5023 (.4934) | .4953 · .800 · .5923 | 1/1 · .5926 | .4375 · .364 · .5322 | 0/0 · — | .4987 / .4855 | KILLED / KILLED | no (15/15, 12 clear) / no (11/15, 4 clear) | 0.60 / 0.36 | `deriv_e21kf_USDCHF_15m_result.json` |
 | e29logit | e29logit: all (66), nseed 1 | 15m | 0.03 | .5010 (.4909) | .4529 · .067 · .4813 | 0/4 · .4568 | .4459 · .333 · .5151 | 2/4 · .5015 | .4987 / .4855 | KILLED / KILLED | no (15/15, 1 clear) / no (15/15, 5 clear) | 0.00 / 0.13 | `deriv_e29logit_USDCHF_15m_result.json` |
 | e2noclock | e2noclock: noclock (63), nseed 1 | 15m | 0.03 | .5007 (.4928) | .5167 · .733 · .5823 | 2/3 · .6289 | .3800 · .267 · .4904 | 2/2 · .5911 | .4987 / .4855 | KILLED / KILLED | no (15/15, 11 clear) / no (15/15, 4 clear) | 0.53 / 0.07 | `deriv_e2noclock_USDCHF_15m_result.json` |
 | e30nystroem | e30nystroem: all (66), nseed 1 | 15m | 0.03 | .5059 (.4962) | .4834 · .071 · .5050 | 1/4 · .5291 | .4637 · .000 · .4893 | 0/2 · .5000 | .4987 / .4855 | KILLED / KILLED | no (14/15, 1 clear) / no (12/15, 0 clear) | 0.00 / 0.00 | `deriv_e30nystroem_USDCHF_15m_result.json` |

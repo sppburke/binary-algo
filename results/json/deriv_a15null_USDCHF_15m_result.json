@@ -1,0 +1,173 @@
+{
+ "analysis": "run_nullreplay/0.1",
+ "registered_utc": "2026-11-16T19:33:42Z",
+ "real_result": "/home/sean/git/binary-algo/results/json/deriv_e20sg_USDCHF_15m_result.json",
+ "side": "UP",
+ "harness_args": "--session ny --dataset /mnt/data/deriv-sota-lab/cache/dataset_dev_v0.5 --families sg --covs 0.03,0.02,0.05 --nseed 1",
+ "null_shifts_weeks": [
+  3,
+  6,
+  9,
+  12,
+  15,
+  18,
+  21,
+  24,
+  27,
+  30,
+  33,
+  36,
+  39,
+  42,
+  45,
+  48
+ ],
+ "pre_registered_reading": "SIGNIFICANT iff the real p10 at the operating coverage exceeds every null p10 except at most one (rank >= 16 of 17) AND at most 1 of the 16 nulls meets the goal-rule path test (>= 12 of 15 counted paths clearing 0.541 with p10 >= 0.541)",
+ "real": {
+  "p10": 0.5512544802867383,
+  "paths_counted": 15,
+  "paths_clear": 14,
+  "goal_path_test": true,
+  "auc_mean": 0.5028359421570573,
+  "up_rate": 0.5089837765644027
+ },
+ "nulls": {
+  "12": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.4981936464980128,
+   "up_rate": 0.5086440101040864
+  },
+  "15": {
+   "p10": 0.46153846153846156,
+   "paths_counted": 1,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.49025761115509847,
+   "up_rate": 0.5093270103551117
+  },
+  "18": {
+   "p10": 0.4411764705882353,
+   "paths_counted": 1,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.4894682418050931,
+   "up_rate": 0.5082770189312246
+  },
+  "21": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.4970992445309149,
+   "up_rate": 0.5087228406986238
+  },
+  "24": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.4999135852781131,
+   "up_rate": 0.5078297001457409
+  },
+  "27": {
+   "p10": 0.32,
+   "paths_counted": 1,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5037158299993848,
+   "up_rate": 0.5091942170952289
+  },
+  "3": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.49536428783468966,
+   "up_rate": 0.5081834796514474
+  },
+  "30": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.4952922666282287,
+   "up_rate": 0.5096813862493013
+  },
+  "33": {
+   "p10": 0.48148148148148145,
+   "paths_counted": 1,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5038262784708973,
+   "up_rate": 0.508382205528223
+  },
+  "36": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5024512437961532,
+   "up_rate": 0.5115666389981595
+  },
+  "39": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.504660432518359,
+   "up_rate": 0.5132118680323124
+  },
+  "42": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5056658216321297,
+   "up_rate": 0.5139839392381028
+  },
+  "45": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5104379338723206,
+   "up_rate": 0.5118279272042325
+  },
+  "48": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5003532920342495,
+   "up_rate": 0.5142648774795799
+  },
+  "6": {
+   "p10": NaN,
+   "paths_counted": 0,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5072646952683958,
+   "up_rate": 0.5086201096646147
+  },
+  "9": {
+   "p10": 0.3333333333333333,
+   "paths_counted": 1,
+   "paths_clear": 0,
+   "goal_path_test": false,
+   "auc_mean": 0.5004507958759157,
+   "up_rate": 0.5083422265025118
+  }
+ },
+ "n_nulls": 16,
+ "real_p10_rank_of": "6 of 6",
+ "nulls_meeting_goal_path_test": 0,
+ "null_p10_quantiles": {
+  "50": 0.4411764705882353,
+  "90": 0.4735042735042735,
+  "95": 0.4774928774928775
+ },
+ "verdict": "NOT SIGNIFICANT vs sign-null replay (or incomplete)"
+}
