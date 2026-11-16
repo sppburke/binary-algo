@@ -169,6 +169,10 @@ closure is checked), wins are counted from the evaluator's trade list, and at lo
 must equal the look-1 trades exactly. The exact rule, finalist commands and the decision tool
 (`scripts/seq_decision.py`, lab `holdout/seq_decision.py`) are in lab `holdout/REGISTER.md`.
 
+Look 1 ran on 2026-11-16 at 10:00 UTC (lab test `hold-look1`, frozen code). Neither finalist crossed its boundary, so
+neither is certified, and both continue to look 2. The numbers are in `results/USDJPY_RESULTS.md` (Deriv-feed notes,
+"Holdout look 1") and lab `holdout/REGISTER.md`.
+
 ## Experiment record
 
 Lab registry `/mnt/data/deriv-sota-lab/registry/tests.jsonl` (append-only: start, run, finish, clean for every test;

@@ -1,0 +1,45 @@
+{
+ "tool": "seq_decision/1.3",
+ "look": 1,
+ "key": "USDJPY.30m",
+ "finalist": "e49nys30",
+ "side": "UP",
+ "window": [
+  "2026-08-01",
+  "2026-11-14"
+ ],
+ "result": "e49nys30_look1.json",
+ "look1_result": null,
+ "n": 102,
+ "wins": 59,
+ "win_rate": 0.5784,
+ "z_score": 0.7586,
+ "threshold_wins": 70,
+ "threshold_z": 2.9443,
+ "n_look1": 102,
+ "wins_look1": 59,
+ "alpha_spent_look1_exact": 0.001972,
+ "alpha_total_exact": 0.001972,
+ "crossed": false,
+ "conditions": {
+  "n_ge_50": true,
+  "drift_matched_available": true,
+  "drift_matched_passes": false,
+  "beats_every_incumbent": true
+ },
+ "incumbents": [],
+ "drift_matched": {
+  "match": "NY hour x rv_60m tercile (binding, owner decision 1)",
+  "available": true,
+  "rv_60m_finite_share": 1.0,
+  "baseline_mean": 0.5409,
+  "excess": 0.0375,
+  "excess_ci95": [
+   -0.06,
+   0.1315
+  ],
+  "passes": false
+ },
+ "CERTIFIED_AT_THIS_LOOK": false,
+ "next": "continue to look 2"
+}

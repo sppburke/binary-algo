@@ -1,0 +1,94 @@
+{
+ "tool": "seq_decision/1.3",
+ "look": 1,
+ "key": "USDJPY.15m",
+ "finalist": "e30nystroem",
+ "side": "UP",
+ "window": [
+  "2026-08-01",
+  "2026-11-14"
+ ],
+ "result": "e30nystroem_look1.json",
+ "look1_result": null,
+ "n": 253,
+ "wins": 149,
+ "win_rate": 0.5889,
+ "z_score": 1.53,
+ "threshold_wins": 160,
+ "threshold_z": 2.9178,
+ "n_look1": 253,
+ "wins_look1": 149,
+ "alpha_spent_look1_exact": 0.002025,
+ "alpha_total_exact": 0.002025,
+ "crossed": false,
+ "conditions": {
+  "n_ge_50": true,
+  "drift_matched_available": true,
+  "drift_matched_passes": true,
+  "beats_every_incumbent": false
+ },
+ "incumbents": [
+  {
+   "book_id": "USDJPY.m15ny.v1",
+   "reading": "ny",
+   "n": 158,
+   "wins": 85,
+   "win_rate": 0.538,
+   "beaten": true
+  },
+  {
+   "book_id": "USDJPY.m15ny_seedens.v1",
+   "reading": "ny",
+   "n": 116,
+   "wins": 67,
+   "win_rate": 0.5776,
+   "beaten": true
+  },
+  {
+   "book_id": "USDJPY.m15ny_tbft_seedens.v1",
+   "reading": "ny",
+   "n": 105,
+   "wins": 57,
+   "win_rate": 0.5429,
+   "beaten": true
+  },
+  {
+   "book_id": "USDJPY.m15ny.v1",
+   "reading": "nylate",
+   "n": 76,
+   "wins": 40,
+   "win_rate": 0.5263,
+   "beaten": true
+  },
+  {
+   "book_id": "USDJPY.m15ny_seedens.v1",
+   "reading": "nylate",
+   "n": 49,
+   "wins": 29,
+   "win_rate": 0.5918,
+   "beaten": false
+  },
+  {
+   "book_id": "USDJPY.m15ny_tbft_seedens.v1",
+   "reading": "nylate",
+   "n": 45,
+   "wins": 22,
+   "win_rate": 0.4889,
+   "beaten": true
+  }
+ ],
+ "drift_matched": {
+  "match": "NY hour x rv_60m tercile (binding, owner decision 1)",
+  "available": true,
+  "rv_60m_finite_share": 1.0,
+  "baseline_mean": 0.5179,
+  "excess": 0.071,
+  "excess_ci95": [
+   0.01,
+   0.1302
+  ],
+  "passes": true
+ },
+ "CERTIFIED_AT_THIS_LOOK": false,
+ "next": "continue to look 2"
+}

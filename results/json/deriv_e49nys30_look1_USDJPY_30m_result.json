@@ -1,0 +1,858 @@
+{
+ "holdout_eval": "holdout_eval/0.6.3",
+ "tag": "e49nys30-look1",
+ "key": "USDJPY.30m",
+ "data": "Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy",
+ "dataset": "/mnt/data/deriv-sota-lab/cache/dataset_full_v0.1",
+ "features": [
+  "ret_1m",
+  "ret_2m",
+  "ret_5m",
+  "ret_10m",
+  "ret_15m",
+  "ret_30m",
+  "ret_60m",
+  "ret_120m",
+  "ret_240m",
+  "ret_480m",
+  "ret_1440m",
+  "rv_15m",
+  "rv_30m",
+  "rv_60m",
+  "rv_240m",
+  "rv_1440m",
+  "rangepos_15m",
+  "rangepos_60m",
+  "rangepos_240m",
+  "rangepos_1440m",
+  "emadist_15m",
+  "stretch_15m",
+  "emadist_60m",
+  "stretch_60m",
+  "emadist_240m",
+  "stretch_240m",
+  "volratio_15_240",
+  "volratio_60_1440",
+  "skew_240m",
+  "kurt_240m",
+  "bar_range",
+  "bar_body",
+  "activity_1m",
+  "activity_5m",
+  "activity_15m",
+  "activity_60m",
+  "ticks_per_bar_15m",
+  "bar_gap_s",
+  "hour_sin",
+  "hour_cos",
+  "dow",
+  "x_EURUSD_ret_5m",
+  "x_EURUSD_ret_15m",
+  "x_EURUSD_ret_60m",
+  "x_EURUSD_stale_s",
+  "x_GBPUSD_ret_5m",
+  "x_GBPUSD_ret_15m",
+  "x_GBPUSD_ret_60m",
+  "x_GBPUSD_stale_s",
+  "x_USDCHF_ret_5m",
+  "x_USDCHF_ret_15m",
+  "x_USDCHF_ret_60m",
+  "x_USDCHF_stale_s",
+  "x_USDCAD_ret_5m",
+  "x_USDCAD_ret_15m",
+  "x_USDCAD_ret_60m",
+  "x_USDCAD_stale_s",
+  "x_AUDUSD_ret_5m",
+  "x_AUDUSD_ret_15m",
+  "x_AUDUSD_ret_60m",
+  "x_AUDUSD_stale_s",
+  "x_NZDUSD_ret_5m",
+  "x_NZDUSD_ret_15m",
+  "x_NZDUSD_ret_60m",
+  "x_NZDUSD_stale_s",
+  "x_usd_weak_15m"
+ ],
+ "n_features": 66,
+ "feature_set": "all",
+ "pool": null,
+ "nseed": 1,
+ "num_leaves": 255,
+ "model": {
+  "model": "nystroem",
+  "nys_gamma_mult": 1.0,
+  "nys_components": 500,
+  "logit_c": 0.05,
+  "cat_depth": 8,
+  "weight": "none"
+ },
+ "session": "ny",
+ "cov": 0.03,
+ "holdout": [
+  "2026-08-01",
+  "2026-11-14"
+ ],
+ "breakeven": 0.541,
+ "n_candidates_opened_for_key": 1,
+ "falsifier": {
+  "registered_utc": "2026-11-16T10:00:35Z",
+  "when": "before the holdout is scored",
+  "binding_decision": "made by holdout/seq_decision.py per holdout/REGISTER.md (owner decision 6: two-look group-sequential test, one finalist per key, one-sided family alpha 0.025): exact binomial boundaries on the cumulative PRIMARY wins with floors z >= 2.80 (look 1) and z >= 1.98 (look 2), plus PRIMARY n >= 50, drift_matched.passes (owner decision 1) and every incumbent book beaten on the same window; the earlier Holm and Bonferroni readings are superseded",
+  "bonferroni_context_iff": "PRIMARY n >= 50 AND the Bonferroni (1 - 0.05/n_candidates) bootstrap lower bound >= 0.541 (context only; superseded by owner decision 6)"
+ },
+ "code": {
+  "holdout_sha256": "eb6856ad81c603facdb7796550944ca6ce0f5f2df62ee5e10e8dbaa79726880e",
+  "base_harness_sha256": "9118fffdc0b4860109e9ea3caa5d12f77dda845f3a48f074b856ef2d985898d4",
+  "x_harness": {
+   "file": "/mnt/data/deriv-sota-lab/holdout/frozen_v2/cpcv_deriv_x.py",
+   "sha256": "f0798bd33e65ce3c128b7b742497e4211ed70d13074d5c2b8f4cb4a8ca97e15a"
+  },
+  "sessions": {
+   "file": "/home/sean/git/binary-algo/scripts/sessions.py",
+   "sha256": "2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493"
+  },
+  "module_hashes": {
+   "/home/sean/git/binary-algo/scripts/sessions.py": "2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493",
+   "/mnt/data/deriv-sota-lab/holdout/frozen_v2/cpcv_deriv.py": "9118fffdc0b4860109e9ea3caa5d12f77dda845f3a48f074b856ef2d985898d4",
+   "/mnt/data/deriv-sota-lab/holdout/frozen_v2/cpcv_deriv_x.py": "f0798bd33e65ce3c128b7b742497e4211ed70d13074d5c2b8f4cb4a8ca97e15a",
+   "/mnt/data/deriv-sota-lab/holdout/frozen_v2/holdout_eval.py": "eb6856ad81c603facdb7796550944ca6ce0f5f2df62ee5e10e8dbaa79726880e"
+  }
+ },
+ "readings": {
+  "PRIMARY_monthly_refit": {
+   "auc_moved": 0.5333,
+   "sides": {
+    "UP": {
+     "n": 102,
+     "win_rate": 0.5784,
+     "ci95": [
+      0.4804,
+      0.6765
+     ],
+     "ci_bonferroni": {
+      "level": 0.95,
+      "interval": [
+       0.4804,
+       0.6765
+      ]
+     },
+     "by_month": {
+      "2026-08": [
+       21,
+       0.619
+      ],
+      "2026-09": [
+       25,
+       0.56
+      ],
+      "2026-10": [
+       38,
+       0.5263
+      ],
+      "2026-11": [
+       18,
+       0.6667
+      ]
+     },
+     "trades": [
+      [
+       1786125480,
+       1
+      ],
+      [
+       1786132020,
+       1
+      ],
+      [
+       1786474320,
+       1
+      ],
+      [
+       1787063100,
+       1
+      ],
+      [
+       1787072580,
+       1
+      ],
+      [
+       1787165580,
+       0
+      ],
+      [
+       1787167380,
+       0
+      ],
+      [
+       1787169240,
+       0
+      ],
+      [
+       1787664480,
+       1
+      ],
+      [
+       1787680320,
+       0
+      ],
+      [
+       1787682180,
+       1
+      ],
+      [
+       1787684580,
+       0
+      ],
+      [
+       1787686380,
+       0
+      ],
+      [
+       1787688180,
+       1
+      ],
+      [
+       1787846880,
+       0
+      ],
+      [
+       1787849040,
+       1
+      ],
+      [
+       1788194400,
+       0
+      ],
+      [
+       1788196200,
+       1
+      ],
+      [
+       1788198960,
+       1
+      ],
+      [
+       1788204300,
+       1
+      ],
+      [
+       1788206400,
+       1
+      ],
+      [
+       1788378960,
+       0
+      ],
+      [
+       1788459780,
+       1
+      ],
+      [
+       1788802260,
+       1
+      ],
+      [
+       1788804660,
+       1
+      ],
+      [
+       1788809880,
+       0
+      ],
+      [
+       1788811680,
+       0
+      ],
+      [
+       1789155240,
+       0
+      ],
+      [
+       1789157040,
+       1
+      ],
+      [
+       1789410420,
+       0
+      ],
+      [
+       1789412220,
+       1
+      ],
+      [
+       1789414740,
+       1
+      ],
+      [
+       1789500780,
+       1
+      ],
+      [
+       1789579800,
+       0
+      ],
+      [
+       1789674180,
+       1
+      ],
+      [
+       1789761120,
+       1
+      ],
+      [
+       1790018580,
+       0
+      ],
+      [
+       1790105460,
+       0
+      ],
+      [
+       1790107260,
+       0
+      ],
+      [
+       1790184600,
+       0
+      ],
+      [
+       1790191860,
+       1
+      ],
+      [
+       1790277960,
+       0
+      ],
+      [
+       1790362800,
+       1
+      ],
+      [
+       1790364600,
+       1
+      ],
+      [
+       1790708460,
+       1
+      ],
+      [
+       1790710620,
+       1
+      ],
+      [
+       1790971140,
+       1
+      ],
+      [
+       1791227400,
+       0
+      ],
+      [
+       1791229200,
+       1
+      ],
+      [
+       1791390180,
+       0
+      ],
+      [
+       1791391980,
+       0
+      ],
+      [
+       1791393780,
+       1
+      ],
+      [
+       1791395580,
+       0
+      ],
+      [
+       1791397380,
+       0
+      ],
+      [
+       1791399180,
+       1
+      ],
+      [
+       1791400980,
+       1
+      ],
+      [
+       1791478560,
+       0
+      ],
+      [
+       1791485280,
+       0
+      ],
+      [
+       1791487080,
+       1
+      ],
+      [
+       1791488880,
+       0
+      ],
+      [
+       1791571620,
+       1
+      ],
+      [
+       1791574920,
+       1
+      ],
+      [
+       1791834480,
+       1
+      ],
+      [
+       1791918120,
+       1
+      ],
+      [
+       1791919920,
+       1
+      ],
+      [
+       1791922260,
+       0
+      ],
+      [
+       1791999840,
+       0
+      ],
+      [
+       1792002180,
+       0
+      ],
+      [
+       1792004040,
+       1
+      ],
+      [
+       1792006140,
+       1
+      ],
+      [
+       1792007940,
+       1
+      ],
+      [
+       1792094700,
+       0
+      ],
+      [
+       1792176960,
+       0
+      ],
+      [
+       1792179060,
+       1
+      ],
+      [
+       1792181100,
+       1
+      ],
+      [
+       1792691640,
+       0
+      ],
+      [
+       1792693500,
+       0
+      ],
+      [
+       1792695300,
+       1
+      ],
+      [
+       1792697100,
+       1
+      ],
+      [
+       1792698900,
+       0
+      ],
+      [
+       1792785540,
+       0
+      ],
+      [
+       1793044440,
+       1
+      ],
+      [
+       1793218440,
+       0
+      ],
+      [
+       1793297100,
+       1
+      ],
+      [
+       1793640900,
+       0
+      ],
+      [
+       1793646720,
+       1
+      ],
+      [
+       1793651520,
+       1
+      ],
+      [
+       1793898360,
+       1
+      ],
+      [
+       1793900400,
+       0
+      ],
+      [
+       1793903520,
+       1
+      ],
+      [
+       1793905320,
+       1
+      ],
+      [
+       1793907180,
+       1
+      ],
+      [
+       1793909400,
+       1
+      ],
+      [
+       1793911200,
+       0
+      ],
+      [
+       1793913060,
+       0
+      ],
+      [
+       1794251880,
+       0
+      ],
+      [
+       1794254040,
+       1
+      ],
+      [
+       1794256140,
+       1
+      ],
+      [
+       1794593400,
+       0
+      ],
+      [
+       1794595380,
+       1
+      ],
+      [
+       1794597180,
+       1
+      ],
+      [
+       1794599220,
+       1
+      ]
+     ],
+     "bonferroni_context_eligible": false,
+     "p_boot_le_breakeven": 0.2412,
+     "drift_matched": {
+      "match": "NY hour x rv_60m tercile (binding, owner decision 1)",
+      "available": true,
+      "rv_60m_finite_share": 1.0,
+      "baseline_mean": 0.5409,
+      "excess": 0.0375,
+      "excess_ci95": [
+       -0.06,
+       0.1315
+      ],
+      "passes": false
+     },
+     "drift_matched_hour": {
+      "match": "NY hour only (context)",
+      "baseline_mean": 0.5377,
+      "excess": 0.0407,
+      "excess_ci95": [
+       -0.0571,
+       0.137
+      ]
+     }
+    },
+    "DOWN": {
+     "n": 1,
+     "win_rate": 1.0,
+     "ci95": [
+      NaN,
+      NaN
+     ],
+     "ci_bonferroni": {
+      "level": 0.95,
+      "interval": [
+       NaN,
+       NaN
+      ]
+     },
+     "by_month": {
+      "2026-08": [
+       0,
+       null
+      ],
+      "2026-09": [
+       0,
+       null
+      ],
+      "2026-10": [
+       0,
+       null
+      ],
+      "2026-11": [
+       1,
+       1.0
+      ]
+     },
+     "trades": [
+      [
+       1793733180,
+       1
+      ]
+     ],
+     "bonferroni_context_eligible": false,
+     "p_boot_le_breakeven": NaN,
+     "drift_matched": {
+      "match": "NY hour x rv_60m tercile (binding, owner decision 1)",
+      "available": true,
+      "rv_60m_finite_share": 1.0,
+      "baseline_mean": 0.4364,
+      "excess": 0.5636,
+      "excess_ci95": [
+       NaN,
+       NaN
+      ],
+      "passes": false
+     },
+     "drift_matched_hour": {
+      "match": "NY hour only (context)",
+      "baseline_mean": 0.4644,
+      "excess": 0.5356,
+      "excess_ci95": [
+       NaN,
+       NaN
+      ]
+     }
+    },
+    "COMBINED": {
+     "n": 103,
+     "win_rate": 0.5825,
+     "ci95": [
+      0.4854,
+      0.6796
+     ],
+     "ci_bonferroni": {
+      "level": 0.95,
+      "interval": [
+       0.4854,
+       0.6796
+      ]
+     },
+     "by_month": {
+      "2026-08": [
+       21,
+       0.619
+      ],
+      "2026-09": [
+       25,
+       0.56
+      ],
+      "2026-10": [
+       38,
+       0.5263
+      ],
+      "2026-11": [
+       19,
+       0.6842
+      ]
+     }
+    }
+   }
+  },
+  "CONTEXT_frozen_dev_end": {
+   "auc_moved": 0.5317,
+   "sides": {
+    "UP": {
+     "n": 108,
+     "win_rate": 0.6111,
+     "ci95": [
+      0.5185,
+      0.7037
+     ],
+     "ci_bonferroni": {
+      "level": 0.95,
+      "interval": [
+       0.5185,
+       0.7037
+      ]
+     },
+     "by_month": {
+      "2026-08": [
+       21,
+       0.619
+      ],
+      "2026-09": [
+       23,
+       0.7391
+      ],
+      "2026-10": [
+       46,
+       0.587
+      ],
+      "2026-11": [
+       18,
+       0.5
+      ]
+     },
+     "bonferroni_context_eligible": false,
+     "p_boot_le_breakeven": 0.0706,
+     "drift_matched": {
+      "match": "NY hour x rv_60m tercile (binding, owner decision 1)",
+      "available": true,
+      "rv_60m_finite_share": 1.0,
+      "baseline_mean": 0.539,
+      "excess": 0.0721,
+      "excess_ci95": [
+       -0.0225,
+       0.162
+      ],
+      "passes": false
+     },
+     "drift_matched_hour": {
+      "match": "NY hour only (context)",
+      "baseline_mean": 0.5328,
+      "excess": 0.0783,
+      "excess_ci95": [
+       -0.0154,
+       0.1695
+      ]
+     }
+    },
+    "DOWN": {
+     "n": 0,
+     "win_rate": null,
+     "ci95": [
+      NaN,
+      NaN
+     ],
+     "ci_bonferroni": {
+      "level": 0.95,
+      "interval": [
+       NaN,
+       NaN
+      ]
+     },
+     "by_month": {
+      "2026-08": [
+       0,
+       null
+      ],
+      "2026-09": [
+       0,
+       null
+      ],
+      "2026-10": [
+       0,
+       null
+      ],
+      "2026-11": [
+       0,
+       null
+      ]
+     },
+     "bonferroni_context_eligible": false,
+     "p_boot_le_breakeven": NaN
+    },
+    "COMBINED": {
+     "n": 108,
+     "win_rate": 0.6111,
+     "ci95": [
+      0.5185,
+      0.7037
+     ],
+     "ci_bonferroni": {
+      "level": 0.95,
+      "interval": [
+       0.5185,
+       0.7037
+      ]
+     },
+     "by_month": {
+      "2026-08": [
+       21,
+       0.619
+      ],
+      "2026-09": [
+       23,
+       0.7391
+      ],
+      "2026-10": [
+       46,
+       0.587
+      ],
+      "2026-11": [
+       18,
+       0.5
+      ]
+     }
+    }
+   }
+  }
+ },
+ "monthly_fits": [
+  {
+   "month": "2026-08",
+   "train_rows": 123523,
+   "n_fit": 105046,
+   "thr": 0.16446,
+   "scored": 10500
+  },
+  {
+   "month": "2026-09",
+   "train_rows": 133913,
+   "n_fit": 113777,
+   "thr": 0.16387,
+   "scored": 11000
+  },
+  {
+   "month": "2026-10",
+   "train_rows": 144849,
+   "n_fit": 122872,
+   "thr": 0.1474,
+   "scored": 11000
+  },
+  {
+   "month": "2026-11",
+   "train_rows": 155758,
+   "n_fit": 132518,
+   "thr": 0.13177,
+   "scored": 4884
+  }
+ ],
+ "frozen_fit": {
+  "n_fit": 105046,
+  "thr": 0.16446
+ },
+ "holdout_rows": 37384,
+ "holdout_moved_up_rate": 0.5546,
+ "baseline_always": {
+  "UP": 0.5382,
+  "DOWN": 0.4555
+ },
+ "seconds": 22.0
+}

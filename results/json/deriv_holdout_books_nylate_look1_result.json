@@ -1,0 +1,286 @@
+{
+ "scorer": "score_frozen_books/0.4.1",
+ "dataset": {
+  "dir": "/mnt/data/deriv-sota-lab/cache/dataset_full_b239_shift-5_v0.1",
+  "manifest_sha256": "8c46cbc946b0c9e9fab787394e6748004e45744a294bde22e62c52fe652b58c8",
+  "builder": "deriv_features_b239/0.1"
+ },
+ "data": "Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy data; frozen book artifacts are scored, not refit",
+ "session": "nylate (America/New_York 13:00-22:00, DST-correct) on the decision time",
+ "window_filter": [
+  "2026-08-01",
+  "2026-11-14"
+ ],
+ "tradeable_only": true,
+ "gate_source": "runtime",
+ "breakeven": 0.541,
+ "falsifier": {
+  "registered_utc": "2026-11-16T10:01:02Z",
+  "when": "before scoring",
+  "SUPPORTED_iff": "per book and side: n >= 50 AND CI95-lower >= 0.541 (else NOT SUPPORTED)"
+ },
+ "code": {
+  "scorer_sha256": "533de9452d78d339d9769146f9a0936ed0f1027a0038f5d51e07cb4122ac8df5",
+  "book_runtime_sha256": "fb299d8adc8b585e0c19294a362c32811912eadf5d87f5a92397c7aba77e916d",
+  "sessions_sha256": "2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493",
+  "lightgbm": "4.6.0",
+  "module_hashes": {
+   "/home/sean/git/binary-algo/scripts/book_runtime.py": "fb299d8adc8b585e0c19294a362c32811912eadf5d87f5a92397c7aba77e916d",
+   "/home/sean/git/binary-algo/scripts/harness.py": "7793b3d60fff48330a99d1b10c6bcb313365d6502185f5f18a230215a78f253a",
+   "/home/sean/git/binary-algo/scripts/sessions.py": "2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493",
+   "/mnt/data/deriv-sota-lab/holdout/frozen_v2/score_frozen_books.py": "533de9452d78d339d9769146f9a0936ed0f1027a0038f5d51e07cb4122ac8df5"
+  }
+ },
+ "books": [
+  {
+   "book_id": "USDJPY.m15ny.v1",
+   "pair": "USDJPY",
+   "timeframe": "15m",
+   "n_models": 1,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.03,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.10695747759623107,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 32354,
+   "rows_scored": 32307,
+   "rows_dropped_nonfinite": 0,
+   "window": [
+    "2026-08-03T00:01:00+00:00",
+    "2026-11-13T20:40:00+00:00"
+   ],
+   "auc_moved": 0.5347,
+   "moved_up_rate": 0.5149,
+   "realized_gate_rate": 0.0196,
+   "mean_p": 0.502,
+   "sides": {
+    "UP": {
+     "n": 76,
+     "win_rate": 0.5263,
+     "ci95": [
+      0.4079,
+      0.6316
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       41,
+       0.5122
+      ],
+      "2026Q4": [
+       35,
+       0.5429
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 39,
+     "win_rate": 0.5385,
+     "ci95": [
+      0.3846,
+      0.6923
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       18,
+       0.6667
+      ],
+      "2026Q4": [
+       21,
+       0.4286
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 115,
+     "win_rate": 0.5391,
+     "ci95": [
+      0.4435,
+      0.6261
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       59,
+       0.5593
+      ],
+      "2026Q4": [
+       56,
+       0.5179
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDJPY.m15ny_seedens.v1",
+   "pair": "USDJPY",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.12624352649499532,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 32354,
+   "rows_scored": 32307,
+   "rows_dropped_nonfinite": 0,
+   "window": [
+    "2026-08-03T00:01:00+00:00",
+    "2026-11-13T20:40:00+00:00"
+   ],
+   "auc_moved": 0.5382,
+   "moved_up_rate": 0.5149,
+   "realized_gate_rate": 0.0131,
+   "mean_p": 0.5007,
+   "sides": {
+    "UP": {
+     "n": 49,
+     "win_rate": 0.5918,
+     "ci95": [
+      0.449,
+      0.7143
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       27,
+       0.6296
+      ],
+      "2026Q4": [
+       22,
+       0.5455
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 34,
+     "win_rate": 0.4118,
+     "ci95": [
+      0.2353,
+      0.5882
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       15,
+       0.6
+      ],
+      "2026Q4": [
+       19,
+       0.2632
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 83,
+     "win_rate": 0.5301,
+     "ci95": [
+      0.4217,
+      0.6386
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       42,
+       0.619
+      ],
+      "2026Q4": [
+       41,
+       0.439
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  },
+  {
+   "book_id": "USDJPY.m15ny_tbft_seedens.v1",
+   "pair": "USDJPY",
+   "timeframe": "15m",
+   "n_models": 3,
+   "n_features": 239,
+   "features_from": "booster feature_names",
+   "coverage": 0.02,
+   "coverage_source": "strategy.gate",
+   "conf_thr": 0.10524394366576979,
+   "compression_gate": null,
+   "status": "SCORED",
+   "rows_session": 32354,
+   "rows_scored": 32307,
+   "rows_dropped_nonfinite": 0,
+   "window": [
+    "2026-08-03T00:01:00+00:00",
+    "2026-11-13T20:40:00+00:00"
+   ],
+   "auc_moved": 0.5408,
+   "moved_up_rate": 0.5149,
+   "realized_gate_rate": 0.0097,
+   "mean_p": 0.499,
+   "sides": {
+    "UP": {
+     "n": 45,
+     "win_rate": 0.4889,
+     "ci95": [
+      0.3333,
+      0.6444
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       23,
+       0.5652
+      ],
+      "2026Q4": [
+       22,
+       0.4091
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "DOWN": {
+     "n": 16,
+     "win_rate": 0.5,
+     "ci95": [
+      0.25,
+      0.75
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       3,
+       0.3333
+      ],
+      "2026Q4": [
+       13,
+       0.5385
+      ]
+     },
+     "verdict": "NOT SUPPORTED"
+    },
+    "COMBINED": {
+     "n": 60,
+     "win_rate": 0.4833,
+     "ci95": [
+      0.35,
+      0.6167
+     ],
+     "by_quarter": {
+      "2026Q3": [
+       26,
+       0.5385
+      ],
+      "2026Q4": [
+       34,
+       0.4412
+      ]
+     },
+     "verdict": "context"
+    }
+   }
+  }
+ ],
+ "seconds": 3.8
+}
