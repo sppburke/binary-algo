@@ -601,3 +601,11 @@ machine-readable backlog). Generic lessons:
 > fingerprints did not beat their permuted-order control on any pair (`e79qorder` vs `e80qperm`). Where drift removal
 > lowers a model's tail result, part of that model's edge varies with the removed strata; a placebo that matches a
 > coarser stratum (hour x volatility) does not cover it, and a forward holdout is the check.
+
+> **Training on the traded tail memorizes it: a loss on the operating tail of the fit rows does not transfer.**
+> Deriv-feed discovery round 4 (SWEEP_MATRIX N70) added a fixed-mass soft loss on the 3% confidence tail of the
+> compression-gated fit rows to the kernel fit. In sample the tail's loss rate fell from about a third to about 1% at
+> almost no cost in BCE, but the test-path readings improved over the weight-0 control on only 2 of 14 key-sides
+> [per key: `results/<PAIR>_RESULTS.md`, tags `e82tailaux` vs `e81tail0`]. The tail held about 715 fit rows per fit, which 500 kernel
+> features fit easily; selection-aware objectives need held-out tail rows (or strong capacity limits), not the fit
+> rows' own tail.

@@ -257,7 +257,7 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 | E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e16nyeve_EURUSD_15m_result.json` |
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_EURUSD_15m_result.json` |
 | R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | running | — | — |
 | E6POOL | E1t own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e6pool_EURUSD_15m_result.json` |
 | E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e7fitall_EURUSD_15m_result.json` |
 | E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
@@ -319,6 +319,6 @@ to break the binding-2025 wall was NEW features (cross-pair); same-feature lever
 | E76DRFELGB | LightGBM on the signed coordinates with profiled week x NY-3-hour x rv-tercile offsets excluded from scores (discovery D3-01; harness 0.8 --drift-fe) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e76drfelgb_EURUSD_15m_result.json` |
 | E79QORDER | E1t + quote-update order fingerprints after common USD shocks, block qo_ (discovery D3-05) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e79qorder_EURUSD_15m_result.json` |
 | E80QPERM | E1t + the permuted-order control block qp_ (discovery D3-05 control) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e80qperm_EURUSD_15m_result.json` |
-| E81TAIL0 | Kernel features fitted by full-batch L-BFGS (BCE + ridge), compression gate 0.33: the matched control of discovery D4-01 (tail auxiliary weight 0) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E82TAILAUX | Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating 3% confidence tail of gated fit rows, mass held fixed; discovery D4-01) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E81TAIL0 | Kernel features fitted by full-batch L-BFGS (BCE + ridge), compression gate 0.33: the matched control of discovery D4-01 (tail auxiliary weight 0) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e81tail0_EURUSD_15m_result.json` |
+| E82TAILAUX | Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating 3% confidence tail of gated fit rows, mass held fixed; discovery D4-01) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e82tailaux_EURUSD_15m_result.json` |
 <!-- DERIV-FEED-LEDGER:END -->

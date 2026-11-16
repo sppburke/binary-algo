@@ -1,0 +1,2671 @@
+{
+ "harness": "cpcv_deriv_x/0.9",
+ "base_harness": "cpcv_deriv/0.4.1",
+ "tag": "e82tailaux",
+ "model": "LightGBM @15m on the Deriv feed, eval session ny, fit session ny, knobs {'train_session': 'ny', 'num_leaves': 255, 'min_child': 400, 'lr': 0.02, 'n_estimators': 800, 'colsample': 0.5, 'reg_lambda': 20.0, 'val_mode': 'random', 'no_early_stop': False, 'train_label': 'sign', 'mag_keep': None, 'include_blackout': False, 'families': None, 'model': 'nystail', 'cat_depth': 8, 'logit_c': 0.05, 'specialist': False, 'comp_gate': 0.33, 'weight': 'none', 'aci_gamma': None, 'aci_target': 0.56, 'meta_keep': None, 'specialist_regime': 'compression', 'nys_gamma_mult': 1.0, 'nys_components': 500, 'null_shift_weeks': 0, 'reflect': False, 'stack_shrink': 0.5, 'mag_model': 'lgb', 'boot_gate': None, 'boot_z': 1.0, 'halflife_days': 60.0, 'multi_horizon': False, 'drift_fe': False, 'monotone': 'none', 'signed_only': False, 'tail_aux': 0.1}",
+ "key": "AUDUSD.15m",
+ "data": "Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy",
+ "dataset": {
+  "dir": "/mnt/data/deriv-sota-lab/cache/dataset_dev_v0.1",
+  "manifest_sha256": "4f434cfd799e237647776b7f3e3e14b04be305594bd55bf37344321be9185c4a"
+ },
+ "window": {
+  "first_decision": "2025-08-11",
+  "last_decision": "2026-07-31"
+ },
+ "breakeven": 0.541,
+ "session": "ny",
+ "tradeable_only": true,
+ "blackout_rule": "Deriv rejects an FX Rise/Fall purchase whose expiry lands in 16:50-18:00 New York (daily close/rollover; 15m: last accepted start 16:34:40 NY, first rejected 16:35:10 NY - docs/DERIV_DEMO_EXECUTOR.md (g)); decisions with start in [16:50 - H, 18:00) NY are untradeable and excluded from training, validation and test (starts inside the rollover itself, 17:45-18:00 for 15m, are excluded conservatively)",
+ "knobs": {
+  "train_session": "ny",
+  "num_leaves": 255,
+  "min_child": 400,
+  "lr": 0.02,
+  "n_estimators": 800,
+  "colsample": 0.5,
+  "reg_lambda": 20.0,
+  "val_mode": "random",
+  "no_early_stop": false,
+  "train_label": "sign",
+  "mag_keep": null,
+  "include_blackout": false,
+  "families": null,
+  "model": "nystail",
+  "cat_depth": 8,
+  "logit_c": 0.05,
+  "specialist": false,
+  "comp_gate": 0.33,
+  "weight": "none",
+  "aci_gamma": null,
+  "aci_target": 0.56,
+  "meta_keep": null,
+  "specialist_regime": "compression",
+  "nys_gamma_mult": 1.0,
+  "nys_components": 500,
+  "null_shift_weeks": 0,
+  "reflect": false,
+  "stack_shrink": 0.5,
+  "mag_model": "lgb",
+  "boot_gate": null,
+  "boot_z": 1.0,
+  "halflife_days": 60.0,
+  "multi_horizon": false,
+  "drift_fe": false,
+  "monotone": "none",
+  "signed_only": false,
+  "tail_aux": 0.1
+ },
+ "horizon_min": 15,
+ "gap_s": 900,
+ "covs": [
+  0.03,
+  0.02,
+  0.05
+ ],
+ "operating_cov": 0.03,
+ "nseed": 1,
+ "num_leaves": 255,
+ "feature_set": "all",
+ "n_features": 66,
+ "features": [
+  "ret_1m",
+  "ret_2m",
+  "ret_5m",
+  "ret_10m",
+  "ret_15m",
+  "ret_30m",
+  "ret_60m",
+  "ret_120m",
+  "ret_240m",
+  "ret_480m",
+  "ret_1440m",
+  "rv_15m",
+  "rv_30m",
+  "rv_60m",
+  "rv_240m",
+  "rv_1440m",
+  "rangepos_15m",
+  "rangepos_60m",
+  "rangepos_240m",
+  "rangepos_1440m",
+  "emadist_15m",
+  "stretch_15m",
+  "emadist_60m",
+  "stretch_60m",
+  "emadist_240m",
+  "stretch_240m",
+  "volratio_15_240",
+  "volratio_60_1440",
+  "skew_240m",
+  "kurt_240m",
+  "bar_range",
+  "bar_body",
+  "activity_1m",
+  "activity_5m",
+  "activity_15m",
+  "activity_60m",
+  "ticks_per_bar_15m",
+  "bar_gap_s",
+  "hour_sin",
+  "hour_cos",
+  "dow",
+  "x_EURUSD_ret_5m",
+  "x_EURUSD_ret_15m",
+  "x_EURUSD_ret_60m",
+  "x_EURUSD_stale_s",
+  "x_GBPUSD_ret_5m",
+  "x_GBPUSD_ret_15m",
+  "x_GBPUSD_ret_60m",
+  "x_GBPUSD_stale_s",
+  "x_USDJPY_ret_5m",
+  "x_USDJPY_ret_15m",
+  "x_USDJPY_ret_60m",
+  "x_USDJPY_stale_s",
+  "x_USDCHF_ret_5m",
+  "x_USDCHF_ret_15m",
+  "x_USDCHF_ret_60m",
+  "x_USDCHF_stale_s",
+  "x_USDCAD_ret_5m",
+  "x_USDCAD_ret_15m",
+  "x_USDCAD_ret_60m",
+  "x_USDCAD_stale_s",
+  "x_NZDUSD_ret_5m",
+  "x_NZDUSD_ret_15m",
+  "x_NZDUSD_ret_60m",
+  "x_NZDUSD_stale_s",
+  "x_usd_weak_15m"
+ ],
+ "n_groups": 6,
+ "k_test": 2,
+ "purge_s": 900,
+ "embargo_s": 900,
+ "sub_fit": 150000,
+ "val_frac": 0.15,
+ "min_trades_per_path": 25,
+ "max_paths": 15,
+ "rows": 353746,
+ "rows_in_session": 129278,
+ "rows_fit_session": 129278,
+ "in_session_moved_up_rate": 0.49992912381282384,
+ "groups": [
+  [
+   "2025-08-11",
+   "2025-10-07"
+  ],
+  [
+   "2025-10-07",
+   "2025-12-05"
+  ],
+  [
+   "2025-12-05",
+   "2026-02-05"
+  ],
+  [
+   "2026-02-05",
+   "2026-04-07"
+  ],
+  [
+   "2026-04-07",
+   "2026-06-04"
+  ],
+  [
+   "2026-06-04",
+   "2026-07-31"
+  ]
+ ],
+ "CERT_RULE": "side CERTIFIED iff VALID AND p10>=0.541 AND frac_clear_BE>=0.80 (unrounded path win rates; paths with >= 25 trades)",
+ "falsifier": {
+  "version": 3,
+  "registered_utc": "2026-11-16T11:26:19Z",
+  "when": "before any path is fitted",
+  "KILL_if": "at the operating coverage 0.03: each side p10<0.541 OR frac_clear_BE<0.80",
+  "INVALID_if": "in-session moved up-rate outside [0.47,0.53], or any path moved up-rate outside [0.45,0.55]; an INVALID run certifies nothing in any field"
+ },
+ "code": {
+  "x_harness_sha256": "c06bec68f977a3df1906d3b1fd39ce2b0d01cacf4f18fe57c9014d5c947d8825",
+  "base_harness_sha256": "9118fffdc0b4860109e9ea3caa5d12f77dda845f3a48f074b856ef2d985898d4",
+  "sessions_py_sha256": "2a20b7a57e3e6e5884256c640b10b2bec9cfd2c21325617d4ed6aacf823d1493",
+  "lightgbm": "4.6.0"
+ },
+ "nystail": {
+  "features": "nystroem recipe (fit-only standardization, RBF Nystroem)",
+  "fit": "full-batch L-BFGS: mean BCE + (1e-4 / 2) |beta|^2 + tail_aux x fixed-mass soft tail loss",
+  "tail": "C = fit rows in the compression gate (all fit rows without it), mass c |C| at c = the operating coverage, membership sigmoid((|s| - q) / tau), tau = 0.1 x SD(stage-0 scores on C)",
+  "tail_aux": 0.1
+ },
+ "paths": [
+  {
+   "test": [
+    0,
+    1
+   ],
+   "n_fit": 72034,
+   "n_val": 12707,
+   "n_test": 43092,
+   "best_iter": [
+    592
+   ],
+   "auc": 0.5144514752740783,
+   "up_rate": 0.5004381083193218,
+   "always": {
+    "UP": [
+     2928,
+     0.48633879781420764
+    ],
+    "DOWN": [
+     2928,
+     0.49385245901639346
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.09388438496941118,
+     "UP": [
+      95,
+      0.4105263157894737
+     ],
+     "DOWN": [
+      46,
+      0.6739130434782609
+     ],
+     "COMBINED": [
+      141,
+      0.49645390070921985
+     ]
+    },
+    "0.02": {
+     "thr": 0.10103147740184265,
+     "UP": [
+      78,
+      0.44871794871794873
+     ],
+     "DOWN": [
+      32,
+      0.65625
+     ],
+     "COMBINED": [
+      110,
+      0.509090909090909
+     ]
+    },
+    "0.05": {
+     "thr": 0.08358215754112552,
+     "UP": [
+      141,
+      0.475177304964539
+     ],
+     "DOWN": [
+      91,
+      0.5934065934065934
+     ],
+     "COMBINED": [
+      232,
+      0.521551724137931
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 72034,
+    "n_C": 23771,
+    "tau": 0.01682230144565871,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 92,
+    "converged0": true,
+    "soft_tail_loss0": 0.32916026771236095,
+    "hard_tail_loss0": 0.3267882187938289,
+    "bce0": 0.6846265995901937,
+    "beta_norm0": 6.8840697038145,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.023132214312367245,
+    "hard_tail_loss1": 0.0070126227208976155,
+    "mass_err1": 3.410605131648481e-13,
+    "bce1": 0.6862629433557097,
+    "beta_norm1": 8.725339056143506
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010765933257061988,
+    "test_pass_rate": 0.43079922027290446,
+    "tie_rate_pass": 0.0295195001077354,
+    "tie_rate_fail": 0.012924005218525766
+   }
+  },
+  {
+   "test": [
+    0,
+    2
+   ],
+   "n_fit": 72080,
+   "n_val": 12621,
+   "n_test": 43093,
+   "best_iter": [
+    609
+   ],
+   "auc": 0.5052550798936646,
+   "up_rate": 0.5108790870563724,
+   "always": {
+    "UP": [
+     2927,
+     0.4936795353604373
+    ],
+    "DOWN": [
+     2927,
+     0.4875298940895114
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.104562355925186,
+     "UP": [
+      42,
+      0.5
+     ],
+     "DOWN": [
+      80,
+      0.5
+     ],
+     "COMBINED": [
+      122,
+      0.5
+     ]
+    },
+    "0.02": {
+     "thr": 0.11308028376869537,
+     "UP": [
+      25,
+      0.44
+     ],
+     "DOWN": [
+      45,
+      0.5777777777777777
+     ],
+     "COMBINED": [
+      70,
+      0.5285714285714286
+     ]
+    },
+    "0.05": {
+     "thr": 0.09362914591275405,
+     "UP": [
+      74,
+      0.5675675675675675
+     ],
+     "DOWN": [
+      145,
+      0.4689655172413793
+     ],
+     "COMBINED": [
+      219,
+      0.502283105022831
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 72080,
+    "n_C": 23787,
+    "tau": 0.02053296527760298,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 109,
+    "converged0": true,
+    "soft_tail_loss0": 0.32510938707179293,
+    "hard_tail_loss0": 0.32492997198879553,
+    "bce0": 0.6823851638929509,
+    "beta_norm0": 7.6070323718903445,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.03461236747277793,
+    "hard_tail_loss1": 0.01680672268907563,
+    "mass_err1": 2.2737367544323206e-13,
+    "bce1": 0.6838538550024165,
+    "beta_norm1": 9.72123690319565
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010873835708480328,
+    "test_pass_rate": 0.4523936602232381,
+    "tie_rate_pass": 0.02872531418312388,
+    "tie_rate_fail": 0.012543435884396983
+   }
+  },
+  {
+   "test": [
+    0,
+    3
+   ],
+   "n_fit": 71809,
+   "n_val": 12728,
+   "n_test": 43092,
+   "best_iter": [
+    628
+   ],
+   "auc": 0.5235539229826977,
+   "up_rate": 0.49686320754716984,
+   "always": {
+    "UP": [
+     2929,
+     0.48344144759303515
+    ],
+    "DOWN": [
+     2929,
+     0.499829293274155
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.09366457257263416,
+     "UP": [
+      84,
+      0.5595238095238095
+     ],
+     "DOWN": [
+      41,
+      0.5365853658536586
+     ],
+     "COMBINED": [
+      124,
+      0.5483870967741935
+     ]
+    },
+    "0.02": {
+     "thr": 0.10183447337727754,
+     "UP": [
+      60,
+      0.55
+     ],
+     "DOWN": [
+      20,
+      0.6
+     ],
+     "COMBINED": [
+      80,
+      0.5625
+     ]
+    },
+    "0.05": {
+     "thr": 0.08367291065247913,
+     "UP": [
+      119,
+      0.5546218487394958
+     ],
+     "DOWN": [
+      65,
+      0.5538461538461539
+     ],
+     "COMBINED": [
+      184,
+      0.5543478260869565
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71809,
+    "n_C": 23697,
+    "tau": 0.019215928919538657,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 128,
+    "converged0": true,
+    "soft_tail_loss0": 0.36628557275005413,
+    "hard_tail_loss0": 0.37130801687763715,
+    "bce0": 0.6840548009920061,
+    "beta_norm0": 7.046659764080638,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.026873061457114603,
+    "hard_tail_loss1": 0.007032348804500703,
+    "mass_err1": 5.684341886080801e-13,
+    "bce1": 0.6856479559087372,
+    "beta_norm1": 9.597634239962655
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.916957787936553e-05,
+    "test_pass_rate": 0.2712800519818064,
+    "tie_rate_pass": 0.027801539777587682,
+    "tie_rate_fail": 0.011687153684478696
+   }
+  },
+  {
+   "test": [
+    0,
+    4
+   ],
+   "n_fit": 71839,
+   "n_val": 12837,
+   "n_test": 43092,
+   "best_iter": [
+    613
+   ],
+   "auc": 0.5090489619950477,
+   "up_rate": 0.502046804382291,
+   "always": {
+    "UP": [
+     2931,
+     0.48686455134766293
+    ],
+    "DOWN": [
+     2931,
+     0.4953940634595701
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.09886411425951139,
+     "UP": [
+      64,
+      0.515625
+     ],
+     "DOWN": [
+      80,
+      0.675
+     ],
+     "COMBINED": [
+      142,
+      0.6056338028169014
+     ]
+    },
+    "0.02": {
+     "thr": 0.10560471635771485,
+     "UP": [
+      44,
+      0.4772727272727273
+     ],
+     "DOWN": [
+      44,
+      0.7272727272727273
+     ],
+     "COMBINED": [
+      88,
+      0.6022727272727273
+     ]
+    },
+    "0.05": {
+     "thr": 0.08973057562130313,
+     "UP": [
+      90,
+      0.5222222222222223
+     ],
+     "DOWN": [
+      131,
+      0.5954198473282443
+     ],
+     "COMBINED": [
+      221,
+      0.5656108597285068
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71839,
+    "n_C": 23707,
+    "tau": 0.02025051353465137,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 113,
+    "converged0": true,
+    "soft_tail_loss0": 0.3676732639496885,
+    "hard_tail_loss0": 0.3769338959212377,
+    "bce0": 0.6836848457095718,
+    "beta_norm0": 7.085840507437303,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.02742074067216361,
+    "hard_tail_loss1": 0.005625879043600563,
+    "mass_err1": 1.1368683772161603e-13,
+    "bce1": 0.6852952519461329,
+    "beta_norm1": 9.459843927384755
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010617649968480691,
+    "test_pass_rate": 0.40234846375197253,
+    "tie_rate_pass": 0.029069096781635714,
+    "tie_rate_fail": 0.012697056767880717
+   }
+  },
+  {
+   "test": [
+    0,
+    5
+   ],
+   "n_fit": 71942,
+   "n_val": 12790,
+   "n_test": 43093,
+   "best_iter": [
+    605
+   ],
+   "auc": 0.5106085895060862,
+   "up_rate": 0.4913194855640558,
+   "always": {
+    "UP": [
+     2930,
+     0.4802047781569966
+    ],
+    "DOWN": [
+     2930,
+     0.5020477815699659
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.10983969758850458,
+     "UP": [
+      66,
+      0.4393939393939394
+     ],
+     "DOWN": [
+      79,
+      0.4810126582278481
+     ],
+     "COMBINED": [
+      144,
+      0.4652777777777778
+     ]
+    },
+    "0.02": {
+     "thr": 0.11722839229035406,
+     "UP": [
+      41,
+      0.4878048780487805
+     ],
+     "DOWN": [
+      58,
+      0.5172413793103449
+     ],
+     "COMBINED": [
+      99,
+      0.5050505050505051
+     ]
+    },
+    "0.05": {
+     "thr": 0.09509209974186192,
+     "UP": [
+      138,
+      0.4492753623188406
+     ],
+     "DOWN": [
+      125,
+      0.52
+     ],
+     "COMBINED": [
+      262,
+      0.4847328244274809
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71942,
+    "n_C": 23741,
+    "tau": 0.020490372684056565,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 105,
+    "converged0": true,
+    "soft_tail_loss0": 0.33181796143249664,
+    "hard_tail_loss0": 0.3300561797752809,
+    "bce0": 0.6835195036776639,
+    "beta_norm0": 7.1241232129459515,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.030800109700568627,
+    "hard_tail_loss1": 0.012640449438202247,
+    "mass_err1": 2.2737367544323206e-13,
+    "bce1": 0.6850055130009367,
+    "beta_norm1": 9.093832480363908
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00011294193245703354,
+    "test_pass_rate": 0.5332884691249159,
+    "tie_rate_pass": 0.026065010225838736,
+    "tie_rate_fail": 0.013573985680190932
+   }
+  },
+  {
+   "test": [
+    1,
+    2
+   ],
+   "n_fit": 71868,
+   "n_val": 12802,
+   "n_test": 43093,
+   "best_iter": [
+    658
+   ],
+   "auc": 0.5042440381298247,
+   "up_rate": 0.5104299702000852,
+   "always": {
+    "UP": [
+     2926,
+     0.5006835269993165
+    ],
+    "DOWN": [
+     2926,
+     0.48017771701982226
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.10218638734596554,
+     "UP": [
+      26,
+      0.7307692307692307
+     ],
+     "DOWN": [
+      92,
+      0.5217391304347826
+     ],
+     "COMBINED": [
+      118,
+      0.5677966101694916
+     ]
+    },
+    "0.02": {
+     "thr": 0.1110181494187065,
+     "UP": [
+      15,
+      0.6
+     ],
+     "DOWN": [
+      64,
+      0.546875
+     ],
+     "COMBINED": [
+      79,
+      0.5569620253164557
+     ]
+    },
+    "0.05": {
+     "thr": 0.09119961459074645,
+     "UP": [
+      36,
+      0.6388888888888888
+     ],
+     "DOWN": [
+      148,
+      0.49324324324324326
+     ],
+     "COMBINED": [
+      184,
+      0.5217391304347826
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71868,
+    "n_C": 23717,
+    "tau": 0.01919294348696511,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 158,
+    "converged0": true,
+    "soft_tail_loss0": 0.33738031984096367,
+    "hard_tail_loss0": 0.34129213483146065,
+    "bce0": 0.6825358765845247,
+    "beta_norm0": 7.583152612829835,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.019410819382860486,
+    "hard_tail_loss1": 0.0028089887640449437,
+    "mass_err1": 2.2737367544323206e-13,
+    "bce1": 0.6843333873438961,
+    "beta_norm1": 9.604839058785437
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010339052096242085,
+    "test_pass_rate": 0.35091546190796646,
+    "tie_rate_pass": 0.03094828726358947,
+    "tie_rate_fail": 0.012262700654249043
+   }
+  },
+  {
+   "test": [
+    1,
+    3
+   ],
+   "n_fit": 71938,
+   "n_val": 12540,
+   "n_test": 43092,
+   "best_iter": [
+    630
+   ],
+   "auc": 0.5167088750014616,
+   "up_rate": 0.49643067499116506,
+   "always": {
+    "UP": [
+     2928,
+     0.48941256830601093
+    ],
+    "DOWN": [
+     2928,
+     0.4931693989071038
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.09327716743532816,
+     "UP": [
+      39,
+      0.5128205128205128
+     ],
+     "DOWN": [
+      40,
+      0.55
+     ],
+     "COMBINED": [
+      79,
+      0.5316455696202531
+     ]
+    },
+    "0.02": {
+     "thr": 0.1012539018913588,
+     "UP": [
+      27,
+      0.4444444444444444
+     ],
+     "DOWN": [
+      30,
+      0.5
+     ],
+     "COMBINED": [
+      57,
+      0.47368421052631576
+     ]
+    },
+    "0.05": {
+     "thr": 0.08430630424067687,
+     "UP": [
+      54,
+      0.4444444444444444
+     ],
+     "DOWN": [
+      57,
+      0.5263157894736842
+     ],
+     "COMBINED": [
+      109,
+      0.4954128440366973
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71938,
+    "n_C": 23740,
+    "tau": 0.01743006179909145,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 130,
+    "converged0": true,
+    "soft_tail_loss0": 0.31439928188071353,
+    "hard_tail_loss0": 0.300561797752809,
+    "bce0": 0.6841126690663405,
+    "beta_norm0": 7.313799581506437,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.022482572777361223,
+    "hard_tail_loss1": 0.008426966292134831,
+    "mass_err1": 5.684341886080801e-13,
+    "bce1": 0.6857433950918711,
+    "beta_norm1": 9.011015849380634
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.446973854210228e-05,
+    "test_pass_rate": 0.17627401837928153,
+    "tie_rate_pass": 0.03067403896787783,
+    "tie_rate_fail": 0.011663286004056795
+   }
+  },
+  {
+   "test": [
+    1,
+    4
+   ],
+   "n_fit": 71967,
+   "n_val": 12650,
+   "n_test": 43092,
+   "best_iter": [
+    605
+   ],
+   "auc": 0.5089130651058991,
+   "up_rate": 0.5016073370207536,
+   "always": {
+    "UP": [
+     2930,
+     0.4928327645051195
+    ],
+    "DOWN": [
+     2930,
+     0.4887372013651877
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.1075347046685522,
+     "UP": [
+      14,
+      0.6428571428571429
+     ],
+     "DOWN": [
+      71,
+      0.6197183098591549
+     ],
+     "COMBINED": [
+      85,
+      0.6235294117647059
+     ]
+    },
+    "0.02": {
+     "thr": 0.11356871356131233,
+     "UP": [
+      11,
+      0.7272727272727273
+     ],
+     "DOWN": [
+      52,
+      0.6153846153846154
+     ],
+     "COMBINED": [
+      63,
+      0.6349206349206349
+     ]
+    },
+    "0.05": {
+     "thr": 0.09531658826766161,
+     "UP": [
+      31,
+      0.6129032258064516
+     ],
+     "DOWN": [
+      132,
+      0.5606060606060606
+     ],
+     "COMBINED": [
+      163,
+      0.5705521472392638
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71967,
+    "n_C": 23749,
+    "tau": 0.018762847003780267,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 105,
+    "converged0": true,
+    "soft_tail_loss0": 0.32610286772793146,
+    "hard_tail_loss0": 0.3300561797752809,
+    "bce0": 0.6835693481244368,
+    "beta_norm0": 7.389839081393546,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.02172766105985129,
+    "hard_tail_loss1": 0.004213483146067416,
+    "mass_err1": 2.2737367544323206e-13,
+    "bce1": 0.6856524313761696,
+    "beta_norm1": 8.979646792705529
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010090944124385715,
+    "test_pass_rate": 0.3025619604566973,
+    "tie_rate_pass": 0.0310630464795214,
+    "tie_rate_fail": 0.01267718107406668
+   }
+  },
+  {
+   "test": [
+    1,
+    5
+   ],
+   "n_fit": 71970,
+   "n_val": 12703,
+   "n_test": 43093,
+   "best_iter": [
+    608
+   ],
+   "auc": 0.5157355068231397,
+   "up_rate": 0.4908910235177211,
+   "always": {
+    "UP": [
+     2929,
+     0.4861727552065551
+    ],
+    "DOWN": [
+     2929,
+     0.495390918402185
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.09798624414631768,
+     "UP": [
+      49,
+      0.46938775510204084
+     ],
+     "DOWN": [
+      80,
+      0.5875
+     ],
+     "COMBINED": [
+      129,
+      0.5426356589147286
+     ]
+    },
+    "0.02": {
+     "thr": 0.10618969776858289,
+     "UP": [
+      32,
+      0.53125
+     ],
+     "DOWN": [
+      51,
+      0.6274509803921569
+     ],
+     "COMBINED": [
+      83,
+      0.5903614457831325
+     ]
+    },
+    "0.05": {
+     "thr": 0.08778290526673778,
+     "UP": [
+      80,
+      0.45
+     ],
+     "DOWN": [
+      111,
+      0.5765765765765766
+     ],
+     "COMBINED": [
+      191,
+      0.5235602094240838
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71970,
+    "n_C": 23750,
+    "tau": 0.018426887026697536,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 108,
+    "converged0": true,
+    "soft_tail_loss0": 0.3158328654928685,
+    "hard_tail_loss0": 0.3146067415730337,
+    "bce0": 0.6833140201377652,
+    "beta_norm0": 7.458521863331652,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.023711937949692435,
+    "hard_tail_loss1": 0.004213483146067416,
+    "mass_err1": 2.2737367544323206e-13,
+    "bce1": 0.6854498330476319,
+    "beta_norm1": 9.292985389203908
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010735619434854016,
+    "test_pass_rate": 0.4244308820458079,
+    "tie_rate_pass": 0.027501366867140515,
+    "tie_rate_fail": 0.013062935935169133
+   }
+  },
+  {
+   "test": [
+    2,
+    3
+   ],
+   "n_fit": 71781,
+   "n_val": 12717,
+   "n_test": 43093,
+   "best_iter": [
+    664
+   ],
+   "auc": 0.4972140175963423,
+   "up_rate": 0.5068189848074431,
+   "always": {
+    "UP": [
+     2925,
+     0.49675213675213675
+    ],
+    "DOWN": [
+     2925,
+     0.48683760683760685
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.108866280040816,
+     "UP": [
+      19,
+      0.3684210526315789
+     ],
+     "DOWN": [
+      67,
+      0.44776119402985076
+     ],
+     "COMBINED": [
+      85,
+      0.43529411764705883
+     ]
+    },
+    "0.02": {
+     "thr": 0.1149471346255764,
+     "UP": [
+      15,
+      0.4
+     ],
+     "DOWN": [
+      56,
+      0.4642857142857143
+     ],
+     "COMBINED": [
+      71,
+      0.4507042253521127
+     ]
+    },
+    "0.05": {
+     "thr": 0.09781269695047361,
+     "UP": [
+      29,
+      0.3793103448275862
+     ],
+     "DOWN": [
+      110,
+      0.4636363636363636
+     ],
+     "COMBINED": [
+      138,
+      0.4492753623188406
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71781,
+    "n_C": 23688,
+    "tau": 0.021514735764262365,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 164,
+    "converged0": true,
+    "soft_tail_loss0": 0.3358591329766325,
+    "hard_tail_loss0": 0.34177215189873417,
+    "bce0": 0.6820087704038548,
+    "beta_norm0": 7.867917622402579,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.01830897872321204,
+    "hard_tail_loss1": 0.0,
+    "mass_err1": 1.1368683772161603e-13,
+    "bce1": 0.6835575748782035,
+    "beta_norm1": 10.091408426865422
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.583697828929871e-05,
+    "test_pass_rate": 0.2035133316315875,
+    "tie_rate_pass": 0.03010262257696693,
+    "tie_rate_fail": 0.010896483407627538
+   }
+  },
+  {
+   "test": [
+    2,
+    4
+   ],
+   "n_fit": 71858,
+   "n_val": 12749,
+   "n_test": 43093,
+   "best_iter": [
+    666
+   ],
+   "auc": 0.5024697672092722,
+   "up_rate": 0.5120285471216561,
+   "always": {
+    "UP": [
+     2928,
+     0.5
+    ],
+    "DOWN": [
+     2928,
+     0.48258196721311475
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.10794812324082863,
+     "UP": [
+      11,
+      0.5454545454545454
+     ],
+     "DOWN": [
+      40,
+      0.65
+     ],
+     "COMBINED": [
+      51,
+      0.6274509803921569
+     ]
+    },
+    "0.02": {
+     "thr": 0.1155676041418019,
+     "UP": [
+      6,
+      0.5
+     ],
+     "DOWN": [
+      27,
+      0.5555555555555556
+     ],
+     "COMBINED": [
+      33,
+      0.5454545454545454
+     ]
+    },
+    "0.05": {
+     "thr": 0.09585136330034491,
+     "UP": [
+      24,
+      0.5833333333333334
+     ],
+     "DOWN": [
+      82,
+      0.5365853658536586
+     ],
+     "COMBINED": [
+      106,
+      0.5471698113207547
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71858,
+    "n_C": 23713,
+    "tau": 0.019922389995731662,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 166,
+    "converged0": true,
+    "soft_tail_loss0": 0.334807428036648,
+    "hard_tail_loss0": 0.33473980309423346,
+    "bce0": 0.6826066437831766,
+    "beta_norm0": 7.575628423634782,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.023515109166276763,
+    "hard_tail_loss1": 0.007032348804500703,
+    "mass_err1": 1.1368683772161603e-13,
+    "bce1": 0.6841382544453788,
+    "beta_norm1": 9.847365745202113
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010190025204792619,
+    "test_pass_rate": 0.3215603462279257,
+    "tie_rate_pass": 0.03052608789781338,
+    "tie_rate_fail": 0.012108359556710904
+   }
+  },
+  {
+   "test": [
+    2,
+    5
+   ],
+   "n_fit": 72003,
+   "n_val": 12660,
+   "n_test": 43094,
+   "best_iter": [
+    614
+   ],
+   "auc": 0.49509701742326884,
+   "up_rate": 0.5013246286309017,
+   "always": {
+    "UP": [
+     2927,
+     0.49333788862316363
+    ],
+    "DOWN": [
+     2927,
+     0.4892381277758797
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.1087338249020057,
+     "UP": [
+      41,
+      0.6097560975609756
+     ],
+     "DOWN": [
+      61,
+      0.5245901639344263
+     ],
+     "COMBINED": [
+      102,
+      0.5588235294117647
+     ]
+    },
+    "0.02": {
+     "thr": 0.11757134825557458,
+     "UP": [
+      19,
+      0.6842105263157895
+     ],
+     "DOWN": [
+      40,
+      0.55
+     ],
+     "COMBINED": [
+      59,
+      0.5932203389830508
+     ]
+    },
+    "0.05": {
+     "thr": 0.0961833908733565,
+     "UP": [
+      74,
+      0.3918918918918919
+     ],
+     "DOWN": [
+      106,
+      0.5471698113207547
+     ],
+     "COMBINED": [
+      179,
+      0.48044692737430167
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 72003,
+    "n_C": 23761,
+    "tau": 0.020862311314595802,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 114,
+    "converged0": true,
+    "soft_tail_loss0": 0.30604689521611544,
+    "hard_tail_loss0": 0.3071528751753156,
+    "bce0": 0.6823124489665962,
+    "beta_norm0": 7.768605050456485,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.022777329591050516,
+    "hard_tail_loss1": 0.001402524544179523,
+    "mass_err1": 2.2737367544323206e-13,
+    "bce1": 0.6838746504439401,
+    "beta_norm1": 10.079702414294932
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010865958029171452,
+    "test_pass_rate": 0.4494825265698241,
+    "tie_rate_pass": 0.026587506453278266,
+    "tie_rate_fail": 0.012771876580677795
+   }
+  },
+  {
+   "test": [
+    3,
+    4
+   ],
+   "n_fit": 71837,
+   "n_val": 12636,
+   "n_test": 43092,
+   "best_iter": [
+    634
+   ],
+   "auc": 0.5152621917945985,
+   "up_rate": 0.4980343228418748,
+   "always": {
+    "UP": [
+     2930,
+     0.48907849829351535
+    ],
+    "DOWN": [
+     2930,
+     0.495221843003413
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.1009338944535777,
+     "UP": [
+      5,
+      0.2
+     ],
+     "DOWN": [
+      51,
+      0.6666666666666666
+     ],
+     "COMBINED": [
+      56,
+      0.625
+     ]
+    },
+    "0.02": {
+     "thr": 0.10739798439118944,
+     "UP": [
+      5,
+      0.2
+     ],
+     "DOWN": [
+      42,
+      0.6904761904761905
+     ],
+     "COMBINED": [
+      47,
+      0.6382978723404256
+     ]
+    },
+    "0.05": {
+     "thr": 0.08856652735050918,
+     "UP": [
+      13,
+      0.38461538461538464
+     ],
+     "DOWN": [
+      85,
+      0.6235294117647059
+     ],
+     "COMBINED": [
+      98,
+      0.5918367346938775
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71837,
+    "n_C": 23706,
+    "tau": 0.020330432588111565,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 134,
+    "converged0": true,
+    "soft_tail_loss0": 0.31808920417648845,
+    "hard_tail_loss0": 0.3150492264416315,
+    "bce0": 0.6838775315435085,
+    "beta_norm0": 7.207701623687474,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.02141608269110076,
+    "hard_tail_loss1": 0.004219409282700422,
+    "mass_err1": 4.547473508864641e-13,
+    "bce1": 0.6859009144189863,
+    "beta_norm1": 9.000644123585781
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.396859240951017e-05,
+    "test_pass_rate": 0.1655527708159287,
+    "tie_rate_pass": 0.029576675077095597,
+    "tie_rate_fail": 0.011179709661271483
+   }
+  },
+  {
+   "test": [
+    3,
+    5
+   ],
+   "n_fit": 71697,
+   "n_val": 12802,
+   "n_test": 43093,
+   "best_iter": [
+    618
+   ],
+   "auc": 0.4979438923050309,
+   "up_rate": 0.4873583260680035,
+   "always": {
+    "UP": [
+     2929,
+     0.48310003414134517
+    ],
+    "DOWN": [
+     2929,
+     0.501536360532605
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.09892966476084412,
+     "UP": [
+      97,
+      0.5051546391752577
+     ],
+     "DOWN": [
+      23,
+      0.5217391304347826
+     ],
+     "COMBINED": [
+      120,
+      0.5083333333333333
+     ]
+    },
+    "0.02": {
+     "thr": 0.10493054236891124,
+     "UP": [
+      78,
+      0.47435897435897434
+     ],
+     "DOWN": [
+      17,
+      0.4117647058823529
+     ],
+     "COMBINED": [
+      95,
+      0.4631578947368421
+     ]
+    },
+    "0.05": {
+     "thr": 0.09021504214857551,
+     "UP": [
+      141,
+      0.48936170212765956
+     ],
+     "DOWN": [
+      29,
+      0.41379310344827586
+     ],
+     "COMBINED": [
+      170,
+      0.4764705882352941
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71697,
+    "n_C": 23660,
+    "tau": 0.020498174592568953,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 118,
+    "converged0": true,
+    "soft_tail_loss0": 0.2857025996735289,
+    "hard_tail_loss0": 0.2704225352112676,
+    "bce0": 0.6830303934224621,
+    "beta_norm0": 7.443500136406777,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.02176056231560552,
+    "hard_tail_loss1": 0.0028169014084507044,
+    "mass_err1": 0.0,
+    "bce1": 0.6849230690164984,
+    "beta_norm1": 9.463024511144674
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.847373439697549e-05,
+    "test_pass_rate": 0.25595804422992136,
+    "tie_rate_pass": 0.02502266545784225,
+    "tie_rate_fail": 0.011789289835636091
+   }
+  },
+  {
+   "test": [
+    4,
+    5
+   ],
+   "n_fit": 72071,
+   "n_val": 12596,
+   "n_test": 43093,
+   "best_iter": [
+    619
+   ],
+   "auc": 0.5078956925489966,
+   "up_rate": 0.4925059101654846,
+   "always": {
+    "UP": [
+     2930,
+     0.48600682593856653
+    ],
+    "DOWN": [
+     2930,
+     0.4976109215017065
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.10187325161167028,
+     "UP": [
+      63,
+      0.5238095238095238
+     ],
+     "DOWN": [
+      44,
+      0.4772727272727273
+     ],
+     "COMBINED": [
+      105,
+      0.5047619047619047
+     ]
+    },
+    "0.02": {
+     "thr": 0.10928815204645183,
+     "UP": [
+      44,
+      0.5681818181818182
+     ],
+     "DOWN": [
+      23,
+      0.4782608695652174
+     ],
+     "COMBINED": [
+      66,
+      0.5454545454545454
+     ]
+    },
+    "0.05": {
+     "thr": 0.09052172058296638,
+     "UP": [
+      109,
+      0.48623853211009177
+     ],
+     "DOWN": [
+      66,
+      0.4696969696969697
+     ],
+     "COMBINED": [
+      174,
+      0.4827586206896552
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 72071,
+    "n_C": 23784,
+    "tau": 0.020778214989750896,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 119,
+    "converged0": true,
+    "soft_tail_loss0": 0.2839754429523361,
+    "hard_tail_loss0": 0.2773109243697479,
+    "bce0": 0.6833729988977992,
+    "beta_norm0": 7.36677523791957,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.030486978692323658,
+    "hard_tail_loss1": 0.008403361344537815,
+    "mass_err1": 4.547473508864641e-13,
+    "bce1": 0.6847633542903798,
+    "beta_norm1": 9.767578929798198
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010597275104373693,
+    "test_pass_rate": 0.3947508876151579,
+    "tie_rate_pass": 0.027158897184174944,
+    "tie_rate_fail": 0.012690744574802546
+   }
+  }
+ ],
+ "forward": [
+  {
+   "test": "forward g2",
+   "n_fit": 35801,
+   "n_val": 6412,
+   "n_test": 21547,
+   "best_iter": [
+    616
+   ],
+   "auc": 0.5035339224076223,
+   "up_rate": 0.5208550080393455,
+   "always": {
+    "UP": [
+     1462,
+     0.5068399452804377
+    ],
+    "DOWN": [
+     1462,
+     0.4746922024623803
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.15319154973615334,
+     "UP": [
+      29,
+      0.4827586206896552
+     ],
+     "DOWN": [
+      12,
+      0.5
+     ],
+     "COMBINED": [
+      41,
+      0.4878048780487805
+     ]
+    },
+    "0.02": {
+     "thr": 0.16442971886649382,
+     "UP": [
+      19,
+      0.47368421052631576
+     ],
+     "DOWN": [
+      10,
+      0.6
+     ],
+     "COMBINED": [
+      29,
+      0.5172413793103449
+     ]
+    },
+    "0.05": {
+     "thr": 0.13646736063927967,
+     "UP": [
+      49,
+      0.46938775510204084
+     ],
+     "DOWN": [
+      22,
+      0.5
+     ],
+     "COMBINED": [
+      71,
+      0.4788732394366197
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 35801,
+    "n_C": 11815,
+    "tau": 0.028989077141080833,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 116,
+    "converged0": true,
+    "soft_tail_loss0": 0.21492441380774918,
+    "hard_tail_loss0": 0.2062146892655367,
+    "bce0": 0.6725964448556009,
+    "beta_norm0": 10.735600092662438,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.0138456964247516,
+    "hard_tail_loss1": 0.002824858757062147,
+    "mass_err1": 5.684341886080802e-14,
+    "bce1": 0.6733189567516682,
+    "beta_norm1": 12.00134281463159
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.441248403163627e-05,
+    "test_pass_rate": 0.30556457975588247,
+    "tie_rate_pass": 0.03341433778857837,
+    "tie_rate_fail": 0.012096504711622
+   }
+  },
+  {
+   "test": "forward g3",
+   "n_fit": 53912,
+   "n_val": 9446,
+   "n_test": 21546,
+   "best_iter": [
+    592
+   ],
+   "auc": 0.5184524629884177,
+   "up_rate": 0.49289032803040966,
+   "always": {
+    "UP": [
+     1464,
+     0.48633879781420764
+    ],
+    "DOWN": [
+     1464,
+     0.4993169398907104
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.1013172782965119,
+     "UP": [
+      14,
+      0.42857142857142855
+     ],
+     "DOWN": [
+      15,
+      0.4666666666666667
+     ],
+     "COMBINED": [
+      29,
+      0.4482758620689655
+     ]
+    },
+    "0.02": {
+     "thr": 0.11153701078993869,
+     "UP": [
+      6,
+      0.5
+     ],
+     "DOWN": [
+      9,
+      0.2222222222222222
+     ],
+     "COMBINED": [
+      15,
+      0.3333333333333333
+     ]
+    },
+    "0.05": {
+     "thr": 0.08873663752814932,
+     "UP": [
+      16,
+      0.4375
+     ],
+     "DOWN": [
+      19,
+      0.3684210526315789
+     ],
+     "COMBINED": [
+      35,
+      0.4
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 53912,
+    "n_C": 17791,
+    "tau": 0.02367559058635727,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 92,
+    "converged0": true,
+    "soft_tail_loss0": 0.27559571290990537,
+    "hard_tail_loss0": 0.27153558052434457,
+    "bce0": 0.6808560871326486,
+    "beta_norm0": 8.314891299708085,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.01317478757243223,
+    "hard_tail_loss1": 0.0,
+    "mass_err1": 3.410605131648481e-13,
+    "bce1": 0.6826655043999978,
+    "beta_norm1": 9.913108842931678
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 9.582973143551499e-05,
+    "test_pass_rate": 0.0935672514619883,
+    "tie_rate_pass": 0.01984126984126984,
+    "tie_rate_fail": 0.010087045570916539
+   }
+  },
+  {
+   "test": "forward g4",
+   "n_fit": 71666,
+   "n_val": 13001,
+   "n_test": 21546,
+   "best_iter": [
+    626
+   ],
+   "auc": 0.510789310813608,
+   "up_rate": 0.503212092583845,
+   "always": {
+    "UP": [
+     1466,
+     0.4931787175989086
+    ],
+    "DOWN": [
+     1466,
+     0.49045020463847205
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.08837057851867841,
+     "UP": [
+      25,
+      0.44
+     ],
+     "DOWN": [
+      13,
+      0.6153846153846154
+     ],
+     "COMBINED": [
+      38,
+      0.5
+     ]
+    },
+    "0.02": {
+     "thr": 0.09562626302112309,
+     "UP": [
+      19,
+      0.42105263157894735
+     ],
+     "DOWN": [
+      8,
+      0.5
+     ],
+     "COMBINED": [
+      27,
+      0.4444444444444444
+     ]
+    },
+    "0.05": {
+     "thr": 0.07986859346610498,
+     "UP": [
+      44,
+      0.5
+     ],
+     "DOWN": [
+      24,
+      0.5833333333333334
+     ],
+     "COMBINED": [
+      68,
+      0.5294117647058824
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 71666,
+    "n_C": 23650,
+    "tau": 0.02080097303848527,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 126,
+    "converged0": true,
+    "soft_tail_loss0": 0.28153956585204337,
+    "hard_tail_loss0": 0.271830985915493,
+    "bce0": 0.6834600742209618,
+    "beta_norm0": 7.2585223108128805,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.022165048780494787,
+    "hard_tail_loss1": 0.0028169014084507044,
+    "mass_err1": 0.0,
+    "bce1": 0.6849403626279122,
+    "beta_norm1": 9.694371993843124
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010578644287306815,
+    "test_pass_rate": 0.31676413255360625,
+    "tie_rate_pass": 0.029010989010989013,
+    "tie_rate_fail": 0.012091569866177569
+   }
+  },
+  {
+   "test": "forward g5",
+   "n_fit": 90038,
+   "n_val": 15800,
+   "n_test": 21547,
+   "best_iter": [
+    619
+   ],
+   "auc": 0.5099948506786518,
+   "up_rate": 0.48177946048272596,
+   "always": {
+    "UP": [
+     1465,
+     0.47986348122866895
+    ],
+    "DOWN": [
+     1465,
+     0.5037542662116041
+    ]
+   },
+   "bycov": {
+    "0.03": {
+     "thr": 0.100849555636423,
+     "UP": [
+      14,
+      0.2857142857142857
+     ],
+     "DOWN": [
+      23,
+      0.30434782608695654
+     ],
+     "COMBINED": [
+      37,
+      0.2972972972972973
+     ]
+    },
+    "0.02": {
+     "thr": 0.10838398257782811,
+     "UP": [
+      9,
+      0.4444444444444444
+     ],
+     "DOWN": [
+      20,
+      0.35
+     ],
+     "COMBINED": [
+      29,
+      0.3793103448275862
+     ]
+    },
+    "0.05": {
+     "thr": 0.08746119085890018,
+     "UP": [
+      34,
+      0.35294117647058826
+     ],
+     "DOWN": [
+      40,
+      0.475
+     ],
+     "COMBINED": [
+      73,
+      0.410958904109589
+     ]
+    }
+   },
+   "tail_aux": {
+    "tail_aux": 0.1,
+    "c": 0.03,
+    "n_fit": 90038,
+    "n_C": 29713,
+    "tau": 0.01856154805498811,
+    "msg0": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "status0": 0,
+    "iters0": 119,
+    "converged0": true,
+    "soft_tail_loss0": 0.29995574087113736,
+    "hard_tail_loss0": 0.29068462401795736,
+    "bce0": 0.6852100408287226,
+    "beta_norm0": 6.4990343338463825,
+    "iters1": 500,
+    "status1": 1,
+    "converged1": false,
+    "msg1": "STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT",
+    "soft_tail_loss1": 0.031580668975152784,
+    "hard_tail_loss1": 0.006734006734006734,
+    "mass_err1": 1.1368683772161603e-13,
+    "bce1": 0.6868648250829634,
+    "beta_norm1": 8.974758810412242
+   },
+   "comp_gate": {
+    "q": 0.33,
+    "rv_60m_thr": 0.00010610320896375924,
+    "test_pass_rate": 0.4728268436441268,
+    "tie_rate_pass": 0.025814683941892423,
+    "tie_rate_fail": 0.013557531472840919
+   }
+  }
+ ],
+ "auc_summary": {
+  "mean": 0.5082934729059606,
+  "min": 0.49509701742326884,
+  "max": 0.5235539229826977
+ },
+ "validity": {
+  "VALID": true,
+  "in_session_up_rate_in_band": true,
+  "paths_up_rate_in_tripwire": true,
+  "paths_up_rate_in_0.47_0.53": true,
+  "path_up_rate_range": [
+   0.4873583260680035,
+   0.5120285471216561
+  ]
+ },
+ "baseline_always": {
+  "UP": {
+   "n_paths": 15,
+   "mean": 0.48986040726920455,
+   "p10": 0.48323659952202114,
+   "p50": 0.48907849829351535,
+   "min": 0.4802047781569966,
+   "frac_clear_BE": 0.0
+  },
+  "DOWN": {
+   "n_paths": 15,
+   "mean": 0.49261037026454807,
+   "p10": 0.4842842230629116,
+   "p50": 0.49385245901639346,
+   "min": 0.48017771701982226,
+   "frac_clear_BE": 0.0
+  }
+ },
+ "bycov": {
+  "0.03": {
+   "summary": {
+    "UP": {
+     "n_paths": 11,
+     "mean": 0.5251606203586149,
+     "p10": 0.4393939393939394,
+     "p50": 0.5128205128205128,
+     "min": 0.4105263157894737,
+     "frac_clear_BE": 0.2727272727272727
+    },
+    "DOWN": {
+     "n_paths": 14,
+     "mean": 0.5651256614112412,
+     "p10": 0.4783947065592635,
+     "p50": 0.5432926829268293,
+     "min": 0.44776119402985076,
+     "frac_clear_BE": 0.5
+    },
+    "COMBINED": {
+     "n_paths": 15,
+     "mean": 0.5427349129395661,
+     "p10": 0.4777482269503546,
+     "p50": 0.5426356589147286,
+     "min": 0.43529411764705883,
+     "frac_clear_BE": 0.5333333333333333
+    }
+   },
+   "verdict": {
+    "UP": {
+     "p10": 0.4393939393939394,
+     "frac_clear_BE": 0.2727272727272727,
+     "n_paths_counted": 11,
+     "med_n_per_path": 63,
+     "VALID": true,
+     "CERTIFIED": false,
+     "excess_vs_always": {
+      "mean": 0.037047646768860604,
+      "frac_paths_positive": 0.7272727272727273
+     }
+    },
+    "DOWN": {
+     "p10": 0.4783947065592635,
+     "frac_clear_BE": 0.5,
+     "n_paths_counted": 14,
+     "med_n_per_path": 64,
+     "VALID": true,
+     "CERTIFIED": false,
+     "excess_vs_always": {
+      "mean": 0.07315286188012575,
+      "frac_paths_positive": 0.7857142857142857
+     }
+    },
+    "COMBINED": {
+     "p10": 0.4777482269503546,
+     "frac_clear_BE": 0.5333333333333333,
+     "n_paths_counted": 15,
+     "med_n_per_path": 118,
+     "VALID": true,
+     "CERTIFIED": false
+    }
+   },
+   "forward": {
+    "UP": {
+     "paths": [
+      [
+       29,
+       0.4827586206896552
+      ],
+      [
+       14,
+       0.42857142857142855
+      ],
+      [
+       25,
+       0.44
+      ],
+      [
+       14,
+       0.2857142857142857
+      ]
+     ],
+     "mean": 0.4613793103448276,
+     "min": 0.44,
+     "n_clear_BE": 0,
+     "n_counted": 2
+    },
+    "DOWN": {
+     "paths": [
+      [
+       12,
+       0.5
+      ],
+      [
+       15,
+       0.4666666666666667
+      ],
+      [
+       13,
+       0.6153846153846154
+      ],
+      [
+       23,
+       0.30434782608695654
+      ]
+     ],
+     "mean": null,
+     "min": null,
+     "n_clear_BE": 0,
+     "n_counted": 0
+    },
+    "COMBINED": {
+     "paths": [
+      [
+       41,
+       0.4878048780487805
+      ],
+      [
+       29,
+       0.4482758620689655
+      ],
+      [
+       38,
+       0.5
+      ],
+      [
+       37,
+       0.2972972972972973
+      ]
+     ],
+     "mean": 0.43334450935376084,
+     "min": 0.2972972972972973,
+     "n_clear_BE": 0,
+     "n_counted": 4
+    }
+   }
+  },
+  "0.02": {
+   "summary": {
+    "UP": {
+     "n_paths": 9,
+     "mean": 0.49133675455829934,
+     "p10": 0.44355555555555554,
+     "p50": 0.4772727272727273,
+     "min": 0.44,
+     "frac_clear_BE": 0.2222222222222222
+    },
+    "DOWN": {
+     "n_paths": 12,
+     "mean": 0.5857141617045902,
+     "p10": 0.5017241379310345,
+     "p50": 0.5666666666666667,
+     "min": 0.4642857142857143,
+     "frac_clear_BE": 0.75
+    },
+    "COMBINED": {
+     "n_paths": 15,
+     "mean": 0.5466468872569088,
+     "p10": 0.46736842105263154,
+     "p50": 0.5454545454545454,
+     "min": 0.4507042253521127,
+     "frac_clear_BE": 0.6
+    }
+   },
+   "verdict": {
+    "UP": {
+     "p10": 0.44355555555555554,
+     "frac_clear_BE": 0.2222222222222222,
+     "n_paths_counted": 9,
+     "med_n_per_path": 44,
+     "VALID": true,
+     "CERTIFIED": false,
+     "excess_vs_always": {
+      "mean": 0.005201055239986245,
+      "frac_paths_positive": 0.4444444444444444
+     }
+    },
+    "DOWN": {
+     "p10": 0.5017241379310345,
+     "frac_clear_BE": 0.75,
+     "n_paths_counted": 12,
+     "med_n_per_path": 44,
+     "VALID": true,
+     "CERTIFIED": false,
+     "excess_vs_always": {
+      "mean": 0.09486591348294404,
+      "frac_paths_positive": 0.9166666666666666
+     }
+    },
+    "COMBINED": {
+     "p10": 0.46736842105263154,
+     "frac_clear_BE": 0.6,
+     "n_paths_counted": 15,
+     "med_n_per_path": 71,
+     "VALID": true,
+     "CERTIFIED": false
+    }
+   },
+   "forward": {
+    "UP": {
+     "paths": [
+      [
+       19,
+       0.47368421052631576
+      ],
+      [
+       6,
+       0.5
+      ],
+      [
+       19,
+       0.42105263157894735
+      ],
+      [
+       9,
+       0.4444444444444444
+      ]
+     ],
+     "mean": null,
+     "min": null,
+     "n_clear_BE": 0,
+     "n_counted": 0
+    },
+    "DOWN": {
+     "paths": [
+      [
+       10,
+       0.6
+      ],
+      [
+       9,
+       0.2222222222222222
+      ],
+      [
+       8,
+       0.5
+      ],
+      [
+       20,
+       0.35
+      ]
+     ],
+     "mean": null,
+     "min": null,
+     "n_clear_BE": 0,
+     "n_counted": 0
+    },
+    "COMBINED": {
+     "paths": [
+      [
+       29,
+       0.5172413793103449
+      ],
+      [
+       15,
+       0.3333333333333333
+      ],
+      [
+       27,
+       0.4444444444444444
+      ],
+      [
+       29,
+       0.3793103448275862
+      ]
+     ],
+     "mean": 0.44699872286079184,
+     "min": 0.3793103448275862,
+     "n_clear_BE": 0,
+     "n_counted": 3
+    }
+   }
+  },
+  "0.05": {
+   "summary": {
+    "UP": {
+     "n_paths": 13,
+     "mean": 0.49706948737766776,
+     "p10": 0.4024024024024024,
+     "p50": 0.48623853211009177,
+     "min": 0.3793103448275862,
+     "frac_clear_BE": 0.3076923076923077
+    },
+    "DOWN": {
+     "n_paths": 15,
+     "mean": 0.5295193871628442,
+     "p10": 0.4657680250783699,
+     "p50": 0.5365853658536586,
+     "min": 0.41379310344827586,
+     "frac_clear_BE": 0.4666666666666667
+    },
+    "COMBINED": {
+     "n_paths": 15,
+     "mean": 0.5178499143447506,
+     "p10": 0.4780611238908971,
+     "p50": 0.521551724137931,
+     "min": 0.4492753623188406,
+     "frac_clear_BE": 0.3333333333333333
+    }
+   },
+   "verdict": {
+    "UP": {
+     "p10": 0.4024024024024024,
+     "frac_clear_BE": 0.3076923076923077,
+     "n_paths_counted": 13,
+     "med_n_per_path": 80,
+     "VALID": true,
+     "CERTIFIED": false,
+     "excess_vs_always": {
+      "mean": 0.007928901935778908,
+      "frac_paths_positive": 0.5384615384615384
+     }
+    },
+    "DOWN": {
+     "p10": 0.4657680250783699,
+     "frac_clear_BE": 0.4666666666666667,
+     "n_paths_counted": 15,
+     "med_n_per_path": 106,
+     "VALID": true,
+     "CERTIFIED": false,
+     "excess_vs_always": {
+      "mean": 0.036909016898296225,
+      "frac_paths_positive": 0.7333333333333333
+     }
+    },
+    "COMBINED": {
+     "p10": 0.4780611238908971,
+     "frac_clear_BE": 0.3333333333333333,
+     "n_paths_counted": 15,
+     "med_n_per_path": 179,
+     "VALID": true,
+     "CERTIFIED": false
+    }
+   },
+   "forward": {
+    "UP": {
+     "paths": [
+      [
+       49,
+       0.46938775510204084
+      ],
+      [
+       16,
+       0.4375
+      ],
+      [
+       44,
+       0.5
+      ],
+      [
+       34,
+       0.35294117647058826
+      ]
+     ],
+     "mean": 0.44077631052420974,
+     "min": 0.35294117647058826,
+     "n_clear_BE": 0,
+     "n_counted": 3
+    },
+    "DOWN": {
+     "paths": [
+      [
+       22,
+       0.5
+      ],
+      [
+       19,
+       0.3684210526315789
+      ],
+      [
+       24,
+       0.5833333333333334
+      ],
+      [
+       40,
+       0.475
+      ]
+     ],
+     "mean": 0.475,
+     "min": 0.475,
+     "n_clear_BE": 0,
+     "n_counted": 1
+    },
+    "COMBINED": {
+     "paths": [
+      [
+       71,
+       0.4788732394366197
+      ],
+      [
+       35,
+       0.4
+      ],
+      [
+       68,
+       0.5294117647058824
+      ],
+      [
+       73,
+       0.410958904109589
+      ]
+     ],
+     "mean": 0.45481097706302276,
+     "min": 0.4,
+     "n_clear_BE": 0,
+     "n_counted": 4
+    }
+   }
+  }
+ },
+ "verdict": {
+  "UP": "KILLED",
+  "DOWN": "KILLED"
+ },
+ "verdict_goal": {
+  "UP": {
+   "CERTIFIED": false,
+   "paths_counted": 11,
+   "paths_clear": 3,
+   "p10": 0.4393939393939394
+  },
+  "DOWN": {
+   "CERTIFIED": false,
+   "paths_counted": 14,
+   "paths_clear": 7,
+   "p10": 0.4783947065592635
+  }
+ },
+ "top_gain_features": [
+  [
+   "ret_1m",
+   NaN
+  ],
+  [
+   "ret_2m",
+   NaN
+  ],
+  [
+   "ret_5m",
+   NaN
+  ],
+  [
+   "ret_10m",
+   NaN
+  ],
+  [
+   "ret_15m",
+   NaN
+  ],
+  [
+   "ret_30m",
+   NaN
+  ],
+  [
+   "ret_60m",
+   NaN
+  ],
+  [
+   "ret_120m",
+   NaN
+  ],
+  [
+   "ret_240m",
+   NaN
+  ],
+  [
+   "ret_480m",
+   NaN
+  ],
+  [
+   "ret_1440m",
+   NaN
+  ],
+  [
+   "rv_15m",
+   NaN
+  ],
+  [
+   "rv_30m",
+   NaN
+  ],
+  [
+   "rv_60m",
+   NaN
+  ],
+  [
+   "rv_240m",
+   NaN
+  ],
+  [
+   "rv_1440m",
+   NaN
+  ],
+  [
+   "rangepos_15m",
+   NaN
+  ],
+  [
+   "rangepos_60m",
+   NaN
+  ],
+  [
+   "rangepos_240m",
+   NaN
+  ],
+  [
+   "rangepos_1440m",
+   NaN
+  ]
+ ],
+ "seconds": 855.3
+}
