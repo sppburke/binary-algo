@@ -168,6 +168,16 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
     'e71playreset': ('E1t + play-operator control block hr_ (15-minute replays; discovery D1-03 memory control)', 'cpcv_deriv_x.py'),
     'e72shock': ('E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01)', 'cpcv_deriv_x.py'),
     'e73mono': ('E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02)', 'cpcv_deriv_x.py'),
+    'e74logitsig': ('ATTRIBUTION CONTROL for D1-01: L2 logistic on e67drfe\'s signed coordinates and scaling with a global '
+                    'intercept, no strata (harness 0.8 --signed-only)', 'cpcv_deriv_x.py'),
+    'e75lgbsig': ('LightGBM on e67drfe\'s signed coordinates only (same-input control of D3-01; harness 0.8 --signed-only)', 'cpcv_deriv_x.py'),
+    'e76drfelgb': ('LightGBM on the signed coordinates with profiled week x NY-3-hour x rv-tercile offsets excluded from scores '
+                   '(discovery D3-01; harness 0.8 --drift-fe)', 'cpcv_deriv_x.py'),
+    'e77drfenysabs': ('RBF kernel with |return| weights and the drift fixed effects excluded from scores (discovery D3-02)', 'cpcv_deriv_x.py'),
+    'e78nysagree': ('Kernel (|return| weights) proposals kept only where the drift-neutral logistic agrees and its plain '
+                    'same-input twin opposes (discovery D3-04; harness 0.8 --model nysagree)', 'cpcv_deriv_x.py'),
+    'e79qorder': ('E1t + quote-update order fingerprints after common USD shocks, block qo_ (discovery D3-05)', 'cpcv_deriv_x.py'),
+    'e80qperm': ('E1t + the permuted-order control block qp_ (discovery D3-05 control)', 'cpcv_deriv_x.py'),
     'a12b02': ('ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
     'a13b02': ('ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
 }

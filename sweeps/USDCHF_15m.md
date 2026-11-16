@@ -152,6 +152,6 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E68AGREE | E1t fit on the side agreed by settlements at entry delays 1, 5 and 15 s (discovery D1-02) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e68agree_USDCHF_15m_result.json` |
 | E70PLAY | E1t + hysteretic play-operator block hy_ (240-minute replays; discovery D1-03) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e70play_USDCHF_15m_result.json` |
 | E71PLAYRESET | E1t + play-operator control block hr_ (15-minute replays; discovery D1-03 memory control) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e71playreset_USDCHF_15m_result.json` |
-| E72SHOCK | E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E73MONO | E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E72SHOCK | E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e72shock_USDCHF_15m_result.json` |
+| E73MONO | E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e73mono_USDCHF_15m_result.json` |
 <!-- DERIV-FEED-LEDGER:END -->
