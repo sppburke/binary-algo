@@ -584,3 +584,10 @@ machine-readable backlog). Generic lessons:
 > **Try a kernel model class before concluding a key is null.** On one key an RBF Nystrom + logistic model kept its
 > path results under the entry-delay stress where the LightGBM model of the same features did not [USDJPY·15m: see
 > `results/USDJPY_RESULTS.md`]; on the other keys both classes were null.
+
+> **Removing local direction drift from what a model learns is a transferable AUC lever, not yet a certifying one.**
+> Deriv-feed discovery round 1 (SWEEP_MATRIX N60): fitting week x hour-block x volatility-tercile fixed effects and
+> excluding them from scores raised the moved AUC of the L2 logistic over its plain twin on six of seven pairs, in both
+> CPCV and the forward walk, but no key cleared the path test [per key: `results/<PAIR>_RESULTS.md`, tag `e67drfe`].
+> Carry it onto stronger bases before concluding. Discovery candidates N60-N64 and their pre-registered readings are in
+> SWEEP_MATRIX Tier N and the lab PROGRESS (`/mnt/data/deriv-sota-lab/PROGRESS.md`).

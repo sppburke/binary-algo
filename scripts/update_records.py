@@ -171,6 +171,8 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
     'a12b02': ('ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
     'a13b02': ('ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
 }
+NOT_CANDIDATES = {k for k, v in EXPERIMENTS.items() if v[0].startswith('ROBUSTNESS CHECK')}
+
 R1_FILES = {   # frozen-book readings: file stem -> description
     'deriv_r1_frozen_books_dev_result.json': 'R1: frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout',
     'deriv_r1b_frozen_books_trainclock_nylate_dev_result.json': 'R1b: frozen books as trained (clock -5 h, 13-22 ET), ALL decisions incl. the blackout',
@@ -268,7 +270,7 @@ def notes_block(pair):
     cert, repo_only, amended = [], [], []
     for f in sorted(J.glob(f'deriv_*_{pair}_*m_result.json')):
         r = json.loads(f.read_text())
-        if 'bycov' not in r or r.get('tag') in ('e1', 'r2'):
+        if 'bycov' not in r or r.get('tag') in ('e1', 'r2') or r.get('tag') in NOT_CANDIDATES:
             continue
         c = str(r['operating_cov'])
         for side in ('UP', 'DOWN'):
@@ -301,11 +303,13 @@ def notes_block(pair):
     import numpy as np
     for h in (15, 30):
         for side in ('UP', 'DOWN'):
-            cand = []
+            cand, n_runs = [], 0
             for f in sorted(J.glob(f'deriv_*_{pair}_{h}m_result.json')):
                 r = json.loads(f.read_text())
-                if 'bycov' not in r or r.get('tag') in ('e1', 'r2') or not r.get('tradeable_only', True):
+                if ('bycov' not in r or r.get('tag') in ('e1', 'r2') or r.get('tag') in NOT_CANDIDATES
+                        or not r.get('tradeable_only', True)):
                     continue
+                n_runs += 1
                 c = str(r['operating_cov'])
                 w = [p['bycov'][c][side][1] for p in r['paths'] if p['bycov'][c][side][0] >= 25]
                 if len(r['paths']) != 15 or not w:
@@ -322,8 +326,16 @@ def notes_block(pair):
                 cand.sort(key=lambda x: (x[0], x[1]), reverse=True)
                 out.append(f'- **DEV leaderboard {h}m {side}** (closest to the goal rule at each run\'s operating coverage): '
                            + '; '.join(x[2] for x in cand[:3]) + '.')
+            elif n_runs:
+                out.append(f'- **DEV leaderboard {h}m {side}:** no CPCV path with 25 or more {side} trades at the operating '
+                           f'coverage in any candidate run ({n_runs} run{"s" if n_runs != 1 else ""}).')
     out.append('- Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout '
                'decisions); their tradeable re-runs are `e1t` and `r2t`.')
+    checks = sorted(t for t in NOT_CANDIDATES if (J / f'deriv_{t}_{pair}_15m_result.json').exists()
+                    or (J / f'deriv_{t}_{pair}_30m_result.json').exists())
+    if checks:
+        out.append('- Robustness checks, not candidates (excluded from the lists and leaderboards above; tables below): '
+                   + ', '.join(f'`{t}`' for t in checks) + '.')
     return '\n'.join(out)
 
 def replace_block(text, tag, body):
