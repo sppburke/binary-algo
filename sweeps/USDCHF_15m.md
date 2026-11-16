@@ -89,7 +89,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e16nyeve_USDCHF_15m_result.json` |
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_USDCHF_15m_result.json` |
 | R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | pending | — | — |
+| E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e2noclock_USDCHF_15m_result.json` |
 | E6POOL | E1t own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e6pool_USDCHF_15m_result.json` |
 | E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e7fitall_USDCHF_15m_result.json` |
 | E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | pending | — | — |
