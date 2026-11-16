@@ -152,6 +152,7 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - Certified only under the repository rule (too few counted paths for the goal rule): c7comp3 15m UP (cov 0.03: no (10/15, 10 clear); forward 0/0).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `c9compaci` 11/15 clear, p10 0.536, excess +0.069; `e33comp33` 11/15 clear, p10 0.526, excess +0.064; `e7fitall` 11/15 clear, p10 0.515, excess +0.072.
 - **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e67drfe` 6/15 clear, p10 0.457, excess +0.035; `e70play` 6/14 clear, p10 0.413, excess +0.038; `r4fixldn` 5/15 clear, p10 0.477, excess +0.044.
+- **Deployment status (Deriv feed):** DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a sealed-holdout look, and deployment needs both.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 

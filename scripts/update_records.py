@@ -178,6 +178,10 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
                     'same-input twin opposes (discovery D3-04; harness 0.8 --model nysagree)', 'cpcv_deriv_x.py'),
     'e79qorder': ('E1t + quote-update order fingerprints after common USD shocks, block qo_ (discovery D3-05)', 'cpcv_deriv_x.py'),
     'e80qperm': ('E1t + the permuted-order control block qp_ (discovery D3-05 control)', 'cpcv_deriv_x.py'),
+    'e81tail0': ('Kernel features fitted by full-batch L-BFGS (BCE + ridge), compression gate 0.33: the matched control '
+                 'of discovery D4-01 (tail auxiliary weight 0)', 'cpcv_deriv_x.py'),
+    'e82tailaux': ('Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating '
+                   '3% confidence tail of gated fit rows, mass held fixed; discovery D4-01)', 'cpcv_deriv_x.py'),
     'a12b02': ('ROBUSTNESS CHECK, not a candidate: e30nystroem re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
     'a13b02': ('ROBUSTNESS CHECK, not a candidate: e49nys30 re-run on the deriv_dataset 0.2 DEV build (holdout builder)', 'cpcv_deriv_x.py'),
 }
@@ -339,6 +343,37 @@ def notes_block(pair):
             elif n_runs:
                 out.append(f'- **DEV leaderboard {h}m {side}:** no CPCV path with 25 or more {side} trades at the operating '
                            f'coverage in any candidate run ({n_runs} run{"s" if n_runs != 1 else ""}).')
+    # Sealed-holdout looks (owner decision 6), straight from holdout/seq_decision.py's output, and the deployment status
+    # that follows: a key-side is deployable only when its finalist is CERTIFIED at a look.
+    latest = {}
+    for f in sorted(J.glob(f'deriv_*_look[12]decision_{pair}_*m_result.json')):
+        d = json.loads(f.read_text())
+        dm = d.get('drift_matched') or {}
+        cd_ = d['conditions']
+        inc = '; '.join(f'`{x["book_id"]}` ({x["reading"]}) {x["wins"]}/{x["n"]} = {x["win_rate"]:.4f} '
+                        f'{"beaten" if x["beaten"] else "NOT beaten"}' for x in d['incumbents']) or 'none registered for this key'
+        out.append(f'- **Holdout look {d["look"]}** (`{f.name}`; window {d["window"][0]}..{d["window"][1]}; frozen code; '
+                   f'owner decision 6): `{d["finalist"]}` {d["key"]} {d["side"]} won {d["wins"]} of {d["n"]} trades '
+                   f'(win rate {d["win_rate"]}; z {d["z_score"]}) against a boundary of {d["threshold_wins"]} wins '
+                   f'(z {d["threshold_z"]}): {"crossed" if d["crossed"] else "not crossed"}. Conditions: n >= 50 '
+                   f'{cd_["n_ge_50"]}; drift-matched excess (NY hour x rv_60m) {dm.get("excess")} CI95 {dm.get("excess_ci95")}, '
+                   f'passes {cd_["drift_matched_passes"]}; incumbents: {inc}. Decision: '
+                   f'{"CERTIFIED" if d["CERTIFIED_AT_THIS_LOOK"] else d["next"]}.')
+        k = (d['key'], d['side'])
+        if k not in latest or d['look'] > latest[k]['look']:
+            latest[k] = d
+    parts = []
+    for (key, side), d in sorted(latest.items()):
+        if d['CERTIFIED_AT_THIS_LOOK']:
+            parts.append(f'{key} {side} DEPLOYABLE (`{d["finalist"]}`, certified at holdout look {d["look"]})')
+        elif d['look'] == 1:
+            parts.append(f'{key} {side} DO NOT DEPLOY yet (`{d["finalist"]}` did not certify at look 1; look 2, on the '
+                         f'window to 2027-02-26, decides)')
+        else:
+            parts.append(f'{key} {side} DO NOT DEPLOY (`{d["finalist"]}` not certified at look 2, final)')
+    out.append('- **Deployment status (Deriv feed):** ' + ('; '.join(parts) + '; every other key and side: ' if parts else '')
+               + 'DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a '
+               'sealed-holdout look, and deployment needs both.')
     out.append('- Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout '
                'decisions); their tradeable re-runs are `e1t` and `r2t`.')
     checks = sorted(t for t in NOT_CANDIDATES if (J / f'deriv_{t}_{pair}_15m_result.json').exists()

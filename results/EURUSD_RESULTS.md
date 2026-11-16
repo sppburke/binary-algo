@@ -547,6 +547,7 @@ at R≈0.85 / breakeven 0.541; confirm the venue first. Sources: deriv.com gloss
 - Certified only under the repository rule (too few counted paths for the goal rule): e15nypm 15m UP (cov 0.03: no (1/15, 1 clear); forward 0/0).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e17nyam` 9/13 clear, p10 0.500, excess +0.080; `e55rl` 9/13 clear, p10 0.465, excess +0.069; `e14nylate` 9/12 clear, p10 0.434, excess +0.070.
 - **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `r4fixldn` 9/15 clear, p10 0.520, excess +0.038; `e54ckcompactlogit` 8/15 clear, p10 0.512, excess +0.042; `r5fixecb` 8/15 clear, p10 0.505, excess +0.039.
+- **Deployment status (Deriv feed):** DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a sealed-holdout look, and deployment needs both.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 

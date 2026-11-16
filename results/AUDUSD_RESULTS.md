@@ -152,6 +152,7 @@ _Provenance: every number traces to a `*_result.json` (Tier-1). Updated as rows 
 - **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** none yet. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).
 - **DEV leaderboard 15m UP** (closest to the goal rule at each run's operating coverage): `e29logit` 8/15 clear, p10 0.492, excess +0.048; `e7fitall` 7/15 clear, p10 0.498, excess +0.057; `e58nysreflect` 7/11 clear, p10 0.496, excess +0.067.
 - **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e55rl` 9/15 clear, p10 0.464, excess +0.060; `c9compaci` 8/15 clear, p10 0.449, excess +0.032; `c7comp3b` 7/15 clear, p10 0.481, excess +0.055.
+- **Deployment status (Deriv feed):** DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a sealed-holdout look, and deployment needs both.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 <!-- DERIV-FEED-NOTES:END -->
 

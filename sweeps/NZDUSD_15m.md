@@ -142,4 +142,6 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E76DRFELGB | LightGBM on the signed coordinates with profiled week x NY-3-hour x rv-tercile offsets excluded from scores (discovery D3-01; harness 0.8 --drift-fe) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e76drfelgb_NZDUSD_15m_result.json` |
 | E79QORDER | E1t + quote-update order fingerprints after common USD shocks, block qo_ (discovery D3-05) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e79qorder_NZDUSD_15m_result.json` |
 | E80QPERM | E1t + the permuted-order control block qp_ (discovery D3-05 control) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e80qperm_NZDUSD_15m_result.json` |
+| E81TAIL0 | Kernel features fitted by full-batch L-BFGS (BCE + ridge), compression gate 0.33: the matched control of discovery D4-01 (tail auxiliary weight 0) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E82TAILAUX | Kernel + compression gate with the fixed-mass tail auxiliary (weight 0.1: soft loss rate of the operating 3% confidence tail of gated fit rows, mass held fixed; discovery D4-01) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 <!-- DERIV-FEED-LEDGER:END -->

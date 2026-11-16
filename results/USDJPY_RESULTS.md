@@ -269,6 +269,7 @@ Citations: `usdjpy_15m_base_result.json`, `usdjpy_15m_xpair_pool_s42_l255_result
 - **DEV leaderboard 15m DOWN** (closest to the goal rule at each run's operating coverage): `e57reflect` 8/15 clear, p10 0.475, excess +0.092, INVALID (up-rate checks); `e75lgbsig` 8/15 clear, p10 0.469, excess +0.072, INVALID (up-rate checks); `e32spec` 7/15 clear, p10 0.459, excess +0.049, INVALID (up-rate checks).
 - **DEV leaderboard 30m UP** (closest to the goal rule at each run's operating coverage): `e49nys30` 15/15 clear, p10 0.598, excess +0.095, original rule: INVALID (up-rate checks); effective (owner decision 1): DEV-CERT (drift amendment, placebo `a8placebo`).
 - **DEV leaderboard 30m DOWN:** no CPCV path with 25 or more DOWN trades at the operating coverage in any candidate run (1 run).
+- **Deployment status (Deriv feed):** DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a sealed-holdout look, and deployment needs both.
 - Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout decisions); their tradeable re-runs are `e1t` and `r2t`.
 - Robustness checks, not candidates (excluded from the lists and leaderboards above; tables below): `a12b02`, `a13b02`.
 <!-- DERIV-FEED-NOTES:END -->

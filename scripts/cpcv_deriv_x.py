@@ -28,7 +28,10 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.8'    # 0.8: discovery round 3 - --signed-only (logit / lgb on e67drfe's signed coordinates; the
+X_VERSION = 'cpcv_deriv_x/0.9'    # 0.9: discovery round 4 - --model nystail --tail-aux L (D4-01 fixed-mass tail auxiliary on
+#                                  the kernel features, full-batch L-BFGS; --tail-aux 0 = its matched control); defaults
+#                                  and every 0.8 option unchanged
+#                                  0.8: discovery round 3 - --signed-only (logit / lgb on e67drfe's signed coordinates; the
 #                                  same-input controls), --drift-fe for --model lgb (D3-01 profiled stratum offsets),
 #                                  --model nysagree (D3-04 agreement gate); defaults and every 0.7.2 option unchanged
 #                                  0.7.2: fit_one reads drift_fe with getattr (holdout_eval's namespace lacks it)
@@ -119,6 +122,50 @@ def sigm(f):
     return 1.0 / (1.0 + np.exp(-f))
 
 
+def tail_soft_loss(s, y, m, tau):
+    """Discovery D4-01 (0.9): the fixed-mass soft loss rate of the two-sided confidence tail and its gradient in s.
+    s, y = scores and 0/1 up labels of the eligible fit rows C; m = c |C|. Membership a_i = sigmoid((|s_i| - q) / tau),
+    q solved by bisection so that sum a_i = m; A = sum a_i L_i / m with L_i = 1 when the side of s_i loses (s_i > 0 and
+    y_i = 0, s_i < 0 and y_i = 1, s_i = 0 counts as a loss). L is piecewise constant (it changes only at s = 0), so
+    dA/ds_k = sign(s_k) sigma'_k (L_k - Lbar) / (tau m), Lbar the sigma'-weighted mean of L (implicit dq/ds).
+    Returns (A, dA/ds, q, sum a). The bisection runs to the double-precision limit of q (review of 0.9: a width rule
+    alone does not bound the mass error); callers record the final mass error."""
+    from scipy.special import expit
+    u = np.abs(s)
+    lo, hi = float(u.min()) - 50.0 * tau, float(u.max()) + 50.0 * tau
+    for _ in range(400):
+        q = 0.5 * (lo + hi)
+        if not lo < q < hi:                  # lo and hi are adjacent doubles: q cannot be resolved further
+            break
+        if expit((u - q) / tau).sum() > m:
+            lo = q
+        else:
+            hi = q
+    q = 0.5 * (lo + hi)
+    av = expit((u - q) / tau)
+    L = np.where(s > 0, 1.0 - y, np.where(s < 0, y, 1.0))
+    sp_ = av * (1.0 - av)
+    lbar = float((sp_ * L).sum() / max(float(sp_.sum()), 1e-300))
+    return float((av * L).sum() / m), sp_ * (L - lbar) * np.sign(s) / (tau * m), q, float(av.sum())
+
+
+def nystail_objective(w, P, y, inC, mC, lam, tau, alpha=1e-4):
+    """Discovery D4-01 (0.9) objective and gradient in w = (beta, b): mean BCE of s = P beta + b over all rows +
+    (alpha / 2) |beta|^2 + lam x tail_soft_loss over the rows inC at mass mC (lam = 0: no auxiliary, tau unused)."""
+    from scipy.special import expit
+    s = P @ w[:-1] + w[-1]
+    gs = (expit(s) - y) / len(y)
+    f = float(np.mean(np.logaddexp(0.0, s) - y * s)) + 0.5 * alpha * float(w[:-1] @ w[:-1])
+    if lam > 0:
+        A, dA, _, _ = tail_soft_loss(s[inC], y[inC], mC, tau)
+        f += lam * A
+        gs[inC] += lam * dA
+    g = np.empty_like(w)
+    g[:-1] = P.T @ gs + alpha * w[:-1]
+    g[-1] = gs.sum()
+    return f, g
+
+
 class XFitter(cd.Fitter):
     def signed(self, Z):
         """e67drfe's signed coordinates (reflection map: negated columns, rangepos - 0.5), missing = 0."""
@@ -181,6 +228,8 @@ class XFitter(cd.Fitter):
             return self.fit_drift_fe(sd, Xf, yf, Xv, yv, Xt, skw)
         if a.model == 'nysagree':
             return self.fit_nysagree(sd, Xf, yf, Xv, yv, Xt, skw)
+        if a.model == 'nystail':
+            return self.fit_nystail(sd, Xf, yf, Xv, Xt)
         if getattr(a, 'signed_only', False):
             if a.model == 'logit':                  # e74logitsig: e67drfe's inputs and scaling, global intercept, no strata
                 fv, ft, it = self.signed_logit(Xf, yf, Xv, Xt, skw, fe=False)
@@ -361,6 +410,75 @@ class XFitter(cd.Fitter):
                            'neutral_vs_plain_agree_val': float((np.sign(nv) == np.sign(rv)).mean())}
         return np.where(gv, kv, 0.5), np.where(gt, kt, 0.5), int(m.n_iter_)
 
+    def fit_nystail(self, sd, Xf, yf, Xv, Xt):
+        """Discovery D4-01 FIXED-MASS TAIL AUXILIARY (0.9). The nystroem features (fit-only standardization, RBF Nystroem
+        gamma nys_gamma_mult / n_features, nys_components, random_state = seed) with a linear score s = phi . beta + b
+        fitted by full-batch L-BFGS on the unweighted mean BCE over the fit rows + (1e-4 / 2) |beta|^2 (the SGD recipe's
+        alpha; intercept unpenalized) + tail_aux x A(s), A = tail_soft_loss over C = the fit rows inside the compression
+        gate (all fit rows without --comp-gate) at mass m = c |C|, c = the operating coverage. Stage 0 (tail_aux = 0, the
+        matched control) starts at beta = 0, b = logit(mean y); tau = 0.1 x SD of the stage-0 scores on C, frozen; stage 1
+        (tail_aux > 0) starts from the stage-0 solution. At most 500 L-BFGS iterations per stage."""
+        from scipy.optimize import minimize
+        from scipy.special import expit
+        from sklearn.kernel_approximation import Nystroem
+        a = self.a
+        F, V, T = standardize(Xf, Xv, Xt)
+        ny = Nystroem(kernel='rbf', gamma=a.nys_gamma_mult / F.shape[1], n_components=a.nys_components, random_state=sd)
+        P = ny.fit_transform(F)
+        y = np.asarray(yf, dtype=np.float64)
+        n = len(y)
+        if a.comp_gate is not None:
+            j = self.feats.index('rv_60m')
+            inC = Xf[:, j] <= float(np.nanquantile(Xf[:, j], a.comp_gate))     # as split2's gate on these fit rows
+        else:
+            inC = np.ones(n, bool)
+        c = float(str(a.covs).split(',')[0])
+        yC, mC = y[inC], c * float(inC.sum())
+        lam = float(a.tail_aux)
+        opts = {'maxiter': 500, 'gtol': 1e-10, 'ftol': 1e-13}
+        obj = lambda w, lam_, tau_: nystail_objective(w, P, y, inC, mC, lam_, tau_)
+
+        def hard_tail(sC):
+            top = np.argsort(-np.abs(sC), kind='stable')[:max(1, int(round(mC)))]
+            return float(np.where(sC[top] > 0, 1.0 - yC[top], np.where(sC[top] < 0, yC[top], 1.0)).mean())
+
+        def checked(r, f_start, stage):
+            # review of 0.9: a numerical failure (non-finite parameters, objective or gradient, or an objective above its
+            # start) stops the run; an L-BFGS stop at the iteration budget (status 1) or an abnormal line-search stop with
+            # finite values (status 2) keeps the last accepted iterate, and the status is recorded per stage
+            if not (np.all(np.isfinite(r.x)) and np.isfinite(r.fun) and np.all(np.isfinite(r.jac)) and r.fun <= f_start):
+                raise SystemExit(f'nystail stage {stage}: numerical failure (status {r.status}, {r.message}; '
+                                 f'f {r.fun} vs start {f_start})')
+            return r
+
+        w0 = np.zeros(P.shape[1] + 1)
+        w0[-1] = float(np.log(np.clip(y.mean(), 1e-6, 1 - 1e-6) / np.clip(1 - y.mean(), 1e-6, 1)))
+        r0 = checked(minimize(obj, w0, args=(0.0, 1.0), jac=True, method='L-BFGS-B', options=opts), obj(w0, 0.0, 1.0)[0], 0)
+        s0 = P @ r0.x[:-1] + r0.x[-1]
+        tau = 0.1 * float(np.std(s0[inC]))
+        if not np.isfinite(tau) or tau <= 1e-12:
+            raise SystemExit(f'nystail: degenerate tail scale tau = {tau} (stage-0 scores constant on C)')
+        A0 = tail_soft_loss(s0[inC], yC, mC, tau)
+        info = {'tail_aux': lam, 'c': c, 'n_fit': int(n), 'n_C': int(inC.sum()), 'tau': tau, 'msg0': str(r0.message)[:60],
+                'status0': int(r0.status), 'iters0': int(r0.nit), 'converged0': bool(r0.success),
+                'soft_tail_loss0': A0[0], 'hard_tail_loss0': hard_tail(s0[inC]),
+                'bce0': float(np.mean(np.logaddexp(0.0, s0) - y * s0)), 'beta_norm0': float(np.linalg.norm(r0.x[:-1]))}
+        w, its = r0.x, int(r0.nit)
+        if lam > 0:
+            r1 = checked(minimize(obj, r0.x, args=(lam, tau), jac=True, method='L-BFGS-B', options=opts),
+                         obj(r0.x, lam, tau)[0], 1)
+            w, its = r1.x, its + int(r1.nit)
+            s1 = P @ w[:-1] + w[-1]
+            A1 = tail_soft_loss(s1[inC], yC, mC, tau)
+            info.update(iters1=int(r1.nit), status1=int(r1.status), converged1=bool(r1.success), msg1=str(r1.message)[:60],
+                        soft_tail_loss1=A1[0],
+                        hard_tail_loss1=hard_tail(s1[inC]), mass_err1=abs(A1[3] - mC),
+                        bce1=float(np.mean(np.logaddexp(0.0, s1) - y * s1)), beta_norm1=float(np.linalg.norm(w[:-1])))
+        else:
+            info['mass_err0'] = abs(A0[3] - mC)
+        self.tail_info = info
+        return expit(ny.transform(V) @ w[:-1] + w[-1]), expit(ny.transform(T) @ w[:-1] + w[-1]), its
+
     def split2(self, tr_idx, val_pool, test_mask, rng, label):
         """Fit on tr_idx; validation = random VAL_FRAC of the evaluation-session rows among tr_idx (val_pool mask)."""
         X, fwd, ts, a, gap = self.X, self.fwd, self.ts, self.a, self.gap
@@ -513,6 +631,8 @@ class XFitter(cd.Fitter):
             row['lgb_drift_fe'] = self.lgbfe_info
         if a.model == 'nysagree':
             row['agree_gate'] = self.agree_info             # AUC above is over every test row (gated-out rows at 0.5)
+        if a.model == 'nystail':
+            row['tail_aux'] = self.tail_info                # D4-01 fit diagnostics (fit rows only)
         vgate = np.ones(len(val_idx), bool)
         if a.mag_keep is not None:
             # MAGNITUDE GATE (sign-invariant): a second model ranks "big move" (|ret| >= the fit pool's median |ret|);
@@ -624,7 +744,7 @@ def main():
     ap.add_argument('--colsample', type=float, default=0.5)
     ap.add_argument('--reg-lambda', type=float, default=20.0)
     ap.add_argument('--model', default='lgb', choices=('lgb', 'ens3', 'logit', 'nystroem', 'forest', 'pool', 'lgbbrier',
-                                                       'stack', 'lgbord4', 'nysagree'),
+                                                       'stack', 'lgbord4', 'nysagree', 'nystail'),
                     help='lgb (default, the mirror); ens3 = LightGBM + XGBoost + CatBoost mean (SWEEP_MATRIX A1; XGB/Cat use '
                          '--n-estimators/--lr); logit = L2 logistic regression on fit-pool-standardized features; '
                          'nystroem = RBF-kernel features + logistic SGD (SWEEP_MATRIX B6); forest = shallow bagged '
@@ -681,6 +801,9 @@ def main():
     ap.add_argument('--drift-fe', action='store_true',
                     help='discovery D1-01: drift-neutral fit with stratum fixed effects (logit on signed coordinates, or nystroem; '
                          '0.8: lgb on signed coordinates with profiled stratum offsets, D3-01); scores exclude every stratum effect')
+    ap.add_argument('--tail-aux', type=float, default=None,
+                    help='0.9 discovery D4-01 (--model nystail only): weight of the fixed-mass tail auxiliary (0 = the matched '
+                         'control: the same L-BFGS kernel fit without it)')
     ap.add_argument('--signed-only', action='store_true',
                     help='0.8 same-input controls: logit (e67drfe inputs and scaling, global intercept, no strata) or lgb '
                          '(the usual booster) on the signed coordinates only')
@@ -718,6 +841,15 @@ def main():
                                   or a.mag_keep is not None or a.comp_gate is not None):
         raise SystemExit('--model nysagree needs --nseed 1 and no other gate, reflect, meta, specialist, boot, '
                          'multi-horizon, monotone or ACI')
+    if (a.model == 'nystail') != (a.tail_aux is not None):
+        raise SystemExit('--model nystail and --tail-aux go together')
+    if a.model == 'nystail' and (not np.isfinite(a.tail_aux) or a.tail_aux < 0 or a.nseed != 1 or a.weight != 'none'
+                                 or a.reflect or a.meta_keep is not None
+                                 or a.specialist or a.boot_gate or a.multi_horizon or a.monotone != 'none'
+                                 or a.aci_gamma is not None or a.mag_keep is not None or a.drift_fe or a.signed_only
+                                 or a.train_label != 'sign'):
+        raise SystemExit('--model nystail needs a finite --tail-aux >= 0, --nseed 1, no weights and no reflect / meta / specialist / '
+                         'boot / multi-horizon / monotone / ACI / magnitude gate / drift-fe / signed-only / train label')
     if a.multi_horizon and (a.horizon != 15 or a.reflect or a.meta_keep is not None or a.specialist or a.boot_gate
                             or a.model == 'lgbord4' or a.comp_gate is not None or a.weight != 'none'
                             or a.train_label != 'sign' or a.null_shift_weeks):
@@ -770,7 +902,7 @@ def main():
                                         'aci_gamma', 'aci_target', 'meta_keep', 'specialist_regime', 'nys_gamma_mult',
                                         'nys_components', 'null_shift_weeks', 'reflect', 'stack_shrink', 'mag_model',
                                         'boot_gate', 'boot_z', 'halflife_days', 'multi_horizon', 'drift_fe', 'monotone',
-                                        'signed_only')}
+                                        'signed_only', 'tail_aux')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
@@ -816,6 +948,12 @@ def main():
         raise SystemExit('--specialist needs the v0.1 columns ret_15m and volratio_15_240')
     if a.comp_gate is not None and 'rv_60m' not in feats:
         raise SystemExit('--comp-gate needs the v0.1 column rv_60m')
+    if a.model == 'nystail':
+        res['nystail'] = {'features': 'nystroem recipe (fit-only standardization, RBF Nystroem)',
+                          'fit': 'full-batch L-BFGS: mean BCE + (1e-4 / 2) |beta|^2 + tail_aux x fixed-mass soft tail loss',
+                          'tail': 'C = fit rows in the compression gate (all fit rows without it), mass c |C| at c = the '
+                                  'operating coverage, membership sigmoid((|s| - q) / tau), tau = 0.1 x SD(stage-0 scores on C)',
+                          'tail_aux': a.tail_aux}
     if a.mag_keep is not None and a.mag_model == 'har' and not {'rv_15m', 'rv_60m', 'rv_240m', 'rv_1440m'} <= set(feats):
         raise SystemExit('--mag-model har needs the v0.1 columns rv_15m, rv_60m, rv_240m, rv_1440m')
     if a.reflect:
