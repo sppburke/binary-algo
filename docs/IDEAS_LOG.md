@@ -591,3 +591,13 @@ machine-readable backlog). Generic lessons:
 > CPCV and the forward walk, but no key cleared the path test [per key: `results/<PAIR>_RESULTS.md`, tag `e67drfe`].
 > Carry it onto stronger bases before concluding. Discovery candidates N60-N64 and their pre-registered readings are in
 > SWEEP_MATRIX Tier N and the lab PROGRESS (`/mnt/data/deriv-sota-lab/PROGRESS.md`).
+
+> **Moved AUC and the operating-tail win rate answer different questions; judge a lever on the path test at its
+> operating coverage.** Deriv-feed discovery round 3 (SWEEP_MATRIX N65-N69) carried drift-neutral training onto the
+> |return|-weighted kernel: CPCV and forward moved AUC rose on both pairs it ran on [USDJPY·15m, USDCAD·15m], while the
+> 3%-coverage path result of the strongest key-side fell from passing to failing [USDJPY·15m UP; tag `e77drfenysabs`
+> in `results/USDJPY_RESULTS.md`]. Drift offsets on LightGBM beat their same-input control on three of seven
+> pairs and the plain base on none, by the registered margin (`e76drfelgb`); the drift-agreement gate left too few kernel UP trades to count (`e78nysagree`); quote-update order
+> fingerprints did not beat their permuted-order control on any pair (`e79qorder` vs `e80qperm`). Where drift removal
+> lowers a model's tail result, part of that model's edge varies with the removed strata; a placebo that matches a
+> coarser stratum (hour x volatility) does not cover it, and a forward holdout is the check.

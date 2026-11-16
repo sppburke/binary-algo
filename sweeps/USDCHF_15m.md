@@ -154,4 +154,9 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E71PLAYRESET | E1t + play-operator control block hr_ (15-minute replays; discovery D1-03 memory control) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e71playreset_USDCHF_15m_result.json` |
 | E72SHOCK | E1t + signed shock-response curvature x forecast USD-factor variance (d2_shockvar; discovery D2-01) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e72shock_USDCHF_15m_result.json` |
 | E73MONO | E1t LightGBM with monotone catch-up constraints on ret_15m and x_usd_weak_15m (discovery D2-02) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e73mono_USDCHF_15m_result.json` |
+| E74LOGITSIG | ATTRIBUTION CONTROL for D1-01: L2 logistic on e67drfe's signed coordinates and scaling with a global intercept, no strata (harness 0.8 --signed-only) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e74logitsig_USDCHF_15m_result.json` |
+| E75LGBSIG | LightGBM on e67drfe's signed coordinates only (same-input control of D3-01; harness 0.8 --signed-only) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e75lgbsig_USDCHF_15m_result.json` |
+| E76DRFELGB | LightGBM on the signed coordinates with profiled week x NY-3-hour x rv-tercile offsets excluded from scores (discovery D3-01; harness 0.8 --drift-fe) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e76drfelgb_USDCHF_15m_result.json` |
+| E79QORDER | E1t + quote-update order fingerprints after common USD shocks, block qo_ (discovery D3-05) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e79qorder_USDCHF_15m_result.json` |
+| E80QPERM | E1t + the permuted-order control block qp_ (discovery D3-05 control) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e80qperm_USDCHF_15m_result.json` |
 <!-- DERIV-FEED-LEDGER:END -->
