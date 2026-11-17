@@ -90,8 +90,8 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e23fd_NZDUSD_15m_result.json` |
 | E24CX | E1t + SWEEP_MATRIX E3 complexity/regime block (cx_: permutation entropy, autocorrelation, variance ratio, two-state volatility-regime filter) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e24cx_NZDUSD_15m_result.json` |
 | E25TK | E1t + SWEEP_MATRIX E4 tick-clock (information-bar) block (tk_: returns over the last 100/500/2,000 mid changes) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e25tk_NZDUSD_15m_result.json` |
-| E26PA | E1t + SWEEP_MATRIX F2 price-action block (pa_: RSI, Bollinger %b, NR7, NY-day open/range/previous-day levels) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E27FAMALL | E1t + all eight SWEEP_MATRIX family blocks together (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E26PA | E1t + SWEEP_MATRIX F2 price-action block (pa_: RSI, Bollinger %b, NR7, NY-day open/range/previous-day levels) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e26pa_NZDUSD_15m_result.json` |
+| E27FAMALL | E1t + all eight SWEEP_MATRIX family blocks together (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e27famall_NZDUSD_15m_result.json` |
 | E28RESID | E1t fit on the SWEEP_MATRIX F4 residualized target (own 15m return minus beta x USD-basket return); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E29LOGIT | E1t features, L2 logistic regression (C = 0.05, fit-pool median imputation, z-scored, clipped at 5): low-capacity linear model for the ~15-month data ceiling (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e29logit_NZDUSD_15m_result.json` |
 | E30NYSTROEM | E1t features, SWEEP_MATRIX B6 kernel model: RBF Nystroem features (500) + logistic SGD (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e30nystroem_NZDUSD_15m_result.json` |
