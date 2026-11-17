@@ -86,10 +86,10 @@ SCOPE: USDCAD · 15m — sweep LEDGER (status of record). Backlog/executable que
 | E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e19tf_USDCAD_15m_result.json` |
 | E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e20sg_USDCAD_15m_result.json` |
 | E21KF | E1t + SWEEP_MATRIX C2 Kalman block (kf_: local-linear-trend slope/innovation, time-varying basket beta and residual) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e21kf_USDCAD_15m_result.json` |
-| E22RM | E1t + SWEEP_MATRIX C3 random-matrix eigen-residual block (rm_: residual after Marchenko-Pastur modes, 15-240 min) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E24CX | E1t + SWEEP_MATRIX E3 complexity/regime block (cx_: permutation entropy, autocorrelation, variance ratio, two-state volatility-regime filter) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
-| E25TK | E1t + SWEEP_MATRIX E4 tick-clock (information-bar) block (tk_: returns over the last 100/500/2,000 mid changes) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| E22RM | E1t + SWEEP_MATRIX C3 random-matrix eigen-residual block (rm_: residual after Marchenko-Pastur modes, 15-240 min) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e22rm_USDCAD_15m_result.json` |
+| E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e23fd_USDCAD_15m_result.json` |
+| E24CX | E1t + SWEEP_MATRIX E3 complexity/regime block (cx_: permutation entropy, autocorrelation, variance ratio, two-state volatility-regime filter) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e24cx_USDCAD_15m_result.json` |
+| E25TK | E1t + SWEEP_MATRIX E4 tick-clock (information-bar) block (tk_: returns over the last 100/500/2,000 mid changes) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e25tk_USDCAD_15m_result.json` |
 | E26PA | E1t + SWEEP_MATRIX F2 price-action block (pa_: RSI, Bollinger %b, NR7, NY-day open/range/previous-day levels) (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E27FAMALL | E1t + all eight SWEEP_MATRIX family blocks together (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E28RESID | E1t fit on the SWEEP_MATRIX F4 residualized target (own 15m return minus beta x USD-basket return); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | pending | — | — |
