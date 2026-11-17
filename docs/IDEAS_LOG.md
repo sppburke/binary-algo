@@ -554,7 +554,20 @@ selective-acc CI95-lower ≥ breakeven at the FIXED coverage (not a thin-n cell)
 
 > **Payout sensitivity.** The only venue-recorded 15m trade on disk paid 1.77 per 1.00 (breakeven ≈ 0.565, not 0.541).
 > Report the share of CPCV paths clearing both bars until payouts are measured systematically. Deriv also lists Rise/Fall
-> Equal contracts (ties win) at 15m–1d; unpriced offline.
+> Equal contracts at 15m–1d (their tie rule and payout are not on disk); unpriced offline.
+
+> **★ A fixed breakeven hides the venue's price (new mirage class, 2026-11-17).** A venue that quotes a payout per
+> purchase can pay the two sides differently as a function of the recent price path. On Deriv's 15-minute FX Rise/Fall
+> the lower-paid side is mostly the one that fades the last 15 minutes `[six pairs pooled·15m]` (July 2026 quotes;
+> `docs/DERIV_SOTA_PROGRAM.md` "Venue payouts"). A model that fades recent moves then buys the lower-paid side most of
+> the time, and its win rate overstates its return against any fixed breakeven. Before believing a win-rate
+> certificate: price each trade with the payout of the side bought (recorded, or rebuilt from a quote sample), report
+> expected value per unit staked per path, and compare the trades' mean payout with the always-side payout. Falsifier
+> template: PAYOUT-CLEARED iff at least 12 of 15 paths have 25 or more priced trades, expected value is above 0 on at
+> least 12 and its 10th percentile is at least 0 (`scripts/analyze_payout_aware.py`). Two traps: a quote sample's
+> silence in a clock cell is not a venue rule, and a daily pattern measured in one season does not say which clock it
+> follows in the other. Open levers this raises (untested): select and train on expected value at the quoted payout,
+> the rebuilt payouts as inputs, a payout floor, a better-paid-side specialist (V-03 to V-13 in the program doc).
 
 > **Queued Deriv-native levers (untested at the time of writing):** same-time-of-day seasonality of the settled return
 > over previous days (recurring session flows); round-number geometry (distance to the 100/50-pip grid, crossings,

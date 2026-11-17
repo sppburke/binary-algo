@@ -35,11 +35,14 @@ Decision at the close of each one-minute bar (minute start + 60 s). Entry = firs
 entry − 1; ties are valid and lose (`scripts/min1_production.wc_ret` semantics). Breakeven 0.541 (the goal's binding
 rule; `docs/THEORY.md` §3 assumes payout R≈1.85).
 
-**Payout sensitivity.** The only venue-recorded trade on disk (`evidence/objects/e2512a4a…json`: a 15m CALL on
-2026-07-06, ask 1.00, payout 1.77) implies breakeven 1/1.77 ≈ 0.565, above 0.541. One observation does not set the
-rule, but every Deriv-feed table also reports the share of CPCV paths clearing 0.565. Deriv also lists Rise/Fall
-**Equal** contracts (CALLE/PUTE, ties win) at 15m–1d (`docs/deriv_frxEURUSD_contracts_for.json`); their payout is not on
-disk and they are not evaluated.
+**Payout sensitivity.** 0.541 is the breakeven of a payout of 1.85. Deriv's quoted payout is not a constant: it moves
+with the price path and the clock (section "Venue payouts" below; in July 2026 the 15-minute quotes averaged about
+1.80 from 08:00 to 16:00 New York, the breakeven of which is 0.556, and 1.79 over the whole 08:00–16:35 window). Every
+Deriv-feed CPCV table therefore also reports the share of paths clearing 0.565 (the breakeven of the venue-recorded
+trade in `evidence/objects/e2512a4a…json`: a 15m CALL on 2026-07-06, ask 1.00, payout 1.77), and a payout-aware reading
+prices a candidate's trades one by one. Deriv also lists Rise/Fall **Equal** contracts (CALLE/PUTE) at 15m–1d
+(`docs/deriv_frxEURUSD_contracts_for.json`); the list states neither their tie rule nor a payout, no quote for them is
+in the archive, and they are not evaluated.
 
 ## Datasets (scripts are byte-identical copies of the lab tools; result JSONs record their SHA-256)
 
@@ -104,6 +107,120 @@ the last accepted start was 16:34:40 NY and the first rejection 16:35:10 NY — 
 Every Deriv-feed evaluation therefore excludes decisions with start in **[16:50 − H, 18:00) NY** from training,
 validation and test (`cpcv_deriv.tradeable`; 15m: [16:35, 18:00); 30m: [16:20, 18:00)). Results produced before the
 filter (`e1`, `r2`, `r1`, `r1b`) are superseded by their tradeable re-runs (`e1t`, `r2t`, `r1t`, `r1bt`).
+
+## Venue payouts (2026-11-17)
+
+What Deriv pays for a 15-minute Rise/Fall contract is quoted per purchase and varies. The evidence is a quote archive
+written on the trading server by `scripts/deriv_quote_workers.py --audit` and copied to this machine on 2026-09-28
+(`/mnt/data/binary-alpha-research/next-steps/binary-algo-study/dev-logs/quote_audit/`, outside this repository;
+29 non-empty files, SHA-256 of their concatenation `a59fc6f6…8046a`). Its sampler logs one Rise and one Fall proposal
+at stake 1.00 per pair every 30 s for six pairs (no EURUSD lane): 1,007,892 snapshots in July 2026, of which 362,990
+are fresh (quote age under 5 s) and valid, 574,578 stale and 70,324 invalid; 19 New York dates have session quotes.
+Everything below is development data. The tools skip and count any quote dated at or after 2026-08-01T00:00:00Z (the
+archive has none), open tick files dated up to 2026-07-31 only, and settle no contract that expires at or after that
+instant.
+
+**The venue study** `[six pairs pooled·15m]` (`scripts/venue_quote_study.py`, lab test `v1-quotestudy-jul26`,
+`results/json/deriv_venue_quote_study_2026-07_result.json`; rules fixed in the tool before it read an outcome - the
+result records what had been seen before that: outcome-free payout tables of this archive and the owner's July test
+T92; settlement by `deriv_dataset.settle` with the decision at the quote's sample time, ties lose). 171,148 moments
+have a fresh quote on both sides; 81,301 of them fall in weekday New York 08:00–16:35 and 81,278 of those, on 19
+dates, settle in development.
+
+- *Level.* In that window the mean payout is 1.789 (Rise) and 1.788 (Fall) and the mean breakeven 0.560 per side, so
+  the two implied probabilities sum to 1.12. By New York hour the mean payout is about 1.80 on each side from 08:00
+  to 16:00 and 1.61 (Rise) / 1.65 (Fall) in the hour from 16:00 (`results/json/deriv_venue_quote_model_v1_result.json`,
+  `date_blocked_out_of_fold_by_new_york_hour`). The quote model prices a weekday × five-minute clock cell only if the
+  archive has at least 30 fresh matched quotes in it; no cell does between 16:35 and 20:00 New York (20:30 on
+  Tuesdays, 21:15 on Wednesdays, none after 16:35 on Fridays; `not_offered_new_york_clock_by_weekday`). From 16:35 to
+  18:00 that agrees with the venue's rejection of contracts expiring in 16:50–18:00 (section "Venue tradeability").
+  From 18:00 to 20:00 the tradeability filter admits decisions that the archive cannot price, and it does not show
+  whether a contract was on offer then: the frxEURUSD contract list of 2026-06-03 blacks out forward starts from
+  20:00:00 to 23:59:59 UTC (16:00–20:00 New York in summer; `docs/deriv_frxEURUSD_contracts_for.json`,
+  `forward_starting_options`), and whether that holds for a purchase at the current price, and how either window
+  moves when New York leaves daylight saving, is not on disk (open owner decision 9).
+- *The skew between the two sides follows the price path and fails its forecast test.* Among session quotes with
+  unequal payouts and a non-zero past move, the side Deriv pays less (the "favoured" side) has the sign of the past
+  900 s move only 0.154 of the time (300 s: 0.206, 60 s: 0.363): in 0.846 of them the lower-paid side is the one that
+  fades the last 15 minutes. The lower-paid side is paid 1.73 on average and the higher-paid side 1.85. As a forecast
+  the skew fails its registered test: AUC of the implied probability of Rise for a rise, among outcomes that moved,
+  0.5091, date-cluster CI95 [0.4874, 0.5343] (K1 KILLED; an interval that covers 0.50 does not show that the skew
+  carries no information). The favoured side won 0.4985 against an implied 0.5161 (K3 NOT CALIBRATED).
+- *None of the four registered quote-only policies pays* (K2 SUPPORTED): expected value per unit staked of always
+  buying the favoured side −0.138 [−0.164, −0.114], the other side −0.108 [−0.137, −0.078], Rise −0.112, Fall −0.134.
+  Where the two payouts differ most (0.18 or more) the better-paid side won 0.4881 at a mean payout of 1.90 (−0.072
+  [−0.154, +0.007]) and the other 0.4927 at 1.69 (−0.170).
+- *The quote can be rebuilt from the price path* (B RECONSTRUCTIBLE): out of fold on date blocks, a model of the
+  pair's own ticks and the clock explains 0.99 of the variance of the skew and 0.95 of the overround, and lands within
+  0.02 of the quoted payout for 0.91 of quotes; 0.90 of the skew model's gain comes from one feature, the position of
+  the price in its trailing 900 s range.
+- *The books run in July selected the lower-paid side.* Of the demo executor's 1,492 selected signals
+  (`proposal_selected` events, not purchase confirmations), 821 have a quote within 30 s; the selected side was the
+  lower-paid one in 0.949 of them (own payout 1.73, opposite 1.86; no outcomes used).
+
+**The quote model** (`scripts/venue_quote_model.py`, lab test `v2-quotemodel-jul26`,
+`results/json/deriv_venue_quote_model_v1_result.json`; model files in the lab at `cache/venue_quote_model_v1/`,
+checksums in the result). Two LightGBM regressors, skew and overround, fitted on the 168,335 fresh matched weekday
+quotes with no pair identity among the features, so that a pair without a quote lane can be priced. Date-blocked out
+of fold on session quotes: R² of the skew 0.978, of the overround 0.939, payout within 0.02 for 0.89 of quotes and
+within 0.05 for 0.986, mean payout within 0.001 of the quoted mean. Leaving one pair out: R² of the skew 0.967 to
+0.990, favoured side named correctly 0.992 to 0.997, mean payout off by at most 0.0085. Its weakest cell is the hour
+from 16:00 New York (R² of the skew 0.83 and of the overround −1.52, payout within 0.02 for about two thirds of
+quotes, mean payout 0.003 to 0.004 too high).
+
+**The payout-aware reading** (`scripts/analyze_payout_aware.py`, lab runner `tools/run_payout.sh`). A recorded
+15-minute candidate is re-run with `--dump-preds`; its trades are selected with the harness's own rule (side,
+confidence at or above the path's validation threshold, first-come de-overlap), and the tool checks that their count
+and win rate equal the harness's and the recorded result's on every path - a necessary check, not a comparison of
+trade identities. Each trade is priced with the payout the quote model reconstructs for its side at the decision; a
+trade whose weekday × 5-minute clock cell the model does not price (fewer than 30 fresh matched quotes in the archive)
+is left out and counted, which is not a record that no contract was on offer. Per path: expected value per unit
+staked = mean(win × payout) − 1. Reading, fixed in the tool before a dump is opened: PAYOUT-CLEARED iff at least 12 of
+the 15 paths have 25 or more priced trades, the expected value is above 0 on at least 12 of them and the 10th
+percentile of their expected values is at least 0. It is an estimate, not a venue record and not a certificate, and
+rests on three assumptions that nothing on disk can check: (1) July's pricing rule held on the other development
+dates; (2) the daily pattern (lower payouts in the hour from 16:00 New York, no priced cell after 16:35) follows New
+York time in winter — the tool also reports the reading with the pattern held at July's UTC times instead; (3) EURUSD,
+which has no quotes in the archive, is priced by the other six pairs' rule. The 30-minute keys cannot be priced: the
+archive holds 15-minute quotes only. A side whose trades do not reproduce on all 15 paths is reported as not readable.
+
+Fourteen stored 15-minute candidates were read this way, both sides of each: first one candidate per pair and two
+for USDJPY (lab tests `a16pay` to `a23pay`), then the leader of every key side those had not covered (`a24pay` to
+`a29pay`). Two side leaders cannot be read: GBPUSD DOWN `r4fixldn` (a rule harness that writes no prediction dump) and USDCAD
+DOWN `e36aci` (an adaptive threshold the tool does not replay). Of the 28 sides, 27 are NOT CLEARED AT THE QUOTED
+PAYOUT and one is PAYOUT-CLEARED: `c2nysabs` `[USDJPY·15m·UP]`
+(`results/USDJPY_RESULTS.md`). That reading is a development-data estimate of a candidate picked from the whole search
+and is not a certificate: `c2nysabs` is not one of the registered holdout finalists and nothing here is scored on
+holdout data. Per-key readings are in `results/<PAIR>_RESULTS.md` (DERIV-FEED notes, "Payout-aware reading"); their
+averages are unweighted means over the counted paths, and their trade totals count a decision once for each path it
+sits in.
+
+**What follows for the program.** 0.541 is about the breakeven of the higher-paid side only (mean payout 1.846, the
+breakeven of which is 0.542). The lower-paid side is paid 1.73 on average (breakeven 0.578), and in 0.85 of quotes it
+is the side that fades the last 15 minutes; a trade from 16:00 to 16:35 New York is paid about 1.63 (0.613). A win
+rate is therefore not comparable across candidates that buy different sides of the skew, and the quantity to
+maximise is the expected value at the quoted payout. The 0.541 path rule stays the certificate of record (it is the
+goal's); whether a payout-aware gate is added to it is open owner decision 5.
+
+**Venue-price tests** (candidates raised by this evidence after discovery round 6 was recorded; none is
+pre-registered or run, each adds to the search-wide multiple-testing count, and none is in the round-6 matrix counts):
+
+| id | test | needs |
+|---|---|---|
+| V-03 | The harness reports the payout-aware reading beside the 0.541 rule for every 15-minute run (no new fit) | decision 13 for how it is reported |
+| V-04 | Selection by expected value: calibrate the probability on the validation block, trade the side whose probability × reconstructed payout − 1 is highest, threshold = validation quantile at the coverage; compare with confidence-ranked selection at equal coverage | decision 8 |
+| V-05 | The reconstructed skew, overround and own-side payouts as model inputs, so a model can learn where the price paid is wrong | decision 8 |
+| V-06 | Profit-shaped training: weights or targets built from win × payout − 1 per side instead of the sign | decision 8 |
+| V-07 | Better-paid-side specialist: the label is whether the better-paid side wins, on decisions where the two payouts differ by 0.05 or more | decision 8 |
+| V-08 | The last New York hour (16:00–16:35) dropped from training and evaluation; re-read of stored candidates without it | decision 8 |
+| V-09 | A payout floor chosen on validation (1.75, 1.80 or 1.85) as a gate on the trades of stored models | decision 8 |
+| V-10 | Rise/Fall Equal contracts (if a tie wins, as the name says and the contract list does not state; tie share 0.019 in the study's window): needs their quotes and tie rule | decision 9 |
+| V-11 | 30-, 60- and 120-minute quotes, to price the 30-minute keys and longer horizons | decisions 9 and 10 |
+| V-12 | A quote sample taken now on all seven pairs: tests whether July's rule still holds and which clock the daily pattern follows in winter | decision 9 |
+| V-13 | The server's quotes after 2026-07-31, to price holdout-window trades at a registered look only | decision 9 and the holdout register |
+
+Cluster `C-075` of the round-6 record ("reject variable-odds decorrelation losses for the fixed-payout target") rests
+on a fixed payout; with a quoted payout that premise does not hold, and V-04 and V-06 take its place.
 
 ## Where the incumbents' "NY" edges came from (2026-11-15)
 
@@ -183,7 +300,11 @@ neither is certified, and both continue to look 2. The numbers are in `results/U
 
 Lab registry `/mnt/data/deriv-sota-lab/registry/tests.jsonl` (append-only: start, run, finish, clean for every test;
 snapshot committed as `results/json/deriv_lab_registry.jsonl`). Result JSONs: `results/json/deriv_<exp>_<PAIR>_<H>m_result.json`
-and `results/json/deriv_r1_frozen_books_<window>_result.json`. Per-key tables are rendered from those JSONs.
+and `results/json/deriv_r1_frozen_books_<window>_result.json`. Per-key tables are rendered from those JSONs. The
+venue study is `results/json/deriv_venue_quote_study_2026-07_result.json`, the quote model
+`results/json/deriv_venue_quote_model_v1_result.json`, and the estimated payout-aware readings
+`results/json/deriv_a<nn>pay_<PAIR>_15m_result.json` (one per re-scored candidate; they hold no certificate, so the
+leaderboards skip them and the DERIV-FEED notes carry one line each).
 
 ## SWEEP_MATRIX family coverage on the Deriv feed (2026-11-15)
 
@@ -310,6 +431,13 @@ Two findings of the round shape the rest of the program (scripts and logs in
   Brier-objective LightGBM, is below 1e-6 and of the kind that two runs of the live harness show between themselves
   (`harness_regression_011b.log`). It stays out of use until open owner decision 7 is taken.
 
+*Corrected after the record was committed (2026-11-17).* The round's dispositions were written without two sources
+already on this machine: the July 2026 quote archive (section "Venue payouts") and the frxEURUSD contract list
+(`docs/deriv_frxEURUSD_contracts_for.json`). The record's text was corrected where it said that contract durations
+were not on record or relied on single quotes (the README's addendum lists each place); no stage, count, decision
+list or disposition changed. The matrix's tests are scored against the fixed 0.541 breakeven; the venue-price
+tests V-03 to V-13 above are outside it.
+
 ## Closures respected
 
 The repository closures in AGENTS.md stand for this program unless the owner reopens them: no re-mining of the
@@ -363,7 +491,11 @@ significance test. The sealed holdout remains the binding test.)
 3. **Repository closures** measured on mis-clocked data (neural/spectral/GRU/TSFM/Optuna nulls; pooling for the
    JPY/CAD/AUD/NZD family): kept unless reopened.
 4. **Non-Deriv inputs** (e.g. `macro_calendar.parquet`): excluded unless approved.
-5. **Payout**: one recorded venue trade implies breakeven ≈ 0.565; the goal's rule uses 0.541.
+5. **Payout**: the goal's rule uses 0.541, the breakeven of a payout of 1.85. The July 2026 quotes average about 1.80
+   from 08:00 to 16:00 New York (breakeven 0.556), 1.73 on the lower-paid side, which is mostly the side that fades
+   the last 15 minutes, and about 1.63 from 16:00 to 16:35 (section "Venue payouts"). Open: whether a candidate must
+   also pass a payout-aware gate (expected value above 0 at the quoted payout, as the payout-aware reading defines
+   it) before it can be deployed, or a fixed higher hurdle, or 0.541 alone.
 
 (Decision 6, the two-look sequential holdout, is resolved; see Holdout discipline.) Raised by discovery round 6 on
 2026-11-17; the ranking agent's options and recommendations are in `research/deriv_round6_2026-11-17/plan.json`
@@ -376,11 +508,16 @@ significance test. The sealed holdout remains the binding test.)
    measures.
 8. **Release policy.** The ranking's recommendation: release stages 1-4 first (cap 20,700 fits and 6 GPU hours), and
    each later stage only when its own gate is met.
-9. **Venue access.** Read-only contract metadata per pair (which contract types offer which durations), a scheduled
-   survey of quoted payouts by pair, hour, duration and contract type, and one demo contract that records proposal,
-   purchase and settlement timestamps. The quotes on record near the New York close are below the 1.85 behind the
-   0.541 breakeven (`[USDJPY·15m]` Rise proposals from 16:20 to 16:34 New York time,
-   `results/json/deriv_api_probe_result.json`, run `g_near_close`; decision 5).
+9. **Venue access.** July 2026 quotes for the 15-minute contract on six pairs are on this machine (section "Venue
+   payouts"), and `docs/deriv_frxEURUSD_contracts_for.json` (2026-06-03) gives each contract type's durations for
+   EURUSD. Not in the archive or this repository, and needing a venue connection or the trading server: the contract
+   list of the other six pairs; quotes for EURUSD, for 30 minutes and longer and for Rise/Fall Equal; any quote
+   outside July (whether the pricing rule still holds, and which clock its daily pattern and the venue's daily
+   close follow in winter: the 16:35 New York cut-off of the tradeability filter was measured in July only); whether
+   a contract can be bought between 18:00 and 20:00 New York; the server's quotes after 2026-07-31, which belong to
+   the holdout window; and one demo contract whose record keeps the venue's start and expiry times and its entry
+   and exit ticks (the one retained receipt, `evidence/objects/e2512a4a…json`, keeps the proposal, purchase and
+   terminal-record clocks only), which is what would check the label's settlement rule against the venue.
 10. **New keys.** Horizons beyond 30 minutes (60, 120 and 240 minutes; eight hours and one day), London and Asian
     decision sessions as separate keys, and contract types that pay on the size of a move.
 11. **Closed families** (decision 3). Stronger shrinkage and partial pooling (stage 8), bounded neural networks on

@@ -1,0 +1,2412 @@
+{
+ "analysis": "analyze_payout_aware/0.1",
+ "pair": "NZDUSD",
+ "horizon_min": 15,
+ "cov": "0.1",
+ "candidate": "e33comp33",
+ "registered_utc": "2026-11-17T10:11:14Z",
+ "pre_registered_reading": "per side, New York clock: PAYOUT-CLEARED iff >= 12 of 15 CPCV paths have >= 25 priced trades, expected value per unit staked at the reconstructed payout is above 0 on >= 12 of them and the p10 of their expected values is >= 0, else NOT CLEARED AT THE QUOTED PAYOUT; ADVERSELY PRICED iff on >= 12 counted paths the trades' mean payout is >= 0.02 below the always-side mean payout, FAVOURABLY PRICED iff >= 0.02 above on >= 12, else NEUTRAL; the fixed UTC-4 clock, the favoured/unfavoured split and the payout floors are descriptive and change no verdict",
+ "sides": {
+  "UP": {
+   "paths": [
+    {
+     "test": "[0, 1]",
+     "frozen": 36,
+     "not_priced": 0,
+     "trades": {
+      "n": 36,
+      "wins": 19,
+      "wr": 0.5277777777777778,
+      "payout": 1.6999999999999997,
+      "breakeven": 0.5890715301263696,
+      "ev": -0.11388888888888882,
+      "favoured_share": 0.9444444444444444,
+      "unfavoured_share": 0.05555555555555555
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1431,
+      "wr": 0.4885626493683851,
+      "payout": 1.7898736770228747,
+      "breakeven": 0.5598155610951714,
+      "ev": -0.1257801297371116,
+      "favoured_share": 0.48583134175486514,
+      "unfavoured_share": 0.49163537043359506
+     },
+     "favoured": {
+      "n": 34,
+      "wins": 19,
+      "wr": 0.5588235294117647,
+      "payout": 1.6929411764705884,
+      "breakeven": 0.5914012002727149,
+      "ev": -0.06176470588235283,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 2,
+      "wins": 0,
+      "wr": 0.0,
+      "payout": 1.82,
+      "breakeven": 0.549467137638499,
+      "ev": -1.0,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 6,
+      "wins": 1,
+      "wr": 0.16666666666666666,
+      "payout": 1.7833333333333334,
+      "breakeven": 0.5609037312372774,
+      "ev": -0.7083333333333333,
+      "favoured_share": 0.6666666666666666,
+      "unfavoured_share": 0.3333333333333333
+     },
+     "payout_at_least_1.80": {
+      "n": 2,
+      "wins": 0,
+      "wr": 0.0,
+      "payout": 1.82,
+      "breakeven": 0.549467137638499,
+      "ev": -1.0,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[0, 2]",
+     "frozen": 43,
+     "not_priced": 0,
+     "trades": {
+      "n": 43,
+      "wins": 25,
+      "wr": 0.5813953488372093,
+      "payout": 1.704418604651163,
+      "breakeven": 0.5874838025407064,
+      "ev": -0.006976744186046657,
+      "favoured_share": 0.9767441860465116,
+      "unfavoured_share": 0.023255813953488372
+     },
+     "always": {
+      "n": 2927,
+      "wins": 1457,
+      "wr": 0.4977792962077212,
+      "payout": 1.7927297574308165,
+      "breakeven": 0.5588938769076324,
+      "ev": -0.10883156815852413,
+      "favoured_share": 0.4718141441749231,
+      "unfavoured_share": 0.5076870515886573
+     },
+     "favoured": {
+      "n": 42,
+      "wins": 24,
+      "wr": 0.5714285714285714,
+      "payout": 1.7014285714285713,
+      "breakeven": 0.5884608433766352,
+      "ev": -0.026904761904761987,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 1,
+      "wins": 1,
+      "wr": 1.0,
+      "payout": 1.83,
+      "breakeven": 0.5464480874316939,
+      "ev": 0.8300000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 8,
+      "wins": 6,
+      "wr": 0.75,
+      "payout": 1.775,
+      "breakeven": 0.5634992408036807,
+      "ev": 0.33499999999999996,
+      "favoured_share": 0.875,
+      "unfavoured_share": 0.125
+     },
+     "payout_at_least_1.80": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.815,
+      "breakeven": 0.5510018214936248,
+      "ev": 0.815,
+      "favoured_share": 0.5,
+      "unfavoured_share": 0.5
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[0, 3]",
+     "frozen": 36,
+     "not_priced": 0,
+     "trades": {
+      "n": 36,
+      "wins": 17,
+      "wr": 0.4722222222222222,
+      "payout": 1.715,
+      "breakeven": 0.5842638236241418,
+      "ev": -0.18805555555555564,
+      "favoured_share": 0.8611111111111112,
+      "unfavoured_share": 0.1111111111111111
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1427,
+      "wr": 0.4870307167235495,
+      "payout": 1.788972696245734,
+      "breakeven": 0.5601339620795689,
+      "ev": -0.12854266211604104,
+      "favoured_share": 0.4993174061433447,
+      "unfavoured_share": 0.4781569965870307
+     },
+     "favoured": {
+      "n": 31,
+      "wins": 14,
+      "wr": 0.45161290322580644,
+      "payout": 1.6967741935483869,
+      "breakeven": 0.5902589634738338,
+      "ev": -0.23419354838709683,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.83,
+      "breakeven": 0.5465048083324244,
+      "ev": -0.08250000000000002,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 10,
+      "wins": 4,
+      "wr": 0.4,
+      "payout": 1.8,
+      "breakeven": 0.5557298827719761,
+      "ev": -0.274,
+      "favoured_share": 0.5,
+      "unfavoured_share": 0.4
+     },
+     "payout_at_least_1.80": {
+      "n": 5,
+      "wins": 3,
+      "wr": 0.6,
+      "payout": 1.828,
+      "breakeven": 0.5470939565560494,
+      "ev": 0.09800000000000009,
+      "favoured_share": 0.0,
+      "unfavoured_share": 0.8
+     },
+     "payout_at_least_1.85": {
+      "n": 1,
+      "wins": 1,
+      "wr": 1.0,
+      "payout": 1.86,
+      "breakeven": 0.5376344086021505,
+      "ev": 0.8600000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[0, 4]",
+     "frozen": 36,
+     "not_priced": 0,
+     "trades": {
+      "n": 36,
+      "wins": 19,
+      "wr": 0.5277777777777778,
+      "payout": 1.7097222222222221,
+      "breakeven": 0.5855433040172875,
+      "ev": -0.10444444444444456,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1418,
+      "wr": 0.48395904436860065,
+      "payout": 1.7898976109215017,
+      "breakeven": 0.5598450901845181,
+      "ev": -0.13454266211604093,
+      "favoured_share": 0.4853242320819113,
+      "unfavoured_share": 0.49180887372013654
+     },
+     "favoured": {
+      "n": 36,
+      "wins": 19,
+      "wr": 0.5277777777777778,
+      "payout": 1.7097222222222221,
+      "breakeven": 0.5855433040172875,
+      "ev": -0.10444444444444456,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 0
+     },
+     "payout_at_least_1.75": {
+      "n": 8,
+      "wins": 4,
+      "wr": 0.5,
+      "payout": 1.7725,
+      "breakeven": 0.5642716680267013,
+      "ev": -0.11250000000000004,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "payout_at_least_1.80": {
+      "n": 2,
+      "wins": 1,
+      "wr": 0.5,
+      "payout": 1.81,
+      "breakeven": 0.5524861878453039,
+      "ev": -0.09499999999999997,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[0, 5]",
+     "frozen": 76,
+     "not_priced": 0,
+     "trades": {
+      "n": 76,
+      "wins": 39,
+      "wr": 0.5131578947368421,
+      "payout": 1.7369736842105266,
+      "breakeven": 0.5765365718041923,
+      "ev": -0.10802631578947375,
+      "favoured_share": 0.868421052631579,
+      "unfavoured_share": 0.11842105263157894
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1411,
+      "wr": 0.48173438033458515,
+      "payout": 1.7893069306930691,
+      "breakeven": 0.560006483211465,
+      "ev": -0.1386514168658246,
+      "favoured_share": 0.48583134175486514,
+      "unfavoured_share": 0.49265961078866505
+     },
+     "favoured": {
+      "n": 66,
+      "wins": 35,
+      "wr": 0.5303030303030303,
+      "payout": 1.724090909090909,
+      "breakeven": 0.5806550121515885,
+      "ev": -0.08363636363636362,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 9,
+      "wins": 4,
+      "wr": 0.4444444444444444,
+      "payout": 1.8233333333333333,
+      "breakeven": 0.5490069408076073,
+      "ev": -0.1877777777777777,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 31,
+      "wins": 16,
+      "wr": 0.5161290322580645,
+      "payout": 1.7922580645161295,
+      "breakeven": 0.5581755016600695,
+      "ev": -0.07612903225806444,
+      "favoured_share": 0.7096774193548387,
+      "unfavoured_share": 0.25806451612903225
+     },
+     "payout_at_least_1.80": {
+      "n": 12,
+      "wins": 6,
+      "wr": 0.5,
+      "payout": 1.8291666666666666,
+      "breakeven": 0.5468256549026741,
+      "ev": -0.09083333333333332,
+      "favoured_share": 0.25,
+      "unfavoured_share": 0.6666666666666666
+     },
+     "payout_at_least_1.85": {
+      "n": 2,
+      "wins": 0,
+      "wr": 0.0,
+      "payout": 1.88,
+      "breakeven": 0.5320503749823121,
+      "ev": -1.0,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[1, 2]",
+     "frozen": 46,
+     "not_priced": 0,
+     "trades": {
+      "n": 46,
+      "wins": 21,
+      "wr": 0.45652173913043476,
+      "payout": 1.692826086956522,
+      "breakeven": 0.5918051655983813,
+      "ev": -0.23021739130434793,
+      "favoured_share": 0.9347826086956522,
+      "unfavoured_share": 0.043478260869565216
+     },
+     "always": {
+      "n": 2926,
+      "wins": 1461,
+      "wr": 0.49931647300068355,
+      "payout": 1.792105263157895,
+      "breakeven": 0.5590808461261891,
+      "ev": -0.10620642515379364,
+      "favoured_share": 0.47881066302118935,
+      "unfavoured_share": 0.49726589200273413
+     },
+     "favoured": {
+      "n": 43,
+      "wins": 20,
+      "wr": 0.46511627906976744,
+      "payout": 1.683720930232558,
+      "breakeven": 0.5948299635161103,
+      "ev": -0.21883720930232553,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 2,
+      "wins": 1,
+      "wr": 0.5,
+      "payout": 1.8250000000000002,
+      "breakeven": 0.5479493184411217,
+      "ev": -0.08999999999999997,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 6,
+      "wins": 4,
+      "wr": 0.6666666666666666,
+      "payout": 1.8016666666666667,
+      "breakeven": 0.5551648239620574,
+      "ev": 0.19333333333333336,
+      "favoured_share": 0.5,
+      "unfavoured_share": 0.3333333333333333
+     },
+     "payout_at_least_1.80": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.8200000000000003,
+      "breakeven": 0.5494588435445241,
+      "ev": -0.09250000000000003,
+      "favoured_share": 0.25,
+      "unfavoured_share": 0.5
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[1, 3]",
+     "frozen": 32,
+     "not_priced": 0,
+     "trades": {
+      "n": 32,
+      "wins": 11,
+      "wr": 0.34375,
+      "payout": 1.6871874999999998,
+      "breakeven": 0.59423769783207,
+      "ev": -0.41375000000000006,
+      "favoured_share": 0.9375,
+      "unfavoured_share": 0.0625
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1432,
+      "wr": 0.4887372013651877,
+      "payout": 1.7882286689419793,
+      "breakeven": 0.560358693305555,
+      "ev": -0.1256348122866895,
+      "favoured_share": 0.5078498293515359,
+      "unfavoured_share": 0.4662116040955631
+     },
+     "favoured": {
+      "n": 30,
+      "wins": 10,
+      "wr": 0.3333333333333333,
+      "payout": 1.6783333333333335,
+      "breakeven": 0.5972224018449748,
+      "ev": -0.43500000000000005,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 2,
+      "wins": 1,
+      "wr": 0.5,
+      "payout": 1.82,
+      "breakeven": 0.549467137638499,
+      "ev": -0.09499999999999997,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 6,
+      "wins": 3,
+      "wr": 0.5,
+      "payout": 1.7916666666666667,
+      "breakeven": 0.5582401922059649,
+      "ev": -0.10999999999999999,
+      "favoured_share": 0.6666666666666666,
+      "unfavoured_share": 0.3333333333333333
+     },
+     "payout_at_least_1.80": {
+      "n": 3,
+      "wins": 1,
+      "wr": 0.3333333333333333,
+      "payout": 1.8133333333333332,
+      "breakeven": 0.5514966102775177,
+      "ev": -0.3966666666666666,
+      "favoured_share": 0.3333333333333333,
+      "unfavoured_share": 0.6666666666666666
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[1, 4]",
+     "frozen": 37,
+     "not_priced": 0,
+     "trades": {
+      "n": 37,
+      "wins": 18,
+      "wr": 0.4864864864864865,
+      "payout": 1.682972972972973,
+      "breakeven": 0.5956772302371305,
+      "ev": -0.19270270270270273,
+      "favoured_share": 0.918918918918919,
+      "unfavoured_share": 0.05405405405405406
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1423,
+      "wr": 0.4856655290102389,
+      "payout": 1.7891535836177472,
+      "breakeven": 0.5600698214105042,
+      "ev": -0.13163481228668938,
+      "favoured_share": 0.49385665529010236,
+      "unfavoured_share": 0.47986348122866895
+     },
+     "favoured": {
+      "n": 34,
+      "wins": 17,
+      "wr": 0.5,
+      "payout": 1.670294117647059,
+      "breakeven": 0.5999307347831548,
+      "ev": -0.17470588235294127,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 2,
+      "wins": 0,
+      "wr": 0.0,
+      "payout": 1.835,
+      "breakeven": 0.5449631741506296,
+      "ev": -1.0,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 7,
+      "wins": 2,
+      "wr": 0.2857142857142857,
+      "payout": 1.7871428571428571,
+      "breakeven": 0.5597747497997076,
+      "ev": -0.49142857142857144,
+      "favoured_share": 0.5714285714285714,
+      "unfavoured_share": 0.2857142857142857
+     },
+     "payout_at_least_1.80": {
+      "n": 3,
+      "wins": 1,
+      "wr": 0.3333333333333333,
+      "payout": 1.8266666666666669,
+      "breakeven": 0.5474708453821876,
+      "ev": -0.3966666666666666,
+      "favoured_share": 0.0,
+      "unfavoured_share": 0.6666666666666666
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[1, 5]",
+     "frozen": 62,
+     "not_priced": 0,
+     "trades": {
+      "n": 62,
+      "wins": 33,
+      "wr": 0.532258064516129,
+      "payout": 1.695483870967742,
+      "breakeven": 0.5913435286110107,
+      "ev": -0.10612903225806436,
+      "favoured_share": 0.9193548387096774,
+      "unfavoured_share": 0.08064516129032258
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1416,
+      "wr": 0.48344144759303515,
+      "payout": 1.788562649368385,
+      "breakeven": 0.5602312911637146,
+      "ev": -0.13574257425742575,
+      "favoured_share": 0.49436667804711504,
+      "unfavoured_share": 0.48071013997951517
+     },
+     "favoured": {
+      "n": 57,
+      "wins": 30,
+      "wr": 0.5263157894736842,
+      "payout": 1.6842105263157894,
+      "breakeven": 0.5950564221010475,
+      "ev": -0.12192982456140344,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 5,
+      "wins": 3,
+      "wr": 0.6,
+      "payout": 1.8240000000000003,
+      "breakeven": 0.5490165428245922,
+      "ev": 0.07400000000000007,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 16,
+      "wins": 6,
+      "wr": 0.375,
+      "payout": 1.7875,
+      "breakeven": 0.559749156062896,
+      "ev": -0.33125000000000004,
+      "favoured_share": 0.75,
+      "unfavoured_share": 0.25
+     },
+     "payout_at_least_1.80": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.855,
+      "breakeven": 0.5392118550013286,
+      "ev": -0.08250000000000002,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 3,
+      "wins": 1,
+      "wr": 0.3333333333333333,
+      "payout": 1.8666666666666665,
+      "breakeven": 0.5357989568515884,
+      "ev": -0.3833333333333333,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[2, 3]",
+     "frozen": 32,
+     "not_priced": 0,
+     "trades": {
+      "n": 32,
+      "wins": 17,
+      "wr": 0.53125,
+      "payout": 1.71625,
+      "breakeven": 0.58394724920047,
+      "ev": -0.09593750000000001,
+      "favoured_share": 0.84375,
+      "unfavoured_share": 0.15625
+     },
+     "always": {
+      "n": 2926,
+      "wins": 1458,
+      "wr": 0.49829118250170884,
+      "payout": 1.7910697197539303,
+      "breakeven": 0.5594439801393841,
+      "ev": -0.10807245386192765,
+      "favoured_share": 0.49384825700615176,
+      "unfavoured_share": 0.48222829801777173
+     },
+     "favoured": {
+      "n": 27,
+      "wins": 15,
+      "wr": 0.5555555555555556,
+      "payout": 1.6970370370370371,
+      "breakeven": 0.5900533738585062,
+      "ev": -0.06333333333333346,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 5,
+      "wins": 2,
+      "wr": 0.4,
+      "payout": 1.8199999999999998,
+      "breakeven": 0.5509741760470744,
+      "ev": -0.272,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 7,
+      "wins": 5,
+      "wr": 0.7142857142857143,
+      "payout": 1.8271428571428572,
+      "breakeven": 0.5477785759449024,
+      "ev": 0.2828571428571429,
+      "favoured_share": 0.42857142857142855,
+      "unfavoured_share": 0.5714285714285714
+     },
+     "payout_at_least_1.80": {
+      "n": 5,
+      "wins": 3,
+      "wr": 0.6,
+      "payout": 1.8519999999999999,
+      "breakeven": 0.5402592924040139,
+      "ev": 0.09000000000000008,
+      "favoured_share": 0.2,
+      "unfavoured_share": 0.8
+     },
+     "payout_at_least_1.85": {
+      "n": 2,
+      "wins": 0,
+      "wr": 0.0,
+      "payout": 1.9049999999999998,
+      "breakeven": 0.524937999448884,
+      "ev": -1.0,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[2, 4]",
+     "frozen": 31,
+     "not_priced": 0,
+     "trades": {
+      "n": 31,
+      "wins": 12,
+      "wr": 0.3870967741935484,
+      "payout": 1.6916129032258065,
+      "breakeven": 0.5923831400171525,
+      "ev": -0.336774193548387,
+      "favoured_share": 0.9354838709677419,
+      "unfavoured_share": 0.06451612903225806
+     },
+     "always": {
+      "n": 2927,
+      "wins": 1449,
+      "wr": 0.49504612230953193,
+      "payout": 1.7919781346088144,
+      "breakeven": 0.5591591577003447,
+      "ev": -0.1143833276392211,
+      "favoured_share": 0.48001366586949096,
+      "unfavoured_share": 0.49572941578407925
+     },
+     "favoured": {
+      "n": 29,
+      "wins": 10,
+      "wr": 0.3448275862068966,
+      "payout": 1.6793103448275863,
+      "breakeven": 0.5963529748582985,
+      "ev": -0.42000000000000004,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.87,
+      "breakeven": 0.5348205348205348,
+      "ev": 0.8700000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 4,
+      "wins": 3,
+      "wr": 0.75,
+      "payout": 1.815,
+      "breakeven": 0.5515103481205176,
+      "ev": 0.37749999999999995,
+      "favoured_share": 0.5,
+      "unfavoured_share": 0.5
+     },
+     "payout_at_least_1.80": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.87,
+      "breakeven": 0.5348205348205348,
+      "ev": 0.8700000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.87,
+      "breakeven": 0.5348205348205348,
+      "ev": 0.8700000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[2, 5]",
+     "frozen": 64,
+     "not_priced": 0,
+     "trades": {
+      "n": 64,
+      "wins": 37,
+      "wr": 0.578125,
+      "payout": 1.69765625,
+      "breakeven": 0.5904719991679376,
+      "ev": -0.010156249999999978,
+      "favoured_share": 0.90625,
+      "unfavoured_share": 0.09375
+     },
+     "always": {
+      "n": 2926,
+      "wins": 1442,
+      "wr": 0.49282296650717705,
+      "payout": 1.7913875598086122,
+      "breakeven": 0.5593204817753423,
+      "ev": -0.11848940533151053,
+      "favoured_share": 0.4805194805194805,
+      "unfavoured_share": 0.4965823650034176
+     },
+     "favoured": {
+      "n": 58,
+      "wins": 33,
+      "wr": 0.5689655172413793,
+      "payout": 1.681206896551724,
+      "breakeven": 0.5958260270561891,
+      "ev": -0.03500000000000014,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 6,
+      "wins": 4,
+      "wr": 0.6666666666666666,
+      "payout": 1.8566666666666667,
+      "breakeven": 0.5387163962481732,
+      "ev": 0.2300000000000002,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 11,
+      "wins": 7,
+      "wr": 0.6363636363636364,
+      "payout": 1.813636363636364,
+      "breakeven": 0.5518474059556481,
+      "ev": 0.1536363636363638,
+      "favoured_share": 0.45454545454545453,
+      "unfavoured_share": 0.5454545454545454
+     },
+     "payout_at_least_1.80": {
+      "n": 7,
+      "wins": 5,
+      "wr": 0.7142857142857143,
+      "payout": 1.8485714285714288,
+      "breakeven": 0.5411219904349421,
+      "ev": 0.3114285714285714,
+      "favoured_share": 0.14285714285714285,
+      "unfavoured_share": 0.8571428571428571
+     },
+     "payout_at_least_1.85": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.87,
+      "breakeven": 0.5348423917922313,
+      "ev": -0.06999999999999995,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[3, 4]",
+     "frozen": 28,
+     "not_priced": 0,
+     "trades": {
+      "n": 28,
+      "wins": 17,
+      "wr": 0.6071428571428571,
+      "payout": 1.6760714285714287,
+      "breakeven": 0.5985943120944625,
+      "ev": 0.011428571428571566,
+      "favoured_share": 0.8571428571428571,
+      "unfavoured_share": 0.14285714285714285
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1422,
+      "wr": 0.4853242320819113,
+      "payout": 1.7880955631399318,
+      "breakeven": 0.5604383494220837,
+      "ev": -0.13229692832764506,
+      "favoured_share": 0.5075085324232081,
+      "unfavoured_share": 0.46552901023890786
+     },
+     "favoured": {
+      "n": 24,
+      "wins": 15,
+      "wr": 0.625,
+      "payout": 1.6508333333333332,
+      "breakeven": 0.6071575047944453,
+      "ev": 0.02833333333333332,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.8275000000000001,
+      "breakeven": 0.5472151558945643,
+      "ev": -0.08999999999999997,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.8275000000000001,
+      "breakeven": 0.5472151558945643,
+      "ev": -0.08999999999999997,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.80": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.8275000000000001,
+      "breakeven": 0.5472151558945643,
+      "ev": -0.08999999999999997,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[3, 5]",
+     "frozen": 60,
+     "not_priced": 0,
+     "trades": {
+      "n": 60,
+      "wins": 33,
+      "wr": 0.55,
+      "payout": 1.7361666666666666,
+      "breakeven": 0.5772923174354833,
+      "ev": -0.04816666666666658,
+      "favoured_share": 0.8,
+      "unfavoured_share": 0.2
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1412,
+      "wr": 0.4820757937862752,
+      "payout": 1.7876305906452712,
+      "breakeven": 0.5605605533831167,
+      "ev": -0.13819733697507675,
+      "favoured_share": 0.5080232161147149,
+      "unfavoured_share": 0.4670536019119153
+     },
+     "favoured": {
+      "n": 48,
+      "wins": 30,
+      "wr": 0.625,
+      "payout": 1.7122916666666665,
+      "breakeven": 0.5849952177480297,
+      "ev": 0.07395833333333335,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 12,
+      "wins": 3,
+      "wr": 0.25,
+      "payout": 1.831666666666667,
+      "breakeven": 0.5464807161852973,
+      "ev": -0.5366666666666666,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 25,
+      "wins": 11,
+      "wr": 0.44,
+      "payout": 1.8084,
+      "breakeven": 0.5532191241834523,
+      "ev": -0.20799999999999996,
+      "favoured_share": 0.56,
+      "unfavoured_share": 0.44
+     },
+     "payout_at_least_1.80": {
+      "n": 12,
+      "wins": 4,
+      "wr": 0.3333333333333333,
+      "payout": 1.8433333333333337,
+      "breakeven": 0.5425762092687422,
+      "ev": -0.3866666666666666,
+      "favoured_share": 0.08333333333333333,
+      "unfavoured_share": 0.9166666666666666
+     },
+     "payout_at_least_1.85": {
+      "n": 7,
+      "wins": 2,
+      "wr": 0.2857142857142857,
+      "payout": 1.8585714285714285,
+      "breakeven": 0.5380759297809988,
+      "ev": -0.46571428571428564,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[4, 5]",
+     "frozen": 69,
+     "not_priced": 0,
+     "trades": {
+      "n": 69,
+      "wins": 36,
+      "wr": 0.5217391304347826,
+      "payout": 1.693768115942029,
+      "breakeven": 0.5925184084751292,
+      "ev": -0.11826086956521742,
+      "favoured_share": 0.855072463768116,
+      "unfavoured_share": 0.13043478260869565
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1400,
+      "wr": 0.4779788323659952,
+      "payout": 1.78839194264254,
+      "breakeven": 0.5603251949655383,
+      "ev": -0.14604301809491305,
+      "favoured_share": 0.49573233185387505,
+      "unfavoured_share": 0.47900307272106524
+     },
+     "favoured": {
+      "n": 59,
+      "wins": 32,
+      "wr": 0.5423728813559322,
+      "payout": 1.672033898305085,
+      "breakeven": 0.5997092520394036,
+      "ev": -0.09559322033898299,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 9,
+      "wins": 4,
+      "wr": 0.4444444444444444,
+      "payout": 1.8222222222222224,
+      "breakeven": 0.5501637516676169,
+      "ev": -0.16888888888888898,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 19,
+      "wins": 9,
+      "wr": 0.47368421052631576,
+      "payout": 1.8110526315789472,
+      "breakeven": 0.5525818461533308,
+      "ev": -0.1394736842105262,
+      "favoured_share": 0.5789473684210527,
+      "unfavoured_share": 0.3684210526315789
+     },
+     "payout_at_least_1.80": {
+      "n": 9,
+      "wins": 4,
+      "wr": 0.4444444444444444,
+      "payout": 1.8544444444444446,
+      "breakeven": 0.5394645743017729,
+      "ev": -0.16888888888888898,
+      "favoured_share": 0.1111111111111111,
+      "unfavoured_share": 0.7777777777777778
+     },
+     "payout_at_least_1.85": {
+      "n": 5,
+      "wins": 3,
+      "wr": 0.6,
+      "payout": 1.884,
+      "breakeven": 0.5308552853655215,
+      "ev": 0.13200000000000012,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    }
+   ],
+   "summary": {
+    "paths": 15,
+    "paths_counted": 15,
+    "paths_clear_0.541": 4,
+    "p10_win_rate": 0.41486676016830293,
+    "paths_ev_positive": 1,
+    "p10_ev": -0.29415147265077135,
+    "mean_ev": -0.13747053223208158,
+    "min_ev": -0.41375000000000006,
+    "max_ev": 0.011428571428571566,
+    "mean_win_rate": 0.5077800715504044,
+    "mean_payout": 1.7024073537591384,
+    "mean_breakeven_faced": 0.5887446720521284,
+    "mean_favoured_share": 0.9039317568291074,
+    "mean_always_payout": 1.7898256231999405,
+    "mean_always_ev": -0.12620330221389564,
+    "mean_always_win_rate": 0.48851772450163905,
+    "paths_payout_0.02_below_always": 15,
+    "paths_payout_0.02_above_always": 0,
+    "trades_frozen": 688,
+    "trades_not_priced": 0
+   },
+   "verdict": "NOT CLEARED AT THE QUOTED PAYOUT",
+   "pricing": "ADVERSELY PRICED",
+   "descriptive_pooled_over_paths": {
+    "trades": {
+     "n": 688,
+     "wr": 0.5145348837209303,
+     "payout": 1.7049709302325582,
+     "breakeven_of_mean_payout": 0.5865202639341187,
+     "ev": -0.12437500000000001
+    },
+    "favoured": {
+     "n": 618,
+     "wr": 0.5226537216828478,
+     "payout": 1.6909223300970875,
+     "breakeven_of_mean_payout": 0.5913932190738667,
+     "ev": -0.11723300970873789
+    },
+    "unfavoured": {
+     "n": 65,
+     "wr": 0.4461538461538462,
+     "payout": 1.83,
+     "breakeven_of_mean_payout": 0.5464480874316939,
+     "ev": -0.18076923076923074
+    },
+    "payout_at_least_1.75": {
+     "n": 168,
+     "wr": 0.49404761904761907,
+     "payout": 1.799047619047619,
+     "breakeven_of_mean_payout": 0.5558496559025939,
+     "ev": -0.1121428571428571
+    },
+    "payout_at_least_1.80": {
+     "n": 76,
+     "wr": 0.5,
+     "payout": 1.8376315789473683,
+     "breakeven_of_mean_payout": 0.5441787197479594,
+     "ev": -0.08407894736842103
+    },
+    "payout_at_least_1.85": {
+     "n": 26,
+     "wr": 0.4230769230769231,
+     "payout": 1.8723076923076922,
+     "breakeven_of_mean_payout": 0.5341002465078061,
+     "ev": -0.20884615384615376
+    }
+   },
+   "sensitivity_utc4_clock": {
+    "paths_counted": 15,
+    "paths_ev_positive": 2,
+    "p10_ev": -0.3146233766233766,
+    "mean_ev": -0.1516860501748063,
+    "mean_payout": 1.708277019051999,
+    "mean_win_rate": 0.49768731861785936,
+    "trades_not_priced": 61
+   },
+   "harness_trades_reproduced": {
+    "paths_compared": 15,
+    "identical": true,
+    "max_abs_win_rate_difference": 0.0
+   },
+   "recorded_candidate_reproduced": {
+    "paths_compared": 15,
+    "identical": true,
+    "max_abs_win_rate_difference": 0.0
+   },
+   "actual_quotes": {
+    "trade_rows": 108,
+    "unique_decisions": 94,
+    "mean_actual_payout": 1.7469444444444446,
+    "mean_reconstructed_payout": 1.745555555555555,
+    "mean_abs_error": 0.012685185185185197,
+    "share_within_0.02": 0.8796296296296297,
+    "favoured_share_actual": 0.8148148148148148,
+    "win_rate": 0.6111111111111112,
+    "ev_actual": 0.06046296296296294,
+    "ev_reconstructed": 0.059259259259259345
+   }
+  },
+  "DOWN": {
+   "paths": [
+    {
+     "test": "[0, 1]",
+     "frozen": 134,
+     "not_priced": 0,
+     "trades": {
+      "n": 134,
+      "wins": 80,
+      "wr": 0.5970149253731343,
+      "payout": 1.7123880597014927,
+      "breakeven": 0.5850563605915013,
+      "ev": 0.018656716417910557,
+      "favoured_share": 0.8955223880597015,
+      "unfavoured_share": 0.07462686567164178
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1440,
+      "wr": 0.49163537043359506,
+      "payout": 1.7873881870945716,
+      "breakeven": 0.5606362768870061,
+      "ev": -0.12123933082963456,
+      "favoured_share": 0.49163537043359506,
+      "unfavoured_share": 0.48583134175486514
+     },
+     "favoured": {
+      "n": 120,
+      "wins": 74,
+      "wr": 0.6166666666666667,
+      "payout": 1.7011666666666665,
+      "breakeven": 0.5887786700250072,
+      "ev": 0.04758333333333331,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 10,
+      "wins": 4,
+      "wr": 0.4,
+      "payout": 1.81,
+      "breakeven": 0.5527994700143114,
+      "ev": -0.2809999999999999,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 40,
+      "wins": 19,
+      "wr": 0.475,
+      "payout": 1.7905000000000002,
+      "breakeven": 0.5586037197876321,
+      "ev": -0.1502500000000001,
+      "favoured_share": 0.675,
+      "unfavoured_share": 0.225
+     },
+     "payout_at_least_1.80": {
+      "n": 17,
+      "wins": 7,
+      "wr": 0.4117647058823529,
+      "payout": 1.8141176470588236,
+      "breakeven": 0.5512675761435846,
+      "ev": -0.25235294117647056,
+      "favoured_share": 0.23529411764705882,
+      "unfavoured_share": 0.5294117647058824
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[0, 2]",
+     "frozen": 125,
+     "not_priced": 0,
+     "trades": {
+      "n": 125,
+      "wins": 66,
+      "wr": 0.528,
+      "payout": 1.6930399999999999,
+      "breakeven": 0.5921255223530842,
+      "ev": -0.10808000000000018,
+      "favoured_share": 0.92,
+      "unfavoured_share": 0.08
+     },
+     "always": {
+      "n": 2927,
+      "wins": 1416,
+      "wr": 0.4837717799795012,
+      "payout": 1.787239494362829,
+      "breakeven": 0.5606713969712529,
+      "ev": -0.13586949094636136,
+      "favoured_share": 0.5076870515886573,
+      "unfavoured_share": 0.4718141441749231
+     },
+     "favoured": {
+      "n": 115,
+      "wins": 62,
+      "wr": 0.5391304347826087,
+      "payout": 1.6821739130434785,
+      "breakeven": 0.59573198563511,
+      "ev": -0.09260869565217411,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 10,
+      "wins": 4,
+      "wr": 0.4,
+      "payout": 1.818,
+      "breakeven": 0.550651194609787,
+      "ev": -0.2859999999999999,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 27,
+      "wins": 13,
+      "wr": 0.48148148148148145,
+      "payout": 1.7933333333333334,
+      "breakeven": 0.5578337207993186,
+      "ev": -0.14370370370370367,
+      "favoured_share": 0.6666666666666666,
+      "unfavoured_share": 0.3333333333333333
+     },
+     "payout_at_least_1.80": {
+      "n": 10,
+      "wins": 3,
+      "wr": 0.3,
+      "payout": 1.832,
+      "breakeven": 0.5459657863099208,
+      "ev": -0.45199999999999996,
+      "favoured_share": 0.1,
+      "unfavoured_share": 0.9
+     },
+     "payout_at_least_1.85": {
+      "n": 1,
+      "wins": 0,
+      "wr": 0.0,
+      "payout": 1.9,
+      "breakeven": 0.5263157894736842,
+      "ev": -1.0,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[0, 3]",
+     "frozen": 74,
+     "not_priced": 0,
+     "trades": {
+      "n": 74,
+      "wins": 42,
+      "wr": 0.5675675675675675,
+      "payout": 1.682027027027027,
+      "breakeven": 0.5955775688040577,
+      "ev": -0.04851351351351352,
+      "favoured_share": 0.9594594594594594,
+      "unfavoured_share": 0.02702702702702703
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1467,
+      "wr": 0.5006825938566553,
+      "payout": 1.7904061433447096,
+      "breakeven": 0.5596075939328011,
+      "ev": -0.10278156996587018,
+      "favoured_share": 0.4781569965870307,
+      "unfavoured_share": 0.4993174061433447
+     },
+     "favoured": {
+      "n": 71,
+      "wins": 39,
+      "wr": 0.5492957746478874,
+      "payout": 1.6798591549295774,
+      "breakeven": 0.596320330409715,
+      "ev": -0.08154929577464798,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.7650000000000001,
+      "breakeven": 0.5675971186004631,
+      "ev": 0.7650000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 7,
+      "wins": 3,
+      "wr": 0.42857142857142855,
+      "payout": 1.7714285714285716,
+      "breakeven": 0.5646736139369308,
+      "ev": -0.2371428571428572,
+      "favoured_share": 0.8571428571428571,
+      "unfavoured_share": 0.14285714285714285
+     },
+     "payout_at_least_1.80": {
+      "n": 1,
+      "wins": 1,
+      "wr": 1.0,
+      "payout": 1.84,
+      "breakeven": 0.5434782608695652,
+      "ev": 0.8400000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[0, 4]",
+     "frozen": 88,
+     "not_priced": 0,
+     "trades": {
+      "n": 88,
+      "wins": 53,
+      "wr": 0.6022727272727273,
+      "payout": 1.7192045454545453,
+      "breakeven": 0.5824989629968601,
+      "ev": 0.03238636363636349,
+      "favoured_share": 0.9318181818181818,
+      "unfavoured_share": 0.045454545454545456
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1466,
+      "wr": 0.5003412969283276,
+      "payout": 1.7881023890784982,
+      "breakeven": 0.5603856368551758,
+      "ev": -0.10570307167235493,
+      "favoured_share": 0.49180887372013654,
+      "unfavoured_share": 0.4853242320819113
+     },
+     "favoured": {
+      "n": 82,
+      "wins": 50,
+      "wr": 0.6097560975609756,
+      "payout": 1.709512195121951,
+      "breakeven": 0.5855861673386481,
+      "ev": 0.04060975609756068,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 4,
+      "wins": 1,
+      "wr": 0.25,
+      "payout": 1.8699999999999999,
+      "breakeven": 0.5349765711646717,
+      "ev": -0.5275000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 24,
+      "wins": 11,
+      "wr": 0.4583333333333333,
+      "payout": 1.7854166666666664,
+      "breakeven": 0.560439223267111,
+      "ev": -0.18000000000000005,
+      "favoured_share": 0.75,
+      "unfavoured_share": 0.16666666666666666
+     },
+     "payout_at_least_1.80": {
+      "n": 7,
+      "wins": 4,
+      "wr": 0.5714285714285714,
+      "payout": 1.8442857142857143,
+      "breakeven": 0.5424855110728708,
+      "ev": 0.04571428571428582,
+      "favoured_share": 0.14285714285714285,
+      "unfavoured_share": 0.5714285714285714
+     },
+     "payout_at_least_1.85": {
+      "n": 3,
+      "wins": 1,
+      "wr": 0.3333333333333333,
+      "payout": 1.89,
+      "breakeven": 0.5291400322711276,
+      "ev": -0.37,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[0, 5]",
+     "frozen": 86,
+     "not_priced": 0,
+     "trades": {
+      "n": 86,
+      "wins": 49,
+      "wr": 0.5697674418604651,
+      "payout": 1.7116279069767442,
+      "breakeven": 0.5852150153329253,
+      "ev": -0.032558139534883845,
+      "favoured_share": 0.9186046511627907,
+      "unfavoured_share": 0.06976744186046512
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1468,
+      "wr": 0.5011949470809149,
+      "payout": 1.788224650051212,
+      "breakeven": 0.5603813126549739,
+      "ev": -0.10469784909525426,
+      "favoured_share": 0.49265961078866505,
+      "unfavoured_share": 0.48583134175486514
+     },
+     "favoured": {
+      "n": 79,
+      "wins": 47,
+      "wr": 0.5949367088607594,
+      "payout": 1.7039240506329116,
+      "breakeven": 0.5877512363166711,
+      "ev": 0.009113924050632827,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 6,
+      "wins": 2,
+      "wr": 0.3333333333333333,
+      "payout": 1.7966666666666669,
+      "breakeven": 0.5572762436282087,
+      "ev": -0.42000000000000004,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 23,
+      "wins": 11,
+      "wr": 0.4782608695652174,
+      "payout": 1.7891304347826087,
+      "breakeven": 0.5590258331033467,
+      "ev": -0.1473913043478261,
+      "favoured_share": 0.7391304347826086,
+      "unfavoured_share": 0.21739130434782608
+     },
+     "payout_at_least_1.80": {
+      "n": 8,
+      "wins": 3,
+      "wr": 0.375,
+      "payout": 1.8175,
+      "breakeven": 0.55022196930765,
+      "ev": -0.32125000000000004,
+      "favoured_share": 0.25,
+      "unfavoured_share": 0.625
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[1, 2]",
+     "frozen": 81,
+     "not_priced": 0,
+     "trades": {
+      "n": 81,
+      "wins": 42,
+      "wr": 0.5185185185185185,
+      "payout": 1.695061728395061,
+      "breakeven": 0.5916561947220905,
+      "ev": -0.11530864197530866,
+      "favoured_share": 0.8888888888888888,
+      "unfavoured_share": 0.09876543209876543
+     },
+     "always": {
+      "n": 2926,
+      "wins": 1403,
+      "wr": 0.4794941900205058,
+      "payout": 1.788574846206425,
+      "breakeven": 0.5602344604683609,
+      "ev": -0.1428298017771702,
+      "favoured_share": 0.49726589200273413,
+      "unfavoured_share": 0.47881066302118935
+     },
+     "favoured": {
+      "n": 72,
+      "wins": 36,
+      "wr": 0.5,
+      "payout": 1.6859722222222222,
+      "breakeven": 0.594735267864585,
+      "ev": -0.15236111111111106,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 8,
+      "wins": 5,
+      "wr": 0.625,
+      "payout": 1.76125,
+      "breakeven": 0.5692202420985839,
+      "ev": 0.10124999999999984,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 25,
+      "wins": 17,
+      "wr": 0.68,
+      "payout": 1.7908000000000002,
+      "breakeven": 0.5585339867209819,
+      "ev": 0.21760000000000002,
+      "favoured_share": 0.76,
+      "unfavoured_share": 0.2
+     },
+     "payout_at_least_1.80": {
+      "n": 10,
+      "wins": 7,
+      "wr": 0.7,
+      "payout": 1.8170000000000002,
+      "breakeven": 0.5504138998575392,
+      "ev": 0.274,
+      "favoured_share": 0.4,
+      "unfavoured_share": 0.5
+     },
+     "payout_at_least_1.85": {
+      "n": 1,
+      "wins": 1,
+      "wr": 1.0,
+      "payout": 1.86,
+      "breakeven": 0.5376344086021505,
+      "ev": 0.8600000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[1, 3]",
+     "frozen": 61,
+     "not_priced": 0,
+     "trades": {
+      "n": 61,
+      "wins": 38,
+      "wr": 0.6229508196721312,
+      "payout": 1.6937704918032783,
+      "breakeven": 0.5915082831466405,
+      "ev": 0.05442622950819653,
+      "favoured_share": 0.9016393442622951,
+      "unfavoured_share": 0.08196721311475409
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1455,
+      "wr": 0.49658703071672355,
+      "payout": 1.7919010238907849,
+      "breakeven": 0.5591200224869871,
+      "ev": -0.10932764505119452,
+      "favoured_share": 0.4662116040955631,
+      "unfavoured_share": 0.5078498293515359
+     },
+     "favoured": {
+      "n": 55,
+      "wins": 35,
+      "wr": 0.6363636363636364,
+      "payout": 1.6850909090909085,
+      "breakeven": 0.5943675301882588,
+      "ev": 0.07218181818181812,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 5,
+      "wins": 2,
+      "wr": 0.4,
+      "payout": 1.7719999999999998,
+      "breakeven": 0.5659986717563686,
+      "ev": -0.28600000000000003,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 11,
+      "wins": 9,
+      "wr": 0.8181818181818182,
+      "payout": 1.7909090909090912,
+      "breakeven": 0.5586679376166214,
+      "ev": 0.4590909090909092,
+      "favoured_share": 0.6363636363636364,
+      "unfavoured_share": 0.2727272727272727
+     },
+     "payout_at_least_1.80": {
+      "n": 5,
+      "wins": 3,
+      "wr": 0.6,
+      "payout": 1.828,
+      "breakeven": 0.5472220554187768,
+      "ev": 0.09800000000000009,
+      "favoured_share": 0.4,
+      "unfavoured_share": 0.6
+     },
+     "payout_at_least_1.85": {
+      "n": 1,
+      "wins": 1,
+      "wr": 1.0,
+      "payout": 1.89,
+      "breakeven": 0.5291005291005292,
+      "ev": 0.8899999999999999,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[1, 4]",
+     "frozen": 82,
+     "not_priced": 0,
+     "trades": {
+      "n": 82,
+      "wins": 48,
+      "wr": 0.5853658536585366,
+      "payout": 1.7312195121951217,
+      "breakeven": 0.5787849868513927,
+      "ev": 0.011951219512195133,
+      "favoured_share": 0.8048780487804879,
+      "unfavoured_share": 0.15853658536585366
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1454,
+      "wr": 0.4962457337883959,
+      "payout": 1.7895972696245734,
+      "breakeven": 0.5598980654093618,
+      "ev": -0.11224914675767916,
+      "favoured_share": 0.47986348122866895,
+      "unfavoured_share": 0.49385665529010236
+     },
+     "favoured": {
+      "n": 66,
+      "wins": 40,
+      "wr": 0.6060606060606061,
+      "payout": 1.710151515151515,
+      "breakeven": 0.5855693644094714,
+      "ev": 0.038181818181818095,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 13,
+      "wins": 6,
+      "wr": 0.46153846153846156,
+      "payout": 1.832307692307692,
+      "breakeven": 0.5463646287169204,
+      "ev": -0.1646153846153845,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 34,
+      "wins": 20,
+      "wr": 0.5882352941176471,
+      "payout": 1.7947058823529414,
+      "breakeven": 0.5575363704583944,
+      "ev": 0.050294117647059045,
+      "favoured_share": 0.5882352941176471,
+      "unfavoured_share": 0.35294117647058826
+     },
+     "payout_at_least_1.80": {
+      "n": 14,
+      "wins": 7,
+      "wr": 0.5,
+      "payout": 1.842142857142857,
+      "breakeven": 0.5429775480189616,
+      "ev": -0.08357142857142852,
+      "favoured_share": 0.07142857142857142,
+      "unfavoured_share": 0.8571428571428571
+     },
+     "payout_at_least_1.85": {
+      "n": 5,
+      "wins": 2,
+      "wr": 0.4,
+      "payout": 1.874,
+      "breakeven": 0.5336818820945132,
+      "ev": -0.256,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[1, 5]",
+     "frozen": 60,
+     "not_priced": 0,
+     "trades": {
+      "n": 60,
+      "wins": 38,
+      "wr": 0.6333333333333333,
+      "payout": 1.7256666666666665,
+      "breakeven": 0.5805993092269086,
+      "ev": 0.09616666666666651,
+      "favoured_share": 0.8333333333333334,
+      "unfavoured_share": 0.11666666666666667
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1456,
+      "wr": 0.497097985660635,
+      "payout": 1.7897200409696143,
+      "breakeven": 0.5598935747457096,
+      "ev": -0.11124615909866853,
+      "favoured_share": 0.48071013997951517,
+      "unfavoured_share": 0.49436667804711504
+     },
+     "favoured": {
+      "n": 50,
+      "wins": 30,
+      "wr": 0.6,
+      "payout": 1.715,
+      "breakeven": 0.5839994124613598,
+      "ev": 0.029000000000000137,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 7,
+      "wins": 6,
+      "wr": 0.8571428571428571,
+      "payout": 1.7685714285714287,
+      "breakeven": 0.5674647772059546,
+      "ev": 0.5328571428571429,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 23,
+      "wins": 16,
+      "wr": 0.6956521739130435,
+      "payout": 1.7960869565217392,
+      "breakeven": 0.5570020152642979,
+      "ev": 0.25260869565217403,
+      "favoured_share": 0.6956521739130435,
+      "unfavoured_share": 0.17391304347826086
+     },
+     "payout_at_least_1.80": {
+      "n": 10,
+      "wins": 8,
+      "wr": 0.8,
+      "payout": 1.83,
+      "breakeven": 0.5465908586942951,
+      "ev": 0.4670000000000001,
+      "favoured_share": 0.4,
+      "unfavoured_share": 0.4
+     },
+     "payout_at_least_1.85": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.88,
+      "breakeven": 0.5320503749823121,
+      "ev": 0.8799999999999999,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[2, 3]",
+     "frozen": 41,
+     "not_priced": 0,
+     "trades": {
+      "n": 41,
+      "wins": 24,
+      "wr": 0.5853658536585366,
+      "payout": 1.6778048780487806,
+      "breakeven": 0.5975684594512489,
+      "ev": -0.018780487804878176,
+      "favoured_share": 0.9024390243902439,
+      "unfavoured_share": 0.07317073170731707
+     },
+     "always": {
+      "n": 2926,
+      "wins": 1428,
+      "wr": 0.4880382775119617,
+      "payout": 1.791736158578264,
+      "breakeven": 0.5591572879448058,
+      "ev": -0.12513328776486687,
+      "favoured_share": 0.48222829801777173,
+      "unfavoured_share": 0.49384825700615176
+     },
+     "favoured": {
+      "n": 37,
+      "wins": 21,
+      "wr": 0.5675675675675675,
+      "payout": 1.6710810810810808,
+      "breakeven": 0.5999030147513794,
+      "ev": -0.056486486486486576,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 3,
+      "wins": 2,
+      "wr": 0.6666666666666666,
+      "payout": 1.7133333333333332,
+      "breakeven": 0.5848149140832067,
+      "ev": 0.16666666666666674,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 9,
+      "wins": 4,
+      "wr": 0.4444444444444444,
+      "payout": 1.7777777777777777,
+      "breakeven": 0.5626047091006146,
+      "ev": -0.20444444444444443,
+      "favoured_share": 0.7777777777777778,
+      "unfavoured_share": 0.1111111111111111
+     },
+     "payout_at_least_1.80": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.82,
+      "breakeven": 0.5494505494505494,
+      "ev": 0.8200000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 0.5
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[2, 4]",
+     "frozen": 68,
+     "not_priced": 0,
+     "trades": {
+      "n": 68,
+      "wins": 38,
+      "wr": 0.5588235294117647,
+      "payout": 1.7089705882352941,
+      "breakeven": 0.5863718407053465,
+      "ev": -0.0389705882352942,
+      "favoured_share": 0.8529411764705882,
+      "unfavoured_share": 0.1323529411764706
+     },
+     "always": {
+      "n": 2927,
+      "wins": 1428,
+      "wr": 0.4878715408267851,
+      "payout": 1.7894601981551077,
+      "breakeven": 0.5599276830618848,
+      "ev": -0.1277143833276393,
+      "favoured_share": 0.49572941578407925,
+      "unfavoured_share": 0.48001366586949096
+     },
+     "favoured": {
+      "n": 58,
+      "wins": 31,
+      "wr": 0.5344827586206896,
+      "payout": 1.6951724137931032,
+      "breakeven": 0.5908792258705031,
+      "ev": -0.09258620689655173,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 9,
+      "wins": 6,
+      "wr": 0.6666666666666666,
+      "payout": 1.7855555555555556,
+      "breakeven": 0.5614266131137595,
+      "ev": 0.21111111111111125,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 19,
+      "wins": 14,
+      "wr": 0.7368421052631579,
+      "payout": 1.7942105263157897,
+      "breakeven": 0.5576364019584852,
+      "ev": 0.3252631578947369,
+      "favoured_share": 0.631578947368421,
+      "unfavoured_share": 0.3157894736842105
+     },
+     "payout_at_least_1.80": {
+      "n": 9,
+      "wins": 7,
+      "wr": 0.7777777777777778,
+      "payout": 1.8322222222222224,
+      "breakeven": 0.5459029677203978,
+      "ev": 0.42777777777777803,
+      "favoured_share": 0.2222222222222222,
+      "unfavoured_share": 0.6666666666666666
+     },
+     "payout_at_least_1.85": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.875,
+      "breakeven": 0.5333371259528956,
+      "ev": 0.875,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[2, 5]",
+     "frozen": 45,
+     "not_priced": 0,
+     "trades": {
+      "n": 45,
+      "wins": 24,
+      "wr": 0.5333333333333333,
+      "payout": 1.7093333333333327,
+      "breakeven": 0.5859337510510726,
+      "ev": -0.08666666666666678,
+      "favoured_share": 0.9111111111111111,
+      "unfavoured_share": 0.08888888888888889
+     },
+     "always": {
+      "n": 2926,
+      "wins": 1430,
+      "wr": 0.48872180451127817,
+      "payout": 1.789583048530417,
+      "breakeven": 0.5599231979162304,
+      "ev": -0.12671565276828434,
+      "favoured_share": 0.4965823650034176,
+      "unfavoured_share": 0.4805194805194805
+     },
+     "favoured": {
+      "n": 41,
+      "wins": 22,
+      "wr": 0.5365853658536586,
+      "payout": 1.701219512195122,
+      "breakeven": 0.5885960107259778,
+      "ev": -0.086829268292683,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 4,
+      "wins": 2,
+      "wr": 0.5,
+      "payout": 1.7925,
+      "breakeven": 0.5586455893832942,
+      "ev": -0.08499999999999996,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 11,
+      "wins": 5,
+      "wr": 0.45454545454545453,
+      "payout": 1.7836363636363637,
+      "breakeven": 0.5608345579808647,
+      "ev": -0.18454545454545468,
+      "favoured_share": 0.7272727272727273,
+      "unfavoured_share": 0.2727272727272727
+     },
+     "payout_at_least_1.80": {
+      "n": 4,
+      "wins": 3,
+      "wr": 0.75,
+      "payout": 1.8225,
+      "breakeven": 0.5487249544626593,
+      "ev": 0.365,
+      "favoured_share": 0.25,
+      "unfavoured_share": 0.75
+     },
+     "payout_at_least_1.85": {
+      "n": 0
+     }
+    },
+    {
+     "test": "[3, 4]",
+     "frozen": 58,
+     "not_priced": 0,
+     "trades": {
+      "n": 58,
+      "wins": 26,
+      "wr": 0.4482758620689655,
+      "payout": 1.7148275862068967,
+      "breakeven": 0.5846748527824817,
+      "ev": -0.22448275862068956,
+      "favoured_share": 0.8103448275862069,
+      "unfavoured_share": 0.1206896551724138
+     },
+     "always": {
+      "n": 2930,
+      "wins": 1476,
+      "wr": 0.5037542662116041,
+      "payout": 1.7927098976109217,
+      "breakeven": 0.5588367766463014,
+      "ev": -0.09639590443686008,
+      "favoured_share": 0.46552901023890786,
+      "unfavoured_share": 0.5075085324232081
+     },
+     "favoured": {
+      "n": 47,
+      "wins": 21,
+      "wr": 0.44680851063829785,
+      "payout": 1.6938297872340422,
+      "breakeven": 0.5916305156463152,
+      "ev": -0.23425531914893627,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 7,
+      "wins": 3,
+      "wr": 0.42857142857142855,
+      "payout": 1.7985714285714285,
+      "breakeven": 0.5572333930593446,
+      "ev": -0.23571428571428577,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 20,
+      "wins": 10,
+      "wr": 0.5,
+      "payout": 1.802,
+      "breakeven": 0.5551608873947548,
+      "ev": -0.09949999999999992,
+      "favoured_share": 0.55,
+      "unfavoured_share": 0.25
+     },
+     "payout_at_least_1.80": {
+      "n": 13,
+      "wins": 7,
+      "wr": 0.5384615384615384,
+      "payout": 1.8238461538461541,
+      "breakeven": 0.5483909011105406,
+      "ev": -0.02076923076923065,
+      "favoured_share": 0.3076923076923077,
+      "unfavoured_share": 0.38461538461538464
+     },
+     "payout_at_least_1.85": {
+      "n": 3,
+      "wins": 1,
+      "wr": 0.3333333333333333,
+      "payout": 1.8633333333333333,
+      "breakeven": 0.5366966142532373,
+      "ev": -0.38,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[3, 5]",
+     "frozen": 32,
+     "not_priced": 0,
+     "trades": {
+      "n": 32,
+      "wins": 15,
+      "wr": 0.46875,
+      "payout": 1.731875,
+      "breakeven": 0.578032038111501,
+      "ev": -0.18625000000000003,
+      "favoured_share": 0.90625,
+      "unfavoured_share": 0.09375
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1481,
+      "wr": 0.5056333219528849,
+      "payout": 1.792748378286105,
+      "breakeven": 0.5588597980167771,
+      "ev": -0.09362581085694777,
+      "favoured_share": 0.4670536019119153,
+      "unfavoured_share": 0.5080232161147149
+     },
+     "favoured": {
+      "n": 29,
+      "wins": 13,
+      "wr": 0.4482758620689655,
+      "payout": 1.7186206896551721,
+      "breakeven": 0.5822014549804709,
+      "ev": -0.2313793103448275,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 3,
+      "wins": 2,
+      "wr": 0.6666666666666666,
+      "payout": 1.86,
+      "breakeven": 0.5377276750447912,
+      "ev": 0.25,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 11,
+      "wins": 5,
+      "wr": 0.45454545454545453,
+      "payout": 1.7963636363636362,
+      "breakeven": 0.5569872457186691,
+      "ev": -0.1763636363636365,
+      "favoured_share": 0.7272727272727273,
+      "unfavoured_share": 0.2727272727272727
+     },
+     "payout_at_least_1.80": {
+      "n": 3,
+      "wins": 2,
+      "wr": 0.6666666666666666,
+      "payout": 1.86,
+      "breakeven": 0.5377276750447912,
+      "ev": 0.25,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 2,
+      "wins": 2,
+      "wr": 1.0,
+      "payout": 1.875,
+      "breakeven": 0.5333674688513399,
+      "ev": 0.875,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    },
+    {
+     "test": "[4, 5]",
+     "frozen": 53,
+     "not_priced": 0,
+     "trades": {
+      "n": 53,
+      "wins": 32,
+      "wr": 0.6037735849056604,
+      "payout": 1.7432075471698107,
+      "breakeven": 0.5745154239482884,
+      "ev": 0.04962264150943407,
+      "favoured_share": 0.7924528301886793,
+      "unfavoured_share": 0.20754716981132076
+     },
+     "always": {
+      "n": 2929,
+      "wins": 1482,
+      "wr": 0.5059747354045749,
+      "payout": 1.7905599180607716,
+      "breakeven": 0.5596004603534703,
+      "ev": -0.09535336292249919,
+      "favoured_share": 0.47900307272106524,
+      "unfavoured_share": 0.49573233185387505
+     },
+     "favoured": {
+      "n": 42,
+      "wins": 25,
+      "wr": 0.5952380952380952,
+      "payout": 1.7171428571428569,
+      "breakeven": 0.5827292936844601,
+      "ev": 0.020238095238095166,
+      "favoured_share": 1.0,
+      "unfavoured_share": 0.0
+     },
+     "unfavoured": {
+      "n": 11,
+      "wins": 7,
+      "wr": 0.6363636363636364,
+      "payout": 1.842727272727273,
+      "breakeven": 0.543153375864723,
+      "ev": 0.16181818181818186,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.75": {
+      "n": 22,
+      "wins": 12,
+      "wr": 0.5454545454545454,
+      "payout": 1.8054545454545456,
+      "breakeven": 0.5543249811757271,
+      "ev": -0.016818181818181732,
+      "favoured_share": 0.5454545454545454,
+      "unfavoured_share": 0.45454545454545453
+     },
+     "payout_at_least_1.80": {
+      "n": 10,
+      "wins": 6,
+      "wr": 0.6,
+      "payout": 1.857,
+      "breakeven": 0.5386451840394306,
+      "ev": 0.1080000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     },
+     "payout_at_least_1.85": {
+      "n": 5,
+      "wins": 3,
+      "wr": 0.6,
+      "payout": 1.8820000000000001,
+      "breakeven": 0.5314297188682476,
+      "ev": 0.1180000000000001,
+      "favoured_share": 0.0,
+      "unfavoured_share": 1.0
+     }
+    }
+   ],
+   "summary": {
+    "paths": 15,
+    "paths_counted": 15,
+    "paths_clear_0.541": 10,
+    "p10_win_rate": 0.4886574074074074,
+    "paths_ev_positive": 6,
+    "p10_ev": -0.15787345679012346,
+    "mean_ev": -0.039760063940031246,
+    "min_ev": -0.22448275862068956,
+    "max_ev": 0.09616666666666651,
+    "mean_win_rate": 0.5615408900423114,
+    "mean_payout": 1.7100016580809367,
+    "mean_breakeven_faced": 0.5860079046716933,
+    "mean_favoured_share": 0.8819788843674646,
+    "mean_always_payout": 1.7898634429229872,
+    "mean_always_ev": -0.11405883115141904,
+    "mean_always_win_rate": 0.49513632499228954,
+    "paths_payout_0.02_below_always": 15,
+    "paths_payout_0.02_above_always": 0,
+    "trades_frozen": 1088,
+    "trades_not_priced": 0
+   },
+   "verdict": "NOT CLEARED AT THE QUOTED PAYOUT",
+   "pricing": "ADVERSELY PRICED",
+   "descriptive_pooled_over_paths": {
+    "trades": {
+     "n": 1088,
+     "wr": 0.5652573529411765,
+     "payout": 1.7089705882352941,
+     "breakeven_of_mean_payout": 0.5851475776611307,
+     "ev": -0.03445772058823535
+    },
+    "favoured": {
+     "n": 964,
+     "wr": 0.5663900414937759,
+     "payout": 1.6968983402489626,
+     "breakeven_of_mean_payout": 0.589310494495082,
+     "ev": -0.03900414937759344
+    },
+    "unfavoured": {
+     "n": 102,
+     "wr": 0.5294117647058824,
+     "payout": 1.804313725490196,
+     "breakeven_of_mean_payout": 0.5542273418821996,
+     "ev": -0.04764705882352938
+    },
+    "payout_at_least_1.75": {
+     "n": 306,
+     "wr": 0.5522875816993464,
+     "payout": 1.7923856209150328,
+     "breakeven_of_mean_payout": 0.5579156562801976,
+     "ev": -0.01058823529411762
+    },
+    "payout_at_least_1.80": {
+     "n": 123,
+     "wr": 0.5691056910569106,
+     "payout": 1.8303252032520325,
+     "breakeven_of_mean_payout": 0.5463509972016168,
+     "ev": 0.04081300813008137
+    },
+    "payout_at_least_1.85": {
+     "n": 25,
+     "wr": 0.6,
+     "payout": 1.8780000000000001,
+     "breakeven_of_mean_payout": 0.5324813631522897,
+     "ev": 0.1228
+    }
+   },
+   "sensitivity_utc4_clock": {
+    "paths_counted": 15,
+    "paths_ev_positive": 7,
+    "p10_ev": -0.18977962264150947,
+    "mean_ev": -0.050011432098736486,
+    "mean_payout": 1.7023474023801493,
+    "mean_win_rate": 0.5576103766945643,
+    "trades_not_priced": 83
+   },
+   "harness_trades_reproduced": {
+    "paths_compared": 15,
+    "identical": true,
+    "max_abs_win_rate_difference": 0.0
+   },
+   "recorded_candidate_reproduced": {
+    "paths_compared": 15,
+    "identical": true,
+    "max_abs_win_rate_difference": 0.0
+   },
+   "actual_quotes": {
+    "trade_rows": 16,
+    "unique_decisions": 15,
+    "mean_actual_payout": 1.723125,
+    "mean_reconstructed_payout": 1.7218749999999998,
+    "mean_abs_error": 0.007500000000000007,
+    "share_within_0.02": 0.875,
+    "favoured_share_actual": 0.875,
+    "win_rate": 0.625,
+    "ev_actual": 0.07562500000000005,
+    "ev_reconstructed": 0.07562500000000005
+   }
+  }
+ },
+ "quote_model": {
+  "dir": "/mnt/data/deriv-sota-lab/cache/venue_quote_model_v1",
+  "tool": "venue_quote_model/0.1",
+  "sha256": {
+   "skew.txt": "8b838c3835a043cdcf11088e4b64421c367cc5bc4dfa89933dd92d7fed81f615",
+   "overround.txt": "5e3bc601440d909ad304eccc2cd4c868333d395f4d3841bd368aac7273c07f61",
+   "venue_quote_model.py": "a292a49fe397c9518b894c48ed11de01c06a31db2a0999b11b9902390d167aba",
+   "venue_quote_study.py": "dcd53e4042d88d388a50696ff4f3eb39e545a233592c6f36922f98023f6292d3"
+  },
+  "rows": 168335,
+  "pair_has_quote_lane": true,
+  "assumptions": [
+   "the pricing rule of 2026-07-02..2026-07-31 is applied to other dates unchanged (not checkable on disk)",
+   "clock=ny: the daily pattern follows the New York clock all year; clock=utc4: it stays at the UTC times of July (the archive has summer dates only, so it cannot tell the two apart)",
+   "a pair without a quote lane is priced by the rule of the six quoted pairs (see leave_one_pair_out)"
+  ]
+ },
+ "decisions_priced": {
+  "unique": 129265,
+  "priced_new_york_clock": 129265,
+  "priced_utc4_clock": 124962,
+  "rise_payout_p5_p50_p95": [
+   1.68,
+   1.8,
+   1.91
+  ],
+  "fall_payout_p5_p50_p95": [
+   1.68,
+   1.8,
+   1.91
+  ],
+  "mean_breakeven_rise": 0.5592523696319126,
+  "mean_breakeven_fall": 0.5594138419506286,
+  "share_clocks_differ_by_more_than_0.02": 0.04258894703990013
+ },
+ "code_sha256": "aa3280731bec47341d53ecf67b7c454063840b4e293b26587799a8f3149d33e6"
+}

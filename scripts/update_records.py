@@ -205,6 +205,7 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
                 'cpcv_deriv_x.py'),
 }
 NOT_CANDIDATES = {k for k, v in EXPERIMENTS.items() if v[0].startswith('ROBUSTNESS CHECK')}
+PAYOUT_READING_VERSIONS = ('analyze_payout_aware/0.1',)   # readings whose JSON layout notes_block can render
 
 R1_FILES = {   # frozen-book readings: file stem -> description
     'deriv_r1_frozen_books_dev_result.json': 'R1: frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout',
@@ -431,6 +432,48 @@ def notes_block(pair):
     out.append('- **Deployment status (Deriv feed):** ' + ('; '.join(parts) + '; every other key and side: ' if parts else '')
                + 'DO NOT DEPLOY - no candidate has passed both the DEV-CPCV goal rule (or the drift amendment) and a '
                'sealed-holdout look, and deployment needs both.')
+    # Payout-aware readings (analyze_payout_aware.py): a recorded candidate's frozen trades, each priced with the payout the
+    # venue quote model reconstructs for its side at the decision. An estimate, not a venue record, and not a certificate.
+    # Averages are unweighted means over the counted paths; trade totals count a decision once per path it sits in.
+    for f in sorted(J.glob(f'deriv_*_{pair}_15m_result.json')):
+        d = json.loads(f.read_text())
+        version = str(d.get('analysis', ''))
+        if not version.startswith('analyze_payout_aware/'):
+            continue
+        if version not in PAYOUT_READING_VERSIONS:
+            raise SystemExit(f'{f.name}: {version} is not a payout-aware reading this script can render')
+        if d['pair'] != pair or d['horizon_min'] != 15:
+            raise SystemExit(f'{f.name}: holds {d["pair"]} {d["horizon_min"]}m, not {pair} 15m')
+        parts = []
+        for side in ('UP', 'DOWN'):
+            v = d['sides'][side]
+            m = v['summary']
+            checks = [v['harness_trades_reproduced'], v['recorded_candidate_reproduced']]
+            if any(c is None or not c['identical'] or c['paths_compared'] != len(v['paths']) for c in checks):
+                parts.append(f'{side} not readable: the frozen trades do not reproduce the harness and the recorded '
+                             'candidate on every path')
+                continue
+            if not m['trades_frozen']:
+                parts.append(f'{side} {v["verdict"]}: the candidate takes no {side} trade')
+                continue
+            unpriced = (f'{m["trades_not_priced"]} of {m["trades_frozen"]} trades over the 15 paths not priced (clock cells '
+                        'with too few quotes in the archive)')
+            if not m['paths_counted']:
+                parts.append(f'{side} {v["verdict"]}: no path with 25 or more priced trades; {unpriced}')
+                continue
+            pricing = v['pricing'] if m['paths_counted'] >= 12 else 'pricing not classified (fewer than 12 counted paths)'
+            verdict = v['verdict'] + (' (on development data; not a certificate)' if v['verdict'] == 'PAYOUT-CLEARED' else '')
+            parts.append(f'{side} {verdict}, {pricing}: expected value per unit staked above 0 on '
+                         f'{m["paths_ev_positive"]} of {m["paths_counted"]} counted paths, p10 {m["p10_ev"]:+.4f}, mean '
+                         f'{m["mean_ev"]:+.4f}; win rate {m["mean_win_rate"]:.4f} at mean payout {m["mean_payout"]:.4f} (mean '
+                         f'breakeven faced {m["mean_breakeven_faced"]:.4f}; always-{side} payout {m["mean_always_payout"]:.4f}, '
+                         f'expected value {m["mean_always_ev"]:+.4f}); the lower-paid side was bought on '
+                         f'{m["mean_favoured_share"]:.3f} of the trades; {unpriced}')
+        lane = '' if d['quote_model']['pair_has_quote_lane'] else '; this pair has no quotes in the archive and is priced by the other six pairs\' rule'
+        out.append(f'- **Payout-aware reading of `{d["candidate"]}` 15m** (`{f.name}`, cov {d["cov"]}; the candidate\'s trades '
+                   'frozen, each priced with the payout reconstructed for its decision from the July 2026 quote archive - an '
+                   f'estimate resting on the assumptions in docs/DERIV_SOTA_PROGRAM.md "Venue payouts", not a venue record{lane}; '
+                   'averages are over the counted paths): ' + '; '.join(parts) + '.')
     out.append('- Superseded: `e1` and `r2` ran before the venue tradeability filter (they include untradeable blackout '
                'decisions); their tradeable re-runs are `e1t` and `r2t`.')
     checks = sorted(t for t in NOT_CANDIDATES if (J / f'deriv_{t}_{pair}_15m_result.json').exists()

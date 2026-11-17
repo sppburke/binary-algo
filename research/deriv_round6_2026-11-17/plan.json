@@ -1005,7 +1005,7 @@
    "id": "R6-GAP-02",
    "decision": "accept",
    "stage_or_covered_by": 7,
-   "why": "The contract terms are unknown and the schedule caps the number of trades, so the count check runs first and decides whether anything is fitted.",
+   "why": "The payout at these durations is unknown (the durations themselves are listed for frxEURUSD only, docs/deriv_frxEURUSD_contracts_for.json) and the schedule caps the number of trades, so the count check runs first and decides whether anything is fitted.",
    "narrowed_to": "Count check only until it passes: with New York 08:00-17:00 decisions and the recorded pre-close purchase cutoff (last accepted start 16:34:40 New York, results/json/deriv_api_probe_result.json), an eight-hour contract can start only between 08:00 and about 08:50, at most one trade a day, about 85 per path at 100% coverage. The gap-finder's prior of medium is lowered to low.",
    "evidence": "Arithmetic on the session window and the recorded cutoff. checks/pass_probability.py (all 15 paths counted, equal trade counts, one win probability): an even chance of passing the goal rule needs a true win rate of 0.60 to 0.61 at 60 trades per path and 0.59 to 0.60 at 100, so about 85 trades per path at full coverage needs one near 0.60, and fewer trades need more. A one-day contract leaves the New York decision window and needs its own terms from the venue.",
    "prior": "low"
@@ -1059,9 +1059,9 @@
    "id": "R6-GAP-08",
    "decision": "accept",
    "stage_or_covered_by": 7,
-   "why": "Move size is the one thing this feed predicts well and no cluster trades it. Step 1 is one metadata call per pair and decides whether the rest exists.",
+   "why": "Move size is the one thing this feed predicts well and no cluster trades it. Step 1 is one metadata call per pair and decides whether the rest exists; the list on disk answers it for frxEURUSD.",
    "narrowed_to": null,
-   "evidence": "results/json/deriv_e13mag50_<PAIR>_15m_result.json mag_gate.mag_auc_test: path means 0.640 to 0.707 by pair, against direction path-mean AUC medians of 0.498 to 0.511 outside USDJPY. results/json/deriv_api_probe_result.json runs.e_proposal.observations.contracts_for (frxUSDJPY, 2026-07-02): 16 contract types including ONETOUCH, NOTOUCH, EXPIRYRANGE, EXPIRYMISS, RANGE, UPORDOWN; min_durations ['0', '15m', '1d'], max_durations ['0', '1d', '365d']; which type has which duration is not recorded.",
+   "evidence": "results/json/deriv_e13mag50_<PAIR>_15m_result.json mag_gate.mag_auc_test: path means 0.640 to 0.707 by pair, against direction path-mean AUC medians of 0.498 to 0.511 outside USDJPY. results/json/deriv_api_probe_result.json runs.e_proposal.observations.contracts_for (frxUSDJPY, 2026-07-02): 16 contract types including ONETOUCH, NOTOUCH, EXPIRYRANGE, EXPIRYMISS, RANGE, UPORDOWN; min_durations ['0', '15m', '1d'], max_durations ['0', '1d', '365d']; which type has which duration is not recorded in that probe. docs/deriv_frxEURUSD_contracts_for.json (frxEURUSD, trading day 2026-06-03) records it: ONETOUCH, NOTOUCH, EXPIRYRANGE, EXPIRYMISS, RANGE and UPORDOWN are offered at 1 to 365 days only.",
    "prior": null
   },
   {
@@ -1478,7 +1478,7 @@
    "ranking_decisions": [
     2
    ],
-   "added_by_primary_agent": "The contract list by pair and contract type. Step 1 of R6-GAP-08 and the trading-times check of R6-GAP-09 need it, and C-009, C-010 and R6-GAP-02 are conditional on contract terms that only it can confirm.",
+   "added_by_primary_agent": "The contract list by pair and contract type: on disk for frxEURUSD only (docs/deriv_frxEURUSD_contracts_for.json, trading day 2026-06-03). Step 1 of R6-GAP-08 and the trading-times check of R6-GAP-09 need it for the other pairs, and C-009, C-010 and R6-GAP-02 are conditional on payouts at their durations, which only venue quotes can supply. The July 2026 quote archive (15-minute contracts, six pairs) was found on disk after this round was recorded; the README addendum of 2026-11-17 says what it changes.",
    "gates": "stage 7"
   },
   {
@@ -1676,9 +1676,9 @@
   {
    "claim": "The additional durations and NY 16:00 expiry must be offered with usable terms and adequate schedule support.",
    "by": "C-009",
-   "status": "not yet verified: needs venue metadata",
-   "evidence": "On disk (results/json/deriv_api_probe_result.json, frxUSDJPY, 2026-07-02): 20 available contracts, min_durations ['0', '15m', '1d'], max_durations ['0', '1d', '365d'], without the mapping from contract type to duration; one Rise/Fall proposal with payout 1.9 at 00:29 New York. Schedule ceilings at 100% coverage inside New York 08:00-17:00 with the 16:35 purchase cutoff: 60 minutes up to 8 a day, 120 minutes 4, 240 minutes 2, eight hours at most 1.",
-   "needed": "One contracts_for call per pair that stores the full list (type, minimum and maximum duration, expiry type, barriers), and proposals at 60, 120 and 240 minutes during New York hours. Owner decision: venue access."
+   "status": "partly verified: durations on disk for frxEURUSD only; no payout at these durations is on disk",
+   "evidence": "On disk (results/json/deriv_api_probe_result.json, frxUSDJPY, 2026-07-02): 20 available contracts, min_durations ['0', '15m', '1d'], max_durations ['0', '1d', '365d'], without the mapping from contract type to duration; one Rise/Fall proposal with payout 1.9 at 00:29 New York. docs/deriv_frxEURUSD_contracts_for.json (contracts_for for frxEURUSD, trading day 2026-06-03; found after this disposition was first written) lists 22 contracts with type, start type and duration limits: Rise/Fall (CALL, PUT) and Rise/Fall Equal (CALLE, PUTE) at 15 minutes to 1 day from a spot or a forward start and at 1 to 365 days; touch/no-touch, ends-between/outside and stays-between/goes-outside at 1 to 365 days only. So 60, 120 and 240 minutes lie inside the listed Rise/Fall range for EURUSD; whether a purchase may name an expiry time is not in the list, and the other six pairs' lists are not on disk. Payouts on disk are for the 15-minute contract only (July 2026 quote archive, six pairs without EURUSD; results/json/deriv_venue_quote_study_2026-07_result.json). Schedule ceilings at 100% coverage inside New York 08:00-17:00 with the 16:35 purchase cutoff: 60 minutes up to 8 a day, 120 minutes 4, 240 minutes 2, eight hours at most 1.",
+   "needed": "One contracts_for call for each of the other six pairs that stores the full list (type, minimum and maximum duration, expiry type, barriers), and proposals at 60, 120 and 240 minutes during New York hours for the payouts. Owner decision: venue access."
   },
   {
    "claim": "Candidate external archives must cover all six groups with defensible availability timestamps.",

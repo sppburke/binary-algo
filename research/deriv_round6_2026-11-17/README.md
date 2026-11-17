@@ -257,7 +257,9 @@ of bars, so the square-root-of-horizon scaling that `A-056` proposes is dimensio
 boosting takes the row order as its one permutation when `has_time=True`, so `A-032` must sort rows chronologically
 (`checks/library_behaviour_fixture.py`, a synthetic fixture); the three members of `ens3` are trained differently
 (only LightGBM receives sample weights), so GPU producers are new recipes (`A-075`); the durations Deriv offers per
-contract type are not on record and need one metadata call per pair (`C-009`); the Deriv tick archive holds the seven
+contract type are on disk for frxEURUSD only (`docs/deriv_frxEURUSD_contracts_for.json`: Rise/Fall at 15 minutes to
+1 day and at 1 to 365 days), the other six pairs need one metadata call each, and no payout at the durations `C-009`
+names is on disk (`C-009`; corrected on 2026-11-17, see the addendum below); the Deriv tick archive holds the seven
 pairs only and no approved same-asset reference archive with receipt timestamps is on disk (`B-038`; other disks were
 not searched); the legacy-vendor clock correction is checked against Deriv ticks only for 2025-08-11 to 2026-06-06
 (`B-042`; `/mnt/data/deriv/checks/clock_corrected_agreement_result.json`, outside the repository).
@@ -270,7 +272,7 @@ not searched); the legacy-vendor clock correction is checked against Deriv ticks
 |---|---|---|---|
 | 7 Parallel fits | none | the staged path-parallel harness, measured after the ranking; independent jobs side by side (`E-019`) are a further step | `E-019`, `E-020` (stage 1); `E-018` (stage 3) |
 | 8 Release policy | 1 | none | stages 1-6 |
-| 9 Venue access | 2 | the contract list by pair and contract type, which `R6-GAP-08` and `R6-GAP-09` need and on which `C-009`, `C-010` and `R6-GAP-02` are conditional | stage 7 |
+| 9 Venue access | 2 | the contract list by pair and contract type (on disk for frxEURUSD only), which `R6-GAP-08` and `R6-GAP-09` need for the other pairs; `C-009`, `C-010` and `R6-GAP-02` are conditional on payouts at their durations, which only venue quotes can supply | stage 7 |
 | 10 New keys | 4 | contract types that pay on move size (`R6-GAP-08`); London and Asian decision sessions (`R6-GAP-09`) | `C-009`, `C-010`, `R6-GAP-02`, `R6-GAP-08`, `R6-GAP-09` (stage 7) |
 | 11 Closed families | 5, 15 | the continuation model `R6-GAP-07`; the configuration race `C-069` is the hyperparameter search it covers | stages 8-10, 12; `C-065`, `R6-GAP-07` (stage 13) |
 | 12 Additional observations | 6 to 14 | the external checkpoints of stage 12, pretrained outside the Deriv archive | stages 11, 12 |
@@ -292,6 +294,52 @@ strategy results.
 30 minutes on this fixed history: about 8% (range 3-15%; 15 minutes alone 3-5%). Most model, loss, ensemble and
 magnitude branches are expected to be null. The one change it names to raise the odds is new information: an archive
 of signed executions, timestamped as received and aligned to Deriv.
+
+## Addendum: venue evidence found on disk after the record (2026-11-17)
+
+The dispositions above were written without two sources that were already on this machine:
+
+- `docs/deriv_frxEURUSD_contracts_for.json` (Deriv `contracts_for` for frxEURUSD, trading day 2026-06-03): each
+  contract type with its start type and duration limits. Rise/Fall and Rise/Fall Equal are offered at 15 minutes to
+  1 day (spot or forward start) and at 1 to 365 days; the types that pay on the size of a move (touch, no-touch, ends
+  between or outside, stays between or goes outside) at 1 to 365 days only. The other six pairs' lists are not on
+  disk.
+- A quote archive for the 15-minute Rise/Fall contract: its sampler logs one Rise and one Fall proposal per pair
+  every 30 s; the rows are from July 2026 (19 New York dates with session quotes), six pairs, no EURUSD. Its location
+  and checksum, the study of it and the quote model built on it are in `docs/DERIV_SOTA_PROGRAM.md`, section "Venue
+  payouts".
+
+What that changes in this record. Text only: no stage, count, decision list or disposition changed
+(`build/primary.json`, revisions of 2026-11-17T10:10Z and, after an independent review of the first, 10:50Z, from
+which `plan.json`, `plan_tables.md` and `matrix.jsonl.gz` were rebuilt).
+
+- The claim disposition for `C-009` read "not yet verified: needs venue metadata". It now reads partly verified: the
+  durations are on disk for frxEURUSD, the payouts at those durations are not.
+- The notes on `B-002`, `C-009`, `C-010`, `R6-GAP-02`, `R6-GAP-08` and `R6-GAP-09`, the gap decisions for `R6-GAP-02`
+  and `R6-GAP-08`, the gap texts of `R6-GAP-08` and `R6-GAP-09` and decision-map entry 9 now say what is on disk. For
+  frxEURUSD every contract type that pays on move size has a minimum duration of one day, so step 1 of `R6-GAP-08`
+  leaves a one-day contract only. `R6-GAP-09` had inferred from a handful of recorded quotes that the venue's
+  breakeven may differ by session; `[six pairs pooled·15m]` the archive shows about the same mean payout in every
+  quoted hour except 16:00 to 16:35 New York (`results/json/deriv_venue_quote_model_v1_result.json`): a pooled
+  hourly mean, not a test of each pair or session. The quote model prices a weekday five-minute clock cell only
+  where the archive has at least 30 fresh matched quotes; no cell from 16:35 to 20:00 New York has (later on
+  Tuesdays and Wednesdays, none after 16:35 on Fridays), which is not a record that no contract was on offer then.
+- The payout part of `B-002` has been measured on the archive without a venue call
+  (`results/json/deriv_venue_quote_study_2026-07_result.json`); its settlement reconciliation and latency audit still
+  wait for venue access.
+
+What it does not change, and what the matrix does not contain:
+
+- The lens proposals, clusters, ranking and gap proposals are archival and are not edited. Several were written for
+  a fixed payout. `C-075` (not run) rejects variable-odds losses "for the fixed-payout target"; the payout quoted to
+  a purchase varies, so that premise does not hold, and the rejection is not a finding about such losses. `C-019`,
+  `C-020` and `D-007` (staged) place a loss weight or thresholds at or around the fixed breakeven 0.541, and `C-037`,
+  `E-024` and `R6-GAP-07` (staged) define a utility or reward as a probability or win rate minus 0.541; they remain
+  tests of the 0.541 certificate, while the breakeven a trade faces is its own quote's.
+- Candidate tests raised by the venue evidence (selection and training on expected value at the quoted payout,
+  reconstructed payouts as inputs, a payout floor, the last New York hour dropped, Rise/Fall Equal, quotes at other
+  durations) are listed as V-03 to V-13 in `docs/DERIV_SOTA_PROGRAM.md`, section "Venue payouts". They are outside
+  this matrix and its counts, and none is pre-registered or run.
 
 ## Files
 
