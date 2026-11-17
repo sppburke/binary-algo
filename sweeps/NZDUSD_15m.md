@@ -59,7 +59,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 > Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/NZDUSD_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
 
 <!-- DERIV-FEED-LEDGER:BEGIN -->
-| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+| id | what | H | status | verdict UP / DOWN, goal rule (operating cov) | result JSON |
 |---|---|---|---|---|---|
 | R1 | frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout (`score_frozen_books.py`) | 15m/30m | done | NZDUSD.m15ny_seedens.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1_frozen_books_dev_result.json` |
 | R1b | frozen books as trained (clock -5 h, 13-22 ET), ALL decisions incl. the blackout (`score_frozen_books.py`) | 15m/30m | done | NZDUSD.m15ny_seedens.v1: SUPPORTED / SUPPORTED | `deriv_r1b_frozen_books_trainclock_nylate_dev_result.json` |

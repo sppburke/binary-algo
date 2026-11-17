@@ -146,7 +146,7 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 > Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/GBPUSD_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
 
 <!-- DERIV-FEED-LEDGER:BEGIN -->
-| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+| id | what | H | status | verdict UP / DOWN, goal rule (operating cov) | result JSON |
 |---|---|---|---|---|---|
 | R1 | frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout (`score_frozen_books.py`) | 15m/30m | done | GBPUSD.m15ny_xpair_seedens.v1: NOT SUPPORTED / NOT SUPPORTED; GBPUSD.m15ny_xpair_seedens8.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1_frozen_books_dev_result.json` |
 | R1b | frozen books as trained (clock -5 h, 13-22 ET), ALL decisions incl. the blackout (`score_frozen_books.py`) | 15m/30m | done | GBPUSD.m15ny_xpair_seedens.v1: SUPPORTED / SUPPORTED; GBPUSD.m15ny_xpair_seedens8.v1: SUPPORTED / SUPPORTED | `deriv_r1b_frozen_books_trainclock_nylate_dev_result.json` |
@@ -157,7 +157,7 @@ The queued R2–R4 candidates (conformal-singleton, sle-uncert-gate, svar-sign-r
 | R2T | Incumbent recipe refit on Deriv data (deployed book's exact columns, seeds, deploy coverage), true clock, NY 08:00-16:35 tradeable (`cpcv_deriv.py`) | 15m | pending | — | — |
 | E14NYLATE | E1t model in true NY 13:00-16:35 + 18:00-22:00 (the hours the Dukascopy-era NY gate actually selected), tradeable (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e14nylate_GBPUSD_15m_result.json` |
 | E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e15nypm_GBPUSD_15m_result.json` |
-| E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_e16nyeve_GBPUSD_15m_result.json` |
+| E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | killed | KILLED (goal rule: 4 of 15 paths counted, 4 clear; certified under the repository rule alone) / KILLED (cov 0.03) | `deriv_e16nyeve_GBPUSD_15m_result.json` |
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_GBPUSD_15m_result.json` |
 | R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e2noclock_GBPUSD_15m_result.json` |

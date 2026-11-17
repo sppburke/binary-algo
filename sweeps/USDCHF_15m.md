@@ -75,7 +75,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 > Resumable state of the Deriv-feed sweep for this pair (15m and 30m rows). Status table regenerated from the lab registry (`/mnt/data/deriv-sota-lab/registry/tests.jsonl`), the lab queue and the result JSONs; results of record in `results/USDCHF_RESULTS.md` (DERIV-FEED PROGRAM). Protocol: `docs/DERIV_SOTA_PROGRAM.md`.
 
 <!-- DERIV-FEED-LEDGER:BEGIN -->
-| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |
+| id | what | H | status | verdict UP / DOWN, goal rule (operating cov) | result JSON |
 |---|---|---|---|---|---|
 | R1 | frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout (`score_frozen_books.py`) | 15m/30m | done | USDCHF.m15ny_xpair.v1: NOT SUPPORTED / NOT SUPPORTED; USDCHF.m15ny_xpair_seedens.v1: NOT SUPPORTED / NOT SUPPORTED | `deriv_r1_frozen_books_dev_result.json` |
 | R1b | frozen books as trained (clock -5 h, 13-22 ET), ALL decisions incl. the blackout (`score_frozen_books.py`) | 15m/30m | done | USDCHF.m15ny_xpair.v1: SUPPORTED / SUPPORTED; USDCHF.m15ny_xpair_seedens.v1: SUPPORTED / SUPPORTED | `deriv_r1b_frozen_books_trainclock_nylate_dev_result.json` |
@@ -88,11 +88,11 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E15NYPM | E1t model in NY 13:00-16:35 (tradeable afternoon) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e15nypm_USDCHF_15m_result.json` |
 | E16NYEVE | E1t model in NY 18:00-22:00 (post-rollover evening) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e16nyeve_USDCHF_15m_result.json` |
 | E17NYAM | E1t model in NY 08:00-13:00 (morning) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e17nyam_USDCHF_15m_result.json` |
-| R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | pending | — | — |
+| R3 | Incumbent recipe refit on Deriv data on the books' TRAINING clock (-5 h features: 4h bars aligned to the 17:00 ET close), NY 13:00-16:35 + 18:00-22:00 tradeable (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.01) | `deriv_r3_USDCHF_15m_result.json` |
 | E2NOCLOCK | E1t without the clock features (hour, weekday): trap #9 ablation (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e2noclock_USDCHF_15m_result.json` |
 | E6POOL | E1t own-pair features, training pooled over all 7 pairs (EURUSD/GBPUSD/USDCHF targets only: the JPY/CAD/AUD/NZD family pooling closure is respected) (`cpcv_deriv_pool.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e6pool_USDCHF_15m_result.json` |
 | E7FITALL | E1t fit on all tradeable hours, evaluated on NY 08:00-16:35 (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e7fitall_USDCHF_15m_result.json` |
-| E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_e3union_USDCHF_15m_result.json` |
+| E3UNION | E1t features + the incumbent schemas (union) (`cpcv_deriv.py`) | 15m | killed | KILLED (goal rule: 5 of 15 paths counted, 4 clear; certified under the repository rule alone) / KILLED (cov 0.03) | `deriv_e3union_USDCHF_15m_result.json` |
 | E4SEED3 | E1t with a 3-seed ensemble (`cpcv_deriv.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e4seed3_USDCHF_15m_result.json` |
 | E5H30 | E1t at the 30-minute horizon (blackout start window [16:20, 18:00) NY) (`cpcv_deriv.py`) | 30m | killed | KILLED / KILLED (cov 0.03) | `deriv_e5h30_USDCHF_30m_result.json` |
 | E8TB2 | E1t fit on the triple-barrier first-touch label (k=2, repository definition); validation, thresholds and scoring on the settlement sign (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e8tb2_USDCHF_15m_result.json` |
@@ -101,7 +101,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E18LOWCAP | E1t with a low-capacity, strongly regularized LightGBM (31 leaves, min_child 2000, colsample 0.3, 600 trees) for the ~15-month Deriv data ceiling (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e18lowcap_USDCHF_15m_result.json` |
 | E13MAG50 | E1t + magnitude gate: a second model ranks big moves (|ret| >= fit-pool median); trade only its top 50% (direction coverage relative to gated rows) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e13mag50_USDCHF_15m_result.json` |
 | E19TF | E1t + SWEEP_MATRIX B5 tick-rule signed flow block (tf_: up/down mid-change imbalance, 5-240 min) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e19tf_USDCHF_15m_result.json` |
-| E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_e20sg_USDCHF_15m_result.json` |
+| E20SG | E1t + SWEEP_MATRIX B7 path-signature block (sg_: Levy areas time-price and price-USD basket) (`cpcv_deriv_x.py`) | 15m | killed | KILLED (DEV goal-rule pass that failed its survivor check, `deriv_a15null_USDCHF_15m_result.json`) / KILLED (cov 0.03) | `deriv_e20sg_USDCHF_15m_result.json` |
 | E21KF | E1t + SWEEP_MATRIX C2 Kalman block (kf_: local-linear-trend slope/innovation, time-varying basket beta and residual) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e21kf_USDCHF_15m_result.json` |
 | E22RM | E1t + SWEEP_MATRIX C3 random-matrix eigen-residual block (rm_: residual after Marchenko-Pastur modes, 15-240 min) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e22rm_USDCHF_15m_result.json` |
 | E23FD | E1t + SWEEP_MATRIX C6 fractional-differencing block (fd_: d = 0.3, 0.5, z-scored) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e23fd_USDCHF_15m_result.json` |
@@ -135,7 +135,7 @@ deriv-faithful settlement, nonoverlap_chrono, per-year CI95, VAL worst-half sele
 | E59BRIER | E1t features, LightGBM fit on the Brier score (literature rank 4; custom objective, probabilities from the raw score) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e59brier_USDCHF_15m_result.json` |
 | E39CM | E1t + SWEEP_MATRIX C4 convergent cross-mapping block (cm_: rolling CCM skill of each other pair onto the target, E 3, library 240 bars, and the coupled drivers' 15-minute push; dataset_dev_v0.4) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_e39cm_USDCHF_15m_result.json` |
 | C6NYSCOMP | Kernel base with the compression gate (rv_60m <= fit-pool 0.33 quantile) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.03) | `deriv_c6nyscomp_USDCHF_15m_result.json` |
-| C7COMP3 | Compression-gate base with 3 seeds at coverage 0.03 (not the base 0.10: a coverage variant; see c7comp3b) (`cpcv_deriv_x.py`) | 15m | done | CERTIFIED / KILLED (cov 0.03) | `deriv_c7comp3_USDCHF_15m_result.json` |
+| C7COMP3 | Compression-gate base with 3 seeds at coverage 0.03 (not the base 0.10: a coverage variant; see c7comp3b) (`cpcv_deriv_x.py`) | 15m | killed | KILLED (goal rule: 10 of 15 paths counted, 10 clear; certified under the repository rule alone) / KILLED (cov 0.03) | `deriv_c7comp3_USDCHF_15m_result.json` |
 | C8COMPABS | Compression-gate base with |return| training weights (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c8compabs_USDCHF_15m_result.json` |
 | C9COMPACI | Compression-gate base with the adaptive-conformal gate (step 0.002, target 0.56) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.1) | `deriv_c9compaci_USDCHF_15m_result.json` |
 | C10COMPMETA | Compression-gate base with the meta-label gate (keep 0.5) (`cpcv_deriv_x.py`) | 15m | killed | KILLED / KILLED (cov 0.2) | `deriv_c10compmeta_USDCHF_15m_result.json` |

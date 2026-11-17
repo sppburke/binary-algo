@@ -241,8 +241,39 @@ def queued():
     return q
 
 
+def failed_survivor_checks(pair):
+    """{(tag, horizon, side): (result file, verdict)} for the pair's sign-null replays (run_nullreplay.py) of a DEV
+    goal-rule pass that did not read SIGNIFICANT: that side failed its survivor check. A replay without a verdict
+    counts as failed (it did not read SIGNIFICANT); one without `real_result` or `side` raises, as it names no row."""
+    out = {}
+    for f in sorted((REPO / 'results' / 'json').glob(f'deriv_*_{pair}_*m_result.json')):
+        r = json.loads(f.read_text())
+        verdict = str(r.get('verdict') or 'no verdict recorded')
+        if str(r.get('analysis', '')).startswith('run_nullreplay') and not verdict.startswith('SIGNIFICANT'):
+            m = re.fullmatch(rf'deriv_(.+)_{pair}_(\d+)m_result\.json', Path(r['real_result']).name)
+            if m:
+                out[(m.group(1), int(m.group(2)), r['side'])] = (f.name, verdict)
+    return out
+
+
+def ledger_side(r, c, side, failed):
+    """One side of a ledger row under the binding goal rule (render_ledger.goal_verdict). The harness's own verdict is
+    the repository rule, which certifies from as few as one counted path: a side that passes it alone is shown as
+    killed, with the path counts. So is a goal-rule pass that failed its survivor check (failed_survivor_checks)."""
+    if 'bycov' not in r:
+        return r['verdict'][side]
+    if goal_verdict(r, c, side).startswith('CERTIFIED'):
+        fs = failed.get((r.get('tag'), int(r['horizon_min']), side))
+        return f'KILLED (DEV goal-rule pass that failed its survivor check, `{fs[0]}`)' if fs else 'CERTIFIED'
+    if r['verdict'][side] == 'CERTIFIED':
+        _, n, clear, _ = path_test(r, c, side)
+        return f'KILLED (goal rule: {n} of 15 paths counted, {clear} clear; certified under the repository rule alone)'
+    return r['verdict'][side]
+
+
 def ledger_block(pair, reg, q):
-    lines = ['| id | what | H | status | verdict UP / DOWN (operating cov) | result JSON |', '|---|---|---|---|---|---|']
+    lines = ['| id | what | H | status | verdict UP / DOWN, goal rule (operating cov) | result JSON |', '|---|---|---|---|---|---|']
+    failed = failed_survivor_checks(pair)
     for fname, what in R1_FILES.items():
         r1 = REPO / 'results' / 'json' / fname
         if not r1.exists():
@@ -261,9 +292,10 @@ def ledger_block(pair, reg, q):
                 r = json.loads(js.read_text())
                 c = str(r['operating_cov'])
                 am = {s: amended_verdict(r, c, s, pair) if 'bycov' in r else '' for s in ('UP', 'DOWN')}
-                verdict = effective(f'{r["verdict"]["UP"]} / {r["verdict"]["DOWN"]} (cov {r["operating_cov"]})',
+                side = {s: ledger_side(r, c, s, failed) for s in ('UP', 'DOWN')}
+                verdict = effective(f'{side["UP"]} / {side["DOWN"]} (cov {r["operating_cov"]})',
                                     '; '.join(f'{s} {am[s]}' for s in ('UP', 'DOWN') if am[s]))
-                status = 'done' if 'CERTIFIED' in (r['verdict']['UP'] + r['verdict']['DOWN']) or any(am.values()) else 'killed'
+                status = 'done' if any(v.startswith('CERTIFIED') for v in side.values()) or any(am.values()) else 'killed'
                 lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | {status} | {verdict} | `{js.name}` |')
             elif ev and not any(e['event'] == 'finish' for e in ev):
                 lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | running | — | — |')
@@ -300,7 +332,8 @@ def notes_block(pair):
         out.append(f'- **{label}:** ' + '; '.join(parts) + '.')
     sys.path.insert(0, str(LAB / 'tools'))
     import numpy as np
-    cert, repo_only, amended = [], [], []
+    cert, cert_failed, repo_only, amended = [], [], [], []
+    failed = failed_survivor_checks(pair)
     for f in sorted(J.glob(f'deriv_*_{pair}_*m_result.json')):
         r = json.loads(f.read_text())
         if 'bycov' not in r or r.get('tag') in ('e1', 'r2') or r.get('tag') in NOT_CANDIDATES:
@@ -310,7 +343,10 @@ def notes_block(pair):
             g = goal_verdict(r, c, side)
             fw = r['bycov'][c]['forward'][side]
             item = f'{r["tag"]} {r["horizon_min"]}m {side} (cov {c}: {g}; forward {fw["n_clear_BE"]}/{fw["n_counted"]})'
-            if g.startswith('CERTIFIED'):
+            fs = failed.get((r['tag'], int(r['horizon_min']), side))
+            if g.startswith('CERTIFIED') and fs:
+                cert_failed.append(item.replace('CERTIFIED', 'path test passed', 1) + f'; `{fs[0]}` reads {fs[1]}')
+            elif g.startswith('CERTIFIED'):
                 cert.append(item)
             elif r['verdict'][side] == 'CERTIFIED':
                 repo_only.append(item)
@@ -322,6 +358,9 @@ def notes_block(pair):
     out.append('- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** '
                + ('; '.join(cert) if cert else 'none yet') +
                '. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).')
+    if cert_failed:
+        out.append('- DEV goal-rule passes that failed their survivor check (not finalists; excluded from the list above): '
+                   + '; '.join(cert_failed) + '.')
     if amended:
         out.append('- **DEV-CPCV certified under the owner\'s drift amendment** (decision 1, 2026-11-15: for a genuinely '
                    'drifting pair the moved up-rate checks - in-session band and per-path tripwire - are replaced by the hour x '
@@ -333,7 +372,6 @@ def notes_block(pair):
         out.append('- Certified only under the repository rule (too few counted paths for the goal rule): ' + '; '.join(repo_only) + '.')
     # Two-sided DEV leaderboard: the three tradeable runs closest to the goal rule per side and horizon (paths clearing
     # .541 among counted, then p10), with validity and the excess over the always-side baseline.
-    import numpy as np
     for h in (15, 30):
         for side in ('UP', 'DOWN'):
             cand, n_runs = [], 0
