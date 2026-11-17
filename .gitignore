@@ -287,3 +287,9 @@ deriv_lead_probe_result.*
 /deriv_api_probe_result.json
 /deriv_offset_audit_result.json
 /deriv_trade_executor_gate_result.json
+
+# Deriv discovery round 6 record (research/deriv_round6_2026-11-17/README.md): its builder with its inputs (build/)
+# and the logs its README cites (checks/*.log) are part of the version-controlled record. Keep them, overriding
+# the generic build/ and *.log ignores above.
+!research/deriv_round6_2026-11-17/build/
+!research/deriv_round6_2026-11-17/checks/*.log

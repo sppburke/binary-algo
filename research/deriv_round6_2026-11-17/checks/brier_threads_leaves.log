@@ -1,0 +1,45 @@
+== live_t16 vs stored
+  /auc: 1 float leaves differ, largest 2.648e-07
+  /bycov/0.02/thr: 3 float leaves differ, largest 1.110e-16
+  /bycov/0.03/thr: 2 float leaves differ, largest 5.551e-17
+  /bycov/0.05/thr: 2 float leaves differ, largest 1.110e-16
+PASS: 0 non-float differences, 8 float differences, largest 2.648e-07 (tolerance 1e-06)
+== live_t4 vs stored
+  /auc: 1 float leaves differ, largest 2.648e-07
+  /bycov/0.02/thr: 2 float leaves differ, largest 1.443e-15
+  /bycov/0.03/thr: 3 float leaves differ, largest 8.327e-16
+  /bycov/0.05/thr: 2 float leaves differ, largest 2.776e-16
+PASS: 0 non-float differences, 8 float differences, largest 2.648e-07 (tolerance 1e-06)
+== stage_seq_t16 vs stored
+  /auc: 1 float leaves differ, largest 2.648e-07
+  /bycov/0.02/thr: 1 float leaves differ, largest 5.551e-17
+  /bycov/0.05/thr: 1 float leaves differ, largest 5.551e-17
+PASS: 0 non-float differences, 3 float differences, largest 2.648e-07 (tolerance 1e-06)
+== stage_par_t16 vs stored
+  /auc: 1 float leaves differ, largest 2.648e-07
+  /bycov/0.02/thr: 2 float leaves differ, largest 1.665e-16
+  /bycov/0.03/thr: 1 float leaves differ, largest 2.220e-16
+  /bycov/0.05/thr: 1 float leaves differ, largest 1.665e-16
+PASS: 0 non-float differences, 5 float differences, largest 2.648e-07 (tolerance 1e-06)
+== stage_seq_t4 vs stored
+  /auc: 1 float leaves differ, largest 2.648e-07
+  /bycov/0.02/thr: 3 float leaves differ, largest 1.443e-15
+  /bycov/0.03/thr: 3 float leaves differ, largest 8.327e-16
+  /bycov/0.05/thr: 2 float leaves differ, largest 2.776e-16
+PASS: 0 non-float differences, 9 float differences, largest 2.648e-07 (tolerance 1e-06)
+== stage_par_t4 vs stored
+  /bycov/0.02/thr: 3 float leaves differ, largest 1.443e-15
+  /bycov/0.03/thr: 3 float leaves differ, largest 9.437e-16
+  /bycov/0.05/thr: 3 float leaves differ, largest 2.776e-16
+PASS: 0 non-float differences, 9 float differences, largest 1.443e-15 (tolerance 1e-06)
+== live_t16_again vs stored
+  /bycov/0.02/thr: 1 float leaves differ, largest 5.551e-17
+  /bycov/0.03/thr: 1 float leaves differ, largest 1.665e-16
+  /bycov/0.05/thr: 2 float leaves differ, largest 1.665e-16
+PASS: 0 non-float differences, 4 float differences, largest 1.665e-16 (tolerance 1e-06)
+== live_t16_again vs live_t16
+  /auc: 1 float leaves differ, largest 2.648e-07
+  /bycov/0.02/thr: 2 float leaves differ, largest 1.110e-16
+  /bycov/0.03/thr: 2 float leaves differ, largest 1.110e-16
+  /bycov/0.05/thr: 3 float leaves differ, largest 1.110e-16
+PASS: 0 non-float differences, 8 float differences, largest 2.648e-07 (tolerance 1e-06)

@@ -1,0 +1,14 @@
+BRIER_TOL 1e-06 | staged sha {'cpcv_deriv_x.py': 'dbe4b0378ba9f44b', 'cpcv_deriv.py': 'abbc683d28f6db2a'}
+ok   synthetic: float inside the tolerance, ftol set: 0 difference(s), expected 0
+ok   synthetic: the same float difference, exact mode: 1 difference(s), expected 1
+ok   synthetic: float beyond the tolerance, ftol set: 1 difference(s), expected 1
+ok   synthetic: integer difference, ftol set: 1 difference(s), expected 1
+ok   synthetic: float against integer, ftol set: 1 difference(s), expected 1
+ok   synthetic: list length difference, ftol set: 1 difference(s), expected 1
+ok   synthetic: missing key, ftol set: 1 difference(s), expected 1
+ok   synthetic: string difference, ftol set: 1 difference(s), expected 1
+ok   synthetic: nan against nan, ftol set: 0 difference(s), expected 0
+ok   synthetic: nan against a number, ftol set: 1 difference(s), expected 1
+ok   D e59brier USDJPY first 3 paths (stored by cpcv_deriv_x/0.7.2; now 22 s): EQUAL WITHIN 1e-06: every non-float leaf equal, 8 float leaves differ
+ok   D e35absret USDJPY first 3 paths (stored by cpcv_deriv_x/0.7.2; now 28 s): EQUAL
+VALIDATION PASS

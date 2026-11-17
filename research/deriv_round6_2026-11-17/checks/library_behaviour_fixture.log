@@ -1,0 +1,24 @@
+versions: catboost 1.2.10 | xgboost 3.2.0
+
+1a. resolved parameters
+  requested Ordered has_time=True  -> boosting_type=Ordered has_time=True permutation_count=1 fold_permutation_block=0 task_type=CPU bootstrap_type=No
+  requested Ordered has_time=False -> boosting_type=Ordered has_time=False permutation_count=4 fold_permutation_block=0 task_type=CPU bootstrap_type=No
+  requested Plain   has_time=True  -> boosting_type=Plain has_time=None permutation_count=None fold_permutation_block=None task_type=CPU bootstrap_type=No
+
+1b. two seeds, all other randomness off (largest absolute difference of test probabilities)
+  Ordered has_time=True : seed 0 vs seed 1 max|dp| = 0.000e+00
+  Ordered has_time=False: seed 0 vs seed 1 max|dp| = 4.994e-02
+  Plain   has_time=False: seed 0 vs seed 1 max|dp| = 0.000e+00
+
+1c. row order reversed (largest absolute difference of test probabilities)
+  Ordered has_time=True : forward vs reversed rows max|dp| = 1.223e-01
+  Plain   has_time=True : forward vs reversed rows max|dp| = 2.220e-16
+  Plain   has_time=False: forward vs reversed rows max|dp| = 2.220e-16
+
+2a. XGBoost sklearn API after early stopping (the ens3 call: eval_metric auc, early_stopping_rounds)
+  best_iteration 0, boosted rounds kept in the model 21
+  default predict vs first best_iteration+1 trees: max|dp| = 0.000e+00
+  default predict vs all 21 trees:             max|dp| = 3.833e-01
+
+2b. CatBoost with an eval_set (the ens3 call: eval_metric AUC, early_stopping_rounds)
+  use_best_model=True best_iteration=6 tree_count_=7 boosting_type=Plain bootstrap_type=MVS task_type=CPU nan_mode=Min border_count=254

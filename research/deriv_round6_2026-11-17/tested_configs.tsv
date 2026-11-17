@@ -1,0 +1,111 @@
+tag	horizon_min	session	operating_cov	nseed	features	n_features	dataset	harness	pairs_run	knobs_not_default	extra
+e1	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv/0.2	7	{}	{}
+r2	15	ny	0.02	3	list:USDJPY.m15ny_seedens.v1.json	239	dataset_dev_b239_v0.1	cpcv_deriv/0.2.1	1	{}	{}
+e1t	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv/0.4	7	{}	{}
+e14nylate	15	nylate	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.3	7	{"train_session": "nylate"}	{}
+e15nypm	15	nypm	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.3	7	{"train_session": "nypm"}	{}
+e16nyeve	15	nyeve	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.3	7	{"train_session": "nyeve"}	{}
+e17nyam	15	nyam	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.3	7	{"train_session": "nyam"}	{}
+e7fitall	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.3	7	{"train_session": "all"}	{}
+e2noclock	15	ny	0.03	1	noclock	63	dataset_dev_v0.1	cpcv_deriv/0.4.1	7	{}	{}
+e11noslow	15	ny	0.03	1	list:v01_noslow_USDJPY.json	61	dataset_dev_v0.1	cpcv_deriv/0.4.1	1	{}	{}
+e12noslowclock	15	ny	0.03	1	list:v01_noslow_noclock_USDJPY.json	58	dataset_dev_v0.1	cpcv_deriv/0.4.1	1	{}	{}
+e6pool	15	ny	0.03	1	own	41	dataset_dev_v0.1	cpcv_deriv_pool/0.3	3	{}	{}
+e4seed3	15	ny	0.03	3	all	66	dataset_dev_v0.1	cpcv_deriv/0.4.1	7	{}	{}
+r3	15	nylate	0.02	3	list:USDJPY.m15ny_seedens.v1.json	239	dataset_dev_b239_shift-5_v0.1	cpcv_deriv_x/0.4	1	{"train_session": "nylate"}	{}
+e18lowcap	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	7	{"colsample": 0.3, "min_child": 2000, "n_estimators": 600, "num_leaves": 31}	{}
+e29logit	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	7	{"model": "logit"}	{}
+e30nystroem	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	7	{"model": "nystroem"}	{}
+e32spec	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	7	{"specialist": true}	{}
+e33comp33	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	7	{"comp_gate": 0.33}	{}
+e42nysnoclock	15	ny	0.03	1	noclock	63	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem"}	{}
+e43nysnoslow	15	ny	0.03	1	list:v01_noslow_USDJPY.json	61	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem"}	{}
+e44nysseed3	15	ny	0.03	3	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem"}	{}
+e45nysaci	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"aci_gamma": 0.002, "model": "nystroem"}	{}
+e46nysg05	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem", "nys_gamma_mult": 0.5}	{}
+e47nysg2	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem", "nys_gamma_mult": 2.0}	{}
+e48nysc1000	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem", "nys_components": 1000}	{}
+e49nys30	30	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.4	1	{"model": "nystroem"}	{}
+e34online	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_online/0.1	7	{}	{}
+r4fixldn	15	ny	1.0	0	rule:fx_ldn_prefix_u60	1	dataset_dev_v0.5	cpcv_rule/0.1	7	{}	{}
+r5fixecb	15	ny	1.0	0	rule:fx_ecb_prefix_u60	1	dataset_dev_v0.5	cpcv_rule/0.1	7	{}	{}
+e51fx	15	ny	0.03	1	all+fam:fx	82	dataset_dev_v0.5	cpcv_deriv_x/0.4	7	{"families": "fx"}	{}
+e52ck	15	ny	0.03	1	all+fam:ck	77	dataset_dev_v0.5	cpcv_deriv_x/0.6	7	{"families": "ck"}	{}
+e53ckcompact	15	ny	0.03	1	list:compact_kernels.json	14	dataset_dev_v0.5	cpcv_deriv_x/0.6.1	7	{}	{}
+e54ckcompactlogit	15	ny	0.03	1	list:compact_kernels.json	14	dataset_dev_v0.5	cpcv_deriv_x/0.6.1	7	{"model": "logit"}	{}
+e55rl	15	ny	0.03	1	all+fam:rl	72	dataset_dev_v0.5	cpcv_deriv_x/0.6.1	7	{"families": "rl"}	{}
+e56rs	15	ny	0.03	1	all+fam:rs	72	dataset_dev_v0.5	cpcv_deriv_x/0.7.1	7	{"families": "rs"}	{}
+c1nys3	15	ny	0.03	3	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	1	{"model": "nystroem"}	{}
+c2nysabs	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	2	{"model": "nystroem", "weight": "absret"}	{}
+c3nysaci	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	1	{"aci_gamma": 0.002, "model": "nystroem"}	{}
+c4nysmeta	15	ny	0.06	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	2	{"meta_keep": 0.5, "model": "nystroem"}	{}
+c5nysmag	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	2	{"mag_keep": 0.5, "model": "nystroem"}	{}
+c6nyscomp	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	5	{"comp_gate": 0.33, "model": "nystroem"}	{}
+c7comp3	15	ny	0.03	3	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"comp_gate": 0.33}	{}
+c8compabs	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"comp_gate": 0.33, "weight": "absret"}	{}
+c9compaci	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"aci_gamma": 0.002, "comp_gate": 0.33}	{}
+c10compmeta	15	ny	0.2	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"comp_gate": 0.33, "meta_keep": 0.5}	{}
+c11compmag	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"comp_gate": 0.33, "mag_keep": 0.5}	{}
+c7comp3b	15	ny	0.1	3	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"comp_gate": 0.33}	{}
+c6nyscompb	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	3	{"comp_gate": 0.33, "model": "nystroem"}	{}
+e57reflect	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.1	7	{"reflect": true}	{}
+e58nysreflect	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"model": "nystroem", "reflect": true}	{}
+e59brier	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"model": "lgbbrier"}	{}
+e35absret	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"weight": "absret"}	{}
+e36aci	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"aci_gamma": 0.002}	{}
+e37meta	15	ny	0.06	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"meta_keep": 0.5}	{}
+e38release	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"specialist": true, "specialist_regime": "release"}	{}
+e40forest	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"model": "forest"}	{}
+e41pool	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"model": "pool"}	{}
+e60stack	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"model": "stack"}	{}
+e61ord4	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"model": "lgbord4"}	{}
+a12b02	15	ny	0.03	1	all	66	out	cpcv_deriv_x/0.7.2	1	{"model": "nystroem"}	{}
+a13b02	30	ny	0.03	1	all	66	out	cpcv_deriv_x/0.7.2	1	{"model": "nystroem"}	{}
+e62har	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"mag_keep": 0.5, "mag_model": "har"}	{}
+e63bootnys	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	2	{"boot_gate": 5, "model": "nystroem"}	{}
+e64boot	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"boot_gate": 5}	{}
+e65recency	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"weight": "recency"}	{}
+e66mh	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"multi_horizon": true}	{}
+e67drfe	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"drift_fe": true, "model": "logit"}	{}
+e67drfenys	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	2	{"drift_fe": true, "model": "nystroem"}	{}
+e68agree	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"train_label": "agree3"}	{}
+e69agreenys	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	2	{"model": "nystroem", "train_label": "agree3"}	{}
+e70play	15	ny	0.03	1	all+fam:hy	75	dataset_dev_v0.6play	cpcv_deriv_x/0.7.2	7	{"families": "hy"}	{}
+e71playreset	15	ny	0.03	1	all+fam:hr	75	dataset_dev_v0.6play	cpcv_deriv_x/0.7.2	7	{"families": "hr"}	{}
+e72shock	15	ny	0.03	1	all+fam:d2	67	dataset_dev_v0.6d2	cpcv_deriv_x/0.7.2	7	{"families": "d2"}	{}
+e73mono	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.7.2	7	{"monotone": "catchup"}	{}
+e74logitsig	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.8	7	{"model": "logit", "signed_only": true}	{}
+e77drfenysabs	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.8	2	{"drift_fe": true, "model": "nystroem", "weight": "absret"}	{}
+e78nysagree	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.8	2	{"model": "nysagree", "weight": "absret"}	{}
+e75lgbsig	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.8	7	{"signed_only": true}	{}
+e76drfelgb	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.8	7	{"drift_fe": true}	{}
+e79qorder	15	ny	0.03	1	all+fam:qo	88	dataset_dev_v0.6qo	cpcv_deriv_x/0.8	7	{"families": "qo"}	{}
+e80qperm	15	ny	0.03	1	all+fam:qp	88	dataset_dev_v0.6qo	cpcv_deriv_x/0.8	7	{"families": "qp"}	{}
+e81tail0	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.9	7	{"comp_gate": 0.33, "model": "nystail", "tail_aux": 0.0}	{}
+e82tailaux	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.9	7	{"comp_gate": 0.33, "model": "nystail", "tail_aux": 0.1}	{}
+e3union	15	ny	0.03	1	all	380	dataset_dev_union_v0.1	cpcv_deriv/0.4.1	7	{}	{}
+e83nysrefcomp	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.9	1	{"comp_gate": 0.33, "model": "nystroem", "reflect": true}	{}
+e84bootcomp	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	1	{"boot_gate": 5, "comp_gate": 0.33}	{}
+e85bootcomp0	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	1	{"boot_gate": 5, "boot_z": 0.0, "comp_gate": 0.33}	{}
+e88comp33blk	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	1	{"comp_gate": 0.33, "val_mode": "block"}	{}
+e89compabsblk	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	1	{"comp_gate": 0.33, "val_mode": "block", "weight": "absret"}	{}
+e86blendsel	15	ny	0.1	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	1	{"blend_absret": "DOWN", "comp_gate": 0.33, "val_mode": "block"}	{}
+e87fixrank	15	ny	0.03	1	list:compact_kernels.json	14	dataset_dev_v0.5	cpcv_deriv_x/0.10	1	{"model": "logit", "rule_direction": -1, "rule_gate": "fx_ldn_prefix_u60", "rule_side": "DOWN", "rule_usd_oriented": true}	{}
+e5h30	30	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv/0.4.1	7	{}	{}
+e8tb2	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	7	{"train_label": "tb2"}	{}
+e9blockval	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	7	{"no_early_stop": true, "val_mode": "block"}	{}
+e10v02	15	ny	0.03	1	all	82	dataset_dev_v0.2	cpcv_deriv/0.4.1	7	{}	{}
+e13mag50	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	7	{"mag_keep": 0.5}	{}
+e19tf	15	ny	0.03	1	all+fam:tf	74	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "tf"}	{}
+e20sg	15	ny	0.03	1	all+fam:sg	71	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "sg"}	{}
+e20sgnc	15	ny	0.03	1	noclock+fam:sg	68	dataset_dev_v0.5	cpcv_deriv_x/0.10	1	{"families": "sg"}	{}
+e20sgs3	15	ny	0.03	3	all+fam:sg	71	dataset_dev_v0.5	cpcv_deriv_x/0.10	1	{"families": "sg"}	{}
+e21kf	15	ny	0.03	1	all+fam:kf	73	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "kf"}	{}
+e22rm	15	ny	0.03	1	all+fam:rm	70	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "rm"}	{}
+e23fd	15	ny	0.03	1	all+fam:fd	68	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "fd"}	{}
+e24cx	15	ny	0.03	1	all+fam:cx	74	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "cx"}	{}
+e25tk	15	ny	0.03	1	all+fam:tk	72	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "tk"}	{}
+e26pa	15	ny	0.03	1	all+fam:pa	78	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "pa"}	{}
+e27famall	15	ny	0.03	1	all+fam:tf,sg,kf,rm,fd,cx,tk,pa	118	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "tf,sg,kf,rm,fd,cx,tk,pa"}	{}
+e39cm	15	ny	0.03	1	all+fam:cm	75	dataset_dev_v0.5	cpcv_deriv_x/0.10	7	{"families": "cm"}	{}
+e28resid	15	ny	0.03	1	all	66	dataset_dev_v0.1	cpcv_deriv_x/0.10	3	{"train_label": "resid"}	{}

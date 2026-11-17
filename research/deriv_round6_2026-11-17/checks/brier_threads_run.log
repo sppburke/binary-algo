@@ -1,0 +1,28 @@
+abbc683d28f6db2a  stage/cpcv_deriv.py
+dbe4b0378ba9f44b  stage/cpcv_deriv_x.py
+7d87f5bdbd08f209  stage/deriv_features_family.py
+667ba85523cca988  stage/fork_jobs.py
+9118fffdc0b48601  live/cpcv_deriv.py
+cd41d0a40e2d3d58  live/cpcv_deriv_x.py
+7d87f5bdbd08f209  live/deriv_features_family.py
+== live_t16 (live --n-jobs 16): exit=0 wall=57s load=14.02
+   against the stored e59brier paths: DIFFERS: 8 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[0]/bycov/0.02/thr: 0.30297901432258145 vs 0.3029790143225814; /paths[1]/auc: 0.5273589508781034 vs 0.5273586860868786; /paths[1]/bycov/0.02/thr: 0.30348940965570664 vs 0.3034894096557066
+== live_t4 (live --n-jobs 4): exit=0 wall=40s load=13.57
+   against the stored e59brier paths: DIFFERS: 8 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[0]/bycov/0.02/thr: 0.30297901432257995 vs 0.3029790143225814; /paths[0]/bycov/0.03/thr: 0.29342759233493054 vs 0.2934275923349304; /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285
+== stage_seq_t16 (stage --path-jobs 1 --n-jobs 16): exit=0 wall=63s load=12.09
+   against the stored e59brier paths: DIFFERS: 3 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285; /paths[1]/auc: 0.5273589508781034 vs 0.5273586860868786; /paths[1]/bycov/0.02/thr: 0.30348940965570664 vs 0.3034894096557066
+== stage_par_t16 (stage --path-jobs 3 --n-jobs 16): exit=0 wall=41s load=15.39
+   against the stored e59brier paths: DIFFERS: 5 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[1]/auc: 0.5273589508781034 vs 0.5273586860868786; /paths[1]/bycov/0.02/thr: 0.30348940965570664 vs 0.3034894096557066; /paths[1]/bycov/0.03/thr: 0.29116195180250026 vs 0.29116195180250004
+== stage_seq_t4 (stage --path-jobs 1 --n-jobs 4): exit=0 wall=40s load=13.10
+   against the stored e59brier paths: DIFFERS: 9 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[0]/bycov/0.02/thr: 0.30297901432257995 vs 0.3029790143225814; /paths[0]/bycov/0.03/thr: 0.29342759233493054 vs 0.2934275923349304; /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285
+== stage_par_t4 (stage --path-jobs 3 --n-jobs 4): exit=0 wall=22s load=14.38
+   against the stored e59brier paths: DIFFERS: 9 leaves, largest numeric difference 1.4432899320127035e-15; first: /paths[0]/bycov/0.02/thr: 0.30297901432257995 vs 0.3029790143225814; /paths[0]/bycov/0.03/thr: 0.29342759233493054 vs 0.2934275923349304; /paths[0]/bycov/0.05/thr: 0.27663697274086274 vs 0.27663697274086285
+== live_t16_again (live --n-jobs 16): exit=0 wall=65s load=12.66
+   against the stored e59brier paths: DIFFERS: 4 leaves, largest numeric difference 1.6653345369377348e-16; first: /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285; /paths[1]/bycov/0.02/thr: 0.30348940965570664 vs 0.3034894096557066; /paths[1]/bycov/0.03/thr: 0.2911619518025002 vs 0.29116195180250004
+stage_seq_t16 vs live_t16: DIFFERS: 7 leaves, largest numeric difference 1.1102230246251565e-16; first: /paths[0]/bycov/0.02/thr: 0.3029790143225814 vs 0.30297901432258145; /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285; /paths[1]/bycov/0.03/thr: 0.29116195180250004 vs 0.2911619518025001
+stage_par_t16 vs stage_seq_t16: DIFFERS: 4 leaves, largest numeric difference 2.220446049250313e-16; first: /paths[0]/bycov/0.05/thr: 0.27663697274086285 vs 0.2766369727408628; /paths[1]/bycov/0.03/thr: 0.29116195180250026 vs 0.29116195180250004; /paths[2]/bycov/0.02/thr: 0.2992514411438952 vs 0.29925144114389535
+stage_seq_t4 vs live_t4: DIFFERS: 2 leaves, largest numeric difference 1.6653345369377348e-16; first: /paths[2]/bycov/0.02/thr: 0.2992514411438955 vs 0.29925144114389535; /paths[2]/bycov/0.03/thr: 0.28865128329014855 vs 0.2886512832901486
+stage_par_t4 vs stage_seq_t4: DIFFERS: 5 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[0]/bycov/0.05/thr: 0.27663697274086274 vs 0.2766369727408628; /paths[1]/auc: 0.5273586860868786 vs 0.5273589508781034; /paths[1]/bycov/0.02/thr: 0.303489409655707 vs 0.3034894096557069
+live_t4 vs live_t16: DIFFERS: 9 leaves, largest numeric difference 1.4988010832439613e-15; first: /paths[0]/bycov/0.02/thr: 0.30297901432257995 vs 0.30297901432258145; /paths[0]/bycov/0.03/thr: 0.29342759233493054 vs 0.2934275923349304; /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285
+live_t16_again vs live_t16: DIFFERS: 8 leaves, largest numeric difference 2.647912247244477e-07; first: /paths[0]/bycov/0.02/thr: 0.3029790143225814 vs 0.30297901432258145; /paths[0]/bycov/0.05/thr: 0.2766369727408628 vs 0.27663697274086285; /paths[1]/auc: 0.5273586860868786 vs 0.5273589508781034
+memory.peak 1146507264 bytes; oom 0 oom_kill 0 oom_group_kill 0

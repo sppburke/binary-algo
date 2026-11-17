@@ -1,0 +1,353 @@
+{
+ "written_utc": "2026-11-17T04:40Z; revised 2026-11-17T05:45Z after the independent review of the record; revised 2026-11-17T06:31Z after the second review; revised 2026-11-17T06:55Z after the primary agent's scan of cross-references between stages; revised 2026-11-17T07:30Z after the third review",
+ "note": "Dispositions by the primary agent. The ranking agent ran before the gap list existed, so the gap decisions here replace its empty gap list. Stage numbers refer to RANK_result.txt. test_decisions, decision_map and row_notes were added after the reviews: they state which open owner decisions of docs/DERIV_SOTA_PROGRAM.md each test's own specification needs, and why where a test differs from its stage. What a test needs through the stages its stage builds on is derived by the builder (upstream_decisions).",
+ "gap_decisions": [
+  {
+   "id": "R6-GAP-01",
+   "decision": "accept",
+   "prior": "low",
+   "stage": 2,
+   "why": "Checked on the EURUSD development dataset before placing it: the proposed difference exists only in the 1440-bar window.",
+   "narrowed_to": "Recompute rv_1440m, rangepos_1440m and volratio_60_1440 on elapsed-minute windows and compare with the bar-count versions on Monday New York rows only; a prediction arm runs only if a default LightGBM or logistic fit moves by 0.005 inner tail win rate. The gap-finder's prior of medium is lowered to low.",
+   "evidence": "tools/deriv_dataset.py own_features: ret_w is already wall-clock (known.reindex(close_t - 60 * w, method='ffill')); rv_w, rangepos_w and the EMA features count bars. EURUSD development bars: 99.984% follow the previous bar by 60 s (55 gaps over 60 s, 52 of them over a day). No New York-session row has a gap inside its 15-, 60- or 240-bar window. The 1440-bar window holds a weekend increment on 20.81% of New York rows (98.0% of Monday rows, 3.6% of Friday rows, none Tuesday to Thursday); median rv_1440m is 9.597e-05 with the increment and 9.290e-05 without."
+  },
+  {
+   "id": "R6-GAP-02",
+   "decision": "accept",
+   "prior": "low",
+   "stage": 7,
+   "why": "The contract terms are unknown and the schedule caps the number of trades, so the count check runs first and decides whether anything is fitted.",
+   "narrowed_to": "Count check only until it passes: with New York 08:00-17:00 decisions and the recorded pre-close purchase cutoff (last accepted start 16:34:40 New York, results/json/deriv_api_probe_result.json), an eight-hour contract can start only between 08:00 and about 08:50, at most one trade a day, about 85 per path at 100% coverage. The gap-finder's prior of medium is lowered to low.",
+   "evidence": "Arithmetic on the session window and the recorded cutoff. checks/pass_probability.py (all 15 paths counted, equal trade counts, one win probability): an even chance of passing the goal rule needs a true win rate of 0.60 to 0.61 at 60 trades per path and 0.59 to 0.60 at 100, so about 85 trades per path at full coverage needs one near 0.60, and fewer trades need more. A one-day contract leaves the New York decision window and needs its own terms from the venue."
+  },
+  {
+   "id": "R6-GAP-03",
+   "decision": "accept",
+   "stage": 3,
+   "why": "A model class no run or cluster covers (rule conjunctions selected by a penalized logistic readout); cheap, with a matched ridge and honest-forest control.",
+   "evidence": "Inventory of 110 tags: the rule runs (r4fixldn, r5fixecb, e87fixrank) use fixed rules; no run selects learned conjunctions."
+  },
+  {
+   "id": "R6-GAP-04",
+   "decision": "accept",
+   "stage": 3,
+   "why": "Rotation-forest variant: no completed run has a tree model with splits that are not axis-aligned. Runs against an equal-budget unrotated forest.",
+   "evidence": "Inventory: two forest tags. e34online is an online adaptive random forest (cpcv_deriv_online.py: river ARFClassifier, whose Hoeffding trees test one feature against a threshold: river 0.24.2, tree/nodes/branch.py, NumericBinaryBranch). e40forest is axis-aligned extremely randomized trees (cpcv_deriv_x.py: ExtraTreesClassifier(n_estimators=300, max_depth=8, min_samples_leaf=200, max_features=0.3))."
+  },
+  {
+   "id": "R6-GAP-05",
+   "decision": "accept",
+   "stage": 3,
+   "why": "A persistent signed-state model is absent from the inventory. Forward filtering only, as the strategy-eval leakage list requires for hidden-state models.",
+   "evidence": "Inventory: e24cx and e21kf are feature families; no tag fits a hidden-state model on the Deriv feed. The repository's sign-invariance note (strategy-eval, section 3) predicts that such states gate move size, which is why the kill rule compares with the existing volatility-state controls."
+  },
+  {
+   "id": "R6-GAP-06",
+   "decision": "accept",
+   "stage": 5,
+   "why": "Of the alternative labels only the agreement label has been run with a kernel head (e69agreenys, two pairs); tb2 and resid were run with LightGBM alone, and the strongest results on this feed come from the kernel and linear heads.",
+   "evidence": "tested_configs.tsv: e68agree (agree3, LightGBM, 7 pairs), e69agreenys (agree3, kernel, 2 pairs), e8tb2 (tb2, LightGBM, 7 pairs), e28resid (resid, LightGBM, 3 pairs)."
+  },
+  {
+   "id": "R6-GAP-07",
+   "decision": "accept",
+   "stage": 13,
+   "why": "A five-state dynamic programme on cached forecasts; it uses no settled test outcomes. It is listed with the owner-gated policy stage because the repository closes deep reinforcement learning with the neural family (docs/DERIV_SOTA_PROGRAM.md line 220) and the gap-finder marked it as that family; it also needs the prediction cache (E-006) first.",
+   "evidence": "docs/DERIV_SOTA_PROGRAM.md:220 'D4-D5 deep RL (DQN, IQN) | closed with the neural family (AGENTS.md); reopen only by owner decision'."
+  },
+  {
+   "id": "R6-GAP-08",
+   "decision": "accept",
+   "stage": 7,
+   "why": "Move size is the one thing this feed predicts well and no cluster trades it. Step 1 is one metadata call per pair and decides whether the rest exists.",
+   "evidence": "results/json/deriv_e13mag50_<PAIR>_15m_result.json mag_gate.mag_auc_test: path means 0.640 to 0.707 by pair, against direction path-mean AUC medians of 0.498 to 0.511 outside USDJPY. results/json/deriv_api_probe_result.json runs.e_proposal.observations.contracts_for (frxUSDJPY, 2026-07-02): 16 contract types including ONETOUCH, NOTOUCH, EXPIRYRANGE, EXPIRYMISS, RANGE, UPORDOWN; min_durations ['0', '15m', '1d'], max_durations ['0', '1d', '365d']; which type has which duration is not recorded."
+  },
+  {
+   "id": "R6-GAP-09",
+   "decision": "accept",
+   "stage": 7,
+   "why": "Hours no run has scored, supported by the harness as it stands. It changes the certification scope (the goal fixes New York 08:00-17:00), so it waits for the owner.",
+   "evidence": "Stored runs by session: ny 517, nylate 9, nypm 7, nyeve 7, nyam 7. scripts/sessions.py:18 LOCAL = {'ny': ('America/New_York', 8, 17), 'ldn': ('Europe/London', 8, 16), 'asia': ('Asia/Tokyo', 9, 18)}; the harness accepts --session ny|ldn|asia|overlap|all."
+  },
+  {
+   "id": "R6-GAP-10",
+   "decision": "accept",
+   "stage": 14,
+   "why": "After more than 540 stored runs on one development year, outcomes that no selection step has seen are the only evidence free of search bias. It spends data that cannot be unspent, so it is owner-gated and runs only after the power calculation (E-010).",
+   "evidence": "Archive ticks run through 2026-11-15 (the backfill log's last line: '2026-11-16 05:00:47 +0000 | INFO | service: nothing is left to fetch'); development ends 2026-07-31. Only the registered USDJPY look has read the later data."
+  }
+ ],
+ "claim_dispositions": [
+  {
+   "claim": "The RV feature units must support the proposed square-root-of-horizon normalization.",
+   "by": "A-056",
+   "status": "verified",
+   "evidence": "tools/deriv_dataset.py lines 94 and 102: r1 = lc.diff() is the log-close change of one one-minute bar and rv_w = r1.rolling(w, min_periods=max(5, w // 3)).std(), so rv_w is a per-minute standard deviation in log-return units and ret_w / (sqrt(w) * rv_60m) is dimensionless. The dataset's own stretch_w (line 109) already divides by r1.rolling(w).std() * np.sqrt(w). ret_w is a wall-clock return and rv_w counts bars; they agree where bars are contiguous (99.984% of EURUSD development bars).",
+   "consequence": "A-056 can use the normalization as written. It must not use the 1440-bar scale on Mondays without the R6-GAP-01 correction."
+  },
+  {
+   "claim": "The installed CatBoost Ordered configuration must honor the intended chronological history.",
+   "by": "A-032",
+   "status": "verified",
+   "evidence": "Lab test x-r6-libcheck (discovery/round6/checks/library_behaviour_fixture.py and .log), CatBoost 1.2.10: Ordered with has_time=True resolves to permutation_count=1, without it to 4. With all other randomness off, two seeds give identical test probabilities with has_time=True (largest difference 0) and differ by up to 4.99e-02 without it. Reversing the row order changes the Ordered has_time model by up to 1.22e-01 and a Plain model by 2.2e-16.",
+   "consequence": "A-032 must pass rows sorted by decision time and set has_time=True; the default Ordered mode draws four random permutations and is not chronological. Label overlap between neighbouring rows is not handled by the library, so the H-non-overlapping fit origins in the specification are required."
+  },
+  {
+   "claim": "Standalone ensemble producers may differ in weight handling, truncation and numerical backend.",
+   "by": "A-075",
+   "status": "verified: they differ",
+   "evidence": "tools/cpcv_deriv_x.py (0.10) lines 285-331. Weights: the LightGBM member is fitted with sample_weight when weights are set (line 289); the XGBoost fit (line 322, g.fit(Xf, yf, eval_set=[(Xv, yv)], verbose=False)) and the CatBoost fit (line 329) receive none. Missing values: CatBoost gets NaN replaced by -999.0 (line 325), the other two get NaN. Truncation: each member stops on its own validation AUC with patience 80; x-r6-libcheck shows XGBoost 3.2.0 predicts with the first best_iteration + 1 trees after early stopping and CatBoost resolves use_best_model=True and keeps best_iteration + 1 trees. Backend: XGBoost tree_method='hist' and CatBoost both run on the CPU; CatBoost's CPU defaults resolved to Plain boosting, MVS bootstrap and 254 borders, while A-075 specifies 128 borders and a Bayesian bootstrap on the GPU. b1bench measured the CUDA XGBoost model as a different model: on its one benchmark path [USDJPY·15m] the predictions and the path AUC differ from the CPU model's (results/json/deriv_b1bench_compute_result.json, block D_gpu_gbm; a compute benchmark, not a result of record).",
+   "consequence": "The GPU producers of A-075 are new recipes, compared with the CPU members within a tolerance and never bit for bit. Weights go to all three members or to none; the queued e31ens3 uses no weights, so its members are consistent with each other."
+  },
+  {
+   "claim": "The additional durations and NY 16:00 expiry must be offered with usable terms and adequate schedule support.",
+   "by": "C-009",
+   "status": "not yet verified: needs venue metadata",
+   "evidence": "On disk (results/json/deriv_api_probe_result.json, frxUSDJPY, 2026-07-02): 20 available contracts, min_durations ['0', '15m', '1d'], max_durations ['0', '1d', '365d'], without the mapping from contract type to duration; one Rise/Fall proposal with payout 1.9 at 00:29 New York. Schedule ceilings at 100% coverage inside New York 08:00-17:00 with the 16:35 purchase cutoff: 60 minutes up to 8 a day, 120 minutes 4, 240 minutes 2, eight hours at most 1.",
+   "needed": "One contracts_for call per pair that stores the full list (type, minimum and maximum duration, expiry type, barriers), and proposals at 60, 120 and 240 minutes during New York hours. Owner decision: venue access."
+  },
+  {
+   "claim": "Candidate external archives must cover all six groups with defensible availability timestamps.",
+   "by": "B-038",
+   "status": "blocked: no approved archive with receipt timestamps",
+   "evidence": "The Deriv tick archive holds the seven pairs only (listing of /mnt/data/deriv/ticks on 2026-11-17: AUDUSD, EURUSD, GBPUSD, NZDUSD, USDCAD, USDCHF, USDJPY). The legacy-vendor store on disk covers the same assets, but its timestamps are not receipt times (next row), and the owner's instruction is to use Deriv data only. Other disks were not searched.",
+   "needed": "An owner-approved source manifest with receipt timestamps covering 2025-08-11 to 2026-07-31."
+  },
+  {
+   "claim": "Legacy-vendor timestamps must be independently reconstructible before transfer.",
+   "by": "B-042",
+   "status": "partly verified",
+   "evidence": "/mnt/data/deriv/checks/clock_corrected_agreement_result.json (outside the repository; definition.window and pooled.ny_true): after the clock correction (correct_clock in clock_corrected_agreement.py), the vendor's 15-minute labels agree with Deriv tick settlement on 762,739 of 780,964 New York decisions (97.666%) in 2025-08-11 to 2026-06-06, all seven pairs pooled; the next-window placebo agrees on 47.807%. That window lies almost wholly in the vendor store's second clock regime. B-041 and B-042 use 2012 to 2024, the first regime, where the rule (stored time + 5 hours) comes from reading the downloader and cannot be checked against Deriv ticks, which start 2025-08-11.",
+   "needed": "For 2012 to 2024: reconcile a fixed sample against events with known times (the 17:00 New York daily break, scheduled releases) before any transfer fit. The item also stays closed under the owner's Deriv-only instruction unless that is reversed."
+  }
+ ],
+ "own_gaps": [
+  {
+   "id": "R6-GAP-08",
+   "title": "Contract types that pay on move size: durations, prices and realized frequencies",
+   "kind": "data",
+   "sign_or_size": "SIZE",
+   "needs": "owner_data_decision",
+   "prior": "low",
+   "prior_why": "Move size is predictable on this feed and direction is not: the magnitude gate's test AUC is 0.640 to 0.707 by pair (path means; results/json/deriv_e13mag50_<PAIR>_15m_result.json, mag_gate.mag_auc_test) against 0.498 to 0.526 for direction. The venue lists touch, no-touch, ends-between, ends-outside, stays-between and goes-outside contracts for frxUSDJPY (results/json/deriv_api_probe_result.json, contracts_for, 2026-07-02). The venue prices volatility itself, so the comparison that matters is the model's probability against the quoted price, not against the base rate; the prior stays low until quotes are on disk. Which types exist at durations of one day or less is not recorded.",
+   "mechanism": "Volatility clusters and follows the clock and the calendar, so the probability that price touches a barrier or ends inside a range within H minutes is forecastable. A venue quote that conditions on a slower or coarser volatility estimate than the model would leave a margin on some contracts.",
+   "spec": "Step 1, one read-only metadata call per pair: contracts_for with every type's minimum and maximum duration and barrier rules. Step 2, only if a size-paying type has a duration of one day or less: sample proposals on a fixed grid of pair, UTC hour, duration and barrier distance in units of trailing realized volatility, for two or more weeks, storing ask price and payout; implied probability is ask divided by payout. Step 3, no venue contact: compute the realized touch and range frequencies for the same grid from development ticks, fit the existing magnitude heads (HAR and LightGBM) to those outcomes inside the CPCV folds, and compare the model's probability with the quoted implied probability. Step 4: a key would be (pair, contract type, duration); the owner defines its breakeven and certification rule, because the payout varies by quote.",
+   "nearest_existing": "e13mag50 and e62har use magnitude only as a gate on direction trades. B-002 reconciles Rise/Fall payouts and settlement only. No cluster trades a contract that pays on move size.",
+   "fast_kill_falsifier": "Stop after step 1 if no size-paying type has a duration of one day or less. Stop after step 3 if no decile of (model probability minus quoted probability) has a realized frequency above the quote by more than the venue's margin.",
+   "cost": "Build M. Steps 1 and 2: venue metadata and proposal calls, 0 model fits. Step 3: 20 to 40 magnitude fits per pair."
+  },
+  {
+   "id": "R6-GAP-09",
+   "title": "London and Asian decision sessions as separate keys",
+   "kind": "label",
+   "sign_or_size": "SIGN",
+   "needs": "none",
+   "prior": "low",
+   "prior_why": "Every stored run decides inside New York hours: session values ny 517, nylate 9, nypm 7, nyeve 7, nyam 7 (08:00-17:00, 13:00-22:00, 13:00-17:00, 17:00-22:00, 08:00-13:00 New York time; cpcv_deriv_x.py LOCAL_WINDOWS). The harness already accepts --session ldn (08:00-16:00 London) and asia (09:00-18:00 Tokyo) from scripts/sessions.py. The feed is continuous on business days (EURUSD: 99.98% of minute bars follow the previous one by 60 s). These hours are outcomes that no run has scored, so they add evidence instead of re-mining New York rows; whether they hold more signal is unknown, and each new key adds to the multiple-testing count. The goal fixes New York 08:00-17:00, so this is a change of certification scope.",
+   "mechanism": "Each pair's home session has its own flow and fixing structure (Tokyo fix, London open, ECB and London fixes). One recorded quote outside New York hours paid 1.90 (breakeven 0.526) against 1.77 and 1.52 to 1.67 inside them, so the venue breakeven may also differ by session.",
+   "spec": "H = 15. For each pair run the default LightGBM (e1t recipe) and the kernel model (e30nystroem recipe) with --session ldn and --session asia, fit session equal to the evaluation session, coverages 0.03, 0.05 and 0.10, all 15 paths and 4 forward folds, tradeable-only rows. Check the venue's purchase restrictions for those hours first (contracts_for trading times). Keys are (pair, 15m, side, session). No feature or model search before these baselines are read.",
+   "nearest_existing": "e14nylate, e15nypm, e16nyeve, e17nyam and e7fitall vary the New York window only.",
+   "fast_kill_falsifier": "Kill a session for a pair if neither model has a side with 12 counted paths and a mean path win rate of at least 0.541; a side that passes goes to the sign-null replay and the drift placebo before anything else is tried on it.",
+   "cost": "No build. 28 runs of 19 fits: one to one and a half hours one fit at a time, about 45 minutes with parallel paths, which wait for program decision 7 (from the run times of the two recipes in checks/harness_regression_011b.log; estimates, since the rows differ by session)."
+  },
+  {
+   "id": "R6-GAP-10",
+   "title": "One registered forward look on data collected after the development window",
+   "kind": "validation",
+   "sign_or_size": "SIGN",
+   "needs": "owner_data_decision",
+   "prior": "medium",
+   "prior_why": "After more than 540 stored runs on one development year a new development pass is weak evidence whatever the model. Data collected after 2026-07-31 has been opened only by the registered USDJPY look. At the operating coverage a path holds a median of 59 trades, so a single key cannot be confirmed on three to seven forward months; a frozen basket of keys can.",
+   "mechanism": "Frozen configurations scored once on outcomes that no selection step has seen are free of the search-wide selection bias. Pooling a fixed list of keys trades per-key resolution for the trade count that a one-sided test of 0.541 needs.",
+   "spec": "Freeze a list of at most 12 non-USDJPY key-configurations by a rule written before the look (for example each key's best VALID run by paths clear, then p10). Refit each once on the whole development window. Score post-development rows once, tradeable-only, ties lose, first-come de-overlap. Primary statistic: the basket's pooled win rate against 0.541, one-sided alpha 0.025, with a day-block bootstrap; secondary: per-key rates, reported and not tested. Register the look date and the list in the lab log first. A basket pass certifies nothing per key: it decides whether per-key confirmation is worth a second look.",
+   "nearest_existing": "The two-look USDJPY procedure (holdout/run_look1.sh). E-010 computes power; no cluster registers a forward look for the other keys.",
+   "fast_kill_falsifier": "Do not open the data if the power calculation (E-010) gives less than 50% power for a true basket rate of 0.57. If the look is taken and the basket's lower bound is below 0.541, the listed keys stay DO NOT DEPLOY and are not re-selected on that data.",
+   "cost": "Build S (holdout_eval.py exists). 12 refits and one scoring pass."
+  }
+ ],
+ "test_decisions": {
+  "note": "The open owner decisions of docs/DERIV_SOTA_PROGRAM.md that a test's own specification needs: the list of its stage, unless the test is named in by_test. Every named test has a note in row_notes. The builder derives the stage gates and the Gates column of the decision table from these lists and checks them against each test's needs field. They are direct decisions. What a test needs through the stages its stage builds on is derived by the builder from the lists of those stages (upstream_decisions).",
+  "by_stage": {
+   "1": [
+    8
+   ],
+   "2": [
+    8
+   ],
+   "3": [
+    8
+   ],
+   "4": [
+    8
+   ],
+   "5": [
+    8
+   ],
+   "6": [
+    8
+   ],
+   "7": [
+    9,
+    10
+   ],
+   "8": [
+    11
+   ],
+   "9": [
+    11
+   ],
+   "10": [
+    11
+   ],
+   "11": [
+    12
+   ],
+   "12": [
+    11,
+    12
+   ],
+   "13": [
+    13
+   ],
+   "14": [
+    13
+   ]
+  },
+  "by_test": {
+   "E-019": [
+    7,
+    8
+   ],
+   "E-020": [
+    7,
+    8
+   ],
+   "E-018": [
+    7,
+    8
+   ],
+   "B-002": [
+    9,
+    13
+   ],
+   "C-065": [
+    11,
+    13
+   ],
+   "R6-GAP-07": [
+    11,
+    13
+   ],
+   "A-039": [
+    8,
+    13
+   ],
+   "D-033": [
+    8,
+    13
+   ],
+   "D-035": [
+    8,
+    13
+   ],
+   "D-036": [
+    8,
+    13
+   ]
+  }
+ },
+ "decision_map": [
+  {
+   "program_decision": 7,
+   "name": "Parallel fits",
+   "ranking_decisions": [],
+   "added_by_primary_agent": "The staged path-parallel harness, measured after the ranking; independent jobs side by side (E-019) are a further step."
+  },
+  {
+   "program_decision": 8,
+   "name": "Release policy",
+   "ranking_decisions": [
+    1
+   ],
+   "added_by_primary_agent": ""
+  },
+  {
+   "program_decision": 9,
+   "name": "Venue access",
+   "ranking_decisions": [
+    2
+   ],
+   "added_by_primary_agent": "The contract list by pair and contract type. Step 1 of R6-GAP-08 and the trading-times check of R6-GAP-09 need it, and C-009, C-010 and R6-GAP-02 are conditional on contract terms that only it can confirm."
+  },
+  {
+   "program_decision": 10,
+   "name": "New keys",
+   "ranking_decisions": [
+    4
+   ],
+   "added_by_primary_agent": "Contract types that pay on move size (R6-GAP-08); London and Asian decision sessions (R6-GAP-09)."
+  },
+  {
+   "program_decision": 11,
+   "name": "Closed families",
+   "ranking_decisions": [
+    5,
+    15
+   ],
+   "added_by_primary_agent": "The continuation model R6-GAP-07, which the gap-finder marked as the closed reinforcement-learning family. The configuration race C-069 (stage 10) is the hyperparameter search this decision covers; four stage-3 tests whose specifications name that race run without it (notes on A-027, A-028, A-030 and A-031)."
+  },
+  {
+   "program_decision": 12,
+   "name": "Additional observations",
+   "ranking_decisions": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "added_by_primary_agent": "The external checkpoints of stage 12 were pretrained outside the Deriv archive (B-005 and B-063 are marked as needing a data decision), so that stage waits for this decision as well as for decision 11."
+  },
+  {
+   "program_decision": 13,
+   "name": "Evidence claims",
+   "ranking_decisions": [
+    3,
+    16,
+    17
+   ],
+   "added_by_primary_agent": "One registered forward look at the whole basket (R6-GAP-10). Four stage 5-6 tests have parts that update on the evaluated path with matured outcomes, which is the continuing-policy question of this decision (notes on A-039, D-033, D-035 and D-036)."
+  }
+ ],
+ "row_notes": {
+  "E-005": "Exactness has one recorded exception. The Brier-objective LightGBM recipe is not bit-reproducible between two runs of the live harness with identical arguments (lab test x-brier-threads: one path AUC differs by 2.6e-07 and seven thresholds by at most 1.1e-16, with equal trade counts and win rates; against the stored paths the largest threshold difference is 1.4e-15), so its checks compare counts exactly and floats within 1e-06 (lab test x-regress-011c). The outputs of both tests are in checks/ (brier_threads_run.log, brier_threads_leaves.log, harness_regression_011c.log).",
+  "E-020": "Exactness has one recorded exception. The Brier-objective LightGBM recipe is not bit-reproducible between two runs of the live harness with identical arguments (lab test x-brier-threads: one path AUC differs by 2.6e-07 and seven thresholds by at most 1.1e-16, with equal trade counts and win rates; against the stored paths the largest threshold difference is 1.4e-15), so its checks compare counts exactly and floats within 1e-06 (lab test x-regress-011c). The outputs of both tests are in checks/ (brier_threads_run.log, brier_threads_leaves.log, harness_regression_011c.log). Runs fits side by side, so it waits for program decision 7 (parallel fits) as well as the release decision.",
+  "E-019": "Runs fits side by side, so it waits for program decision 7 (parallel fits) as well as the release decision.",
+  "E-018": "Exactness has one recorded exception. The Brier-objective LightGBM recipe is not bit-reproducible between two runs of the live harness with identical arguments (lab test x-brier-threads: one path AUC differs by 2.6e-07 and seven thresholds by at most 1.1e-16, with equal trade counts and win rates; against the stored paths the largest threshold difference is 1.4e-15), so its checks compare counts exactly and floats within 1e-06 (lab test x-regress-011c). The outputs of both tests are in checks/ (brier_threads_run.log, brier_threads_leaves.log, harness_regression_011c.log). Runs fits side by side, so it waits for program decision 7 (parallel fits) as well as the release decision.",
+  "A-027": "The specification chooses its settings through the shared race of proposal R6-K4-05. That race is C-069 in stage 10 and waits for program decision 11; stage 3 does not use it, and where the specification or the cost field speaks of the race this note replaces it. This test runs in the capped form of the rank note only: at most eight settings drawn from the levels the specification lists, chosen inside each outer training pool by the stage-1 selector (E-014), with no successive halving, no race across model families and no later enlargement of the list. An enlargement is part of C-069. This record does not name the settings: they are entered in the lab log before the first fit of stage 3, and the test is not runnable until then.",
+  "A-028": "The specification chooses its settings through the shared race of proposal R6-K4-05. That race is C-069 in stage 10 and waits for program decision 11; stage 3 does not use it, and where the specification or the cost field speaks of the race this note replaces it. This test runs in the capped form of the rank note only: at most eight settings drawn from the levels the specification lists, chosen inside each outer training pool by the stage-1 selector (E-014), with no successive halving, no race across model families and no later enlargement of the list. An enlargement is part of C-069. This record does not name the settings: they are entered in the lab log before the first fit of stage 3, and the test is not runnable until then.",
+  "A-030": "The specification chooses its settings through the shared race of proposal R6-K4-05. That race is C-069 in stage 10 and waits for program decision 11; stage 3 does not use it, and where the specification or the cost field speaks of the race this note replaces it. This test runs in a capped form only: the six additive cells of the specification (3 or 7 knots by three penalties), chosen inside each outer training pool by the stage-1 selector (E-014), with no successive halving, no race across model families and no later enlargement of the list; the two fixed tensor terms are unlocked only if the additive model survives (rank note). An enlargement is part of C-069. The list is entered in the lab log before the first fit of stage 3, and the test is not runnable until then.",
+  "A-031": "The specification chooses its settings through the shared race of proposal R6-K4-05. That race is C-069 in stage 10 and waits for program decision 11; stage 3 does not use it, and where the specification or the cost field speaks of the race this note replaces it. This test runs in the capped form of the rank note only: at most eight settings drawn from the levels the specification lists, chosen inside each outer training pool by the stage-1 selector (E-014), with no successive halving, no race across model families and no later enlargement of the list. An enlargement is part of C-069. This record does not name the settings: they are entered in the lab log before the first fit of stage 3, and the test is not runnable until then.",
+  "B-002": "Waits for venue access (program decision 9) and, for how its payout assessment is reported, for the evidence-claims decision (13). It defines no new key, so it does not wait for decision 10.",
+  "C-009": "Conditional on Rise/Fall being offered at these durations with usable payouts. The contract metadata on record lists contract types and duration limits for frxUSDJPY without saying which type has which (results/json/deriv_api_probe_result.json, run e_proposal, contracts_for), so the condition needs the contract list of program decision 9 as well as the new-key decision 10. The schedule-only count check needs no venue call.",
+  "C-010": "Conditional on an offered contract that expires at 16:00 New York time. The contract metadata on record lists contract types and duration limits only (results/json/deriv_api_probe_result.json, run e_proposal, contracts_for), so the condition needs the contract list of program decision 9 as well as the new-key decision 10.",
+  "R6-GAP-02": "The count check needs no venue call and waits for the new-key decision 10 only. A fit also needs the eight-hour and one-day durations confirmed by the contract list of program decision 9: the metadata on record does not say which contract type has which duration limit (results/json/deriv_api_probe_result.json, run e_proposal, contracts_for).",
+  "R6-GAP-08": "Step 1 is a venue metadata call (program decision 9); a contract type that pays on move size is a new kind of key (decision 10).",
+  "R6-GAP-09": "Its first step, the venue's trading times for those hours, is a venue metadata call (program decision 9); the sessions are new keys (decision 10).",
+  "C-065": "Updates a neural head, a closed family, so it waits for decision 11 as well as for the adaptive-policy question of decision 13.",
+  "R6-GAP-07": "The gap-finder marked it as the closed reinforcement-learning family, so it waits for decision 11 as well as for the adaptive-policy question of decision 13.",
+  "E-007": "The specification reuses the endpoint fixture of E-001. The ranking agent merged E-001 into the venue test B-002 (stage 7) and put its local maturity checks in this test (plan.json, merged). This test needs that development-data part only: it audits the label convention the dataset builder already uses (entry at the first tick at or after decision + 1 s, exit at the last tick at or before that entry target + H; scripts/deriv_dataset.py) and makes no venue call. Whether the venue settles contracts that way is B-002 and waits for program decision 9.",
+  "E-011": "The specification's first step reconciles settlement through E-001, which the ranking agent merged into the venue test B-002 (stage 7). That step is not a prerequisite here: the rank note keeps this test separate from the label convention, and it masks companion inputs on development data under the dataset's existing labels. It makes no venue call.",
+  "A-039": "The identity, score-only and context maps are fitted inside each fold and wait for decision 8 only. The conditional extension corrects forecasts with the residuals of issued forecasts once their outcomes have matured on the evaluated path. Stage 13 holds corrections of that kind (C-040, D-024) for the continuing-policy question of program decision 13, so the extension waits for decision 13 as well.",
+  "D-033": "Two parts change on the evaluated path with outcomes that have matured there: the 60-session residual archive of the third forecast and the optional daily updates. That is the continuing-policy question of program decision 13 (stage 13 holds D-023 and D-024 for it), so those parts wait for decision 13 as well. The two fit-fixed forecasts and their equal-weight pool wait for decision 8 only.",
+  "D-035": "The trailing 20-day and half-life empirical distributions are updated with matured outcomes of the evaluated path (the specification: archives are updated only with matured outcomes). That is the continuing-policy question of program decision 13, so those arms wait for decision 13 as well. The fixed t5 arm waits for decision 8 only.",
+  "D-036": "The recursive-least-squares arm updates the coefficients on the evaluated path with targets that have matured there. That is the continuing-policy question of program decision 13, so that arm waits for decision 13 as well. The static-coefficient arms wait for decision 8 only.",
+  "E-009": "The specification leaves the refit-null requirement to E-030 (stage 14), which runs only after a raw survivor and waits for program decision 13. This test does not need it: it computes its joint inference on cached forecasts and labels that inference as conditional. A promotion needs both.",
+  "E-012": "The specification starts after the settlement contract is verified. In stage 3 that is the development-data audit of E-007 (stage 1): the replay compares entry and exit prices with the stored labels under the dataset's own convention (scripts/deriv_dataset.py, settle; proposal R6-L-02 says to reuse it and to add a development-only report) and makes no venue call. Whether the venue settles contracts that way is B-002 (stage 7) and waits for program decision 9.",
+  "D-050": "The specification starts from the residuals of D-035. It needs that test's fit-side part only: standardized residuals of out-of-fold predictions, with the tails fitted on fit exceedances (proposal R6-M2-24). The empirical distributions of D-035 that are updated on the evaluated path wait for program decision 13 and are not used here."
+ }
+}

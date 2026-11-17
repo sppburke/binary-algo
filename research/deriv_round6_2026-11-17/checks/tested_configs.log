@@ -1,0 +1,26 @@
+110 tags, 542 results
+model: {'lgb (default)': 69, 'nystroem': 24, 'logit': 5, 'rule (no model)': 2, 'nystail': 2, 'lgb (default), fitted on several pairs': 1, 'online adaptive random forest (river ARF)': 1, 'lgbbrier': 1, 'forest': 1, 'pool': 1, 'stack': 1, 'lgbord4': 1, 'nysagree': 1}
+harness: {'cpcv_deriv_x': 96, 'cpcv_deriv': 10, 'cpcv_rule': 2, 'cpcv_deriv_pool': 1, 'cpcv_deriv_online': 1}
+horizon: {'15': 107, '30': 3} | session: {'ny': 105, 'nylate': 2, 'nypm': 1, 'nyeve': 1, 'nyam': 1}
+seeds: {'1': 100, '3': 8, '0': 2}
+feature set: {'all': 76, 'list:<file>': 8, 'noclock': 2, 'all+fam:sg': 2, 'own': 1, 'rule:fx_ldn_prefix_u60': 1, 'rule:fx_ecb_prefix_u60': 1, 'all+fam:fx': 1, 'all+fam:ck': 1, 'all+fam:rl': 1, 'all+fam:rs': 1, 'all+fam:hy': 1, 'all+fam:hr': 1, 'all+fam:d2': 1, 'all+fam:qo': 1, 'all+fam:qp': 1, 'all+fam:tf': 1, 'noclock+fam:sg': 1, 'all+fam:kf': 1, 'all+fam:rm': 1, 'all+fam:fd': 1, 'all+fam:cx': 1, 'all+fam:tk': 1, 'all+fam:pa': 1, 'all+fam:tf,sg,kf,rm,fd,cx,tk,pa': 1, 'all+fam:cm': 1}
+feature families added (--families): {'sg': 3, 'fx': 1, 'ck': 1, 'rl': 1, 'rs': 1, 'hy': 1, 'hr': 1, 'd2': 1, 'qo': 1, 'qp': 1, 'tf': 1, 'kf': 1, 'rm': 1, 'fd': 1, 'cx': 1, 'tk': 1, 'pa': 1, 'tf,sg,kf,rm,fd,cx,tk,pa': 1, 'cm': 1}
+compression gate: 17 tags {'0.33': 17}
+magnitude gate: 4 tags {'0.5': 4}
+meta-label gate: 3 tags {'0.5': 3}
+adaptive-conformal gate: 4 tags {'0.002': 4}
+bootstrap gate: 4 tags {'5': 4}
+rule gate: 1 tags {'"fx_ldn_prefix_u60"': 1}
+training label: 4 tags {'"agree3"': 2, '"tb2"': 1, '"resid"': 1}
+weights: 7 tags {'"absret"': 6, '"recency"': 1}
+fit session: 6 tags {'"nylate"': 2, '"nypm"': 1, '"nyeve"': 1, '"nyam"': 1, '"all"': 1}
+validation mode: 4 tags {'"block"': 4}
+drift fixed effect: 4 tags {'true': 4}
+reflection: 3 tags {'true': 3}
+specialist: 2 tags {'true': 2}
+signed-only inputs: 2 tags {'true': 2}
+tail auxiliary loss: 2 tags {'0.0': 1, '0.1': 1}
+multi-horizon rows: 1 tags {'true': 1}
+monotone constraints: 1 tags {'"catchup"': 1}
+blend: 1 tags {'"DOWN"': 1}
+hyperparameter one-offs: 4 ['e18lowcap', 'e46nysg05', 'e47nysg2', 'e48nysc1000']

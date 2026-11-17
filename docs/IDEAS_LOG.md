@@ -621,3 +621,18 @@ machine-readable backlog). Generic lessons:
 > rates near 0.96); (2) block validation sharply lowered a compression-gated LightGBM's path result
 > [NZDUSD·15m DOWN, `e88comp33blk` vs `e33comp33`] while its pooled forward win rate rose, so which validation mode
 > transfers forward is an open measurement (`e9blockval`).
+
+> **Count the trades a certificate needs before adding model variety, and plan a wide search as a staged matrix.**
+> Deriv-feed discovery round 6 (2026-11-17; `research/deriv_round6_2026-11-17/`, README and `plan.json`) listed the
+> 110 configurations run on the Deriv feed and merged 353 lens proposals into 292 tests in 14 stages, each with a kill
+> rule and a cost. Nothing in it is pre-registered or run yet. Two generic lessons. (1) Under a rule of the form "at
+> least 12 of 15 paths clear and the 10th percentile of the counted paths' win rates at or above breakeven", the
+> percentile is the binding condition when all 15 paths are counted, and the true win rate it needs falls only as the
+> trades per path rise (`checks/pass_probability.py`, assuming 15 counted paths with equal trade counts and one win
+> probability: 0.60 to 0.61 at 60 trades per path and 0.57 to 0.58 at 200, for an even chance of passing). So count
+> the supported trades per path a lever leaves before reading its kill as evidence of no edge. (2) On one benchmark
+> fit of this size (a timing on `[USDJPY·15m]` data, not a result), LightGBM and CatBoost were slower on a GPU than
+> on the CPU, and LightGBM was slower with 16 threads than with 4 to 6 on a machine shared with other work; running
+> the CPCV paths side by side equalled stored results except for differences below 1e-6 in one objective that is not
+> reproducible run to run (`results/json/deriv_b1bench_compute_result.json`; `checks/harness_regression_011b.log`).
+> All 19 high-prior items of the matrix are validation, infrastructure or venue-reconciliation work.

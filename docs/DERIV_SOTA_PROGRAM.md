@@ -269,6 +269,47 @@ candidate improved on its key-sides, and none passed the goal path test on a VAL
 amended on 2026-11-16 at 06:07 UTC (two consecutive dry rounds, counted from round 3), discovery ended on 2026-11-16 at
 13:39 UTC. The queue's remaining sweep rows still run, and the final report follows them.
 
+## Discovery round 6: the comprehensive test matrix (2026-11-17)
+
+The owner reopened discovery on 2026-11-17, asking for a comprehensive set of configurations and for the GPU and the
+code's speed to be examined. Round 6 is a planning round. Its record is `research/deriv_round6_2026-11-17/`: the
+README, a matrix of 292 tests in 14 stages with a kill rule and a cost each, the 353 lens proposals behind it, the
+110 configurations already run, the scripts and logs of its checks, and the script and inputs that rebuild the
+matrix. Nothing in it is pre-registered or run: each test is pre-registered in lab `PROGRESS.md` before its first run
+and adds to the search-wide multiple-testing burden. Stages 1-6 (200 tests: the evaluation contract and a prediction
+cache first, then tie and participation policies, compact models, price-path blocks, ensembles and losses,
+magnitude) stay inside the existing research scope (no venue call, new key, closed family or new data source); four
+stage-3 tests whose specifications name the configuration race of stage 10 run without it, on a short fixed list of
+settings (the README's Ranking paragraph). That is not a release: they wait for open owner decision 8 below, three
+of their tests (`E-018`, `E-019`, `E-020`) also for decision 7, and the parts of four stage 5-6 tests that update on
+the evaluated path (`A-039`, `D-033`, `D-035`, `D-036`) also for decision 13. Stages 7-14 (92 tests) wait for
+decisions 9-13 and for the stages they build on. The matrix gives, for each test, the decisions its own
+specification needs (`program_decisions`) and those it needs through the stages it builds on
+(`upstream_decisions`). All 19 high-prior items are validation, infrastructure or venue-reconciliation work; no
+predictive candidate carries a high prior.
+
+Two findings of the round shape the rest of the program (scripts and logs in
+`research/deriv_round6_2026-11-17/checks/`; the README states their assumptions and limits):
+
+- **At about 60 trades per path the goal rule needs a true win rate near 0.60 for an even chance of passing.** The
+  rule's 10th percentile is taken over the counted paths; when all 15 are counted, 12 clear paths cannot pass.
+  Assuming 15 counted paths with equal trade counts and one win probability, an even chance of passing needs a true
+  win rate of 0.60 to 0.61 at 60 trades per path, 0.59 to 0.60 at 100 and 0.57 to 0.58 at 200
+  (`pass_probability.py`; the range is two dependence scenarios, not proven bounds). The stored 15-minute runs
+  outside USDJPY have a median of 59 trades per counted path at their operating coverage, and the frequency of raw
+  passes among them is compatible with chance under those scenarios (`tail_distribution.py`). That is not a
+  calibrated null and does not show that no side has an edge. Under the same assumptions a side with a true rate of
+  0.56 to 0.58 would still fail the rule in most runs, so a kill at this support says little about such an edge, and
+  the support a key offers is counted first (`E-010` and `E-009`, stage 1).
+- **On the one benchmark fit, the measured speed-up for the models in use is to run the paths of a run side by
+  side, not the GPU.** LightGBM and CatBoost were slower on the GPU than on the CPU; XGBoost was faster on CUDA, but
+  as a different model; the two neural benchmarks ran much faster per row on CUDA, though both CPU fits completed; a
+  GPU kernel transform is untested (`results/json/deriv_b1bench_compute_result.json`: one path of `e1t`
+  `[USDJPY·15m]`, timed while other projects used most of the CPU). The staged harness (`cpcv_deriv_x` 0.11,
+  `cpcv_deriv` 0.5, option `--path-jobs`) equalled stored results in 24 of 25 comparisons; the one difference, on the
+  Brier-objective LightGBM, is below 1e-6 and of the kind that two runs of the live harness show between themselves
+  (`harness_regression_011b.log`). It stays out of use until open owner decision 7 is taken.
+
 ## Closures respected
 
 The repository closures in AGENTS.md stand for this program unless the owner reopens them: no re-mining of the
@@ -323,3 +364,39 @@ significance test. The sealed holdout remains the binding test.)
    JPY/CAD/AUD/NZD family): kept unless reopened.
 4. **Non-Deriv inputs** (e.g. `macro_calendar.parquet`): excluded unless approved.
 5. **Payout**: one recorded venue trade implies breakeven ≈ 0.565; the goal's rule uses 0.541.
+
+(Decision 6, the two-look sequential holdout, is resolved; see Holdout discipline.) Raised by discovery round 6 on
+2026-11-17; the ranking agent's options and recommendations are in `research/deriv_round6_2026-11-17/plan.json`
+(`owner_decisions`):
+
+7. **Parallel fits.** AGENTS.md says heavy fits run one at a time, after earlier out-of-memory failures. The staged
+   harness runs the 15 paths of one run as forked workers inside the lab test's 14 GB memory cap (peak 7.15 GB with
+   8 kernel workers, lab test `x-pj-probe2`). Using it relaxes that rule for the path workers of a single run
+   (`E-020`, and the thread budgets of `E-018`); running independent jobs side by side is a further step that `E-019`
+   measures.
+8. **Release policy.** The ranking's recommendation: release stages 1-4 first (cap 20,700 fits and 6 GPU hours), and
+   each later stage only when its own gate is met.
+9. **Venue access.** Read-only contract metadata per pair (which contract types offer which durations), a scheduled
+   survey of quoted payouts by pair, hour, duration and contract type, and one demo contract that records proposal,
+   purchase and settlement timestamps. The quotes on record near the New York close are below the 1.85 behind the
+   0.541 breakeven (`[USDJPY·15m]` Rise proposals from 16:20 to 16:34 New York time,
+   `results/json/deriv_api_probe_result.json`, run `g_near_close`; decision 5).
+10. **New keys.** Horizons beyond 30 minutes (60, 120 and 240 minutes; eight hours and one day), London and Asian
+    decision sessions as separate keys, and contract types that pay on the size of a move.
+11. **Closed families** (decision 3). Stronger shrinkage and partial pooling (stage 8), bounded neural networks on
+    the GPU (stage 9), representations, pretraining and a configuration race over model settings (stage 10), frozen
+    external checkpoints (stage 12) and a continuation model for admission (stage 13). The record treats a choice
+    among a few listed settings inside each fold (`E-014`, and four stage-3 tests in that form) as outside the closed
+    hyperparameter search; the owner can rule otherwise here.
+12. **Additional observations** (decision 4). Other Deriv instruments (crosses, gold, oil, indices), a repaired macro
+    calendar, rates, options, signed executions, order books, news, and the legacy-vendor history as a prior. The
+    Deriv instruments may be time-critical: for the seven pairs Deriv served about 365 days of ticks on 2026-11-14
+    (Deriv history depth above; the probe's longer retention reading is an artifact, `docs/DERIV_DEMO_EXECUTOR.md`
+    probe (d)). Whether other instruments have the same limit is not verified; if they do, every day of delay
+    shortens their overlap with the development window by one day. The external checkpoints of stage 12 were
+    pretrained outside the Deriv archive, so that stage waits for this decision as well as for decision 11.
+13. **Evidence claims.** Whether an assessment at quoted payouts is reported beside the 0.541 certificate; whether
+    continuing (adaptive) policies count only as forward diagnostics; one registered forward look at the whole basket
+    on data collected after the development window; and the ceiling for replaying the complete search under a null
+    if a raw survivor appears. Four stage 5-6 tests have parts that update on the evaluated path with matured
+    outcomes (`A-039`, `D-033`, `D-035`, `D-036`); the record holds those parts for this decision.
