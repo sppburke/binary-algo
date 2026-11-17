@@ -5,8 +5,15 @@
 
 Inputs (read-only): a quote-audit archive written by scripts/deriv_quote_workers.py --audit (one `quote_snapshot`
 row per pair and side every 30 s: 15-minute Rise/Fall proposal at stake 1.00) and Deriv's own ticks under
-/mnt/data/deriv/ticks. No file dated 2026-08-01 or later is opened and no quote whose contract would expire on or
-after 2026-08-01T00:00:00Z is settled.
+/mnt/data/deriv/ticks. An archive directory (quotes, executor logs) is read only if every *.jsonl* file in it is a
+regular file (not a link) named YYYY-MM-DD.jsonl or YYYY-MM-DD.jsonl.N for a calendar day up to 2026-07-31;
+otherwise the run stops before a file is opened. Every non-empty file of the quote archive is then opened and
+hashed. The name is all that is checked before a file is opened, and a rotated file can hold rows of later days than
+its name, so rows are also dropped by their own time: a quote row dated 2026-08-01T00:00:00Z or later that carries a
+payout is skipped and counted (`dated_after_development`), never matched or settled. The archive must therefore be a
+development export; the tool cannot prove that from the names. No tick file dated after 2026-07-31 is opened, so the
+settlement routine sees development ticks only; a quote whose contract would expire on or after
+2026-08-01T00:00:00Z is flagged not settled and enters no outcome statistic.
 
 Part A  calibration: is the payout skew between Rise and Fall a direction forecast, is it calibrated, and does any
         policy that uses only the quote pay? Settlement = the programme's rule (deriv_dataset.settle: entry = first
@@ -21,6 +28,7 @@ import glob
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from collections import Counter
@@ -33,7 +41,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from deriv_dataset import LAG_S, day_files, load_ticks, settle   # noqa: E402  (the programme's own settlement)
 
-TOOL = 'venue_quote_study/0.1'
+TOOL = 'venue_quote_study/0.2'     # 0.2: archive files checked by name; deterministic fits; z_* key names; wording
 NY = ZoneInfo('America/New_York')
 CUTOFF = datetime(2026, 8, 1, tzinfo=timezone.utc).timestamp()     # nothing at or after this instant is read
 FIRST_TICK_DAY, LAST_TICK_DAY = date(2026, 7, 1), date(2026, 7, 31)
@@ -66,9 +74,29 @@ REGISTERED = {
 }
 
 
+def dev_files(src):
+    """The *.jsonl* files of an archive directory, refused as a whole unless every one of them is a regular file (not
+    a link) whose whole name is YYYY-MM-DD.jsonl or YYYY-MM-DD.jsonl.N for a calendar day up to LAST_TICK_DAY: a file
+    named for a later day, or for none, is never opened."""
+    files = sorted(glob.glob(os.path.join(src, '*.jsonl*')))
+
+    def development(f):
+        m = re.fullmatch(r'(\d{4}-\d{2}-\d{2})\.jsonl(\.\d+)?', os.path.basename(f))
+        try:
+            return bool(m) and date.fromisoformat(m.group(1)) <= LAST_TICK_DAY and os.path.isfile(f) and not os.path.islink(f)
+        except ValueError:                                # the ten characters are not a calendar day
+            return False
+    late = [os.path.basename(f) for f in files if not development(f)]
+    if late:
+        raise ValueError(f'venue_quote_study: {src} holds {len(late)} file(s) that are not regular files named '
+                         f'YYYY-MM-DD.jsonl[.N] for a day up to {LAST_TICK_DAY} (first: {late[0]}): outside development, '
+                         'nothing was opened')
+    return files
+
+
 def load_quotes(src):
     lanes, counts = {}, Counter()
-    files = sorted(f for f in glob.glob(os.path.join(src, '*.jsonl*')) if os.path.getsize(f) > 0)
+    files = [f for f in dev_files(src) if os.path.getsize(f) > 0]
     h = hashlib.sha256()
     total = 0
     for f in files:
@@ -278,8 +306,11 @@ def part_a(df, boot, rng):
 
 def fit_predict(Xtr, ytr, Xte, n_jobs):
     import lightgbm as lgb
+    # deterministic + force_row_wise since 0.2 (the settings of venue_quote_model): 0.1 ran without them, and a re-run
+    # of its fits differed from the stored result in two fitted numbers at the 7th decimal (lab test x-regress-venue-02)
     m = lgb.LGBMRegressor(n_estimators=500, learning_rate=0.05, num_leaves=63, min_child_samples=100, subsample=0.8,
-                          subsample_freq=1, colsample_bytree=0.8, reg_lambda=1.0, n_jobs=n_jobs, verbose=-1, random_state=0)
+                          subsample_freq=1, colsample_bytree=0.8, reg_lambda=1.0, n_jobs=n_jobs, verbose=-1, random_state=0,
+                          deterministic=True, force_row_wise=True)
     m.fit(Xtr, ytr)
     return m.predict(Xte), m
 
@@ -335,13 +366,14 @@ def part_b(df, feats, n_jobs):
     res['oof_linear_r2_skew'] = r2(ys, pl)
     order = np.argsort(-gain)[:15]
     res['top_gain_features_skew'] = [[feats[i], float(gain[i] / gain.sum())] for i in order]
-    res['corr_skew_with_returns'] = {f'ret_{w}s': float(np.corrcoef(ys, df[f'z_{w}s'].to_numpy())[0, 1]) for w in RET_WINDOWS}
+    # volatility-scaled past returns (the z_* features); 0.1 stored the same values under ret_* names
+    res['corr_skew_with_returns'] = {f'z_{w}s': float(np.corrcoef(ys, df[f'z_{w}s'].to_numpy())[0, 1]) for w in RET_WINDOWS}
     return res
 
 
 def part_c(exec_dir, quotes):
     seen, rows = set(), []
-    for f in sorted(glob.glob(os.path.join(exec_dir, '*.jsonl*'))):
+    for f in dev_files(exec_dir):
         with open(f, errors='replace') as fh:
             for line in fh:
                 if '"proposal_selected"' not in line:

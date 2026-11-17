@@ -116,9 +116,12 @@ written on the trading server by `scripts/deriv_quote_workers.py --audit` and co
 29 non-empty files, SHA-256 of their concatenation `a59fc6f6…8046a`). Its sampler logs one Rise and one Fall proposal
 at stake 1.00 per pair every 30 s for six pairs (no EURUSD lane): 1,007,892 snapshots in July 2026, of which 362,990
 are fresh (quote age under 5 s) and valid, 574,578 stale and 70,324 invalid; 19 New York dates have session quotes.
-Everything below is development data. The tools skip and count any quote dated at or after 2026-08-01T00:00:00Z (the
-archive has none), open tick files dated up to 2026-07-31 only, and settle no contract that expires at or after that
-instant.
+Everything below is development data. The tools read an archive directory only if every `.jsonl` file in it is a
+regular file named `YYYY-MM-DD.jsonl[.N]` for a day up to 2026-07-31 (the archive's are named 2026-07-02 to
+2026-07-20), skip and count any quote dated at or after 2026-08-01T00:00:00Z (the archive has none), open tick files
+dated up to 2026-07-31 only, and count no contract that would expire at or after that instant as settled. A file name
+does not show what a file holds: the archive is taken as a development export, and the row-level skip is the check
+on that.
 
 **The venue study** `[six pairs pooled·15m]` (`scripts/venue_quote_study.py`, lab test `v1-quotestudy-jul26`,
 `results/json/deriv_venue_quote_study_2026-07_result.json`; rules fixed in the tool before it read an outcome - the
@@ -186,14 +189,42 @@ archive holds 15-minute quotes only. A side whose trades do not reproduce on all
 
 Fourteen stored 15-minute candidates were read this way, both sides of each: first one candidate per pair and two
 for USDJPY (lab tests `a16pay` to `a23pay`), then the leader of every key side those had not covered (`a24pay` to
-`a29pay`). Two side leaders cannot be read: GBPUSD DOWN `r4fixldn` (a rule harness that writes no prediction dump) and USDCAD
-DOWN `e36aci` (an adaptive threshold the tool does not replay). Of the 28 sides, 27 are NOT CLEARED AT THE QUOTED
-PAYOUT and one is PAYOUT-CLEARED: `c2nysabs` `[USDJPY·15m·UP]`
-(`results/USDJPY_RESULTS.md`). That reading is a development-data estimate of a candidate picked from the whole search
-and is not a certificate: `c2nysabs` is not one of the registered holdout finalists and nothing here is scored on
-holdout data. Per-key readings are in `results/<PAIR>_RESULTS.md` (DERIV-FEED notes, "Payout-aware reading"); their
-averages are unweighted means over the counted paths, and their trade totals count a decision once for each path it
-sits in.
+`a29pay`). Two side leaders cannot be read: GBPUSD DOWN `r4fixldn` (a rule harness that writes no prediction dump)
+and USDCAD DOWN `e36aci` (an adaptive threshold the tool does not replay). Of the 28 sides, 27 are NOT CLEARED AT THE
+QUOTED PAYOUT and one is PAYOUT-CLEARED: `c2nysabs` `[USDJPY·15m·UP]` (`results/USDJPY_RESULTS.md`). That reading
+is a development-data estimate of a candidate picked from the whole search and is not a certificate: `c2nysabs` is
+not one of the registered holdout finalists and nothing here is scored on holdout data. Per-key readings are in
+`results/<PAIR>_RESULTS.md` (DERIV-FEED notes, "Payout-aware reading"); their averages are unweighted means over the
+counted paths, and their trade totals count a decision once for each path it sits in.
+
+**Tool builds.** The study, the quote model and the fourteen readings above were produced by build 0.1 of the three
+tools (commit `282718c`). Build 0.2 rewrites no stored result and changes none of the fourteen readings; it adds
+refusals and one counting rule. The reading tool reports a side as NOT READABLE unless its frozen trades reproduce the
+harness result and the recorded candidate on every path, each of which must hold the 15 CPCV paths, each once and no
+other. It refuses a `--last` after 2026-07-31, a horizon other than 15 minutes, an adaptive-threshold run, a dump
+without those 15 paths, any tick, decision or contract expiry at or after the cutoff, and an output file that exists
+(it writes through the file it created and stops if the path no longer names that file). It counts a path on its
+priced trades alone, as the registered reading is worded; 0.1 also required a priced always-side decision on the path,
+which all 348 counted paths of the fourteen readings have. The study refuses an archive directory as described above,
+runs its LightGBM fits with the deterministic setting and names the `corr_skew_with_returns` keys `z_*`; `payouts()`
+of the quote model refuses a tick or decision time that is not a finite time before the cutoff.
+`scripts/update_records.py` renders readings of both builds, prints no number of a NOT READABLE side and stops unless
+each side holds the 15 CPCV paths, each once.
+
+Regression before the swap (lab test `x-regress-venue-02e`, 3,120 s, 104 checks, none failed): on fresh harness runs
+with the recorded arguments, the 0.2 reading tool gives `sides`, `quote_model` and `decisions_priced` equal to the
+stored reading for 14 of 14; two runs of study 0.2 are equal to each other and to the stored 0.1 result outside its
+part B, and inside part B one fitted number differs, by 3.99e-07; the model build gives both model files with the
+stored checksums; every refusal and NOT READABLE case fires. Four independent read-only reviews preceded the swap: the
+first two ended in reject, the last two in approve with revisions, with minor findings only.
+
+Two facts about build 0.1 found on the way. Its study is not bit-reproducible: a re-run of its fit code differed from
+the stored result in two fitted numbers of part B at the seventh decimal (lab test `x-regress-venue-02`), with no
+verdict changed. Its reading tool imported `cpcv_deriv` first, which puts this repository's `scripts/` ahead of the
+lab's tool directory on the import path, so its other modules came from `scripts/` whenever a file of that name
+existed there. The lab copies were last modified before the first reading started; the `scripts/` copies of the three
+tools were created while the readings ran, were byte-identical to the lab copies and stayed unmodified until build
+0.2 replaced them; and build 0.2, which imports `cpcv_deriv` last, reproduces all fourteen readings.
 
 **What follows for the program.** 0.541 is about the breakeven of the higher-paid side only (mean payout 1.846, the
 breakeven of which is 0.542). The lower-paid side is paid 1.73 on average (breakeven 0.578), and in 0.85 of quotes it

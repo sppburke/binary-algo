@@ -11,12 +11,17 @@ Writes <out_dir>/skew.txt, <out_dir>/overround.txt and <out_dir>/meta.json. `loa
 
 What it is: the pricing rule Deriv used in the archive's dates (2026-07-02..2026-07-31), measured, then applied to
 other dates as an ASSUMPTION that the rule was the same there (no older quotes exist on disk to check it). The archive
-has summer dates only, so it cannot say whether the daily pattern (lower payouts in the last New York hour, no offer
-17:00-20:00 New York) follows the New York clock or a fixed UTC clock in winter: `payouts()` takes clock='ny' (the
-pattern follows New York time, the default) or clock='utc4' (the pattern stays at the UTC times of July, i.e. a fixed
-UTC-4 clock); the two agree whenever New York is on daylight time. `offered` marks the weekday x 5-minute clock
-buckets in which the archive holds quotes: a decision outside them could not have been priced in July.
-Nothing dated 2026-08-01 or later is read.
+has summer dates only, so it cannot say whether the daily pattern (lower payouts in the last New York hour, no
+priced clock cell from 16:35 to 20:00 New York) follows the New York clock or a fixed UTC clock in winter: `payouts()`
+takes clock='ny' (the pattern follows New York time, the default) or clock='utc4' (the pattern stays at the UTC times
+of July, i.e. a fixed UTC-4 clock); the two agree whenever New York is on daylight time. `offered` marks the weekday
+x 5-minute clock buckets PRICED by the model: those with at least OFFER_MIN_ROWS fresh matched quotes in the archive.
+A decision outside them is not priced. The stored names `offered` and `not_offered_new_york_clock_by_weekday` are
+kept from 0.1; they say where the archive has too few fresh matched quotes, which is not a record that no contract
+was on offer.
+Nothing dated 2026-08-01 or later is read: `build()` reads the quote archive through venue_quote_study.load_quotes
+(files checked by name, rows by their own time) and opens tick files up to 2026-07-31 only; `payouts()` refuses a
+tick or decision time that is not a finite time before the cutoff.
 """
 import argparse
 import hashlib
@@ -32,14 +37,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import venue_quote_study as vqs   # noqa: E402
 from deriv_dataset import day_files, load_ticks   # noqa: E402
 
-TOOL = 'venue_quote_model/0.1'
+TOOL = 'venue_quote_model/0.2'     # 0.2: payouts() refuses data outside development; wording (no fit changed)
 FEATURES = (['tick_age_s'] + [f'ret_{w}s' for w in vqs.RET_WINDOWS]
             + [f'{k}_{w}s' for w in vqs.VOL_WINDOWS for k in ('rv', 'nchg', 'n')]
             + [f'z_{w}s' for w in vqs.RET_WINDOWS] + ['pos_900s', 'pos_3600s', 'ny_minute', 'weekday', 'minutes_to_17'])
 PARAMS = dict(n_estimators=500, learning_rate=0.05, num_leaves=63, min_child_samples=100, subsample=0.8, subsample_freq=1,
               colsample_bytree=0.8, reg_lambda=1.0, verbose=-1, random_state=0, deterministic=True, force_row_wise=True)
 BUCKET_MIN = 5            # clock bucket of the `offered` table, minutes
-OFFER_MIN_ROWS = 30       # a weekday x bucket cell counts as offered with at least this many fresh matched quotes
+OFFER_MIN_ROWS = 30       # a weekday x bucket cell is priced with at least this many fresh matched quotes
 CLOCKS = ('ny', 'utc4')
 
 
@@ -115,7 +120,7 @@ def build(quote_dir, out_dir, n_jobs):
     offered = cells >= OFFER_MIN_ROWS
     per_day = offered.reshape(5, -1)
     gaps = {}
-    for w in range(5):                                # the clock ranges without an offer, per weekday (for the record)
+    for w in range(5):                                # the clock ranges that are not priced, per weekday (for the record)
         off = np.flatnonzero(~per_day[w]); runs = []
         if len(off):
             start = prev = off[0]
@@ -181,7 +186,7 @@ def build(quote_dir, out_dir, n_jobs):
     meta['seconds'] = round(time.time() - t0, 1)
     with open(os.path.join(out_dir, 'meta.json'), 'w') as fh:
         json.dump(meta, fh, indent=1)
-    print('not offered (New York clock, by weekday):', json.dumps(gaps))
+    print('not priced (New York clock, by weekday):', json.dumps(gaps))
     print('wrote', out_dir, f"({meta['seconds']}s)")
 
 
@@ -199,7 +204,12 @@ def load(model_dir):
 
 def payouts(model, ts, px, t, clock='ny'):
     """Reconstructed (Rise payout, Fall payout, usable) for decisions at epoch seconds t on ticks (ts, px). usable =
-    a tick exists at or before the decision and the decision's weekday x clock bucket had quotes in the archive."""
+    a tick exists at or before the decision and the decision's weekday x clock bucket is priced (`offered`: at least
+    OFFER_MIN_ROWS fresh matched quotes in the archive). Refuses ticks or decisions outside development."""
+    for times in (np.asarray(ts), np.asarray(t)):      # every time finite and before the cutoff (NaN and +-inf fail)
+        if len(times) and not (np.isfinite(times).all() and times.max() < vqs.CUTOFF):
+            raise ValueError('venue_quote_model.payouts: a tick or decision time that is not a finite time before '
+                             '2026-08-01 is outside development')
     X, ok, (wd, mod) = feature_frame(ts, px, t, clock)
     pu, pd_ = to_payouts(model['skew'].predict(X), model['over'].predict(X))
     wk = np.asarray(wd) < 5

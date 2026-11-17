@@ -205,7 +205,10 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
                 'cpcv_deriv_x.py'),
 }
 NOT_CANDIDATES = {k for k, v in EXPERIMENTS.items() if v[0].startswith('ROBUSTNESS CHECK')}
-PAYOUT_READING_VERSIONS = ('analyze_payout_aware/0.1',)   # readings whose JSON layout notes_block can render
+# Readings whose JSON layout notes_block can render (0.2 adds the NOT READABLE verdict and a `modules` block).
+PAYOUT_READING_VERSIONS = ('analyze_payout_aware/0.1', 'analyze_payout_aware/0.2')
+# A reading is rendered only if each side holds the 15 CPCV paths (6 groups, 2 held out), each once and no other.
+PAYOUT_READING_LABELS = sorted(str([i, j]) for i in range(6) for j in range(i + 1, 6))
 
 R1_FILES = {   # frozen-book readings: file stem -> description
     'deriv_r1_frozen_books_dev_result.json': 'R1: frozen books as deployed (true clock, NY 08-17), ALL decisions incl. the untradeable blackout',
@@ -447,9 +450,15 @@ def notes_block(pair):
         parts = []
         for side in ('UP', 'DOWN'):
             v = d['sides'][side]
+            labels = [str(r['test']) for r in v['paths']]
+            if sorted(labels) != PAYOUT_READING_LABELS:
+                raise SystemExit(f'{f.name}: {side} holds {len(labels)} paths ({len(set(labels))} distinct), not the '
+                                 f'{len(PAYOUT_READING_LABELS)} CPCV paths {PAYOUT_READING_LABELS[0]} .. '
+                                 f'{PAYOUT_READING_LABELS[-1]}, each once')
             m = v['summary']
             checks = [v['harness_trades_reproduced'], v['recorded_candidate_reproduced']]
-            if any(c is None or not c['identical'] or c['paths_compared'] != len(v['paths']) for c in checks):
+            if v['verdict'] == 'NOT READABLE' or any(c is None or not c['identical'] or c['paths_compared'] != len(v['paths'])
+                                                     for c in checks):
                 parts.append(f'{side} not readable: the frozen trades do not reproduce the harness and the recorded '
                              'candidate on every path')
                 continue
@@ -463,11 +472,12 @@ def notes_block(pair):
                 continue
             pricing = v['pricing'] if m['paths_counted'] >= 12 else 'pricing not classified (fewer than 12 counted paths)'
             verdict = v['verdict'] + (' (on development data; not a certificate)' if v['verdict'] == 'PAYOUT-CLEARED' else '')
+            always = (f'always-{side} payout {m["mean_always_payout"]:.4f}, expected value {m["mean_always_ev"]:+.4f}'
+                      if m['mean_always_payout'] is not None else f'no priced always-{side} decision on a counted path')
             parts.append(f'{side} {verdict}, {pricing}: expected value per unit staked above 0 on '
                          f'{m["paths_ev_positive"]} of {m["paths_counted"]} counted paths, p10 {m["p10_ev"]:+.4f}, mean '
                          f'{m["mean_ev"]:+.4f}; win rate {m["mean_win_rate"]:.4f} at mean payout {m["mean_payout"]:.4f} (mean '
-                         f'breakeven faced {m["mean_breakeven_faced"]:.4f}; always-{side} payout {m["mean_always_payout"]:.4f}, '
-                         f'expected value {m["mean_always_ev"]:+.4f}); the lower-paid side was bought on '
+                         f'breakeven faced {m["mean_breakeven_faced"]:.4f}; {always}); the lower-paid side was bought on '
                          f'{m["mean_favoured_share"]:.3f} of the trades; {unpriced}')
         lane = '' if d['quote_model']['pair_has_quote_lane'] else '; this pair has no quotes in the archive and is priced by the other six pairs\' rule'
         out.append(f'- **Payout-aware reading of `{d["candidate"]}` 15m** (`{f.name}`, cov {d["cov"]}; the candidate\'s trades '
