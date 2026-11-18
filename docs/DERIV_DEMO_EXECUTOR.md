@@ -219,6 +219,21 @@ owners. Modules:
   `--smoke` AST gate proves no buy-shaped node exists in the module).
   `--audit` runs the standalone quote-audit sampler (issue #5). Gates:
   `--smoke` (deterministic), `--probe-seconds 60` (live).
+- `deriv_quote_survey.py` — the Deriv program's seven-day payout-quote survey
+  on the PUBLIC socket. Buy-incapable at the socket: every API request it
+  sends is checked against an allowlist of three request kinds (a price
+  request for CALL/PUT/CALLE/PUTE at a stake of 1, with or without a
+  subscription; a contract list; trading times) and leaves no sooner than
+  2.5 s after the one before (24 requests a minute). A process uses one
+  connection and never reconnects: it ends with exit code 1 instead, and its
+  supervisor starts a new one. It runs the audit sampler's 15-minute
+  CALL/PUT lanes for all seven pairs and adds unsubscribed proposal polls:
+  Rise/Fall and Rise/Fall Equal at 15 to 240 minutes, contract lists and
+  trading times. It takes the Deriv archive's connection lock itself. Not
+  part of the executor's runtime; see
+  `docs/DERIV_SOTA_PROGRAM.md`, "Quote survey". Gate: `--smoke`
+  (deterministic, on a virtual clock, in a process that can reach neither
+  the network nor the archive's connection lock).
 - `deriv_runtime_supervisor.py` — producer in issue-#6 queue mode: no demo
   credentials, no buy path, selected-side candidates committed to SQLite after
   the book gate. Legacy non-queue proposal-only mode remains for comparison.
@@ -270,6 +285,19 @@ Buy exclusivity: do not run legacy demo-buy modes. Cutover verifies
 **Parity re-check rule:** any change to the registry, a book,
 `live_features.py`, or `deriv_runtime_core.py` re-arms the 1-session KILL #0
 re-check before the next demo-buy session.
+
+**Open weakness of the shared payout decision** (found 2026-11-17 by a review
+of `deriv_quote_survey.py`; not changed, because of the rule above).
+`deriv_runtime_core._positive_number` accepts every number above zero, so
+`parse_quote` takes an infinite payout as a quote with breakeven 0.0, and
+`evaluate_payout_gate` passes it whatever the floor: probed in memory with
+`ask_price` 1.0, floor 0.60 and ceiling 0.58, the payouts `Infinity` and
+`1e999` (both of which `json.loads` reads as infinity) and the string `"inf"`
+each give `passed=True`. `NaN` is refused, and an infinite ask is refused as
+`edge_not_positive`. Whether Deriv ever sends such a value is not known. The
+survey guards its own rows (`non_finite_quote`). The fix for the executors
+is a `math.isfinite` test in `_positive_number`; it re-arms the KILL #0
+re-check, so it waits for the owner of the demo-trading program.
 
 ### KILL #0 complete-session re-arm (issue #20)
 
