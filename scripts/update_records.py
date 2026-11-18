@@ -219,7 +219,8 @@ R1_FILES = {   # frozen-book readings: file stem -> description
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render_ledger import MIRAGE_OK, amended_verdict, effective, goal_verdict, path_test  # noqa: E402  (shared goal / amendment rules)
+from render_ledger import MIRAGE_OK, amended_verdict, goal_verdict  # noqa: E402  (shared goal / amendment rules)
+from certificate import side_text, strict_certificate  # noqa: E402  (the one strict certificate, test E-002)
 
 
 def registry():
@@ -261,22 +262,23 @@ def failed_survivor_checks(pair):
 
 
 def ledger_side(r, c, side, failed):
-    """One side of a ledger row under the binding goal rule (render_ledger.goal_verdict). The harness's own verdict is
-    the repository rule, which certifies from as few as one counted path: a side that passes it alone is shown as
-    killed, with the path counts. So is a goal-rule pass that failed its survivor check (failed_survivor_checks)."""
+    """One side of a ledger row under the strict certificate (certificate.strict_certificate). The harness's older
+    field certifies from as few as one counted path: it is shown only labelled "legacy". A strictly certified side
+    that failed its survivor check (failed_survivor_checks) is shown as killed by that check, with its certificate."""
     if 'bycov' not in r:
-        return r['verdict'][side]
-    if goal_verdict(r, c, side).startswith('CERTIFIED'):
+        return f'legacy: {r["verdict"][side]}'
+    cert = strict_certificate(r, side, c)
+    if cert['status'] == 'certified':
         fs = failed.get((r.get('tag'), int(r['horizon_min']), side))
-        return f'KILLED (DEV goal-rule pass that failed its survivor check, `{fs[0]}`)' if fs else 'CERTIFIED'
-    if r['verdict'][side] == 'CERTIFIED':
-        _, n, clear, _ = path_test(r, c, side)
-        return f'KILLED (goal rule: {n} of 15 paths counted, {clear} clear; certified under the repository rule alone)'
-    return r['verdict'][side]
+        return (f'KILLED by its survivor check `{fs[0]}` (reads {fs[1]}; strict certificate: {side_text(cert)})' if fs
+                else 'CERTIFIED')
+    text = side_text(cert)
+    return f'{text}; legacy: CERTIFIED' if r['verdict'][side] == 'CERTIFIED' else text
 
 
 def ledger_block(pair, reg, q):
-    lines = ['| id | what | H | status | verdict UP / DOWN, goal rule (operating cov) | result JSON |', '|---|---|---|---|---|---|']
+    lines = ['| id | what | H | status | verdict UP / DOWN, strict certificate (operating cov) | result JSON |',
+             '|---|---|---|---|---|---|']
     failed = failed_survivor_checks(pair)
     for fname, what in R1_FILES.items():
         r1 = REPO / 'results' / 'json' / fname
@@ -295,17 +297,25 @@ def ledger_block(pair, reg, q):
             if js.exists():
                 r = json.loads(js.read_text())
                 c = str(r['operating_cov'])
-                am = {s: amended_verdict(r, c, s, pair) if 'bycov' in r else '' for s in ('UP', 'DOWN')}
+                am = {s: amended_verdict(r, c, s, pair, REPO / 'results' / 'json') if 'bycov' in r else ''
+                      for s in ('UP', 'DOWN')}
                 side = {s: ledger_side(r, c, s, failed) for s in ('UP', 'DOWN')}
-                verdict = effective(f'{side["UP"]} / {side["DOWN"]} (cov {r["operating_cov"]})',
-                                    '; '.join(f'{s} {am[s]}' for s in ('UP', 'DOWN') if am[s]))
-                status = 'done' if any(v.startswith('CERTIFIED') for v in side.values()) or any(am.values()) else 'killed'
+                verdict = f'{side["UP"]} / {side["DOWN"]} (cov {r["operating_cov"]})'
+                amend = '; '.join(f'{s} {am[s]}' for s in ('UP', 'DOWN') if am[s])
+                if amend:                           # owner decision 1: a field of its own, never the certificate
+                    verdict += f'; drift amendment (owner decision 1): {amend}'
+                status = ('done' if any(v.startswith('CERTIFIED') for v in side.values())
+                          else 'drift amendment' if amend else 'killed')
                 lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | {status} | {verdict} | `{js.name}` |')
             elif ev and not any(e['event'] == 'finish' for e in ev):
                 lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | running | — | — |')
             elif ev:
                 fin = [e for e in ev if e['event'] == 'finish'][-1]
-                lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | {fin.get("status")} | {fin.get("note", "")[:160]} | — |')
+                run_note = ' '.join(str(fin.get('note', '')).split()).replace('|', '\\|')   # one line, pipes escaped
+                if run_note.startswith('verdict '):     # a note written before the strict certificate: the older field
+                    run_note = 'legacy ' + run_note
+                lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | run {fin.get("status")}, no result file | '
+                             f'no strict certificate (no result file); run note: {run_note[:160]} | — |')
             elif (exp, pair, h) in q:
                 lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | pending | — | — |')
     return '\n'.join(lines)
@@ -335,12 +345,12 @@ def notes_block(pair):
                          f'({x["verdict"]})')
         out.append(f'- **{label}:** ' + '; '.join(parts) + '.')
     sys.path.insert(0, str(LAB / 'tools'))
-    import numpy as np
     cert, cert_failed, repo_only, amended = [], [], [], []
     failed = failed_survivor_checks(pair)
     for f in sorted(J.glob(f'deriv_*_{pair}_*m_result.json')):
         r = json.loads(f.read_text())
-        if 'bycov' not in r or r.get('tag') in ('e1', 'r2') or r.get('tag') in NOT_CANDIDATES:
+        if ('bycov' not in r or r.get('tag') in ('e1', 'r2') or r.get('tag') in NOT_CANDIDATES
+                or r.get('tradeable_only') is not True):     # affirmatively tradeable runs only
             continue
         c = str(r['operating_cov'])
         for side in ('UP', 'DOWN'):
@@ -349,21 +359,24 @@ def notes_block(pair):
             item = f'{r["tag"]} {r["horizon_min"]}m {side} (cov {c}: {g}; forward {fw["n_clear_BE"]}/{fw["n_counted"]})'
             fs = failed.get((r['tag'], int(r['horizon_min']), side))
             if g.startswith('CERTIFIED') and fs:
-                cert_failed.append(item.replace('CERTIFIED', 'path test passed', 1) + f'; `{fs[0]}` reads {fs[1]}')
+                cert_failed.append(item + f'; `{fs[0]}` reads {fs[1]}')
             elif g.startswith('CERTIFIED'):
                 cert.append(item)
             elif r['verdict'][side] == 'CERTIFIED':
                 repo_only.append(item)
-            am = amended_verdict(r, c, side, pair)
+            am = amended_verdict(r, c, side, pair, J)
             if am:
-                _, _, clear, p10 = path_test(r, c, side)
+                x = strict_certificate(r, side, c)
+                clear, p10 = x['paths_clear'], x['p10']
                 amended.append((int(r['horizon_min']), f'{r["tag"]} {r["horizon_min"]}m {side} (cov {c}: {clear}/15 clear, '
                                                        f'p10 {p10:.4f}; {am})'))
-    out.append('- **DEV-CPCV certified sides, GOAL rule (>= 12 of 15 paths counted and clear, p10 >= .541; tradeable runs):** '
+    out.append('- **DEV-CPCV certified sides, strict certificate (>= 12 of 15 paths counted and clear, '
+               'p10 >= .541; valid, tradeable runs):** '
                + ('; '.join(cert) if cert else 'none yet') +
                '. DEV certification is necessary, not sufficient: the sealed holdout decides (docs/DERIV_SOTA_PROGRAM.md).')
     if cert_failed:
-        out.append('- DEV goal-rule passes that failed their survivor check (not finalists; excluded from the list above): '
+        out.append('- DEV strict-certificate passes that failed their survivor check (not finalists; excluded from the '
+                   'list above): '
                    + '; '.join(cert_failed) + '.')
     if amended:
         out.append('- **DEV-CPCV certified under the owner\'s drift amendment** (decision 1, 2026-11-15: for a genuinely '
@@ -373,37 +386,42 @@ def notes_block(pair):
                    + '; '.join(x for _, x in amended) + '. Configurations without a placebo run stay INVALID. Final '
                    'certification also needs the holdout (drift-matched excess CI95 lower bound > 0 and the holdout conditions).')
     if repo_only:
-        out.append('- Certified only under the repository rule (too few counted paths for the goal rule): ' + '; '.join(repo_only) + '.')
+        out.append('- Certified only under the legacy rule, not under the strict certificate (its reading in each '
+                   'item): ' + '; '.join(repo_only) + '.')
     # Two-sided DEV leaderboard: the three tradeable runs closest to the goal rule per side and horizon (paths clearing
     # .541 among counted, then p10), with validity and the excess over the always-side baseline.
     for h in (15, 30):
         for side in ('UP', 'DOWN'):
-            cand, n_runs = [], 0
+            cand, n_runs, n_complete = [], 0, 0
             for f in sorted(J.glob(f'deriv_*_{pair}_{h}m_result.json')):
                 r = json.loads(f.read_text())
                 if ('bycov' not in r or r.get('tag') in ('e1', 'r2') or r.get('tag') in NOT_CANDIDATES
-                        or not r.get('tradeable_only', True)):
+                        or r.get('tradeable_only') is not True):     # affirmatively tradeable runs only
                     continue
                 n_runs += 1
                 c = str(r['operating_cov'])
-                w = [p['bycov'][c][side][1] for p in r['paths'] if p['bycov'][c][side][0] >= 25]
-                if len(r['paths']) != 15 or not w:
+                x = strict_certificate(r, side, c)      # counts, p10 and validity: the one strict reader
+                if x['paths_evaluated'] != 15:          # incomplete or unreadable: not a candidate
                     continue
-                clear = sum(x >= 0.541 for x in w)
-                p10 = float(np.percentile(w, 10))
+                n_complete += 1
+                if not x['paths_counted']:
+                    continue
+                clear, p10 = x['paths_clear'], x['p10']
                 ex = (r['bycov'][c]['verdict'][side].get('excess_vs_always') or {}).get('mean')
-                valid = r.get('validity', {}).get('VALID')
-                am = amended_verdict(r, c, side, pair)
-                cand.append((clear, p10, f'`{r["tag"]}` {clear}/{len(w)} clear, p10 {p10:.3f}'
+                am = amended_verdict(r, c, side, pair, J)
+                cand.append((clear, p10, f'`{r["tag"]}` {clear}/{x["paths_counted"]} clear, p10 {p10:.3f}'
                              + (f', excess {ex:+.3f}' if ex is not None else '')
-                             + ('' if valid else ', ' + effective('INVALID (up-rate checks)', am))))
+                             + ('' if x['valid'] is True else ', no validity record' if x['valid'] is None
+                                else ', INVALID (up-rate checks)'
+                                + (f'; drift amendment (owner decision 1): {am}' if am else ''))))
             if cand:
                 cand.sort(key=lambda x: (x[0], x[1]), reverse=True)
                 out.append(f'- **DEV leaderboard {h}m {side}** (closest to the goal rule at each run\'s operating coverage): '
                            + '; '.join(x[2] for x in cand[:3]) + '.')
             elif n_runs:
-                out.append(f'- **DEV leaderboard {h}m {side}:** no CPCV path with 25 or more {side} trades at the operating '
-                           f'coverage in any candidate run ({n_runs} run{"s" if n_runs != 1 else ""}).')
+                out.append(f'- **DEV leaderboard {h}m {side}:** no complete candidate run (15 readable paths) has a '
+                           f'path with 25 or more {side} trades at the operating coverage ({n_runs} candidate '
+                           f'run{"s" if n_runs != 1 else ""}, {n_complete} complete).')
     # Sealed-holdout looks (owner decision 6), straight from holdout/seq_decision.py's output, and the deployment status
     # that follows: a key-side is deployable only when its finalist is CERTIFIED at a look.
     latest = {}
@@ -515,7 +533,8 @@ def main():
                 'rendered from the result JSONs by `scripts/render_ledger.py` (do not edit by hand).\n\n'
                 '<!-- DERIV-FEED-NOTES:BEGIN -->\n<!-- DERIV-FEED-NOTES:END -->\n\n'
                 '<!-- DERIV-FEED-TABLES:BEGIN -->\n<!-- DERIV-FEED-TABLES:END -->\n')
-        body = subprocess.run([sys.executable, '-B', str(LAB / 'tools' / 'render_ledger.py'), pair],
+        body = subprocess.run([sys.executable, '-B', str(Path(__file__).resolve().parent / 'render_ledger.py'), pair,
+                               '--results', str(REPO / 'results' / 'json')],
                               check=True, capture_output=True, text=True).stdout.rstrip('\n')
         t = replace_block(t, 'DERIV-FEED-NOTES', notes_block(pair))
         res.write_text(replace_block(t, 'DERIV-FEED-TABLES', body))

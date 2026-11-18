@@ -8,29 +8,28 @@ results/json/deriv_<exp>_<PAIR>_<H>m_result.json (CPCV runs) and prints two Mark
 """
 import argparse
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from certificate import cell_text, strict_certificate, validity  # noqa: E402  (the one strict certificate, test E-002)
 
 DEFAULT = Path('/home/sean/git/binary-algo/results/json')
 
 
 def path_test(r, c, s, be=0.541):
-    """The /goal's path test from the stored per-path data of any harness version: of the 15 purged paths, at least 12
-    must have >= 25 trades AND a win rate >= .541, and the p10 of the counted paths must be >= .541.
-    Returns (passes, counted, clear, p10)."""
-    import numpy as np
-    w = [p['bycov'][c][s][1] for p in r['paths'] if p['bycov'][c][s][0] >= 25]
-    clear = sum(x >= be for x in w)
-    p10 = float(np.percentile(w, 10)) if w else float('nan')
-    return bool(len(r['paths']) == 15 and len(w) >= 12 and clear >= 12 and p10 >= be), len(w), clear, p10
+    """The /goal's path test from the stored per-path data (certificate.strict_certificate's path success): of the 15
+    purged paths, at least 12 must have >= 25 trades AND a win rate >= .541, and the p10 of the counted paths must be
+    >= .541. Returns (passes, counted, clear, p10)."""
+    x = strict_certificate(r, s, c, be)
+    return x['path_success'], x['paths_counted'], x['paths_clear'], x['p10']
 
 
 def goal_verdict(r, c, s, be=0.541):
-    """The /goal's certification reading: the path test on a VALID run; an invalid run (moved up-rate checks)
-    certifies nothing here (see amended_verdict for the owner's drift amendment)."""
-    ok, n, clear, _ = path_test(r, c, s, be)
-    valid = r.get('validity', {}).get('VALID', r.get('validity', {}).get('in_session_up_rate_in_band', True) and
-                                      r.get('validity', {}).get('paths_up_rate_in_tripwire', True))
-    return f'{"CERTIFIED" if ok and valid else "no"} ({n}/{len(r["paths"])}, {clear} clear)'
+    """The strict certificate's results-table cell (certificate.cell_text): CERTIFIED only for a valid, complete run
+    that carries the harness's strict field; invalidity, incompleteness and why a passing path test is not certified
+    are named. The owner's drift amendment (amended_verdict) is never part of it."""
+    return cell_text(strict_certificate(r, s, c, be))
 
 
 # Owner decision 1 (docs/DERIV_SOTA_PROGRAM.md "Owner decisions", 2026-11-15): DRIFT AMENDMENT. A run INVALID through the
@@ -48,7 +47,7 @@ MIRAGE_OK = {   # (pair, horizon) -> mirage-check evidence (dataset_dev_v0.1, NY
 
 def amended_verdict(r, c, s, pair, results_dir=DEFAULT):
     """'' unless the run is DEV-certified under the drift amendment; then a short status naming the placebo."""
-    if r.get('validity', {}).get('VALID', True) or (pair, int(r['horizon_min'])) not in MIRAGE_OK:
+    if validity(r) is not False or (pair, int(r['horizon_min'])) not in MIRAGE_OK:
         return ''
     pl = PLACEBO_OF.get((r.get('tag'), pair, int(r['horizon_min']), c))
     if pl is None or not path_test(r, c, s)[0]:
@@ -60,11 +59,6 @@ def amended_verdict(r, c, s, pair, results_dir=DEFAULT):
     if str(pj.get('cov')) != c or int(pj.get('horizon_min', -1)) != int(r['horizon_min']):
         return ''
     return f'DEV-CERT (drift amendment, placebo `{pl}`)' if pj['sides'][s]['verdict'] == 'SKILL BEYOND DRIFT TIMING' else ''
-
-
-def effective(original, amended):
-    """One status string that names the rule behind each part."""
-    return original if not amended else f'original rule: {original}; effective (owner decision 1): {amended}'
 
 
 def fmt(x, nd=4):
@@ -110,9 +104,10 @@ def main():
                    'p10/frac = path win-rate 10th percentile / share of paths >= .541; fwd = forward-walk paths clearing .541 '
                    'and their mean):\n')
         out.append('| Run | Model / features | H | cov | AUC mean (min) | UP p10 · frac · mean | UP fwd | DOWN p10 · frac · mean | '
-                   'DOWN fwd | always UP / DOWN | repo-rule verdict UP / DOWN | GOAL rule UP / DOWN (paths counted) | '
+                   'DOWN fwd | always UP / DOWN | legacy verdict UP / DOWN | '
+                   'strict certificate UP / DOWN (paths counted) | drift amendment UP / DOWN (owner decision 1) | '
                    'frac @.565 UP / DOWN | result JSON |')
-        out.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
+        out.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
         for f, r in runs:
             c = str(r['operating_cov'])
             b = r['bycov'][c]
@@ -121,8 +116,11 @@ def main():
                 w = [p['bycov'][c][s][1] for p in r['paths'] if p['bycov'][c][s][0] >= 25]
                 return f'{sum(x >= 1 / 1.77 for x in w) / len(w):.2f}' if w else '—'
 
-            def goal(s):                            # goal-faithful: >= 12 of the 15 paths counted AND clearing .541, p10 >= .541
-                return effective(goal_verdict(r, c, s), amended_verdict(r, c, s, a.pair, R))
+            def goal(s):                            # the strict certificate alone (certificate.strict_certificate)
+                return goal_verdict(r, c, s)
+
+            def amend(s):                           # owner decision 1: a field of its own, never the certificate
+                return amended_verdict(r, c, s, a.pair, R) or '—'
             model = f'{r.get("tag", "")}: {r["feature_set"]} ({r["n_features"]}), nseed {r["nseed"]}'
             if 'pool' in r:
                 model += f', pooled +{len(r["pool"])} pairs'
@@ -132,6 +130,7 @@ def main():
                        f'({fmt(r["auc_summary"]["min"])}) | {side("UP")} | {fwds("UP")} | {side("DOWN")} | {fwds("DOWN")} | '
                        f'{fmt(r["baseline_always"]["UP"].get("mean"))} / {fmt(r["baseline_always"]["DOWN"].get("mean"))} | '
                        f'{r["verdict"]["UP"]} / {r["verdict"]["DOWN"]} | {goal("UP")} / {goal("DOWN")} | '
+                       f'{amend("UP")} / {amend("DOWN")} | '
                        f'{frac565("UP")} / {frac565("DOWN")} | `{f.name}` |')
     print('\n'.join(out))
 
