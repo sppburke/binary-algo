@@ -11,7 +11,9 @@ of 0.541 or more at the operating coverage (the run's `operating_cov`, by the ke
 one key numerically equal to it, else to the first of its `covs`); no counted path without a finite win rate; the 10th
 percentile of the counted paths' win rates at 0.541 or more; a run whose validity record says it is valid (the moved
 up-rate band and the per-path tripwire; a result without a validity record is not taken as valid); and the harness's
-own strict field (`verdict_goal`), which must agree. The reread compares that stored field with the reading of the
+own strict field (`verdict_goal`), which must agree. A noncertifying marker overrides the status to "not certified"
+with its reason, retaining the path statistics; the reread expects a false strict field for these results.
+The reread compares that stored field with the reading of the
 stored figures, never with a status the field itself decided. Path success
 (`path_success`), validity (`valid`: True, False or None when there is no record) and the drift placebo
 (`drift_placebo`, as the caller looked it up, e.g. `render_ledger.amended_verdict`; None when not looked up) are three
@@ -36,7 +38,8 @@ from pathlib import Path
 
 import numpy as np
 
-TOOL = "certificate/0.4"
+# 0.5: enforce noncertifying markers independently, including on reread.
+TOOL = "certificate/0.5"
 BE = 0.541            # Rise/Fall breakeven, ties lose
 MIN_TRADES = 25       # a path counts with this many trades or more
 PATHS = 15            # purged CPCV paths of the goal
@@ -101,6 +104,21 @@ def validity(result: dict) -> bool | None:
     return band and trip if isinstance(band, bool) and isinstance(trip, bool) else None
 
 
+def _noncertifying_reason(result: dict) -> str | None:
+    """Independent light-reader equivalent of cpcv_deriv.adaptive_policy (owner decision 13).
+    A recorded reason wins; every non-None ACI gamma, including zero and nonfinite values, marks a policy.
+    """
+    if result.get('noncertifying'):
+        return str(result['noncertifying'])
+    if str(result.get('harness', '')).startswith('cpcv_deriv_online'):
+        return 'a continuing policy: the online learner updates on settled outcomes during each test path'
+    for key in ('knobs', 'config'):
+        conf = result.get(key)
+        if isinstance(conf, dict) and conf.get('aci_gamma') is not None:
+            return 'an adaptive threshold: ACI moves it with settled test outcomes'
+    return None
+
+
 def strict_certificate(result: dict, side: str, cov: str | None = None, be: float = BE,
                        placebo: str | None = None) -> dict:
     """The strict certificate of one side of a result, with its reasons (see the module's docstring)."""
@@ -109,10 +127,14 @@ def strict_certificate(result: dict, side: str, cov: str | None = None, be: floa
     side_goal = goal.get(side) if isinstance(goal, dict) else None
     stored = side_goal.get("CERTIFIED") if isinstance(side_goal, dict) else None
     valid = validity(result)
+    why = _noncertifying_reason(result)
     out = {"tool": TOOL, "side": side, "operating_coverage": cov, "status": "unreadable", "reasons": [],
            "path_success": False, "valid": valid, "drift_placebo": placebo, "paths_evaluated": 0,
            "paths_counted": 0, "paths_clear": 0, "nonfinite_counted": 0, "p10": float("nan"), "stored_strict": stored,
            "legacy": legacy.get(side) if isinstance(legacy, dict) else legacy}
+    if why:
+        out["status"] = "not certified"
+        out["reasons"].append(f"never certified: {why}")
     try:
         rates = [(p["bycov"][cov][side][0], p["bycov"][cov][side][1]) for p in result["paths"]]
         counted = [float("nan") if _missing(w) else float(w) for n, w in rates if n is not None and n >= MIN_TRADES]
@@ -149,10 +171,12 @@ def strict_certificate(result: dict, side: str, cov: str | None = None, be: floa
         reasons.append("the result carries no strict field (verdict_goal)")
     elif not isinstance(stored, bool):
         reasons.append(f"the stored strict field reads {stored!r}, not a boolean")
-    elif stored != (path_success and valid is True):
+    elif not why and stored != (path_success and valid is True):
         figures = path_success and valid is True
         reasons.append(f"the stored strict field reads {stored}, the stored figures {figures}")
-    if len(rates) != PATHS:
+    if why:
+        out["status"] = "not certified"
+    elif len(rates) != PATHS:
         out["status"] = "incomplete"
     elif valid is False:
         out["status"] = "invalid"
@@ -167,10 +191,20 @@ def certified(result: dict, side: str, cov: str | None = None) -> bool:
     return strict_certificate(result, side, cov)["status"] == "certified"
 
 
+def _unreadable(cert: dict) -> bool:
+    """Figure availability survives the noncertifying status override."""
+    return (cert["status"] == "unreadable"
+            or any(why.startswith("no per-path figures for ") for why in cert["reasons"]))
+
+
 def _blocking(cert: dict, long: bool) -> str | None:
-    """Why a side whose path test passes is not certified, when its status is 'not certified' (every reason, when
-    none of the known notes matches)."""
-    if cert["status"] != "not certified" or not cert["path_success"]:
+    """The policy reason regardless of path success; otherwise why a passing path test is not certified."""
+    if cert["status"] != "not certified":
+        return None
+    policy = next((why for why in cert["reasons"] if why.startswith("never certified: ")), None)
+    if policy:
+        return policy
+    if not cert["path_success"]:
         return None
     for words, long_note, short_note in NOTES:
         if any(words in why for why in cert["reasons"]):
@@ -195,20 +229,29 @@ def side_text(cert: dict) -> str:
         test = "path test passed" if cert["path_success"] else "path test not passed"
         return f"invalid (moved up-rate checks; {test}: {counts})"
     why = _blocking(cert, long=True)
-    return f"not certified ({counts}; {why})" if why else f"not certified ({counts})"
+    if _unreadable(cert):
+        counts = "unreadable: no per-path figures"
+    elif cert["paths_evaluated"] != PATHS:
+        counts = f'incomplete: {cert["paths_evaluated"]} of {PATHS} paths evaluated; {counts}'
+    return f"not certified ({counts}{bad}; {why})" if why else f"not certified ({counts}{bad})"
 
 
 def cell_text(cert: dict) -> str:
     """One side of a results-table cell: CERTIFIED or no, the counted / evaluated paths and the clearing ones, then
     every flag the counts do not show (incomplete, invalid, a counted win rate that is not finite, and why a passing
     path test is not certified)."""
-    flags = ((["incomplete"] if cert["status"] == "incomplete" else [])
+    unreadable = _unreadable(cert)
+    flags = ((["incomplete"] if cert["status"] == "incomplete" else
+              [f'incomplete: {cert["paths_evaluated"]} of {PATHS} paths evaluated']
+              if not unreadable and cert["paths_evaluated"] != PATHS else [])
              + (["invalid"] if cert["valid"] is False else [])
              + (["a win rate not finite"] if cert.get("nonfinite_counted") else []))
     why = _blocking(cert, long=False)
     tail = "".join(f"; {f}" for f in flags + ([why] if why else []))
     if cert["status"] == "unreadable":
         return f"unreadable (no per-path figures{tail})"
+    if unreadable:
+        return f"no (unreadable: no per-path figures{tail})"
     head = "CERTIFIED" if cert["status"] == "certified" else "no"
     return f'{head} ({cert["paths_counted"]}/{cert["paths_evaluated"]}, {cert["paths_clear"]} clear{tail})'
 
@@ -266,10 +309,10 @@ def _reread_result(name: str, r: dict) -> tuple[int, list[str], list[str], list[
     for s in SIDES:
         c = strict_certificate(r, s)
         g = r["verdict_goal"].get(s)
-        if c["status"] == "unreadable" or not isinstance(g, dict):
+        if _unreadable(c) or not isinstance(g, dict):
             unreadable.append(f"{name} {s}: {'; '.join(c['reasons']) or 'no stored strict side'}")
             continue
-        figures = bool(c["path_success"] and c["valid"] is True)
+        figures = bool(not _noncertifying_reason(r) and c["path_success"] and c["valid"] is True)
         same = (isinstance(g.get("CERTIFIED"), bool) and g["CERTIFIED"] == figures
                 and g.get("paths_counted") == c["paths_counted"] and g.get("paths_clear") == c["paths_clear"]
                 and same_number(g.get("p10"), c["p10"]))

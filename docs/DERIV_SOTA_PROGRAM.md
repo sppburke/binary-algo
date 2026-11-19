@@ -146,6 +146,27 @@ results of older harness versions the measured fields are compared and descripti
 evidence the later delta reviews added (114 mutants with the final online test) ran on the same build; its outputs
 are in the record above (`evidence_final/`).
 
+F1 (installed 2026-11-19 17:39:11 UTC by `install_f1.py`, in the lab and in this repository's mirror in one step; the
+replaced files, with their SHA-256, are in `tools_backups/f1_20261119T173911Z/`): `cpcv_deriv` 0.6 and `certificate`
+0.5 (SHA-256 prefixes 4ef12e795e7e and 53d696fbc42c) complete the E-003 veto. The veto writes any recorded
+noncertifying reason verbatim and keeps the forward-diagnostic wording of owner decision 13 only for the two
+continuing policies (the online harness and ACI), whose reasons are shared harness constants; it also clears the
+survival flags of the three payout-aware readings. The light reader honours a recorded noncertifying marker: such a
+side reads "not certified" with the reason "never certified: <reason>" while its path statistics are still computed,
+and both formatters print the policy reason beside any incomplete, invalid or unreadable flag. Apart from the reader's
+own version field (`tool`, now `certificate/0.5`), rereading the stored results changes no certification: the 557
+results with a strict field match it on all 1,114 sides, as with 0.4; of the 605 harness results only sides of marked
+(continuing-policy) results read differently (32 stay "not certified" with the new reason, 6 read "not certified"
+where 0.4 read "invalid"), and no unmarked result changes any field; the AUDUSD ledger rendered with each reader
+differs only in the rows of its three continuing-policy results, whose "no" gains the reason. Evidence (record
+`/mnt/data/deriv-sota-lab/registry/round6_stage1/f1/`): two review rounds of three lenses each, the second approve,
+approve, and approve with one evidence-only revision (a percentile fixture), made and verified by the reviewer's own
+mutant without a further round under the owner's stopping rule of 2026-11-19; `test_f1.py`, 57,669 assertions and 35
+executed wrong implementations rejected; lab test `f1-regress-e10v02`: the stored `e10v02` AUDUSD configuration rerun
+with `--july-filter --no-forward --path-jobs 8 --n-jobs 2` equals the stored 0.4.1 result in every field of all 15
+paths (the forward walks were not run, so their summaries differ, and so does the gain ranking, which sums over every
+fitted booster).
+
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
 and embargo H around each test block, training on moved in-session unpurged rows, a random 15% validation subset
@@ -958,6 +979,18 @@ in the day (about 17:00 UTC); the labels are verbatim.
   as the plan states them, one GPU job at a time under its own memory cap (a GPU job may run beside a CPU job).
   Every arm is registered before it runs, each neural result is read against the plan's same-input controls, and
   nothing is promoted before `E-009` and `E-010`.
+
+**Answers of 2026-11-19.** Put with options after the owner asked whether the work could be sped up (about 15:15
+UTC); the labels are verbatim.
+
+- **Review stopping rule: "Yes, adopt it (Recommended)".** Once the reviewers approve the code itself, a Minor
+  finding that is evidence-only (a gap in the tests, not the code) is fixed and verified by the reviewer's own mutant
+  or probe failing, without a further review round, and disclosed; a Major or Blocking finding still gets a fresh
+  review.
+- **Reviewers per round: "3–4 lenses per round (Recommended)".** Three or four independent reviewer lenses per round
+  instead of two.
+- **Cores: "10 × 2 when idle (Recommended)".** Heavy CPU runs may use `--path-jobs 10 --n-jobs 2` (all 20 cores) when
+  nothing else runs on the machine; 8 × 2 (decision 7) otherwise; one heavy job at a time either way.
 
 ## Open owner decisions
 

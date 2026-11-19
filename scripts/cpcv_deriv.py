@@ -48,7 +48,8 @@ from sessions import session_mask  # noqa: E402  (the repository's single source
 from fork_jobs import in_order, run_forked  # noqa: E402  (next to this file, in tools/ and in the repository mirror)
 
 warnings.filterwarnings('ignore', message='X does not have valid feature names')
-HARNESS_VERSION = 'cpcv_deriv/0.5'   # 0.5: --path-jobs N (test E-020: paths and forward splits in forked workers,
+# 0.6: preserve noncertifying reasons and veto payout survival decisions.
+HARNESS_VERSION = 'cpcv_deriv/0.6'   # 0.5: --path-jobs N (test E-020: paths and forward splits in forked workers,
 #   tools/fork_jobs.py; identical path rows; with --nseed > 1 the summed feature gain can differ in its last bits)
 #   and a recorded 'compute' block; defaults unchanged.
 #   0.4.2: + the venue's window 21:00-23:59:59 UTC (owner decision 14) and the
@@ -301,6 +302,9 @@ def score_row(row, ptst, ftst, ttst, vconf, covs, gap, vkeep=None, tkeep=None):
     return row
 
 
+ONLINE_POLICY_REASON = 'a continuing policy: the online learner updates on settled outcomes during each test path'
+ACI_POLICY_REASON = 'an adaptive threshold: ACI moves it with settled test outcomes'
+
 def adaptive_policy(res):
     """Why a result is a continuing (adaptive) policy, or None (test E-003; owner decision 13: such policies count
     only as forward diagnostics): the online harness learns from settled outcomes as it goes; an ACI threshold
@@ -310,11 +314,11 @@ def adaptive_policy(res):
     if res.get('noncertifying'):                    # the reason aggregate recorded (a string: it survives JSON)
         return str(res['noncertifying'])
     if str(res.get('harness', '')).startswith('cpcv_deriv_online'):
-        return 'a continuing policy: the online learner updates on settled outcomes during each test path'
+        return ONLINE_POLICY_REASON
     for key in ('knobs', 'config'):
         conf = res.get(key)
         if isinstance(conf, dict) and conf.get('aci_gamma') is not None:
-            return 'an adaptive threshold: ACI moves it with settled test outcomes'
+            return ACI_POLICY_REASON
     return None
 
 
@@ -322,7 +326,8 @@ def veto_adaptive(res, why):
     """Test E-003, owner decision 13: a continuing policy is a forward diagnostic only. Every certificate the result
     holds is set false (each coverage's per-side verdicts and the strict verdict_goal), a verdict it holds is
     replaced, and the reason is recorded. aggregate applies it to the result, result_json to the copy it writes,
-    print_summary to a copy it prints."""
+    print_summary to a copy it prints. Other recorded noncertifying reasons keep their own verdict text;
+    payout survival decisions are vetoed too."""
     for v in (res.get('bycov') or {}).values():
         for s in SIDES:
             cert = (v.get('verdict') or {}).get(s) if isinstance(v, dict) else None
@@ -331,8 +336,20 @@ def veto_adaptive(res, why):
     for g in (res.get('verdict_goal') or {}).values():
         if isinstance(g, dict) and 'CERTIFIED' in g:
             g['CERTIFIED'] = False
+    for key in ('payout_aware', 'payout_aware_forward', 'payout_aware_confidence'):
+        reading = res.get(key)
+        sides = reading.get('sides') if isinstance(reading, dict) else None
+        if isinstance(sides, dict):
+            for side in sides.values():
+                if isinstance(side, dict) and 'survives' in side:
+                    side['survives'] = False
     if 'verdict' in res:
-        res['verdict'] = {s: 'FORWARD DIAGNOSTIC (owner decision 13): never certified' for s in ('UP', 'DOWN')}
+        continuing = why in (
+            ONLINE_POLICY_REASON,
+            ACI_POLICY_REASON,
+        )
+        verdict = 'FORWARD DIAGNOSTIC (owner decision 13): never certified' if continuing else why
+        res['verdict'] = {s: verdict for s in ('UP', 'DOWN')}
     res['noncertifying'] = why
 
 
