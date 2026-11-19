@@ -204,6 +204,55 @@ EXPERIMENTS = {   # id -> (what, harness)  — generic descriptions; numbers com
     'e20sgs3': ('ROBUSTNESS CHECK, not a candidate: e20sg with seeds 0-2 averaged (USDCHF 15m UP survivor check S2)',
                 'cpcv_deriv_x.py'),
 }
+# Round 6, stages 9 (neural) and 2 (A-068): campaign addition 1 (lab PROGRESS.md, registered 2026-11-19 16:00:42 UTC),
+# lab tool cpcv_neural (recipes fixed in the tool, no knobs). "Default inputs": the dataset's resolved incumbent
+# features (60 since the amendment that refused the six EMA inputs). C05: the 128-minute, 18-channel cross-pair window
+# of the minute store. Pilot arms (-p) run the three balanced paths and never certify (E-016); full arms (-f) run 15.
+R6N_RECIPES = {   # tag stem -> recipe
+    'a069': 'A-069 MLP (128 + inputs)->128->32->1 (ReLU, dropout .1, AdamW, moved-sign BCE, patience 5) on 128 '
+            'context-normalized own one-minute returns + the default inputs',
+    'a016': 'A-016 fixed random convolution kernels on the last 120 normalized own returns (256 zero-sum Gaussian '
+            'kernels, lengths 7/9/11, dilations 1-8, max and positive-share pooling: 512 coordinates, no other input), '
+            'L2 logistic readout (C 0.05)',
+    'a070': 'A-070 causal dilated TCN on 128 normalized own returns (6 blocks of two convolutions, width 32, kernel 2, '
+            'dilations 1-32), last state + the default inputs, linear head, moved-sign BCE',
+    'a071': 'A-071 LSTM (hidden 32, one layer, state reset per window) on 128 normalized own returns, final state + the '
+            'default inputs, linear head, moved-sign BCE',
+    'a003': 'A-003 causal TCN on C05 (4 blocks, width 16, kernel 3, dilations 1-8) + the default inputs, two strict side '
+            'heads (mean strict-head BCE), 15 epochs without early stopping',
+    'a003fixed': 'A-003 control: fixed random convolution kernels on C05 (256 kernels, lengths 3/7/15, dilations 1-8) '
+                 '+ the default inputs, two L2 logistic side heads (C 0.05)',
+    'a003linear': 'A-003 control: two L2 logistic side heads (C 0.05) on the flattened C05 window + the default inputs',
+    'a003permuted': 'A-003 control: the A-003 network on C05 windows in one fixed permuted time order (seed 62003)',
+    'a005': 'A-005 echo-state reservoir on C05 (128 units, sparsity .1, spectral radius .8) + the default inputs, L2 '
+            'logistic readout (C from .005/.05/.5 by the stopping set), one moved-sign head',
+    'a005gru': 'A-005 control: GRU (hidden 32, one layer) on C05 + the default inputs, one moved-sign head',
+    'a005linear': 'A-005 control: one L2 logistic head (C 0.05) on the flattened C05 window + the default inputs',
+    'a005conv': 'A-005 control: causal TCN on C05 (4 blocks, width 16, kernel 3, dilations 1-8) + the default inputs, '
+                'one moved-sign head',
+    'mlp2h': 'A-001 MLP (hidden 32) on the default inputs, two strict side heads (mean strict-head BCE, patience 3)',
+    'mlp2hmod': 'A-001 mlp2h with a volatility-context modulation (factor 1 + 0.5 tanh of a linear map of log rv_60m, '
+                'log rv_240m and ret_60m / rv_60m; zero initialized)',
+    'logit2h': 'A-001 control: two independent L2 logistic side heads (C 0.05) on the default inputs',
+    'lgb2h': 'A-001 control: two LightGBM side heads (mk_lgb, 255 leaves, early stopping 80 rounds) on the default inputs',
+    'tabm': 'A-002 TabM: four members sharing a 32x32 MLP with multiplicative adapters, mean member probability, two '
+            'strict side heads',
+    'tabmemb': 'A-002 ablation: TabM with per-feature learned 4-vector embeddings shared across the members',
+    'mlp32x2': 'A-002 control: one MLP 32x32 with the same presentation budget (80 per fit origin)',
+    'mlp32x2ens4': 'A-002 control: four independent MLPs 32x32, mean probability',
+    'race3': 'A-023 race of ResMLP, FT-Transformer and TabNet, the winner by minimum stopping BCE',
+    'resmlpns': 'A-023 ablation: ResMLP (projection 128, two pre-LN residual blocks) on normal-score inputs',
+    'tabnetns': 'A-023 ablation: TabNet (n_d = n_a = 8, three steps) on normal-score inputs',
+    'mlp64x16': 'A-023 ablation: MLP 64->16, two strict side heads',
+    'p102': 'A-068 raw-lag logistic P1-02: L2 logistic (C 0.05) on 128 normalized own one-minute returns + the default '
+            'inputs (the raw-lag control of A-069, A-016, A-070 and A-071)',
+    'p10266': 'A-068 control P1-02-66: L2 logistic (C 0.05) on the default inputs alone (registered as 66, 60 since the '
+              'EMA amendment), with the sequence-history eligibility and embargo of P1-02',
+}
+for _stem, _what in R6N_RECIPES.items():
+    for _arm, _kind in (('p', 'PILOT, three balanced paths, never certifying (E-016)'), ('f', 'full arm, 15 paths')):
+        if _arm == 'f' or not _stem.startswith('p102'):            # A-068 registered full arms only
+            EXPERIMENTS[f'r6n-{_stem}-{_arm}'] = (f'{_what}; {_kind}', 'cpcv_neural.py')
 NOT_CANDIDATES = {k for k, v in EXPERIMENTS.items() if v[0].startswith('ROBUSTNESS CHECK')}
 # Readings whose JSON layout notes_block can render (0.2 adds the NOT READABLE verdict and a `modules` block).
 PAYOUT_READING_VERSIONS = ('analyze_payout_aware/0.1', 'analyze_payout_aware/0.2')
@@ -276,6 +325,16 @@ def ledger_side(r, c, side, failed):
     return f'{text}; legacy: CERTIFIED' if r['verdict'][side] == 'CERTIFIED' else text
 
 
+def pilot_text(x):
+    """One side's registered pilot reading (E-016, cpcv_neural): "kill" needs >= 200 distinct executed trades and a
+    90% week-block upper win-rate bound below the breakeven; "proceed" and "insufficient power" go to the full arm."""
+    if not x:
+        return 'no pilot reading recorded'
+    upper = x.get('upper_wr')
+    return (f'{x["reading"]} ({x["distinct_trades"]} distinct trades'
+            + (f', 90% upper win rate {upper:.3f})' if upper is not None else ')'))
+
+
 def ledger_block(pair, reg, q):
     lines = ['| id | what | H | status | verdict UP / DOWN, strict certificate (operating cov) | result JSON |',
              '|---|---|---|---|---|---|']
@@ -297,6 +356,12 @@ def ledger_block(pair, reg, q):
             if js.exists():
                 r = json.loads(js.read_text())
                 c = str(r['operating_cov'])
+                if r.get('pilot') is True:              # E-016: a pilot never certifies; its reading is per side
+                    pr = r.get('pilot_reading') or {}
+                    verdict = ' / '.join(f'{s} {pilot_text(pr.get(s))}' for s in ('UP', 'DOWN'))
+                    lines.append(f'| {exp.upper()} | {what} (`{harness}`) | {h}m | pilot | pilot reading (never '
+                                 f'certifies): {verdict} (cov {r["operating_cov"]}) | `{js.name}` |')
+                    continue
                 am = {s: amended_verdict(r, c, s, pair, REPO / 'results' / 'json') if 'bycov' in r else ''
                       for s in ('UP', 'DOWN')}
                 side = {s: ledger_side(r, c, s, failed) for s in ('UP', 'DOWN')}

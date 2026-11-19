@@ -167,6 +167,28 @@ with `--july-filter --no-forward --path-jobs 8 --n-jobs 2` equals the stored 0.4
 paths (the forward walks were not run, so their summaries differ, and so does the gain ranking, which sums over every
 fitted booster).
 
+The neural adapter `cpcv_neural` 0.3 (stages 9 and 10; lab only, no repository mirror; installed 2026-11-19 20:08:23
+UTC by `install_neural03e.py`, the replaced 0.2 in `tools_backups/neural03_20261119T200823Z/`; SHA-256 prefix
+e4ec2824463a): for datasets of the lab's builder each row's dependency start follows the builder's semantics (own
+windows in observed bars with the predecessor bar, both as-of endpoints of every peer return on the peer's own grid,
+the USD aggregate from all six peers, capped ages, the temporal recipes' 129 minute buckets, the first day as the
+start of short prefixes); S is the longest span on the complete dataset; purge P = 60H + LAG + 60 and embargo
+E = 60H + LAG + 1 + S (LAG, the manifest's 1-second settlement lag), outside and inside the inner partition. On
+`dataset_dev_v0.1` at H = 15: S = 363,840 s (AUDUSD 363,900 s), E = 364,742 s (AUDUSD 364,802 s), P = 961 s, against
+H for the incumbent harness. The six recursive EMA inputs are refused (no finite memory), so the default input set
+is 60 of the plan's 66, an amendment recorded before any run produced a result; the nine pandas rolling-moment
+inputs are recomputed from `ret_1m` with each row a function of its own window (on the development data close to the
+stored float32 columns, not equal: absolute differences at most 2.4e-10 for the volatilities, 4.8e-7 for the two
+ratios, 1.02e-6 for the skew and 1.53e-5 for the kurtosis, with the same missing-value masks; record
+`realdata_moments_compare.json`); the integer-count inputs need the raw `ticks_per_bar_15m` finite in [0, 2^40];
+stale ages are validated before conversion; a refused load writes a failure record. Evidence (record `/mnt/data/deriv-sota-lab/registry/round6_stage9_10/
+neural03/`): five review rounds (the last a delta review: causal safety approve with no finding, test evidence and
+failure semantics approve with one Minor each, the first fixed in the tests, the second, a gap in failure records for
+direct invocations, deferred because `run_batch.sh` records failures itself); 81 suite groups and 88 of 88 wrong
+implementations rejected, rerun independently (90 of 90 after the tests' follow-up for the first Minor, the harness
+unchanged); the 182 pilot and A-068 arms reached their first fit on the development data with the P, E and inputs
+above.
+
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
 and embargo H around each test block, training on moved in-session unpurged rows, a random 15% validation subset
@@ -991,6 +1013,14 @@ UTC); the labels are verbatim.
   instead of two.
 - **Cores: "10 × 2 when idle (Recommended)".** Heavy CPU runs may use `--path-jobs 10 --n-jobs 2` (all 20 cores) when
   nothing else runs on the machine; 8 × 2 (decision 7) otherwise; one heavy job at a time either way.
+- **Coverage of the currencies: "Both families, all V tests".** Put with options after the owner asked whether every
+  currency is tested (18:30 UTC; the question and the per-key reading given are in lab `PROGRESS.md`, "Owner
+  decisions (2026-11-19)"). On DEV only two keys pass the path test: USDCHF 15m UP (`e20sg`, whose strict certificate
+  passed and which then failed its survivor check, so it is not a finalist) and USDJPY 15m UP (invalid under the
+  moved up-rate band); no DOWN key passes. The first answer, "Targeted transfer (Recommended)", was replaced when the
+  owner asked to be asked again: the configurations of `e20sg` (USDCHF) and `e30nystroem` (USDJPY) also run on each
+  of the six other pairs with the V baseline and V-04 to V-09, 84 arms for campaign addition 2, which is written
+  before any of them runs.
 
 ## Open owner decisions
 
