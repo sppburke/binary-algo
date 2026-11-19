@@ -84,6 +84,68 @@ rule offers against an independent computation). A label-based choice made on th
 measures in-sample fit: they are minute neighbours of fit rows with overlapping labels. Such choices use
 `--val-mode block`.
 
+Round 6, stage 1 (installed 2026-11-19 11:21 UTC; the replaced files, with their SHA-256, are in
+`tools_backups/e003_e020_20261119T112141Z/`): `cpcv_deriv` 0.5 and `cpcv_deriv_x` 0.11, with `cpcv_deriv_pool` 0.3.1,
+`cpcv_deriv_online` 0.1.1, `cpcv_rule` 0.1.1 and `fork_jobs.py` (SHA-256 prefixes 45c6e4705320, 4cdb6f15f2c5,
+a6230154fc19, 4032af0a08b3, e3eb129dc44b and 667ba85523cc). Test E-003 (thirteen review rounds with two independent
+reviewers each, then three delta reviews of the evidence alone by one of them; the reviews, the dispositions, the
+evidence and the build scripts, with SHA-256, are the record in
+`/mnt/data/deriv-sota-lab/registry/round6_stage1/e003/`):
+
+- Support: a path whose validation population is empty, holds a score that is not finite, or holds no row every
+  gate kept gets no threshold and zero strategy trades, with the reason in `insufficient_support` (listed in
+  `paths_insufficient_support`). A split without local support gets the same explicit row, for example an empty
+  partition or out-of-fold half; fit labels the selected model class cannot fit; no signed feature column for a
+  model that fits on the signed coordinates; no feature the Brier objective can split or CatBoost can use. A
+  specialist side without fit or validation rows, or whose fit labels its estimator cannot fit, is skipped and its
+  rows excluded, and the other side's specialist still trades; any other refusal of a specialist's fit (no feature
+  the Brier objective can split, for example) refuses the whole split.
+- Validity: a score's validity is read where the model produces it, before any transformation (a sigmoid, the
+  agreement gate's sign comparisons, the specialists' clip, the meta gate's input, the drift-neutral booster's
+  offsets). A score that is not finite never trades and no diagnostic reads it. In the CPCV harnesses one in a
+  validation population gives the explicit row, and one in a test population makes only its own row ineligible; in
+  the online harness it is also left out of the later threshold windows, which count valid confidences only (a
+  window needs 2,000).
+- Masks: a row any gate excluded trades on no side, COMBINED included, at any threshold. Before, a gate's rows at
+  p = 0.5 could trade COMBINED where the threshold was 0; 5 of the 31,476 stored thresholds (paths and forward walks,
+  one per coverage) are 0.
+- Classes: each estimator's own requirement, so every supported case keeps its thresholds and trades. LightGBM needs
+  two fit rows and fits one class, but refuses an early-stopping label its fit labels lack; the ordinal model refuses
+  only an unseen validation bin and a layout whose sorted bins from the third on are not exactly the up bins; the
+  scikit-learn, XGBoost and CatBoost models need two fit classes; validation labels need none.
+- Reports: a model without tree gain reports no gain ranking; result files are standard JSON (a missing number is
+  null) and carry `run_status`.
+- Options: every numeric option is checked before anything is loaded, at the domain of the estimator that consumes
+  it (each library's limits probed one per process); an option the run does not consume is not checked.
+- Continuing policies (owner decision 13: forward diagnostics only): `--aci-gamma` is refused, since ACI moves its
+  threshold with settled test outcomes, which E-003's stop rule excludes. The online harness and any stored result
+  whose configuration sets ACI are never certified: aggregation, the result writer and the printed summary apply one
+  veto (the writer and the printer to a copy), and its recorded reason keeps a reread result uncertified. None of
+  the 7 stored online and 12 stored ACI results is certified, so no stored reading changes.
+
+Owner decision 14 binds from this build on: in all five harnesses, decisions under five hours that start from 21:00:00
+to 23:59:59 UTC are excluded from training, validation and test, with `--include-blackout` as well (section "Venue
+tradeability"); with `--july-filter` the harnesses keep the July 2026 tradeability filter instead, for regression
+against stored results only (`regression_only` true, never a candidate).
+
+E-020: `--path-jobs N` fits the paths of one run in N forked workers (owner decision 7: 8 workers of 2 threads). In
+every configuration its regression covers (listed in its log in the record: among them LightGBM and its variants,
+logistic and kernel models, the base harness with three seeds, five gated configurations, the prediction dumps, all
+hours and paths without support) the parallel run's results equal the sequential run's, floats bit for bit, except
+the Brier-objective booster (within 1e-6 of its stored result; lab test `x-brier-threads` found two sequential runs
+with the same arguments differing in their last bits) and gains summed over several boosters (within 1e-9). A
+configuration the regression does not cover is not shown equal. A parallel run needs `--n-jobs` of at least 1; a
+sequential run takes any `--n-jobs` the estimators accept.
+
+Regression (lab tests in `registry/tests.jsonl`): `e003-regress13b`, 206 checks, none failed: the synthetic and
+nested cases against the lab's harness; the online harness against an independent causal oracle; 107 mutants of the
+evidence; the stored configurations reproduced with `--july-filter`, three in full and eleven at path 1, every
+compared field equal (a missing number NaN in the stored file, null in the new one); the venue window as masks; the
+arguments. `e020-regress13`, 44 checks, none failed: parallel runs against sequential and stored ones (for stored
+results of older harness versions the measured fields are compared and descriptive differences listed). The
+evidence the later delta reviews added (114 mutants with the final online test) ran on the same build; its outputs
+are in the record above (`evidence_final/`).
+
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
 and embargo H around each test block, training on moved in-session unpurged rows, a random 15% validation subset
@@ -108,12 +170,15 @@ Every Deriv-feed evaluation therefore excludes decisions with start in **[16:50 
 validation and test (`cpcv_deriv.tradeable`; 15m: [16:35, 18:00); 30m: [16:20, 18:00)). Results produced before the
 filter (`e1`, `r2`, `r1`, `r1b`) are superseded by their tradeable re-runs (`e1t`, `r2t`, `r1t`, `r1bt`).
 
-**Not yet in the filter (2026-11-17).** With New York on standard time the venue also refused every contract under
-five hours from 21:00:00 UTC, which is 16:00 New York: "Trading on forex contracts with duration less than 5 hours
-is not available from 21:00:00 to 23:59:59" (one day, met by the commissioning of the quote survey; section "Venue
-payouts", "Quote survey"). On such a day the filter admits 15-minute starts from 16:00 to 16:35 New York, and
-30-minute starts from 16:00 to 16:20, that the venue would not have sold. What follows for the filter is open owner
-decision 14.
+**The venue window (binding from harness cpcv_deriv 0.5, owner decision 14 of 2026-11-18).** With New York on
+standard time the venue also refused every contract under five hours from 21:00:00 UTC, which is 16:00 New York:
+"Trading on forex contracts with duration less than 5 hours is not available from 21:00:00 to 23:59:59" (one day,
+met by the commissioning of the quote survey; section "Venue payouts", "Quote survey"). From stage 1 on, every
+evaluation also excludes, from training, validation and test, the decisions under five hours that start from
+21:00:00 to 23:59:59 UTC (`cpcv_deriv.venue_open`, recorded as `venue_window_rule`), with `--include-blackout` as
+well; only `--july-filter` (regression against stored results) leaves them in. With New York on daylight time the
+window lies after the 17:00 New York end of the session. Stored results stay as they are; look 2 of the two USDJPY
+finalists binds on the starts the venue sells, and both readings are reported.
 
 ## Venue payouts (2026-11-17)
 
@@ -789,7 +854,8 @@ The repository closures in AGENTS.md stand for this program unless the owner reo
 neural/spectral, image, GRU/ESN, TSFM or Optuna nulls, and no cross-pair pooling for the USDJPY/USDCAD/AUDUSD/NZDUSD
 own-pair family. The owner reopened them on 2026-11-17 for three bounded stages of round 6 on the Deriv feed only
 (stages 8, 9 and 10, each behind its gate, fixed recipes, no open-ended architecture search; decisions 3 and 11
-under "Owner decisions (resolved)"); everything else stays closed, and the Dukascopy-store results are not
+under "Owner decisions (resolved)"); on 2026-11-18 the owner released stages 9 and 10 to run now, ahead of their
+parent stages ("All neural stages now"); everything else stays closed, and the Dukascopy-store results are not
 re-mined. Note for the owner: those closures were measured on the Dukascopy-derived stores, whose timestamps
 are not true UTC (verified 2026-11-14: stored = true UTC − 5 h for files labelled 2012-01-02..2025-08-22, + 7 h in US
 summer / + 8 h in US winter from 2025-08-25; evidence and reference correction in
@@ -868,7 +934,30 @@ decisions had under "Open owner decisions".
 
 In force as defaults until the owner rules otherwise (not asked; the ranking's recommendation and the stricter choice
 in each case): continuing (adaptive) policies count as forward diagnostics only, and the complete search is not
-replayed under a null without a raw survivor and adequate power.
+replayed under a null without a raw survivor and adequate power. Under the first default the extended harness
+refuses ACI from `cpcv_deriv_x` 0.11 on (Certification harness, above).
+
+**Answers of 2026-11-18.** Put with options after the report of the quote survey's start (about 14:10 UTC) and later
+in the day (about 17:00 UTC); the labels are verbatim.
+
+- **Decision 14 (the tradeability filter in winter): "Exclude them from stage 1 on (Recommended)".** Starts from
+  21:00:00 to 23:59:59 UTC are excluded from the harness build stage 1 uses onward; look 2 of the two USDJPY
+  finalists binds on the starts the venue sells; both readings are reported; stored results stay as they are
+  (section "Venue tradeability").
+- **The order of the released work: "Core checks, then configs (Recommended)".** `E-004`, `E-002` and `E-003` first;
+  then the configurations (`V-04` to `V-09`, then stages 2 to 4) while the rest of stage 1 is built alongside;
+  nothing is promoted until `E-009` (the search-wide correction) and `E-010` (the power count) are recorded. This
+  replaces the order of decision 8.
+- **Sleep during the quote week: "Add a week-long block (Recommended)".** A user unit blocks sleep until the week
+  ends; nothing else about the power settings changed.
+- **Speed (the owner asked whether the work uses the GPU).** For the LightGBM and CatBoost models in use the GPU was
+  slower (lab benchmark `b1bench`); the measured speed-up is the path-parallel harness (`E-020`, 10.8 times the
+  single 16-thread fit), so its acceptance was moved into stage 1 and built with `E-003`.
+- **Neural families: "All neural stages now".** Stages 9 and 10 (41 tests) are built and run as soon as possible,
+  ahead of their parent stages, inside their caps (2,500 + 1,200 training fits, 120 + 100 GPU hours), fixed recipes
+  as the plan states them, one GPU job at a time under its own memory cap (a GPU job may run beside a CPU job).
+  Every arm is registered before it runs, each neural result is read against the plan's same-input controls, and
+  nothing is promoted before `E-009` and `E-010`.
 
 ## Open owner decisions
 
@@ -880,11 +969,11 @@ passed the pre-registered 16-shift sign-null diagnostic `a5null` for this one se
 `results/json/deriv_a5null_USDJPY_15m_result.json`); it does not replay the search, so it is not a search-adjusted
 significance test. The sealed holdout remains the binding test.)
 
-Decisions 5, 7 and 8 are resolved above and decision 6 (the two-look sequential holdout) in Holdout discipline.
+Decisions 5, 7, 8 and 14 are resolved above and decision 6 (the two-look sequential holdout) in Holdout discipline.
 Decisions 3, 9, 10, 11, 12 and 13 are resolved in part; what stays open of each is listed here. Decisions 7 to 13
 were raised by discovery round 6 on 2026-11-17, and the ranking agent's options and recommendations for them are in
 `research/deriv_round6_2026-11-17/plan.json` (`owner_decisions`). Decision 14 was raised on the same day by the
-commissioning of the quote survey.
+commissioning of the quote survey and answered on 2026-11-18.
 
 - **Decision 2 — Frozen books as an operational option.** Before owner decision 1, the only DEV-supported edges were
   frozen Dukascopy-trained USDJPY books scored on their training clock in true NY 13:00–16:35 / 18:00–22:00. They
@@ -925,18 +1014,5 @@ commissioning of the quote survey.
   without a raw survivor and adequate power. Not asked yet: one registered forward look, at the whole basket and at
   `c2nysabs`, on data collected after the development window. It is put to the owner with numbers after the power
   count `E-010`; no candidate has been scored on any date after 2026-11-14, so nothing is lost by waiting.
-- **Decision 14 — The tradeability filter in winter (raised 2026-11-17; put to the owner with the report of the
-  survey's start).** The venue's own text, seen on one day with New York on standard time: contracts under five
-  hours are not sold from 21:00:00 to 23:59:59 UTC (section "Venue tradeability"). The filter excludes 15-minute
-  starts from 16:35 New York, a cut-off measured in July; on a winter day the venue's window begins at 16:00 New
-  York, so the filter admits 35 minutes of decisions a day that could not have been bought (20 minutes for a
-  30-minute key). In the development window that is, for each pair, 2,380 of the 128,581 decisions the filter
-  admits in the New York session at 15 minutes (1.9%; 5.5% of those of the 68 standard-time days they fall on) and
-  1,360 of 125,086 at 30 minutes (1.1%): decision times of `dataset_dev_v0.2b` only, no outcome read
-  (`commissioning_2026-11-17/winter_window_count.txt` in the survey directory). The harness and every stored
-  result are unchanged. The question: whether the filter also excludes starts from 21:00:00 to 23:59:59 UTC, from
-  the harness build that stage 1 uses onward; and whether look 2 of the two USDJPY finalists, which lies wholly in
-  winter, binds on the starts the venue sells. The week's refusal rows show on which days the window holds. Until
-  the answer, no certificate is issued on the present filter.
-- **Release of stages 5 and 6.** Inside the research scope, not released by the answer to decision 8, and needed
-  before stage 9: put to the owner at the stage-4 report.
+- **Release of stages 5 and 6.** Inside the research scope and not released; stages 9 and 10 run ahead of them
+  (answer of 2026-11-18, "All neural stages now"). Put to the owner at the stage-4 report.

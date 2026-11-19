@@ -6,6 +6,7 @@ knobs the base mirror does not expose.
                     [--nseed 1] [--features all|noclock|own|own_noclock] [--feature-list cols.json]
                     [--num-leaves 255] [--min-child 400] [--lr 0.02] [--n-estimators 800] [--colsample 0.5]
                     [--reg-lambda 20] [--dataset DIR] [--out result.json] [--tag TEXT] [--no-forward] [--max-paths N]
+                    [--n-jobs 16] [--path-jobs 1]
 
 --train-session widens (or changes) the rows the model is FIT on; groups, validation rows (early stopping and
 the threshold quantile), test paths and every reported number stay on the evaluation --session. Purge and
@@ -13,12 +14,16 @@ embargo apply to all rows. --val-mode block replaces the repository's random 15%
 overlapping neighbours of fit rows: overconfident thresholds, early stopping that never fires) with the last
 15% of the training rows in time, purged one horizon from the fit rows.
 Defaults reproduce cpcv_deriv.py exactly (same rng stream and parameters; checked on E1 USDJPY path 1).
+--path-jobs N > 1 runs the CPCV paths and the forward-walk splits in N forked workers (tools/fork_jobs.py), each
+with --n-jobs threads: every split starts from the generator state the sequential loop would have, so each path
+row is the sequential one; only the summed feature gain can differ in its last bits when a split fits several
+boosters (the per-split sums are added in split order instead of fit by fit).
 """
 import argparse
+import copy
 import json
 import sys
 import time
-from collections import deque
 from itertools import combinations
 from pathlib import Path
 
@@ -27,8 +32,12 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
+from fork_jobs import in_order, run_forked  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.10'   # 0.10: discovery round 5 - --blend-absret SIDE (D5-01 selected blend of the unweighted
+X_VERSION = 'cpcv_deriv_x/0.11'   # 0.11: --path-jobs N (test E-020: paths and forward splits in forked workers;
+#   identical path rows) and a recorded 'compute' block; defaults and every 0.10.1 option unchanged.
+#   0.10.1: the venue's window (owner decision 14, cpcv_deriv 0.4.2) and the
+#   guards of E-003. 0.10: discovery round 5 - --blend-absret SIDE (D5-01 selected blend of the unweighted
 #                                  and |return|-weighted LightGBM; --blend-force-alpha for regression only) and --rule-gate
 #                                  COL (D5-03 zero-parameter rule offers ranked by the model); defaults and every 0.9 option
 #                                  unchanged
@@ -93,39 +102,6 @@ def standardize(Xf, *others):
     return (z(F),) + tuple(z(prep(O)) for O in others)
 
 
-def aci_side(pr, fwd, ts, thr0, side, gap, gamma, target):
-    """Adaptive-conformal-style confidence gate on one test path, chronological and causal: start at the validation
-    threshold; when a taken trade SETTLES (decision + H + 2 s, before any later decision uses it) move the threshold by
-    gamma * (loss - (1 - target)) - up after a loss, down after a win, floor 0. Side filter, first-come de-overlap (gap
-    H), win = right sign AND moved (ties lose), exactly as cpcv_deriv.side_wr otherwise."""
-    conf = np.abs(pr - 0.5)
-    want = (pr > 0.5) if side == 'UP' else (pr < 0.5) if side == 'DOWN' else np.ones(len(pr), bool)
-    thr, block, taken, wins, pend = thr0, -1, 0, 0, deque()
-    for i in range(len(ts)):
-        t = ts[i]
-        while pend and pend[0][0] <= t:
-            thr = max(0.0, thr + gamma * (pend.popleft()[1] - (1.0 - target)))
-        if t < block or not want[i] or not np.isfinite(fwd[i]) or conf[i] < thr:
-            continue
-        win = ((pr[i] > 0.5) == (fwd[i] > 0)) and fwd[i] != 0
-        taken += 1
-        wins += int(win)
-        block = int(t) + gap
-        pend.append((int(t) + gap + 2, 0.0 if win else 1.0))
-    return taken, (wins / taken if taken else float('nan'))
-
-
-def aci_score_row(row, ptst, ftst, ttst, vconf, covs, gap, gamma, target):
-    for s in ('UP', 'DOWN'):
-        row['always'][s] = list(cd.always(ftst, ttst, s, gap))
-    for c in covs:
-        thr = float(np.quantile(vconf, 1 - c))
-        row['bycov'][f'{c}'] = {'thr': thr}
-        for s in cd.SIDES:
-            row['bycov'][f'{c}'][s] = list(aci_side(ptst, ftst, ttst, thr, s, gap, gamma, target))
-    return row
-
-
 def blend_select(pv0, pv1, vg, tv, fv, cov, side, gap, force=None):
     """D5-01: choose alpha in BLEND_ALPHAS for p = (1 - alpha) pv0 + alpha pv1 on VALIDATION rows only. vg = validation rows
     inside the compression gate (all rows without it), tv / fv = their times and settled returns. Each alpha: threshold =
@@ -156,6 +132,12 @@ def rule_encode(p, side):
 
 def sigm(f):
     return 1.0 / (1.0 + np.exp(-f))
+
+
+def prob(f, link=sigm):
+    """Test E-003: link(f) where the raw score f is finite, NaN elsewhere. A sigmoid gives 1.0 at +inf and 0.0 at
+    -inf, which would make an invalid score a valid probability."""
+    return np.where(np.isfinite(f), link(f), np.nan)
 
 
 def tail_soft_loss(s, y, m, tau):
@@ -202,7 +184,71 @@ def nystail_objective(w, P, y, inC, mC, lam, tau, alpha=1e-4):
     return f, g
 
 
+ACI_REFUSED = ('ACI is refused: it moves its threshold with settled test outcomes, test E-003 stops a harness '
+               'whose thresholds use test outcomes, and owner decision 13 makes adaptive policies forward '
+               'diagnostics only, under a protocol of their own (none is registered)')
+
+
+LGB_MODELS = ('lgb', 'lgbbrier', 'lgbord4', 'ens3', 'pool', 'stack')        # models that fit LightGBM
+NYSTROEM_MODELS = ('nystroem', 'pool', 'stack', 'nysagree', 'nystail')     # models that fit a Nystroem kernel
+LOGIT_MODELS = ('logit', 'pool', 'stack', 'nysagree')                      # models whose logistic takes --logit-c
+
+
+INT32_MAX = 2 ** 31 - 1
+
+
+def null_shift(weeks, span):
+    """Test E-003: the null replay's label shift in seconds, reduced modulo span in Python integers ((x + k) % span
+    = (x + k % span) % span), so any integer number of weeks works on int64 timestamps."""
+    return (int(weeks) * 7 * 86400) % span
+
+
+def f32_rate(lr):
+    """A learning rate as XGBoost and CatBoost hold it (float32; out of range: infinity)."""
+    with np.errstate(over='ignore'):
+        return np.float32(lr)
+
+
+def option_domains(a):
+    """Test E-003: (option, value, inside its domain) for every option the run's estimators use, at the domain
+    the installed library accepts (probed; see patch_e003_round6.py, patch_e003_round7.py and patch_e003_round9.py)
+    or the harness's own definition; an option the run does not use is not checked. NaN fails every comparison."""
+    m = a.model
+    lgb_used = m in LGB_MODELS or (a.mag_keep is not None and a.mag_model == 'lgb')
+    nys_used = m in NYSTROEM_MODELS or (a.drift_fe and m == 'nystroem')
+    logit_used = m in LOGIT_MODELS or (m == 'logit') or ((a.drift_fe or a.signed_only) and m == 'logit')
+    out = []
+    if lgb_used:                                    # (CatBoost in ens3 takes the iterations too)
+        out += [('--num-leaves', a.num_leaves, 2 <= a.num_leaves <= 131072),
+                ('--min-child', a.min_child, 0 <= a.min_child <= INT32_MAX), ('--lr', a.lr, a.lr > 0),
+                ('--colsample', a.colsample, 0 < a.colsample <= 1), ('--reg-lambda', a.reg_lambda, a.reg_lambda >= 0),
+                ('--n-estimators', a.n_estimators, 1 <= a.n_estimators <= INT32_MAX)]
+    if m == 'ens3':                                 # XGBoost and CatBoost too (both hold the rate in float32)
+        out += [('--lr', a.lr, bool(np.isfinite(f32_rate(a.lr)) and f32_rate(a.lr) > np.finfo(np.float32).eps)),
+                ('--cat-depth', a.cat_depth, 0 <= a.cat_depth <= 16),
+                ('--n-jobs', a.n_jobs, a.n_jobs == -1 or 1 <= a.n_jobs <= INT32_MAX)]   # CatBoost's convention
+    if m in ('forest', 'pool', 'stack'):            # extra trees: joblib's pre-dispatch '2 * n_jobs' is at most 10^6
+        out += [('--n-jobs', a.n_jobs, a.n_jobs != 0 and a.n_jobs <= 500000)]
+    if nys_used:
+        out += [('--nys-gamma-mult', a.nys_gamma_mult, 0 <= a.nys_gamma_mult < float('inf')),
+                ('--nys-components', a.nys_components, a.nys_components >= 1)]
+    if logit_used:
+        out += [('--logit-c', a.logit_c, a.logit_c > 0)]
+    if m == 'stack':
+        out += [('--stack-shrink', a.stack_shrink, 0 <= a.stack_shrink <= 1)]
+    if a.boot_gate:
+        out += [('--boot-z', a.boot_z, a.boot_z >= 0)]
+    if a.weight == 'recency':
+        out += [('--halflife-days', a.halflife_days, a.halflife_days > 0)]
+    return out
+
+
 class XFitter(cd.Fitter):
+    def __init__(self, X, fwd, ts, a, gap, covs):
+        if getattr(a, 'aci_gamma', None) is not None:     # test E-003: no path of this module scores ACI
+            raise ValueError(ACI_REFUSED)
+        super().__init__(X, fwd, ts, a, gap, covs)
+
     def signed(self, Z):
         """e67drfe's signed coordinates (reflection map: negated columns, rangepos - 0.5), missing = 0."""
         V = Z[:, self.signed_cols].astype(np.float64)
@@ -254,9 +300,50 @@ class XFitter(cd.Fitter):
                 break
         return al
 
+    def fit_unsupported(self, y, yv):  # noqa: C901 - one rule per model class
+        """Test E-003: why the selected model class cannot be fitted on the fit labels y with the validation labels
+        yv, or None - each estimator's own requirement. Every model that fits LightGBM needs two fit rows. nystail
+        has no class rule (its optimizer takes one class; its own checks stay). lgbord4 refuses a validation bin y
+        lacks (LightGBM's early stopping raises) and fit labels whose up bins (2, 3) are not exactly the classes at
+        sorted positions 2 and above (the P(up) columns [:, 2:] would then hold a down bin or miss an up bin);
+        every other layout, a singleton down bin included, keeps the incumbent result. lgb and lgbbrier
+        take one class, but LightGBM's early stopping refuses a validation label y lacks (--no-early-stop lgb has
+        no validation set). The other model classes need two classes in y: scikit-learn's logistic and SGD raise,
+        extra trees returns one probability column, CatBoost (in ens3) raises (XGBoost fits all-zero labels but
+        not all-one). One-class validation labels are fine: every early-stopping metric here and the AUC
+        diagnostic take them. A model that fits on the signed coordinates alone (signed-only logistic and LightGBM,
+        the drift-neutral LightGBM, the agreement gate's plain logistic) needs at least one signed column; the
+        drift-neutral logistic (the agreement gate's other one) fits its strata alone, and the drift-neutral kernel
+        model reads every column."""
+        a = self.a
+        cols = getattr(self, 'signed_cols', None)
+        if cols is not None and len(cols) == 0 and (getattr(a, 'signed_only', False) or a.model == 'nysagree'
+                                                    or (getattr(a, 'drift_fe', False) and a.model == 'lgb')):
+            return 'no signed feature column (this model class fits on the signed coordinates)'
+        if a.model == 'nystail':
+            return None
+        if a.model in ('lgb', 'lgbbrier', 'lgbord4', 'ens3', 'pool', 'stack') and len(y) < 2:
+            return 'fewer than two fit rows (LightGBM needs two)'
+        if a.model == 'lgbord4':
+            c = sorted(set(np.unique(y).tolist()))      # LightGBM encodes them 0..k-1 in this order
+            if [b for b in c if b >= 2] != c[2:]:
+                return 'the ordinal fit labels make P(up) = [:, 2:] read the wrong bins'
+            if not np.isin(yv, y).all():
+                return 'a validation bin is absent from the ordinal fit labels (LightGBM early stopping)'
+            return None
+        if a.model in ('lgb', 'lgbbrier'):
+            no_es = a.model == 'lgb' and getattr(a, 'no_early_stop', False) and not getattr(a, 'drift_fe', False)
+            if no_es or np.isin(yv, y).all():
+                return None
+            return 'a validation label is absent from the fit labels (LightGBM early stopping)'
+        return None if len(np.unique(y)) >= 2 else 'the fit labels hold one class'
+
     def fit_one(self, sd, Xf, yf, Xv, yv, Xt):
         """One seed of the selected model class: (validation probabilities, test probabilities, iterations)."""
         a = self.a
+        why = self.fit_unsupported(yf, yv)
+        if why:                                     # test E-003: the selected model class cannot fit these labels
+            raise cd.Unsupported(f'insufficient support: {why}')
         pv, pt, its = [], [], []
         # sklearn models get the training weights rescaled to mean 1 (per-row loss scale unchanged against the penalty)
         skw = {} if self.wfit is None else {'sample_weight': self.wfit / (self.wfit.mean() + 1e-18)}
@@ -269,7 +356,7 @@ class XFitter(cd.Fitter):
         if getattr(a, 'signed_only', False):
             if a.model == 'logit':                  # e74logitsig: e67drfe's inputs and scaling, global intercept, no strata
                 fv, ft, it = self.signed_logit(Xf, yf, Xv, Xt, skw, fe=False)
-                return sigm(fv), sigm(ft), it
+                return prob(fv), prob(ft), it         # test E-003: an infinite raw score is invalid
             Xf, Xv, Xt = self.signed(Xf), self.signed(Xv), self.signed(Xt)    # lgb: the usual booster on these columns
         if a.model == 'lgbord4':                    # literature rank 25: ordinal signed bins (4-class), P(up) = P(bin 2) + P(bin 3)
             m = cd.lgb.LGBMClassifier(objective='multiclass', num_class=4, learning_rate=a.lr, num_leaves=a.num_leaves,
@@ -306,15 +393,22 @@ class XFitter(cd.Fitter):
                                       n_estimators=a.n_estimators, n_jobs=a.n_jobs, verbosity=-1, random_state=sd,
                                       bagging_seed=sd, feature_fraction_seed=sd)
             kw = {} if self.wfit is None else {'sample_weight': self.wfit}
-            m.fit(Xf, yf, eval_set=[(Xv, yv)], eval_metric='auc',
-                  callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
-            sig = lambda Z: 1.0 / (1.0 + np.exp(-m.booster_.predict(Z, raw_score=True, num_iteration=m.best_iteration_ or None)))
+            try:
+                m.fit(Xf, yf, eval_set=[(Xv, yv)], eval_metric='auc',
+                      callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
+            except cd.lgb.basic.LightGBMError as e:       # test E-003: the custom objective with no usable feature
+                if 'num_features()' not in str(e):
+                    raise
+                raise cd.Unsupported('insufficient support: no feature of the fit rows can be split (LightGBM\'s '
+                                     'feature pre-filter; the Brier objective needs one)') from None
+            # test E-003: prob - an infinite raw score is invalid, not a probability of 0 or 1
+            sig = lambda Z: prob(m.booster_.predict(Z, raw_score=True, num_iteration=m.best_iteration_ or None))
             pv.append(sig(Xv)); pt.append(sig(Xt))
             self.gain += m.booster_.feature_importance(importance_type='gain')
             its.append(int(m.best_iteration_ or 0))
         if a.model == 'ens3':                       # SWEEP_MATRIX A1: + XGBoost + CatBoost (scripts/m15_production.py recipe)
             import xgboost as xgb
-            from catboost import CatBoostClassifier
+            from catboost import CatBoostClassifier, CatBoostError
             es = None if a.no_early_stop else 80
             g = xgb.XGBClassifier(n_estimators=a.n_estimators, learning_rate=a.lr, max_depth=8, subsample=0.8,
                                   colsample_bytree=0.5, reg_lambda=10, tree_method='hist', n_jobs=a.n_jobs, eval_metric='auc',
@@ -326,7 +420,13 @@ class XFitter(cd.Fitter):
             c = CatBoostClassifier(iterations=a.n_estimators, learning_rate=a.lr, depth=a.cat_depth, l2_leaf_reg=10,
                                    eval_metric='AUC', thread_count=a.n_jobs, verbose=False, random_seed=sd,
                                    allow_writing_files=False, early_stopping_rounds=es)
-            c.fit(fill(Xf), yf, eval_set=(fill(Xv), yv))
+            try:
+                c.fit(fill(Xf), yf, eval_set=(fill(Xv), yv))
+            except CatBoostError as e:                  # test E-003: no feature of the fit rows varies
+                if 'All features are either constant or ignored' not in str(e):
+                    raise
+                raise cd.Unsupported('insufficient support: no feature of the fit rows varies (CatBoost, in ens3, '
+                                     'refuses constant or missing features)') from None
             pv.append(c.predict_proba(fill(Xv))[:, 1]); pt.append(c.predict_proba(fill(Xt))[:, 1])
             its.append(int(c.get_best_iteration() or 0))
         if a.model in ('logit', 'pool', 'stack'):   # low-capacity linear model (L2, fixed C chosen before any run)
@@ -359,6 +459,9 @@ class XFitter(cd.Fitter):
             # log-loss (softmax parameters), then shrink toward equal weights by stack_shrink (1 = the equal-weight pool).
             # The validation rows also set early stopping and the threshold: 3 free weights, a declared double use.
             from scipy.optimize import minimize
+            if not np.all(np.isfinite(np.column_stack(pv))):   # test E-003: before the clip and the weights
+                raise cd.Unsupported('insufficient support: a validation score of a stacked member is not a finite '
+                                     'number')
             P = np.clip(np.column_stack(pv), 1e-6, 1 - 1e-6)
             def nll(th):
                 w = np.exp(th - th.max()); w /= w.sum()
@@ -388,7 +491,7 @@ class XFitter(cd.Fitter):
         D = sp.csr_matrix((np.full(len(inv), 10.0), (np.arange(len(inv)), inv)))
         if a.model == 'logit':
             fv, ft, it = self.signed_logit(Xf, yf, Xv, Xt, skw, fe=True)
-            return sigm(fv), sigm(ft), it
+            return prob(fv), prob(ft), it             # test E-003: an infinite raw score is invalid
         if a.model == 'lgb':
             F, V, T = self.signed(Xf), self.signed(Xv), self.signed(Xt)
             yb = np.asarray(yf, dtype=np.float64)
@@ -402,14 +505,18 @@ class XFitter(cd.Fitter):
                       eval_metric='auc', callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
                 it = int(m.best_iteration_ or 0)
                 raw = lambda Z, m=m, it=it: m.booster_.predict(Z, raw_score=True, num_iteration=it or None)
+                fF = raw(F)                             # (booster 2's: the centre below, as before)
+                if not np.all(np.isfinite(fF)):         # test E-003: they set the next offsets, or the centre
+                    raise cd.Unsupported('insufficient support: a fit-row score of the drift-neutral booster is '
+                                         'not a finite number (it sets the next offsets or the centre)')
                 if k == 0:
-                    alpha = self.profile_alpha(inv, yb, raw(F), w, alpha)
+                    alpha = self.profile_alpha(inv, yb, fF, w, alpha)
                     info['alpha1_sd'], info['iter1'] = float(alpha.std()), it
-            c = float(np.mean(raw(F)))
+            c = float(np.mean(fF))
             info.update(iter2=it, f_centre=c)
             self.lgbfe_info = info
             self.add_gain(m.booster_.feature_importance(importance_type='gain'))
-            return sigm(raw(V) - c), sigm(raw(T) - c), it
+            return prob(raw(V) - c), prob(raw(T) - c), it     # test E-003: an infinite raw score is invalid
         from sklearn.kernel_approximation import Nystroem
         from sklearn.linear_model import SGDClassifier
         F, V, T = standardize(Xf, Xv, Xt)
@@ -418,13 +525,14 @@ class XFitter(cd.Fitter):
         m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd, fit_intercept=False)
         m.fit(sp.hstack([sp.csr_matrix(Fk), D]).tocsr(), yf, **skw)
         w = m.coef_[0, :Fk.shape[1]]
-        return sigm(ny.transform(V) @ w), sigm(ny.transform(T) @ w), int(m.n_iter_)
+        return prob(ny.transform(V) @ w), prob(ny.transform(T) @ w), int(m.n_iter_)   # (test E-003: prob)
 
     def fit_nysagree(self, sd, Xf, yf, Xv, yv, Xt, skw):
         """Discovery D3-04 AGREEMENT GATE (0.8): kernel proposals (the nystroem recipe with the run's training weights)
         are kept only where the drift-neutral logistic (e67drfe, unweighted) takes the kernel's side and its same-input
         plain twin (global intercept, unweighted) takes the other side; every other row gets probability 0.5, so the
-        coverage quantile is over ALL validation rows (overall coverage). Exact zero scores abstain."""
+        coverage quantile is over ALL validation rows (overall coverage). Exact zero scores abstain. Test E-003: a row
+        whose three scores are not all finite is invalid (NaN), whatever the gate."""
         from sklearn.kernel_approximation import Nystroem
         from sklearn.linear_model import SGDClassifier
         a = self.a
@@ -440,11 +548,20 @@ class XFitter(cd.Fitter):
         def gate(k, n, r):
             d = np.sign(k - 0.5)
             return (d != 0) & (np.sign(n) == d) & (np.sign(r) == -d)
+
+        def share(b, ok):                           # test E-003: the diagnostics read valid rows only
+            return float(b[ok].mean()) if ok.any() else float('nan')
         gv, gt = gate(kv, nv, rv), gate(kt, nt, rt)
-        self.agree_info = {'val_share': float(gv.mean()), 'test_share': float(gt.mean()),
-                           'kernel_vs_neutral_agree_val': float((np.sign(kv - 0.5) == np.sign(nv)).mean()),
-                           'neutral_vs_plain_agree_val': float((np.sign(nv) == np.sign(rv)).mean())}
-        return np.where(gv, kv, 0.5), np.where(gt, kt, 0.5), int(m.n_iter_)
+        # test E-003: the gate reads a row's three scores, and a sign comparison takes an infinite score as a side, so a
+        # row is valid only where all three are finite; an invalid row's probability is NaN
+        okv = np.isfinite(kv) & np.isfinite(nv) & np.isfinite(rv)
+        okt = np.isfinite(kt) & np.isfinite(nt) & np.isfinite(rt)
+        self.agree_info = {'val_share': share(gv, okv), 'test_share': share(gt, okt),
+                           'kernel_vs_neutral_agree_val': share(np.sign(kv - 0.5) == np.sign(nv), okv),
+                           'neutral_vs_plain_agree_val': share(np.sign(nv) == np.sign(rv), okv)}
+        self.agree_keep = (gv, gt)                     # test E-003: the gate's kept rows, carried to the scorer
+        return (np.where(okv, np.where(gv, kv, 0.5), np.nan), np.where(okt, np.where(gt, kt, 0.5), np.nan),
+                int(m.n_iter_))
 
     def fit_nystail(self, sd, Xf, yf, Xv, Xt):
         """Discovery D4-01 FIXED-MASS TAIL AUXILIARY (0.9). The nystroem features (fit-only standardization, RBF Nystroem
@@ -468,6 +585,8 @@ class XFitter(cd.Fitter):
             inC = Xf[:, j] <= float(np.nanquantile(Xf[:, j], a.comp_gate))     # as split2's gate on these fit rows
         else:
             inC = np.ones(n, bool)
+        if not inC.any():                           # test E-003: no fit row inside the compression gate
+            raise cd.Unsupported('insufficient support: no fit row inside the compression gate (nystail)')
         c = float(str(a.covs).split(',')[0])
         yC, mC = y[inC], c * float(inC.sum())
         lam = float(a.tail_aux)
@@ -492,8 +611,9 @@ class XFitter(cd.Fitter):
         r0 = checked(minimize(obj, w0, args=(0.0, 1.0), jac=True, method='L-BFGS-B', options=opts), obj(w0, 0.0, 1.0)[0], 0)
         s0 = P @ r0.x[:-1] + r0.x[-1]
         tau = 0.1 * float(np.std(s0[inC]))
-        if not np.isfinite(tau) or tau <= 1e-12:
-            raise SystemExit(f'nystail: degenerate tail scale tau = {tau} (stage-0 scores constant on C)')
+        if not np.isfinite(tau) or tau <= 1e-12:     # test E-003: the gated fit rows cannot set a tail scale
+            raise cd.Unsupported(f'insufficient support: degenerate tail scale tau = {tau} (nystail: stage-0 '
+                                 'scores constant on the gated fit rows)')
         A0 = tail_soft_loss(s0[inC], yC, mC, tau)
         info = {'tail_aux': lam, 'c': c, 'n_fit': int(n), 'n_C': int(inC.sum()), 'tau': tau, 'msg0': str(r0.message)[:60],
                 'status0': int(r0.status), 'iters0': int(r0.nit), 'converged0': bool(r0.success),
@@ -513,17 +633,38 @@ class XFitter(cd.Fitter):
         else:
             info['mass_err0'] = abs(A0[3] - mC)
         self.tail_info = info
-        return expit(ny.transform(V) @ w[:-1] + w[-1]), expit(ny.transform(T) @ w[:-1] + w[-1]), its
+        # test E-003: prob - an infinite raw score is invalid
+        return prob(ny.transform(V) @ w[:-1] + w[-1], expit), prob(ny.transform(T) @ w[:-1] + w[-1], expit), its
 
     def split2(self, tr_idx, val_pool, test_mask, rng, label):
-        """Fit on tr_idx; validation = random VAL_FRAC of the evaluation-session rows among tr_idx (val_pool mask)."""
-        X, fwd, ts, a, gap = self.X, self.fwd, self.ts, self.a, self.gap
+        """One CPCV path or forward split (_split2). Test E-003: when its local support is missing (cd.Unsupported:
+        an empty partition, a model subset without fit or validation rows, an empty out-of-fold half, no blend
+        selection, no gated fit row) the split gets the explicit zero-trade row with the reason, its feature gain is
+        rolled back, and its prediction dump (if any) has no prediction and no kept row. An enabled option's diagnostic
+        block (for example meta_gate) is absent from such a row: the reason is in insufficient_support."""
+        gain0 = self.gain.copy()
+        self._partition = (0, 0)
+        try:
+            return self._split2(tr_idx, val_pool, test_mask, rng, label)
+        except cd.Unsupported as e:
+            self.gain = gain0
+            ftst, ttst = self.fwd[test_mask], self.ts[test_mask]
+            if self.a.dump_preds:
+                self.dumps.append({'label': str(label), 'ts': ttst.copy(), 'p': np.full(len(ttst), np.nan),
+                                   'fwd': ftst.copy(), 'keep': np.zeros(len(ttst), bool),
+                                   'thr': {f'{c}': None for c in self.covs}})
+            return cd.unsupported_row(label, *self._partition, ftst, ttst, self.covs, self.gap, str(e))
+
+    def draw_split2(self, tr_idx, val_pool, rng):
+        """Validation rows and fit pool of a split. Every draw a split takes from the shared generator happens here and
+        nowhere else, so --path-jobs can advance the generator past a split without fitting it."""
+        ts, a, gap = self.ts, self.a, self.gap
         if a.val_mode == 'block':
             # validation = the chronologically last VAL_FRAC of the evaluation-session training rows; fit rows end one
             # horizon before it (purge), so early stopping and the threshold see genuinely unseen, later data
             cand = tr_idx[val_pool[tr_idx]]
             val_idx = cand[-max(1, int(round(len(cand) * cd.VAL_FRAC))):]
-            fit_pool = tr_idx[ts[tr_idx] < ts[val_idx[0]] - gap]
+            fit_pool = tr_idx[ts[tr_idx] < ts[val_idx[0]] - gap] if len(val_idx) else tr_idx[:0]
         else:
             r = rng.random(len(tr_idx))
             valsel = (r < cd.VAL_FRAC) & val_pool[tr_idx]
@@ -533,6 +674,17 @@ class XFitter(cd.Fitter):
             fit_pool = fit_pool[np.isfinite(self.ytrain[fit_pool])]
         if len(fit_pool) > cd.SUB_FIT:
             fit_pool = rng.choice(fit_pool, cd.SUB_FIT, replace=False)     # sampled order kept, as the reference
+        return val_idx, fit_pool
+
+    def _split2(self, tr_idx, val_pool, test_mask, rng, label):
+        """Fit on tr_idx; validation = random VAL_FRAC of the evaluation-session rows among tr_idx (val_pool mask)."""
+        X, fwd, ts, a, gap = self.X, self.fwd, self.ts, self.a, self.gap
+        val_idx, fit_pool = self.draw_split2(tr_idx, val_pool, rng)
+        self._partition = (len(fit_pool), len(val_idx))
+        if len(fit_pool) == 0 or len(val_idx) == 0:     # test E-003 (draw_split2 took every random draw of the split)
+            raise cd.Unsupported('insufficient support: an empty fit or validation partition')
+        if not test_mask.any():
+            raise cd.Unsupported('insufficient support: no test row')
         ytr = (fwd[fit_pool] > 0).astype(int) if self.ytrain is None else self.ytrain[fit_pool].astype(int)
         yval = (fwd[val_idx] > 0).astype(int)
         yv_fit = yval                               # labels fit_one sees for validation (early stopping, stack weights)
@@ -563,6 +715,7 @@ class XFitter(cd.Fitter):
             b3 = tf_.tz_convert('America/New_York').hour.to_numpy() // 3
             jrv = self.feats.index('rv_60m')
             q = np.nanquantile(X[fit_pool, jrv], [1 / 3, 2 / 3])
+            # (no finite rv_60m on the fit rows: q is NaN and every fit row falls in tercile 0, as in the incumbent)
             terc = np.digitize(np.nan_to_num(X[fit_pool, jrv], nan=q[0]), q)
             self.strata_f = wk * 100 + b3 * 10 + terc
         gain_mh = None
@@ -590,6 +743,7 @@ class XFitter(cd.Fitter):
             ytr = np.concatenate([ytr, 1 - ytr])
             w0 = np.ones(len(fit_pool)) if self.wfit is None else self.wfit
             self.wfit = 0.5 * np.concatenate([w0, w0])
+        keep_v, keep_t = np.ones(len(val_idx), bool), np.ones(int(test_mask.sum()), bool)   # test E-003: gate keeps
         if a.specialist:
             # SWEEP_MATRIX A8 side specialists (scripts/min1_upspec.py recipe at 15m): in the compression regime
             # (volratio_15_240 <= its fit-pool median) an UP model is fit only on dip setups (ret_15m < 0) and trades only
@@ -606,19 +760,41 @@ class XFitter(cd.Fitter):
             setups = lambda Z: (reg(Z) & (Z[:, j_r] < 0), reg(Z) & (Z[:, j_r] > 0))
             pval = np.full(len(val_idx), 0.5)
             ptst = np.full(int(test_mask.sum()), 0.5)
+            keep_v, keep_t = np.zeros(len(val_idx), bool), np.zeros(int(test_mask.sum()), bool)
+            skipped = []
             wall = self.wfit
-            for k, (fm, vm, tm) in enumerate(zip(setups(Xf), setups(Xv), setups(Xt))):
-                pv_s, pt_s = np.zeros(int(vm.sum())), np.zeros(int(tm.sum()))
-                self.wfit = None if wall is None else wall[fm]
-                for sd in range(a.nseed):
-                    pv, pt, it = self.fit_one(sd, Xf[fm], ytr[fm], Xv[vm], yv_fit[vm], Xt[tm])
-                    pv_s += pv
-                    pt_s += pt
-                    iters.append(it)
-                clip = np.maximum if k == 0 else np.minimum          # k 0 = UP specialist, 1 = DOWN specialist
-                pval[vm] = clip(pv_s / a.nseed, 0.5)
-                ptst[tm] = clip(pt_s / a.nseed, 0.5)
+            try:
+                for k, (fm, vm, tm) in enumerate(zip(setups(Xf), setups(Xv), setups(Xt))):
+                    if not (fm.any() and vm.any()):
+                        # test E-003: a specialist without fit or validation rows is not fitted; its rows stay excluded
+                        skipped.append(f'{("UP", "DOWN")[k]}: no {"fit" if not fm.any() else "validation"} row')
+                        continue
+                    why = self.fit_unsupported(ytr[fm], yv_fit[vm])
+                    if why:                             # nor one whose fit labels the model class cannot fit
+                        skipped.append(f'{("UP", "DOWN")[k]}: {why}')
+                        continue
+                    pv_s, pt_s = np.zeros(int(vm.sum())), np.zeros(int(tm.sum()))
+                    self.wfit = None if wall is None else wall[fm]
+                    Xt_k = Xt[tm] if tm.any() else Xv[vm][:1]     # no test row: a placeholder, prediction dropped
+                    for sd in range(a.nseed):
+                        pv, pt, it = self.fit_one(sd, Xf[fm], ytr[fm], Xv[vm], yv_fit[vm], Xt_k)
+                        pv_s += pv
+                        if tm.any():
+                            pt_s += pt
+                        iters.append(it)
+                    clip = np.maximum if k == 0 else np.minimum          # k 0 = UP specialist, 1 = DOWN specialist
+                    # test E-003: the clip turns an infinite mean on the other side into 0.5, so a non-finite mean is
+                    # invalid (NaN) before it
+                    pval[vm] = np.where(np.isfinite(pv_s), clip(pv_s / a.nseed, 0.5), np.nan)
+                    ptst[tm] = np.where(np.isfinite(pt_s), clip(pt_s / a.nseed, 0.5), np.nan)
+                    # kept: setup rows whose mean probability is on the specialist's side (a clipped row is excluded)
+                    keep_v[vm] = (pv_s / a.nseed > 0.5) if k == 0 else (pv_s / a.nseed < 0.5)
+                    keep_t[tm] = (pt_s / a.nseed > 0.5) if k == 0 else (pt_s / a.nseed < 0.5)
+            finally:                                # test E-003: restored on a failed fit as well
+                self.wfit = wall                    # the specialists' subset weights end here (later gates use wall)
             self.spec_info = {'compression_thr': comp_thr, 'fit_up': int(setups(Xf)[0].sum()), 'fit_down': int(setups(Xf)[1].sum())}
+            if skipped:
+                self.spec_info['skipped'] = skipped
         elif a.blend_absret:
             # DISCOVERY D5-01, SELECTED |RETURN|-WEIGHT BLEND: the unweighted and the |return|-weighted model (weights as
             # --weight absret) are fitted on the same fit rows with seed 0. On the validation rows inside the compression
@@ -629,15 +805,23 @@ class XFitter(cd.Fitter):
             wabs = np.abs(fwd[fit_pool])
             pv0, pt0, it0 = self.fit_one(0, Xf, ytr, Xv, yv_fit, Xt)
             self.wfit = wabs / (wabs.mean() + 1e-18)
-            pv1, pt1, it1 = self.fit_one(0, Xf, ytr, Xv, yv_fit, Xt)
-            self.wfit = None
+            try:
+                pv1, pt1, it1 = self.fit_one(0, Xf, ytr, Xv, yv_fit, Xt)
+            finally:                                # test E-003: restored on a failed fit as well
+                self.wfit = None
             iters += [it0, it1]
             vg = np.ones(len(val_idx), bool)
             if a.comp_gate is not None:                     # the same mask as the compression gate below
                 jg = self.feats.index('rv_60m')
                 vg = Xv[:, jg] <= float(np.nanquantile(Xf[:, jg], a.comp_gate))
+            if not (np.all(np.isfinite(pv0[vg])) and np.all(np.isfinite(pv1[vg]))):   # test E-003: before selection
+                raise cd.Unsupported('insufficient support: a validation probability the blend selection reads is '
+                                     'not a finite number')
             alpha, sel = blend_select(pv0, pv1, vg, ts[val_idx], fwd[val_idx], self.covs[0], a.blend_absret, gap,
                                       a.blend_force_alpha)
+            if a.blend_force_alpha is None and all(v['worst_half_wr'] is None for v in sel.values()):
+                # test E-003: no alpha has a win rate in both validation halves, so no blend can be selected
+                raise cd.Unsupported('insufficient support: no blend alpha has validation trades in both halves')
             pval, ptst = (1.0 - alpha) * pv0 + alpha * pv1, (1.0 - alpha) * pt0 + alpha * pt1
             self.blend_info = {'side': a.blend_absret, 'alpha': alpha, 'forced': a.blend_force_alpha is not None,
                                'gated_val_rows': int(vg.sum()), 'by_alpha': sel}
@@ -647,17 +831,28 @@ class XFitter(cd.Fitter):
             # and ranks by the lower bound |mean - 0.5| - boot_z * sd (floored at 0), for validation and test alike.
             PV, PT = [], []
             wall = self.wfit
-            for b in range(a.boot_gate):
-                bi = np.random.default_rng([1009, b] + [ord(c) for c in str(label)]).integers(0, len(Xf), len(Xf))
-                self.wfit = None if wall is None else wall[bi]
-                pv, pt, it = self.fit_one(b, Xf[bi], ytr[bi], Xv, yv_fit, Xt)
-                PV.append(pv); PT.append(pt); iters.append(it)
-            self.wfit = wall
+            try:
+                for b in range(a.boot_gate):
+                    rb = np.random.default_rng([1009, b] + [ord(c) for c in str(label)])
+                    bi = rb.integers(0, len(Xf), len(Xf))
+                    self.wfit = None if wall is None else wall[bi]
+                    pv, pt, it = self.fit_one(b, Xf[bi], ytr[bi], Xv, yv_fit, Xt)
+                    PV.append(pv); PT.append(pt); iters.append(it)
+            finally:                                # test E-003: restored on a failed fit as well
+                self.wfit = wall
             lcb = lambda M: 0.5 + np.sign(M.mean(0) - 0.5) * np.maximum(np.abs(M.mean(0) - 0.5) - a.boot_z * M.std(0, ddof=1), 0.0)
             PV, PT = np.array(PV), np.array(PT)
             pval, ptst = lcb(PV), lcb(PT)
-            self.boot_info = {'replicas': a.boot_gate, 'z': a.boot_z, 'sd_test_median': float(np.median(PT.std(0, ddof=1))),
-                              'zero_lcb_share_test': float((ptst == 0.5).mean())}
+
+            def lcb_keep(M):                        # test E-003: a side and a positive lower bound (else excluded)
+                return (M.mean(0) != 0.5) & (np.abs(M.mean(0) - 0.5) - a.boot_z * M.std(0, ddof=1) > 0)
+            keep_v, keep_t = lcb_keep(PV), lcb_keep(PT)
+            sd_t = PT.std(0, ddof=1)
+            sd_ok = np.isfinite(sd_t)                   # test E-003: the diagnostic reads finite rows only
+            ok_b = np.isfinite(ptst)                    # (and the zero-bound share valid rows)
+            self.boot_info = {'replicas': a.boot_gate, 'z': a.boot_z,
+                              'sd_test_median': float(np.median(sd_t[sd_ok])) if sd_ok.any() else None,
+                              'zero_lcb_share_test': float((ptst[ok_b] == 0.5).mean()) if ok_b.any() else None}
         else:
             for sd in range(a.nseed):
                 pv, pt, it = self.fit_one(sd, Xf, ytr, Xv, yv_fit, Xt)
@@ -666,9 +861,13 @@ class XFitter(cd.Fitter):
                 iters.append(it)
             pval /= a.nseed
             ptst /= a.nseed
+        if a.model == 'nysagree':                   # test E-003: the agreement gate's kept rows
+            keep_v, keep_t = self.agree_keep
         if gain_mh is not None:                     # fold the indicator column's gain out of the per-feature report
             gain_mh += self.gain[:-1]
             self.gain = gain_mh
+        # test E-003: the validity of the producer's scores, taken before any encoding and carried through it
+        ok_v, ok_t = np.isfinite(pval), np.isfinite(ptst)
         if a.rule_gate:
             # DISCOVERY D5-03, RULE-OFFER RANKING: only the zero-parameter rule's offers can trade, on the rule's side, ranked
             # by the model's probability of that side (a DOWN offer gets p' = p_UP / 2, an UP offer 0.5 + p_UP / 2); every
@@ -676,15 +875,20 @@ class XFitter(cd.Fitter):
             # (overall coverage) and a non-offer row is never traded.
             rv_, rt_ = self.rule_side[val_idx], self.rule_side[test_mask]
             pval, ptst = rule_encode(pval, rv_), rule_encode(ptst, rt_)
-            self.rule_offer_t = rt_ != 0                    # scoring below: only offers can trade, on every side
+            keep_v, keep_t = keep_v & (rv_ != 0), keep_t & (rt_ != 0)     # test E-003: only offers can trade
+            ok_v, ok_t = ok_v | (rv_ == 0), ok_t | (rt_ == 0)              # (a non-offer row's 0.5 reads no score)
             self.rule_info = {'offer_share_val': float((rv_ != 0).mean()), 'offer_share_test': float((rt_ != 0).mean()),
                               'offers_test': int((rt_ != 0).sum()),
                               'insufficient_support': bool((rv_ != 0).mean() < self.covs[0])}
-        vconf = np.abs(pval - 0.5)
+        # test E-003: an invalid test score never trades and no diagnostic reads it; an invalid validation score in the
+        # threshold population leaves the path without support (its confidence is NaN for cd.unsupported)
+        keep_t = keep_t & ok_t
+        vconf = np.where(ok_v, np.abs(pval - 0.5), np.nan)
         ftst = fwd[test_mask]
         ttst = ts[test_mask]
         mv = ftst != 0
-        auc = float(cd.roc_auc_score((ftst[mv] > 0).astype(int), ptst[mv])) if mv.sum() > 20 else float('nan')
+        mvf = mv & ok_t
+        auc = float(cd.roc_auc_score((ftst[mvf] > 0).astype(int), ptst[mvf])) if mvf.sum() > 20 else float('nan')
         uprate = float((ftst[mv] > 0).mean()) if mv.sum() else float('nan')
         row = {'test': label, 'n_fit': int(len(fit_pool)), 'n_val': int(len(val_idx)), 'n_test': int(test_mask.sum()),
                'best_iter': iters, 'auc': auc, 'up_rate': uprate, 'always': {}, 'bycov': {}}
@@ -730,19 +934,28 @@ class XFitter(cd.Fitter):
                 mval, mtst = pred(X[val_idx]), pred(X[test_mask])
             else:
                 mm = make_model(a, 0)
-                mm.fit(X[fit_pool], (np.abs(fwd[fit_pool]) >= med).astype(int))
+                big_f = (np.abs(fwd[fit_pool]) >= med).astype(int)
+                if len(fit_pool) < 2:                   # test E-003 (no class check: LightGBM fits one class)
+                    raise cd.Unsupported('insufficient support: fewer than two fit rows for the magnitude model '
+                                         '(LightGBM needs two)')
+                mm.fit(X[fit_pool], big_f)
                 mval = mm.predict_proba(X[val_idx])[:, 1]
                 mtst = mm.predict_proba(X[test_mask])[:, 1]
+            if not np.all(np.isfinite(mval)):           # test E-003: before the gate's quantile
+                raise cd.Unsupported('insufficient support: a magnitude-gate validation score is not a finite number')
             gthr = float(np.quantile(mval, 1 - a.mag_keep))
             vgate = mval >= gthr
-            tgate = mtst >= gthr
+            tgate = np.isfinite(mtst) & (mtst >= gthr)  # test E-003: a non-finite test score fails the gate
             big = (np.abs(ftst) >= med).astype(int)
+            fm = np.isfinite(mtst)                      # test E-003: the diagnostic reads finite scores only
             row['mag_gate'] = {'keep': a.mag_keep, 'median_abs_ret': med, 'gate_thr': gthr,
                                'test_pass_rate': float(tgate.mean()),
-                               'mag_auc_test': float(cd.roc_auc_score(big, mtst)) if 0 < big.sum() < len(big) else None,
+                               'mag_auc_test': (float(cd.roc_auc_score(big[fm], mtst[fm]))
+                                                if 0 < big[fm].sum() < fm.sum() else None),
                                'tie_rate_pass': float((ftst[tgate] == 0).mean()) if tgate.any() else None,
                                'tie_rate_fail': float((ftst[~tgate] == 0).mean()) if (~tgate).any() else None}
             ptst = np.where(tgate, ptst, 0.5)        # gated-out rows get zero confidence: never selected
+            keep_t = keep_t & tgate
         if a.meta_keep is not None:
             # SWEEP_MATRIX A4 META-LABELER (scripts/m15_meta.py idea on the Deriv feed). Out-of-fold primary predictions on
             # the fit pool come from two chronological halves (the first ends one horizon before the split, so no label
@@ -752,34 +965,52 @@ class XFitter(cd.Fitter):
             # (validation quantile); the direction threshold is the coverage quantile among validation rows in the gate.
             # (0.5: the half-pool primaries are fit by fit_one - the selected model class and recipe, seed 0, early stopping
             # on the validation rows - so a kernel or pooled primary gets a meta model learned on its own errors)
+            # test E-003: the meta model reads the primary score of every validation row (the gate's quantile takes
+            # them all) and of every test row; a meta score whose primary score is invalid is itself invalid
+            if not np.all(ok_v):
+                raise cd.Unsupported('insufficient support: a primary validation score the meta gate reads is not a '
+                                     'finite number')
             tf_ = ts[fit_pool]
             mid = float(np.median(tf_))
             halves = (tf_ < mid - gap, tf_ >= mid)
+            if not (halves[0].any() and halves[1].any()):
+                raise cd.Unsupported('insufficient support: an empty out-of-fold half of the meta-labeler')
             oof = np.full(len(fit_pool), np.nan)
             wall, gain0, nstack = self.wfit, self.gain.copy(), len(self.stack_w)
-            for trm, tem in ((halves[0], halves[1]), (halves[1], halves[0])):
-                self.wfit = None if wall is None else wall[trm]
-                _, oof[tem], _ = self.fit_one(0, Xf[trm], ytr[trm], Xv, yv_fit, Xf[tem])
-            self.wfit, self.gain = wall, gain0        # the reported gain and stack weights stay the primary's
-            del self.stack_w[nstack:]
+            try:
+                for trm, tem in ((halves[0], halves[1]), (halves[1], halves[0])):
+                    self.wfit = None if wall is None else wall[trm]
+                    _, oof[tem], _ = self.fit_one(0, Xf[trm], ytr[trm], Xv, yv_fit, Xf[tem])
+            finally:                                # test E-003: restored on a failed half as well
+                self.wfit, self.gain = wall, gain0    # the reported gain and stack weights stay the primary's
+                del self.stack_w[nstack:]
             fwf = fwd[fit_pool]
             ok = np.isfinite(oof) & (fwf != 0)
+            if ok.sum() < 2:                            # LightGBM needs two fit rows
+                raise cd.Unsupported('insufficient support: fewer than two moved out-of-fold rows for the '
+                                     'meta-labeler (LightGBM needs two)')
             Zf = np.column_stack([Xf, np.abs(oof - 0.5), (oof > 0.5).astype(np.float32)])
             mm = cd.lgb.LGBMClassifier(objective='binary', learning_rate=0.02, num_leaves=63, min_child_samples=400,
                                        subsample=0.8, subsample_freq=1, colsample_bytree=0.5, reg_lambda=20,
                                        n_estimators=400, n_jobs=a.n_jobs, verbosity=-1, random_state=0)
-            mm.fit(Zf[ok], ((oof[ok] > 0.5) == (fwf[ok] > 0)).astype(int))
+            y_meta = ((oof[ok] > 0.5) == (fwf[ok] > 0)).astype(int)
+            mm.fit(Zf[ok], y_meta)                      # (LightGBM: no class check, it fits one class)
             mval = mm.predict_proba(np.column_stack([Xv, np.abs(pval - 0.5), (pval > 0.5).astype(np.float32)]))[:, 1]
             mtst = mm.predict_proba(np.column_stack([Xt, np.abs(ptst - 0.5), (ptst > 0.5).astype(np.float32)]))[:, 1]
+            if not np.all(np.isfinite(mval)):           # test E-003: before the gate's quantile
+                raise cd.Unsupported('insufficient support: a meta-gate validation score is not a finite number')
             gthr = float(np.quantile(mval, 1 - a.meta_keep))
             vgate &= mval >= gthr
-            tg = mtst >= gthr
+            tg = np.isfinite(mtst) & ok_t & (mtst >= gthr)   # test E-003: an invalid test score fails the gate
             corr_t = ((ptst > 0.5) == (ftst > 0)) & (ftst != 0)
+            fm = np.isfinite(mtst) & ok_t               # test E-003: the diagnostic reads valid meta scores only
             row['meta_gate'] = {'keep': a.meta_keep, 'gate_thr': gthr, 'oof_rows': int(ok.sum()),
                                 'oof_auc': float(cd.roc_auc_score((fwf[ok] > 0).astype(int), oof[ok])) if ok.sum() > 20 else None,
                                 'test_pass_rate': float(tg.mean()),
-                                'meta_auc_test': float(cd.roc_auc_score(corr_t.astype(int), mtst)) if 0 < corr_t.sum() < len(corr_t) else None}
+                                'meta_auc_test': (float(cd.roc_auc_score(corr_t[fm].astype(int), mtst[fm]))
+                                                  if 0 < corr_t[fm].sum() < fm.sum() else None)}
             ptst = np.where(tg, ptst, 0.5)
+            keep_t = keep_t & tg
         if a.comp_gate is not None:
             # SWEEP_MATRIX A2 COMPRESSION GATE: trade only in the low-volatility regime, rv_60m <= its fit-pool quantile
             # comp_gate; the direction threshold is the coverage quantile among validation rows inside the gate.
@@ -791,19 +1022,33 @@ class XFitter(cd.Fitter):
                                 'tie_rate_pass': float((ftst[ct] == 0).mean()) if ct.any() else None,
                                 'tie_rate_fail': float((ftst[~ct] == 0).mean()) if (~ct).any() else None}
             ptst = np.where(ct, ptst, 0.5)
+            keep_t = keep_t & ct
+        why = cd.unsupported(vconf[vgate], keep_v[vgate])
         if a.dump_preds:                             # analysis only: keep the scored test predictions of every path
             self.dumps.append({'label': str(label), 'ts': ttst.copy(), 'p': ptst.copy(), 'fwd': ftst.copy(),
-                               'thr': {f'{c}': float(np.quantile(vconf[vgate], 1 - c)) for c in self.covs}})
-        if a.aci_gamma is not None:
-            return aci_score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap, a.aci_gamma, a.aci_target)
-        if a.rule_gate:
-            # D5-03: a non-offer row never trades on any side (COMBINED included, even when the threshold is zero): its
-            # settlement is hidden from the side scorer; the always-side baselines stay over every test row
-            row = cd.score_row(row, ptst, np.where(self.rule_offer_t, ftst, np.nan), ttst, vconf[vgate], self.covs, gap)
-            for s in ('UP', 'DOWN'):
-                row['always'][s] = list(cd.always(ftst, ttst, s, gap))
-            return row
-        return cd.score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap)
+                               'keep': keep_t.copy(),       # test E-003: rows every gate kept (others never trade)
+                               'thr': {f'{c}': None if why else float(np.quantile(vconf[vgate], 1 - c))
+                                       for c in self.covs}})
+        # test E-003: the threshold comes from the gated validation population as before; a row any gate excluded
+        # (keep False: D5-03 non-offers among them) trades on no side, COMBINED included, even at threshold zero
+        return cd.score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap, keep_v[vgate], keep_t)
+
+
+_PJ = {}        # --path-jobs: the fitter and the validation-pool mask, set once before the first worker is forked
+
+
+def _path_job(spec):
+    """One split in a forked worker. The generator is rebuilt in the state the sequential loop has when it reaches this
+    split, so the split draws the same validation rows and sub-fit sample; gain and dumps start empty and are returned."""
+    label, tr_idx, test_mask, ok30, state = spec
+    f = _PJ['fitter']
+    rng = np.random.default_rng()
+    rng.bit_generator.state = state
+    f.gain = np.zeros_like(f.gain)
+    f.dumps = []
+    f.ok30 = ok30
+    row = f.split2(tr_idx, _PJ['val_pool'], test_mask, rng, label)
+    return row, f.gain, f.dumps
 
 
 def main():
@@ -856,9 +1101,8 @@ def main():
                     help='absret: sample weights |settled return| / mean (fit rows only); recency: half-life --halflife-days '
                          'back from the latest fit row (reading: forward walk only)')
     ap.add_argument('--aci-gamma', type=float, default=None,
-                    help='adaptive-conformal confidence gate step (e.g. 0.002): threshold += gamma * (loss - (1 - target)) '
-                         'as each taken trade settles')
-    ap.add_argument('--aci-target', type=float, default=0.56)
+                    help='REFUSED (test E-003, owner decision 13): the adaptive-conformal gate of earlier builds')
+    ap.add_argument('--aci-target', type=float, default=0.56, help='unused: ACI is refused')
     ap.add_argument('--dump-preds', default=None,
                     help='analysis only: write every path\'s test decisions (ts, p, fwd, thresholds) to this .npz')
     ap.add_argument('--specialist', action='store_true',
@@ -906,16 +1150,25 @@ def main():
                     help='SWEEP_MATRIX family blocks to keep (comma list of tf,sg,kf,rm,fd,cx,tk,pa,cm, or all / none); every '
                          'other block column is dropped from the --features selection')
     ap.add_argument('--include-blackout', action='store_true', help='keep Deriv purchase-blackout decisions (not Deriv-faithful)')
+    ap.add_argument('--july-filter', action='store_true',
+                    help='the July 2026 tradeability filter, without the venue window of owner decision 14 '
+                         '(regression against stored results only; such a result cannot be promoted)')
     ap.add_argument('--mag-keep', type=float, default=None,
                     help='magnitude gate: keep only the top share (e.g. 0.5) of rows by predicted big-move probability')
     ap.add_argument('--dataset', default=str(cd.LAB / 'cache' / 'dataset_dev_v0.1'))
     ap.add_argument('--out', default=None)
     ap.add_argument('--tag', default='')
-    ap.add_argument('--n-jobs', type=int, default=16)
+    ap.add_argument('--n-jobs', type=int, default=16, help='threads of each model fit')
+    ap.add_argument('--path-jobs', type=int, default=1,
+                    help='splits (CPCV paths, forward walks) fitted at once, each in a forked worker with --n-jobs threads')
     ap.add_argument('--no-forward', action='store_true')
     ap.add_argument('--max-paths', type=int, default=15)
     a = ap.parse_args()
+    if a.path_jobs < 1 or (a.path_jobs > 1 and a.n_jobs < 1):    # a sequential run takes any --n-jobs
+        raise SystemExit('--path-jobs must be >= 1; parallel paths (--path-jobs > 1) need --n-jobs >= 1 per worker')
     a.train_session = a.train_session or a.session
+    if a.aci_gamma is not None:
+        raise SystemExit('--aci-gamma: ' + ACI_REFUSED)
     if a.reflect and a.meta_keep is not None:      # the meta gate's half-pool split indexes the unmirrored fit pool
         raise SystemExit('--reflect and --meta-keep are exclusive')
     if a.boot_gate is not None and (a.boot_gate < 2 or a.nseed != 1 or a.specialist):
@@ -968,7 +1221,18 @@ def main():
                                     or a.model in ('nysagree', 'nystail')):
         raise SystemExit('--rule-gate takes no other gate (compression / meta / magnitude / specialist / boot / ACI / '
                          'nysagree / nystail) and no multi-horizon')
-    covs = [float(c) for c in a.covs.split(',')]
+    covs = cd.parse_covs(a.covs)
+    for name, value, ok in (('--nseed', a.nseed, a.nseed >= 1), ('--max-paths', a.max_paths, a.max_paths >= 1),
+                            ('--comp-gate', a.comp_gate, a.comp_gate is None or 0 <= a.comp_gate <= 1),
+                            ('--meta-keep', a.meta_keep, a.meta_keep is None or 0 < a.meta_keep <= 1),
+                            ('--mag-keep', a.mag_keep, a.mag_keep is None or 0 < a.mag_keep <= 1)):
+        if not ok:                                  # NaN fails every comparison above
+            raise SystemExit(f'{name} {value}: out of its range (seeds and paths >= 1, gate quantile in [0, 1], '
+                             'gate shares in (0, 1])')
+    for name, value, ok in option_domains(a):
+        if not ok:                                  # test E-003: before anything is loaded or written
+            raise SystemExit(f'{name} {value}: outside the domain of the estimator this run fits with it '
+                             '(option_domains)')
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_{a.session}_x_cpcv_result.json')
     t0 = time.time()
@@ -996,12 +1260,16 @@ def main():
         # the decision exactly W weeks later (circular over the dataset span; same weekday and UTC time of day), which keeps
         # the label's drift and intraday structure and breaks any feature-label link. Missing matches become NaN.
         span = int(ts.max() - ts.min()) + 60
-        tgt = ts.min() + ((ts - ts.min() + a.null_shift_weeks * 7 * 86400) % span)
+        tgt = ts.min() + ((ts - ts.min() + null_shift(a.null_shift_weeks, span)) % span)
         fwd = pd.Series(fwd, index=ts).reindex(tgt).to_numpy(np.float64)
     sess = session(ts, a.session)
     tsess = session(ts, a.train_session)
     if not a.include_blackout:                   # Deriv purchase blackout: untradeable decisions out of every role
-        tr_ok = cd.tradeable(ts, a.horizon)
+        tr_ok = cd.tradeable(ts, a.horizon, venue_window=not a.july_filter)
+        sess &= tr_ok
+        tsess &= tr_ok
+    elif not a.july_filter:                      # owner decision 14 holds with --include-blackout too
+        tr_ok = cd.venue_open(ts, a.horizon)
         sess &= tr_ok
         tsess &= tr_ok
     moved = np.isfinite(fwd) & (fwd != 0.0)
@@ -1021,12 +1289,15 @@ def main():
                                         'rule_direction', 'rule_usd_oriented', 'rule_side')}
     res = {
         'harness': X_VERSION, 'base_harness': cd.HARNESS_VERSION, 'tag': a.tag,
+        'run_status': 'running',                    # 'complete' when written at the end
         'model': f'LightGBM @{a.horizon}m on the Deriv feed, eval session {a.session}, fit session {a.train_session}, knobs {knobs}',
         'key': f'{a.pair}.{a.horizon}m', 'data': 'Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy',
         'dataset': {'dir': a.dataset, 'manifest_sha256': cd.sha256(manifest)},
         'window': {'first_decision': day(ts[0]), 'last_decision': day(ts[-1])},
         'breakeven': cd.BE, 'session': a.session, 'tradeable_only': not a.include_blackout,
         'blackout_rule': None if a.include_blackout else cd.BLACKOUT_RULE,
+        'venue_window_rule': None if a.july_filter else cd.VENUE_WINDOW_RULE,
+        'regression_only': bool(a.july_filter),     # True: a regression against stored results, never a candidate
         'knobs': knobs, 'horizon_min': a.horizon, 'gap_s': gap, 'covs': covs,
         'operating_cov': covs[0], 'nseed': a.nseed, 'num_leaves': a.num_leaves,
         'feature_set': f'list:{Path(a.feature_list).name}' if a.feature_list else
@@ -1043,7 +1314,7 @@ def main():
         'code': {'x_harness_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__),
                  'sessions_py_sha256': cd.sha256(cd.REPO / 'scripts' / 'sessions.py'), 'lightgbm': cd.lgb.__version__},
     }
-    out.write_text(json.dumps(res, indent=1))
+    out.write_text(cd.result_json(res))
     print(f'[{a.pair} {a.horizon}m eval {a.session} fit {a.train_session}] rows {len(ts):,} eval {int(sess.sum()):,} '
           f'fit-session {int(tsess.sum()):,} features {len(feats)} knobs {knobs}', flush=True)
     fitter = XFitter(X, fwd, ts, a, gap, covs)
@@ -1149,12 +1420,10 @@ def main():
         res['train_label'] = {'name': a.train_label, 'dir': label_dir,
                               'manifest_sha256': cd.sha256(Path(label_dir) / 'manifest.json'),
                               'aligned_finite': int(np.isfinite(fitter.ytrain).sum())}
-        out.write_text(json.dumps(res, indent=1))
-    rng = np.random.default_rng(13)
-    pathinfo = []
-    for fi, testg in enumerate(combinations(range(cd.N_GROUPS), cd.K_TEST)):
-        if fi >= a.max_paths:
-            break
+        out.write_text(cd.result_json(res))
+    res['compute'] = {'n_jobs': a.n_jobs, 'path_jobs': a.path_jobs}
+
+    def path_split(testg):                      # training rows, test rows, rows usable as 30-minute training rows
         tin = np.zeros(len(ts), bool)
         purged = np.zeros(len(ts), bool)
         purged30 = np.zeros(len(ts), bool)
@@ -1163,22 +1432,63 @@ def main():
             tin |= (ts >= lo) & (ts < hi)
             purged |= (ts >= lo - gap) & (ts < hi + gap)
             purged30 |= (ts >= lo - 1800) & (ts < hi + 1800)    # --multi-horizon: 30-minute labels need a 30-minute purge
-        fitter.ok30 = ~purged30
-        row = fitter.split2(np.where((~purged) & moved & tsess)[0], sess, tin & sess & np.isfinite(fwd), rng, list(testg))
-        pathinfo.append(row)
+        return np.where((~purged) & moved & tsess)[0], tin & sess & np.isfinite(fwd), ~purged30
+
+    def forward_split(g):
+        lo, hi = groups[g]
+        return np.where((ts < lo - gap) & moved & tsess)[0], (ts >= lo) & (ts < hi) & sess & np.isfinite(fwd), ts < lo - 1800
+
+    def say_path(fi, testg, row):
         print(f'  path {fi + 1:2d}/15 g{list(testg)} AUC={row["auc"]:.4f} n_fit={row["n_fit"]} iters={row["best_iter"]} | '
               f'cov{covs[0]}: {cd.fmt_side(row["bycov"][f"{covs[0]}"])} ({time.time() - t0:.0f}s)', flush=True)
-    forward = []
-    if not a.no_forward:
+
+    def say_forward(g, row):
+        print(f'  forward g{g} AUC={row["auc"]:.4f} | cov{covs[0]}: {cd.fmt_side(row["bycov"][f"{covs[0]}"])} '
+              f'({time.time() - t0:.0f}s)', flush=True)
+
+    path_groups = list(combinations(range(cd.N_GROUPS), cd.K_TEST))[:max(a.max_paths, 0)]
+    forward_groups = [] if a.no_forward else list(range(2, cd.N_GROUPS))
+    pathinfo, forward = [], []
+    if a.path_jobs == 1:
+        rng = np.random.default_rng(13)
+        for fi, testg in enumerate(path_groups):
+            tr_idx, test_mask, fitter.ok30 = path_split(testg)
+            row = fitter.split2(tr_idx, sess, test_mask, rng, list(testg))
+            pathinfo.append(row)
+            say_path(fi, testg, row)
         frng = np.random.default_rng(17)
-        for g in range(2, cd.N_GROUPS):
-            lo, hi = groups[g]
-            fitter.ok30 = ts < lo - 1800
-            row = fitter.split2(np.where((ts < lo - gap) & moved & tsess)[0], sess, (ts >= lo) & (ts < hi) & sess & np.isfinite(fwd),
-                                frng, f'forward g{g}')
+        for g in forward_groups:
+            tr_idx, test_mask, fitter.ok30 = forward_split(g)
+            row = fitter.split2(tr_idx, sess, test_mask, frng, f'forward g{g}')
             forward.append(row)
-            print(f'  forward g{g} AUC={row["auc"]:.4f} | cov{covs[0]}: {cd.fmt_side(row["bycov"][f"{covs[0]}"])} '
-                  f'({time.time() - t0:.0f}s)', flush=True)
+            say_forward(g, row)
+    else:
+        # Each split is handed the generator state the sequential loop has when it reaches that split: the parent takes
+        # the split's draws (draw_split) without fitting it, in the sequential order, on the same two streams.
+        specs = []
+        rng = np.random.default_rng(13)
+        for testg in path_groups:
+            tr_idx, test_mask, ok30 = path_split(testg)
+            specs.append((list(testg), tr_idx, test_mask, ok30, copy.deepcopy(rng.bit_generator.state)))
+            fitter.draw_split2(tr_idx, sess, rng)
+        frng = np.random.default_rng(17)
+        for g in forward_groups:
+            tr_idx, test_mask, ok30 = forward_split(g)
+            specs.append((f'forward g{g}', tr_idx, test_mask, ok30, copy.deepcopy(frng.bit_generator.state)))
+            fitter.draw_split2(tr_idx, sess, frng)
+        _PJ.update(fitter=fitter, val_pool=sess)
+        done = []
+        for i, got in in_order(run_forked(_path_job, specs, a.path_jobs)):
+            done.append(got)
+            if i < len(path_groups):
+                say_path(i, path_groups[i], got[0])
+            else:
+                say_forward(forward_groups[i - len(path_groups)], got[0])
+        for row, gain, dumps in done:               # merged in the sequential order
+            fitter.gain += gain
+            fitter.dumps.extend(dumps)
+        pathinfo = [d[0] for d in done[:len(path_groups)]]
+        forward = [d[0] for d in done[len(path_groups):]]
     cd.aggregate(res, pathinfo, forward, covs, data_uprate, fitter.gain, feats)
     if a.max_paths < 15 or a.null_shift_weeks:   # smoke runs and null replays never certify
         for k in res['bycov']:
@@ -1189,12 +1499,13 @@ def main():
         for s in res.get('verdict_goal', {}):
             res['verdict_goal'][s]['CERTIFIED'] = False
     res['seconds'] = round(time.time() - t0, 1)
-    out.write_text(json.dumps(res, indent=1))
+    res['run_status'] = 'complete'
+    out.write_text(cd.result_json(res))
     if a.dump_preds:
         d = fitter.dumps
         np.savez_compressed(a.dump_preds, labels=np.array([x['label'] for x in d]),
                             thr=np.array([json.dumps(x['thr']) for x in d]),
-                            **{f'{k}_{i}': x[k] for i, x in enumerate(d) for k in ('ts', 'p', 'fwd')})
+                            **{f'{k}_{i}': x[k] for i, x in enumerate(d) for k in ('ts', 'p', 'fwd', 'keep')})
     cd.print_summary(res, covs, f'{a.pair} {a.horizon}m x', t0, out)
 
 

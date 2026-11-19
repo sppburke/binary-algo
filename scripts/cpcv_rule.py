@@ -12,7 +12,6 @@ exactly tools/cpcv_deriv.py's (aggregate()); there is no validation set and no t
 "all signalled decisions" (recorded as covs [1.0]). The falsifier is written before any decision is scored.
 """
 import argparse
-import json
 import sys
 import time
 from itertools import combinations
@@ -24,7 +23,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-RULE_VERSION = 'cpcv_rule/0.1'
+RULE_VERSION = 'cpcv_rule/0.1.1'   # 0.1.1: the venue's window (owner decision 14) and the guards of E-003, both through
+#   cpcv_deriv 0.4.2
 USD_BASE = {'USDJPY', 'USDCHF', 'USDCAD'}
 
 
@@ -39,6 +39,9 @@ def main():
     ap.add_argument('--session', default='ny')
     ap.add_argument('--out', default=None)
     ap.add_argument('--tag', default='')
+    ap.add_argument('--july-filter', action='store_true',
+                    help='the July 2026 tradeability filter, without the venue window of owner decision 14 '
+                         '(regression against stored results only; such a result cannot be promoted)')
     a = ap.parse_args()
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_rule_result.json')
@@ -50,7 +53,7 @@ def main():
     if a.usd_oriented:
         sig = sig * (1.0 if a.pair in USD_BASE else -1.0)          # USD strength -> pair quote direction
     sig = a.direction * sig
-    sess = cd.session_mask(ts, a.session) & cd.tradeable(ts, a.horizon)
+    sess = cd.session_mask(ts, a.session) & cd.tradeable(ts, a.horizon, venue_window=not a.july_filter)
     moved = np.isfinite(fwd) & (fwd != 0)
     tgs = ts[sess]
     bnds = [tgs[int(k * len(tgs) / cd.N_GROUPS)] for k in range(cd.N_GROUPS)] + [tgs[-1] + 1]
@@ -62,6 +65,9 @@ def main():
            'key': f'{a.pair}.{a.horizon}m', 'data': 'Deriv 1-second mid ticks only (/mnt/data/deriv), no Dukascopy',
            'dataset': {'dir': a.dataset, 'manifest_sha256': cd.sha256(Path(a.dataset) / 'manifest.json')},
            'breakeven': cd.BE, 'session': a.session, 'tradeable_only': True, 'blackout_rule': cd.BLACKOUT_RULE,
+           'venue_window_rule': None if a.july_filter else cd.VENUE_WINDOW_RULE,
+           'regression_only': bool(a.july_filter),     # True: never a candidate result
+           'run_status': 'running',                    # 'complete' when written at the end
            'horizon_min': a.horizon, 'gap_s': gap, 'covs': [1.0], 'operating_cov': 1.0, 'nseed': 0,
            'feature_set': f'rule:{a.signal}', 'n_features': 1, 'features': [a.signal], 'n_groups': cd.N_GROUPS,
            'k_test': cd.K_TEST, 'min_trades_per_path': cd.MIN_TRADES, 'rows_in_session': int(sess.sum()),
@@ -73,7 +79,7 @@ def main():
                          'KILL_if': 'each side p10<0.541 OR frac_clear_BE<0.80 over the 15 paths (all signalled decisions)',
                          'INVALID_if': 'in-session moved up-rate outside [0.47,0.53], or any path moved up-rate outside [0.45,0.55]'},
            'code': {'rule_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__)}}
-    out.write_text(json.dumps(res, indent=1))
+    out.write_text(cd.result_json(res))
     p = np.where(np.isfinite(sig) & (sig != 0), 0.5 + 0.25 * np.sign(sig), 0.5)
     pathinfo = []
     for testg in combinations(range(cd.N_GROUPS), cd.K_TEST):
@@ -93,7 +99,8 @@ def main():
     cd.aggregate(res, pathinfo, [], [1.0], data_uprate, np.ones(1), [a.signal])
     res.pop('top_gain_features', None)
     res['seconds'] = round(time.time() - t0, 1)
-    out.write_text(json.dumps(res, indent=1))
+    res['run_status'] = 'complete'
+    out.write_text(cd.result_json(res))
     cd.print_summary(res, [1.0], f'{a.pair} {a.horizon}m rule {a.signal}', t0, out)
 
 

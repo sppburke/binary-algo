@@ -16,7 +16,6 @@ tools/cpcv_deriv.py; a path is the union of its two groups' prequential decision
 feature values enter river as 0. The falsifier KILLs exactly as the CPCV rule.
 """
 import argparse
-import json
 import sys
 import time
 from collections import deque
@@ -29,7 +28,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 
-ONLINE_VERSION = 'cpcv_deriv_online/0.1'
+ONLINE_VERSION = 'cpcv_deriv_online/0.1.1'   # 0.1.1: the venue's window (owner decision 14) and the guards of E-003,
+#   both through cpcv_deriv 0.4.2
 
 
 def main():
@@ -47,13 +47,20 @@ def main():
     ap.add_argument('--dataset', default=str(cd.LAB / 'cache' / 'dataset_dev_v0.1'))
     ap.add_argument('--out', default=None)
     ap.add_argument('--tag', default='')
+    ap.add_argument('--july-filter', action='store_true',
+                    help='the July 2026 tradeability filter, without the venue window of owner decision 14 '
+                         '(regression against stored results only; such a result cannot be promoted)')
     a = ap.parse_args()
-    covs = [float(c) for c in a.covs.split(',')]
+    covs = cd.parse_covs(a.covs)
+    if a.n_models < 1 or not 2000 <= a.window <= 2 ** 63 - 1:   # test E-003: before anything is loaded or written
+        raise SystemExit(f'--n-models {a.n_models} / --window {a.window}: at least 1 model, and a window of 2000 '
+                         'decisions (the rolling threshold needs 2000 earlier ones) to 2^63 - 1 (pandas\' 64-bit '
+                         'window)')
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_{a.session}_online_result.json')
     t0 = time.time()
     X, fwd, ts, feats = cd.load(a.dataset, a.pair, a.horizon, a.features, 1, None)
-    sess = cd.session_mask(ts, a.session) & cd.tradeable(ts, a.horizon)
+    sess = cd.session_mask(ts, a.session) & cd.tradeable(ts, a.horizon, venue_window=not a.july_filter)
     moved = np.isfinite(fwd) & (fwd != 0.0)
     tgs = ts[sess]
     bnds = [tgs[int(k * len(tgs) / cd.N_GROUPS)] for k in range(cd.N_GROUPS)] + [tgs[-1] + 1]
@@ -69,6 +76,9 @@ def main():
         'dataset': {'dir': a.dataset, 'manifest_sha256': cd.sha256(manifest)},
         'window': {'first_decision': day(ts[0]), 'last_decision': day(ts[-1])},
         'breakeven': cd.BE, 'session': a.session, 'tradeable_only': True, 'blackout_rule': cd.BLACKOUT_RULE,
+        'venue_window_rule': None if a.july_filter else cd.VENUE_WINDOW_RULE,
+        'regression_only': bool(a.july_filter),     # True: never a candidate result
+        'run_status': 'running',                    # 'complete' when written at the end
         'horizon_min': a.horizon, 'gap_s': gap, 'covs': covs, 'operating_cov': covs[0], 'nseed': 1,
         'feature_set': a.features, 'n_features': len(feats), 'features': feats, 'n_groups': cd.N_GROUPS, 'k_test': cd.K_TEST,
         'threshold_window': a.window, 'min_trades_per_path': cd.MIN_TRADES,
@@ -76,7 +86,9 @@ def main():
         'groups': [(day(lo), day(hi - 1)) for lo, hi in groups],
         'evaluation': 'prequential (learn each decision only after it settles; predict before learning anything settling '
                       'later); paths = unions of two groups; no per-fold refit (an online learner has no folds)',
-        'CERT_RULE': 'side CERTIFIED iff VALID AND p10>=0.541 AND frac_clear_BE>=0.80 (unrounded path win rates; paths with >= 25 trades)',
+        'CERT_RULE': ('never certified: the online learner is a continuing policy, a forward diagnostic only (owner '
+                      'decision 13; cpcv_deriv.adaptive_policy); its figures follow the shared rule (unrounded path '
+                      'win rates; paths with >= 25 trades)'),
         'falsifier': {'version': 3, 'registered_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                       'when': 'before any decision is predicted',
                       'KILL_if': f'at the operating coverage {covs[0]}: each side p10<0.541 OR frac_clear_BE<0.80',
@@ -84,7 +96,7 @@ def main():
                                     '[0.45,0.55]; an INVALID run certifies nothing in any field'},
         'code': {'harness_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__), 'river': river_version},
     }
-    out.write_text(json.dumps(res, indent=1))
+    out.write_text(cd.result_json(res))
     print(f'[{a.pair} {a.horizon}m online] rows {len(ts):,} in-session {int(sess.sum()):,} features {len(feats)}', flush=True)
 
     model = forest.ARFClassifier(n_models=a.n_models, seed=a.seed)
@@ -117,8 +129,9 @@ def main():
     def score(mask, label):
         f, t_, pr = fwd[mask], ts[mask], p[mask]
         mv = f != 0
+        mvf = mv & np.isfinite(pr)                    # test E-003: the diagnostic reads finite scores only
         row = {'test': label, 'n_test': int(mask.sum()),
-               'auc': float(cd.roc_auc_score((f[mv] > 0).astype(int), pr[mv])) if mv.sum() > 20 else float('nan'),
+               'auc': float(cd.roc_auc_score((f[mvf] > 0).astype(int), pr[mvf])) if mvf.sum() > 20 else float('nan'),
                'up_rate': float((f[mv] > 0).mean()) if mv.sum() else float('nan'), 'always': {}, 'bycov': {}}
         for s in ('UP', 'DOWN'):
             row['always'][s] = list(cd.always(f, t_, s, gap))
@@ -143,7 +156,8 @@ def main():
     res.pop('top_gain_features', None)
     res['learned'] = learned
     res['seconds'] = round(time.time() - t0, 1)
-    out.write_text(json.dumps(res, indent=1))
+    res['run_status'] = 'complete'
+    out.write_text(cd.result_json(res))
     cd.print_summary(res, covs, f'{a.pair} {a.horizon}m online', t0, out)
 
 

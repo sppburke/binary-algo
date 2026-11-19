@@ -15,7 +15,6 @@ Validation = random 15% of the TARGET's training rows (rng 13, as in the single-
 Repository closure respected by the caller: no pooling for the USDJPY/USDCAD/AUDUSD/NZDUSD family targets.
 """
 import argparse
-import json
 import sys
 import time
 from itertools import combinations
@@ -27,7 +26,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402  (load, mk_lgb, side_wr, always, summ, session_mask, constants)
 
-POOL_VERSION = 'cpcv_deriv_pool/0.3'   # 0.3: shared unrounded aggregation, no fit-pool sort; 0.2: blackout excluded
+POOL_VERSION = 'cpcv_deriv_pool/0.3.1'   # 0.3.1: the venue's window (owner decision 14) and the guards of E-003, both
+#   through cpcv_deriv 0.4.2; 0.3: shared unrounded aggregation, no fit-pool sort; 0.2: blackout excluded
 CLOSED_TARGETS = {'USDJPY', 'USDCAD', 'AUDUSD', 'NZDUSD'}
 
 
@@ -50,7 +50,16 @@ class PoolFitter(cd.Fitter):
 
     def _fit_score(self, Xfit, yfit, val_idx, test_mask, label, n_own, n_other):
         X, fwd, ts, a, gap = self.X, self.fwd, self.ts, self.a, self.gap
+        if len(yfit) == 0 or len(val_idx) == 0:         # test E-003: nothing to fit or to set a threshold on
+            return cd.unsupported_row(label, len(yfit), len(val_idx), fwd[test_mask], ts[test_mask], self.covs, gap)
         yval = (fwd[val_idx] > 0).astype(int)
+        why = ('insufficient support: no test row' if not test_mask.any() else
+               'insufficient support: fewer than two fit rows (LightGBM needs two)' if len(yfit) < 2 else
+               'insufficient support: a validation label is absent from the fit labels'
+               if not np.isin(yval, yfit).all() else None)     # LightGBM's early stopping refuses such a label
+        if why:                                         # test E-003
+            return cd.unsupported_row(label, len(yfit), len(val_idx), fwd[test_mask], ts[test_mask], self.covs, gap,
+                                      why)
         pval = np.zeros(len(val_idx))
         ptst = np.zeros(int(test_mask.sum()))
         iters = []
@@ -67,7 +76,8 @@ class PoolFitter(cd.Fitter):
         ftst = fwd[test_mask]
         ttst = ts[test_mask]
         mv = ftst != 0
-        auc = float(cd.roc_auc_score((ftst[mv] > 0).astype(int), ptst[mv])) if mv.sum() > 20 else float('nan')
+        mvf = mv & np.isfinite(ptst)                  # test E-003: the diagnostic reads finite scores only
+        auc = float(cd.roc_auc_score((ftst[mvf] > 0).astype(int), ptst[mvf])) if mvf.sum() > 20 else float('nan')
         uprate = float((ftst[mv] > 0).mean()) if mv.sum() else float('nan')
         row = {'test': label, 'n_fit': int(len(yfit)), 'n_fit_target': n_own, 'n_fit_other_available': n_other,
                'n_val': int(len(val_idx)), 'n_test': int(test_mask.sum()), 'best_iter': iters, 'auc': auc,
@@ -91,24 +101,32 @@ def main():
     ap.add_argument('--n-jobs', type=int, default=16)
     ap.add_argument('--no-forward', action='store_true')
     ap.add_argument('--max-paths', type=int, default=15, help='smoke tests only; a certification run uses all 15')
+    ap.add_argument('--july-filter', action='store_true',
+                    help='the July 2026 tradeability filter, without the venue window of owner decision 14 '
+                         '(regression against stored results only; such a result cannot be promoted)')
     a = ap.parse_args()
     if a.pair in CLOSED_TARGETS:
         raise SystemExit(f'{a.pair}: cross-pair pooling is closed for this target by the repository (AGENTS.md)')
     pool = [p for p in a.pool.split(',') if p != a.pair]
-    covs = [float(c) for c in a.covs.split(',')]
+    covs = cd.parse_covs(a.covs)
+    if a.nseed < 1 or a.max_paths < 1 or not 2 <= a.num_leaves <= 131072:
+        raise SystemExit(f'--nseed {a.nseed} / --max-paths {a.max_paths} / --num-leaves {a.num_leaves}: at least 1 '
+                         'seed and 1 path, and 2 to 131072 leaves (LightGBM)')
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_{a.session}_pool_cpcv_result.json')
     t0 = time.time()
 
     X, fwd, ts, feats = cd.load(a.dataset, a.pair, a.horizon, a.features, 1)
-    sess = cd.session_mask(ts, a.session) & cd.tradeable(ts, a.horizon)     # Deriv purchase blackout excluded
+    # Deriv purchase blackout (and, unless --july-filter, the venue's window) excluded
+    sess = cd.session_mask(ts, a.session) & cd.tradeable(ts, a.horizon, venue_window=not a.july_filter)
     moved = np.isfinite(fwd) & (fwd != 0.0)
     others = {}
     for p in pool:
         Xp, fp, tp, fe = cd.load(a.dataset, p, a.horizon, a.features, 1)
         if fe != feats:
             raise SystemExit(f'{p}: feature columns differ from the target')
-        keep = cd.session_mask(tp, a.session) & cd.tradeable(tp, a.horizon) & np.isfinite(fp) & (fp != 0.0)
+        keep = (cd.session_mask(tp, a.session) & cd.tradeable(tp, a.horizon, venue_window=not a.july_filter)
+                & np.isfinite(fp) & (fp != 0.0))
         others[p] = (Xp[keep], (fp[keep] > 0).astype(int), tp[keep])
     Xo = np.vstack([v[0] for v in others.values()])
     yo = np.concatenate([v[1] for v in others.values()])
@@ -127,6 +145,9 @@ def main():
         'dataset': {'dir': a.dataset, 'manifest_sha256': cd.sha256(manifest)},
         'window': {'first_decision': day(ts[0]), 'last_decision': day(ts[-1])},
         'breakeven': cd.BE, 'session': a.session, 'tradeable_only': True, 'blackout_rule': cd.BLACKOUT_RULE,
+        'venue_window_rule': None if a.july_filter else cd.VENUE_WINDOW_RULE,
+        'regression_only': bool(a.july_filter),     # True: never a candidate result
+        'run_status': 'running',                    # 'complete' when written at the end
         'horizon_min': a.horizon, 'gap_s': gap, 'covs': covs,
         'operating_cov': covs[0], 'nseed': a.nseed, 'num_leaves': a.num_leaves, 'feature_set': a.features,
         'n_features': len(feats), 'features': feats, 'pool': pool,
@@ -143,7 +164,7 @@ def main():
         'code': {'pool_harness_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__),
                  'sessions_py_sha256': cd.sha256(cd.REPO / 'scripts' / 'sessions.py'), 'lightgbm': cd.lgb.__version__},
     }
-    out.write_text(json.dumps(res, indent=1))
+    out.write_text(cd.result_json(res))
     print(f'[{a.pair} pooled {a.horizon}m {a.session}] target rows {len(ts):,} in-session {int(sess.sum()):,}; '
           f'pool rows {len(yo):,}; features {len(feats)}', flush=True)
 
@@ -182,7 +203,8 @@ def main():
                 res['bycov'][k]['verdict'][s]['CERTIFIED'] = False
         res['verdict'] = {s: f'SMOKE ({a.max_paths} paths)' for s in ('UP', 'DOWN')}
     res['seconds'] = round(time.time() - t0, 1)
-    out.write_text(json.dumps(res, indent=1))
+    res['run_status'] = 'complete'
+    out.write_text(cd.result_json(res))
     cd.print_summary(res, covs, f'{a.pair} {a.horizon}m pooled', t0, out)
 
 
