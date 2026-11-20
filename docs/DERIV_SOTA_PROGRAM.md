@@ -1022,6 +1022,16 @@ UTC); the labels are verbatim.
   of the six other pairs with the V baseline and V-04 to V-09, 84 arms for campaign addition 2, which is written
   before any of them runs.
 
+**Answers of 2026-11-20.** Two recommendations put in the report of 03:20 UTC and answered at about 04:09 UTC: "sure,
+go ahead with this" (verbatim; lab `PROGRESS.md`, "Owner decisions (2026-11-20)").
+
+- **GPU jobs: up to three at once.** The registered neural recipes fix one CPU thread each, and the GPU sat about 80%
+  idle; three workers share one locked GPU queue, and no result changes. A-023's `race3` pilot, whose recipe caps it
+  at 45 GPU minutes per pair, runs alone.
+- **One neural CPU job beside the heavy job.** One single-thread `cpcv_neural.py` CPU run may run beside the heavy
+  8 × 2 job: a light lane holds the neural CPU full arms, shortest first, while the heavy queue keeps the identity
+  regression and then the payout campaign once registered.
+
 ## Open owner decisions
 
 (Decision 1 is resolved above. Its background: strategy-eval §2 treats a moved up-rate outside [0.47, 0.53] as a
