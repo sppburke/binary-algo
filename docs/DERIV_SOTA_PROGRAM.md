@@ -189,6 +189,33 @@ implementations rejected, rerun independently (90 of 90 after the tests' follow-
 unchanged); the 182 pilot and A-068 arms reached their first fit on the development data with the P, E and inputs
 above.
 
+**The payout-test build** (`cpcv_deriv_x` 0.12 with `build_price_table` 0.3; installed 2026-11-21 07:29:46 UTC by
+`install_v012c.py` in the lab and in this repository's mirror in one step, the replaced 0.11 in
+`tools_backups/v012_20261121T072945Z/`; SHA-256 prefixes 49a45aaf3095 and 2d9aefffdb41): V-04 to V-09 are options of
+the extended harness that read the reconstructed quotes of the price table `cache/venue_prices_v1` (manifest SHA-256
+prefix 28ac51ab23db; built by `build_price_table` 0.3 from the development datasets v0.1, v0.2 and v0.5 and the raw
+ticks before 2026-08-01), through a loader that checks the table's hashes, schema, cent grid and decision-time bounds
+and requires an exact one-to-one join with the dataset's decisions. Payout arithmetic is exact (integer cents and
+exact rationals, one conversion for reporting): V-04's choice between sides abstains at an exact expected-value tie
+(rule-gated arms keep their rule's side) and V-09's floor choice takes the lower floor at an exact tie. Campaign
+addition 2 registers 180 arms: the 14 candidates' stored configurations on their own pairs (baseline and each runnable
+test, 96) and, by the owner's decision of 2026-11-19, `e20sg` and `e30nystroem` on the six other pairs (84). Evidence
+(record `/mnt/data/deriv-sota-lab/registry/ round6_stage1/v012/`): 13 review rounds (the last approve, and approve
+with revisions twice: two Minor evidence-only findings, fixed in the tests and verified by the reviewers' own
+counterfactuals without a further round under the owner's stopping rule of 2026-11-19); the final synthetic suite (114
+tests, 6,547 named negative controls; the base unchanged, its first-come schedule's start at -1 s a deferred
+follow-up), a 3,271-mutant sweep without an unexplained survivor, an independent oracle of every split's partitions,
+support and refusal reason, and a configuration matrix running all 180 arms sequentially and in parallel, the suite
+rerun independently; on the development data, without a V reading: every arm reaches its first fit; the 14 stored
+configurations rerun in full on the default path at `--path-jobs 8 --n-jobs 2` by the installed 0.11 and the staged
+0.12 give identical prediction dumps and matching results after the comparator's declared version, hash and timing
+exclusions; their path and forward fields (except timing), strict certificates, input identities and compared
+summaries match the stored results, with memory peaks of at most 7.03 GiB under the 14 GB cap and no out-of-memory
+kill; the V options at production dimensions on a synthetic fixture (35 stress arms, 8 x 2) peak at 7.50 GiB with no
+out-of-memory event; the production session and tradeability masks agree with an independent zoneinfo computation on
+2,482,715 rows; every raw tick behind the table (147,353,151) lies before the cutoff; the table rebuilt by the
+reviewed builder equals the installed one in every array; every payout lies on the cent grid.
+
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
 and embargo H around each test block, training on moved in-session unpurged rows, a random 15% validation subset
