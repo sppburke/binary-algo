@@ -34,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cpcv_deriv as cd  # noqa: E402
 from fork_jobs import in_order, run_forked  # noqa: E402
 
-X_VERSION = 'cpcv_deriv_x/0.11'   # 0.11: --path-jobs N (test E-020: paths and forward splits in forked workers;
+X_VERSION = 'cpcv_deriv_x/0.12'   # 0.11: --path-jobs N (test E-020: paths and forward splits in forked workers;
 #   identical path rows) and a recorded 'compute' block; defaults and every 0.10.1 option unchanged.
 #   0.10.1: the venue's window (owner decision 14, cpcv_deriv 0.4.2) and the
 #   guards of E-003. 0.10: discovery round 5 - --blend-absret SIDE (D5-01 selected blend of the unweighted
@@ -243,7 +243,676 @@ def option_domains(a):
     return out
 
 
-class XFitter(cd.Fitter):
+
+# Payout tests V-04..V-09, V_PLAN.md revision 3.
+PRICE_CUTOFF = 1785542400  # 2026-08-01T00:00:00Z
+PRICE_COLS = ('price_pu', 'price_pd', 'price_skew', 'price_over')
+# Absolute tolerance in cents (1e-12 payout units). Covers float64 cent encoding,
+# but rejects 1.75 +/- 1e-9. Canonical integer cents are retained after loading.
+PRICE_CENT_TOL = 1e-10
+# Whole seconds exactly representable before and after the conservative expiry lag.
+PRICE_TIME_MIN = -(2**53)
+PRICE_TIME_MAX = 2**53 - 932
+
+
+def price_need(ok, why):
+    if not ok:
+        raise SystemExit('payout tests: ' + why)
+
+
+def price_args(ap):
+    ap.add_argument('--prices')
+    ap.add_argument('--prices-sha256')
+    ap.add_argument('--select', choices=('confidence', 'ev'), default='confidence')
+    ap.add_argument('--price-features', action='store_true')
+    ap.add_argument('--label', choices=('sign', 'better-paid'), default='sign')
+    ap.add_argument('--min-payout-gap', type=float, default=0.05)
+    ap.add_argument('--drop-ny-window', choices=('16:00-16:35',))
+    ap.add_argument('--payout-floor')
+
+
+def price_validate(a):
+    active = (a.select == 'ev' or a.price_features or a.weight == 'profit' or a.label == 'better-paid'
+              or a.drop_ny_window or a.payout_floor is not None)
+    price_need(not (active or a.prices_sha256) or a.prices, 'new payout options require --prices')
+    if not a.prices:
+        return
+    import re
+    price_need(bool(re.fullmatch('[0-9a-fA-F]{64}', a.prices_sha256 or '')),
+               '--prices requires the registered --prices-sha256')
+    price_need(a.horizon == 15, 'the registered table prices 15-minute contracts only')
+    price_need(not a.july_filter and not a.include_blackout, '--prices requires the venue window, no --july-filter / blackout override')
+    price_need(a.model in ('lgb', 'logit', 'nystroem'), 'unregistered payout model: use lgb, logit or nystroem')
+    price_need(not (a.specialist or a.boot_gate or a.multi_horizon or a.blend_absret or a.meta_keep is not None
+                   or a.mag_keep is not None or a.aci_gamma is not None or a.null_shift_weeks
+                   or a.train_label != 'sign' or a.monotone != 'none'),
+               'unregistered payout combination: specialist / boot / multi-horizon / blend / meta / magnitude / ACI / null / alternate target / monotone')
+    price_need(a.min_payout_gap == 0.05, 'registered --min-payout-gap is 0.05')
+    if a.label == 'better-paid':
+        price_need(not a.rule_gate, 'V-07 N/A: the rule fixes the side')
+        price_need(not (a.drift_fe or a.signed_only), 'V-07 N/A: a drift-neutral sign model has no better-paid target')
+        price_need(a.select != 'ev' and a.weight != 'profit', 'better-paid target cannot be combined with sign calibration or moved-row profit weights')
+    if a.payout_floor is not None:
+        try:
+            floors = tuple(float(x) for x in a.payout_floor.split(','))
+        except ValueError:
+            floors = ()
+        price_need(floors == (1.75, 1.80, 1.85), 'registered --payout-floor is 1.75,1.80,1.85')
+
+
+def load_prices(a):
+    """The pinned manifest transitively registers the table, dataset and quote-model hashes.
+    Never open the source paths in the manifest (in particular ticks or the quote model).
+    Check EVERY raw dataset time before cd.load can cast, sort, filter or group it.
+    """
+    root = Path(a.prices)
+    manifest = root / 'manifest.json'
+    price_need(cd.sha256(manifest) == a.prices_sha256.lower(), 'manifest hash mismatch')
+    m = json.loads(manifest.read_text())
+    price_need(m.get('horizon_min') == 15 and m.get('clocks') == ['ny', 'utc4'], 'table schema differs')
+    import re
+    qm = m.get('quote_model', {})
+    hashes = dict(qm.get('sha256', {}), meta=qm.get('meta_sha256', ''))
+    price_need(all(re.fullmatch('[0-9a-f]{64}', hashes.get(k, '')) for k in ('skew.txt', 'overround.txt', 'meta')),
+               'missing registered quote-model hashes')
+    ds = Path(a.dataset)
+    dh = cd.sha256(ds / 'manifest.json')
+    matches = [v for v in m.get('datasets', {}).values() if v.get('manifest_sha256') == dh]
+    price_need(bool(matches), 'dataset manifest hash is not registered in the table')
+    ph = cd.sha256(ds / f'{a.pair}.parquet')
+    price_need(any(v.get('parquet_sha256', {}).get(a.pair) == ph for v in matches), 'dataset parquet hash mismatch')
+    raw = pd.read_parquet(ds / f'{a.pair}.parquet', columns=['decision_ts'])['decision_ts'].to_numpy()
+    price_need(np.issubdtype(raw.dtype, np.number) and np.isfinite(raw).all(), 'decision time is not finite')
+    price_need(np.all(raw == np.floor(raw)), 'decision time is not whole seconds')
+    raw = raw.astype(np.longdouble)  # exact promotion of every supported integer/float dtype
+    price_need(np.all((raw >= PRICE_TIME_MIN) & (raw <= PRICE_TIME_MAX)),
+               'dataset decision_ts outside exact-second arithmetic bounds')
+    raw = raw.astype(np.int64)
+    price_need(np.all(raw < PRICE_CUTOFF), 'decision at or after 2026-08-01')
+    # Same conservative expiry guard as build_price_table (lag 1 + horizon 900 + entry tolerance 30).
+    price_need(np.all(raw + 931 < PRICE_CUTOFF), 'settlement target at or after 2026-08-01')
+    price_need(len(np.unique(raw)) == len(raw), 'duplicate dataset decision time')
+    table = root / f'{a.pair}_15m.npz'
+    price_need(cd.sha256(table) == m.get('pairs', {}).get(a.pair, {}).get('npz_sha256'), 'table hash mismatch')
+    with np.load(table, allow_pickle=False) as z:
+        data = {k: z[k].copy() for k in z.files}
+    t = data.get('decision_ts', np.array([]))
+    price_need(t.ndim == 1 and len(t) > 0 and t.dtype.kind in 'iuf' and np.isfinite(t).all(),
+               'non-finite table decision time: decision_ts')
+    t = t.astype(np.longdouble)  # compare in a type that exactly holds int64/uint64 and narrow floats
+    price_need(np.all((t >= PRICE_TIME_MIN) & (t <= PRICE_TIME_MAX)),
+               'table decision_ts outside exact-second arithmetic bounds')
+    price_need(np.all(t == np.floor(t)), 'table decision_ts is not whole seconds')
+    t = data['decision_ts'] = t.astype(np.int64)
+    price_need(np.all(t < PRICE_CUTOFF) and np.all(t + 931 < PRICE_CUTOFF), 'table decision or settlement target outside development')
+    price_need(len(np.unique(t)) == len(t), 'duplicate table decision time')
+    order = np.argsort(t, kind='stable')
+    for c in ('ny', 'utc4'):
+        for k in ('pu', 'pd', 'skew', 'over', 'priced'):
+            v = data.get(f'{k}_{c}')
+            price_need(v is not None and v.shape == t.shape, 'missing or malformed table column')
+        ok = data[f'priced_{c}'].astype(bool)
+        for k in ('skew', 'over'):
+            price_need(np.isfinite(data[f'{k}_{c}'][ok]).all(), 'non-finite priced value')
+        for k in ('pu', 'pd'):
+            column = f'{k}_{c}'
+            values = data[column]
+            # Decode each numeric value exactly: a narrow floating multiplication
+            # can round an off-grid payout onto a cent before it is checked.
+            from fractions import Fraction
+            tolerance = Fraction(str(PRICE_CENT_TOL))
+            valid = np.zeros(len(values), bool)
+            cents = np.zeros(len(values), np.int64)
+            if values.dtype.kind in 'iuf':
+                for row in np.flatnonzero(np.isfinite(values) & (values > 0)):
+                    value = values[row]
+                    num, den = value.as_integer_ratio() if values.dtype.kind == 'f' else (int(value), 1)
+                    amount = Fraction(100 * num, den)
+                    nearest = round(amount)
+                    if 1 <= nearest < 2**53 and abs(amount - nearest) <= tolerance:
+                        valid[row], cents[row] = True, nearest
+            bad = np.flatnonzero(~valid)
+            price_need(not len(bad), f'{column} row {int(bad[0]) if len(bad) else "none"}: '
+                       'payout must be a finite positive whole number of cents '
+                       '(absolute tolerance 1e-10 cents; below 2**53 cents)')
+            data[f'{k}_cents_{c}'] = cents
+            data[column] = data[f'{k}_cents_{c}'] / 100.0
+    data = {k: v[order] for k, v in data.items()}
+    j = np.searchsorted(data['decision_ts'], raw)
+    price_need(np.all(j < len(t)) and np.array_equal(data['decision_ts'][np.minimum(j, len(t)-1)], raw),
+               'dataset row missing from price table')
+    evidence = {'manifest_sha256': a.prices_sha256.lower(), 'table_sha256': cd.sha256(table),
+                'dataset_manifest_sha256': dh, 'dataset_parquet_sha256': ph, 'quote_model': qm,
+                'builder_sha256': m.get('tool_sha256')}
+    return data, evidence
+
+
+def align_prices(data, ts):
+    j = np.searchsorted(data['decision_ts'], ts)
+    price_need(np.all(j < len(data['decision_ts'])) and np.array_equal(data['decision_ts'][j], ts), 'loaded row missing from table')
+    return {k: v[j] for k, v in data.items()}
+
+
+def better_paid(prices, fwd):
+    pu, pd_ = prices['pu_ny'], prices['pd_ny']
+    ok = prices['priced_ny'].astype(bool)
+    # Avoid casting NaN; unpriced rows remain ineligible even if their stored payouts are finite.
+    u = np.rint(100 * np.where(ok, pu, 0)).astype(np.int64)
+    d = np.rint(100 * np.where(ok, pd_, 0)).astype(np.int64)
+    side = np.sign(u - d).astype(int)
+    eligible = ok & (np.abs(u - d) >= 5)
+    target = ((side * fwd) > 0).astype(int)  # ties lose; mirror-invariant
+    return eligible, side, target
+
+
+def ny_window_keep(ts):
+    local = pd.to_datetime(ts, unit='s', utc=True).tz_convert('America/New_York')
+    minute = local.hour.to_numpy() * 60 + local.minute.to_numpy()
+    return ~((minute >= 960) & (minute < 995))
+
+
+def price_features(X, feats, prices, signed=False):
+    ok = prices['priced_ny'].astype(bool)
+    names = ('price_skew', 'price_diff') if signed else PRICE_COLS
+    values = (prices['skew_ny'], prices['pu_ny'] - prices['pd_ny']) if signed else (
+        prices['pu_ny'], prices['pd_ny'], prices['skew_ny'], prices['over_ny'])
+    added = np.column_stack([np.where(ok, v, np.nan) for v in values]).astype(np.float32)
+    price_need(not set(names) & set(feats), 'reserved price feature already exists')
+    return np.column_stack([X, added]), list(feats) + list(names)
+
+
+def profit_weights(prices, fwd, fit):
+    fit = fit[prices['priced_ny'][fit].astype(bool) & (fwd[fit] != 0)]
+    if not len(fit):
+        raise cd.Unsupported('insufficient support: no priced moved profit fit row')
+    from fractions import Fraction
+    w = [int(round(float(v) * 100)) for v in
+         np.where(fwd[fit] > 0, prices['pu_ny'][fit], prices['pd_ny'][fit])]
+    total = sum(w)
+    return fit, np.array([float(Fraction(c * len(w), total)) for c in w])
+
+
+# A common binary scale permits vectorized arbitrary-precision integer operations.
+# binary64 subnormals are integer multiples of 2**-1074; payouts are integer cents.
+EV_DENOMINATOR = 100 << 1074
+
+
+class EVScore(np.ndarray):
+    """Float reports plus exact EV numerators, retained by population slicing."""
+    def __new__(cls, units):
+        report = np.frompyfunc(lambda n: int(n) / EV_DENOMINATOR, 1, 1)(units).astype(float)
+        obj = report.view(cls)
+        obj.units = units
+        return obj
+
+    def __array_finalize__(self, parent):
+        self.units = getattr(parent, 'units', None)
+
+    def __getitem__(self, key):
+        result = super().__getitem__(key)
+        if isinstance(result, EVScore):
+            result.units = self.units[key]
+        return result
+
+
+def ev_units(probability, cents):
+    p = np.asarray(probability, np.float64)
+    bits = np.where(np.isfinite(p), p, 0.).view(np.uint64)
+    exponent = ((bits >> 52) & 2047).astype(np.int64)
+    mantissa = ((bits & ((1 << 52) - 1)) | np.where(exponent != 0, np.uint64(1 << 52), np.uint64(0)))
+    signed = mantissa.astype(object) * np.where(p < 0, -1, 1)
+    return (signed * np.asarray(cents, object)) << np.maximum(exponent - 1, 0).astype(object)
+
+
+def ev_threshold(score, coverage):
+    """Exact linear quantile, including interpolation; 1-coverage is the registered binary float."""
+    from fractions import Fraction
+    ordered = np.sort(score.units)
+    position = Fraction(float(1 - coverage)) * (len(ordered) - 1)
+    lo = position.numerator // position.denominator
+    hi = min(lo + 1, len(ordered) - 1)
+    fraction = position - lo
+    return ((1 - fraction) * int(ordered[lo]) + fraction * int(ordered[hi])) / EV_DENOMINATOR
+
+
+def ev_scores(up, down, pu, pd_, priced, keep, rule=None, cents=None):
+    finite = np.isfinite(up) & np.isfinite(down) & np.isfinite(pu) & np.isfinite(pd_)
+    if cents is None:
+        cents = tuple(np.rint(np.where(np.isfinite(v), v, 0.) * 100).astype(np.int64) for v in (pu, pd_))
+    eu = ev_units(up, cents[0]) - EV_DENOMINATOR
+    ed = ev_units(down, cents[1]) - EV_DENOMINATOR
+    side = np.where(finite & (eu > ed), 1, np.where(finite & (ed > eu), -1, 0))
+    if rule is not None:
+        side = np.asarray(rule, int)
+    kept = keep & priced.astype(bool) & (side != 0) & finite
+    units = np.where(kept, np.where(side > 0, eu, ed), -EV_DENOMINATOR)
+    return side, EVScore(units), kept
+
+
+def platt_support(fwd, priced):
+    ix = np.where(priced)[0]
+    info = {'priced_rows': int(len(ix)), 'ties': int(np.sum(fwd[ix] == 0)), 'sides': {}}
+    for side, y in (('UP', fwd > 0), ('DOWN', fwd < 0)):
+        target = y[ix].astype(int)
+        info['sides'][side] = {'rows': len(ix), 'positive': int(target.sum()), 'classes': int(len(np.unique(target)))}
+    return info
+
+
+def platt_pair(raw, fwd, priced):
+    from sklearn.linear_model import LogisticRegression
+    valid = priced & np.isfinite(raw)
+    ix = np.where(valid)[0]
+    info = platt_support(fwd, valid)
+    models = []
+    if len(ix) < 200 or any(v['classes'] < 2 for v in info['sides'].values()):
+        return None, info
+    Z = raw_logit(raw[ix])
+    for side, y in (('UP', fwd > 0), ('DOWN', fwd < 0)):
+        model = LogisticRegression(C=1.0, max_iter=1000).fit(Z, y[ix].astype(int))
+        info['sides'][side].update(coef=float(model.coef_[0, 0]), intercept=float(model.intercept_[0]),
+                                  C=1.0, logit_clip=15.0)
+        models.append(model)
+    return models, info
+
+
+def raw_logit(p):
+    p = np.asarray(p, float)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return np.clip(np.log(p / (1 - p)), -15, 15).reshape(-1, 1)
+
+
+def selected_rows(ts, fwd, side, score, keep, threshold, wanted, gap):
+    if threshold is None:
+        return np.array([], int)
+    if isinstance(score, EVScore):
+        from fractions import Fraction
+        boundary = Fraction(threshold) * EV_DENOMINATOR
+        minimum = -(-boundary.numerator // boundary.denominator)
+        qualifies = score.units >= minimum
+    else:
+        qualifies = score >= threshold
+    ok = keep & np.isfinite(score) & qualifies & np.isfinite(fwd)
+    if wanted != 'COMBINED':
+        ok &= side == (1 if wanted == 'UP' else -1)
+    return cd.nonoverlap_chrono(ts, ok, gap)
+
+
+def choose_floor(ts, fwd, side, own, priced, trades, floors=(1.75, 1.80, 1.85)):
+    mid = float(np.median(ts[trades])) if len(trades) else None
+    from fractions import Fraction
+    diag, best, objective = {}, None, None
+    for fl in floors:
+        halves, exact = [], []
+        for earlier in (True, False):
+            k = trades[(ts[trades] < mid) if earlier else (ts[trades] >= mid)] if mid is not None else trades
+            k = k[priced[k].astype(bool) & (own[k] >= fl - 1e-9)]
+            winning_cents = sum(int(round(float(own[i]) * 100)) for i in k if side[i] * fwd[i] > 0)
+            ev = Fraction(winning_cents - 100 * len(k), 100 * len(k)) if len(k) else None
+            exact.append(ev)
+            halves.append({'n': len(k), 'ev': float(ev) if ev is not None else None})
+        supported = all(h['n'] >= 25 for h in halves)
+        worst = min(exact) if supported else None
+        diag[f'{fl:.2f}'] = {'halves': halves, 'supported': supported, 'worst_half_ev': float(worst) if worst is not None else None}
+        if supported and (objective is None or worst > objective):  # ascending floors: ties keep lower floor
+            best, objective = fl, worst
+    return best, {'median_decision_ts': mid, 'validation_trades': ts[trades].tolist(), 'floors': diag, 'chosen': best}
+
+
+# Exact path sufficient statistics survive JSON serialization as numerator/denominator pairs.
+def stats(win, own, opp):
+    n = len(win)
+    if n == 0:
+        return {'n': 0}
+    from collections import Counter
+    from fractions import Fraction
+    cents = [int(round(float(v) * 100)) for v in own]
+    wins = int(win.sum())
+    total = sum(cents)
+    winning = sum(c for c, w in zip(cents, win) if w)
+    exact = {'wr': Fraction(wins, n), 'payout': Fraction(total, 100 * n),
+             'breakeven': sum((Fraction(100 * count, c) for c, count in Counter(cents).items()), Fraction()) / n,
+             'ev': Fraction(winning - 100 * n, 100 * n),
+             'favoured_share': Fraction(int((own < opp).sum()), n),
+             'unfavoured_share': Fraction(int((own > opp).sum()), n)}
+    return dict(n=int(n), wins=wins, payout_cents_sum=total, winning_payout_cents_sum=winning,
+                exact={k: [v.numerator, v.denominator] for k, v in exact.items()},
+                **{k: float(v) for k, v in exact.items()})
+
+
+def stat_fraction(part, key):
+    from fractions import Fraction
+    if 'exact' in part:
+        return Fraction(*part['exact'][key])
+    # Standalone descriptive callers may supply already aggregated decimal means.
+    if key == 'payout' and 'payout_cents_sum' in part:
+        return Fraction(part['payout_cents_sum'], 100 * part['n'])
+    return Fraction(str(part[key]))
+
+
+def pooled(rows, key):
+    """Descriptive pooling over repeated CPCV paths, retaining exact totals."""
+    from fractions import Fraction
+    rs = [r[key] for r in rows if r[key]['n'] > 0]
+    n = sum(x['n'] for x in rs)
+    if n == 0:
+        return {'n': 0}
+    w = sum(x['wins'] for x in rs)
+    pay = sum((stat_fraction(x, 'payout') * x['n'] for x in rs), Fraction()) / n
+    ev = sum((stat_fraction(x, 'ev') * x['n'] for x in rs), Fraction()) / n
+    return {'n': int(n), 'wr': float(Fraction(w, n)), 'payout': float(pay),
+            'breakeven_of_mean_payout': float(1 / pay), 'ev': float(ev)}
+
+
+def summarise(rows):
+    """Count priced paths; aggregate exact path ratios before one reporting conversion."""
+    from fractions import Fraction
+    counted = [r for r in rows if r['trades']['n'] >= cd.MIN_TRADES]
+    base = [r for r in counted if r['always']['n'] > 0]
+    ev = [stat_fraction(r['trades'], 'ev') for r in counted]
+    wr = [stat_fraction(r['trades'], 'wr') for r in counted]
+    gapv = [(stat_fraction(r['trades'], 'payout') - stat_fraction(r['always'], 'payout')) * 100 for r in base]
+
+    def mean(k, part='trades'):
+        rs = counted if part == 'trades' else base
+        return float(sum((stat_fraction(r[part], k) for r in rs), Fraction()) / len(rs)) if rs else None
+
+    def p10(values):
+        if not values:
+            return None
+        values = sorted(values)
+        position = Fraction(len(values) - 1, 10)
+        lo = position.numerator // position.denominator
+        hi = min(lo + 1, len(values) - 1)
+        return float(values[lo] + (values[hi] - values[lo]) * (position - lo))
+
+    return {'paths': len(rows), 'paths_counted': len(counted), 'paths_clear_0.541': int(sum(x >= Fraction(str(cd.BE)) for x in wr)),
+            'p10_win_rate': p10(wr), 'paths_ev_positive': int(sum(x > 0 for x in ev)),
+            'p10_ev': p10(ev), 'mean_ev': mean('ev'),
+            'min_ev': float(min(ev)) if ev else None, 'max_ev': float(max(ev)) if ev else None,
+            'mean_win_rate': mean('wr'), 'mean_payout': mean('payout'), 'mean_breakeven_faced': mean('breakeven'),
+            'mean_favoured_share': mean('favoured_share'), 'mean_always_payout': mean('payout', 'always'),
+            'mean_always_ev': mean('ev', 'always'), 'mean_always_win_rate': mean('wr', 'always'),
+            'paths_payout_0.02_below_always': int(sum(x <= -2 for x in gapv)),
+            'paths_payout_0.02_above_always': int(sum(x >= 2 for x in gapv)),
+            'trades_frozen': int(sum(r['frozen'] for r in rows)), 'trades_not_priced': int(sum(r['not_priced'] for r in rows))}
+
+
+def payout_reading(paths, prices, ts, fwd, cov):
+    out = {'operating_cov': cov, 'definition': 'analyze_payout_aware/0.2; in-run executed identities', 'sides': {}}
+    for side in ('UP', 'DOWN'):
+        clocks = {c: [] for c in ('ny', 'utc4')}
+        for path in paths:
+            ev = path['price_evidence']
+            test = np.asarray(ev['test_ts'], dtype=np.int64)
+            ti = np.searchsorted(ts, test)
+            executed = ev['executed'][str(cov)][side]
+            tr = np.searchsorted(ts, np.array([r['decision_ts'] for r in executed], np.int64))
+            al = ti[cd.nonoverlap_chrono(test, np.isfinite(fwd[ti]), 900)]
+            win = ((fwd > 0) if side == 'UP' else (fwd < 0)).astype(float)
+            for c in clocks:
+                pu, pd_, ok = prices[f'pu_{c}'], prices[f'pd_{c}'], prices[f'priced_{c}'].astype(bool)
+                own, opp = (pu, pd_) if side == 'UP' else (pd_, pu)
+                k, b = tr[ok[tr]], al[ok[al]]
+                row = {'test': str(path['test']), 'frozen': len(tr), 'not_priced': len(tr)-len(k),
+                       'trades': stats(win[k], own[k], opp[k]), 'always': stats(win[b], own[b], opp[b])}
+                row['favoured'] = stats(win[k[own[k] < opp[k]]], own[k[own[k] < opp[k]]], opp[k[own[k] < opp[k]]])
+                row['unfavoured'] = stats(win[k[own[k] > opp[k]]], own[k[own[k] > opp[k]]], opp[k[own[k] > opp[k]]])
+                for fl in (1.75, 1.80, 1.85):
+                    z = k[own[k] >= fl - 1e-9]
+                    row[f'payout_at_least_{fl:.2f}'] = stats(win[z], own[z], opp[z])
+                clocks[c].append(row)
+        su = summarise(clocks['ny'])
+        cleared = (len(paths) == 15 and su['paths_counted'] >= 12 and su['paths_ev_positive'] >= 12
+                   and su['p10_ev'] is not None and su['p10_ev'] >= 0)
+        out['sides'][side] = {'paths': clocks['ny'], 'summary': su,
+                              'verdict': 'PAYOUT-CLEARED' if cleared else 'NOT CLEARED AT THE QUOTED PAYOUT',
+                              'sensitivity_utc4_clock': {'paths': clocks['utc4'], 'summary': summarise(clocks['utc4'])},
+                              'pricing': ('ADVERSELY PRICED' if su['paths_payout_0.02_below_always'] >= 12 else
+                                          'FAVOURABLY PRICED' if su['paths_payout_0.02_above_always'] >= 12 else 'NEUTRAL'),
+                              'descriptive_pooled_over_paths': {k: pooled(clocks['ny'], k) for k in
+                                  ['trades', 'favoured', 'unfavoured'] + [f'payout_at_least_{fl:.2f}' for fl in (1.75, 1.80, 1.85)]}}
+    return out
+
+
+class PriceMixin:
+    def price_record_model(self, model):
+        if getattr(self.a, 'prices', None):
+            import hashlib
+            import pickle
+            self.price_model_hashes.append(hashlib.sha256(pickle.dumps(model, protocol=5)).hexdigest())
+
+    def price_prepare_draw(self, tr_idx, val_pool):
+        """Deterministic exclusions and calibration reserve. Called ONLY inside draw_split2.
+        price_permitted is the exact outer purge mask, including tie origins, also sent to fork workers.
+        """
+        a, ts, fwd = self.a, self.ts, self.fwd
+        self.cal_idx = np.array([], int)
+        if a.select == 'ev':
+            origin = self.price_permitted & val_pool & np.isfinite(fwd)
+            moved = np.where(origin & (fwd != 0))[0]
+            n = max(1, int(round(len(moved) * cd.VAL_FRAC)))
+            if len(moved):
+                start = ts[moved[-n]]
+                self.cal_idx = np.where(origin & (ts >= start))[0]
+                tr_idx = tr_idx[ts[tr_idx] < start - self.gap]
+            else:
+                tr_idx = tr_idx[:0]
+        return tr_idx[self.price_arm_keep[tr_idx]]
+
+    def price_unsupported(self, row, test_mask):
+        ev = getattr(self, '_price_evidence', {})
+        # An unsupported split retains partition/provenance evidence and always-side
+        # baselines, but contributes no row to a strategy population or V diagnostic.
+        for key in list(ev):
+            if key.startswith(('threshold_population_', 'floor_validation_')) or key in (
+                    'calibration_score', 'validation_executed', 'floor_diagnostics'):
+                del ev[key]
+        ev.setdefault('fit_ts', [])
+        ev.setdefault('validation_ts', [])
+        ev.setdefault('calibration_ts', [])
+        ev['test_ts'] = self.ts[test_mask].tolist()
+        ev['executed'] = {str(c): {s: [] for s in cd.SIDES} for c in self.covs}
+        if self.a.select == 'ev':
+            row['bycov_confidence'] = copy.deepcopy(row['bycov'])
+            ev['executed_confidence'] = copy.deepcopy(ev['executed'])
+        row['price_evidence'] = ev
+        return row
+
+    def price_record_partition(self, val_idx, fit_pool, test_mask):
+        # Even an early native support guard must retain the partitions already drawn.
+        self._price_evidence = {'fit_ts': self.ts[fit_pool].tolist(),
+            'validation_ts': self.ts[val_idx].tolist(), 'calibration_ts': self.ts[self.cal_idx].tolist(),
+            'test_ts': self.ts[test_mask].tolist()}
+
+    def price_partition(self, tr_idx, val_idx, fit_pool, test_mask, val_pool):
+        """Fit-row weight hook and auxiliary prediction inputs; no fit or scoring pipeline here."""
+        a, ts, fwd, p = self.a, self.ts, self.fwd, self.prices
+        cal = self.cal_idx
+        e = self._price_evidence = {'fit_ts': ts[fit_pool].tolist(), 'validation_ts': ts[val_idx].tolist(),
+            'calibration_ts': ts[cal].tolist(), 'test_ts': ts[test_mask].tolist(),
+            'unpriced_test_rows': int((~p['priced_ny'][test_mask].astype(bool)).sum()),
+            'ineligible_test_rows': int((~self.price_arm_keep[test_mask]).sum()),
+            'excluded_training_rows': int(len(tr_idx) - np.isin(tr_idx, np.r_[fit_pool, val_idx, cal]).sum())}
+        self.price_weights = None
+        if a.weight == 'profit':
+            before = len(fit_pool)
+            fit_pool, self.price_weights = profit_weights(p, fwd, fit_pool)
+            e.update(profit_unpriced_fit_removed=before-len(fit_pool), fit_ts=ts[fit_pool].tolist(),
+                     fit_weights=self.price_weights.tolist())
+        # Calibration support can be decided without fitting the predictor.
+        if a.select == 'ev':
+            e['calibration'] = support = platt_support(fwd[cal], p['priced_ny'][cal].astype(bool))
+            if support['priced_rows'] < 200 or any(v['classes'] < 2 for v in support['sides'].values()):
+                raise cd.Unsupported('insufficient support: Platt calibration needs 200 priced rows and two classes per side')
+        # Keep the stored moved-row threshold. Only floor evaluation adds ties of the validation span.
+        extra = cal
+        if a.payout_floor is not None and a.select != 'ev' and len(val_idx):
+            origin = self.price_permitted & self.price_arm_keep & val_pool
+            ties = origin & (fwd == 0)
+            ties &= (ts >= ts[val_idx].min()) & (ts <= ts[origin].max())
+            ties[np.r_[fit_pool, val_idx]] = False
+            extra = np.where(ties)[0]
+        self.price_extra = extra
+        self.price_model_hashes = []
+        return fit_pool
+
+    def price_target(self, ix, target):
+        if self.a.label == 'better-paid':
+            target = better_paid(self.prices, self.fwd)[2][ix]
+        return target
+
+    def price_raw(self, pval, ptst, ok_v, ok_t, ntest):
+        # The producer's validity precedes EVERY V transformation. Auxiliary predictions are appended
+        # to Xt; split their validity at exactly the same boundary as their scores.
+        self.price_okval = ok_v.copy()
+        self.price_oktest, self.price_okextra = ok_t[:ntest].copy(), ok_t[ntest:].copy()
+        self.price_pval, self.price_pextra = pval.copy(), ptst[ntest:].copy()
+        self._price_evidence.update(raw_validation_ok=self.price_okval.tolist(),
+                                    raw_test_ok=self.price_oktest.tolist(),
+                                    raw_extra_ts=self.ts[self.price_extra].tolist(),
+                                    raw_extra_ok=self.price_okextra.tolist())
+        return ptst[:ntest], self.price_oktest.copy()
+
+    def price_score(self, row, val, fit, test_mask, pval, ptst, vgate, keep_v, keep_t, why, support_vconf):
+        """Selection score and floor hooks, after ALL base support checks and gates."""
+        a, X, ts, fwd, p = self.a, self.X, self.ts, self.fwd, self.prices
+        self.price_keep_test = keep_t
+        evidence = self._price_evidence
+        row['price_evidence'] = evidence
+        evidence['fitted_model_sha256'] = list(self.price_model_hashes)
+        evidence['raw_validation_p'] = self.price_pval.tolist()
+        evidence['raw_test_p'] = self.price_ptest.tolist()
+        evidence['raw_calibration_p'] = self.price_pextra.tolist() if a.select == 'ev' else []
+        if why:
+            cd.score_row(row, ptst, fwd[test_mask], ts[test_mask],
+                         support_vconf[vgate],
+                         self.covs, self.gap, keep_v[vgate], keep_t)
+            cd.no_trades(row, self.covs, why)
+            self.price_unsupported(row, test_mask)
+            return row, support_vconf[vgate], keep_v[vgate]
+        test = np.where(test_mask)[0]
+        extra = self.price_extra
+        # Additional rows use the same fitted compression boundary and rule offers as the base validation rows.
+        ke = self.price_arm_keep[extra] & self.price_okextra
+        if a.comp_gate is not None:
+            ke &= X[extra, self.feats.index('rv_60m')] <= row['comp_gate']['rv_60m_thr']
+        pe = self.price_pextra
+        rr_e = self.rule_side[extra] if a.rule_gate else None
+        if a.rule_gate:
+            ke &= rr_e != 0
+            pe = rule_encode(pe, rr_e)
+        def scores(ix, pred, valid):
+            # Never infer a side or confidence from an invalid producer score (including infinities).
+            pred = np.where(valid, pred, .5)
+            if a.label == 'better-paid':
+                return better_paid(p, fwd)[1][ix], np.where(valid, pred, np.nan)
+            return np.sign(pred-.5).astype(int), np.where(valid, np.abs(pred-.5), np.nan)
+        vs, vscore = scores(val, pval, self.price_okval)
+        if a.label != 'better-paid':
+            # Native rule non-offers contribute confidence 0 without reading a raw score.
+            # Their producer validity still controls keep/calibration/floors/diagnostics.
+            vscore = support_vconf.copy()
+        ss, score = scores(test, ptst, self.price_oktest)
+        threshold_ix, threshold_score, threshold_keep = val[vgate], vscore[vgate], keep_v[vgate]
+        valid_ix, valid_side, valid_score, valid_keep = val, vs, vscore, keep_v & vgate
+        confidence = None
+        if a.select == 'ev':
+            cal, pc = extra, self.price_pextra
+            pop = fwd[cal] != 0
+            if a.comp_gate is not None:
+                pop &= X[cal, self.feats.index('rv_60m')] <= row['comp_gate']['rv_60m_thr']
+            # An invalid score in the threshold population is missing support, not an abstention sentinel.
+            threshold_ok = self.price_okextra.copy()
+            if a.rule_gate:
+                threshold_ok |= self.rule_side[cal] == 0
+            why = cd.unsupported(np.where(threshold_ok[pop], 0., np.nan))
+            if why:
+                raise cd.Unsupported(why)
+            models, support = platt_pair(pc, fwd[cal], p['priced_ny'][cal].astype(bool) & self.price_okextra)
+            evidence['calibration'] = support
+            if models is None:
+                raise cd.Unsupported('insufficient support: Platt calibration needs 200 priced rows and two classes per side')
+            def calibrated(raw, valid):
+                out = np.full((2, len(raw)), np.nan)
+                if valid.any():
+                    z = raw_logit(raw[valid])
+                    for k, model in enumerate(models):
+                        out[k, valid] = model.predict_proba(z)[:, 1]
+                return out
+            ckeep = ke & p['priced_ny'][cal].astype(bool)
+            confscore = np.where(ckeep, np.abs(pe-.5), 0)
+            confidence = (confscore[pop], ckeep[pop], ss.copy(), score.copy(), keep_t & p['priced_ny'][test].astype(bool))
+            def exact_cents(ix):
+                return tuple(p[k][ix] if k in p else np.rint(p[v][ix] * 100).astype(np.int64)
+                             for k, v in (('pu_cents_ny', 'pu_ny'), ('pd_cents_ny', 'pd_ny')))
+            cs, ce, ck = ev_scores(*calibrated(pc, self.price_okextra),
+                                  p['pu_ny'][cal], p['pd_ny'][cal], p['priced_ny'][cal], ke, rr_e, cents=exact_cents(cal))
+            raw_test = self.price_ptest
+            ss, score, keep_t = ev_scores(*calibrated(raw_test, self.price_oktest),
+                                  p['pu_ny'][test], p['pd_ny'][test], p['priced_ny'][test], keep_t,
+                                  self.rule_side[test] if a.rule_gate else None, cents=exact_cents(test))
+            threshold_ix, threshold_score, threshold_keep = cal[pop], ce[pop], ck[pop]
+            valid_ix, valid_side, valid_score, valid_keep = cal, cs, ce, ck
+            evidence['calibration_score'] = ce.tolist()
+        elif a.payout_floor is not None:
+            es, escore = scores(extra, pe, self.price_okextra)
+            order = np.argsort(ts[np.r_[val, extra]], kind='stable')
+            valid_ix = np.r_[val, extra][order]
+            valid_side, valid_score = np.r_[vs, es][order], np.r_[vscore, escore][order]
+            valid_keep = np.r_[keep_v & vgate, ke][order]
+        evidence['excluded_test_rows'] = int((~keep_t).sum())
+        evidence['threshold_population_ts'] = ts[threshold_ix].tolist()
+        evidence['threshold_population_score'] = threshold_score.tolist()
+        evidence['threshold_population_keep'] = threshold_keep.tolist()
+        evidence['floor_validation_ts'] = ts[valid_ix].tolist()
+        evidence['floor_validation_side'] = valid_side.tolist()
+        evidence['floor_validation_score'] = valid_score.tolist()
+        evidence['floor_validation_keep'] = valid_keep.tolist()
+        why = cd.unsupported(threshold_score, threshold_keep)
+        if why:
+            raise cd.Unsupported(why)
+        # The native scorer remains authoritative for confidence selection; the hook only changes scores or floors.
+        cd.score_row(row, ptst, fwd[test], ts[test], threshold_score, self.covs, self.gap, threshold_keep, keep_t)
+        evidence['executed'], evidence['floor_diagnostics'], evidence['validation_executed'] = {}, {}, {}
+        if confidence:
+            row['bycov_confidence'] = {}
+            evidence['executed_confidence'] = {}
+        for c in self.covs:
+            key = str(c)
+            threshold = ev_threshold(threshold_score, c) if a.select == 'ev' else float(np.quantile(threshold_score, 1-c))
+            row['bycov'][key]['thr'] = float(threshold)
+            evidence['executed'][key], evidence['floor_diagnostics'][key], evidence['validation_executed'][key] = {}, {}, {}
+            for side in cd.SIDES:
+                taken = selected_rows(ts[test], fwd[test], ss, score, keep_t, threshold, side, self.gap)
+                validation_trades = selected_rows(ts[valid_ix], fwd[valid_ix], valid_side, valid_score, valid_keep, threshold, side, self.gap)
+                evidence['validation_executed'][key][side] = ts[valid_ix[validation_trades]].tolist()
+                own = np.where(valid_side > 0, p['pu_ny'][valid_ix], p['pd_ny'][valid_ix])
+                if a.payout_floor is not None:
+                    floor, diagnostics = choose_floor(ts[valid_ix], fwd[valid_ix], np.where(valid_side > 0, 1, -1), own,
+                                                       p['priced_ny'][valid_ix], validation_trades)
+                    evidence['floor_diagnostics'][key][side] = diagnostics
+                    pay = np.where(ss > 0, p['pu_ny'][test], p['pd_ny'][test])
+                    taken = taken[:0] if floor is None else taken[p['priced_ny'][test[taken]].astype(bool) & (pay[taken] >= floor-1e-9)]
+                wins = np.where(ss[taken] > 0, 1, -1) * fwd[test[taken]] > 0
+                row['bycov'][key][side] = [len(taken), float(wins.mean()) if len(taken) else float('nan')]
+                evidence['executed'][key][side] = [{'decision_ts': int(ts[test[i]]), 'side': 'UP' if ss[i] > 0 else 'DOWN',
+                                                   'score': float(score[i]), 'threshold': float(threshold)} for i in taken]
+            if confidence:
+                vc, vk, st, sc, sk = confidence
+                thr = float(np.quantile(vc, 1-c))
+                row['bycov_confidence'][key] = {'thr': thr}
+                evidence['executed_confidence'][key] = {}
+                for side in cd.SIDES:
+                    taken = selected_rows(ts[test], fwd[test], st, sc, sk, thr, side, self.gap)
+                    wins = np.where(st[taken] > 0, 1, -1)*fwd[test[taken]] > 0
+                    row['bycov_confidence'][key][side] = [len(taken), float(wins.mean()) if len(taken) else float('nan')]
+                    evidence['executed_confidence'][key][side] = [{'decision_ts': int(ts[test[i]]), 'side': 'UP' if st[i]>0 else 'DOWN',
+                                                                  'score': float(sc[i]), 'threshold': thr} for i in taken]
+        self.price_keep_test = keep_t
+        return row, threshold_score, threshold_keep
+
+
+class XFitter(PriceMixin, cd.Fitter):
     def __init__(self, X, fwd, ts, a, gap, covs):
         if getattr(a, 'aci_gamma', None) is not None:     # test E-003: no path of this module scores ACI
             raise ValueError(ACI_REFUSED)
@@ -277,10 +946,12 @@ class XFitter(cd.Fitter):
             D = sp.csr_matrix((np.full(len(inv), 10.0), (np.arange(len(inv)), inv)))
             m = LogisticRegression(C=a.logit_c, max_iter=3000, fit_intercept=False)
             m.fit(sp.hstack([sp.csr_matrix(z(F)), D]).tocsr(), yf, **skw)
+            self.price_record_model({'classifier': m, 'scale': sc, 'strata': True})
             w = m.coef_[0, :F.shape[1]]
             return z(self.signed(Xv)) @ w, z(self.signed(Xt)) @ w, int(np.max(m.n_iter_))
         m = LogisticRegression(C=a.logit_c, max_iter=3000)
         m.fit(z(F), yf, **skw)
+        self.price_record_model({'classifier': m, 'scale': sc, 'strata': False})
         w, b = m.coef_[0], float(m.intercept_[0])
         return z(self.signed(Xv)) @ w + b, z(self.signed(Xt)) @ w + b, int(np.max(m.n_iter_))
 
@@ -347,6 +1018,9 @@ class XFitter(cd.Fitter):
         pv, pt, its = [], [], []
         # sklearn models get the training weights rescaled to mean 1 (per-row loss scale unchanged against the penalty)
         skw = {} if self.wfit is None else {'sample_weight': self.wfit / (self.wfit.mean() + 1e-18)}
+        if getattr(a, 'prices', None) and a.weight == 'profit':
+            # The hook already normalized exact cents; undo only the registered mirror-half factor.
+            skw = {'sample_weight': self.wfit * (2 if a.reflect else 1)}
         if getattr(a, 'drift_fe', False):          # (getattr: holdout_eval passes a reduced namespace)
             return self.fit_drift_fe(sd, Xf, yf, Xv, yv, Xt, skw)
         if a.model == 'nysagree':
@@ -381,6 +1055,7 @@ class XFitter(cd.Fitter):
                       callbacks=[cd.lgb.early_stopping(80, verbose=False), cd.lgb.log_evaluation(0)], **kw)
             pv.append(m.predict_proba(Xv)[:, 1]); pt.append(m.predict_proba(Xt)[:, 1])
             self.add_gain(m.booster_.feature_importance(importance_type='gain'))
+            self.price_record_model(m)
             its.append(int(m.best_iteration_ or 0))
         if a.model == 'lgbbrier':                   # literature rank 4: LightGBM fit on the Brier score (custom objective)
             def brier(y, f):
@@ -434,6 +1109,7 @@ class XFitter(cd.Fitter):
             F, V, T = standardize(Xf, Xv, Xt)
             m = LogisticRegression(C=a.logit_c, max_iter=3000)
             m.fit(F, yf, **skw)
+            self.price_record_model(m)
             pv.append(m.predict_proba(V)[:, 1]); pt.append(m.predict_proba(T)[:, 1])
             its.append(int(np.max(m.n_iter_)))
         if a.model in ('forest', 'pool', 'stack'):  # shallow bagged extremely-randomized trees (literature: weak-signal baseline)
@@ -442,6 +1118,7 @@ class XFitter(cd.Fitter):
             m = ExtraTreesClassifier(n_estimators=300, max_depth=8, min_samples_leaf=200, max_features=0.3,
                                      bootstrap=True, max_samples=0.5, n_jobs=a.n_jobs, random_state=sd)
             m.fit(F, yf, **skw)
+            self.price_record_model(m)
             pv.append(m.predict_proba(V)[:, 1]); pt.append(m.predict_proba(T)[:, 1])
             its.append(300)
         if a.model in ('nystroem', 'pool', 'stack'):  # SWEEP_MATRIX B6: RBF kernel (Nystroem features) + logistic SGD
@@ -452,6 +1129,7 @@ class XFitter(cd.Fitter):
             Fk = ny.fit_transform(F)
             m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd)
             m.fit(Fk, yf, **skw)
+            self.price_record_model({'transform': ny, 'classifier': m})
             pv.append(m.predict_proba(ny.transform(V))[:, 1]); pt.append(m.predict_proba(ny.transform(T))[:, 1])
             its.append(int(m.n_iter_))
         if a.model == 'stack':
@@ -496,6 +1174,8 @@ class XFitter(cd.Fitter):
             F, V, T = self.signed(Xf), self.signed(Xv), self.signed(Xt)
             yb = np.asarray(yf, dtype=np.float64)
             w = np.ones(len(yb)) if self.wfit is None else self.wfit / (self.wfit.mean() + 1e-18)
+            if getattr(a, 'prices', None) and a.weight == 'profit':
+                w = self.wfit
             kw = {} if self.wfit is None else {'sample_weight': self.wfit}
             alpha = self.profile_alpha(inv, yb, np.zeros(len(yb)), w)
             info = {'strata': int(len(alpha)), 'alpha0_sd': float(alpha.std())}
@@ -515,6 +1195,7 @@ class XFitter(cd.Fitter):
             c = float(np.mean(fF))
             info.update(iter2=it, f_centre=c)
             self.lgbfe_info = info
+            self.price_record_model({'classifier': m, 'centre': c})
             self.add_gain(m.booster_.feature_importance(importance_type='gain'))
             return prob(raw(V) - c), prob(raw(T) - c), it     # test E-003: an infinite raw score is invalid
         from sklearn.kernel_approximation import Nystroem
@@ -524,6 +1205,7 @@ class XFitter(cd.Fitter):
         Fk = ny.fit_transform(F)
         m = SGDClassifier(loss='log_loss', alpha=1e-4, max_iter=30, tol=1e-4, random_state=sd, fit_intercept=False)
         m.fit(sp.hstack([sp.csr_matrix(Fk), D]).tocsr(), yf, **skw)
+        self.price_record_model({'transform': ny, 'classifier': m})
         w = m.coef_[0, :Fk.shape[1]]
         return prob(ny.transform(V) @ w), prob(ny.transform(T) @ w), int(m.n_iter_)   # (test E-003: prob)
 
@@ -644,6 +1326,8 @@ class XFitter(cd.Fitter):
         block (for example meta_gate) is absent from such a row: the reason is in insufficient_support."""
         gain0 = self.gain.copy()
         self._partition = (0, 0)
+        self._price_evidence = {}
+        self.price_keep_test = np.ones(int(test_mask.sum()), bool)
         try:
             return self._split2(tr_idx, val_pool, test_mask, rng, label)
         except cd.Unsupported as e:
@@ -653,12 +1337,15 @@ class XFitter(cd.Fitter):
                 self.dumps.append({'label': str(label), 'ts': ttst.copy(), 'p': np.full(len(ttst), np.nan),
                                    'fwd': ftst.copy(), 'keep': np.zeros(len(ttst), bool),
                                    'thr': {f'{c}': None for c in self.covs}})
-            return cd.unsupported_row(label, *self._partition, ftst, ttst, self.covs, self.gap, str(e))
+            row = cd.unsupported_row(label, *self._partition, ftst, ttst, self.covs, self.gap, str(e))
+            return self.price_unsupported(row, test_mask) if getattr(self.a, 'prices', None) else row
 
     def draw_split2(self, tr_idx, val_pool, rng):
         """Validation rows and fit pool of a split. Every draw a split takes from the shared generator happens here and
         nowhere else, so --path-jobs can advance the generator past a split without fitting it."""
         ts, a, gap = self.ts, self.a, self.gap
+        if getattr(a, 'prices', None):
+            tr_idx = self.price_prepare_draw(tr_idx, val_pool)
         if a.val_mode == 'block':
             # validation = the chronologically last VAL_FRAC of the evaluation-session training rows; fit rows end one
             # horizon before it (purge), so early stopping and the threshold see genuinely unseen, later data
@@ -681,12 +1368,22 @@ class XFitter(cd.Fitter):
         X, fwd, ts, a, gap = self.X, self.fwd, self.ts, self.a, self.gap
         val_idx, fit_pool = self.draw_split2(tr_idx, val_pool, rng)
         self._partition = (len(fit_pool), len(val_idx))
+        if getattr(a, 'prices', None):
+            self.price_record_partition(val_idx, fit_pool, test_mask)
         if len(fit_pool) == 0 or len(val_idx) == 0:     # test E-003 (draw_split2 took every random draw of the split)
             raise cd.Unsupported('insufficient support: an empty fit or validation partition')
         if not test_mask.any():
             raise cd.Unsupported('insufficient support: no test row')
+        if getattr(a, 'prices', None):
+            fit_pool = self.price_partition(tr_idx, val_idx, fit_pool, test_mask, val_pool)
+            self._partition = (len(fit_pool), len(val_idx))
+            if not len(fit_pool):
+                raise cd.Unsupported('insufficient support: an empty fit or validation partition')
         ytr = (fwd[fit_pool] > 0).astype(int) if self.ytrain is None else self.ytrain[fit_pool].astype(int)
         yval = (fwd[val_idx] > 0).astype(int)
+        if getattr(a, 'prices', None):
+            ytr, yval = self.price_target(fit_pool, ytr), self.price_target(val_idx, yval)
+            self._price_evidence.update(fit_target=ytr.tolist(), validation_target=yval.tolist())
         yv_fit = yval                               # labels fit_one sees for validation (early stopping, stack weights)
         self.stack_w = []
         if a.model == 'lgbord4':
@@ -718,6 +1415,11 @@ class XFitter(cd.Fitter):
             # (no finite rv_60m on the fit rows: q is NaN and every fit row falls in tercile 0, as in the incumbent)
             terc = np.digitize(np.nan_to_num(X[fit_pool, jrv], nan=q[0]), q)
             self.strata_f = wk * 100 + b3 * 10 + terc
+        if getattr(a, 'prices', None):
+            if a.weight == 'profit':
+                self.wfit = self.price_weights
+            Xt = np.vstack([Xt, X[self.price_extra]])
+            ptst = np.zeros(len(Xt))
         gain_mh = None
         if a.multi_horizon:
             # literature rank 24, SHARED-HORIZON PARTITIONS: each fit row outside the 30-minute purge also enters as a
@@ -739,8 +1441,14 @@ class XFitter(cd.Fitter):
             Xr = Xf.copy()
             Xr[:, self.reflect_neg] *= -1.0
             Xr[:, self.reflect_rng] = 1.0 - Xr[:, self.reflect_rng]
+            if getattr(a, 'prices', None) and a.price_features:
+                u, d = self.feats.index('price_pu'), self.feats.index('price_pd')
+                Xr[:, [u, d]] = Xr[:, [d, u]]
             Xf = np.vstack([Xf, Xr])
-            ytr = np.concatenate([ytr, 1 - ytr])
+            mirrored_target = ytr if getattr(a, 'label', 'sign') == 'better-paid' else 1-ytr
+            if getattr(a, 'prices', None):
+                self._price_evidence['reflection_target'] = mirrored_target.tolist()
+            ytr = np.concatenate([ytr, mirrored_target])
             w0 = np.ones(len(fit_pool)) if self.wfit is None else self.wfit
             self.wfit = 0.5 * np.concatenate([w0, w0])
         keep_v, keep_t = np.ones(len(val_idx), bool), np.ones(int(test_mask.sum()), bool)   # test E-003: gate keeps
@@ -868,6 +1576,12 @@ class XFitter(cd.Fitter):
             self.gain = gain_mh
         # test E-003: the validity of the producer's scores, taken before any encoding and carried through it
         ok_v, ok_t = np.isfinite(pval), np.isfinite(ptst)
+        if getattr(a, 'prices', None):
+            ptst, ok_t = self.price_raw(pval, ptst, ok_v, ok_t, int(test_mask.sum()))
+            self.price_ptest = ptst.copy()
+            Xt = X[test_mask]
+            keep_t &= self.price_arm_keep[test_mask]
+            keep_v &= self.price_arm_keep[val_idx] & self.price_okval
         if a.rule_gate:
             # DISCOVERY D5-03, RULE-OFFER RANKING: only the zero-parameter rule's offers can trade, on the rule's side, ranked
             # by the model's probability of that side (a DOWN offer gets p' = p_UP / 2, an UP offer 0.5 + p_UP / 2); every
@@ -882,16 +1596,28 @@ class XFitter(cd.Fitter):
                               'insufficient_support': bool((rv_ != 0).mean() < self.covs[0])}
         # test E-003: an invalid test score never trades and no diagnostic reads it; an invalid validation score in the
         # threshold population leaves the path without support (its confidence is NaN for cd.unsupported)
+        if getattr(a, 'prices', None):
+            keep_t &= self.price_oktest
         keep_t = keep_t & ok_t
         vconf = np.where(ok_v, np.abs(pval - 0.5), np.nan)
         ftst = fwd[test_mask]
         ttst = ts[test_mask]
         mv = ftst != 0
         mvf = mv & ok_t
-        auc = float(cd.roc_auc_score((ftst[mvf] > 0).astype(int), ptst[mvf])) if mvf.sum() > 20 else float('nan')
+        if getattr(a, 'prices', None):
+            if a.label == 'better-paid':
+                mvf = np.isfinite(ftst) & ok_t
+            mvf &= self.price_oktest & self.price_arm_keep[test_mask]
+            if a.select == 'ev':
+                mvf &= self.prices['priced_ny'][test_mask].astype(bool)
+        auc_target = (better_paid(self.prices, fwd)[2][test_mask] if getattr(a, 'prices', None) and a.label == 'better-paid'
+                      else (ftst > 0).astype(int))
+        auc = float(cd.roc_auc_score(auc_target[mvf], ptst[mvf])) if mvf.sum() > 20 else float('nan')
         uprate = float((ftst[mv] > 0).mean()) if mv.sum() else float('nan')
         row = {'test': label, 'n_fit': int(len(fit_pool)), 'n_val': int(len(val_idx)), 'n_test': int(test_mask.sum()),
                'best_iter': iters, 'auc': auc, 'up_rate': uprate, 'always': {}, 'bycov': {}}
+        if getattr(a, 'prices', None) and a.label == 'better-paid':
+            row['auc_target'] = 'better-paid side wins; eligible ties negative'
         if a.specialist:
             row['specialist'] = self.spec_info              # AUC above is over every test row (non-setup rows at 0.5)
         if a.boot_gate:
@@ -1018,12 +1744,24 @@ class XFitter(cd.Fitter):
             cthr = float(np.nanquantile(Xf[:, j], a.comp_gate))
             cv, ct = Xv[:, j] <= cthr, Xt[:, j] <= cthr
             vgate &= cv
-            row['comp_gate'] = {'q': a.comp_gate, 'rv_60m_thr': cthr, 'test_pass_rate': float(ct.mean()),
-                                'tie_rate_pass': float((ftst[ct] == 0).mean()) if ct.any() else None,
-                                'tie_rate_fail': float((ftst[~ct] == 0).mean()) if (~ct).any() else None}
+            diagnostic = np.ones(len(ftst), bool)
+            if getattr(a, 'prices', None):
+                diagnostic &= self.price_oktest & self.price_arm_keep[test_mask]
+                if a.select == 'ev':
+                    diagnostic &= self.prices['priced_ny'][test_mask].astype(bool)
+            passed, failed = diagnostic & ct, diagnostic & ~ct
+            row['comp_gate'] = {'q': a.comp_gate, 'rv_60m_thr': cthr,
+                                'test_pass_rate': float(ct[diagnostic].mean()) if diagnostic.any() else None,
+                                'tie_rate_pass': float((ftst[passed] == 0).mean()) if passed.any() else None,
+                                'tie_rate_fail': float((ftst[failed] == 0).mean()) if failed.any() else None}
             ptst = np.where(ct, ptst, 0.5)
             keep_t = keep_t & ct
         why = cd.unsupported(vconf[vgate], keep_v[vgate])
+        price_row = None
+        if getattr(a, 'prices', None):
+            price_row, population, population_keep = self.price_score(row, val_idx, fit_pool, test_mask, pval, ptst, vgate, keep_v, keep_t, why, vconf)
+            vconf, vgate, keep_v = population, np.ones(len(population), bool), population_keep
+            keep_t = getattr(self, 'price_keep_test', keep_t)
         if a.dump_preds:                             # analysis only: keep the scored test predictions of every path
             self.dumps.append({'label': str(label), 'ts': ttst.copy(), 'p': ptst.copy(), 'fwd': ftst.copy(),
                                'keep': keep_t.copy(),       # test E-003: rows every gate kept (others never trade)
@@ -1031,7 +1769,7 @@ class XFitter(cd.Fitter):
                                        for c in self.covs}})
         # test E-003: the threshold comes from the gated validation population as before; a row any gate excluded
         # (keep False: D5-03 non-offers among them) trades on no side, COMBINED included, even at threshold zero
-        return cd.score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap, keep_v[vgate], keep_t)
+        return price_row if price_row is not None else cd.score_row(row, ptst, ftst, ttst, vconf[vgate], self.covs, gap, keep_v[vgate], keep_t)
 
 
 _PJ = {}        # --path-jobs: the fitter and the validation-pool mask, set once before the first worker is forked
@@ -1040,13 +1778,14 @@ _PJ = {}        # --path-jobs: the fitter and the validation-pool mask, set once
 def _path_job(spec):
     """One split in a forked worker. The generator is rebuilt in the state the sequential loop has when it reaches this
     split, so the split draws the same validation rows and sub-fit sample; gain and dumps start empty and are returned."""
-    label, tr_idx, test_mask, ok30, state = spec
+    label, tr_idx, test_mask, ok30, state, permitted = spec
     f = _PJ['fitter']
     rng = np.random.default_rng()
     rng.bit_generator.state = state
     f.gain = np.zeros_like(f.gain)
     f.dumps = []
     f.ok30 = ok30
+    f.price_permitted = permitted
     row = f.split2(tr_idx, _PJ['val_pool'], test_mask, rng, label)
     return row, f.gain, f.dumps
 
@@ -1097,7 +1836,7 @@ def main():
                     help='literature rank 8: add sign-mirrored copies of the fit rows (v0.1 features only; label flipped)')
     ap.add_argument('--null-shift-weeks', type=int, default=0,
                     help='analysis only: replace every label by the label W weeks later (sign-null replay); never certifies')
-    ap.add_argument('--weight', default='none', choices=('none', 'absret', 'recency'),
+    ap.add_argument('--weight', default='none', choices=('none', 'absret', 'recency', 'profit'),
                     help='absret: sample weights |settled return| / mean (fit rows only); recency: half-life --halflife-days '
                          'back from the latest fit row (reading: forward walk only)')
     ap.add_argument('--aci-gamma', type=float, default=None,
@@ -1163,6 +1902,7 @@ def main():
                     help='splits (CPCV paths, forward walks) fitted at once, each in a forked worker with --n-jobs threads')
     ap.add_argument('--no-forward', action='store_true')
     ap.add_argument('--max-paths', type=int, default=15)
+    price_args(ap)
     a = ap.parse_args()
     if a.path_jobs < 1 or (a.path_jobs > 1 and a.n_jobs < 1):    # a sequential run takes any --n-jobs
         raise SystemExit('--path-jobs must be >= 1; parallel paths (--path-jobs > 1) need --n-jobs >= 1 per worker')
@@ -1233,9 +1973,11 @@ def main():
         if not ok:                                  # test E-003: before anything is loaded or written
             raise SystemExit(f'{name} {value}: outside the domain of the estimator this run fits with it '
                              '(option_domains)')
+    price_validate(a)
     gap = a.horizon * 60
     out = Path(a.out or f'{a.pair}_{a.horizon}m_{a.session}_x_cpcv_result.json')
     t0 = time.time()
+    price_data, price_artifacts = load_prices(a) if a.prices else (None, None)
     listed = json.loads(Path(a.feature_list).read_text()) if a.feature_list else None
     if a.families is not None:
         if listed is not None:
@@ -1276,6 +2018,24 @@ def main():
     tgs = ts[sess]
     bnds = [tgs[int(k * len(tgs) / cd.N_GROUPS)] for k in range(cd.N_GROUPS)] + [tgs[-1] + 1]
     groups = [(int(bnds[g]), int(bnds[g + 1])) for g in range(cd.N_GROUPS)]
+    frozen_groups = list(groups)
+    price_arm_keep = np.ones(len(ts), bool)
+    if a.prices:
+        price_data = align_prices(price_data, ts)
+        if a.price_features:
+            X, feats = price_features(X, feats, price_data, a.drift_fe or a.signed_only)
+        if a.label == 'better-paid':
+            price_arm_keep, _, _ = better_paid(price_data, fwd)
+        if a.drop_ny_window:
+            keep_ny = ny_window_keep(ts)
+            local = pd.to_datetime(ts, unit='s', utc=True).tz_convert('America/New_York')
+            winter = np.array([x.dst().total_seconds() == 0 for x in local])
+            price_need(np.array_equal(sess[winter], (sess & keep_ny)[winter]) and
+                       np.array_equal(tsess[winter], (tsess & keep_ny)[winter]),
+                       'V-08 changed winter eligibility')
+            sess &= keep_ny
+            tsess &= keep_ny
+            price_arm_keep &= keep_ny
     day = lambda s: pd.to_datetime(s, unit='s', utc=True).strftime('%Y-%m-%d')
     data_uprate = float((fwd[sess & moved] > 0).mean())
     manifest = Path(a.dataset) / 'manifest.json'
@@ -1314,6 +2074,12 @@ def main():
         'code': {'x_harness_sha256': cd.sha256(__file__), 'base_harness_sha256': cd.sha256(cd.__file__),
                  'sessions_py_sha256': cd.sha256(cd.REPO / 'scripts' / 'sessions.py'), 'lightgbm': cd.lgb.__version__},
     }
+    if a.prices:
+        res['frozen_groups'] = frozen_groups
+        res['price_artifacts'] = price_artifacts
+        res['payout_options'] = {k: getattr(a, k) for k in ('select', 'price_features', 'weight', 'label',
+                                                        'min_payout_gap', 'drop_ny_window', 'payout_floor')}
+        res['payout_excluded_rows'] = int((~price_arm_keep | (~price_data['priced_ny'].astype(bool) if a.select == 'ev' else False)).sum())
     out.write_text(cd.result_json(res))
     print(f'[{a.pair} {a.horizon}m eval {a.session} fit {a.train_session}] rows {len(ts):,} eval {int(sess.sum()):,} '
           f'fit-session {int(tsess.sum()):,} features {len(feats)} knobs {knobs}', flush=True)
@@ -1321,6 +2087,9 @@ def main():
     fitter.ytrain = None
     fitter.feats = feats
     fitter.dumps = []
+    if a.prices:
+        fitter.prices = price_data
+        fitter.price_arm_keep = price_arm_keep
     if a.multi_horizon:
         d30 = pd.read_parquet(Path(a.dataset) / f'{a.pair}.parquet', columns=['decision_ts', 'ret_fwd_30m', 'valid_30m'])
         f30 = d30['ret_fwd_30m'].to_numpy(np.float64).copy()
@@ -1374,9 +2143,13 @@ def main():
     if a.reflect:
         import re as _re
         neg = _re.compile(r'^(ret_\d+m|emadist_\d+m|stretch_\d+m|x_[A-Z]{6}_ret_\d+m|x_usd_weak_15m|bar_body|skew_240m)$')
+        if a.prices and a.price_features:
+            neg = _re.compile(r'^(price_skew|price_diff)$|' + neg.pattern)
         rng_ = _re.compile(r'^rangepos_\d+m$')
         keep = _re.compile(r'^(rv_\d+m|volratio_\d+_\d+|kurt_240m|bar_range|activity_\d+m|ticks_per_bar_15m|bar_gap_s|hour_sin|'
                            r'hour_cos|dow|x_[A-Z]{6}_stale_s)$')
+        if a.prices and a.price_features:
+            keep = _re.compile(r'^(price_pu|price_pd|price_over)$|' + keep.pattern)
         unmapped = [c for c in feats if not (neg.match(c) or rng_.match(c) or keep.match(c))]
         if unmapped:
             raise SystemExit(f'--reflect has no audited reflection map for {unmapped[:6]}')
@@ -1394,6 +2167,8 @@ def main():
         if (a.drift_fe or a.model == 'nysagree') and 'rv_60m' not in feats:
             raise SystemExit('--drift-fe / nysagree need the v0.1 column rv_60m for their strata')
         neg = _re.compile(r'^(ret_\d+m|emadist_\d+m|stretch_\d+m|x_[A-Z]{6}_ret_\d+m|x_usd_weak_15m|bar_body|skew_240m)$')
+        if a.prices and a.price_features:
+            neg = _re.compile(r'^(price_skew|price_diff)$|' + neg.pattern)
         rng_ = _re.compile(r'^rangepos_\d+m$')
         cols = [i for i, c in enumerate(feats) if neg.match(c) or rng_.match(c)]
         fitter.signed_cols = np.array(cols, dtype=int)
@@ -1432,11 +2207,17 @@ def main():
             tin |= (ts >= lo) & (ts < hi)
             purged |= (ts >= lo - gap) & (ts < hi + gap)
             purged30 |= (ts >= lo - 1800) & (ts < hi + 1800)    # --multi-horizon: 30-minute labels need a 30-minute purge
-        return np.where((~purged) & moved & tsess)[0], tin & sess & np.isfinite(fwd), ~purged30
+        if a.prices:
+            fitter.price_permitted = (~purged) & tsess
+        fit_eligible = np.isfinite(fwd) if a.prices and a.label == 'better-paid' else moved
+        return np.where((~purged) & fit_eligible & tsess)[0], tin & sess & np.isfinite(fwd), ~purged30
 
     def forward_split(g):
         lo, hi = groups[g]
-        return np.where((ts < lo - gap) & moved & tsess)[0], (ts >= lo) & (ts < hi) & sess & np.isfinite(fwd), ts < lo - 1800
+        if a.prices:
+            fitter.price_permitted = (ts < lo - gap) & tsess
+        fit_eligible = np.isfinite(fwd) if a.prices and a.label == 'better-paid' else moved
+        return np.where((ts < lo - gap) & fit_eligible & tsess)[0], (ts >= lo) & (ts < hi) & sess & np.isfinite(fwd), ts < lo - 1800
 
     def say_path(fi, testg, row):
         print(f'  path {fi + 1:2d}/15 g{list(testg)} AUC={row["auc"]:.4f} n_fit={row["n_fit"]} iters={row["best_iter"]} | '
@@ -1469,12 +2250,12 @@ def main():
         rng = np.random.default_rng(13)
         for testg in path_groups:
             tr_idx, test_mask, ok30 = path_split(testg)
-            specs.append((list(testg), tr_idx, test_mask, ok30, copy.deepcopy(rng.bit_generator.state)))
+            specs.append((list(testg), tr_idx, test_mask, ok30, copy.deepcopy(rng.bit_generator.state), getattr(fitter, 'price_permitted', None)))
             fitter.draw_split2(tr_idx, sess, rng)
         frng = np.random.default_rng(17)
         for g in forward_groups:
             tr_idx, test_mask, ok30 = forward_split(g)
-            specs.append((f'forward g{g}', tr_idx, test_mask, ok30, copy.deepcopy(frng.bit_generator.state)))
+            specs.append((f'forward g{g}', tr_idx, test_mask, ok30, copy.deepcopy(frng.bit_generator.state), getattr(fitter, 'price_permitted', None)))
             fitter.draw_split2(tr_idx, sess, frng)
         _PJ.update(fitter=fitter, val_pool=sess)
         done = []
@@ -1498,6 +2279,18 @@ def main():
         res['verdict'] = {s: tag for s in ('UP', 'DOWN')}
         for s in res.get('verdict_goal', {}):
             res['verdict_goal'][s]['CERTIFIED'] = False
+    if a.prices:
+        res['payout_aware'] = payout_reading(pathinfo, price_data, ts, fwd, covs[0])
+        res['payout_aware_forward'] = payout_reading(forward, price_data, ts, fwd, covs[0])
+        if a.select == 'ev':
+            confidence_paths = copy.deepcopy(pathinfo)
+            for path in confidence_paths:
+                ev = path['price_evidence']
+                ev['executed'] = ev.get('executed_confidence', {str(c): {s: [] for s in cd.SIDES} for c in covs})
+            res['payout_aware_confidence'] = payout_reading(confidence_paths, price_data, ts, fwd, covs[0])
+        for side in ('UP', 'DOWN'):
+            res['payout_aware']['sides'][side]['survives'] = bool(res['verdict_goal'][side]['CERTIFIED'] and
+                res['payout_aware']['sides'][side]['verdict'] == 'PAYOUT-CLEARED')
     res['seconds'] = round(time.time() - t0, 1)
     res['run_status'] = 'complete'
     out.write_text(cd.result_json(res))
