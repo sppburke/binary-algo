@@ -216,6 +216,13 @@ out-of-memory event; the production session and tradeability masks agree with an
 2,482,715 rows; every raw tick behind the table (147,353,151) lies before the cutoff; the table rebuilt by the
 reviewed builder equals the installed one in every array; every payout lies on the cent grid.
 
+Campaign addition 2 ran on 2026-11-21 from 07:47 to 11:59 UTC (110 queue lines, 180 arms, every one complete): no side
+passed both the strict certificate and the payout reading (none passed the strict certificate), so V-04 to V-09 are
+KILLED and E-009 and E-010 have no survivor to read. Each arm's readings are in the per-pair ledgers. A payout-test
+result is 96 to 140 MB, almost all of it per-row `price_evidence`; the repository keeps each result with that field
+replaced by its SHA-256 and a `full_result` field naming the full file, archived in the lab's
+`results_full/addition2/`.
+
 `scripts/cpcv_deriv.py` mirrors `scripts/audusd_15m_cpcv_session.py`: session gate on the decision time
 (`sessions.session_mask`), 6 equal-count groups of in-session decisions, all 15 pairs of groups as test paths, purge
 and embargo H around each test block, training on moved in-session unpurged rows, a random 15% validation subset
