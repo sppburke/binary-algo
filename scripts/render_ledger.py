@@ -121,7 +121,9 @@ def main():
 
             def amend(s):                           # owner decision 1: a field of its own, never the certificate
                 return amended_verdict(r, c, s, a.pair, R) or '—'
-            model = f'{r.get("tag", "")}: {r["feature_set"]} ({r["n_features"]}), nseed {r["nseed"]}'
+            # cpcv_neural 0.5 results record neither feature_set nor nseed (its recipes fix their inputs): an absent key is
+            # shown as '—'; a present value prints exactly as before
+            model = f'{r.get("tag", "")}: {r.get("feature_set", "—")} ({r["n_features"]}), nseed {r.get("nseed", "—")}'
             if 'pool' in r:
                 model += f', pooled +{len(r["pool"])} pairs'
             side = lambda s: f'{fmt(v[s]["p10"])} · {fmt(v[s]["frac_clear_BE"], 3)} · {fmt(sm[s].get("mean"))}'

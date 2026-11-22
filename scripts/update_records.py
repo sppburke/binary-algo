@@ -248,6 +248,19 @@ R6N_RECIPES = {   # tag stem -> recipe
             'inputs (the raw-lag control of A-069, A-016, A-070 and A-071)',
     'p10266': 'A-068 control P1-02-66: L2 logistic (C 0.05) on the default inputs alone (registered as 66, 60 since the '
               'EMA amendment), with the sequence-history eligibility and embargo of P1-02',
+    # Campaign addition 7 (lab PROGRESS.md, registered 2026-11-22 18:28:37 UTC): cpcv_neural 0.5a; these stems hold a hyphen.
+    'p204-ce': 'C-066/C-067 shared control (R6-P2-04/05): P2 network, d->64 ReLU encoder and binary cross-entropy '
+               'classifier (Adam lr .0005, decay .0001, at most 100 epochs, patience 10, fit-only median/IQR scaling) on '
+               'the default inputs, ranked by confidence',
+    'c066-sel': 'C-066 SelectiveNet (R6-P2-04): the P2 network with a 16-unit selector head, selective risk with a 3% '
+                'coverage penalty plus a CE head (half weight each), ranked by the selector; control p204-ce',
+    'c067-gambler': "C-067 gambler's loss (R6-P2-05): the P2 network, 20 epochs of binary CE, then a reservation output "
+                    '(bias -6) and the gambler loss at odds 1.5 for at most 80 epochs (patience 10), ranked by one minus '
+                    'the reservation; control p204-ce',
+    'c057-select': 'C-057 (R6-C-08): the mlp2h d->32 encoder (ReLU, dropout .1) with two strict 15-minute side heads, '
+                   'exactly 20 epochs (AdamW lr .0003), 30-minute purge, four candidates (no auxiliary; magnitude-Q75 '
+                   'BCE; Huber signed return; 30-minute strict-side BCE; auxiliary weight .1); the selector takes the '
+                   'candidate with the minimum stopping primary BCE per fold, no further fit',
 }
 for _stem, _what in R6N_RECIPES.items():
     for _arm, _kind in (('p', 'PILOT, three balanced paths, never certifying (E-016)'), ('f', 'full arm, 15 paths')):
