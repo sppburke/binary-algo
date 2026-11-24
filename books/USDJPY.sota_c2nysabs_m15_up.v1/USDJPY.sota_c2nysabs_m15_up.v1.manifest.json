@@ -1,0 +1,102 @@
+{
+  "allowed_sides": [
+    "UP"
+  ],
+  "artifacts": [
+    {
+      "bytes": 1883,
+      "file": "USDJPY.sota_c2nysabs_m15_up.v1_strategy.json",
+      "sha256": "e60c0770ade1064946c28d2229f0b40b620df3a2d390775dbea56ce8e6406fa8"
+    },
+    {
+      "bytes": 2137148,
+      "file": "USDJPY.sota_c2nysabs_m15_up.v1_weights.npz",
+      "sha256": "21fdc116ecd95ced8d5ca2979c1bab862a374b35f881ec6341de0a16572a23a8"
+    }
+  ],
+  "content_id": "456b095585e5696b",
+  "created_utc": "2026-11-24T03:40:32Z",
+  "env": {
+    "libs": {
+      "lightgbm": "4.6.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.3",
+      "pyarrow": "24.0.0",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.1"
+    },
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3"
+  },
+  "gate_certificates": {
+    "G1_cpcv": {
+      "evidence_json": "results/json/deriv_c2nysabs_USDJPY_15m_result.json",
+      "mean_wr": 0.599992,
+      "p10_wr": 0.576022,
+      "passed": true,
+      "paths_clear": 15,
+      "paths_counted": 15,
+      "validity_note": "Owner Decision 1 drift amendment satisfied via G2_placebo"
+    },
+    "G2_placebo": {
+      "evidence_json": "results/json/deriv_a6placebo_USDJPY_15m_result.json",
+      "mean_excess_hour_vol": 0.06331,
+      "passed": true,
+      "paths_positive": 15,
+      "verdict": "SKILL BEYOND DRIFT TIMING"
+    },
+    "G3_entry_delay": {
+      "d4_p10_wr": 0.574565,
+      "d4_paths_clear": 15,
+      "evidence_json": "results/json/deriv_a7delay_USDJPY_15m_result.json",
+      "passed": true,
+      "verdict_delay": "OPERATIONALLY ROBUST",
+      "verdict_staleness": "NOT A STALE-FEED ARTIFACT"
+    },
+    "G4_sign_null": {
+      "evidence_json": "results/json/deriv_a8signnull_c2nysabs_USDJPY_15m_result.json",
+      "null_max_p10": 0.517664,
+      "nulls_meeting_goal_path_test": 0,
+      "passed": true,
+      "real_p10_rank_of": "17 of 17",
+      "verdict": "SIGNIFICANT vs sign-null replay"
+    },
+    "G5_payout": {
+      "actual_quotes_ev": 0.262933,
+      "evidence_json": "results/json/deriv_a24pay_USDJPY_15m_result.json",
+      "mean_ev": 0.062132,
+      "mean_payout_ratio": 1.776447,
+      "p10_ev": 0.014328,
+      "passed": true,
+      "paths_counted": 15,
+      "paths_ev_positive": 14,
+      "pricing": "NEUTRAL",
+      "verdict": "PAYOUT-CLEARED"
+    },
+    "G6_holdout_or_prospective": {
+      "mode": "prospective_demo_venue_settled",
+      "passed": false,
+      "reason": "Sealed USDJPY Look 2 holdout preserved untouched per User Decision A2; promote after >=50 Demo VENUE_SETTLED trades with EV CI95_lo > 0 via scripts/deriv_live_pnl_ledger.py."
+    }
+  },
+  "horizon_minutes": 15,
+  "id": "USDJPY.sota_c2nysabs_m15_up.v1",
+  "lifecycle_status": "demo_venue_settled_canary",
+  "metrics": {
+    "actual_quotes_ev": 0.2629,
+    "cpcv_mean_ev": 0.0621,
+    "cpcv_mean_wr": 0.6,
+    "cpcv_p10_ev": 0.0143,
+    "cpcv_p10_wr": 0.576,
+    "cpcv_paths_clear": "15/15"
+  },
+  "model_kind": "nystroem",
+  "pair": "USDJPY",
+  "schema": "sota-book-manifest/v1",
+  "settlement_substrate": "deriv_1s_ticks",
+  "source": {
+    "git_sha": "bbf4e4dff405e683fa48a8499dc3dfaa2b2dff37",
+    "script": "scripts/build_certified_sota_books.py"
+  },
+  "summary": "[USDJPY\u00b715m\u00b7UP] SOTA RBF-Nystroem (500 components) + |return|-weighted logistic classifier on 66 true-Deriv-tick features. Passed G1 (15/15, p10=0.5760, mean=0.6000, 3/3 fwd=0.5785), G2 (+0.063 hour x vol placebo), G3 (15/15 at +4s delay, p10=0.575), G4 (16x week-shift sign-null), and G5 (PAYOUT-CLEARED, 14/15 EV>0, p10_ev=+0.0143, mean_ev=+0.0621, actual_quotes_ev=+0.2629)."
+}

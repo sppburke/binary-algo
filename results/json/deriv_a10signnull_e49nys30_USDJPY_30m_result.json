@@ -1,0 +1,174 @@
+{
+  "analysis": "run_nullreplay/0.1_and_v11_payout_30m",
+  "registered_utc": "2026-11-24T02:48:24Z",
+  "candidate": "e49nys30",
+  "real_result": "results/json/deriv_e49nys30_USDJPY_30m_result.json",
+  "pair": "USDJPY",
+  "horizon_min": 30,
+  "side": "UP",
+  "null_shifts_weeks": [
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    33,
+    36,
+    39,
+    42,
+    45,
+    48
+  ],
+  "payout_30m_source": "deriv_winter_quote_survey_v10_v12_result.json (n=4409 NY 30m polls, flat 1.82 payout, p10=1.82, 0.0000 skew)",
+  "payout_cents_per_100_stake": 182,
+  "real": {
+    "p10": 0.5984283789851819,
+    "paths_counted": 15,
+    "paths_clear": 15,
+    "goal_path_test": true,
+    "auc_mean": 0.5320571678133554
+  },
+  "G5_payout_30m": {
+    "verdict": "PAYOUT-CLEARED",
+    "quoted_payout_ratio": 1.82,
+    "paths_counted": 15,
+    "paths_ev_positive": 15,
+    "p10_ev": 0.08913964975303099,
+    "mean_ev": 0.15427024644013004,
+    "min_ev": 0.08216216216216216,
+    "mean_wr": 0.6342144211209505,
+    "fwd_counted": 4,
+    "fwd_ev_positive": 3,
+    "fwd_mean_ev": 0.061923890470920326
+  },
+  "nulls": {
+    "3": {
+      "p10": 0.5273754494093478,
+      "paths_counted": 15,
+      "paths_clear": 11,
+      "goal_path_test": false,
+      "auc_mean": 0.5218458056011497
+    },
+    "6": {
+      "p10": 0.4897687280040221,
+      "paths_counted": 15,
+      "paths_clear": 8,
+      "goal_path_test": false,
+      "auc_mean": 0.5101630073759001
+    },
+    "9": {
+      "p10": 0.45860290670417253,
+      "paths_counted": 15,
+      "paths_clear": 7,
+      "goal_path_test": false,
+      "auc_mean": 0.5007183308293577
+    },
+    "12": {
+      "p10": 0.49232753062540296,
+      "paths_counted": 15,
+      "paths_clear": 5,
+      "goal_path_test": false,
+      "auc_mean": 0.4957004132320237
+    },
+    "15": {
+      "p10": 0.485671883432272,
+      "paths_counted": 15,
+      "paths_clear": 2,
+      "goal_path_test": false,
+      "auc_mean": 0.4962766534473869
+    },
+    "18": {
+      "p10": 0.49145098039215684,
+      "paths_counted": 15,
+      "paths_clear": 5,
+      "goal_path_test": false,
+      "auc_mean": 0.5104835721472712
+    },
+    "21": {
+      "p10": 0.41073961499493417,
+      "paths_counted": 15,
+      "paths_clear": 6,
+      "goal_path_test": false,
+      "auc_mean": 0.48949552982558964
+    },
+    "24": {
+      "p10": 0.4841733547351525,
+      "paths_counted": 15,
+      "paths_clear": 4,
+      "goal_path_test": false,
+      "auc_mean": 0.5024671602545248
+    },
+    "27": {
+      "p10": 0.4637182637182637,
+      "paths_counted": 15,
+      "paths_clear": 4,
+      "goal_path_test": false,
+      "auc_mean": 0.4992028356652581
+    },
+    "30": {
+      "p10": 0.4980392156862745,
+      "paths_counted": 15,
+      "paths_clear": 6,
+      "goal_path_test": false,
+      "auc_mean": 0.5101095385511226
+    },
+    "33": {
+      "p10": 0.4915254237288136,
+      "paths_counted": 15,
+      "paths_clear": 10,
+      "goal_path_test": false,
+      "auc_mean": 0.5229403207060048
+    },
+    "36": {
+      "p10": 0.5182864450127878,
+      "paths_counted": 15,
+      "paths_clear": 11,
+      "goal_path_test": false,
+      "auc_mean": 0.5162909820973279
+    },
+    "39": {
+      "p10": 0.4723334546778304,
+      "paths_counted": 15,
+      "paths_clear": 7,
+      "goal_path_test": false,
+      "auc_mean": 0.5135075539308037
+    },
+    "42": {
+      "p10": 0.4520156774916014,
+      "paths_counted": 15,
+      "paths_clear": 6,
+      "goal_path_test": false,
+      "auc_mean": 0.50220283595889
+    },
+    "45": {
+      "p10": 0.4786231884057971,
+      "paths_counted": 15,
+      "paths_clear": 8,
+      "goal_path_test": false,
+      "auc_mean": 0.5279894672090372
+    },
+    "48": {
+      "p10": 0.49166666666666664,
+      "paths_counted": 15,
+      "paths_clear": 10,
+      "goal_path_test": false,
+      "auc_mean": 0.5341023492832083
+    }
+  },
+  "n_nulls": 16,
+  "real_p10_rank_of": "17 of 17",
+  "nulls_meeting_goal_path_test": 0,
+  "null_p10_quantiles": {
+    "50": 0.48772030571814706,
+    "90": 0.5081628303495311,
+    "95": 0.5205586961119277,
+    "100": 0.5273754494093478
+  },
+  "verdict": "SIGNIFICANT vs sign-null replay",
+  "passed": true
+}

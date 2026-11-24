@@ -33,7 +33,8 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `docs/PROTECTED_EVALUATION.md` + `scripts/protected_evaluation.py` | Minimal seal-before-read vertical: fixed family, strict-new access receipt, existing evaluator reference, deterministic inactive/no-candidate terminal, and zero-read resume. |
 | `docs/RESEARCH_CAMPAIGN.md` + `scripts/research_campaign_v1.py` | Adapter-driven unprotected campaign control plane: sealed ordered family, serial execution, exact crash recovery, native-result evidence bindings, and reproducible inactive terminal. |
 | `docs/DERIV_ECONOMICS_LEDGER.md` + `scripts/deriv_economics_ledger_v2.py` (with frozen v1 predecessor) | Fixed one-chain Deriv demo Rise/Fall reference: preregistered supplier acquisition, sanitized packet, strict-new reducing access, Decimal reconciliation, and self-contained inactive receipt. |
-| `ops/` | **Deployment templates** (systemd user units + logrotate): the Deriv demo runtime plus isolated credential-free public-data observers. Secrets/env live outside git; observer sandbox/launch contracts live in their key-specific docs. Demo deploy/cutover remains in `docs/DERIV_DEMO_EXECUTOR.md`. |
+| `ops/` | **Deployment templates** (systemd user units + logrotate): the Deriv demo runtime, the SOTA multi-horizon VPS runtime (`docs/DERIV_SOTA_VPS_DEPLOY.md`), plus isolated credential-free public-data observers. Secrets/env live outside git; observer sandbox/launch contracts live in their key-specific docs. Demo deploy/cutover remains in `docs/DERIV_DEMO_EXECUTOR.md`. |
+| `docs/DERIV_SOTA_VPS_DEPLOY.md` + `scripts/{deriv_runtime_core_v2,sota_book_runtime,sota_book_freeze,deriv_sota_tick_stream,deriv_sota_executor,deriv_live_pnl_ledger,vps_preflight,build_certified_sota_books,run_lh16_yencross_certifier,test_deriv_sota_runtime}.py` | Generic SOTA multi-model (`logit`/`logit-hourly`/`nystroem`/`lgb`), multi-horizon (`15m`/`30m`), zero-pickle VPS runtime, 1s-tick causal feature builder, Yen-cross venue certifier, USD+JPY currency-leg exposure caps, and per-book Demo (`VRTC*`) / opt-in Live (`CR*`) promotion gate. |
 
 ## TIER 2 — KEY-SPECIFIC (named/labeled by the key — ALL incumbents, numbers, results, backlogs live here)
 
@@ -46,7 +47,8 @@ record. Methods are written to retarget via env `MX_HOR=<minutes>` (bar models) 
 | `sweeps/<PAIR>_<tf>_backlog.md` | Per-key **EXECUTABLE BACKLOG** — the ranked TOP-N experiments, FIRST-TO-RUN queue, "incumbents to beat", and key-specific discovery rounds. (Moved out of the generic `docs/IDEAS_LOG.md`.) |
 | `<PAIR>_<tf>_research_log.md` | Per-key narrative research log (the running prose journal for that key). |
 | `docs/MAGNITUDE_FINDINGS.md` | Magnitude is sign-invariant → no UP/DOWN key, but still **per-currency**; label each result by `PAIR`. |
-| `MODEL_REGISTRY.md` + `books/` | Multi-currency book **registry**; every entry keyed `<PAIR>.<book>.v1` with a provenance manifest. |
+| `MODEL_REGISTRY.md` + `books/` | Multi-currency v1 book **registry**; every entry keyed `<PAIR>.<book>.v1` with a provenance manifest. |
+| `SOTA_MODEL_REGISTRY.md` + `books/SOTA_INDEX.json` | Certified SOTA multi-horizon (`15m`/`30m`) book registry (`sota-book-index/v1`) and 6-gate (`G1–G6`) provenance index, sibling to `MODEL_REGISTRY.md` and `books/INDEX.json`. |
 
 ---
 

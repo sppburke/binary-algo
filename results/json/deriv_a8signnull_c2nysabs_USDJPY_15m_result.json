@@ -1,0 +1,160 @@
+{
+  "analysis": "run_nullreplay/0.1",
+  "registered_utc": "2026-11-24T02:40:19Z",
+  "candidate": "c2nysabs",
+  "real_result": "results/json/deriv_c2nysabs_USDJPY_15m_result.json",
+  "pair": "USDJPY",
+  "horizon_min": 15,
+  "side": "UP",
+  "null_shifts_weeks": [
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    33,
+    36,
+    39,
+    42,
+    45,
+    48
+  ],
+  "pre_registered_reading": "SIGNIFICANT iff real p10 at operating coverage exceeds every null p10 except at most one (rank >= 16 of 17) AND at most 1 of the 16 nulls meets the goal-rule path test (>= 12 of 15 counted paths clearing 0.541 with p10 >= 0.541)",
+  "real": {
+    "p10": 0.5760222310440651,
+    "paths_counted": 15,
+    "paths_clear": 15,
+    "goal_path_test": true,
+    "auc_mean": 0.5168760421451277
+  },
+  "nulls": {
+    "3": {
+      "p10": 0.5,
+      "paths_counted": 15,
+      "paths_clear": 8,
+      "goal_path_test": false,
+      "auc_mean": 0.5137569115078289
+    },
+    "6": {
+      "p10": 0.4590717299578059,
+      "paths_counted": 15,
+      "paths_clear": 2,
+      "goal_path_test": false,
+      "auc_mean": 0.4975564270918366
+    },
+    "9": {
+      "p10": 0.4582857142857143,
+      "paths_counted": 15,
+      "paths_clear": 3,
+      "goal_path_test": false,
+      "auc_mean": 0.5028024297086641
+    },
+    "12": {
+      "p10": 0.4493402638944422,
+      "paths_counted": 15,
+      "paths_clear": 3,
+      "goal_path_test": false,
+      "auc_mean": 0.49112343970356825
+    },
+    "15": {
+      "p10": 0.46601248884924173,
+      "paths_counted": 14,
+      "paths_clear": 7,
+      "goal_path_test": false,
+      "auc_mean": 0.4976229061096097
+    },
+    "18": {
+      "p10": 0.4853153153153153,
+      "paths_counted": 13,
+      "paths_clear": 3,
+      "goal_path_test": false,
+      "auc_mean": 0.5019889659540543
+    },
+    "21": {
+      "p10": 0.46450676982591876,
+      "paths_counted": 15,
+      "paths_clear": 2,
+      "goal_path_test": false,
+      "auc_mean": 0.49158199686277937
+    },
+    "24": {
+      "p10": 0.42745367192862044,
+      "paths_counted": 15,
+      "paths_clear": 4,
+      "goal_path_test": false,
+      "auc_mean": 0.5008381427269902
+    },
+    "27": {
+      "p10": 0.5176644251271117,
+      "paths_counted": 13,
+      "paths_clear": 8,
+      "goal_path_test": false,
+      "auc_mean": 0.5007166631121092
+    },
+    "30": {
+      "p10": 0.4870967741935484,
+      "paths_counted": 13,
+      "paths_clear": 6,
+      "goal_path_test": false,
+      "auc_mean": 0.5118292406108427
+    },
+    "33": {
+      "p10": 0.47171526586620927,
+      "paths_counted": 14,
+      "paths_clear": 9,
+      "goal_path_test": false,
+      "auc_mean": 0.5138805057761497
+    },
+    "36": {
+      "p10": 0.46564885496183206,
+      "paths_counted": 11,
+      "paths_clear": 5,
+      "goal_path_test": false,
+      "auc_mean": 0.5093442141340705
+    },
+    "39": {
+      "p10": 0.44497387669801464,
+      "paths_counted": 14,
+      "paths_clear": 6,
+      "goal_path_test": false,
+      "auc_mean": 0.5041356391188084
+    },
+    "42": {
+      "p10": 0.4618839311752697,
+      "paths_counted": 15,
+      "paths_clear": 8,
+      "goal_path_test": false,
+      "auc_mean": 0.5058694005200028
+    },
+    "45": {
+      "p10": 0.4971428571428571,
+      "paths_counted": 14,
+      "paths_clear": 9,
+      "goal_path_test": false,
+      "auc_mean": 0.5084316706201216
+    },
+    "48": {
+      "p10": 0.44377880184331797,
+      "paths_counted": 15,
+      "paths_clear": 5,
+      "goal_path_test": false,
+      "auc_mean": 0.50815861422679
+    }
+  },
+  "n_nulls": 16,
+  "real_p10_rank_of": "17 of 17",
+  "nulls_meeting_goal_path_test": 0,
+  "null_p10_quantiles": {
+    "50": 0.4650778123938754,
+    "90": 0.49857142857142855,
+    "95": 0.5044161062817779,
+    "100": 0.5176644251271117
+  },
+  "verdict": "SIGNIFICANT vs sign-null replay",
+  "passed": true
+}

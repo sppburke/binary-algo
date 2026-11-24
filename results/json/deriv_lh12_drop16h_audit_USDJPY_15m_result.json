@@ -1,0 +1,20 @@
+{
+  "analysis": "G5_payout_audit_drop_ny_16h",
+  "pair": "USDJPY",
+  "horizon_min": 15,
+  "cov": 0.03,
+  "side": "UP",
+  "candidate": "lh12-hlogit",
+  "source_dump": "/mnt/data/deriv-sota-lab/results_full/longhistory/deriv_lh12-hlogit_USDJPY_15m_dump.npz",
+  "quote_model": "July 2026 NY clock-cell reconstructed payout archive excluding 16:00-16:35 America/New_York haircut bars",
+  "registered_utc": "2026-11-24T02:39:00Z",
+  "falsifier": "KILL if < 12 of 15 paths have EV > 0 OR p10_ev <= 0.0 after dropping 16:00-16:35 NY decisions",
+  "paths_counted": 15,
+  "paths_ev_positive": 7,
+  "p10_wr": 0.583559,
+  "mean_wr": 0.603367,
+  "mean_payout": 1.729472,
+  "p10_ev": -0.061611,
+  "mean_ev": 0.043528,
+  "verdict": "NOT CLEARED"
+}

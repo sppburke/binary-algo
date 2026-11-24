@@ -1,0 +1,21 @@
+[Unit]
+Description=binary-algo Deriv SOTA certified multi-book EV-gated executor (Demo VRTC default / opt-in Live CR)
+After=network-online.target
+Wants=network-online.target
+Conflicts=deriv-trade-executor.service deriv-demo-executor.service deriv-demo-executor.timer
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/binary-algo/deriv-sota-executor.env
+WorkingDirectory=%h/git/binary-algo
+ExecStartPre=%h/binary-algo-venv/bin/python scripts/vps_preflight.py --offline-only --account-mode ${DERIV_ACCOUNT_MODE}
+ExecStart=%h/binary-algo-venv/bin/python scripts/deriv_sota_executor.py --run --account-mode ${DERIV_ACCOUNT_MODE} --tick-feed-mode ${DERIV_SOTA_TICK_FEED_MODE} --stake ${DERIV_SOTA_STAKE} --log-dir ${DERIV_SOTA_LOG_DIR} --tick-store-dir ${DERIV_SOTA_TICK_STORE_DIR}
+Restart=on-failure
+RestartSec=15
+KillSignal=SIGINT
+Nice=5
+MemoryHigh=512M
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

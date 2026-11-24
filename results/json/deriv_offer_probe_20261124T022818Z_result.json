@@ -1,0 +1,2010 @@
+{
+  "tool_version": "deriv_offer_probe/1.0",
+  "downloader": {
+    "version": "deriv_ticks_download/1.7",
+    "sha256": "b466b8356e43a21cfe8c9c41d64cfa97d055f58c1914bb2538e472bc7676ff10"
+  },
+  "endpoint": "wss://api.derivws.com/trading/v1/options/ws/public",
+  "start": {
+    "utc": "2026-11-24T02:28:18.535334+00:00",
+    "boot_seconds": 5088927.550216595
+  },
+  "end": {
+    "utc": "2026-11-24T02:30:50.321192+00:00",
+    "boot_seconds": 5089079.336073921
+  },
+  "max_requests": 200,
+  "request_count": 37,
+  "candidate_formation": {
+    "source": "fallback",
+    "fallback_reason": "active_symbols request failed",
+    "all_candidates": [
+      {
+        "symbol": "frxEURJPY",
+        "symbol_field": "fixed_fallback",
+        "market": "forex",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxGBPJPY",
+        "symbol_field": "fixed_fallback",
+        "market": "forex",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxAUDJPY",
+        "symbol_field": "fixed_fallback",
+        "market": "forex",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxNZDJPY",
+        "symbol_field": "fixed_fallback",
+        "market": "forex",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxCADJPY",
+        "symbol_field": "fixed_fallback",
+        "market": "forex",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxCHFJPY",
+        "symbol_field": "fixed_fallback",
+        "market": "forex",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxXAUUSD",
+        "symbol_field": "fixed_fallback",
+        "market": "commodities",
+        "submarket": null,
+        "display_name": null
+      },
+      {
+        "symbol": "frxXAGUSD",
+        "symbol_field": "fixed_fallback",
+        "market": "commodities",
+        "submarket": null,
+        "display_name": null
+      }
+    ],
+    "priority_order": [
+      "six_yen_crosses",
+      "other_fx_crosses",
+      "seven_majors",
+      "metals",
+      "energy",
+      "indices"
+    ],
+    "planned_requests_before_cap": 41,
+    "planned_requests": 41
+  },
+  "candidates": [
+    {
+      "symbol": "frxEURJPY",
+      "symbol_field": "fixed_fallback",
+      "market": "forex",
+      "submarket": null,
+      "display_name": null,
+      "contracts": [
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "+0.081",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "+0.081",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "+0.081",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "+0.081",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISS",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "174.259",
+          "low_barrier": "172.678",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "174.259",
+          "low_barrier": "172.678",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISSE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "174.259",
+          "low_barrier": "172.678",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGEE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "174.259",
+          "low_barrier": "172.678",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "HIGHER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "LOWER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTUP",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "forex",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTDOWN",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "forex",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "RANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "174.259",
+          "low_barrier": "172.678",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "UPORDOWN",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "174.259",
+          "low_barrier": "172.678",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "ONETOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        },
+        {
+          "barrier": "174.259",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "NOTOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxEURJPY"
+        }
+      ],
+      "rise_fall_15m": true,
+      "live_feed": {
+        "available": true,
+        "start": 1795487078,
+        "end": 1795487378,
+        "epochs": [
+          1795487378
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037481,
+        "end": 1764037781,
+        "epochs": [
+          1764037781
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {
+        "CALL": {
+          "payout": 1.88,
+          "ask_price": 1.0,
+          "spot": 173.453,
+          "spot_time": 1795487421,
+          "payout_to_stake_ratio": 1.88
+        },
+        "PUT": {
+          "payout": 1.74,
+          "ask_price": 1.0,
+          "spot": 173.453,
+          "spot_time": 1795487424,
+          "payout_to_stake_ratio": 1.74
+        }
+      },
+      "steps": {
+        "contracts_for": "done",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "done",
+        "proposal_PUT": "done"
+      }
+    },
+    {
+      "symbol": "frxGBPJPY",
+      "symbol_field": "fixed_fallback",
+      "market": "forex",
+      "submarket": null,
+      "display_name": null,
+      "contracts": [
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "+0.099",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "+0.099",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "+0.099",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "+0.099",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISS",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "208.272",
+          "low_barrier": "206.343",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "208.272",
+          "low_barrier": "206.343",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISSE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "208.272",
+          "low_barrier": "206.343",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGEE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "208.272",
+          "low_barrier": "206.343",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "HIGHER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "LOWER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTUP",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "forex",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTDOWN",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "forex",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "RANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "208.272",
+          "low_barrier": "206.343",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "UPORDOWN",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "208.272",
+          "low_barrier": "206.343",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "ONETOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        },
+        {
+          "barrier": "208.272",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "NOTOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxGBPJPY"
+        }
+      ],
+      "rise_fall_15m": true,
+      "live_feed": {
+        "available": true,
+        "start": 1795487084,
+        "end": 1795487384,
+        "epochs": [
+          1795487384
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037486,
+        "end": 1764037786,
+        "epochs": [
+          1764037786
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {
+        "CALL": {
+          "payout": 1.86,
+          "ask_price": 1.0,
+          "spot": 207.285,
+          "spot_time": 1795487426,
+          "payout_to_stake_ratio": 1.86
+        },
+        "PUT": {
+          "payout": 1.77,
+          "ask_price": 1.0,
+          "spot": 207.284,
+          "spot_time": 1795487429,
+          "payout_to_stake_ratio": 1.77
+        }
+      },
+      "steps": {
+        "contracts_for": "done",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "done",
+        "proposal_PUT": "done"
+      }
+    },
+    {
+      "symbol": "frxAUDJPY",
+      "symbol_field": "fixed_fallback",
+      "market": "forex",
+      "submarket": null,
+      "display_name": null,
+      "contracts": [
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "+0.076",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "+0.076",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "+0.076",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "+0.076",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISS",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "106.090",
+          "low_barrier": "104.601",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "106.090",
+          "low_barrier": "104.601",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISSE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "106.090",
+          "low_barrier": "104.601",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGEE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "106.090",
+          "low_barrier": "104.601",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "HIGHER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "LOWER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTUP",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "forex",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "up",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTDOWN",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "forex",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "down",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "RANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "106.090",
+          "low_barrier": "104.601",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "UPORDOWN",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "106.090",
+          "low_barrier": "104.601",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "ONETOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        },
+        {
+          "barrier": "106.090",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "NOTOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "major_pairs",
+          "underlying_symbol": "frxAUDJPY"
+        }
+      ],
+      "rise_fall_15m": true,
+      "live_feed": {
+        "available": true,
+        "start": 1795487089,
+        "end": 1795487389,
+        "epochs": [
+          1795487389
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037491,
+        "end": 1764037791,
+        "epochs": [
+          1764037791
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {
+        "CALL": {
+          "payout": 1.78,
+          "ask_price": 1.0,
+          "spot": 105.319,
+          "spot_time": 1795487432,
+          "payout_to_stake_ratio": 1.78
+        },
+        "PUT": {
+          "payout": 1.84,
+          "ask_price": 1.0,
+          "spot": 105.323,
+          "spot_time": 1795487434,
+          "payout_to_stake_ratio": 1.84
+        }
+      },
+      "steps": {
+        "contracts_for": "done",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "done",
+        "proposal_PUT": "done"
+      }
+    },
+    {
+      "symbol": "frxNZDJPY",
+      "symbol_field": "fixed_fallback",
+      "market": "forex",
+      "submarket": null,
+      "display_name": null,
+      "contracts": [
+        {
+          "barrier": "87.206",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "87.206",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "+0.056",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "+0.056",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "87.206",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "87.206",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "forex",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "+0.056",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "CALLE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "up",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        },
+        {
+          "barrier": "+0.056",
+          "barriers": 1,
+          "contract_category": "callputequal",
+          "contract_type": "PUTE",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "forex",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "15m",
+          "sentiment": "down",
+          "submarket": "minor_pairs",
+          "underlying_symbol": "frxNZDJPY"
+        }
+      ],
+      "rise_fall_15m": true,
+      "live_feed": {
+        "available": true,
+        "start": 1795487094,
+        "end": 1795487394,
+        "epochs": [
+          1795487394
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037496,
+        "end": 1764037796,
+        "epochs": [
+          1764037796
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {
+        "CALL": {
+          "payout": 1.54,
+          "ask_price": 1.0,
+          "spot": 86.65,
+          "spot_time": 1795487437,
+          "payout_to_stake_ratio": 1.54
+        },
+        "PUT": {
+          "payout": 1.96,
+          "ask_price": 1.0,
+          "spot": 86.652,
+          "spot_time": 1795487439,
+          "payout_to_stake_ratio": 1.96
+        }
+      },
+      "steps": {
+        "contracts_for": "done",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "done",
+        "proposal_PUT": "done"
+      }
+    },
+    {
+      "symbol": "frxCADJPY",
+      "symbol_field": "fixed_fallback",
+      "market": "forex",
+      "submarket": null,
+      "display_name": null,
+      "contracts": null,
+      "rise_fall_15m": null,
+      "live_feed": {
+        "available": true,
+        "start": 1795487099,
+        "end": 1795487399,
+        "epochs": [
+          1795487399
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037501,
+        "end": 1764037801,
+        "epochs": [
+          1764037801
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {},
+      "steps": {
+        "contracts_for": "error_or_skipped",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "skipped",
+        "proposal_PUT": "skipped"
+      }
+    },
+    {
+      "symbol": "frxCHFJPY",
+      "symbol_field": "fixed_fallback",
+      "market": "forex",
+      "submarket": null,
+      "display_name": null,
+      "contracts": null,
+      "rise_fall_15m": null,
+      "live_feed": {
+        "available": true,
+        "start": 1795487104,
+        "end": 1795487404,
+        "epochs": [
+          1795487404
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037506,
+        "end": 1764037806,
+        "epochs": [
+          1764037806
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {},
+      "steps": {
+        "contracts_for": "error_or_skipped",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "skipped",
+        "proposal_PUT": "skipped"
+      }
+    },
+    {
+      "symbol": "frxXAUUSD",
+      "symbol_field": "fixed_fallback",
+      "market": "commodities",
+      "submarket": null,
+      "display_name": null,
+      "contracts": [
+        {
+          "barrier": "3725.09",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "3725.09",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "+4.19",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "commodities",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "5m",
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "+4.19",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "commodities",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "5m",
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISS",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "3783.38",
+          "low_barrier": "3531.98",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "3783.38",
+          "low_barrier": "3531.98",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISSE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "3783.38",
+          "low_barrier": "3531.98",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGEE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "3783.38",
+          "low_barrier": "3531.98",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "3725.09",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "HIGHER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "3725.09",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "LOWER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTUP",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "commodities",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTDOWN",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "commodities",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "RANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "3783.38",
+          "low_barrier": "3531.98",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "UPORDOWN",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "3783.38",
+          "low_barrier": "3531.98",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "3725.09",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "ONETOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        },
+        {
+          "barrier": "3725.09",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "NOTOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAUUSD"
+        }
+      ],
+      "rise_fall_15m": true,
+      "live_feed": {
+        "available": true,
+        "start": 1795487109,
+        "end": 1795487409,
+        "epochs": [
+          1795487409
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037511,
+        "end": 1764037811,
+        "epochs": [
+          1764037811
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {
+        "CALL": {
+          "payout": 1.68,
+          "ask_price": 1.0,
+          "spot": 3652.41,
+          "spot_time": 1795487442,
+          "payout_to_stake_ratio": 1.68
+        },
+        "PUT": {
+          "payout": 1.8,
+          "ask_price": 1.0,
+          "spot": 3651.7,
+          "spot_time": 1795487444,
+          "payout_to_stake_ratio": 1.8
+        }
+      },
+      "steps": {
+        "contracts_for": "done",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "done",
+        "proposal_PUT": "done"
+      }
+    },
+    {
+      "symbol": "frxXAGUSD",
+      "symbol_field": "fixed_fallback",
+      "market": "commodities",
+      "submarket": null,
+      "display_name": null,
+      "contracts": [
+        {
+          "barrier": "44.4562",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "44.4562",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "+0.0695",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "CALL",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "commodities",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "5m",
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "+0.0695",
+          "barriers": 1,
+          "contract_category": "callput",
+          "contract_type": "PUT",
+          "default_stake": 2,
+          "expiry_type": "intraday",
+          "market": "commodities",
+          "max_contract_duration": "1d",
+          "min_contract_duration": "5m",
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISS",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "46.2099",
+          "low_barrier": "40.6903",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "46.2099",
+          "low_barrier": "40.6903",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYMISSE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "46.2099",
+          "low_barrier": "40.6903",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "endsinout",
+          "contract_type": "EXPIRYRANGEE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "46.2099",
+          "low_barrier": "40.6903",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "44.4562",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "HIGHER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "44.4562",
+          "barriers": 1,
+          "contract_category": "higherlower",
+          "contract_type": "LOWER",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTUP",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "commodities",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "up",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 0,
+          "contract_category": "multiplier",
+          "contract_type": "MULTDOWN",
+          "default_stake": 2,
+          "expiry_type": "no_expiry",
+          "market": "commodities",
+          "max_contract_duration": "0",
+          "min_contract_duration": "0",
+          "multiplier_range": [
+            100,
+            200,
+            300,
+            500,
+            800
+          ],
+          "sentiment": "down",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "RANGE",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "46.2099",
+          "low_barrier": "40.6903",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barriers": 2,
+          "contract_category": "staysinout",
+          "contract_type": "UPORDOWN",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "high_barrier": "46.2099",
+          "low_barrier": "40.6903",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "7d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "44.4562",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "ONETOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "high_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        },
+        {
+          "barrier": "44.4562",
+          "barriers": 1,
+          "contract_category": "touchnotouch",
+          "contract_type": "NOTOUCH",
+          "default_stake": 2,
+          "expiry_type": "daily",
+          "market": "commodities",
+          "max_contract_duration": "365d",
+          "min_contract_duration": "1d",
+          "sentiment": "low_vol",
+          "submarket": "metals",
+          "underlying_symbol": "frxXAGUSD"
+        }
+      ],
+      "rise_fall_15m": true,
+      "live_feed": {
+        "available": true,
+        "start": 1795487114,
+        "end": 1795487414,
+        "epochs": [
+          1795487414
+        ],
+        "reason": "in_window"
+      },
+      "year_back": {
+        "available": true,
+        "start": 1764037516,
+        "end": 1764037816,
+        "epochs": [
+          1764037816
+        ],
+        "reason": "in_window"
+      },
+      "quotes": {
+        "CALL": {
+          "payout": 1.66,
+          "ask_price": 1.0,
+          "spot": 43.1865,
+          "spot_time": 1795487447,
+          "payout_to_stake_ratio": 1.66
+        },
+        "PUT": {
+          "payout": 1.79,
+          "ask_price": 1.0,
+          "spot": 43.1956,
+          "spot_time": 1795487449,
+          "payout_to_stake_ratio": 1.79
+        }
+      },
+      "steps": {
+        "contracts_for": "done",
+        "ticks_live": "done",
+        "ticks_year_back": "done",
+        "proposal_CALL": "done",
+        "proposal_PUT": "done"
+      }
+    }
+  ],
+  "dropped_candidates": [],
+  "skipped_steps": [
+    {
+      "step": "proposal_CALL",
+      "symbol": "frxCADJPY",
+      "reason": "15m_intraday_CALL_and_PUT_not_confirmed"
+    },
+    {
+      "step": "proposal_PUT",
+      "symbol": "frxCADJPY",
+      "reason": "15m_intraday_CALL_and_PUT_not_confirmed"
+    },
+    {
+      "step": "proposal_CALL",
+      "symbol": "frxCHFJPY",
+      "reason": "15m_intraday_CALL_and_PUT_not_confirmed"
+    },
+    {
+      "step": "proposal_PUT",
+      "symbol": "frxCHFJPY",
+      "reason": "15m_intraday_CALL_and_PUT_not_confirmed"
+    }
+  ],
+  "errors": [
+    {
+      "step": "active_symbols",
+      "symbol": null,
+      "code": "InputValidationFailed",
+      "message": "Input validation failed: product_type",
+      "request_number": 1
+    },
+    {
+      "step": "contracts_for",
+      "symbol": "frxCADJPY",
+      "code": "OfferingsInvalidSymbol",
+      "message": "There's no contract available for this symbol.",
+      "request_number": 6
+    },
+    {
+      "step": "contracts_for",
+      "symbol": "frxCHFJPY",
+      "code": "OfferingsInvalidSymbol",
+      "message": "There's no contract available for this symbol.",
+      "request_number": 7
+    }
+  ],
+  "history_window_seconds": 300,
+  "year_back_days": 364,
+  "final_rest_confirmed": null,
+  "stop_reason": null,
+  "rate_limit_rejections": 0,
+  "exit_code": 1
+}

@@ -1,0 +1,830 @@
+{
+  "schema": "deriv-sota-multimajor-screen/v1",
+  "runs": [
+    {
+      "file": "deriv_c2nysabs_30m_AUDUSD_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "AUDUSD",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.51215,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 8,
+          "p10": 0.49419256724645944,
+          "mean": 0.5483109156514908,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 12,
+          "paths_clear": 2,
+          "p10": 0.417110125646711,
+          "mean": 0.4930480422418635,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_30m_EURUSD_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "EURUSD",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.50001,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 3,
+          "p10": 0.4154963680387409,
+          "mean": 0.4995597945854938,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 14,
+          "paths_clear": 2,
+          "p10": 0.42262030323005934,
+          "mean": 0.4860296191590252,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_30m_GBPUSD_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "GBPUSD",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.48664,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 13,
+          "paths_clear": 3,
+          "p10": 0.3933541017653167,
+          "mean": 0.4688438669086116,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 13,
+          "paths_clear": 3,
+          "p10": 0.44815509693558475,
+          "mean": 0.5082064196269471,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_30m_NZDUSD_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "NZDUSD",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.5025,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 14,
+          "paths_clear": 3,
+          "p10": 0.4680769230769231,
+          "mean": 0.5090067376162614,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.4363143631436314,
+          "mean": 0.482146273590272,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_30m_USDCAD_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "USDCAD",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.49892,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 14,
+          "paths_clear": 3,
+          "p10": 0.43124999999999997,
+          "mean": 0.5067327975325302,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.43730860733239796,
+          "mean": 0.48723755797666,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_30m_USDCHF_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "USDCHF",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.5084,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 2,
+          "p10": 0.45216432313206506,
+          "mean": 0.5015804492046831,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 14,
+          "paths_clear": 5,
+          "p10": 0.4461997019374068,
+          "mean": 0.5187612598105071,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_30m_USDJPY_30m_result.json",
+      "tag": "c2nysabs_30m",
+      "pair": "USDJPY",
+      "horizon": 30,
+      "drop_16h": false,
+      "auc_mean": 0.52212,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 15,
+          "p10": 0.549110185535782,
+          "mean": 0.6160521218879548,
+          "goal_path_test": true
+        },
+        "DOWN": {
+          "paths_counted": 8,
+          "paths_clear": 2,
+          "p10": 0.3938034188034188,
+          "mean": 0.4613491772071048,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": null
+    },
+    {
+      "file": "deriv_c2nysabs_AUDUSD_15m_result.json",
+      "tag": "c2nysabs",
+      "pair": "AUDUSD",
+      "horizon": 15,
+      "drop_16h": false,
+      "auc_mean": 0.50894,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 3,
+          "p10": 0.46943328871039713,
+          "mean": 0.5346976788755116,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.47229839304142707,
+          "mean": 0.4978728853733057,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 3,
+          "p10_ev": -0.1757536813922356,
+          "mean_ev": -0.0514114104387183,
+          "mean_payout": 1.7738209214414764,
+          "mean_wr": 0.5346976788755116,
+          "fwd_mean_ev": -0.1536249574879712,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.16877369895326552,
+          "mean_ev": -0.12794237669445113,
+          "mean_payout": 1.7561828916232196,
+          "mean_wr": 0.4978728853733057,
+          "fwd_mean_ev": -0.08601449013949014,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 4
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_EURUSD_15m_result.json",
+      "tag": "c2nysabs",
+      "pair": "EURUSD",
+      "horizon": 15,
+      "drop_16h": false,
+      "auc_mean": 0.50013,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.4370689655172414,
+          "mean": 0.48488327330932274,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 14,
+          "paths_clear": 2,
+          "p10": 0.4554354144866876,
+          "mean": 0.496918768006884,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 1,
+          "p10_ev": -0.23158477011494252,
+          "mean_ev": -0.15478839611845724,
+          "mean_payout": 1.7441835995137709,
+          "mean_wr": 0.48488327330932274,
+          "fwd_mean_ev": -0.11979596384008148,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 4
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 14,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.21299325659806997,
+          "mean_ev": -0.13362050886290242,
+          "mean_payout": 1.7435567420083615,
+          "mean_wr": 0.496918768006884,
+          "fwd_mean_ev": -0.0626961769952149,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 4
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_GBPUSD_15m_result.json",
+      "tag": "c2nysabs",
+      "pair": "GBPUSD",
+      "horizon": 15,
+      "drop_16h": false,
+      "auc_mean": 0.49282,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 12,
+          "paths_clear": 0,
+          "p10": 0.40050120288692864,
+          "mean": 0.45513644745852533,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 2,
+          "p10": 0.4466810035842294,
+          "mean": 0.5023547007640803,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 12,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2873350040096231,
+          "mean_ev": -0.18768462710969802,
+          "mean_payout": 1.7844989727226375,
+          "mean_wr": 0.45513644745852533,
+          "fwd_mean_ev": -0.2281792829914436,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 4
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2259341176470588,
+          "mean_ev": -0.12625530154652978,
+          "mean_payout": 1.742836216847548,
+          "mean_wr": 0.5023547007640803,
+          "fwd_mean_ev": -0.09641303141303142,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 4
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_NZDUSD_15m_result.json",
+      "tag": "c2nysabs",
+      "pair": "NZDUSD",
+      "horizon": 15,
+      "drop_16h": false,
+      "auc_mean": 0.504,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.4499445508619821,
+          "mean": 0.49566081696354203,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 3,
+          "p10": 0.4477946017116524,
+          "mean": 0.49235829787089264,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 1,
+          "p10_ev": -0.18917905623787978,
+          "mean_ev": -0.1158549248852637,
+          "mean_payout": 1.7825436190485107,
+          "mean_wr": 0.49566081696354203,
+          "fwd_mean_ev": -0.12306038647342997,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.21242791310072417,
+          "mean_ev": -0.13537753612469175,
+          "mean_payout": 1.7565619584454188,
+          "mean_wr": 0.49235829787089264,
+          "fwd_mean_ev": -0.19562587631312148,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_screen_USDCAD_15m_result.json",
+      "tag": "c2nysabs",
+      "pair": "USDCAD",
+      "horizon": 15,
+      "drop_16h": false,
+      "auc_mean": 0.50027,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.4546419098143236,
+          "mean": 0.5021388660285203,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.43072727272727274,
+          "mean": 0.4717067691198387,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2171127320954907,
+          "mean_ev": -0.1364726815936417,
+          "mean_payout": 1.7242651944190799,
+          "mean_wr": 0.5021388660285203,
+          "fwd_mean_ev": -0.09226528697405964,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 4
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2411890909090909,
+          "mean_ev": -0.16441552837713483,
+          "mean_payout": 1.774346848973013,
+          "mean_wr": 0.4717067691198387,
+          "fwd_mean_ev": -0.3013993710691824,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 2
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_USDCHF_15m_result.json",
+      "tag": "c2nysabs",
+      "pair": "USDCHF",
+      "horizon": 15,
+      "drop_16h": false,
+      "auc_mean": 0.50166,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 3,
+          "p10": 0.40236546422235364,
+          "mean": 0.48407031497092967,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 14,
+          "paths_clear": 1,
+          "p10": 0.41881533101045293,
+          "mean": 0.46794718067215885,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 1,
+          "p10_ev": -0.28996570076877587,
+          "mean_ev": -0.1440505025386938,
+          "mean_payout": 1.7726467380358302,
+          "mean_wr": 0.48407031497092967,
+          "fwd_mean_ev": -0.06927563618039809,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 14,
+          "paths_ev_positive": 1,
+          "p10_ev": -0.2535024977960623,
+          "mean_ev": -0.16462702247105568,
+          "mean_payout": 1.7865976457854236,
+          "mean_wr": 0.46794718067215885,
+          "fwd_mean_ev": -0.2080844347664624,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_AUDUSD_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "AUDUSD",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.50524,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 13,
+          "paths_clear": 4,
+          "p10": 0.458951909656135,
+          "mean": 0.5180853943996424,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 14,
+          "paths_clear": 0,
+          "p10": 0.45347539320142055,
+          "mean": 0.4763831925394032,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 13,
+          "paths_ev_positive": 3,
+          "p10_ev": -0.18765562745844433,
+          "mean_ev": -0.0775351740148519,
+          "mean_payout": 1.7790459059467394,
+          "mean_wr": 0.5180853943996424,
+          "fwd_mean_ev": -0.19545158147769462,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 14,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.20133155758498225,
+          "mean_ev": -0.15445823301585596,
+          "mean_payout": 1.773784603411,
+          "mean_wr": 0.4763831925394032,
+          "fwd_mean_ev": -0.09364310798946443,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 4
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_EURUSD_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "EURUSD",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.49701,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.4056910569105691,
+          "mean": 0.46328304533641573,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 14,
+          "paths_clear": 0,
+          "p10": 0.4301718133271418,
+          "mean": 0.48130454358526303,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2898996515679443,
+          "mean_ev": -0.18979595431144308,
+          "mean_payout": 1.7473797211260516,
+          "mean_wr": 0.46328304533641573,
+          "fwd_mean_ev": -0.09741122044841855,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 14,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2442285813791502,
+          "mean_ev": -0.15136273036379197,
+          "mean_payout": 1.7606755035782562,
+          "mean_wr": 0.48130454358526303,
+          "fwd_mean_ev": -0.0043011976196834275,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 4
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_GBPUSD_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "GBPUSD",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.49058,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 0,
+          "p10": 0.42048517520215634,
+          "mean": 0.466070376163671,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 5,
+          "p10": 0.4736510126644656,
+          "mean": 0.5279770427574202,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.24490075961774074,
+          "mean_ev": -0.1642886492486732,
+          "mean_payout": 1.7902049617019402,
+          "mean_wr": 0.466070376163671,
+          "fwd_mean_ev": -0.14629161608358165,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 4,
+          "p10_ev": -0.17448213669738333,
+          "mean_ev": -0.07304181818092975,
+          "mean_payout": 1.7594642147457975,
+          "mean_wr": 0.5279770427574202,
+          "fwd_mean_ev": -0.1540836467123232,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 4
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_NZDUSD_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "NZDUSD",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.50278,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 13,
+          "paths_clear": 0,
+          "p10": 0.4408538587848933,
+          "mean": 0.4884222695434851,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 0,
+          "p10": 0.4281950571031482,
+          "mean": 0.47468268563009686,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 13,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.21489313628899834,
+          "mean_ev": -0.12730859835891886,
+          "mean_payout": 1.7887632741837267,
+          "mean_wr": 0.4884222695434851,
+          "fwd_mean_ev": -0.09766835901027078,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.2444432493403428,
+          "mean_ev": -0.15987706773333948,
+          "mean_payout": 1.7724565900600402,
+          "mean_wr": 0.47468268563009686,
+          "fwd_mean_ev": -0.1399446211853423,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_USDCAD_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "USDCAD",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.49683,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 13,
+          "paths_clear": 1,
+          "p10": 0.4271647509578544,
+          "mean": 0.47959806673582484,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 2,
+          "p10": 0.4419358254791909,
+          "mean": 0.4754620626535901,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 13,
+          "paths_ev_positive": 1,
+          "p10_ev": -0.2464241379310345,
+          "mean_ev": -0.1616947233539572,
+          "mean_payout": 1.750593218700715,
+          "mean_wr": 0.47959806673582484,
+          "fwd_mean_ev": -0.17566816091842655,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 2,
+          "p10_ev": -0.20944022026898232,
+          "mean_ev": -0.15034480866507824,
+          "mean_payout": 1.7894391686871387,
+          "mean_wr": 0.4754620626535901,
+          "fwd_mean_ev": -0.1927383315917799,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_USDCHF_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "USDCHF",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.49882,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 1,
+          "p10": 0.4209904761904762,
+          "mean": 0.484213230322236,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 15,
+          "paths_clear": 6,
+          "p10": 0.4363984674329502,
+          "mean": 0.5046784816799917,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 0,
+          "p10_ev": -0.24850990476190474,
+          "mean_ev": -0.1322189040727171,
+          "mean_payout": 1.7905035879728595,
+          "mean_wr": 0.484213230322236,
+          "fwd_mean_ev": -0.04828605199587342,
+          "fwd_ev_positive": 1,
+          "fwd_counted": 4
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 4,
+          "p10_ev": -0.20607020813917365,
+          "mean_ev": -0.09746182470398862,
+          "mean_payout": 1.7878128581563333,
+          "mean_wr": 0.5046784816799917,
+          "fwd_mean_ev": -0.08726257587959714,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 3
+        }
+      }
+    },
+    {
+      "file": "deriv_c2nysabs_no16_USDJPY_15m_result.json",
+      "tag": "c2nysabs_no16",
+      "pair": "USDJPY",
+      "horizon": 15,
+      "drop_16h": true,
+      "auc_mean": 0.51275,
+      "verdict_goal": {
+        "UP": {
+          "paths_counted": 15,
+          "paths_clear": 7,
+          "p10": 0.5083478260869566,
+          "mean": 0.558300367275023,
+          "goal_path_test": false
+        },
+        "DOWN": {
+          "paths_counted": 10,
+          "paths_clear": 5,
+          "p10": 0.4525194254768072,
+          "mean": 0.539494582470962,
+          "goal_path_test": false
+        }
+      },
+      "G5_payout": {
+        "UP": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 15,
+          "paths_ev_positive": 6,
+          "p10_ev": -0.08153024154589372,
+          "mean_ev": 0.010421275657368277,
+          "mean_payout": 1.810692670873924,
+          "mean_wr": 0.558300367275023,
+          "fwd_mean_ev": 0.006266202825216109,
+          "fwd_ev_positive": 2,
+          "fwd_counted": 3
+        },
+        "DOWN": {
+          "verdict": "NOT CLEARED",
+          "paths_counted": 10,
+          "paths_ev_positive": 4,
+          "p10_ev": -0.20382740758182247,
+          "mean_ev": -0.035669901679587966,
+          "mean_payout": 1.789349601813063,
+          "mean_wr": 0.539494582470962,
+          "fwd_mean_ev": -0.14838455772113943,
+          "fwd_ev_positive": 0,
+          "fwd_counted": 2
+        }
+      }
+    }
+  ]
+}

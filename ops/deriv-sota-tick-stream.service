@@ -1,0 +1,21 @@
+[Unit]
+Description=binary-algo Deriv SOTA 1-second tick stream & feature store (public WS, zero credentials)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/binary-algo/deriv-sota-executor.env
+WorkingDirectory=%h/git/binary-algo
+# Strip all credentials and buy-capable flags from the public market-data process
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_ALLOW_LIVE_REAL_MONEY
+ExecStart=%h/binary-algo-venv/bin/python scripts/deriv_sota_tick_stream.py --pairs ${DERIV_SOTA_PAIRS} --store-dir ${DERIV_SOTA_TICK_STORE_DIR} --log-dir ${DERIV_SOTA_LOG_DIR}
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGINT
+Nice=5
+MemoryHigh=512M
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

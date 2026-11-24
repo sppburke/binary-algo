@@ -1,0 +1,288 @@
+{
+  "study": "V-10_V-11_V-12_winter_quote_survey_payout_levels",
+  "registered_utc": "2026-11-24T02:40:16Z",
+  "usage_rule_compliance": "Payout levels and contract availability ONLY per /mnt/data/deriv/quote_survey_2026-11/README.md. Zero candidate models scored, selected, or tuned on November 2026 dates.",
+  "questions": {
+    "V-10": "Compare CALLE/PUTE (equal, ties win) vs CALL/PUT (risefall, ties lose) payouts on matched (pair, minutes, seq).",
+    "V-11": "Measure winter 15m vs 30m/60m/120m/240m NY-session (08:00-17:00 America/New_York) payouts, overround, and 21:00 UTC blackout.",
+    "V-12": "Verify EURUSD payout level & availability parity against the other 6 FX majors."
+  },
+  "files_read": [
+    "2026-11-18.jsonl",
+    "2026-11-19.jsonl",
+    "2026-11-20.jsonl",
+    "2026-11-21.jsonl",
+    "2026-11-22.jsonl",
+    "2026-11-23.jsonl",
+    "2026-11-24.jsonl"
+  ],
+  "total_priced_poll_sides": 99664,
+  "ny_session_priced_poll_sides": 40240,
+  "V11_by_duration_ny_risefall": {
+    "15": {
+      "n_priced_sides_ny": 4598,
+      "mean_payout": 1.8046,
+      "median_payout": 1.82,
+      "p10_payout": 1.71,
+      "mean_breakeven": 0.555,
+      "matched_units": 1157,
+      "mean_overround": 0.1104,
+      "mean_abs_side_skew": 0.1194
+    },
+    "30": {
+      "n_priced_sides_ny": 4409,
+      "mean_payout": 1.82,
+      "median_payout": 1.82,
+      "p10_payout": 1.82,
+      "mean_breakeven": 0.5495,
+      "matched_units": 1148,
+      "mean_overround": 0.0989,
+      "mean_abs_side_skew": 0.0
+    },
+    "60": {
+      "n_priced_sides_ny": 4221,
+      "mean_payout": 1.82,
+      "median_payout": 1.82,
+      "p10_payout": 1.82,
+      "mean_breakeven": 0.5495,
+      "matched_units": 1120,
+      "mean_overround": 0.0989,
+      "mean_abs_side_skew": 0.0
+    },
+    "120": {
+      "n_priced_sides_ny": 3642,
+      "mean_payout": 1.82,
+      "median_payout": 1.82,
+      "p10_payout": 1.82,
+      "mean_breakeven": 0.5495,
+      "matched_units": 1045,
+      "mean_overround": 0.0989,
+      "mean_abs_side_skew": 0.0
+    },
+    "240": {
+      "n_priced_sides_ny": 3322,
+      "mean_payout": 1.8198,
+      "median_payout": 1.82,
+      "p10_payout": 1.82,
+      "mean_breakeven": 0.5497,
+      "matched_units": 966,
+      "mean_overround": 0.0995,
+      "mean_abs_side_skew": 0.0227
+    }
+  },
+  "V10_equal_vs_risefall_ny": {
+    "15": {
+      "matched_cells": 448,
+      "mean_risefall_payout": 1.8047,
+      "mean_equal_payout": 1.7408,
+      "mean_equal_minus_risefall": -0.0639,
+      "p10_equal_minus_risefall": -0.0781
+    },
+    "30": {
+      "matched_cells": 448,
+      "mean_risefall_payout": 1.82,
+      "mean_equal_payout": 1.75,
+      "mean_equal_minus_risefall": -0.07,
+      "p10_equal_minus_risefall": -0.07
+    },
+    "60": {
+      "matched_cells": 434,
+      "mean_risefall_payout": 1.82,
+      "mean_equal_payout": 1.7895,
+      "mean_equal_minus_risefall": -0.0305,
+      "p10_equal_minus_risefall": -0.03
+    },
+    "120": {
+      "matched_cells": 378,
+      "mean_risefall_payout": 1.82,
+      "mean_equal_payout": 1.7865,
+      "mean_equal_minus_risefall": -0.0335,
+      "p10_equal_minus_risefall": -0.04
+    },
+    "240": {
+      "matched_cells": 350,
+      "mean_risefall_payout": 1.8198,
+      "mean_equal_payout": 1.8198,
+      "mean_equal_minus_risefall": -0.0,
+      "p10_equal_minus_risefall": -0.0
+    }
+  },
+  "V12_by_pair_ny_risefall": {
+    "15m": {
+      "AUDUSD": {
+        "n": 657,
+        "mean_payout": 1.8055,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.5547
+      },
+      "EURUSD": {
+        "n": 659,
+        "mean_payout": 1.8041,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.5551
+      },
+      "GBPUSD": {
+        "n": 658,
+        "mean_payout": 1.8039,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.5552
+      },
+      "NZDUSD": {
+        "n": 656,
+        "mean_payout": 1.8045,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.555
+      },
+      "USDCAD": {
+        "n": 656,
+        "mean_payout": 1.8045,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.555
+      },
+      "USDCHF": {
+        "n": 656,
+        "mean_payout": 1.8042,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.555
+      },
+      "USDJPY": {
+        "n": 656,
+        "mean_payout": 1.8055,
+        "p10_payout": 1.71,
+        "mean_breakeven": 0.5546
+      }
+    },
+    "30m": {
+      "AUDUSD": {
+        "n": 630,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      },
+      "EURUSD": {
+        "n": 630,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      },
+      "GBPUSD": {
+        "n": 630,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      },
+      "NZDUSD": {
+        "n": 630,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      },
+      "USDCAD": {
+        "n": 630,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      },
+      "USDCHF": {
+        "n": 629,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      },
+      "USDJPY": {
+        "n": 630,
+        "mean_payout": 1.82,
+        "p10_payout": 1.82,
+        "mean_breakeven": 0.5495
+      }
+    }
+  },
+  "ny_hour_profile_est": {
+    "15m": {
+      "8": {
+        "n": 584,
+        "mean_payout": 1.8048
+      },
+      "9": {
+        "n": 588,
+        "mean_payout": 1.8038
+      },
+      "10": {
+        "n": 560,
+        "mean_payout": 1.8053
+      },
+      "11": {
+        "n": 574,
+        "mean_payout": 1.8049
+      },
+      "12": {
+        "n": 609,
+        "mean_payout": 1.8029
+      },
+      "13": {
+        "n": 572,
+        "mean_payout": 1.8041
+      },
+      "14": {
+        "n": 574,
+        "mean_payout": 1.8048
+      },
+      "15": {
+        "n": 537,
+        "mean_payout": 1.8065
+      }
+    },
+    "30m": {
+      "8": {
+        "n": 560,
+        "mean_payout": 1.82
+      },
+      "9": {
+        "n": 546,
+        "mean_payout": 1.82
+      },
+      "10": {
+        "n": 559,
+        "mean_payout": 1.82
+      },
+      "11": {
+        "n": 560,
+        "mean_payout": 1.82
+      },
+      "12": {
+        "n": 571,
+        "mean_payout": 1.82
+      },
+      "13": {
+        "n": 563,
+        "mean_payout": 1.82
+      },
+      "14": {
+        "n": 574,
+        "mean_payout": 1.82
+      },
+      "15": {
+        "n": 476,
+        "mean_payout": 1.82
+      }
+    }
+  },
+  "refusal_counts_by_duration_code": {
+    "120m:None": 7,
+    "30m:None": 6,
+    "60m:None": 8,
+    "240m:None": 5,
+    "15m:None": 25,
+    "240m:ContractBuyValidationError": 3805,
+    "120m:ContractBuyValidationError": 3226,
+    "60m:ContractBuyValidationError": 2140,
+    "15m:ContractBuyValidationError": 1757,
+    "30m:ContractBuyValidationError": 1837,
+    "240m:ServerClosing": 1,
+    "15m:InternalServerError": 31,
+    "30m:InternalServerError": 11,
+    "60m:InternalServerError": 36,
+    "120m:InternalServerError": 28,
+    "240m:InternalServerError": 28
+  }
+}
