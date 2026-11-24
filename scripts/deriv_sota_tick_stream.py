@@ -28,7 +28,7 @@ import pandas as pd
 import deriv_dataset as dd
 from deriv_async_client import DerivAsyncClient
 from deriv_client import PUBLIC_WS_URL, DerivAPIError
-from deriv_runtime_core_v2 import SOTA_DERIV_SYMBOLS, JsonlLogger
+from deriv_runtime_core_v2 import SOTA_DERIV_SYMBOLS, JsonlLogger, assert_non_us_deriv_host
 
 MAJORS: tuple[str, ...] = tuple(dd.PAIRS)
 DEFAULT_RING_SECONDS = 345_600  # 96h of 1s ticks (~2.8 MB/pair) spans 48h FX weekends + 1440m lookbacks
@@ -402,6 +402,7 @@ def run_dataset_parity_selfcheck(
 
 
 async def run_stream_daemon(args: argparse.Namespace) -> int:
+    assert_non_us_deriv_host()
     logger = JsonlLogger(Path(args.log_dir) / "sota_tick_stream")
     pairs = [p.strip().upper() for p in args.pairs.split(",") if p.strip()]
     buf = LiveTickBuffer(pairs=pairs, store_dir=Path(args.store_dir))

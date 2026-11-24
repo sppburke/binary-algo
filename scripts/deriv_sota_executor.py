@@ -42,6 +42,7 @@ from deriv_runtime_core_v2 import (
     JsonlLogger,
     SotaPayoutDecision,
     after_last_start_cutoff_v2,
+    assert_non_us_deriv_host,
     canonical_lock_root,
     check_kill_switch,
     contract_type_for,
@@ -88,6 +89,7 @@ def _parse_iso_utc(value: str | None) -> datetime | None:
 
 def request_authenticated_ws_url(env: DerivEnv, account_mode: str, timeout: float = 10.0) -> tuple[str, str]:
     """Obtain authenticated WebSocket URL via Options v1 OTP endpoint (or classic v3 token transport if configured)."""
+    assert_non_us_deriv_host()
     transport = os.environ.get("DERIV_WS_TRANSPORT", "options_otp").strip().lower()
     if transport == "v3_authorize":
         ws_url = CLASSIC_V3_WS_TEMPLATE.format(app_id=env.app_id)

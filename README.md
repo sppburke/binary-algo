@@ -1,5 +1,9 @@
 # binary-algo — FX Binary Direction Prediction
 
+> **CRITICAL JURISDICTION & NETWORK RULE (DO NOT VIOLATE):**
+> **NEVER contact any Deriv server (`*.derivws.com`, `*.deriv.com`, public or authenticated WebSockets, or REST endpoints) directly from the USA / local research workstation (`quantum`).**
+> **ALL direct network interaction with Deriv servers—including public tick/candle downloads, quote surveys, contract catalog queries, proposal smoke checks, Demo (`VRTC*`) execution, and Live (`CR*`) trading—MUST run EXCLUSIVELY on the Mexico VPS (`sean@64.177.80.63`, hostname `vultr`, via `ssh -i ~/.ssh/id_personal -o IdentitiesOnly=yes -o BatchMode=yes sean@64.177.80.63`, with `DERIV_HOST_JURISDICTION=mexico_vps`).** Local US machines are strictly for offline research, training, and certification on archived data synced from the Mexico VPS.
+
 Predicts **up/down price direction** for 7 USD FX pairs at the 15-minute horizon, targeting Deriv FX Rise/Fall binaries (even-payout, breakeven = **0.541**). All models are trained on 10s OHLCV bars + tick-derived features, 2012–2026.
 
 ---

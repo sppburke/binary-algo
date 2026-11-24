@@ -2,7 +2,11 @@
 
 # Deriv SOTA Certified Strategy VPS Deployment & Promotion Runbook
 
-This runbook covers deploying, verifying, monitoring, and promoting certified SOTA binary-options books on a Linux VPS (`Ubuntu 22.04/24.04` or `Debian 12`, `x86_64`, >= 2 vCPU, >= 4 GiB RAM, NTP-synchronized UTC clock).
+> [!CAUTION]
+> **MANDATORY JURISDICTION BOUNDARY (MEXICO VPS ONLY — ZERO USA DERIV CONNECTIONS):**
+> **Never run any live or public Deriv WebSocket / REST command (`deriv_sota_executor.py`, `deriv_sota_tick_stream.py`, `vps_preflight.py --live-smoke`, `run_lh16_yencross_certifier.py --download`, or ad-hoc `*.derivws.com` scripts) from the USA (`quantum`).** Every direct connection to Deriv servers must originate **exclusively from the Mexico VPS (`sean@64.177.80.63`, hostname `vultr`, accessed via `ssh -i ~/.ssh/id_personal -o IdentitiesOnly=yes -o BatchMode=yes sean@64.177.80.63`)** with `DERIV_HOST_JURISDICTION=mexico_vps` set in `~/.config/binary-algo/deriv-sota-executor.env`. The runtime enforces `assert_non_us_deriv_host()` fail-closed before opening any network socket.
+
+This runbook covers deploying, verifying, monitoring, and promoting certified SOTA binary-options books on the Mexico Linux VPS (`sean@64.177.80.63`, `vultr`, `3.3 GiB` RAM — note `MemoryMax` in `ops/deriv-sota-executor.service` is capped at `1G` so it fits alongside OS buffers comfortably).
 
 ---
 

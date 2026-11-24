@@ -9,8 +9,10 @@ from __future__ import annotations
 import hashlib
 import math
 import os
+import socket
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -28,8 +30,34 @@ from deriv_runtime_core import (
 )
 
 LIVE_CONFIRM_ENV = "DERIV_ALLOW_LIVE_REAL_MONEY"
+JURISDICTION_ENV = "DERIV_HOST_JURISDICTION"
+REQUIRED_JURISDICTION_VALUE = "mexico_vps"
+BLOCKED_US_HOSTNAMES = frozenset({"quantum"})
 SUPPORTED_HORIZONS_MINUTES = (15, 30, 60)
 SUPPORTED_CONTRACT_FAMILIES = ("risefall", "equal")
+
+
+def assert_non_us_deriv_host(
+    *,
+    hostname: str | None = None,
+    jurisdiction_flag: str | None = None,
+    us_lab_marker: Path = Path("/mnt/data/deriv-sota-lab"),
+) -> None:
+    """Fail-closed jurisdiction fence: block ALL direct Deriv server connections from USA hosts (`quantum`).
+    Only the Mexico VPS (`DERIV_HOST_JURISDICTION=mexico_vps`) may contact Deriv servers directly.
+    """
+    host = (socket.gethostname() if hostname is None else str(hostname)).strip().lower()
+    flag = (os.environ.get(JURISDICTION_ENV, "") if jurisdiction_flag is None else str(jurisdiction_flag)).strip().lower()
+    if host in BLOCKED_US_HOSTNAMES or us_lab_marker.exists():
+        raise ExecutorError(
+            f"JURISDICTION BLOCK: direct Deriv network connections are forbidden on US workstation ({host!r}); "
+            "run all Deriv WebSocket/REST interactions exclusively on the Mexico VPS."
+        )
+    if flag != REQUIRED_JURISDICTION_VALUE:
+        raise ExecutorError(
+            f"JURISDICTION BLOCK: direct Deriv network access requires {JURISDICTION_ENV}={REQUIRED_JURISDICTION_VALUE!r} "
+            f"on the Mexico VPS (got {flag!r})."
+        )
 
 SOTA_DERIV_SYMBOLS: dict[str, str] = {
     "EURUSD": "frxEURUSD",

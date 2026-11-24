@@ -33,6 +33,7 @@ import numpy as np
 import pyarrow.parquet as pq
 
 import deriv_dataset as dd
+from deriv_runtime_core_v2 import assert_non_us_deriv_host
 
 OFFERED_YEN_CROSSES = ("EURJPY", "GBPJPY", "AUDJPY", "NZDJPY")
 DEFAULT_VENUE_CROSS_ARCHIVE = Path("/mnt/data/deriv-sota-lab/cache/venue_cross_archive")
@@ -194,6 +195,7 @@ def main() -> int:
             raise SystemExit(f"Unsupported or non-offered cross {c!r}; offered: {OFFERED_YEN_CROSSES}")
 
     if args.download:
+        assert_non_us_deriv_host()
         syms = [f"frx{c}" for c in crosses]
         cmd = [
             sys.executable,

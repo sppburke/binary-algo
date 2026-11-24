@@ -31,6 +31,7 @@ from deriv_client import DerivEnv
 from deriv_no_legacy_buy_guard import offender, cmdline
 from deriv_runtime_core_v2 import (
     SOTA_DERIV_SYMBOLS,
+    assert_non_us_deriv_host,
     canonical_lock_root,
     contract_type_for,
     evaluate_sota_payout_gate,
@@ -79,6 +80,7 @@ def check_no_legacy_buyers() -> None:
 
 
 async def run_network_proposal_smoke(account_mode: str, books: list[Any], stake: float) -> list[dict[str, Any]]:
+    assert_non_us_deriv_host()
     env = DerivEnv.from_env()
     ws_url, transport_kind = await asyncio.to_thread(request_authenticated_ws_url, env, account_mode)
     validate_account_mode(account_mode=account_mode, account_id=env.account_id, ws_url=ws_url)

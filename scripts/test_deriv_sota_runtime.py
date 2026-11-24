@@ -29,6 +29,7 @@ from deriv_live_pnl_ledger import summarize_settled_queue
 from deriv_runtime_core_v2 import (
     ExecutorError,
     after_last_start_cutoff_v2,
+    assert_non_us_deriv_host,
     currency_leg_exposure,
     evaluate_sota_payout_gate,
     is_ny_16h_haircut_window,
@@ -174,6 +175,11 @@ def test_account_mode_isolation() -> None:
     _expect_raises(ExecutorError, validate_account_mode, account_mode="live", account_id="CR887766", ws_url="wss://evil.example/ws", env_live_flag="1")
     _expect_raises(ExecutorError, validate_account_mode, account_mode="demo", account_id="VRTC991122", ws_url="wss://evil.example/trading/v1/options/ws/demo", env_live_flag="0")
     _expect_raises(ExecutorError, validate_account_mode, account_mode="live", account_id="CR887766", ws_url="wss://evil.example/?x=ws.derivws.com", env_live_flag="1")
+
+    # Jurisdiction fence: US workstation (`quantum` or missing mexico_vps flag) MUST fail closed!
+    _expect_raises(ExecutorError, assert_non_us_deriv_host, hostname="quantum", jurisdiction_flag="mexico_vps", us_lab_marker=Path("/nonexistent_marker"))
+    _expect_raises(ExecutorError, assert_non_us_deriv_host, hostname="mx-vps-01", jurisdiction_flag="", us_lab_marker=Path("/nonexistent_marker"))
+    assert_non_us_deriv_host(hostname="mx-vps-01", jurisdiction_flag="mexico_vps", us_lab_marker=Path("/nonexistent_marker"))
 
 
 def test_session_cutoffs_blackout_and_haircut() -> None:
