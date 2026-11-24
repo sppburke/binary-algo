@@ -40,6 +40,7 @@ from deriv_runtime_core_v2 import (
     ExecutorError,
     ExecutorLock,
     JsonlLogger,
+    SotaMultiplierDecision,
     SotaPayoutDecision,
     after_last_start_cutoff_v2,
     assert_non_us_deriv_host,
@@ -47,8 +48,10 @@ from deriv_runtime_core_v2 import (
     check_kill_switch,
     contract_type_for,
     currency_leg_exposure,
+    evaluate_sota_multiplier_gate,
     evaluate_sota_payout_gate,
     finite_positive_number,
+    format_barrier_levels,
     is_ny_16h_haircut_window,
     is_ny_session,
     is_venue_sub5h_open,
@@ -63,7 +66,7 @@ from deriv_sota_tick_stream import (
     extract_decision_feature_row,
     read_tick_store_watermark,
 )
-from sota_book_runtime import load_enabled_sota_books
+from sota_book_runtime import SotaBookError, load_enabled_sota_books, parse_book_ids_spec
 
 CLASSIC_V3_WS_TEMPLATE = "wss://ws.derivws.com/websockets/v3?app_id={app_id}"
 TERMINAL_CONTRACT_STATUSES = frozenset({"won", "lost", "sold", "expired", "cancelled"})
@@ -85,6 +88,24 @@ def _parse_iso_utc(value: str | None) -> datetime | None:
         return datetime.fromisoformat(str(value).replace("Z", "+00:00")).astimezone(timezone.utc)
     except Exception:
         return None
+
+
+def _wire_contract_id(cid: str | int) -> int | str:
+    s = str(cid).strip()
+    return int(s) if s.isdigit() else s
+
+
+def _safe_int_epoch(value: Any, fallback: int) -> int:
+    if value is None or isinstance(value, bool):
+        return fallback
+    try:
+        fv = float(value)
+        if not math.isfinite(fv):
+            return fallback
+        ep = int(fv)
+        return ep if (0 < ep <= 4_102_444_800) else fallback
+    except (TypeError, ValueError, OverflowError):
+        return fallback
 
 
 def request_authenticated_ws_url(env: DerivEnv, account_mode: str, timeout: float = 10.0) -> tuple[str, str]:
@@ -136,6 +157,130 @@ def default_queue_db_path(account_mode: str, runtime_dir: Path = Path("deriv_dat
     return runtime_dir / f"sota_trade_queue_{mode}.sqlite"
 
 
+def _migrate_queue_schema_if_needed(conn: sqlite3.Connection) -> None:
+    conn.execute("PRAGMA foreign_keys=OFF")
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        sig_sql_row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='sota_signals'"
+        ).fetchone()
+        con_sql_row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='sota_contracts'"
+        ).fetchone()
+        need_sig = sig_sql_row is not None and "'NEUTRAL'" not in str(sig_sql_row[0] or "")
+        con_cols = {str(r["name"]) for r in conn.execute("PRAGMA table_info(sota_contracts)").fetchall()} if con_sql_row else set()
+        need_con = con_sql_row is not None and (
+            "'NEUTRAL'" not in str(con_sql_row[0] or "")
+            or "contract_family" not in con_cols
+            or "signal_close_utc" not in con_cols
+            or "sell_ack_cents" not in con_cols
+            or "account_mode" not in con_cols
+            or "book_content_id" not in con_cols
+        )
+        if not (need_sig or need_con):
+            conn.execute("COMMIT")
+            return
+        if need_sig:
+            conn.execute(
+                """
+                CREATE TABLE sota_signals_v2 (
+                    signal_id TEXT PRIMARY KEY,
+                    book_id TEXT NOT NULL,
+                    pair TEXT NOT NULL,
+                    horizon_minutes INTEGER NOT NULL,
+                    side TEXT NOT NULL CHECK (side IN ('UP','DOWN','NEUTRAL')),
+                    lane TEXT NOT NULL DEFAULT 'wall',
+                    offset_id INTEGER NOT NULL DEFAULT 0,
+                    signal_close_utc TEXT NOT NULL,
+                    effective_floor REAL NOT NULL,
+                    calibrated_win_prob REAL,
+                    payload_json TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK (status IN (
+                        'queued','claimed','buy_intent','bought','contract_closed',
+                        'terminal_skip','signal_expired','buy_blocked_risk','buy_unknown'
+                    )),
+                    reason TEXT,
+                    created_utc TEXT NOT NULL,
+                    updated_utc TEXT NOT NULL,
+                    UNIQUE(pair, horizon_minutes, side, lane, offset_id, signal_close_utc)
+                )
+                """
+            )
+            conn.execute(
+                """
+                INSERT INTO sota_signals_v2 (
+                    signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
+                    signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
+                    status, reason, created_utc, updated_utc
+                )
+                SELECT signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
+                       signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
+                       status, reason, created_utc, updated_utc
+                FROM sota_signals
+                """
+            )
+            conn.execute("DROP TABLE sota_signals")
+            conn.execute("ALTER TABLE sota_signals_v2 RENAME TO sota_signals")
+
+        if need_con:
+            sig_close_expr = "signal_close_utc" if "signal_close_utc" in con_cols else "NULL"
+            fam_expr = "contract_family" if "contract_family" in con_cols else "'risefall'"
+            sack_expr = "sell_ack_cents" if "sell_ack_cents" in con_cols else "NULL"
+            am_expr = "account_mode" if "account_mode" in con_cols else "'demo'"
+            bcid_expr = "book_content_id" if "book_content_id" in con_cols else "NULL"
+            conn.execute(
+                """
+                CREATE TABLE sota_contracts_v2 (
+                    contract_id TEXT PRIMARY KEY,
+                    signal_id TEXT NOT NULL UNIQUE REFERENCES sota_signals(signal_id),
+                    book_id TEXT NOT NULL,
+                    pair TEXT NOT NULL,
+                    horizon_minutes INTEGER NOT NULL,
+                    side TEXT NOT NULL CHECK (side IN ('UP','DOWN','NEUTRAL')),
+                    proposal_id TEXT NOT NULL,
+                    buy_price_cents INTEGER NOT NULL,
+                    payout_cents INTEGER NOT NULL,
+                    sell_price_cents INTEGER NOT NULL DEFAULT 0,
+                    profit_cents INTEGER NOT NULL DEFAULT 0,
+                    status TEXT NOT NULL CHECK (status IN ('open','won','lost','sold','expired','cancelled','unknown')),
+                    opened_utc TEXT NOT NULL,
+                    expected_expiry_utc TEXT NOT NULL,
+                    closed_utc TEXT,
+                    raw_hash TEXT NOT NULL,
+                    signal_close_utc TEXT,
+                    contract_family TEXT NOT NULL DEFAULT 'risefall',
+                    sell_ack_cents INTEGER DEFAULT NULL,
+                    account_mode TEXT NOT NULL DEFAULT 'demo',
+                    book_content_id TEXT DEFAULT NULL
+                )
+                """
+            )
+            conn.execute(
+                f"""
+                INSERT INTO sota_contracts_v2 (
+                    contract_id, signal_id, book_id, pair, horizon_minutes, side,
+                    proposal_id, buy_price_cents, payout_cents, sell_price_cents, profit_cents,
+                    status, opened_utc, expected_expiry_utc, closed_utc, raw_hash,
+                    signal_close_utc, contract_family, sell_ack_cents, account_mode, book_content_id
+                )
+                SELECT contract_id, signal_id, book_id, pair, horizon_minutes, side,
+                       proposal_id, buy_price_cents, payout_cents, sell_price_cents, profit_cents,
+                       status, opened_utc, expected_expiry_utc, closed_utc, raw_hash,
+                       {sig_close_expr}, {fam_expr}, {sack_expr}, {am_expr}, {bcid_expr}
+                FROM sota_contracts
+                """
+            )
+            conn.execute("DROP TABLE sota_contracts")
+            conn.execute("ALTER TABLE sota_contracts_v2 RENAME TO sota_contracts")
+
+        conn.execute("COMMIT")
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.execute("PRAGMA foreign_keys=ON")
+
+
 def connect_sota_queue(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path), timeout=5.0, isolation_level=None)
@@ -146,6 +291,7 @@ def connect_sota_queue(db_path: Path) -> sqlite3.Connection:
     conn.execute("PRAGMA synchronous=FULL")
     if mode != "wal":
         raise ExecutorError(f"SQLite journal_mode did not become WAL: {mode!r}")
+    _migrate_queue_schema_if_needed(conn)
     conn.executescript(
         """
         CREATE TABLE IF NOT EXISTS sota_signals (
@@ -153,7 +299,7 @@ def connect_sota_queue(db_path: Path) -> sqlite3.Connection:
             book_id TEXT NOT NULL,
             pair TEXT NOT NULL,
             horizon_minutes INTEGER NOT NULL,
-            side TEXT NOT NULL CHECK (side IN ('UP','DOWN')),
+            side TEXT NOT NULL CHECK (side IN ('UP','DOWN','NEUTRAL')),
             lane TEXT NOT NULL DEFAULT 'wall',
             offset_id INTEGER NOT NULL DEFAULT 0,
             signal_close_utc TEXT NOT NULL,
@@ -176,7 +322,7 @@ def connect_sota_queue(db_path: Path) -> sqlite3.Connection:
             book_id TEXT NOT NULL,
             pair TEXT NOT NULL,
             horizon_minutes INTEGER NOT NULL,
-            side TEXT NOT NULL CHECK (side IN ('UP','DOWN')),
+            side TEXT NOT NULL CHECK (side IN ('UP','DOWN','NEUTRAL')),
             proposal_id TEXT NOT NULL,
             buy_price_cents INTEGER NOT NULL,
             payout_cents INTEGER NOT NULL,
@@ -187,7 +333,11 @@ def connect_sota_queue(db_path: Path) -> sqlite3.Connection:
             expected_expiry_utc TEXT NOT NULL,
             closed_utc TEXT,
             raw_hash TEXT NOT NULL,
-            signal_close_utc TEXT
+            signal_close_utc TEXT,
+            contract_family TEXT NOT NULL DEFAULT 'risefall',
+            sell_ack_cents INTEGER DEFAULT NULL,
+            account_mode TEXT NOT NULL DEFAULT 'demo',
+            book_content_id TEXT DEFAULT NULL
         );
 
         CREATE TABLE IF NOT EXISTS sota_risk_state (
@@ -197,9 +347,6 @@ def connect_sota_queue(db_path: Path) -> sqlite3.Connection:
         );
         """
     )
-    cols = {str(r["name"]) for r in conn.execute("PRAGMA table_info(sota_contracts)").fetchall()}
-    if "signal_close_utc" not in cols:
-        conn.execute("ALTER TABLE sota_contracts ADD COLUMN signal_close_utc TEXT")
     return conn
 
 
@@ -221,13 +368,18 @@ def enqueue_sota_signal(conn: sqlite3.Connection, signal: dict[str, Any]) -> tup
     now = utc_iso()
     conn.execute("BEGIN IMMEDIATE")
     try:
+        exists = conn.execute("SELECT 1 FROM sota_signals WHERE signal_id=?", (sid,)).fetchone()
+        if exists is not None:
+            conn.execute("COMMIT")
+            return False, sid
         cur = conn.execute(
             """
-            INSERT OR IGNORE INTO sota_signals (
+            INSERT INTO sota_signals (
                 signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
                 signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
                 status, created_utc, updated_utc
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'queued', ?, ?)
+            ON CONFLICT(pair, horizon_minutes, side, lane, offset_id, signal_close_utc) DO NOTHING
             """,
             (
                 sid,
@@ -260,6 +412,7 @@ class RiskBreakerConfig:
     max_open_contracts: int = 4
     max_usd_factor_open: int = 2
     max_jpy_factor_open: int = 2
+    max_vol_pair_open: int = 1
     same_book_min_gap_seconds: int = 900
 
 
@@ -332,6 +485,10 @@ def check_risk_and_exposure(
         return "max_usd_factor_open_reached"
     if cfg.max_jpy_factor_open > 0 and "JPY" in want_legs and leg_counts.get("JPY", 0) >= cfg.max_jpy_factor_open:
         return "max_jpy_factor_open_reached"
+    if cfg.max_vol_pair_open > 0:
+        for ccy in want_legs:
+            if ccy.startswith("VOL_") and leg_counts.get(ccy, 0) >= cfg.max_vol_pair_open:
+                return "max_vol_pair_open_reached"
 
     # 2. Check persisted daily realized loss + worst-case open stake at risk
     day_prefix = now.strftime("%Y-%m-%d")
@@ -429,7 +586,11 @@ class SotaTradeExecutor:
             return
 
         if self.transport_kind == "v3_authorize":
-            auth_resp = await self.client.request({"authorize": self.env.pat}, timeout=10.0)
+            try:
+                auth_resp = await self.client.request({"authorize": self.env.pat}, timeout=10.0)
+            except Exception as exc:
+                safe_msg = str(exc).replace(self.env.pat, "[REDACTED_PAT]") if self.env.pat else str(exc)
+                raise ExecutorError(f"v3_authorize request failed: {safe_msg}") from None
             auth_info = auth_resp.get("authorize") or {}
             loginid = str(auth_info.get("loginid") or "").strip()
             ccy = str(auth_info.get("currency") or "").strip().upper()
@@ -486,6 +647,7 @@ class SotaTradeExecutor:
         *,
         now_utc: datetime | None = None,
     ) -> dict[str, Any]:
+        mono_start = time.monotonic()
         now = (now_utc or utc_now()).astimezone(timezone.utc)
         pre_reason = self.pre_proposal_gate(payload, now_utc=now)
         if pre_reason is not None:
@@ -522,18 +684,68 @@ class SotaTradeExecutor:
         side = str(payload["side"]).upper()
         horizon = int(payload["horizon_minutes"])
         family = str(payload.get("contract_family", "risefall"))
-        ctype = contract_type_for(side, family=family)
-        sym_key = "symbol" if self.transport_kind == "v3_authorize" else "underlying_symbol"
-        prop_req = {
-            "proposal": 1,
-            "amount": float(self.stake_usd),
-            "basis": "stake",
-            "contract_type": ctype,
-            "currency": "USD",
-            "duration": horizon,
-            "duration_unit": "m",
-            sym_key: SOTA_DERIV_SYMBOLS[pair],
-        }
+        bct = payload.get("barrier_contract_type")
+        try:
+            ctype = contract_type_for(side, family=family, barrier_contract_type=bct)
+            sym_key = "symbol" if self.transport_kind == "v3_authorize" else "underlying_symbol"
+            if family == "multiplier":
+                raw_mult = payload.get("multiplier")
+                if isinstance(raw_mult, bool) or raw_mult is None or int(raw_mult) < 1:
+                    raise ExecutorError(f"invalid multiplier {raw_mult!r}")
+                mult = int(raw_mult)
+                prop_req: dict[str, Any] = {
+                    "proposal": 1,
+                    "amount": float(self.stake_usd),
+                    "basis": "stake",
+                    "contract_type": ctype,
+                    "currency": "USD",
+                    "multiplier": mult,
+                    sym_key: SOTA_DERIV_SYMBOLS[pair],
+                }
+            elif family == "barrier_1d":
+                if horizon != 1440:
+                    raise ExecutorError(f"barrier_1d requires horizon_minutes=1440, got {horizon}")
+                if payload.get("spot_ref") is None or payload.get("barrier_rel_half_width") is None:
+                    raise ExecutorError("barrier_1d requires spot_ref and barrier_rel_half_width")
+                hi_str, lo_str = format_barrier_levels(
+                    pair,
+                    float(payload["spot_ref"]),
+                    float(payload["barrier_rel_half_width"]),
+                    ctype,
+                    side=side,
+                )
+                prop_req = {
+                    "proposal": 1,
+                    "amount": float(self.stake_usd),
+                    "basis": "stake",
+                    "contract_type": ctype,
+                    "currency": "USD",
+                    "duration": 1,
+                    "duration_unit": "d",
+                    "barrier": hi_str,
+                    sym_key: SOTA_DERIV_SYMBOLS[pair],
+                }
+                if lo_str is not None:
+                    prop_req["barrier2"] = lo_str
+            else:
+                prop_req = {
+                    "proposal": 1,
+                    "amount": float(self.stake_usd),
+                    "basis": "stake",
+                    "contract_type": ctype,
+                    "currency": "USD",
+                    "duration": horizon,
+                    "duration_unit": "m",
+                    sym_key: SOTA_DERIV_SYMBOLS[pair],
+                }
+        except Exception as exc:
+            conn.execute(
+                "UPDATE sota_signals SET status='terminal_skip', reason='invalid_family_payload', updated_utc=? WHERE signal_id=?",
+                (utc_iso(now), signal_id),
+            )
+            self.logger.write("invalid_family_payload", **{**payload, "signal_id": signal_id, "error": str(exc)[:240]})
+            return {"signal_id": signal_id, "status": "terminal_skip", "reason": "invalid_family_payload"}
+
         try:
             prop_resp = await self.client.request(prop_req, timeout=4.0)
         except Exception as exc:
@@ -545,37 +757,77 @@ class SotaTradeExecutor:
             return {"signal_id": signal_id, "status": "terminal_skip", "reason": "proposal_failed"}
 
         prop = prop_resp.get("proposal") or {}
-        decision: SotaPayoutDecision = evaluate_sota_payout_gate(
-            prop,
-            effective_floor=float(payload["effective_floor"]),
-            absolute_breakeven_ceiling=self.absolute_breakeven_ceiling,
-            calibrated_win_prob=payload.get("calibrated_win_prob"),
-            ev_margin=self.ev_margin,
-            min_payout_ratio=payload.get("min_payout_ratio"),
-        )
-        self.logger.write(
-            "payout_gate_decision",
-            **{
-                **payload,
-                "signal_id": signal_id,
-                "passed": decision.passed,
-                "reason": decision.reason,
-                "ask": decision.ask,
-                "payout": decision.payout,
-                "payout_ratio": decision.payout_ratio,
-                "live_breakeven": decision.live_breakeven,
-                "net_floor_edge": decision.net_floor_edge,
-                "calibrated_win_prob": decision.calibrated_win_prob,
-                "calibrated_ev": decision.calibrated_ev,
-                "dry_run": self.dry_run_proposal_only,
-            },
-        )
-        if not decision.passed:
-            conn.execute(
-                "UPDATE sota_signals SET status='terminal_skip', reason=?, updated_utc=? WHERE signal_id=?",
-                (decision.reason, utc_iso(now), signal_id),
+        if family == "multiplier":
+            cert_cf = payload.get("certified_commission_frac")
+            m_dec: SotaMultiplierDecision = evaluate_sota_multiplier_gate(
+                prop,
+                expected_ev=payload.get("expected_ev"),
+                side=side,
+                ev_margin=self.ev_margin,
+                certified_commission_frac=float(cert_cf) if cert_cf is not None else None,
+                max_commission_frac=float(payload.get("max_commission_frac", 0.20)),
+                min_stop_out_rel_dist=float(payload.get("min_stop_out_rel_dist", 0.0008)),
             )
-            return {"signal_id": signal_id, "status": "terminal_skip", "reason": decision.reason}
+            self.logger.write(
+                "multiplier_gate_decision",
+                **{
+                    **payload,
+                    "signal_id": signal_id,
+                    "passed": m_dec.passed,
+                    "reason": m_dec.reason,
+                    "ask": m_dec.ask,
+                    "commission": m_dec.commission,
+                    "commission_frac_stake": m_dec.commission_frac_stake,
+                    "stop_out": m_dec.stop_out,
+                    "stop_out_rel_dist": m_dec.stop_out_rel_dist,
+                    "expected_ev": m_dec.expected_ev,
+                    "dry_run": self.dry_run_proposal_only,
+                },
+            )
+            if not m_dec.passed:
+                conn.execute(
+                    "UPDATE sota_signals SET status='terminal_skip', reason=?, updated_utc=? WHERE signal_id=?",
+                    (m_dec.reason, utc_iso(now), signal_id),
+                )
+                return {"signal_id": signal_id, "status": "terminal_skip", "reason": m_dec.reason}
+            ask_approved = m_dec.ask
+            payout_approved: float | None = 0.0
+            cal_ev_logged = m_dec.expected_ev
+        else:
+            decision: SotaPayoutDecision = evaluate_sota_payout_gate(
+                prop,
+                effective_floor=float(payload["effective_floor"]),
+                absolute_breakeven_ceiling=self.absolute_breakeven_ceiling,
+                calibrated_win_prob=payload.get("calibrated_win_prob"),
+                ev_margin=self.ev_margin,
+                min_payout_ratio=payload.get("min_payout_ratio"),
+            )
+            self.logger.write(
+                "payout_gate_decision",
+                **{
+                    **payload,
+                    "signal_id": signal_id,
+                    "passed": decision.passed,
+                    "reason": decision.reason,
+                    "ask": decision.ask,
+                    "payout": decision.payout,
+                    "payout_ratio": decision.payout_ratio,
+                    "live_breakeven": decision.live_breakeven,
+                    "net_floor_edge": decision.net_floor_edge,
+                    "calibrated_win_prob": decision.calibrated_win_prob,
+                    "calibrated_ev": decision.calibrated_ev,
+                    "dry_run": self.dry_run_proposal_only,
+                },
+            )
+            if not decision.passed:
+                conn.execute(
+                    "UPDATE sota_signals SET status='terminal_skip', reason=?, updated_utc=? WHERE signal_id=?",
+                    (decision.reason, utc_iso(now), signal_id),
+                )
+                return {"signal_id": signal_id, "status": "terminal_skip", "reason": decision.reason}
+            ask_approved = decision.ask
+            payout_approved = decision.payout
+            cal_ev_logged = decision.calibrated_ev
 
         proposal_id = prop.get("id")
         if not proposal_id:
@@ -592,17 +844,58 @@ class SotaTradeExecutor:
             )
             return {"signal_id": signal_id, "status": "terminal_skip", "reason": "dry_run_proposal_passed"}
 
-        assert decision.ask is not None and decision.payout is not None
+        assert ask_approved is not None and payout_approved is not None
+        post_now = (
+            self._post_quote_clock_fn().astimezone(timezone.utc)
+            if getattr(self, "_post_quote_clock_fn", None) is not None
+            else (
+                utc_now().astimezone(timezone.utc)
+                if now_utc is None
+                else (now + timedelta(seconds=max(0.0, time.monotonic() - mono_start)))
+            )
+        )
+        post_pre_reason = self.pre_proposal_gate(payload, now_utc=post_now)
+        if post_pre_reason is not None:
+            status = "signal_expired" if post_pre_reason == "signal_expired" else "terminal_skip"
+            conn.execute(
+                "UPDATE sota_signals SET status=?, reason=?, updated_utc=? WHERE signal_id=?",
+                (status, post_pre_reason, utc_iso(post_now), signal_id),
+            )
+            self.logger.write("signal_rejected_post_quote", **{**payload, "signal_id": signal_id, "reason": post_pre_reason})
+            return {"signal_id": signal_id, "status": status, "reason": post_pre_reason}
+
+        post_quote_risk = check_risk_and_exposure(
+            conn,
+            book_id=str(payload["book_id"]),
+            pair=pair,
+            horizon_minutes=horizon,
+            side=side,
+            stake_usd=float(ask_approved),
+            cfg=self.risk_cfg,
+            now_utc=post_now,
+            signal_close_utc=str(payload["signal_close_utc"]),
+        )
+        if post_quote_risk is not None:
+            conn.execute(
+                "UPDATE sota_signals SET status='buy_blocked_risk', reason=?, updated_utc=? WHERE signal_id=?",
+                (post_quote_risk, utc_iso(post_now), signal_id),
+            )
+            self.logger.write("quote_ask_blocked_risk", **{**payload, "signal_id": signal_id, "ask": ask_approved, "reason": post_quote_risk})
+            return {"signal_id": signal_id, "status": "buy_blocked_risk", "reason": post_quote_risk}
+
         conn.execute(
             "UPDATE sota_signals SET status='buy_intent', reason=?, updated_utc=? WHERE signal_id=?",
-            (f"proposal_id:{proposal_id}", utc_iso(now), signal_id),
+            (f"proposal_id:{proposal_id}", utc_iso(post_now), signal_id),
         )
         try:
-            buy_resp = await self.client.request({"buy": str(proposal_id), "price": float(decision.ask)}, timeout=5.0)
+            buy_resp = await self.client.request(
+                {"buy": str(proposal_id), "price": float(ask_approved), "passthrough": {"sota_signal_id": signal_id}},
+                timeout=5.0,
+            )
         except Exception as exc:
             conn.execute(
-                "UPDATE sota_signals SET status='buy_unknown', reason='buy_transport_uncertain', updated_utc=? WHERE signal_id=?",
-                (utc_iso(now), signal_id),
+                "UPDATE sota_signals SET status='buy_unknown', reason=?, updated_utc=? WHERE signal_id=?",
+                (f"proposal_id:{proposal_id}|buy_transport_uncertain", utc_iso(post_now), signal_id),
             )
             self.logger.write("buy_unknown", **{**payload, "signal_id": signal_id, "proposal_id": str(proposal_id), "error": str(exc)[:240]})
             return {"signal_id": signal_id, "status": "buy_unknown", "reason": "buy_transport_uncertain"}
@@ -611,15 +904,23 @@ class SotaTradeExecutor:
         contract_id = buy_obj.get("contract_id")
         if not contract_id:
             conn.execute(
-                "UPDATE sota_signals SET status='buy_unknown', reason='missing_contract_id', updated_utc=? WHERE signal_id=?",
-                (utc_iso(now), signal_id),
+                "UPDATE sota_signals SET status='buy_unknown', reason=?, updated_utc=? WHERE signal_id=?",
+                (f"proposal_id:{proposal_id}|missing_contract_id", utc_iso(post_now), signal_id),
             )
             return {"signal_id": signal_id, "status": "buy_unknown", "reason": "missing_contract_id"}
 
-        buy_price = finite_positive_number(buy_obj.get("buy_price")) or float(decision.ask)
-        payout_val = finite_positive_number(buy_obj.get("payout")) or float(decision.payout)
-        exp_utc = utc_iso(now + timedelta(minutes=horizon))
+        buy_price = finite_positive_number(buy_obj.get("buy_price")) or float(ask_approved)
+        payout_val = 0.0 if family == "multiplier" else (finite_positive_number(buy_obj.get("payout")) or float(payout_approved))
+        fallback_start = int(post_now.timestamp())
+        start_ep = _safe_int_epoch(buy_obj.get("start_time"), _safe_int_epoch(buy_obj.get("date_start"), fallback_start))
+        exp_ep = (
+            start_ep + horizon * 60
+            if family == "multiplier"
+            else _safe_int_epoch(buy_obj.get("expiry_time"), start_ep + horizon * 60)
+        )
+        exp_utc = datetime.fromtimestamp(exp_ep, tz=timezone.utc).isoformat()
         sig_close = str(payload["signal_close_utc"])
+        book_cid_opt = str(payload["book_content_id"]) if payload.get("book_content_id") else None
         conn.execute("BEGIN IMMEDIATE")
         try:
             conn.execute(
@@ -627,8 +928,9 @@ class SotaTradeExecutor:
                 INSERT INTO sota_contracts (
                     contract_id, signal_id, book_id, pair, horizon_minutes, side,
                     proposal_id, buy_price_cents, payout_cents, status,
-                    opened_utc, expected_expiry_utc, raw_hash, signal_close_utc
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?)
+                    opened_utc, expected_expiry_utc, raw_hash, signal_close_utc, contract_family,
+                    account_mode, book_content_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     str(contract_id),
@@ -640,15 +942,18 @@ class SotaTradeExecutor:
                     str(proposal_id),
                     int(round(buy_price * 100)),
                     int(round(payout_val * 100)),
-                    utc_iso(now),
+                    utc_iso(post_now),
                     exp_utc,
                     raw_hash(buy_resp),
                     sig_close,
+                    family,
+                    self.account_mode,
+                    book_cid_opt,
                 ),
             )
             conn.execute(
                 "UPDATE sota_signals SET status='bought', reason='buy_confirmed', updated_utc=? WHERE signal_id=?",
-                (utc_iso(now), signal_id),
+                (utc_iso(post_now), signal_id),
             )
             conn.execute("COMMIT")
         except Exception:
@@ -663,7 +968,7 @@ class SotaTradeExecutor:
                 "contract_id": str(contract_id),
                 "buy_price": buy_price,
                 "payout": payout_val,
-                "calibrated_ev": decision.calibrated_ev,
+                "calibrated_ev": cal_ev_logged,
                 "account_mode": self.account_mode,
             },
         )
@@ -687,7 +992,10 @@ class SotaTradeExecutor:
             contracts = (port_resp.get("portfolio") or {}).get("contracts") or []
         except Exception as exc:
             self.logger.write("portfolio_reconcile_error", error=str(exc)[:240])
-            return len(uncertain)
+            contracts = []
+
+        owned_cids = {str(r[0]) for r in conn.execute("SELECT contract_id FROM sota_contracts").fetchall()}
+        stmt_txs: list[dict[str, Any]] | None = None
 
         for row in uncertain:
             sid = str(row["signal_id"])
@@ -696,32 +1004,75 @@ class SotaTradeExecutor:
             side = str(row["side"]).upper()
             sig_dt = _parse_iso_utc(str(row["signal_close_utc"])) or now
             payload = json.loads(str(row["payload_json"]))
+            family = str(payload.get("contract_family", "risefall"))
+            want_mult = int(payload["multiplier"]) if (family == "multiplier" and payload.get("multiplier") is not None) else None
             want_sym = SOTA_DERIV_SYMBOLS[pair]
-            want_ctype = contract_type_for(side, family=str(payload.get("contract_family", "risefall")))
+            want_ctype = contract_type_for(
+                side,
+                family=family,
+                barrier_contract_type=payload.get("barrier_contract_type"),
+            )
+            reason_str = str(row["reason"] or "")
+            want_prop_id = reason_str.split("|", 1)[0][len("proposal_id:"):] if reason_str.startswith("proposal_id:") else ""
             matched_c: dict[str, Any] | None = None
             for c in contracts:
-                c_sym = str(c.get("symbol") or c.get("underlying_symbol") or "")
-                c_type = str(c.get("contract_type") or "")
-                dstart = int(c.get("date_start") or 0)
-                if c_sym == want_sym and c_type == want_ctype and abs(dstart - int(sig_dt.timestamp())) <= 90:
+                cid_cand = str(c.get("contract_id") or "")
+                if not cid_cand or cid_cand in owned_cids:
+                    continue
+                pt_obj = c.get("passthrough") if isinstance(c.get("passthrough"), dict) else {}
+                c_prop = str(c.get("proposal_id") or "")
+                # Require explicit correlated buy identity (`sota_signal_id` or exact `proposal_id`), NEVER ±90s proximity!
+                if pt_obj.get("sota_signal_id") == sid or (want_prop_id and c_prop == want_prop_id):
                     matched_c = c
                     break
+
+            if matched_c is None:
+                if stmt_txs is None:
+                    try:
+                        st_resp = await self.client.request({"statement": 1, "description": 1, "limit": 25}, timeout=6.0)
+                        stmt_txs = ((st_resp.get("statement") or {}).get("transactions")) or []
+                    except Exception:
+                        stmt_txs = []
+                for tx in stmt_txs:
+                    if str(tx.get("action_type") or "").lower() != "buy":
+                        continue
+                    cid_tx = str(tx.get("contract_id") or "")
+                    if not cid_tx or cid_tx in owned_cids:
+                        continue
+                    pt_tx = tx.get("passthrough") if isinstance(tx.get("passthrough"), dict) else {}
+                    tx_prop = str(tx.get("proposal_id") or "")
+                    if pt_tx.get("sota_signal_id") == sid or (want_prop_id and tx_prop == want_prop_id):
+                        matched_c = {
+                            "contract_id": cid_tx,
+                            "buy_price": abs(float(tx.get("amount") or self.stake_usd)),
+                            "payout": tx.get("payout"),
+                            "date_start": _safe_int_epoch(tx.get("transaction_time"), int(sig_dt.timestamp())),
+                        }
+                        break
 
             if matched_c is not None and matched_c.get("contract_id"):
                 cid = str(matched_c["contract_id"])
                 bp = finite_positive_number(matched_c.get("buy_price")) or self.stake_usd
-                po = finite_positive_number(matched_c.get("payout")) or round(bp * 1.80, 2)
-                exp_epoch = int(matched_c.get("expiry_time") or (int(sig_dt.timestamp()) + horizon * 60))
+                po = 0.0 if family == "multiplier" else (finite_positive_number(matched_c.get("payout")) or round(bp * 1.80, 2))
+                dstart_ep = _safe_int_epoch(matched_c.get("date_start"), int(sig_dt.timestamp()))
+                exp_epoch = (
+                    dstart_ep + horizon * 60
+                    if family == "multiplier"
+                    else _safe_int_epoch(matched_c.get("expiry_time"), dstart_ep + horizon * 60)
+                )
                 exp_iso = datetime.fromtimestamp(exp_epoch, tz=timezone.utc).isoformat()
+                book_cid_rec = str(payload["book_content_id"]) if payload.get("book_content_id") else None
                 conn.execute("BEGIN IMMEDIATE")
                 try:
-                    conn.execute(
+                    cur = conn.execute(
                         """
-                        INSERT OR IGNORE INTO sota_contracts (
+                        INSERT INTO sota_contracts (
                             contract_id, signal_id, book_id, pair, horizon_minutes, side,
                             proposal_id, buy_price_cents, payout_cents, status,
-                            opened_utc, expected_expiry_utc, raw_hash, signal_close_utc
-                        ) VALUES (?, ?, ?, ?, ?, ?, 'recovered_portfolio', ?, ?, 'open', ?, ?, ?, ?)
+                            opened_utc, expected_expiry_utc, raw_hash, signal_close_utc, contract_family,
+                            account_mode, book_content_id
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(contract_id) DO NOTHING
                         """,
                         (
                             cid,
@@ -730,23 +1081,33 @@ class SotaTradeExecutor:
                             pair,
                             horizon,
                             side,
+                            want_prop_id or "recovered_verified",
                             int(round(bp * 100)),
                             int(round(po * 100)),
                             utc_iso(now),
                             exp_iso,
                             raw_hash(matched_c),
                             str(row["signal_close_utc"]),
+                            family,
+                            self.account_mode,
+                            book_cid_rec,
                         ),
                     )
-                    conn.execute(
-                        "UPDATE sota_signals SET status='bought', reason='recovered_from_portfolio', updated_utc=? WHERE signal_id=?",
-                        (utc_iso(now), sid),
-                    )
-                    conn.execute("COMMIT")
+                    if cur.rowcount == 1:
+                        conn.execute(
+                            "UPDATE sota_signals SET status='bought', reason='recovered_from_portfolio', updated_utc=? WHERE signal_id=?",
+                            (utc_iso(now), sid),
+                        )
+                        owned_cids.add(cid)
+                        conn.execute("COMMIT")
+                        self.logger.write("buy_unknown_recovered", signal_id=sid, contract_id=cid)
+                    else:
+                        conn.execute("ROLLBACK")
+                        errors += 1
+                        self.logger.write("buy_unknown_recovery_conflict", signal_id=sid, contract_id=cid)
                 except Exception:
                     conn.execute("ROLLBACK")
                     raise
-                self.logger.write("buy_unknown_recovered", signal_id=sid, contract_id=cid)
             else:
                 errors += 1
                 self.logger.write("buy_unknown_unmatched", signal_id=sid, pair=pair, horizon_minutes=horizon)
@@ -759,7 +1120,7 @@ class SotaTradeExecutor:
         errors = await self._reconcile_uncertain_signals(conn, now)
 
         open_rows = conn.execute(
-            "SELECT contract_id, buy_price_cents, expected_expiry_utc FROM sota_contracts WHERE status = 'open'"
+            "SELECT contract_id, buy_price_cents, payout_cents, sell_price_cents, sell_ack_cents, expected_expiry_utc, contract_family FROM sota_contracts WHERE status = 'open'"
         ).fetchall()
         if not open_rows and errors == 0:
             self.consecutive_reconcile_errors = 0
@@ -767,14 +1128,53 @@ class SotaTradeExecutor:
 
         for row in open_rows:
             cid = str(row["contract_id"])
+            wire_cid = _wire_contract_id(cid)
+            family = str(row["contract_family"] or "risefall")
+            sold_for_cents: int | None = int(row["sell_ack_cents"]) if row["sell_ack_cents"] is not None else None
             try:
-                resp = await self.client.request({"proposal_open_contract": 1, "contract_id": cid}, timeout=6.0)
+                resp = await self.client.request({"proposal_open_contract": 1, "contract_id": wire_cid}, timeout=6.0)
                 poc = resp.get("proposal_open_contract") or {}
                 status_raw = str(poc.get("status") or "open").lower()
-                is_terminal = bool(poc.get("is_sold")) or status_raw in TERMINAL_CONTRACT_STATUSES
-                if is_terminal:
+                is_terminal = (poc.get("is_sold") in {1, True, "1"}) or (status_raw in TERMINAL_CONTRACT_STATUSES)
+                exp_dt = _parse_iso_utc(str(row["expected_expiry_utc"]))
+                # Timed horizon `sell` for open-ended Multipliers (`contract_family == 'multiplier'`) once horizon elapses!
+                # Never re-issue `sell` once `sell_ack_cents` has been persisted!
+                if (
+                    not is_terminal
+                    and sold_for_cents is None
+                    and not self.dry_run_proposal_only
+                    and family == "multiplier"
+                    and exp_dt is not None
+                    and now >= exp_dt
+                ):
+                    if poc.get("is_valid_to_sell") in {1, True, "1"}:
+                        sell_resp = await self.client.request({"sell": wire_cid, "price": 0}, timeout=6.0)
+                        sell_obj = sell_resp.get("sell") or {}
+                        if "sold_for" in sell_obj and sell_obj["sold_for"] is not None:
+                            sold_for_cents = int(round(float(sell_obj["sold_for"]) * 100))
+                            conn.execute(
+                                "UPDATE sota_contracts SET sell_ack_cents=?, sell_price_cents=? WHERE contract_id=? AND status='open'",
+                                (sold_for_cents, sold_for_cents, cid),
+                            )
+                            self.logger.write("multiplier_timed_sell_sent", contract_id=cid, sold_for=sold_for_cents / 100.0)
+                            resp = await self.client.request({"proposal_open_contract": 1, "contract_id": wire_cid}, timeout=6.0)
+                            poc = resp.get("proposal_open_contract") or {}
+                            status_raw = str(poc.get("status") or "open").lower()
+                            is_terminal = (poc.get("is_sold") in {1, True, "1"}) or (status_raw in TERMINAL_CONTRACT_STATUSES)
+
+                has_authoritative_money = (
+                    poc.get("profit") is not None
+                    or poc.get("sell_price") is not None
+                    or (is_terminal and sold_for_cents is not None)
+                )
+                if is_terminal and has_authoritative_money:
                     raw_sp = poc.get("sell_price")
-                    sell_cents = int(round(float(raw_sp) * 100)) if raw_sp is not None else 0
+                    if raw_sp is not None:
+                        sell_cents = int(round(float(raw_sp) * 100))
+                    elif sold_for_cents is not None:
+                        sell_cents = sold_for_cents
+                    else:
+                        sell_cents = 0
                     buy_cents = int(row["buy_price_cents"])
                     raw_pf = poc.get("profit")
                     profit_cents = (
@@ -809,7 +1209,6 @@ class SotaTradeExecutor:
                         raise
                     self.logger.write("contract_settled", contract_id=cid, status=final_st, profit_usd=profit_cents / 100.0)
                 else:
-                    exp_dt = _parse_iso_utc(str(row["expected_expiry_utc"]))
                     if exp_dt is not None and (now - exp_dt).total_seconds() > OVERDUE_OPEN_GRACE_S:
                         errors += 1
                         self.logger.write("contract_overdue_open", contract_id=cid, expected_expiry_utc=str(row["expected_expiry_utc"]))
@@ -826,7 +1225,8 @@ class SotaTradeExecutor:
 
 
 async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
-    books = load_enabled_sota_books(account_mode=args.account_mode)
+    req_book_ids = parse_book_ids_spec(getattr(args, "book_ids", None))
+    books = load_enabled_sota_books(account_mode=args.account_mode, book_ids=req_book_ids)
     if not books:
         print("FAIL-CLOSED: 0 certified SOTA books registered in books/SOTA_INDEX.json for account_mode=" + args.account_mode)
         return 2
@@ -867,14 +1267,22 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
         fresh_url, _ = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
         return fresh_url
 
+    async def _async_public_ws_url() -> str:
+        assert_non_us_deriv_host()
+        return PUBLIC_WS_URL
+
     with ExecutorLock(lock_root, lock_key, executor.logger):
         conn = connect_sota_queue(db_path)
         from contextlib import AsyncExitStack
         async with AsyncExitStack() as stack:
+            if not external_ticks:
+                assert_non_us_deriv_host()
             pub_client = (
                 None
                 if external_ticks
-                else await stack.enter_async_context(DerivAsyncClient(PUBLIC_WS_URL, silence_timeout_s=45.0))
+                else await stack.enter_async_context(
+                    DerivAsyncClient(PUBLIC_WS_URL, silence_timeout_s=45.0, url_factory=_async_public_ws_url)
+                )
             )
             auth_client = await stack.enter_async_context(
                 DerivAsyncClient(
@@ -888,7 +1296,21 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
             subs = {}
             if not external_ticks:
                 assert pub_client is not None
-                await tick_buf.warmup_from_public_ws(pub_client, lookback_hours=36)
+
+                async def _warmup_reconcile_bg() -> None:
+                    while True:
+                        await asyncio.sleep(5.0)
+                        await executor.reconcile_open_contracts(conn)
+
+                bg_rec = asyncio.create_task(_warmup_reconcile_bg())
+                try:
+                    await tick_buf.warmup_from_public_ws(pub_client, lookback_hours=36)
+                finally:
+                    bg_rec.cancel()
+                    try:
+                        await bg_rec
+                    except asyncio.CancelledError:
+                        pass
                 subs = {
                     p: await pub_client.subscribe({"ticks": SOTA_DERIV_SYMBOLS[p], "subscribe": 1})
                     for p in tick_buf.pairs
@@ -976,12 +1398,21 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
                                         "min_payout_ratio": book.min_payout_ratio,
                                         "drop_ny_16h": book.drop_ny_16h,
                                         "contract_family": book.contract_family,
+                                        "multiplier": book.multiplier,
+                                        "expected_ev": sc.expected_ev,
+                                        "certified_commission_frac": book.certified_commission_frac,
+                                        "max_commission_frac": book.max_commission_frac,
+                                        "min_stop_out_rel_dist": book.min_stop_out_rel_dist,
+                                        "barrier_contract_type": book.barrier_contract_type,
+                                        "barrier_rel_half_width": book.barrier_rel_half_width,
+                                        "spot_ref": frow.spot_ref,
+                                        "book_content_id": book.content_id,
                                     }
                                     inserted, sid = enqueue_sota_signal(conn, sig)
                                     if inserted:
                                         await executor.process_one_signal(conn, sid, sig)
-                            except SotaFeatureError as exc:
-                                executor.logger.write("feature_skip", book_id=book.book_id, pair=book.pair, reason=str(exc))
+                            except (SotaFeatureError, SotaBookError) as exc:
+                                executor.logger.write("feature_or_book_skip", book_id=book.book_id, pair=book.pair, reason=str(exc))
 
                         if not external_ticks:
                             tick_buf.persist_snapshot(minute_boundary_epoch=minute_close)
@@ -999,6 +1430,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--account-mode", choices=("demo", "live"), default=os.environ.get("DERIV_ACCOUNT_MODE", "demo"))
+    ap.add_argument(
+        "--book-ids",
+        default=os.environ.get("DERIV_SOTA_BOOK_IDS", ""),
+        help="Optional comma-separated subset of certified SOTA book IDs in priority order (default: all eligible).",
+    )
     ap.add_argument(
         "--tick-feed-mode",
         choices=("integrated", "external"),

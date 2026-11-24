@@ -1,0 +1,1084 @@
+{
+  "certified_count": 4,
+  "cutoff_utc": 1785542400,
+  "pairwise_all_certified": {
+    "daily_pnl_corr": {
+      "USDJPY.sota_e49nys30_m30_up.v1": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 1.0,
+        "USDJPY.sota_ens5_m15_up.v1": 0.2938,
+        "USDJPY.sota_ens5_m30_up.v1": 0.7007,
+        "USDJPY_m30_up_stack_cov05": 0.4957
+      },
+      "USDJPY.sota_ens5_m15_up.v1": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.2938,
+        "USDJPY.sota_ens5_m15_up.v1": 1.0,
+        "USDJPY.sota_ens5_m30_up.v1": 0.3141,
+        "USDJPY_m30_up_stack_cov05": 0.2877
+      },
+      "USDJPY.sota_ens5_m30_up.v1": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.7007,
+        "USDJPY.sota_ens5_m15_up.v1": 0.3141,
+        "USDJPY.sota_ens5_m30_up.v1": 1.0,
+        "USDJPY_m30_up_stack_cov05": 0.5297
+      },
+      "USDJPY_m30_up_stack_cov05": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.4957,
+        "USDJPY.sota_ens5_m15_up.v1": 0.2877,
+        "USDJPY.sota_ens5_m30_up.v1": 0.5297,
+        "USDJPY_m30_up_stack_cov05": 1.0
+      }
+    },
+    "window_coincidence_rate": {
+      "USDJPY.sota_e49nys30_m30_up.v1": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 1.0,
+        "USDJPY.sota_ens5_m15_up.v1": 0.5493,
+        "USDJPY.sota_ens5_m30_up.v1": 0.904,
+        "USDJPY_m30_up_stack_cov05": 0.8547
+      },
+      "USDJPY.sota_ens5_m15_up.v1": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.8041,
+        "USDJPY.sota_ens5_m15_up.v1": 1.0,
+        "USDJPY.sota_ens5_m30_up.v1": 0.8026,
+        "USDJPY_m30_up_stack_cov05": 0.8139
+      },
+      "USDJPY.sota_ens5_m30_up.v1": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.9387,
+        "USDJPY.sota_ens5_m15_up.v1": 0.5665,
+        "USDJPY.sota_ens5_m30_up.v1": 1.0,
+        "USDJPY_m30_up_stack_cov05": 0.8911
+      },
+      "USDJPY_m30_up_stack_cov05": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.7571,
+        "USDJPY.sota_ens5_m15_up.v1": 0.4704,
+        "USDJPY.sota_ens5_m30_up.v1": 0.7645,
+        "USDJPY_m30_up_stack_cov05": 1.0
+      }
+    }
+  },
+  "pairwise_unique_horizon_portfolio": {
+    "daily_pnl_corr": {
+      "USDJPY.sota_ens5_m15_up.v1": {
+        "USDJPY.sota_ens5_m15_up.v1": 1.0,
+        "USDJPY.sota_ens5_m30_up.v1": 0.3141
+      },
+      "USDJPY.sota_ens5_m30_up.v1": {
+        "USDJPY.sota_ens5_m15_up.v1": 0.3141,
+        "USDJPY.sota_ens5_m30_up.v1": 1.0
+      }
+    },
+    "window_coincidence_rate": {
+      "USDJPY.sota_ens5_m15_up.v1": {
+        "USDJPY.sota_ens5_m15_up.v1": 1.0,
+        "USDJPY.sota_ens5_m30_up.v1": 0.8026
+      },
+      "USDJPY.sota_ens5_m30_up.v1": {
+        "USDJPY.sota_ens5_m15_up.v1": 0.5665,
+        "USDJPY.sota_ens5_m30_up.v1": 1.0
+      }
+    }
+  },
+  "portfolio_all_certified_with_arbitration": {
+    "annual_floor_flat_10usd_stake_pnl": 320.29,
+    "annual_floor_log_growth_p10": 0.655464,
+    "annual_floor_net_usd_per_1000_bankroll_p10": 926.04,
+    "annual_geom_net_usd_per_1000_bankroll": 2375.65,
+    "annual_mean_flat_10usd_stake_pnl": 644.82,
+    "annual_mean_log_growth": 1.216587,
+    "annual_mean_net_usd_per_1000_bankroll_arith": 3104.3,
+    "caps": {
+      "max_jpy_factor_open": 2,
+      "max_open_contracts": 4,
+      "max_usd_factor_open": 2,
+      "max_vol_pair_open": 1,
+      "same_book_min_gap_seconds": 900
+    },
+    "est_blocked_signals_per_year": 643,
+    "est_portfolio_trades_per_year": 690,
+    "max_cpcv_portfolio_dd_frac": 0.29692,
+    "p90_cpcv_portfolio_dd_frac": 0.2486,
+    "paths": [
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 21,
+          "USDJPY.sota_ens5_m15_up.v1": 39,
+          "USDJPY.sota_ens5_m30_up.v1": 14,
+          "USDJPY_m30_up_stack_cov05": 37
+        },
+        "accepted_trades": 111,
+        "annual_log_growth_path": 1.541651,
+        "annual_net_usd_per_1000_path": 3672.3,
+        "blocked_by_caps": 89,
+        "ending_bankroll_from_1000": 1647.84,
+        "log_growth_path": 0.499462,
+        "max_dd_frac": 0.09109,
+        "net_pnl_at_10usd_flat": 262.31,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          1
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 21,
+          "USDJPY.sota_ens5_m15_up.v1": 26,
+          "USDJPY.sota_ens5_m30_up.v1": 13,
+          "USDJPY_m30_up_stack_cov05": 40
+        },
+        "accepted_trades": 100,
+        "annual_log_growth_path": 0.997177,
+        "annual_net_usd_per_1000_path": 1710.62,
+        "blocked_by_caps": 101,
+        "ending_bankroll_from_1000": 1381.35,
+        "log_growth_path": 0.323064,
+        "max_dd_frac": 0.09749,
+        "net_pnl_at_10usd_flat": 175.6,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          2
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 26,
+          "USDJPY.sota_ens5_m15_up.v1": 24,
+          "USDJPY.sota_ens5_m30_up.v1": 8,
+          "USDJPY_m30_up_stack_cov05": 18
+        },
+        "accepted_trades": 76,
+        "annual_log_growth_path": 0.65418,
+        "annual_net_usd_per_1000_path": 923.57,
+        "blocked_by_caps": 73,
+        "ending_bankroll_from_1000": 1236.07,
+        "log_growth_path": 0.211941,
+        "max_dd_frac": 0.16973,
+        "net_pnl_at_10usd_flat": 107.5,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          3
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 8,
+          "USDJPY.sota_ens5_m15_up.v1": 21,
+          "USDJPY.sota_ens5_m30_up.v1": 15,
+          "USDJPY_m30_up_stack_cov05": 77
+        },
+        "accepted_trades": 121,
+        "annual_log_growth_path": 1.17572,
+        "annual_net_usd_per_1000_path": 2240.48,
+        "blocked_by_caps": 114,
+        "ending_bankroll_from_1000": 1463.61,
+        "log_growth_path": 0.380909,
+        "max_dd_frac": 0.11646,
+        "net_pnl_at_10usd_flat": 167.97,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 19,
+          "USDJPY.sota_ens5_m15_up.v1": 172,
+          "USDJPY.sota_ens5_m30_up.v1": 70,
+          "USDJPY_m30_up_stack_cov05": 208
+        },
+        "accepted_trades": 469,
+        "annual_log_growth_path": 2.712888,
+        "annual_net_usd_per_1000_path": 14072.75,
+        "blocked_by_caps": 503,
+        "ending_bankroll_from_1000": 2408.29,
+        "log_growth_path": 0.878919,
+        "max_dd_frac": 0.21582,
+        "net_pnl_at_10usd_flat": 364.19,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 42,
+          "USDJPY.sota_ens5_m15_up.v1": 64,
+          "USDJPY.sota_ens5_m30_up.v1": 36,
+          "USDJPY_m30_up_stack_cov05": 31
+        },
+        "accepted_trades": 173,
+        "annual_log_growth_path": 1.482053,
+        "annual_net_usd_per_1000_path": 3401.97,
+        "blocked_by_caps": 165,
+        "ending_bankroll_from_1000": 1616.32,
+        "log_growth_path": 0.480154,
+        "max_dd_frac": 0.15489,
+        "net_pnl_at_10usd_flat": 254.14,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          2
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 29,
+          "USDJPY.sota_ens5_m15_up.v1": 70,
+          "USDJPY.sota_ens5_m30_up.v1": 40,
+          "USDJPY_m30_up_stack_cov05": 74
+        },
+        "accepted_trades": 213,
+        "annual_log_growth_path": 0.921886,
+        "annual_net_usd_per_1000_path": 1514.03,
+        "blocked_by_caps": 195,
+        "ending_bankroll_from_1000": 1348.07,
+        "log_growth_path": 0.298672,
+        "max_dd_frac": 0.13241,
+        "net_pnl_at_10usd_flat": 109.81,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          3
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 14,
+          "USDJPY.sota_ens5_m15_up.v1": 97,
+          "USDJPY.sota_ens5_m30_up.v1": 73,
+          "USDJPY_m30_up_stack_cov05": 102
+        },
+        "accepted_trades": 286,
+        "annual_log_growth_path": 0.727525,
+        "annual_net_usd_per_1000_path": 1069.95,
+        "blocked_by_caps": 268,
+        "ending_bankroll_from_1000": 1265.8,
+        "log_growth_path": 0.235703,
+        "max_dd_frac": 0.2519,
+        "net_pnl_at_10usd_flat": 101.28,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 14,
+          "USDJPY.sota_ens5_m15_up.v1": 101,
+          "USDJPY.sota_ens5_m30_up.v1": 64,
+          "USDJPY_m30_up_stack_cov05": 158
+        },
+        "accepted_trades": 337,
+        "annual_log_growth_path": 1.042121,
+        "annual_net_usd_per_1000_path": 1835.22,
+        "blocked_by_caps": 347,
+        "ending_bankroll_from_1000": 1401.62,
+        "log_growth_path": 0.337625,
+        "max_dd_frac": 0.29692,
+        "net_pnl_at_10usd_flat": 243.0,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 31,
+          "USDJPY.sota_ens5_m15_up.v1": 54,
+          "USDJPY.sota_ens5_m30_up.v1": 30,
+          "USDJPY_m30_up_stack_cov05": 34
+        },
+        "accepted_trades": 149,
+        "annual_log_growth_path": 0.657389,
+        "annual_net_usd_per_1000_path": 929.75,
+        "blocked_by_caps": 131,
+        "ending_bankroll_from_1000": 1237.36,
+        "log_growth_path": 0.21298,
+        "max_dd_frac": 0.18428,
+        "net_pnl_at_10usd_flat": 134.06,
+        "path_years": 0.32397901,
+        "test_groups": [
+          2,
+          3
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 14,
+          "USDJPY.sota_ens5_m15_up.v1": 68,
+          "USDJPY.sota_ens5_m30_up.v1": 50,
+          "USDJPY_m30_up_stack_cov05": 62
+        },
+        "accepted_trades": 194,
+        "annual_log_growth_path": 1.960049,
+        "annual_net_usd_per_1000_path": 6099.67,
+        "blocked_by_caps": 150,
+        "ending_bankroll_from_1000": 1887.05,
+        "log_growth_path": 0.635015,
+        "max_dd_frac": 0.16841,
+        "net_pnl_at_10usd_flat": 334.91,
+        "path_years": 0.32397901,
+        "test_groups": [
+          2,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 25,
+          "USDJPY.sota_ens5_m15_up.v1": 170,
+          "USDJPY.sota_ens5_m30_up.v1": 55,
+          "USDJPY_m30_up_stack_cov05": 192
+        },
+        "accepted_trades": 442,
+        "annual_log_growth_path": 1.10282,
+        "annual_net_usd_per_1000_path": 2012.65,
+        "blocked_by_caps": 367,
+        "ending_bankroll_from_1000": 1429.45,
+        "log_growth_path": 0.357291,
+        "max_dd_frac": 0.2225,
+        "net_pnl_at_10usd_flat": 266.7,
+        "path_years": 0.32397901,
+        "test_groups": [
+          2,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 13,
+          "USDJPY.sota_ens5_m15_up.v1": 67,
+          "USDJPY.sota_ens5_m30_up.v1": 58,
+          "USDJPY_m30_up_stack_cov05": 67
+        },
+        "accepted_trades": 205,
+        "annual_log_growth_path": 1.690431,
+        "annual_net_usd_per_1000_path": 4421.82,
+        "blocked_by_caps": 181,
+        "ending_bankroll_from_1000": 1729.21,
+        "log_growth_path": 0.547664,
+        "max_dd_frac": 0.20459,
+        "net_pnl_at_10usd_flat": 297.27,
+        "path_years": 0.32397901,
+        "test_groups": [
+          3,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 18,
+          "USDJPY.sota_ens5_m15_up.v1": 126,
+          "USDJPY.sota_ens5_m30_up.v1": 52,
+          "USDJPY_m30_up_stack_cov05": 121
+        },
+        "accepted_trades": 317,
+        "annual_log_growth_path": 1.124178,
+        "annual_net_usd_per_1000_path": 2077.69,
+        "blocked_by_caps": 281,
+        "ending_bankroll_from_1000": 1439.38,
+        "log_growth_path": 0.36421,
+        "max_dd_frac": 0.21624,
+        "net_pnl_at_10usd_flat": 218.06,
+        "path_years": 0.32397901,
+        "test_groups": [
+          3,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_e49nys30_m30_up.v1": 8,
+          "USDJPY.sota_ens5_m15_up.v1": 47,
+          "USDJPY.sota_ens5_m30_up.v1": 18,
+          "USDJPY_m30_up_stack_cov05": 89
+        },
+        "accepted_trades": 162,
+        "annual_log_growth_path": 0.458733,
+        "annual_net_usd_per_1000_path": 582.07,
+        "blocked_by_caps": 158,
+        "ending_bankroll_from_1000": 1160.23,
+        "log_growth_path": 0.14862,
+        "max_dd_frac": 0.24365,
+        "net_pnl_at_10usd_flat": 96.81,
+        "path_years": 0.32397901,
+        "test_groups": [
+          4,
+          5
+        ]
+      }
+    ],
+    "paths_evaluated": 15,
+    "paths_profitable": 15,
+    "sizing_note": "Event-driven settlement replay; stakes sized from observable settled equity (no future P&L leak)."
+  },
+  "portfolio_unique_horizons_mexico_vps": {
+    "annual_floor_flat_10usd_stake_pnl": 192.93,
+    "annual_floor_log_growth_p10": 0.453302,
+    "annual_floor_net_usd_per_1000_bankroll_p10": 577.19,
+    "annual_geom_net_usd_per_1000_bankroll": 1929.09,
+    "annual_mean_flat_10usd_stake_pnl": 531.19,
+    "annual_mean_log_growth": 1.074692,
+    "annual_mean_net_usd_per_1000_bankroll_arith": 2481.09,
+    "caps": {
+      "max_jpy_factor_open": 2,
+      "max_open_contracts": 4,
+      "max_usd_factor_open": 2,
+      "max_vol_pair_open": 1,
+      "same_book_min_gap_seconds": 900
+    },
+    "est_blocked_signals_per_year": 56,
+    "est_portfolio_trades_per_year": 533,
+    "max_cpcv_portfolio_dd_frac": 0.39779,
+    "p90_cpcv_portfolio_dd_frac": 0.2804,
+    "paths": [
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 41,
+          "USDJPY.sota_ens5_m30_up.v1": 43
+        },
+        "accepted_trades": 84,
+        "annual_log_growth_path": 1.168537,
+        "annual_net_usd_per_1000_path": 2217.28,
+        "blocked_by_caps": 6,
+        "ending_bankroll_from_1000": 1460.21,
+        "log_growth_path": 0.378582,
+        "max_dd_frac": 0.1169,
+        "net_pnl_at_10usd_flat": 185.64,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          1
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 25,
+          "USDJPY.sota_ens5_m30_up.v1": 44
+        },
+        "accepted_trades": 69,
+        "annual_log_growth_path": 0.536776,
+        "annual_net_usd_per_1000_path": 710.48,
+        "blocked_by_caps": 8,
+        "ending_bankroll_from_1000": 1189.94,
+        "log_growth_path": 0.173904,
+        "max_dd_frac": 0.16277,
+        "net_pnl_at_10usd_flat": 103.4,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          2
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 25,
+          "USDJPY.sota_ens5_m30_up.v1": 29
+        },
+        "accepted_trades": 54,
+        "annual_log_growth_path": 0.851882,
+        "annual_net_usd_per_1000_path": 1344.05,
+        "blocked_by_caps": 7,
+        "ending_bankroll_from_1000": 1317.84,
+        "log_growth_path": 0.275992,
+        "max_dd_frac": 0.13027,
+        "net_pnl_at_10usd_flat": 108.67,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          3
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 23,
+          "USDJPY.sota_ens5_m30_up.v1": 51
+        },
+        "accepted_trades": 74,
+        "annual_log_growth_path": 0.397652,
+        "annual_net_usd_per_1000_path": 488.33,
+        "blocked_by_caps": 8,
+        "ending_bankroll_from_1000": 1137.5,
+        "log_growth_path": 0.128831,
+        "max_dd_frac": 0.21316,
+        "net_pnl_at_10usd_flat": 37.37,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 178,
+          "USDJPY.sota_ens5_m30_up.v1": 199
+        },
+        "accepted_trades": 377,
+        "annual_log_growth_path": 2.008899,
+        "annual_net_usd_per_1000_path": 6455.1,
+        "blocked_by_caps": 60,
+        "ending_bankroll_from_1000": 1917.15,
+        "log_growth_path": 0.650841,
+        "max_dd_frac": 0.26946,
+        "net_pnl_at_10usd_flat": 245.05,
+        "path_years": 0.32397901,
+        "test_groups": [
+          0,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 68,
+          "USDJPY.sota_ens5_m30_up.v1": 77
+        },
+        "accepted_trades": 145,
+        "annual_log_growth_path": 1.714107,
+        "annual_net_usd_per_1000_path": 4551.71,
+        "blocked_by_caps": 12,
+        "ending_bankroll_from_1000": 1742.52,
+        "log_growth_path": 0.555335,
+        "max_dd_frac": 0.12256,
+        "net_pnl_at_10usd_flat": 260.27,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          2
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 69,
+          "USDJPY.sota_ens5_m30_up.v1": 94
+        },
+        "accepted_trades": 163,
+        "annual_log_growth_path": 0.780079,
+        "annual_net_usd_per_1000_path": 1181.65,
+        "blocked_by_caps": 20,
+        "ending_bankroll_from_1000": 1287.53,
+        "log_growth_path": 0.252729,
+        "max_dd_frac": 0.16929,
+        "net_pnl_at_10usd_flat": 100.21,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          3
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 99,
+          "USDJPY.sota_ens5_m30_up.v1": 131
+        },
+        "accepted_trades": 230,
+        "annual_log_growth_path": 1.185796,
+        "annual_net_usd_per_1000_path": 2273.29,
+        "blocked_by_caps": 20,
+        "ending_bankroll_from_1000": 1468.4,
+        "log_growth_path": 0.384173,
+        "max_dd_frac": 0.28769,
+        "net_pnl_at_10usd_flat": 150.81,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 110,
+          "USDJPY.sota_ens5_m30_up.v1": 152
+        },
+        "accepted_trades": 262,
+        "annual_log_growth_path": -0.57002,
+        "annual_net_usd_per_1000_path": -434.49,
+        "blocked_by_caps": 34,
+        "ending_bankroll_from_1000": 831.37,
+        "log_growth_path": -0.184674,
+        "max_dd_frac": 0.39779,
+        "net_pnl_at_10usd_flat": 26.22,
+        "path_years": 0.32397901,
+        "test_groups": [
+          1,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 56,
+          "USDJPY.sota_ens5_m30_up.v1": 64
+        },
+        "accepted_trades": 120,
+        "annual_log_growth_path": 0.83292,
+        "annual_net_usd_per_1000_path": 1300.02,
+        "blocked_by_caps": 8,
+        "ending_bankroll_from_1000": 1309.77,
+        "log_growth_path": 0.269849,
+        "max_dd_frac": 0.10106,
+        "net_pnl_at_10usd_flat": 131.99,
+        "path_years": 0.32397901,
+        "test_groups": [
+          2,
+          3
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 70,
+          "USDJPY.sota_ens5_m30_up.v1": 83
+        },
+        "accepted_trades": 153,
+        "annual_log_growth_path": 1.068981,
+        "annual_net_usd_per_1000_path": 1912.41,
+        "blocked_by_caps": 8,
+        "ending_bankroll_from_1000": 1413.87,
+        "log_growth_path": 0.346327,
+        "max_dd_frac": 0.15242,
+        "net_pnl_at_10usd_flat": 162.51,
+        "path_years": 0.32397901,
+        "test_groups": [
+          2,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 175,
+          "USDJPY.sota_ens5_m30_up.v1": 160
+        },
+        "accepted_trades": 335,
+        "annual_log_growth_path": 1.543056,
+        "annual_net_usd_per_1000_path": 3678.87,
+        "blocked_by_caps": 27,
+        "ending_bankroll_from_1000": 1648.59,
+        "log_growth_path": 0.499918,
+        "max_dd_frac": 0.16999,
+        "net_pnl_at_10usd_flat": 315.76,
+        "path_years": 0.32397901,
+        "test_groups": [
+          2,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 67,
+          "USDJPY.sota_ens5_m30_up.v1": 100
+        },
+        "accepted_trades": 167,
+        "annual_log_growth_path": 1.889752,
+        "annual_net_usd_per_1000_path": 5617.72,
+        "blocked_by_caps": 11,
+        "ending_bankroll_from_1000": 1844.56,
+        "log_growth_path": 0.61224,
+        "max_dd_frac": 0.17096,
+        "net_pnl_at_10usd_flat": 277.31,
+        "path_years": 0.32397901,
+        "test_groups": [
+          3,
+          4
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 129,
+          "USDJPY.sota_ens5_m30_up.v1": 118
+        },
+        "accepted_trades": 247,
+        "annual_log_growth_path": 1.557898,
+        "annual_net_usd_per_1000_path": 3748.83,
+        "blocked_by_caps": 32,
+        "ending_bankroll_from_1000": 1656.53,
+        "log_growth_path": 0.504726,
+        "max_dd_frac": 0.23951,
+        "net_pnl_at_10usd_flat": 297.52,
+        "path_years": 0.32397901,
+        "test_groups": [
+          3,
+          5
+        ]
+      },
+      {
+        "accepted_by_book": {
+          "USDJPY.sota_ens5_m15_up.v1": 49,
+          "USDJPY.sota_ens5_m30_up.v1": 61
+        },
+        "accepted_trades": 110,
+        "annual_log_growth_path": 1.154065,
+        "annual_net_usd_per_1000_path": 2171.06,
+        "blocked_by_caps": 10,
+        "ending_bankroll_from_1000": 1453.38,
+        "log_growth_path": 0.373893,
+        "max_dd_frac": 0.16308,
+        "net_pnl_at_10usd_flat": 178.7,
+        "path_years": 0.32397901,
+        "test_groups": [
+          4,
+          5
+        ]
+      }
+    ],
+    "paths_evaluated": 15,
+    "paths_profitable": 14,
+    "selected_book_ids": [
+      "USDJPY.sota_ens5_m30_up.v1",
+      "USDJPY.sota_ens5_m15_up.v1"
+    ],
+    "sizing_note": "Event-driven settlement replay; stakes sized from observable settled equity (no future P&L leak)."
+  },
+  "rejected_at_5gate_stage": [
+    {
+      "G1_p10_wr": 0.545841,
+      "G1_passed": true,
+      "G2_passed": true,
+      "G3_passed": true,
+      "G4_passed": true,
+      "G4_rank": "15/15",
+      "G5_p10_ev": -0.030342,
+      "G5_passed": false,
+      "horizon_min": 15,
+      "model_variant": "core66_nys_absret_1seed",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_c2nysabs_m15_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.587153,
+      "G1_passed": false,
+      "G2_passed": true,
+      "G3_passed": true,
+      "G4_passed": true,
+      "G4_rank": "17/17",
+      "G5_p10_ev": 0.068619,
+      "G5_passed": true,
+      "horizon_min": 60,
+      "model_variant": "core66_nys_1seed",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_nys_m60_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.603595,
+      "G1_passed": false,
+      "G2_passed": true,
+      "G3_passed": true,
+      "G4_passed": true,
+      "G4_rank": "16/16",
+      "G5_p10_ev": 0.098543,
+      "G5_passed": true,
+      "horizon_min": 60,
+      "model_variant": "core66_nys_ens5",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_ens5_m60_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.585611,
+      "G1_passed": false,
+      "G2_passed": true,
+      "G3_passed": true,
+      "G4_passed": true,
+      "G4_rank": "13/13",
+      "G5_p10_ev": 0.065812,
+      "G5_passed": true,
+      "horizon_min": 60,
+      "model_variant": "core66_nys_ens5_absret",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_ens5abs_m60_up.v1"
+    },
+    {
+      "G1_p10_wr": -1.0,
+      "G1_passed": false,
+      "G2_passed": false,
+      "G3_passed": false,
+      "G4_passed": false,
+      "G4_rank": "1/9",
+      "G5_p10_ev": -1.0,
+      "G5_passed": false,
+      "horizon_min": 120,
+      "model_variant": "core66_nys_ens5",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_ens5_m120_up.v1"
+    },
+    {
+      "G1_p10_wr": -1.0,
+      "G1_passed": false,
+      "G2_passed": false,
+      "G3_passed": false,
+      "G4_passed": false,
+      "G4_rank": "1/9",
+      "G5_p10_ev": -1.0,
+      "G5_passed": false,
+      "horizon_min": 120,
+      "model_variant": "core66_nys_1seed",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY_m120_up_nys1_cov04"
+    },
+    {
+      "G1_p10_wr": 0.590229,
+      "G1_passed": true,
+      "G2_passed": true,
+      "G3_passed": true,
+      "G4_passed": false,
+      "G4_rank": "17/17",
+      "G5_p10_ev": 0.074217,
+      "G5_passed": true,
+      "horizon_min": 120,
+      "model_variant": "core66_nys_1seed",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_nys1c08_m120_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.607425,
+      "G1_passed": true,
+      "G2_passed": true,
+      "G3_passed": true,
+      "G4_passed": false,
+      "G4_rank": "17/17",
+      "G5_p10_ev": 0.105514,
+      "G5_passed": true,
+      "horizon_min": 120,
+      "model_variant": "core66_nys_ens5",
+      "pair": "USDJPY",
+      "side": "UP",
+      "tag": "USDJPY.sota_ens5c08_m120_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.529412,
+      "G1_passed": false,
+      "G2_passed": false,
+      "G3_passed": false,
+      "G4_passed": false,
+      "G4_rank": "1/1",
+      "G5_p10_ev": -0.037,
+      "G5_passed": false,
+      "horizon_min": 60,
+      "model_variant": "core66_nys_ens5_absret",
+      "pair": "EURJPY",
+      "side": "UP",
+      "tag": "EURJPY.sota_ens5abs_m60_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.523363,
+      "G1_passed": false,
+      "G2_passed": true,
+      "G3_passed": false,
+      "G4_passed": false,
+      "G4_rank": "4/4",
+      "G5_p10_ev": -0.048003,
+      "G5_passed": false,
+      "horizon_min": 30,
+      "model_variant": "core66_nys_ens5_absret",
+      "pair": "EURJPY",
+      "side": "UP",
+      "tag": "EURJPY.sota_ens5abs_m30_up.v1"
+    },
+    {
+      "G1_p10_wr": 0.489535,
+      "G1_passed": false,
+      "G2_passed": false,
+      "G3_passed": false,
+      "G4_passed": false,
+      "G4_rank": "6/13",
+      "G5_p10_ev": -0.123733,
+      "G5_passed": false,
+      "horizon_min": 120,
+      "model_variant": "core66_nys_1seed",
+      "pair": "AUDNZD",
+      "side": "UP",
+      "tag": "AUDNZD.sota_nys_m120_up.v1"
+    }
+  ],
+  "schema": "deriv-master-profitability-ranking/v2",
+  "table1_certified_ranked": [
+    {
+      "annual_floor_log_growth_p10": 0.649545,
+      "annual_floor_log_growth_plugin": 0.806213,
+      "annual_floor_net_usd_per_1000": 914.67,
+      "annual_mean_log_growth": 1.062372,
+      "annual_mean_net_usd_per_1000": 2307.94,
+      "book_id": "USDJPY.sota_ens5_m30_up.v1",
+      "contract_family": "risefall",
+      "contract_type": "CALL",
+      "cpcv_paths_clear": "15/15",
+      "deriv_symbol": "frxUSDJPY",
+      "est_trades_per_year": 316,
+      "est_trades_per_year_exact": 316.22,
+      "frozen_2025_to_2026_oos": {
+        "ev": 0.06566,
+        "n": 152,
+        "wr": 0.58553,
+        "wr_ci95": [
+          0.5,
+          0.66447
+        ]
+      },
+      "g2_placebo_excess": 0.069073,
+      "g3_plus4s_p10_wr": 0.599182,
+      "g4_null_rank": "16/16",
+      "horizon_min": 30,
+      "max_cpcv_quarter_kelly_dd_pct": 31.56,
+      "mean_ev_per_stake": 0.15194,
+      "mean_wr": 0.632934,
+      "model_variant": "core66_nys_ens5",
+      "p10_ev_per_stake": 0.097624,
+      "p10_wr": 0.60309,
+      "p90_cpcv_quarter_kelly_dd_pct": 27.84,
+      "pair": "USDJPY",
+      "pairwise_daily_pnl_corr": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.7007,
+        "USDJPY.sota_ens5_m15_up.v1": 0.3141,
+        "USDJPY.sota_ens5_m30_up.v1": 1.0,
+        "USDJPY_m30_up_stack_cov05": 0.5297
+      },
+      "quarter_kelly_pct": 2.98,
+      "quoted_payout_ratio": 1.82,
+      "rank": 1,
+      "side": "UP"
+    },
+    {
+      "annual_floor_log_growth_p10": 0.556976,
+      "annual_floor_log_growth_plugin": 0.566567,
+      "annual_floor_net_usd_per_1000": 745.41,
+      "annual_mean_log_growth": 0.983868,
+      "annual_mean_net_usd_per_1000": 2060.44,
+      "book_id": "USDJPY_m30_up_stack_cov05",
+      "contract_family": "risefall",
+      "contract_type": "CALL",
+      "cpcv_paths_clear": "15/15",
+      "deriv_symbol": "frxUSDJPY",
+      "est_trades_per_year": 415,
+      "est_trades_per_year_exact": 415.02,
+      "frozen_2025_to_2026_oos": {
+        "ev": 0.15742,
+        "n": 217,
+        "wr": 0.63594,
+        "wr_ci95": [
+          0.57143,
+          0.70507
+        ]
+      },
+      "g2_placebo_excess": 0.063443,
+      "g3_plus4s_p10_wr": 0.588655,
+      "g4_null_rank": "16/16",
+      "horizon_min": 30,
+      "max_cpcv_quarter_kelly_dd_pct": 22.1,
+      "mean_ev_per_stake": 0.141479,
+      "mean_wr": 0.627186,
+      "model_variant": "core66_stack",
+      "p10_ev_per_stake": 0.071464,
+      "p10_wr": 0.588717,
+      "p90_cpcv_quarter_kelly_dd_pct": 20.28,
+      "pair": "USDJPY",
+      "pairwise_daily_pnl_corr": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.4957,
+        "USDJPY.sota_ens5_m15_up.v1": 0.2877,
+        "USDJPY.sota_ens5_m30_up.v1": 0.5297,
+        "USDJPY_m30_up_stack_cov05": 1.0
+      },
+      "quarter_kelly_pct": 2.18,
+      "quoted_payout_ratio": 1.82,
+      "rank": 2,
+      "side": "UP"
+    },
+    {
+      "annual_floor_log_growth_p10": 0.381873,
+      "annual_floor_log_growth_plugin": 0.358699,
+      "annual_floor_net_usd_per_1000": 465.03,
+      "annual_mean_log_growth": 0.873498,
+      "annual_mean_net_usd_per_1000": 1596.72,
+      "book_id": "USDJPY.sota_e49nys30_m30_up.v1",
+      "contract_family": "risefall",
+      "contract_type": "CALL",
+      "cpcv_paths_clear": "15/15",
+      "deriv_symbol": "frxUSDJPY",
+      "est_trades_per_year": 331,
+      "est_trades_per_year_exact": 330.65,
+      "frozen_2025_to_2026_oos": {
+        "ev": 0.08032,
+        "n": 187,
+        "wr": 0.59358,
+        "wr_ci95": [
+          0.52406,
+          0.6631
+        ]
+      },
+      "g2_placebo_excess": 0.076465,
+      "g3_plus4s_p10_wr": 0.583005,
+      "g4_null_rank": "16/16",
+      "horizon_min": 30,
+      "max_cpcv_quarter_kelly_dd_pct": 20.15,
+      "mean_ev_per_stake": 0.159729,
+      "mean_wr": 0.637214,
+      "model_variant": "core66_nys_1seed",
+      "p10_ev_per_stake": 0.063713,
+      "p10_wr": 0.584458,
+      "p90_cpcv_quarter_kelly_dd_pct": 16.67,
+      "pair": "USDJPY",
+      "pairwise_daily_pnl_corr": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 1.0,
+        "USDJPY.sota_ens5_m15_up.v1": 0.2938,
+        "USDJPY.sota_ens5_m30_up.v1": 0.7007,
+        "USDJPY_m30_up_stack_cov05": 0.4957
+      },
+      "quarter_kelly_pct": 1.94,
+      "quoted_payout_ratio": 1.82,
+      "rank": 3,
+      "side": "UP"
+    },
+    {
+      "annual_floor_log_growth_p10": 0.049371,
+      "annual_floor_log_growth_plugin": 0.043858,
+      "annual_floor_net_usd_per_1000": 50.63,
+      "annual_mean_log_growth": 0.176578,
+      "annual_mean_net_usd_per_1000": 204.37,
+      "book_id": "USDJPY.sota_ens5_m15_up.v1",
+      "contract_family": "risefall",
+      "contract_type": "CALL",
+      "cpcv_paths_clear": "14/15",
+      "deriv_symbol": "frxUSDJPY",
+      "est_trades_per_year": 274,
+      "est_trades_per_year_exact": 273.54,
+      "frozen_2025_to_2026_oos": {
+        "ev": 0.06798,
+        "n": 168,
+        "wr": 0.60119,
+        "wr_ci95": [
+          0.52381,
+          0.67262
+        ]
+      },
+      "g2_placebo_excess": 0.072098,
+      "g3_plus4s_p10_wr": 0.586409,
+      "g4_null_rank": "15/15",
+      "horizon_min": 15,
+      "max_cpcv_quarter_kelly_dd_pct": 8.01,
+      "mean_ev_per_stake": 0.091523,
+      "mean_wr": 0.614442,
+      "model_variant": "core66_nys_ens5",
+      "p10_ev_per_stake": 0.023846,
+      "p10_wr": 0.576345,
+      "p90_cpcv_quarter_kelly_dd_pct": 7.27,
+      "pair": "USDJPY",
+      "pairwise_daily_pnl_corr": {
+        "USDJPY.sota_e49nys30_m30_up.v1": 0.2938,
+        "USDJPY.sota_ens5_m15_up.v1": 1.0,
+        "USDJPY.sota_ens5_m30_up.v1": 0.3141,
+        "USDJPY_m30_up_stack_cov05": 0.2877
+      },
+      "quarter_kelly_pct": 0.77,
+      "quoted_payout_ratio": 1.776447,
+      "rank": 4,
+      "side": "UP"
+    }
+  ]
+}

@@ -48,6 +48,7 @@ class LiveSotaFeatureRow:
     row: pd.Series
     tick_age_s: float
     source: str
+    spot_ref: float = 0.0
 
 
 def build_sota_feature_frame_from_ticks(
@@ -105,15 +106,25 @@ def extract_decision_feature_row(
     if dec_t % 60 != 0:
         raise SotaFeatureError(f"{target_pair}: decision_epoch {dec_t} is not on a minute boundary")
 
+    target_u = target_pair.upper()
+    if target_u not in ticks_by_pair:
+        raise SotaFeatureError(f"{target_u}: target tick series missing")
+    missing_majors = [p for p in MAJORS if p not in ticks_by_pair]
+    if missing_majors:
+        raise SotaFeatureError(f"{target_u}: missing major tick series for cross features: {missing_majors}")
+
+    needed_pairs = list(MAJORS) if target_u in MAJORS else list(MAJORS) + [target_u]
     clipped: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-    for p, (ts_p, px_p) in ticks_by_pair.items():
+    for p in needed_pairs:
+        ts_p, px_p = ticks_by_pair[p]
         # Minute bar [m, m+60) uses ticks with ts < dec_t: zero ticks at or after decision_epoch enter features.
         cut = int(np.searchsorted(ts_p, dec_t, side="left"))
         if cut == 0:
             raise SotaFeatureError(f"{p}: no ticks strictly before decision_epoch {dec_t}")
         clipped[p] = (ts_p[:cut], px_p[:cut])
 
-    tgt_last_ts = int(clipped[target_pair.upper()][0][-1])
+    tgt_last_ts = int(clipped[target_u][0][-1])
+    tgt_spot_ref = float(clipped[target_u][1][-1])
     tick_age_s = float(dec_t - tgt_last_ts)
     if tick_age_s > max_tick_staleness_s:
         raise SotaFeatureError(
@@ -137,12 +148,13 @@ def extract_decision_feature_row(
         raise SotaFeatureError(f"{target_pair}: >=50% missing live features at {dec_t}: {bad_nan[:10]}")
 
     return LiveSotaFeatureRow(
-        pair=target_pair.upper(),
+        pair=target_u,
         decision_epoch=dec_t,
         decision_utc=datetime.fromtimestamp(dec_t, tz=timezone.utc).isoformat(),
         row=row,
         tick_age_s=tick_age_s,
         source=source,
+        spot_ref=tgt_spot_ref,
     )
 
 

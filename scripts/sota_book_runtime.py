@@ -25,6 +25,14 @@ import numpy as np
 import pandas as pd
 from zoneinfo import ZoneInfo
 
+from deriv_runtime_core_v2 import (
+    ALL_BARRIER_TYPES,
+    SUPPORTED_CONTRACT_FAMILIES,
+    SUPPORTED_HORIZONS_MINUTES,
+    TWO_BARRIER_TYPES,
+    finite_positive_number,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BOOKS_DIR = REPO_ROOT / "books"
 SOTA_INDEX_PATH = BOOKS_DIR / "SOTA_INDEX.json"
@@ -95,6 +103,124 @@ def compute_sota_content_id(paths: list[Path]) -> str:
     return h.hexdigest()[:16]
 
 
+def _rbf_nystroem_member_prob(
+    Z: np.ndarray,
+    z_sq: np.ndarray,
+    comp: np.ndarray,
+    norm: np.ndarray,
+    gamma: float,
+    coef: np.ndarray,
+    intercept: float,
+) -> np.ndarray:
+    comp64 = np.asarray(comp, dtype=np.float64)
+    norm64 = np.asarray(norm, dtype=np.float64)
+    coef64 = np.asarray(coef, dtype=np.float64)
+    sq_dists = z_sq + np.sum(comp64 * comp64, axis=1)[None, :] - 2.0 * (Z @ comp64.T)
+    K = np.exp(-gamma * np.maximum(sq_dists, 0.0))
+    Fk = K @ norm64.T
+    return _expit(Fk @ coef64 + intercept)
+
+
+def _validate_weights_npz(
+    book_id: str,
+    model_kind: str,
+    weights_npz: dict[str, np.ndarray],
+    n_features: int,
+) -> None:
+    if not isinstance(weights_npz, dict) or not weights_npz:
+        raise SotaBookError(f"{book_id}: empty or invalid weights_npz")
+    int_keys = {"hours", "n_seeds"}
+    for k, arr in weights_npz.items():
+        if not isinstance(arr, np.ndarray):
+            raise SotaBookError(f"{book_id}: non-array in weights[{k!r}]")
+        if k in int_keys:
+            if arr.dtype.kind not in {"i", "u"}:
+                raise SotaBookError(f"{book_id}: integer array required for weights[{k!r}]")
+        elif arr.dtype.kind != "f":
+            raise SotaBookError(f"{book_id}: floating-point array required for weights[{k!r}], got {arr.dtype}")
+        if arr.size == 0 or not np.isfinite(arr).all():
+            raise SotaBookError(f"{book_id}: empty or non-finite values in weights[{k!r}]")
+
+    def _check_scaler(prefix: str = "") -> None:
+        for s_key in (f"{prefix}med", f"{prefix}mu", f"{prefix}sd"):
+            if s_key not in weights_npz or weights_npz[s_key].shape != (n_features,):
+                raise SotaBookError(f"{book_id}: weights[{s_key!r}] must have shape ({n_features},)")
+        if not np.all(weights_npz[f"{prefix}sd"] > 0.0):
+            raise SotaBookError(f"{book_id}: weights['{prefix}sd'] must be strictly positive")
+
+    def _check_nys_member(prefix: str = "") -> None:
+        c_key = f"{prefix}nys_components"
+        n_key = f"{prefix}nys_normalization"
+        g_key = f"{prefix}nys_gamma"
+        w_key = f"{prefix}sgd_coef"
+        b_key = f"{prefix}sgd_intercept"
+        for req_k in (c_key, n_key, g_key, w_key, b_key):
+            if req_k not in weights_npz:
+                raise SotaBookError(f"{book_id}: missing weights[{req_k!r}]")
+        comp = weights_npz[c_key]
+        if comp.ndim != 2 or comp.shape[0] < 1 or comp.shape[1] != n_features:
+            raise SotaBookError(f"{book_id}: invalid {c_key} shape {comp.shape}")
+        m_dim = int(comp.shape[0])
+        if weights_npz[n_key].shape != (m_dim, m_dim):
+            raise SotaBookError(f"{book_id}: invalid {n_key} shape {weights_npz[n_key].shape}")
+        if weights_npz[g_key].size != 1 or float(weights_npz[g_key].reshape(-1)[0]) <= 0.0:
+            raise SotaBookError(f"{book_id}: {g_key} must be a positive scalar")
+        if weights_npz[w_key].shape != (m_dim,):
+            raise SotaBookError(f"{book_id}: invalid {w_key} shape {weights_npz[w_key].shape}")
+        if weights_npz[b_key].size != 1:
+            raise SotaBookError(f"{book_id}: {b_key} must be scalar")
+
+    if model_kind == "logit":
+        expected_keys = {"med", "mu", "sd", "coef", "intercept"}
+        if set(weights_npz.keys()) != expected_keys:
+            raise SotaBookError(f"{book_id}: unexpected logit weight keys {sorted(weights_npz.keys())}")
+        _check_scaler("")
+        if weights_npz["coef"].shape != (n_features,) or weights_npz["intercept"].size != 1:
+            raise SotaBookError(f"{book_id}: invalid logit coef/intercept shape")
+    elif model_kind == "logit-hourly":
+        if "hours" not in weights_npz or weights_npz["hours"].ndim != 1 or weights_npz["hours"].dtype.kind not in {"i", "u"}:
+            raise SotaBookError(f"{book_id}: logit-hourly requires 1D integer 'hours' array")
+        hours = [int(h) for h in weights_npz["hours"].tolist()]
+        if not hours or any(h < 0 or h > 23 for h in hours):
+            raise SotaBookError(f"{book_id}: invalid hours {hours} in logit-hourly")
+        expected_keys = {"hours"} | {
+            f"h{h}_{sfx}" for h in hours for sfx in ("med", "mu", "sd", "coef", "intercept")
+        }
+        if set(weights_npz.keys()) != expected_keys:
+            raise SotaBookError(f"{book_id}: unexpected logit-hourly weight keys")
+        for h in hours:
+            _check_scaler(f"h{h}_")
+            if weights_npz[f"h{h}_coef"].shape != (n_features,) or weights_npz[f"h{h}_intercept"].size != 1:
+                raise SotaBookError(f"{book_id}: invalid h{h}_coef/intercept shape")
+    elif model_kind == "nystroem":
+        expected_keys = {
+            "med", "mu", "sd",
+            "nys_components", "nys_normalization", "nys_gamma", "sgd_coef", "sgd_intercept",
+        }
+        if set(weights_npz.keys()) != expected_keys:
+            raise SotaBookError(f"{book_id}: unexpected nystroem weight keys {sorted(weights_npz.keys())}")
+        _check_scaler("")
+        _check_nys_member("")
+    elif model_kind == "nystroem-ens":
+        if "n_seeds" not in weights_npz or weights_npz["n_seeds"].size != 1 or weights_npz["n_seeds"].dtype.kind not in {"i", "u"}:
+            raise SotaBookError(f"{book_id}: nystroem-ens requires scalar integer 'n_seeds'")
+        n_seeds = int(weights_npz["n_seeds"].reshape(-1)[0])
+        if n_seeds < 1 or n_seeds > 32:
+            raise SotaBookError(f"{book_id}: nystroem-ens n_seeds={n_seeds} outside [1, 32]")
+        expected_keys = {"med", "mu", "sd", "n_seeds"} | {
+            f"s{i}_{sfx}"
+            for i in range(n_seeds)
+            for sfx in ("nys_components", "nys_normalization", "nys_gamma", "sgd_coef", "sgd_intercept")
+        }
+        if set(weights_npz.keys()) != expected_keys:
+            raise SotaBookError(f"{book_id}: nystroem-ens key mismatch vs n_seeds={n_seeds}")
+        _check_scaler("")
+        for i in range(n_seeds):
+            _check_nys_member(f"s{i}_")
+    else:
+        raise SotaBookError(f"{book_id}: unsupported npz model_kind {model_kind!r}")
+
+
 @dataclass(frozen=True)
 class SotaScore:
     book_id: str
@@ -110,6 +236,10 @@ class SotaScore:
     contract_family: str
     gate_passed: bool
     gate_reasons: list[str]
+    expected_ev: float | None = None
+    multiplier: int | None = None
+    barrier_contract_type: str | None = None
+    barrier_rel_half_width: float | None = None
 
 
 @dataclass
@@ -134,12 +264,23 @@ class LoadedSotaBook:
     manifest: dict[str, Any]
     weights_npz: dict[str, np.ndarray] | None = None
     boosters: list[lgb.Booster] | None = None
+    neutral_floor: float | None = None
+    ev_floors: dict[str, float] | None = None
+    multiplier: int | None = None
+    certified_commission_frac: float = 0.0
+    max_commission_frac: float = 0.20
+    min_stop_out_rel_dist: float = 0.0008
+    barrier_contract_type: str | None = None
+    barrier_rel_half_width: float | None = None
 
     def side_floor(self, side: str) -> float:
         s = side.upper()
         if s not in self.allowed_sides:
             raise SotaBookError(f"{self.book_id}: side {s!r} not in allowed_sides {self.allowed_sides}")
-        val = self.up_floor if s == "UP" else self.down_floor
+        if s == "NEUTRAL":
+            val = self.neutral_floor
+        else:
+            val = self.up_floor if s == "UP" else self.down_floor
         if val is None or not math.isfinite(val):
             raise SotaBookError(f"{self.book_id}: missing finite refit floor for {s}")
         return float(val)
@@ -205,23 +346,34 @@ class LoadedSotaBook:
                 coef = self.weights_npz[f"h{h}_coef"]
                 intercept = float(self.weights_npz[f"h{h}_intercept"].reshape(-1)[0])
                 preds[m] = _expit(Z @ coef + intercept)
-        elif self.model_kind == "nystroem":
+        elif self.model_kind in {"nystroem", "nystroem-ens"}:
             assert self.weights_npz is not None
             Z = self._transform_std(X)
-            comp = self.weights_npz["nys_components"]  # (M, F)
-            norm = self.weights_npz["nys_normalization"]  # (M, M)
-            gamma = float(self.weights_npz["nys_gamma"].reshape(-1)[0])
-            coef = self.weights_npz["sgd_coef"]
-            intercept = float(self.weights_npz["sgd_intercept"].reshape(-1)[0])
-            # Exact RBF kernel K(Z, comp) = exp(-gamma * ||Z - comp||^2)
-            sq_dists = (
-                np.sum(Z * Z, axis=1, keepdims=True)
-                + np.sum(comp * comp, axis=1)[None, :]
-                - 2.0 * (Z @ comp.T)
-            )
-            K = np.exp(-gamma * np.maximum(sq_dists, 0.0))
-            Fk = K @ norm.T
-            preds = _expit(Fk @ coef + intercept)
+            z_sq = np.sum(Z * Z, axis=1, keepdims=True)
+            if self.model_kind == "nystroem":
+                preds = _rbf_nystroem_member_prob(
+                    Z,
+                    z_sq,
+                    self.weights_npz["nys_components"],
+                    self.weights_npz["nys_normalization"],
+                    float(self.weights_npz["nys_gamma"].reshape(-1)[0]),
+                    self.weights_npz["sgd_coef"],
+                    float(self.weights_npz["sgd_intercept"].reshape(-1)[0]),
+                )
+            else:
+                n_seeds = int(self.weights_npz["n_seeds"].reshape(-1)[0])
+                acc = np.zeros(len(X), dtype=np.float64)
+                for s_i in range(n_seeds):
+                    acc += _rbf_nystroem_member_prob(
+                        Z,
+                        z_sq,
+                        self.weights_npz[f"s{s_i}_nys_components"],
+                        self.weights_npz[f"s{s_i}_nys_normalization"],
+                        float(self.weights_npz[f"s{s_i}_nys_gamma"].reshape(-1)[0]),
+                        self.weights_npz[f"s{s_i}_sgd_coef"],
+                        float(self.weights_npz[f"s{s_i}_sgd_intercept"].reshape(-1)[0]),
+                    )
+                preds = acc / float(n_seeds)
         else:
             raise SotaBookError(f"{self.book_id}: unsupported model_kind {self.model_kind!r}")
 
@@ -248,8 +400,12 @@ class LoadedSotaBook:
         s = pd.Series(feature_row, dtype="float64")
         frame = pd.DataFrame([s[self.feature_cols].to_numpy(dtype=np.float64)], columns=self.feature_cols)
         proba = float(self.predict_probabilities(frame, decision_epochs=[int(decision_epoch)])[0])
-        conf = abs(proba - 0.5)
-        direction = "UP" if proba > 0.5 else ("DOWN" if proba < 0.5 else "FLAT")
+        if self.allowed_sides == ("NEUTRAL",):
+            conf = proba
+            direction = "NEUTRAL"
+        else:
+            conf = abs(proba - 0.5)
+            direction = "UP" if proba > 0.5 else ("DOWN" if proba < 0.5 else "FLAT")
         reasons: list[str] = []
 
         if direction == "FLAT":
@@ -268,10 +424,19 @@ class LoadedSotaBook:
 
         eff_floor = (
             self.effective_floor(direction, extra_margin=extra_edge_margin)
-            if direction in self.allowed_sides
-            else 1.0
+            if (self.contract_family != "multiplier" and direction in self.allowed_sides)
+            else (0.0 if self.contract_family == "multiplier" else 1.0)
         )
-        cal_prob = self.calibrate_side_prob(proba, direction) if direction in {"UP", "DOWN"} else None
+        cal_prob = (
+            self.calibrate_side_prob(proba, direction)
+            if (self.contract_family != "multiplier" and direction in self.allowed_sides)
+            else None
+        )
+        exp_ev = (
+            float(self.ev_floors[direction]) - float(self.payout_edge_margin) - float(extra_edge_margin)
+            if (self.contract_family == "multiplier" and self.ev_floors and direction in self.ev_floors)
+            else None
+        )
         return SotaScore(
             book_id=self.book_id,
             pair=self.pair,
@@ -286,6 +451,10 @@ class LoadedSotaBook:
             contract_family=self.contract_family,
             gate_passed=(len(reasons) == 0),
             gate_reasons=reasons,
+            expected_ev=exp_ev,
+            multiplier=self.multiplier,
+            barrier_contract_type=self.barrier_contract_type,
+            barrier_rel_half_width=self.barrier_rel_half_width,
         )
 
 
@@ -374,15 +543,28 @@ def load_sota_book(
         raise SotaBookError(f"{book_id}: missing *_strategy.json artifact")
     strategy = json.loads(strat_file.read_text(encoding="utf-8"))
 
+    feature_cols = [str(c) for c in strategy["feature_cols"]]
+    if not feature_cols:
+        raise SotaBookError(f"{book_id}: empty feature_cols")
+
+    horizon_minutes = int(manifest["horizon_minutes"])
+    if horizon_minutes not in SUPPORTED_HORIZONS_MINUTES or int(strategy.get("horizon_minutes", horizon_minutes)) != horizon_minutes:
+        raise SotaBookError(f"{book_id}: unsupported or mismatched horizon_minutes {horizon_minutes}")
+
+    contract_family = str(strategy.get("contract_family", "risefall"))
+    if contract_family not in SUPPORTED_CONTRACT_FAMILIES:
+        raise SotaBookError(f"{book_id}: unsupported contract_family {contract_family!r}")
+
     model_kind = str(manifest["model_kind"])
     weights_npz: dict[str, np.ndarray] | None = None
     boosters: list[lgb.Booster] | None = None
-    if model_kind in {"logit", "logit-hourly", "nystroem"}:
+    if model_kind in {"logit", "logit-hourly", "nystroem", "nystroem-ens"}:
         npz_file = next((p for p in art_paths if p.suffix == ".npz"), None)
         if npz_file is None:
             raise SotaBookError(f"{book_id}: missing .npz weights artifact for {model_kind}")
         with np.load(npz_file, allow_pickle=False) as z:
             weights_npz = {k: z[k].copy() for k in z.files}
+        _validate_weights_npz(book_id, model_kind, weights_npz, len(feature_cols))
     elif model_kind == "lgb":
         txt_files = [p for p in art_paths if p.suffix == ".txt"]
         if not txt_files:
@@ -392,38 +574,76 @@ def load_sota_book(
         raise SotaBookError(f"{book_id}: unknown model_kind {model_kind!r}")
 
     allowed_sides = tuple(str(s).upper() for s in strategy["allowed_sides"])
-    if not allowed_sides or any(s not in {"UP", "DOWN"} for s in allowed_sides):
-        raise SotaBookError(f"{book_id}: invalid allowed_sides {allowed_sides!r}")
+    bct_opt: str | None = None
+    brw_opt: float | None = None
+    mult_opt: int | None = None
+    cert_comm_frac = float(strategy.get("certified_commission_frac", 0.0))
+    max_comm_frac = float(strategy.get("max_commission_frac", 0.20))
+    min_so_dist = float(strategy.get("min_stop_out_rel_dist", 0.0008))
+
+    if contract_family == "barrier_1d":
+        if horizon_minutes != 1440:
+            raise SotaBookError(f"{book_id}: barrier_1d requires horizon_minutes=1440, got {horizon_minutes}")
+        bct_opt = str(strategy.get("barrier_contract_type") or "").strip().upper()
+        if bct_opt not in ALL_BARRIER_TYPES:
+            raise SotaBookError(f"{book_id}: invalid barrier_contract_type {bct_opt!r}")
+        brw_opt = finite_positive_number(strategy.get("barrier_rel_half_width"))
+        if brw_opt is None or brw_opt >= 0.25:
+            raise SotaBookError(f"{book_id}: invalid barrier_rel_half_width {strategy.get('barrier_rel_half_width')!r}")
+        if bct_opt in TWO_BARRIER_TYPES:
+            if allowed_sides != ("NEUTRAL",):
+                raise SotaBookError(f"{book_id}: two-barrier {bct_opt} requires allowed_sides=['NEUTRAL']")
+        else:
+            if not allowed_sides or any(s not in {"UP", "DOWN"} for s in allowed_sides):
+                raise SotaBookError(f"{book_id}: single-barrier {bct_opt} requires UP/DOWN allowed_sides")
+    else:
+        if not allowed_sides or any(s not in {"UP", "DOWN"} for s in allowed_sides):
+            raise SotaBookError(f"{book_id}: invalid allowed_sides {allowed_sides!r}")
 
     floors = strategy.get("refit_cpcv_p10_floors", {})
+    ev_floors_raw = strategy.get("refit_cpcv_p10_ev") or {}
+    ev_floors: dict[str, float] = {}
     platt_cal = dict(strategy.get("platt_calibration") or {})
-    for s in allowed_sides:
-        if s not in floors or not isinstance(floors[s], (int, float)) or not math.isfinite(float(floors[s])):
-            raise SotaBookError(f"{book_id}: missing refit_cpcv_p10_floors[{s!r}]")
-        cal_s = platt_cal.get(s)
-        if (
-            not isinstance(cal_s, dict)
-            or not isinstance(cal_s.get("coef"), (int, float))
-            or not isinstance(cal_s.get("intercept"), (int, float))
-            or not math.isfinite(float(cal_s["coef"]))
-            or not math.isfinite(float(cal_s["intercept"]))
-        ):
-            raise SotaBookError(f"{book_id}: missing or non-finite platt_calibration[{s!r}]")
-        # logit_input is logit(proba_up_raw): UP requires coef > 0; DOWN requires coef < 0
-        if s == "UP" and float(cal_s["coef"]) <= 0.0:
-            raise SotaBookError(f"{book_id}: platt_calibration['UP']['coef'] must be > 0, got {cal_s['coef']}")
-        if s == "DOWN" and float(cal_s["coef"]) >= 0.0:
-            raise SotaBookError(f"{book_id}: platt_calibration['DOWN']['coef'] must be < 0, got {cal_s['coef']}")
+
+    if contract_family == "multiplier":
+        raw_mult = strategy.get("multiplier")
+        if isinstance(raw_mult, bool) or not isinstance(raw_mult, int) or raw_mult < 1:
+            raise SotaBookError(f"{book_id}: multiplier book requires positive integer 'multiplier'")
+        mult_opt = int(raw_mult)
+        for s in allowed_sides:
+            v_ev = ev_floors_raw.get(s)
+            if isinstance(v_ev, bool) or not isinstance(v_ev, (int, float)) or not math.isfinite(float(v_ev)):
+                raise SotaBookError(f"{book_id}: multiplier book missing finite refit_cpcv_p10_ev[{s!r}]")
+            ev_floors[s] = float(v_ev)
+    else:
+        for s in allowed_sides:
+            if s not in floors or isinstance(floors[s], bool) or not isinstance(floors[s], (int, float)) or not math.isfinite(float(floors[s])):
+                raise SotaBookError(f"{book_id}: missing refit_cpcv_p10_floors[{s!r}]")
+            cal_s = platt_cal.get(s)
+            if (
+                not isinstance(cal_s, dict)
+                or isinstance(cal_s.get("coef"), bool)
+                or isinstance(cal_s.get("intercept"), bool)
+                or not isinstance(cal_s.get("coef"), (int, float))
+                or not isinstance(cal_s.get("intercept"), (int, float))
+                or not math.isfinite(float(cal_s["coef"]))
+                or not math.isfinite(float(cal_s["intercept"]))
+            ):
+                raise SotaBookError(f"{book_id}: missing or non-finite platt_calibration[{s!r}]")
+            if s in {"UP", "NEUTRAL"} and float(cal_s["coef"]) <= 0.0:
+                raise SotaBookError(f"{book_id}: platt_calibration[{s!r}]['coef'] must be > 0, got {cal_s['coef']}")
+            if s == "DOWN" and float(cal_s["coef"]) >= 0.0:
+                raise SotaBookError(f"{book_id}: platt_calibration['DOWN']['coef'] must be < 0, got {cal_s['coef']}")
 
     return LoadedSotaBook(
         book_id=book_id,
         pair=str(manifest["pair"]).upper(),
-        horizon_minutes=int(manifest["horizon_minutes"]),
+        horizon_minutes=horizon_minutes,
         allowed_sides=allowed_sides,
         lifecycle_status=lifecycle,
         model_kind=model_kind,
-        contract_family=str(strategy.get("contract_family", "risefall")),
-        feature_cols=[str(c) for c in strategy["feature_cols"]],
+        contract_family=contract_family,
+        feature_cols=feature_cols,
         coverage=float(strategy["coverage"]),
         conf_thr=float(strategy["confidence_threshold"]),
         up_floor=float(floors["UP"]) if "UP" in floors else None,
@@ -436,7 +656,26 @@ def load_sota_book(
         manifest=manifest,
         weights_npz=weights_npz,
         boosters=boosters,
+        neutral_floor=float(floors["NEUTRAL"]) if "NEUTRAL" in floors else None,
+        ev_floors=ev_floors if ev_floors else None,
+        multiplier=mult_opt,
+        certified_commission_frac=cert_comm_frac,
+        max_commission_frac=max_comm_frac,
+        min_stop_out_rel_dist=min_so_dist,
+        barrier_contract_type=bct_opt,
+        barrier_rel_half_width=brw_opt,
     )
+
+
+def parse_book_ids_spec(raw: str | None) -> list[str] | None:
+    if raw is None or str(raw).strip() == "":
+        return None
+    parts = [p.strip() for p in str(raw).split(",")]
+    if any(not p for p in parts):
+        raise SotaBookError(f"empty book_id token in book_ids specification: {raw!r}")
+    if len(set(parts)) != len(parts):
+        raise SotaBookError(f"duplicate book_id in book_ids specification: {parts!r}")
+    return parts
 
 
 def load_enabled_sota_books(
@@ -448,8 +687,18 @@ def load_enabled_sota_books(
     allow_canary = str(account_mode).lower() == "demo"
     index = load_sota_index(repo_root=repo_root)
     if book_ids is not None:
-        wanted = book_ids
+        if len(set(book_ids)) != len(book_ids):
+            raise SotaBookError(f"duplicate book_id in book_ids: {book_ids!r}")
+        wanted = list(book_ids)
     else:
         eligible = {ACTIVE_LIFECYCLE, DEMO_CANARY_LIFECYCLE} if allow_canary else {ACTIVE_LIFECYCLE}
-        wanted = [bid for bid, ent in index.items() if ent.get("lifecycle_status") in eligible]
+        cand_items = [(bid, ent) for bid, ent in index.items() if ent.get("lifecycle_status") in eligible]
+        cand_items.sort(
+            key=lambda kv: (
+                float((kv[1].get("metrics") or {}).get("annual_floor_log_growth_p10") or 0.0),
+                float((kv[1].get("metrics") or {}).get("cpcv_p10_ev") or 0.0),
+            ),
+            reverse=True,
+        )
+        wanted = [bid for bid, _ in cand_items]
     return [load_sota_book(bid, repo_root=repo_root, allow_demo_canary=allow_canary) for bid in wanted]

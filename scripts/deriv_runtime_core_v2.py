@@ -33,8 +33,11 @@ LIVE_CONFIRM_ENV = "DERIV_ALLOW_LIVE_REAL_MONEY"
 JURISDICTION_ENV = "DERIV_HOST_JURISDICTION"
 REQUIRED_JURISDICTION_VALUE = "mexico_vps"
 BLOCKED_US_HOSTNAMES = frozenset({"quantum"})
-SUPPORTED_HORIZONS_MINUTES = (15, 30, 60)
-SUPPORTED_CONTRACT_FAMILIES = ("risefall", "equal")
+SUPPORTED_HORIZONS_MINUTES = (5, 15, 30, 60, 120, 240, 1440)
+SUPPORTED_CONTRACT_FAMILIES = ("risefall", "equal", "multiplier", "barrier_1d")
+TWO_BARRIER_TYPES = frozenset({"RANGE", "UPORDOWN", "EXPIRYRANGE", "EXPIRYMISS"})
+SINGLE_BARRIER_TYPES = frozenset({"NOTOUCH", "ONETOUCH"})
+ALL_BARRIER_TYPES = TWO_BARRIER_TYPES | SINGLE_BARRIER_TYPES
 
 
 def assert_non_us_deriv_host(
@@ -73,17 +76,68 @@ SOTA_DERIV_SYMBOLS: dict[str, str] = {
     "CHFJPY": "frxCHFJPY",
     "AUDJPY": "frxAUDJPY",
     "CADJPY": "frxCADJPY",
+    "EURGBP": "frxEURGBP",
+    "EURAUD": "frxEURAUD",
+    "EURNZD": "frxEURNZD",
+    "EURCAD": "frxEURCAD",
+    "EURCHF": "frxEURCHF",
+    "GBPAUD": "frxGBPAUD",
+    "GBPNZD": "frxGBPNZD",
+    "GBPCAD": "frxGBPCAD",
+    "GBPCHF": "frxGBPCHF",
+    "AUDCAD": "frxAUDCAD",
+    "AUDCHF": "frxAUDCHF",
+    "AUDNZD": "frxAUDNZD",
+    "USDMXN": "frxUSDMXN",
+    "USDPLN": "frxUSDPLN",
+    "XAUUSD": "frxXAUUSD",
+    "XAGUSD": "frxXAGUSD",
+    "XPDUSD": "frxXPDUSD",
+    "XPTUSD": "frxXPTUSD",
+    "BTCUSD": "cryBTCUSD",
+    "ETHUSD": "cryETHUSD",
+    "WLDUSD": "WLDUSD",
+    "WLDEUR": "WLDEUR",
+    "WLDGBP": "WLDGBP",
+    "WLDAUD": "WLDAUD",
+    "WLDXAU": "WLDXAU",
+    "OTC_SPC": "OTC_SPC",
+    "OTC_NDX": "OTC_NDX",
+    "OTC_DJI": "OTC_DJI",
+    "OTC_FTSE": "OTC_FTSE",
+    "OTC_GDAXI": "OTC_GDAXI",
+    "OTC_N225": "OTC_N225",
+    "OTC_FCHI": "OTC_FCHI",
+    "OTC_SX5E": "OTC_SX5E",
+    "OTC_SSMI": "OTC_SSMI",
+    "OTC_AEX": "OTC_AEX",
+    "OTC_AS51": "OTC_AS51",
+    "OTC_HSI": "OTC_HSI",
 }
 
 
-def contract_type_for(side: str, family: str = "risefall") -> str:
+def contract_type_for(
+    side: str,
+    family: str = "risefall",
+    *,
+    barrier_contract_type: str | None = None,
+) -> str:
     side_u = str(side).upper()
+    if family == "barrier_1d":
+        bct = str(barrier_contract_type or "").strip().upper()
+        if bct not in ALL_BARRIER_TYPES:
+            raise ExecutorError(f"unsupported barrier_contract_type {barrier_contract_type!r}")
+        if side_u not in {"UP", "DOWN", "NEUTRAL"}:
+            raise ExecutorError(f"unsupported barrier side {side!r}")
+        return bct
     if side_u not in {"UP", "DOWN"}:
         raise ExecutorError(f"unsupported side {side!r}")
     if family == "risefall":
         return "CALL" if side_u == "UP" else "PUT"
     if family == "equal":
         return "CALLE" if side_u == "UP" else "PUTE"
+    if family == "multiplier":
+        return "MULTUP" if side_u == "UP" else "MULTDOWN"
     raise ExecutorError(f"unsupported contract family {family!r}")
 
 
@@ -194,11 +248,13 @@ def parse_quote_v2(prop: dict[str, Any]) -> tuple[float | None, float | None, fl
 
 
 def after_last_start_cutoff_v2(ts_utc: datetime, horizon_minutes: int = 15) -> bool:
-    """Deriv rejects FX Rise/Fall purchases whose expiry lands in 16:50-18:00 America/New_York.
-    Starts in [16:50 - horizon_minutes, 18:00) NY are untradeable.
+    """Deriv rejects intraday (< 5h) FX Rise/Fall purchases whose expiry lands in 16:50-18:00 America/New_York.
+    Starts in [16:50 - horizon_minutes, 18:00) NY are untradeable for sub-5h contracts.
     """
     if horizon_minutes <= 0:
         raise ExecutorError(f"horizon_minutes must be positive, got {horizon_minutes}")
+    if horizon_minutes >= 300:
+        return False
     if ts_utc.tzinfo is None:
         ts_utc = ts_utc.replace(tzinfo=timezone.utc)
     local = ts_utc.astimezone(NY_TZ)
@@ -227,16 +283,136 @@ def is_ny_16h_haircut_window(ts_utc: datetime) -> bool:
 
 
 def currency_leg_exposure(pair: str, side: str) -> dict[str, int]:
-    """Return signed (+1 long / -1 short) currency exposure for a 6-letter FX pair and UP/DOWN side."""
+    """Return signed (+1 long / -1 short) currency or asset-leg exposure for risk concentration caps."""
     p = str(pair).strip().upper()
     s = str(side).strip().upper()
-    if len(p) != 6 or not p.isalpha():
-        raise ExecutorError(f"pair must be a 6-letter FX code, got {pair!r}")
+    if s == "NEUTRAL":
+        if not p:
+            raise ExecutorError(f"invalid pair {pair!r}")
+        return {f"VOL_{p}": 1}
     if s not in {"UP", "DOWN"}:
-        raise ExecutorError(f"side must be UP or DOWN, got {side!r}")
-    base, quote = p[:3], p[3:]
+        raise ExecutorError(f"side must be UP, DOWN, or NEUTRAL, got {side!r}")
     sign = 1 if s == "UP" else -1
+    if p.startswith("WLD") and len(p) == 6 and p[3:].isalpha():
+        return {p[3:]: sign}
+    if p.startswith("OTC_"):
+        return {p: sign}
+    if len(p) != 6 or not p.isalpha():
+        raise ExecutorError(f"pair must be a 6-letter FX/Metal/Crypto code, WLD*, or OTC_*, got {pair!r}")
+    base, quote = p[:3], p[3:]
     return {base: sign, quote: -sign}
+
+
+def format_barrier_levels(pair: str, spot: float, rel_half_width: float, contract_type: str, side: str = "NEUTRAL") -> tuple[str, str | None]:
+    """Format exact Deriv `barrier` (and `barrier2` for two-barrier 1d contracts) around live `spot`."""
+    spot_f = finite_positive_number(spot)
+    rw_f = finite_positive_number(rel_half_width)
+    if spot_f is None or rw_f is None or rw_f >= 0.25:
+        raise ExecutorError(f"invalid barrier spot={spot!r} or rel_half_width={rel_half_width!r}")
+    ct = str(contract_type).strip().upper()
+    if ct not in ALL_BARRIER_TYPES:
+        raise ExecutorError(f"unsupported barrier contract_type {contract_type!r}")
+    p = str(pair).strip().upper()
+    if "JPY" in p:
+        decimals = 3
+    elif p.startswith("WLD"):
+        decimals = 3
+    elif "XAG" in p:
+        decimals = 4
+    elif any(k in p for k in ("XAU", "XPD", "XPT", "BTC", "ETH")) or p.startswith("OTC_"):
+        decimals = 2
+    else:
+        decimals = 5
+    spot_r = round(spot_f, decimals)
+    hi = f"{spot_f * (1.0 + rw_f):.{decimals}f}"
+    lo = f"{spot_f * (1.0 - rw_f):.{decimals}f}"
+    if float(hi) <= spot_r or float(lo) >= spot_r or float(hi) <= float(lo):
+        raise ExecutorError(f"degenerate rounded barrier levels around spot={spot_f}: hi={hi}, lo={lo}")
+    if ct in TWO_BARRIER_TYPES:
+        return hi, lo
+    s_u = str(side).strip().upper()
+    if s_u not in {"UP", "DOWN"}:
+        raise ExecutorError(f"single-barrier contract {ct!r} requires explicit UP or DOWN side, got {side!r}")
+    chosen = lo if s_u == "DOWN" else hi
+    return chosen, None
+
+
+@dataclass(frozen=True)
+class SotaMultiplierDecision:
+    ask: float | None
+    commission: float | None
+    commission_frac_stake: float | None
+    spot: float | None
+    stop_out: float | None
+    stop_out_rel_dist: float | None
+    expected_ev: float | None
+    reason: str | None
+
+    @property
+    def passed(self) -> bool:
+        return self.reason is None
+
+
+def evaluate_sota_multiplier_gate(
+    prop: dict[str, Any],
+    *,
+    expected_ev: float | None,
+    side: str | None = None,
+    ev_margin: float = 0.005,
+    certified_commission_frac: float | None = None,
+    max_commission_frac: float = 0.20,
+    min_stop_out_rel_dist: float = 0.0008,
+) -> SotaMultiplierDecision:
+    """Fail-closed quote & cost gate for `MULTUP` / `MULTDOWN` proposals."""
+    if not isinstance(prop, dict):
+        return SotaMultiplierDecision(None, None, None, None, None, None, None, "missing_or_invalid_ask")
+    bounds_to_check = [ev_margin, max_commission_frac, min_stop_out_rel_dist]
+    if certified_commission_frac is not None:
+        bounds_to_check.append(certified_commission_frac)
+    for bound in bounds_to_check:
+        if isinstance(bound, bool) or not isinstance(bound, (int, float)) or not math.isfinite(float(bound)) or float(bound) < 0.0:
+            return SotaMultiplierDecision(None, None, None, None, None, None, None, "invalid_policy_bounds")
+    ccy = prop.get("currency")
+    if ccy is not None and str(ccy).upper() != "USD":
+        return SotaMultiplierDecision(None, None, None, None, None, None, None, "non_usd_proposal_currency")
+    ask = finite_positive_number(prop.get("ask_price"))
+    if ask is None:
+        return SotaMultiplierDecision(None, None, None, None, None, None, None, "missing_or_invalid_ask")
+    raw_comm = prop.get("commission")
+    if isinstance(raw_comm, bool) or raw_comm is None:
+        return SotaMultiplierDecision(ask, None, None, None, None, None, None, "missing_or_invalid_commission")
+    try:
+        comm = float(raw_comm)
+    except (TypeError, ValueError):
+        return SotaMultiplierDecision(ask, None, None, None, None, None, None, "missing_or_invalid_commission")
+    if not math.isfinite(comm) or comm < 0.0:
+        return SotaMultiplierDecision(ask, None, None, None, None, None, None, "missing_or_invalid_commission")
+    comm_frac = comm / ask
+    spot = finite_positive_number(prop.get("spot"))
+    lim_ord = prop.get("limit_order")
+    so_dict = lim_ord.get("stop_out") if isinstance(lim_ord, dict) else None
+    so_raw = so_dict.get("value") if isinstance(so_dict, dict) else None
+    so_val = finite_positive_number(so_raw)
+    if spot is None or so_val is None:
+        return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, None, None, "missing_or_invalid_stop_out")
+    if side is not None:
+        s_u = str(side).strip().upper()
+        if s_u == "UP" and so_val >= spot:
+            return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, None, None, "invalid_stop_out_side")
+        if s_u == "DOWN" and so_val <= spot:
+            return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, None, None, "invalid_stop_out_side")
+    so_rel = abs(so_val - spot) / spot
+    if comm_frac > float(max_commission_frac) + 1e-9:
+        return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, so_rel, None, "commission_above_ceiling")
+    if so_rel < float(min_stop_out_rel_dist) - 1e-9:
+        return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, so_rel, None, "stop_out_too_tight")
+    if expected_ev is None or isinstance(expected_ev, bool) or not math.isfinite(float(expected_ev)):
+        return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, so_rel, None, "missing_expected_ev")
+    extra_comm = comm_frac if certified_commission_frac is None else max(0.0, comm_frac - float(certified_commission_frac))
+    ev_f = float(expected_ev) - extra_comm
+    if ev_f < float(ev_margin):
+        return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, so_rel, ev_f, "expected_ev_below_margin")
+    return SotaMultiplierDecision(ask, comm, comm_frac, spot, so_val, so_rel, ev_f, None)
 
 
 @dataclass(frozen=True)
@@ -296,15 +472,15 @@ def evaluate_sota_payout_gate(
 
     if reason is None and (not math.isfinite(effective_floor) or effective_floor <= live_breakeven):  # type: ignore[operator]
         reason = "edge_not_positive"
-    if reason is None and live_breakeven > absolute_breakeven_ceiling:  # type: ignore[operator]
+    if reason is None and (not math.isfinite(float(absolute_breakeven_ceiling)) or live_breakeven > float(absolute_breakeven_ceiling)):  # type: ignore[operator]
         reason = "breakeven_too_high"
-    if reason is None and min_payout_ratio is not None and payout_ratio < float(min_payout_ratio) - 1e-9:  # type: ignore[operator]
+    if reason is None and min_payout_ratio is not None and (not math.isfinite(float(min_payout_ratio)) or payout_ratio < float(min_payout_ratio) - 1e-9):  # type: ignore[operator]
         reason = "payout_below_floor"
     if reason is None and require_calibrated_ev and calibrated_win_prob is None:
         reason = "missing_calibrated_probability"
     if reason is None and calibrated_win_prob is not None:
         assert cal_ev is not None
-        if not math.isfinite(cal_ev) or cal_ev < float(ev_margin):
+        if not math.isfinite(float(ev_margin)) or not math.isfinite(cal_ev) or cal_ev < float(ev_margin):
             reason = "calibrated_ev_below_margin"
 
     return SotaPayoutDecision(

@@ -39,6 +39,48 @@
       },
       "model_kind": "nystroem",
       "pair": "USDJPY"
+    },
+    {
+      "allowed_sides": [
+        "UP"
+      ],
+      "content_id": "51b8c7fd6d179b3f",
+      "horizon_minutes": 15,
+      "id": "USDJPY.sota_ens5_m15_up.v1",
+      "lifecycle_status": "demo_venue_settled_canary",
+      "manifest": "books/USDJPY.sota_ens5_m15_up.v1/USDJPY.sota_ens5_m15_up.v1.manifest.json",
+      "metrics": {
+        "annual_floor_log_growth_p10": 0.0494,
+        "cpcv_mean_ev": 0.0915,
+        "cpcv_mean_wr": 0.6144,
+        "cpcv_p10_ev": 0.0238,
+        "cpcv_p10_wr": 0.5763,
+        "cpcv_paths_clear": "14/15",
+        "est_trades_per_year": 274
+      },
+      "model_kind": "nystroem-ens",
+      "pair": "USDJPY"
+    },
+    {
+      "allowed_sides": [
+        "UP"
+      ],
+      "content_id": "c8d0b13768a4c649",
+      "horizon_minutes": 30,
+      "id": "USDJPY.sota_ens5_m30_up.v1",
+      "lifecycle_status": "demo_venue_settled_canary",
+      "manifest": "books/USDJPY.sota_ens5_m30_up.v1/USDJPY.sota_ens5_m30_up.v1.manifest.json",
+      "metrics": {
+        "annual_floor_log_growth_p10": 0.6495,
+        "cpcv_mean_ev": 0.1519,
+        "cpcv_mean_wr": 0.6329,
+        "cpcv_p10_ev": 0.0976,
+        "cpcv_p10_wr": 0.6031,
+        "cpcv_paths_clear": "15/15",
+        "est_trades_per_year": 316
+      },
+      "model_kind": "nystroem-ens",
+      "pair": "USDJPY"
     }
   ],
   "schema": "sota-book-index/v1"
