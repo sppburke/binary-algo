@@ -210,7 +210,11 @@ Compose one consolidated plan artifact with an exact title and a body containing
   to the plan; it does not copy it.
 
 Map intent/decisions to acceptance criteria, steps to owning surfaces, and criteria to verification.
-Define every term that can change implementation.
+Define every term that can change implementation. Specify contracts—invariants, inputs, outputs,
+failure semantics, and repository-native commands—rather than embedding bespoke multi-dozen-line
+inline shell/Python wrappers, IPC/sandbox harnesses, or copy-pasted orchestration code inside a plan;
+if reusable tooling is genuinely needed, reuse or extend the existing semantic owner first and
+budget a new tracked script only when strict necessity is established.
 Check for duplicate open issues, an existing owner in the program record, and relevant recent
 changes immediately before handing off.
 
@@ -225,8 +229,20 @@ Verify and disposition every finding, and take the reviewer's proposed revision 
 not as approved text. Hand off only an `approve` candidate or an `approve with revisions` candidate
 after required revisions are resolved. A material change to scope, architecture, behavior,
 contract, authority, or acceptance criteria requires a fresh full review; a localized correction
-requires review of its delta and integration invariants. The fingerprint that is handed off is the
-one the last review gave for the final bytes.
+requires review of its delta and integration invariants, briefing the reviewer with the exact
+predecessor bytes, the prior review record (including its open findings, evidence gaps, and
+coverage evidence), and the prior fingerprint so reused coverage is verifiable (otherwise request a
+full review). The fingerprint that is handed off is the one the last review gave for the final
+bytes.
+
+Cap autonomous `plan-review` revision loops at three passes, counting the initial full review of
+the drafted candidate as pass one (reset only when the user authorizes a redesigned candidate). If
+the candidate remains ineligible for handoff after pass three—whether `reject`, `blocked`, or
+`approve with revisions` with required edits still unverified—or sooner if successive passes fail
+to shrink unresolved required findings and material evidence gaps or expand bespoke scaffolding
+instead of converging, stop, leave the authoritative artifact unchanged, and escalate to the user
+with the remaining items, why revisions did not converge, and concrete options (prune non-required
+scaffolding, simplify scope, or resolve a user-owned trade-off).
 
 When revising an existing plan from findings the user approved, apply exactly that set. Report a
 newly noticed concern separately and get approval before folding it in.

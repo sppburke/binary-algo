@@ -139,7 +139,11 @@ necessity for each new file, API, dependency, persistent schema, service, framew
 Compare every non-obvious choice with the strongest simpler repository-native design. When the
 evidence shows a shared class of failures or an incomplete owner, also compare the smallest
 complete design that covers every affected member, and state the gap each option leaves. Do not
-demand alternatives ceremony when one established shape clearly fits.
+demand alternatives ceremony when one established shape clearly fits. When a plan embeds
+non-required inline wrapper scripts, custom IPC/sandbox harnesses, or bespoke orchestration around
+repository-native primitives, flag that scaffolding itself as over-engineered under `G3`/`G7`/`G9`
+and recommend pruning it back to repository-native contracts rather than filing iterative
+edge-case defects that drive deeper patches into an unnecessary wrapper.
 
 Audit the surface budget. A plan must name expected files, public APIs, dependencies, persistent
 schemas, and protected surfaces when applicable. Unbounded implementation rediscovery is a plan
@@ -265,6 +269,17 @@ material consequence. It is Blocking when the requirement binds and the complete
 artifact, including any source it incorporates, shows the omission; where a source not yet read
 could show the requirement is met, it is an evidence gap.
 
+Calibrate severity to realistic failure impact within binding authority. A Blocking finding must
+demonstrate a concrete, realistic failure against repository correctness, research validity,
+protected data, authority, persistent state, or authoritative verification—not a synthetic local
+fault (such as contrived same-user symlink races, filesystem spoofing, or wrapper injection) outside
+binding contracts and evidenced exposure. Never let a plan's self-declared threat model waive a
+safeguard that governing authority requires, and never override verdict precedence based on edit
+size: any Blocking finding or contradicted material claim stays `reject`, and `approve with
+revisions` applies only after verdict precedence finds zero Blocking findings, zero contradicted
+claims, and zero exhausted material evidence gaps, leaving only required non-material `Should Fix`
+corrections.
+
 Every Blocking and Should Fix finding must cite evidence, tag applicable guidelines (`G1`–`G9`),
 and provide exactly one structured delta:
 
@@ -291,7 +306,20 @@ Apply verdict precedence exactly:
 
 The verdict applies to the reviewed bytes only. A revised body earns approval through the
 receiving workflow's coverage rules: delta review for a localized correction, a fresh full review
-for a material change.
+for a material change. A delta re-review requires a valid reviewed predecessor (exact prior bytes,
+prior review record with its open findings, evidence gaps, and coverage evidence, and prior review
+fingerprint) plus current repository state without unbounded material drift. Compare the exact
+current bytes against that predecessor and verify every actually changed claim and named surface,
+every prior required delta, and every directly affected integration invariant; reuse settled
+coverage on untouched sections only while its supporting repository evidence remains verifiable
+and applicable, and carry forward all still-open findings and unresolved material evidence gaps
+into verdict precedence. Label the balanced delta inventory counts (`N = S + C + G`) in
+`## Coverage`, emit a fresh `## Review Fingerprint` for the complete current artifact, and
+preserve untouched text in the full `## Proposed revision`. Do not re-open settled unchanged
+sections or invent speculative objections on untouched text; expand back to a full review whenever
+the prior review record or evidence needed to justify reused coverage is unavailable, repository
+drift cannot be bounded, or the revision materially changes scope, architecture, behavior,
+authority, contract, or acceptance criteria, stating the exact trigger.
 
 ## Proposed revision
 
