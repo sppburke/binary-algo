@@ -93,7 +93,7 @@ binary-algo/
 │   ├── harness.py          ← SHARED: train/val/test/OOS split + feature loading
 │   ├── sessions.py         ← SHARED: NY/LDN/Asia session mask
 │   ├── dataset.py          ← SHARED: data utilities
-│   ├── cpcv_certify.py     ← SHARED: CPCV certification harness
+│   ├── cpcv_certify.py     ← SHARED: CPCV + deflation experiment (8 groups, 28 paths)
 │   ├── crosspair.py        ← SHARED: EUR-bloc cross-pair feature construction
 │   ├── manifest.py         ← SHARED: book manifest / content_id
 │   ├── build_panel.py      ← builds feature parquets from raw OHLCV
@@ -195,6 +195,9 @@ For VPS demo deployment, see `docs/DERIV_DEMO_EXECUTOR.md` and the placeholder-o
 Deriv candle backfills are isolated under gitignored `deriv_data/`; they do not
 replace or mutate the existing Dukascopy-derived `features/` store or any frozen
 book in `books/`.
+
+Run on the Mexico VPS only; Deriv connections never originate from the workstation (`AGENTS.md`). The default path
+is the production store the refresh timer owns, so run this before that timer is enabled or pass a separate `--out-dir`:
 
 ```bash
 ~/binary-algo-venv/bin/python scripts/deriv_backfill.py --pairs all --granularity 60

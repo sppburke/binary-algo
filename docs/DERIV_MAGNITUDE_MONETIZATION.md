@@ -167,6 +167,8 @@ The existing classifier ranks bars by `P(|ret_H| >= Q)`. To trade, we need **cal
 
 ## 6. API integration sketch
 
+> Every Deriv connection in this guide is opened from the Mexico VPS only (`AGENTS.md`, owner decision of 2026-11-25).
+
 > T3/T4 from the supplied fragments (classic v3 WebSocket) — not re-verified against a live socket this session. The `barrier`-offset syntax and the `q = ask/payout` reading are the load-bearing pieces.
 
 ```
@@ -251,7 +253,7 @@ wss://ws.derivws.com/websockets/v3?app_id=1089     # 1089 = public test id; regi
 
 Ordered by EV-per-effort, each tied to whether the product is actually FX-available.
 
-1. **Live-probe the FX-available daily binaries first (cheapest, no model work).** Open a v3 socket, call `proposal` for **ONETOUCH** and **EXPIRYMISS** on `frxEURUSD` at `duration=1, duration_unit="d"` with absolute barriers near `entry ± 1σ_daily`. Record `ask_price`, `payout`, compute `q = ask/payout`. **Goal:** measure the actual house haircut and barrier-acceptance range on the products that *are* FX-available. *(FX-available: ONETOUCH/EXPIRYMISS confirmed T1.)*
+1. **Live-probe the FX-available daily binaries first (cheapest, no model work).** From the Mexico VPS (`AGENTS.md`), open a v3 socket, call `proposal` for **ONETOUCH** and **EXPIRYMISS** on `frxEURUSD` at `duration=1, duration_unit="d"` with absolute barriers near `entry ± 1σ_daily`. Record `ask_price`, `payout`, compute `q = ask/payout`. **Goal:** measure the actual house haircut and barrier-acceptance range on the products that *are* FX-available. *(FX-available: ONETOUCH/EXPIRYMISS confirmed T1.)*
 
 2. **Build the 1-day EURUSD magnitude model and CPCV-certify it.** Re-label EURUSD daily data as `|ret_1d| >= train-Q{75,90}`, run `cpcv_certify.py`, report `auc_mean / p10 / deflated / decile-lift`. **Kill gate:** if 1d `AUC < 0.65` or decile-lift collapses, **all FX two-sided/touch monetization is dead** and we pivot entirely to synthetics. *(This is the single decision that determines whether FX is viable at all.)*
 

@@ -2,6 +2,10 @@
 
 # Deriv Demo Executor
 
+> **Deriv connections come only from the Mexico VPS** (`AGENTS.md`, owner decision of 2026-11-25). Every
+> command below that opens a Deriv connection, including `--public-smoke` and the probe units, runs there, not
+> on the workstation.
+
 `scripts/deriv_demo_executor.py` runs the six deployable non-EURUSD 15m books against Deriv Options demo infrastructure:
 
 ```text
@@ -104,6 +108,9 @@ Fallback:
 
 ## Local Smokes
 
+The commands that contact Deriv (`--public-smoke`, the auth-health and buyer runs, and the proposal dry run) run on
+the Mexico VPS; the book check, the fake-client smoke, and the store health check are offline.
+
 Book and replay schema:
 
 ```bash
@@ -181,10 +188,10 @@ ops/deriv-production-candle-refresh.service  (issue #5)
 ops/deriv-production-candle-refresh.timer    (issue #5)
 ops/deriv-quote-audit.service                (issue #5)
 ops/deriv-probe-g-nearclose.service          (issue #4 — Phase-0 probe g capture)
-ops/deriv-probe-g-nearclose.timer            (issue #4 — fires 16:19 NY weekdays)
+ops/deriv-probe-g-nearclose.timer            (issue #4 — fires 16:20 NY weekdays)
 ```
 
-**Probe g near-close scheduler** (`ops/deriv-probe-g-nearclose.{service,timer}`): fires `scripts/deriv_api_probe.py --probes g --near-close-start 16:20` at **16:19 NY on weekdays** (the `OnCalendar=... America/New_York` TZ suffix is load-bearing — hosts on other timezones would otherwise misfire), writing gitignored `logs/probe_g_scheduled_capture.json`. Fully unattended: on a clean accepted→rejected capture the service `ExecStartPost` runs `scripts/fold_probe_g_capture.py`, which merges the `g_near_close` record into `results/json/deriv_api_probe_result.json` and **commits + pushes it** (fail-safe: rebase-first, never force-push, retry), then the timer **self-disables**. A non-clean run (holiday/closed market) is a no-op that leaves the timer armed to retry the next weekday. Manual stop if needed: `systemctl --user disable --now deriv-probe-g-nearclose.timer`. (`loginctl enable-linger` — no sudo needed for self — makes the user timer survive a full logout/reboot; enabled on the dev host 2026-07-02.)
+**Probe g near-close scheduler** (`ops/deriv-probe-g-nearclose.{service,timer}`): fires `scripts/deriv_api_probe.py --probes g --near-close-start 16:20` at **16:20 NY on weekdays** (the `OnCalendar=... America/New_York` TZ suffix is load-bearing — hosts on other timezones would otherwise misfire), writing gitignored `logs/probe_g_scheduled_capture.json`. Fully unattended: on a clean accepted→rejected capture the service `ExecStartPost` runs `scripts/fold_probe_g_capture.py`, which merges the `g_near_close` record into `results/json/deriv_api_probe_result.json` and **commits + pushes it** (fail-safe: rebase-first, never force-push, retry), then the timer **self-disables**. A non-clean run (holiday/closed market) is a no-op that leaves the timer armed to retry the next weekday. Manual stop if needed: `systemctl --user disable --now deriv-probe-g-nearclose.timer`. (`loginctl enable-linger` — no sudo needed for self — makes the user timer survive a full logout/reboot; enabled on the dev host 2026-07-02.)
 
 Copy the env template outside git, fill only VPS-local secrets, then install the units with paths adjusted if the checkout or venv differs. Emergency stop is `touch <log-dir>/KILL` (per log dir).
 The absolute live-breakeven sanity ceiling is configured with `DERIV_DEMO_ABSOLUTE_BREAKEVEN_CEILING`; existing private env files that still contain `DERIV_DEMO_MAX_BREAKEVEN` continue to work, but new installs should use the clearer name.

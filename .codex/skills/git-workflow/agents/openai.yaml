@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Workflow"
+  short_description: "Git and GitHub mechanics for binary-algo"
+  default_prompt: "Use $git-workflow to inspect or carry out the binary-algo git and GitHub step this task needs."

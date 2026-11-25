@@ -7,7 +7,9 @@ deployable books (`books/`).
 
 ## Backfill
 
-Run from the repo root:
+Run from the repo root, on the Mexico VPS only (Deriv connections never originate from the workstation;
+`AGENTS.md`). The default path is the production store, whose only writer is the refresh timer: run this
+before that timer is enabled, or pass a separate `--out-dir`.
 
 ```bash
 ~/binary-algo-venv/bin/python scripts/deriv_backfill.py --pairs all --granularity 60

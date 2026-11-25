@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deriv Runtime Ops"
+  short_description: "Inspect and operate the Deriv demo runtime"
+  default_prompt: "Use $deriv-runtime-ops to inspect the Deriv demo runtime and report its unit states and safeguards before any action."

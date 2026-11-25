@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deriv Lab Ops"
+  short_description: "Operate the Deriv-feed research lab"
+  default_prompt: "Use $deriv-lab-ops to establish the Deriv lab's current state and the next authorized step before acting."

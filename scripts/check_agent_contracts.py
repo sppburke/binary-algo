@@ -69,6 +69,9 @@ REQUIRED_BODY_TEXT = {
         "`0.541`",
         "`p10",
         "`80%`",
+        "Every review, whatever its verdict, ends with one consolidated proposed revision",
+        "Lay the work out as explicit phases",
+        "Map every KILL or DO-NOT-SHIP condition to the phase that tests it",
     ),
     "dev-cycle": (
         "implement -> test -> clean/archive -> review/fix -> final gate -> "
@@ -87,6 +90,8 @@ REQUIRED_BODY_TEXT = {
         "scripts/check_agent_contracts.py",
         "Never force-push `main`",
         "Shortcuts / hacks taken: none",
+        "Such a batch is not a development cycle",
+        "check for other writers of this checkout",
     ),
     "strategy-eval": (
         "`results/<PAIR>_RESULTS.md`",
@@ -95,6 +100,36 @@ REQUIRED_BODY_TEXT = {
         "`boot`",
         "Pooled-CPCV",
         "One heavy job at a time",
+        "## Which protocol governs",
+        "`docs/DERIV_SOTA_PROGRAM.md`",
+    ),
+    "git-workflow": (
+        "The calling workflow owns authority, gates, review, and completion",
+        "If anything else is already staged, stop",
+        "Never force.",
+        'git merge-base --is-ancestor "$candidate" origin/main',
+        "Tag only after that commit exists on `main`",
+        "Use the current `gh` account first",
+    ),
+    "deriv-runtime-ops": (
+        "**Demo only.**",
+        "**Reading is free; acting is separate.**",
+        "Never read, print, copy, or log the private environment file",
+        "is the only credentialed buyer",
+        "Never re-submit it",
+        "**Parity re-arm.**",
+    ),
+    "deriv-lab-ops": (
+        "**Sealed data stays sealed.**",
+        "**The newest dated owner decision wins**",
+        "**Honor a pause.**",
+        "**Register before the first run.**",
+        "**One Deriv connection at a time.**",
+        "A pilot never certifies",
+    ),
+    "repo-audit": (
+        "An audit reads; it never edits the checkout",
+        "it keeps protected outcomes sealed",
     ),
 }
 
@@ -106,6 +141,10 @@ AGENTS_ANCHORS = (
     "Run scripts from the repository root",
     "Never pool across timeframes",
     "Certification requires 15 refit-CPCV purged paths",
+    "`git-workflow` holds the Git and GitHub mechanics",
+    "`deriv-lab-ops` operates the Deriv-feed research lab",
+    "`deriv-runtime-ops` inspects and operates the Deriv demo runtime",
+    "Deriv-feed program work: `docs/DERIV_SOTA_PROGRAM.md`",
 )
 
 
@@ -247,7 +286,8 @@ def validate_interface(path: Path, skill: str, failures: list[str]) -> None:
         add(failures, path, "short_description must contain 25-64 characters")
     prompt = values["default_prompt"]
     token = f"${skill}"
-    if not prompt.startswith(f"Use {token}") or prompt.count(token) != 1:
+    exact = re.escape(token) + r"(?![\w-])"
+    if not re.match(f"Use {exact}", prompt) or len(re.findall(exact, prompt)) != 1:
         add(failures, path, f"default_prompt must start with 'Use {token}' exactly once")
     if len(prompt) > 256:
         add(failures, path, "default_prompt exceeds 256 characters")
@@ -262,8 +302,9 @@ def validate() -> list[str]:
         add(failures, agents, "must be the canonical regular file")
     agents_text = read_text(agents, failures) if agents.is_file() else None
     if agents_text is not None:
+        agents_flat = " ".join(agents_text.split())
         for anchor in AGENTS_ANCHORS:
-            if anchor not in agents_text:
+            if " ".join(anchor.split()) not in agents_flat:
                 add(failures, agents, f"missing shared invariant {anchor!r}")
 
     if not claude.is_symlink():
@@ -306,6 +347,8 @@ def validate() -> list[str]:
         if parsed is not None:
             body, _description = parsed
             body_flat = " ".join(body.split())
+            if not body_flat:
+                add(failures, skill_path, "skill body is empty")
             for token in find_platform_tokens(body):
                 add(
                     failures,
@@ -322,6 +365,8 @@ def validate() -> list[str]:
 
     if not names:
         add(failures, CANONICAL, "contains no valid skills")
+    for required_skill in sorted(set(REQUIRED_BODY_TEXT) - set(names)):
+        add(failures, CANONICAL / required_skill, "required skill is missing")
 
     projected_entries = sorted(CLAUDE_SKILLS.iterdir(), key=lambda path: path.name)
     projected_names = [path.name for path in projected_entries]

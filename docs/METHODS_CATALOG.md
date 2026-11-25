@@ -355,7 +355,7 @@ All scripts live in `/home/sean/git/binary-algo/`. Last major campaign update 20
 
 ### 9.1 Combinatorial Purged CV + Deflated-Sharpe / PBO
 - **What.** Replace the single chronological partition with C(N,k) purged+embargoed OOS paths → a DISTRIBUTION; a model whose 10th-percentile path clears the bar is real, one clearing only on the mean/lucky-split is a mirage. Plus PBO and deflation by N_trials given corr(VAL,OOS)=−0.54.
-- **How.** `cpcv_certify.py` (generic, N=8/k=2/28 paths/70 trials/embargo=1 horizon), `min15_cpcv.py` (faithful CPCV of the actual 3-model m15 book, N=6/k=2/15 paths). Targets: 15m direction + 30m magnitude.
+- **How.** `cpcv_certify.py` (generic, N=8/k=2/28 paths/70 trials/embargo=1 horizon), `min15_cpcv.py` (historical replication of the 3-model m15 book, N=6/k=2/15 paths; selects by max VAL accuracy and excludes ties, so it is not the certification template). Targets: 15m direction + 30m magnitude.
 - **Why.** Certify which headline numbers survive trial-deflation.
 - **Process notes.** `cpcv_certify.py` used a single LGBM + q33 + all-era pool (a *weaker* re-implementation) → its lower 15m number is NOT a faithful test; `min15_cpcv.py` replicates the real ensemble + VAL-tuned gate + recent-held-out and reproduces the edge. Memory: one parquet at a time, subsample ≤100k.
 - **STATUS.** **survived (faithful)** — `min15_cpcv_result.json` mean 0.5787 / p10 0.5573 (15 paths); magnitude 30m AUC mean 0.744 / p10 0.718 / 5.0× decile lift survives (`cpcv_certify_result.json`). The generic 15m selacc (mean 0.545) is the deflated weaker re-implementation, not a refutation.

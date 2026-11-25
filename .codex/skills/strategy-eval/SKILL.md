@@ -15,20 +15,40 @@ description: >-
 ## GitHub Issue Hand-Offs
 
 - A bare issue reference like `#<issue-number>` means `https://github.com/sppburke/binary-algo/issues/<issue-number>`.
-- If the request includes an issue reference, fetch it before selecting a backlog row:
-  `GH_TOKEN="$(gh auth token --user sppburke)" gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments`.
+- If the request includes an issue reference, fetch it with `git-workflow` before selecting a backlog row:
+  `gh issue view <issue-number> -R sppburke/binary-algo --json number,title,body,url,state,labels,comments,updatedAt`.
 - Use the issue title/body as the run spec unless a more specific local ledger row is explicitly named. Do not ask
-  the user to paste the issue unless the token-prefixed `gh` command cannot access it.
-- Use the locally configured `sppburke` GitHub token/account. Prefer commands with `-R sppburke/binary-algo`. If
-  GitHub access needs an explicit account token, use `GH_TOKEN="$(gh auth token --user sppburke)" gh <your command>` and verify with
-  `GH_TOKEN="$(gh auth token --user sppburke)" gh repo view sppburke/binary-algo --json nameWithOwner,url`. Never print, extract, or paste the token.
-- After a successful push to `main`, comment on the driving issue with what was evaluated/recorded/frozen, the
+  the user to paste the issue unless no account can access it.
+- Use the current `gh` account first and pass `-R sppburke/binary-algo`. Only if it cannot resolve the repository,
+  use the one-call `sppburke` token fallback given in `git-workflow`. Never print, persist, or paste the token.
+- When the issue carries a `plan-review-receipt/v1`, apply `dev-cycle`'s receipt check before the first fit, freeze,
+  or record; a changed body or a withdrawn approval goes back to review.
+- After a successful push to `main`, comment on the driving issue (the one `dev-cycle` closeout comment) with what was evaluated/recorded/frozen, the
   commit SHA, result JSON/ledger/book paths, checks, and any skipped checks. Close the issue only after the commit
-  is on `main`.
+  is on `main` and every acceptance criterion and named parent record agrees.
 
 This repo forecasts deriv.com Rise/Fall binaries: `sign(close(t+H) - close(t))` (direction) and `|ret_H|≥Q`
 (magnitude). Years of work converged on hard constraints. **Follow this protocol exactly — most "edges" are
 artifacts of broken discipline, and the program has already catalogued how.**
+
+## Which protocol governs
+
+Identify the governing protocol before choosing a harness or a window.
+
+- **Deriv-feed program** — the current program: Deriv tick data, runs in the lab, a sealed holdout. Its contract
+  is `docs/DERIV_SOTA_PROGRAM.md`; its registrations, dated owner decisions, caps, and current state are in the
+  lab's log; operating it is `deriv-lab-ops`. Under it, every fold and forward reading used as Deriv-feed evidence,
+  every certificate, and every holdout reading is on Deriv-feed rows (other history only in roles the owner released); the development and sealed windows, venue masks, validation mode, and
+  look schedule are the registered ones, not the per-year split in section 2; a side is certified only by
+  `strict_certificate` in `scripts/certificate.py`; the payout reading is a separate deployment gate; and results
+  are recorded by the lab's recorder and `scripts/update_records.py`. Follow the registered protocol and the
+  newest applicable owner decision. Sections 1-8 describe the legacy workflow; one of their steps applies here
+  only where the governing record adopts it. The key, filing, and citation rules of section 0 apply to both.
+- **Legacy feature-store work** — the Dukascopy-derived multi-year stores. Sections 0-8 apply as written.
+
+Under either protocol, a search that `AGENTS.md` closes stays closed unless a recorded owner decision reopened it
+for that substrate, key, and family, and the sweep and discovery modes of section 8 run only inside what has been
+released. Opening sealed data, adding a data source, and raising a compute cap are the owner's decisions.
 
 ## 0. The unique key and where results go
 Every result is keyed `(currency, timeframe, side)`, side ∈ {UP, DOWN} (COMBINED is context, not a side key).
@@ -46,7 +66,7 @@ Every doc is exactly one tier; keep them clean as keys multiply:
   `results/<PAIR>_RESULTS.md` (results of record + leaderboard), `sweeps/<PAIR>_<tf>.md` (sweep LEDGER / status),
   **`sweeps/<PAIR>_<tf>_backlog.md` (the per-key EXECUTABLE backlog — TOP-N experiments, FIRST-TO-RUN queue,
   incumbents-to-beat, discovery rounds)**, `docs/MAGNITUDE_FINDINGS.md` (per-currency), `MODEL_REGISTRY.md`+`books/`.
-- Legacy key-specific files keep their names (`docs/research_log.md`, `m{5,10,30}_research_log.md`, `docs/EXPERIMENT_LEDGER.md`,
+- Legacy key-specific files keep their names (`docs/research_log.md`, `docs/m{5,10,30}_research_log.md`, `docs/EXPERIMENT_LEDGER.md`,
   `docs/FINDINGS.md`, `docs/DIRECTION_FINDINGS.md`, `docs/CCM_DESIGN.md`) but each carries a `SCOPE:` banner declaring its key —
   don't rename (dense cross-refs into production scripts); the banner is the label.
 - **When you run a sweep/idea on a key: record the idea generically once (IDEAS_LOG/SWEEP_MATRIX/METHODS_CATALOG),
@@ -77,9 +97,9 @@ Every doc is exactly one tier; keep them clean as keys multiply:
 - **Pre-register a falsifier BEFORE looking at OOS.** State the exact KILL conditions (e.g. "KILL if VAL
   dirAUC ≤ 0.515, OR no held-out year's moved-acc CI95-lower clears <breakeven/target>"). Write it into the
   result JSON. A method that survives a pre-registered falsifier is real; one tuned until it passes is not.
-- **Memory/compute.** One heavy job at a time (OOM history); subsample train ≤100–150k; build features
-  month-by-month for tick data; the repo + data live on a flaky external USB SSD (`udisksctl mount -b
-  /dev/sdb2` if it drops; builds should be idempotent/resumable).
+- **Memory/compute.** One heavy job at a time (OOM history) unless the governing program record authorizes
+  bounded concurrency; subsample train ≤100–150k; build features month-by-month for tick data; builds should be
+  idempotent/resumable.
 
 ## 3. The recurring leakage traps (each has produced a fake edge here — check all)
 1. Sequence-model future-peek: HMM Viterbi/forward-backward, Kalman RTS smoother → use forward FILTER only.
@@ -105,13 +125,17 @@ Hurst / Kalman statistics gate move SIZE (magnitude), not SIGN. If a "direction"
 almost certainly a magnitude edge — test it as magnitude (`|ret|≥Q`, AUC), not direction.
 
 ## 4. Reusable building blocks (import, don't reinvent)
+Every script named here lives under `scripts/` and runs from the repository root.
 - `harness.py` — `FEAT_DIR`, `feature_cols(pair)`, `SPLITS`, the 239 multi-TF bar features (2012–2026, 7 majors).
 - `min1_production.py` — `wc_ret`, `boot`, `nonoverlap_chrono`, `mk_lgb`, the `Min1Strategy` load/predict pattern.
 - Per-horizon production scripts (`m{5,10,15,30}_production.py`, `m_tick_prod.py`) — load/blend/gate templates.
 - `manifest.py` — freeze a surviving model into the registry (see step 6).
-- Interpreter: `~/binary-algo-venv/bin/python` (uv venv; lgb 4.6.0 / xgb 3.2.0 / cat 1.2.10 / pandas 2.3.3).
+- Interpreter: `~/binary-algo-venv/bin/python` (uv venv). Pinned versions are in `ENVIRONMENT_libs.txt`; record the
+  environment actually used in the result or manifest.
 
 ## 5. Workflow
+0. **Before the first tracked write** of a hand-made result delivery (a result stub, a freeze, or a ledger edit),
+   do `dev-cycle`'s authority and other-writer checks; deliver it through that cycle.
 1. **Scope** the key(s): currency, timeframe, side. Set `MX_HOR`/`HS` accordingly.
 2. **Build label + features** with `wc_ret` (settlement) on the target pair's own clock; sanity-check moved
    up-rate ∈ [0.47,0.53].
@@ -119,17 +143,21 @@ almost certainly a magnitude edge — test it as magnitude (`|ret|≥Q`, AUC), n
 4. **Fit on TRAIN, select on VAL worst-half**, evaluate per-year on held-out with `nonoverlap_chrono` +
    `boot` CI95, moved-bars only.
 5. **Apply the falsifier.** Write the verdict (KILLED/SURVIVED + reasons + numbers) into the result JSON.
-   If borderline/important, run the faithful CPCV (`min15_cpcv.py` pattern) before believing it.
-6. **If it SURVIVES and is a deliverable book:** freeze it via `manifest.py` →
+   If borderline/important, run the governing protocol's per-fold-refit purged CPCV before believing it. Do not
+   copy `min15_cpcv.py`: that variant selects by max VAL accuracy and excludes ties.
+6. **If it SURVIVES, has passed the governing certification, and is a deliverable book:** freeze it via `manifest.py` →
    `manifest.build(book_id="<PAIR>.<book>.v1", ...)` then `manifest.freeze(...)` → copies artifacts into
-   `books/<id>/` + writes the manifest; `git tag book/<id>`; record env/data fingerprint automatically.
+   `books/<id>/` + writes the manifest (`manifest.build` writes currency EURUSD: set it to the pair first, then run
+   `scripts/check_book_manifests.py`); record env/data fingerprint. Tag `book/<id>` only after the commit that
+   contains the book is on `main` (step 8, `git-workflow`); a tag made before that commit points at a tree without the book.
 7. **Record the result** in `results/<PAIR>_RESULTS.md`:
    - add a row to that timeframe's combined-book experiments table (method, file, per-year stats + CI, verdict);
    - if side-split was run, update that timeframe's **Key results** AND the **MASTER KEY TABLE** (method +
      best OOS + frozen book id); unseat a key's leader only if the new method beats the incumbent's
      binding-year stat with CI95-lower clearing it under this discipline;
    - magnitude (|ret|) is sign-invariant → no up/down key; record it in `docs/MAGNITUDE_FINDINGS.md`.
-8. **Commit + push** with a message stating the verdict + the Tier-1 evidence (result JSON keys). Update
+8. **Commit + push** through `dev-cycle`'s review, final gate, push verification, and closeout (`git-workflow`
+   has the mechanics), with a message stating the verdict + the Tier-1 evidence (result JSON keys). Update
    `docs/METHODS_CATALOG.md` if it's a new method or a method's status changed.
 
 ## 6. Evidence standard
@@ -184,13 +212,13 @@ recorded and the search resumable + exhaustive.
    testable lever (logic/math/loss/arch/gating/labeling/validation/framing), and EXPERIMENT on all of them —
    better DISPROVED BY EXPERIMENT than never tried; never pre-dismiss on a hunch. Fan out reader subagents over
    the corpus → idea→experiment backlog in `docs/IDEAS_LOG.md` → execute.
-6. **Do not stop** until every row is `done`/`killed`, the Tier-I levers + combinations are exhausted on the
+6. **Do not stop**, inside the released scope, until every row is `done`/`killed`, the Tier-I levers + combinations are exhausted on the
    best edge, and the discovery loop is dry. Then write the final best-UP and best-DOWN for the key, freeze the
-   survivors (including the best combination) as books (§6), and report the leaderboard.
-5. **Resumability:** the ledger IS the state. On any resume (new session, after a crash), re-open it and
+   survivors (including the best combination) as books (§5 step 6), and report the leaderboard.
+7. **Resumability:** the ledger IS the state. On any resume (new session, after a crash), re-open it and
    continue from the first `pending`/`running` row. Never repeat a `done` row.
 
-**6. DISCOVERY — generate NEW methods/variants to expand the search (run continuously, don't just drain the menu).**
+**8. DISCOVERY — generate NEW methods/variants to expand the search (run continuously, don't just drain the menu).**
 The fixed menu is a starting point; the goal is to maximize the chance of finding an edge, so keep ADDING
 candidates:
    a. **When to discover:** at sweep start, after finishing each tier, and whenever `pending` rows run low —
@@ -219,6 +247,7 @@ at another horizon — nulls are horizon/regime-specific and confirming them her
 falsifier to the prior so low-prior rows die fast. Log any variant you prune (don't silently skip).
 
 ## Honest prior (do not waste compute relitigating)
+These figures are from the legacy stores; the Deriv-feed program's current readings are in its ledgers.
 60s EURUSD direction is near-efficient (~0.50–0.51 AUC across ~24 channels); >0.65 OOS-stable is not
 achievable on this data at ≤5m. Real edges found: 15m direction ~0.58 robust / 0.647 recent, seconds (1–5s)
 ~0.65 (needs a tick venue), and **magnitude** AUC 0.71–0.81 (the one CPCV-deflation-certified edge). For a

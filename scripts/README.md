@@ -17,9 +17,10 @@ python scripts/usdchf_15m_cpcv_xpair.py
 | `harness.py` | Train/val/test/OOS split logic, feature loading from `features/` |
 | `sessions.py` | NY / LDN / Asia session mask (`session_mask(df, "ny")`) |
 | `dataset.py` | Low-level data utilities |
-| `cpcv_certify.py` | CPCV certification harness (15 purged paths, per-fold refit) |
+| `cpcv_certify.py` | EURUSD CPCV and deflation experiment: 8 groups, 28 purged paths, per-fold refit (not the 15-path book gate) |
 | `crosspair.py` | EUR-bloc cross-pair feature construction |
 | `manifest.py` | Book manifest creation and content_id hashing |
+| `check_book_manifests.py` | Read-only check that every book manifest's currency matches its book id |
 | `build_panel.py` | Builds `features/{PAIR}_{year}.parquet` from raw OHLCV |
 | `build_books.py` | Freezes a trained model into `books/` |
 | `fwd_holdout.py` | Forward holdout evaluation utilities |
