@@ -4,11 +4,35 @@
 > **NEVER contact any Deriv server (`*.derivws.com`, `*.deriv.com`, public or authenticated WebSockets, or REST endpoints) directly from the USA / local research workstation (`quantum`).**
 > **ALL direct network interaction with Deriv servers—including public tick/candle downloads, quote surveys, contract catalog queries, proposal smoke checks, Demo (`VRTC*`) execution, and Live (`CR*`) trading—MUST run EXCLUSIVELY on the Mexico VPS (`sean@64.177.80.63`, hostname `vultr`, via `ssh -i ~/.ssh/id_personal -o IdentitiesOnly=yes -o BatchMode=yes sean@64.177.80.63`, with `DERIV_HOST_JURISDICTION=mexico_vps`).** Local US machines are strictly for offline research, training, and certification on archived data synced from the Mexico VPS.
 
-Predicts **up/down price direction** for 7 USD FX pairs at the 15-minute horizon, targeting Deriv FX Rise/Fall binaries (even-payout, breakeven = **0.541**). All models are trained on 10s OHLCV bars + tick-derived features, 2012–2026.
+Predicts **up/down price direction** on Deriv FX Rise/Fall binaries (ties-lose). For current Deriv-native 1-second tick research, certified zero-pickle SOTA books, gap-closure audits, and Mexico-VPS deployment, start with the **2026-11 Deriv-Feed SOTA Certification** section below; the 2026-06 Dukascopy 10s-bar leaderboard is retained beneath it as historical v1 reference.
 
 ---
 
-## Certified Model Leaderboard
+## 2026-11 Deriv-Feed SOTA Certification, Gap-Closure & Profitability Ranking
+
+Full cross-contract ranking, falsification ledger, compounding study, and Mexico-VPS runbook live in [docs/DERIV_PROFITABILITY_RANKING.md](docs/DERIV_PROFITABILITY_RANKING.md), [SOTA_MODEL_REGISTRY.md](SOTA_MODEL_REGISTRY.md), [books/SOTA_INDEX.json](books/SOTA_INDEX.json), and [results/USDJPY_RESULTS.md](results/USDJPY_RESULTS.md). All DEV evaluation uses native Deriv 1-second ticks `< 2026-08-01T00:00:00Z` (sealed holdout `>= 2026-08-01T00:00:00Z` untouched) with zero-pickle NumPy runtime hardened in `scripts/deriv_sota_executor.py`, `scripts/deriv_sota_tick_stream.py`, `scripts/sota_book_runtime.py`, `scripts/vps_preflight.py`, and `scripts/deriv_live_pnl_ledger.py`.
+
+### Certified Frozen Demo Canary Books (`books/SOTA_INDEX.json`, `G1–G5` DEV Pass Under Drift Amendment, `G6` Pending)
+
+| Rank | Book ID (`content_id`) | Key & Contract | Trades/Yr | Payout | `p10_wr` / `p10_ev` | Path-`p10` Floor Log-Growth (`$/Yr` per `$1k`) | Tier-2 Ledger & Dossier |
+|---:|---|---|---:|---:|---|---|---|
+| **`#1`** | `USDJPY.sota_ens5_m30_up.v1` (`c8d0b13768a4c649`) | `[USDJPY·30m]` `CALL` (`risefall`, `cov=0.03`, 5-seed RBF Nyström) | `316` | `1.8200` (flat `0.00` skew) | `0.6031` / `+0.0976` | **`+0.6495/yr`** (`+$914.67/yr`, `maxDD 31.56%`) | [USDJPY_RESULTS.md](results/USDJPY_RESULTS.md), [SOTA_MODEL_REGISTRY.md](SOTA_MODEL_REGISTRY.md), [5-gate JSON](results/json/deriv_5gate_USDJPY_sota_ens5_m30_up_v1_result.json) |
+| **`#4`** | `USDJPY.sota_ens5_m15_up.v1` (`51b8c7fd6d179b3f`) | `[USDJPY·15m]` `CALL` (`risefall`, `cov=0.015`, 5-seed RBF Nyström) | `274` | `1.7764` (NY mean) | `0.5763` / `+0.0238` | **`+0.0494/yr`** (`+$50.63/yr`, `maxDD 8.01%`) | [USDJPY_RESULTS.md](results/USDJPY_RESULTS.md), [SOTA_MODEL_REGISTRY.md](SOTA_MODEL_REGISTRY.md), [5-gate JSON](results/json/deriv_5gate_USDJPY_sota_ens5_m15_up_v1_result.json) |
+
+*(Legacy 1-seed baselines `USDJPY.sota_e49nys30_m30_up.v1` and `USDJPY.sota_c2nysabs_m15_up.v1` remain in `books/SOTA_INDEX.json` for reproducibility and are superseded by the two 5-seed books above; deploy with `--book-ids USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_ens5_m15_up.v1`.)*
+
+### Closed Real-Market Sweeps, Conditional Candidate & Compounding Study
+
+- **Exhausted contract families & instruments (`0` certified survivors):**
+  - Continuous Multipliers (`MULTUP`/`MULTDOWN`, `879` scored rows across FX, Metals, Crypto, `WLD*` baskets): `0` survivors (`results/json/deriv_priority123_grand_sweep_result.json`, `deriv_novel_levers_and_mult_tp_result.json`, `deriv_round2_discovery_and_jpy_basket_result.json`, `deriv_multiasset_candles_and_crypto_mult_result.json`).
+  - `1d` Volatility Barriers (`RANGE`, `EXPIRYRANGE`, `ONETOUCH`, `NOTOUCH`, `EXPIRYMISS`, `UPORDOWN`, `450` exact broker-IV evaluations + `12` Gold/Silver touch cells) and `1d` `HIGHER`/`LOWER` offset barriers (`30` cells): `0` survivors (`deriv_barrier_1d_exact_quoterv_audit_result.json`, `deriv_gap_closure_barriers_hl_result.json`, `deriv_mexico_vps_gap_probe_result.json`).
+  - Non-JPY FX majors (`126` rows), `16` G10 crosses (`[EURJPY·30m/60m]` and `[AUDNZD·120m]` falsified on native venue ticks; `[GBPJPY·120m]` blocked on `< 120` cached venue tick days), `12` OTC stock indices (`144` cash-session rows), non-NY FX sessions (`174` Tokyo/London/All-Open rows), `240m`/`1d` FX & Metals, and `4h`/`8h` `WLD*` baskets: `0` certified (`deriv_gap_closure_sweep_result.json`, `deriv_gap_closure_falsifiers_result.json`).
+- **Conditional unfrozen candidate (`[USDJPY·60m]` `CALL` @ `1.82`):** Failed static `2025 -> 2026` freeze (`EV -0.0563`), passed all `4` start-date shifts under bi-weekly (`14d`) trailing-`120d` refitting (`wr = 0.6230–0.6931`, `ev = +0.1339..+0.2614`, rank `9/9` vs week-shift nulls in `results/json/deriv_gap_closure_falsifiers_result.json`; Tier-2 [USDJPY_RESULTS.md](results/USDJPY_RESULTS.md)). Adding `[USDJPY·60m]` refit paths alongside `[USDJPY·30m]` + `[USDJPY·15m]` across all `15` shared CPCV paths at `0.25×` Kelly (`jpy_cap = 3`) lifts portfolio frequency from `316` to `760` tr/yr and floor log-growth from `+0.6504` to `+0.9024/yr` (`maxDD 33.0%`; `[USDJPY·30m]` + `[USDJPY·60m]` at `jpy_cap = 2` reaches `+0.9539/yr` at `maxDD 28.1%`, `results/json/deriv_compounding_and_frequency_study_result.json`).
+- **Post-G6 frequency & compounding study:** Archived in [deriv_compounding_and_frequency_study_result.json](results/json/deriv_compounding_and_frequency_study_result.json) and summarized in [docs/DERIV_PROFITABILITY_RANKING.md](docs/DERIV_PROFITABILITY_RANKING.md) §2 (Kelly fraction scaling, 3-book portfolio expansion, staggered `15m` `0.65×` lanes, `14d` rolling-refit frequency lift, and coverage sensitivity).
+
+---
+
+## Certified Model Leaderboard (Legacy 2026-06 Dukascopy 10s-Bar v1 Reference)
 
 All 7 pairs certified as of 2026-06-11. All sweeps closed. Models gate on **NY session only** (08:00–17:00 America/New_York, DST-correct) and are **refit-dependent** — periodic retraining is required; frozen vintage books decay toward breakeven by 2026 OOS.
 
@@ -77,15 +101,19 @@ See `results/{PAIR}_RESULTS.md` for the deployment spec and full provenance for 
 binary-algo/
 │
 ├── README.md               ← this file — start here
-├── MODEL_REGISTRY.md       ← all frozen books, content_ids, status (active/superseded)
+├── MODEL_REGISTRY.md       ← legacy v1 frozen books (byte-frozen for v1 cryptographic seals)
+├── SOTA_MODEL_REGISTRY.md  ← Deriv-feed 1s-tick SOTA certified books & cross-contract summary
 ├── SWEEP_MATRIX.md         ← all (pair, tf, side) combinations and sweep status
 ├── REPO_MAP.md             ← file-naming conventions and organisation rules
 ├── ENVIRONMENT_libs.txt    ← research-stack dependency record
 ├── requirements-deriv-demo.txt ← pinned Deriv demo executor runtime deps
 │
 ├── books/                  ← frozen certified models (one subdir per book)
-│   ├── USDCHF.m15ny_xpair_seedens.v1/   ← best: >65% both sides
-│   ├── GBPUSD.m15ny_xpair_seedens8.v1/  ← EUR-bloc K=8
+│   ├── SOTA_INDEX.json                  ← active Deriv-feed zero-pickle SOTA book index
+│   ├── USDJPY.sota_ens5_m30_up.v1/      ← SOTA #1 frozen Demo canary (30m flat 1.82)
+│   ├── USDJPY.sota_ens5_m15_up.v1/      ← SOTA #4 frozen Demo canary (15m cov=0.015)
+│   ├── USDCHF.m15ny_xpair_seedens.v1/   ← legacy Dukascopy v1 books below
+│   ├── GBPUSD.m15ny_xpair_seedens8.v1/
 │   ├── USDJPY.m15ny_seedens.v1/
 │   ├── USDCAD.m15ny_seedens.v1/
 │   ├── AUDUSD.m15ny_seedens.v1/
@@ -93,7 +121,13 @@ binary-algo/
 │   ├── EURUSD.m15xp.v1/
 │   └── ... (older/superseded EURUSD books for 1m/2m/5m/10m/30m)
 │
-├── scripts/                ← all Python scripts and shell runners (446 files, flat)
+├── scripts/                ← all Python scripts and shell runners (flat)
+│   ├── deriv_sota_executor.py    ← Mexico-VPS SOTA Demo/Live executor (EV + concurrency gated)
+│   ├── deriv_sota_tick_stream.py ← 1s tick stream & bit-exact feature parity builder
+│   ├── sota_book_runtime.py      ← zero-pickle NumPy SOTA inference loader
+│   ├── deriv_live_pnl_ledger.py  ← per-book G6 prospective Demo promotion gate
+│   ├── vps_preflight.py          ← offline + Mexico-VPS live-smoke preflight checker
+│   ├── build_certified_sota_books.py ← deterministic SOTA book freezer (cutoff < 2026-08-01)
 │   ├── harness.py          ← SHARED: train/val/test/OOS split + feature loading
 │   ├── sessions.py         ← SHARED: NY/LDN/Asia session mask
 │   ├── dataset.py          ← SHARED: data utilities

@@ -1,0 +1,562 @@
+{
+  "schema_version": "deriv-compounding-frequency-study/v1",
+  "generated_at_utc": "2026-11-25T01:47:42.867012Z",
+  "dev_cutoff_utc": "2026-08-01T00:00:00Z",
+  "holdout_touched": false,
+  "source_artifacts": {
+    "m30_5gate": {
+      "path": "results/json/deriv_5gate_USDJPY_sota_ens5_m30_up_v1_result.json",
+      "sha256": "182505e2155cc8d88bba5a653275daa8e407cc1fcd7db1a6d2170e5c995f6922"
+    },
+    "m15_5gate": {
+      "path": "results/json/deriv_5gate_USDJPY_sota_ens5_m15_up_v1_result.json",
+      "sha256": "c7961663210ff7d9263c4ac9a709b302c5a96f063af7626c978df935ae5127cb"
+    },
+    "m60_5gate": {
+      "path": "results/json/deriv_5gate_USDJPY_sota_ens5_m60_up_v1_result.json",
+      "sha256": "07ce706bb4a12d689d3da9ee4dcc50e3a7e130632c1aeb597f011591006745b0"
+    }
+  },
+  "part_a_exact_5gate_exported_paths": {
+    "method_note": "Event-driven settled-equity replay directly over the exported 5-seed (5x500) block-purged CPCV trade lists from the three 5-gate JSONs. Note: m60 paths are per-fold refit paths requiring an automated 14d rolling-120d refit pipeline (validated independently in deriv_gap_closure_falsifiers_result.json); m60 failed static 2025->2026 freeze and is NOT in books/SOTA_INDEX.json.",
+    "kelly_multiplier_sweeps": [
+      {
+        "book_id": "USDJPY.sota_ens5_m30_up.v1",
+        "p10_wr": 0.60309,
+        "quoted_payout_ratio": 1.82,
+        "full_kelly_at_p10": 0.119053,
+        "stake_cap": 0.08,
+        "rows": [
+          {
+            "kelly_multiplier": 0.25,
+            "stake_fraction": 0.029763,
+            "trades_per_yr": 316.22,
+            "p10_annual_log_growth": 0.649542,
+            "p10_floor_net_usd_per_1k": 914.66,
+            "mean_annual_log_growth": 1.062368,
+            "geom_mean_net_usd_per_1k": 1893.21,
+            "p90_max_drawdown": 0.278423,
+            "worst_path_max_drawdown": 0.315617,
+            "p10_growth_to_max_dd": 2.058
+          },
+          {
+            "kelly_multiplier": 0.35,
+            "stake_fraction": 0.041669,
+            "trades_per_yr": 316.22,
+            "p10_annual_log_growth": 0.877288,
+            "p10_floor_net_usd_per_1k": 1404.37,
+            "mean_annual_log_growth": 1.424504,
+            "geom_mean_net_usd_per_1k": 3155.8,
+            "p90_max_drawdown": 0.371919,
+            "worst_path_max_drawdown": 0.430249,
+            "p10_growth_to_max_dd": 2.039
+          },
+          {
+            "kelly_multiplier": 0.5,
+            "stake_fraction": 0.059527,
+            "trades_per_yr": 316.22,
+            "p10_annual_log_growth": 1.184392,
+            "p10_floor_net_usd_per_1k": 2268.7,
+            "mean_annual_log_growth": 1.900052,
+            "geom_mean_net_usd_per_1k": 5686.24,
+            "p90_max_drawdown": 0.494286,
+            "worst_path_max_drawdown": 0.581829,
+            "p10_growth_to_max_dd": 2.0356
+          },
+          {
+            "kelly_multiplier": 0.75,
+            "stake_fraction": 0.08,
+            "trades_per_yr": 316.22,
+            "p10_annual_log_growth": 1.485234,
+            "p10_floor_net_usd_per_1k": 3416.0,
+            "mean_annual_log_growth": 2.344729,
+            "geom_mean_net_usd_per_1k": 9430.45,
+            "p90_max_drawdown": 0.610297,
+            "worst_path_max_drawdown": 0.721354,
+            "p10_growth_to_max_dd": 2.059
+          }
+        ]
+      },
+      {
+        "book_id": "USDJPY.sota_ens5_m15_up.v1",
+        "p10_wr": 0.576345,
+        "quoted_payout_ratio": 1.776447,
+        "full_kelly_at_p10": 0.030712,
+        "stake_cap": 0.08,
+        "rows": [
+          {
+            "kelly_multiplier": 0.25,
+            "stake_fraction": 0.007678,
+            "trades_per_yr": 273.54,
+            "p10_annual_log_growth": 0.049371,
+            "p10_floor_net_usd_per_1k": 50.61,
+            "mean_annual_log_growth": 0.176579,
+            "geom_mean_net_usd_per_1k": 193.13,
+            "p90_max_drawdown": 0.072739,
+            "worst_path_max_drawdown": 0.08009,
+            "p10_growth_to_max_dd": 0.6164
+          },
+          {
+            "kelly_multiplier": 0.35,
+            "stake_fraction": 0.010749,
+            "trades_per_yr": 273.54,
+            "p10_annual_log_growth": 0.066668,
+            "p10_floor_net_usd_per_1k": 68.94,
+            "mean_annual_log_growth": 0.243786,
+            "geom_mean_net_usd_per_1k": 276.07,
+            "p90_max_drawdown": 0.100608,
+            "worst_path_max_drawdown": 0.110623,
+            "p10_growth_to_max_dd": 0.6027
+          },
+          {
+            "kelly_multiplier": 0.5,
+            "stake_fraction": 0.015356,
+            "trades_per_yr": 273.54,
+            "p10_annual_log_growth": 0.089981,
+            "p10_floor_net_usd_per_1k": 94.15,
+            "mean_annual_log_growth": 0.340923,
+            "geom_mean_net_usd_per_1k": 406.25,
+            "p90_max_drawdown": 0.141131,
+            "worst_path_max_drawdown": 0.154863,
+            "p10_growth_to_max_dd": 0.581
+          },
+          {
+            "kelly_multiplier": 0.75,
+            "stake_fraction": 0.023034,
+            "trades_per_yr": 273.54,
+            "p10_annual_log_growth": 0.121577,
+            "p10_floor_net_usd_per_1k": 129.28,
+            "mean_annual_log_growth": 0.493003,
+            "geom_mean_net_usd_per_1k": 637.22,
+            "p90_max_drawdown": 0.205359,
+            "worst_path_max_drawdown": 0.224577,
+            "p10_growth_to_max_dd": 0.5414
+          }
+        ]
+      }
+    ],
+    "pairwise_active_day_pnl_correlations": {
+      "m30_vs_m15_active_day_union": 0.302785,
+      "m30_vs_m60_active_day_union": 0.312182,
+      "m15_vs_m60_active_day_union": 0.141174
+    },
+    "multi_book_constrained_portfolios": [
+      {
+        "label": "30m_only_qk25_jpy2",
+        "books": [
+          "USDJPY.sota_ens5_m30_up.v1"
+        ],
+        "includes_unfrozen_60m_refit_paths": false,
+        "jpy_factor_cap": 2,
+        "kelly_multiplier": 0.25,
+        "n_shared_cpcv_paths": 15,
+        "accepted_trades_per_yr": 316.22,
+        "blocked_trades_per_yr": 0.0,
+        "p10_annual_log_growth": 0.650357,
+        "p10_floor_net_usd_per_1k": 916.22,
+        "mean_annual_log_growth": 1.059926,
+        "geom_mean_net_usd_per_1k": 1886.16,
+        "p90_max_drawdown": 0.260715,
+        "worst_path_max_drawdown": 0.309034,
+        "p10_growth_to_max_dd": 2.1045
+      },
+      {
+        "label": "30m_plus_15m_qk25_jpy2",
+        "books": [
+          "USDJPY.sota_ens5_m30_up.v1",
+          "USDJPY.sota_ens5_m15_up.v1"
+        ],
+        "includes_unfrozen_60m_refit_paths": false,
+        "jpy_factor_cap": 2,
+        "kelly_multiplier": 0.25,
+        "n_shared_cpcv_paths": 15,
+        "accepted_trades_per_yr": 533.89,
+        "blocked_trades_per_yr": 55.89,
+        "p10_annual_log_growth": 0.45523,
+        "p10_floor_net_usd_per_1k": 576.54,
+        "mean_annual_log_growth": 1.076599,
+        "geom_mean_net_usd_per_1k": 1934.68,
+        "p90_max_drawdown": 0.269901,
+        "worst_path_max_drawdown": 0.397796,
+        "p10_growth_to_max_dd": 1.1444
+      },
+      {
+        "label": "30m_plus_60m_refit_qk25_jpy2",
+        "books": [
+          "USDJPY.sota_ens5_m30_up.v1",
+          "USDJPY.sota_ens5_m60_up.v1_refit_cpcv"
+        ],
+        "includes_unfrozen_60m_refit_paths": true,
+        "jpy_factor_cap": 2,
+        "kelly_multiplier": 0.25,
+        "n_shared_cpcv_paths": 15,
+        "accepted_trades_per_yr": 479.25,
+        "blocked_trades_per_yr": 58.57,
+        "p10_annual_log_growth": 0.953881,
+        "p10_floor_net_usd_per_1k": 1595.76,
+        "mean_annual_log_growth": 1.752956,
+        "geom_mean_net_usd_per_1k": 4771.64,
+        "p90_max_drawdown": 0.274778,
+        "worst_path_max_drawdown": 0.280871,
+        "p10_growth_to_max_dd": 3.3961
+      },
+      {
+        "label": "30m_plus_15m_plus_60m_refit_qk25_jpy2",
+        "books": [
+          "USDJPY.sota_ens5_m30_up.v1",
+          "USDJPY.sota_ens5_m15_up.v1",
+          "USDJPY.sota_ens5_m60_up.v1_refit_cpcv"
+        ],
+        "includes_unfrozen_60m_refit_paths": true,
+        "jpy_factor_cap": 2,
+        "kelly_multiplier": 0.25,
+        "n_shared_cpcv_paths": 15,
+        "accepted_trades_per_yr": 623.73,
+        "blocked_trades_per_yr": 187.63,
+        "p10_annual_log_growth": 0.772484,
+        "p10_floor_net_usd_per_1k": 1165.14,
+        "mean_annual_log_growth": 1.725106,
+        "geom_mean_net_usd_per_1k": 4613.12,
+        "p90_max_drawdown": 0.265785,
+        "worst_path_max_drawdown": 0.287015,
+        "p10_growth_to_max_dd": 2.6914
+      },
+      {
+        "label": "30m_plus_15m_plus_60m_refit_qk25_jpy3",
+        "books": [
+          "USDJPY.sota_ens5_m30_up.v1",
+          "USDJPY.sota_ens5_m15_up.v1",
+          "USDJPY.sota_ens5_m60_up.v1_refit_cpcv"
+        ],
+        "includes_unfrozen_60m_refit_paths": true,
+        "jpy_factor_cap": 3,
+        "kelly_multiplier": 0.25,
+        "n_shared_cpcv_paths": 15,
+        "accepted_trades_per_yr": 760.22,
+        "blocked_trades_per_yr": 51.15,
+        "p10_annual_log_growth": 0.902441,
+        "p10_floor_net_usd_per_1k": 1465.61,
+        "mean_annual_log_growth": 1.968644,
+        "geom_mean_net_usd_per_1k": 6160.96,
+        "p90_max_drawdown": 0.308533,
+        "worst_path_max_drawdown": 0.330393,
+        "p10_growth_to_max_dd": 2.7314
+      },
+      {
+        "label": "30m_plus_15m_plus_60m_refit_k35_jpy3",
+        "books": [
+          "USDJPY.sota_ens5_m30_up.v1",
+          "USDJPY.sota_ens5_m15_up.v1",
+          "USDJPY.sota_ens5_m60_up.v1_refit_cpcv"
+        ],
+        "includes_unfrozen_60m_refit_paths": true,
+        "jpy_factor_cap": 3,
+        "kelly_multiplier": 0.35,
+        "n_shared_cpcv_paths": 15,
+        "accepted_trades_per_yr": 760.22,
+        "blocked_trades_per_yr": 51.15,
+        "p10_annual_log_growth": 1.155318,
+        "p10_floor_net_usd_per_1k": 2175.03,
+        "mean_annual_log_growth": 2.597009,
+        "geom_mean_net_usd_per_1k": 12423.53,
+        "p90_max_drawdown": 0.414341,
+        "worst_path_max_drawdown": 0.449892,
+        "p10_growth_to_max_dd": 2.568
+      }
+    ]
+  },
+  "part_b_exploratory_3x400_dev_frequency_levers": {
+    "method_note": "Exploratory 3-seed (3x400) RBF Nystroem + logistic SGD sensitivity on DEV USDJPY.parquet (< 2026-08-01T00:00:00Z, block-purged chronological validation gap=H, 66 core features, zero macro columns). Absolute levels differ slightly from certified 5x500 books; use for relative lever comparison and post-G6 design.",
+    "m30_coverage_sweep_flat_qk25": [
+      {
+        "cov": 0.02,
+        "trades_per_yr": 214,
+        "paths_clear": 15,
+        "paths_total": 15,
+        "p10_wr": 0.5977,
+        "p10_ev": 0.0879,
+        "mean_ev": 0.2071,
+        "f_qk_pct": 2.68,
+        "p10_annual_log_growth": 0.5771,
+        "p10_floor_net_usd_per_1k": 781,
+        "mean_annual_log_growth": 0.8925,
+        "geom_mean_net_usd_per_1k": 1441,
+        "worst_path_max_drawdown": 0.262
+      },
+      {
+        "cov": 0.03,
+        "trades_per_yr": 292,
+        "paths_clear": 15,
+        "paths_total": 15,
+        "p10_wr": 0.5895,
+        "p10_ev": 0.0728,
+        "mean_ev": 0.1645,
+        "f_qk_pct": 2.22,
+        "p10_annual_log_growth": 0.464,
+        "p10_floor_net_usd_per_1k": 590,
+        "mean_annual_log_growth": 0.8141,
+        "geom_mean_net_usd_per_1k": 1257,
+        "worst_path_max_drawdown": 0.24
+      },
+      {
+        "cov": 0.05,
+        "trades_per_yr": 431,
+        "paths_clear": 15,
+        "paths_total": 15,
+        "p10_wr": 0.5822,
+        "p10_ev": 0.0596,
+        "mean_ev": 0.1375,
+        "f_qk_pct": 1.82,
+        "p10_annual_log_growth": 0.3134,
+        "p10_floor_net_usd_per_1k": 368,
+        "mean_annual_log_growth": 0.8605,
+        "geom_mean_net_usd_per_1k": 1364,
+        "worst_path_max_drawdown": 0.27
+      },
+      {
+        "cov": 0.07,
+        "trades_per_yr": 551,
+        "paths_clear": 15,
+        "paths_total": 15,
+        "p10_wr": 0.5822,
+        "p10_ev": 0.0596,
+        "mean_ev": 0.1217,
+        "f_qk_pct": 1.82,
+        "p10_annual_log_growth": 0.569,
+        "p10_floor_net_usd_per_1k": 766,
+        "mean_annual_log_growth": 0.9927,
+        "geom_mean_net_usd_per_1k": 1699,
+        "worst_path_max_drawdown": 0.228
+      },
+      {
+        "cov": 0.1,
+        "trades_per_yr": 733,
+        "paths_clear": 14,
+        "paths_total": 15,
+        "p10_wr": 0.5647,
+        "p10_ev": 0.0277,
+        "mean_ev": 0.0775,
+        "f_qk_pct": 0.85,
+        "p10_annual_log_growth": 0.1855,
+        "p10_floor_net_usd_per_1k": 204,
+        "mean_annual_log_growth": 0.3904,
+        "geom_mean_net_usd_per_1k": 478,
+        "worst_path_max_drawdown": 0.213
+      },
+      {
+        "cov": 0.15,
+        "trades_per_yr": 1036,
+        "paths_clear": 15,
+        "paths_total": 15,
+        "p10_wr": 0.5557,
+        "p10_ev": 0.0114,
+        "mean_ev": 0.0522,
+        "f_qk_pct": 0.35,
+        "p10_annual_log_growth": 0.0336,
+        "p10_floor_net_usd_per_1k": 34,
+        "mean_annual_log_growth": 0.1851,
+        "geom_mean_net_usd_per_1k": 203,
+        "worst_path_max_drawdown": 0.068
+      },
+      {
+        "cov": 0.2,
+        "trades_per_yr": 1321,
+        "paths_clear": 15,
+        "paths_total": 15,
+        "p10_wr": 0.5612,
+        "p10_ev": 0.0214,
+        "mean_ev": 0.0564,
+        "f_qk_pct": 0.65,
+        "p10_annual_log_growth": 0.1136,
+        "p10_floor_net_usd_per_1k": 120,
+        "mean_annual_log_growth": 0.4661,
+        "geom_mean_net_usd_per_1k": 594,
+        "worst_path_max_drawdown": 0.134
+      }
+    ],
+    "m30_continuous_platt_qk25": [
+      {
+        "cov": 0.05,
+        "trades_per_yr": 431,
+        "p10_annual_log_growth": 0.4317,
+        "p10_floor_net_usd_per_1k": 540,
+        "mean_annual_log_growth": 1.755,
+        "geom_mean_net_usd_per_1k": 4784,
+        "p90_max_drawdown": 0.364,
+        "worst_path_max_drawdown": 0.549
+      },
+      {
+        "cov": 0.08,
+        "trades_per_yr": 611,
+        "p10_annual_log_growth": 0.6968,
+        "p10_floor_net_usd_per_1k": 1007,
+        "mean_annual_log_growth": 1.5792,
+        "geom_mean_net_usd_per_1k": 3851,
+        "p90_max_drawdown": 0.426,
+        "worst_path_max_drawdown": 0.494
+      },
+      {
+        "cov": 0.12,
+        "trades_per_yr": 846,
+        "p10_annual_log_growth": 0.398,
+        "p10_floor_net_usd_per_1k": 489,
+        "mean_annual_log_growth": 1.3701,
+        "geom_mean_net_usd_per_1k": 2936,
+        "p90_max_drawdown": 0.426,
+        "worst_path_max_drawdown": 0.604
+      },
+      {
+        "cov": 0.15,
+        "trades_per_yr": 1036,
+        "p10_annual_log_growth": -0.0102,
+        "p10_floor_net_usd_per_1k": -10,
+        "mean_annual_log_growth": 1.309,
+        "geom_mean_net_usd_per_1k": 2702,
+        "p90_max_drawdown": 0.524,
+        "worst_path_max_drawdown": 0.54
+      }
+    ],
+    "m30_staggered_15m_overlapping_lanes": [
+      {
+        "cov": 0.03,
+        "lane_mode": "non-overlap 30m (1.0x)",
+        "trades_per_yr": 292,
+        "p10_annual_log_growth": 0.4678,
+        "p10_floor_net_usd_per_1k": 596,
+        "mean_annual_log_growth": 0.8131,
+        "geom_mean_net_usd_per_1k": 1255,
+        "worst_path_max_drawdown": 0.235,
+        "p10_growth_to_max_dd": 1.99
+      },
+      {
+        "cov": 0.03,
+        "lane_mode": "staggered 15m (0.5x)",
+        "trades_per_yr": 427,
+        "p10_annual_log_growth": 0.4095,
+        "p10_floor_net_usd_per_1k": 506,
+        "mean_annual_log_growth": 0.6873,
+        "geom_mean_net_usd_per_1k": 988,
+        "worst_path_max_drawdown": 0.151,
+        "p10_growth_to_max_dd": 2.72
+      },
+      {
+        "cov": 0.03,
+        "lane_mode": "staggered 15m (0.65x)",
+        "trades_per_yr": 427,
+        "p10_annual_log_growth": 0.5198,
+        "p10_floor_net_usd_per_1k": 682,
+        "mean_annual_log_growth": 0.882,
+        "geom_mean_net_usd_per_1k": 1416,
+        "worst_path_max_drawdown": 0.193,
+        "p10_growth_to_max_dd": 2.69
+      },
+      {
+        "cov": 0.05,
+        "lane_mode": "non-overlap 30m (1.0x)",
+        "trades_per_yr": 431,
+        "p10_annual_log_growth": 0.308,
+        "p10_floor_net_usd_per_1k": 361,
+        "mean_annual_log_growth": 0.8609,
+        "geom_mean_net_usd_per_1k": 1365,
+        "worst_path_max_drawdown": 0.269,
+        "p10_growth_to_max_dd": 1.14
+      },
+      {
+        "cov": 0.05,
+        "lane_mode": "staggered 15m (0.5x)",
+        "trades_per_yr": 638,
+        "p10_annual_log_growth": 0.4122,
+        "p10_floor_net_usd_per_1k": 510,
+        "mean_annual_log_growth": 0.7231,
+        "geom_mean_net_usd_per_1k": 1061,
+        "worst_path_max_drawdown": 0.141,
+        "p10_growth_to_max_dd": 2.93
+      },
+      {
+        "cov": 0.05,
+        "lane_mode": "staggered 15m (0.65x)",
+        "trades_per_yr": 638,
+        "p10_annual_log_growth": 0.5287,
+        "p10_floor_net_usd_per_1k": 697,
+        "mean_annual_log_growth": 0.9288,
+        "geom_mean_net_usd_per_1k": 1532,
+        "worst_path_max_drawdown": 0.181,
+        "p10_growth_to_max_dd": 2.93
+      }
+    ],
+    "rolling120_14d_vs_frozen_2025_oos_2026_jan_jul": [
+      {
+        "horizon_min": 30,
+        "cov": 0.03,
+        "refit_policy": "frozen_2025",
+        "n_trades_2026_jan_jul": 151,
+        "annualized_trades_approx": 260,
+        "win_rate": 0.596,
+        "ev_per_unit": 0.0848
+      },
+      {
+        "horizon_min": 30,
+        "cov": 0.03,
+        "refit_policy": "rolling120_14d",
+        "n_trades_2026_jan_jul": 264,
+        "annualized_trades_approx": 455,
+        "win_rate": 0.5947,
+        "ev_per_unit": 0.0823
+      },
+      {
+        "horizon_min": 30,
+        "cov": 0.05,
+        "refit_policy": "frozen_2025",
+        "n_trades_2026_jan_jul": 228,
+        "annualized_trades_approx": 393,
+        "win_rate": 0.6053,
+        "ev_per_unit": 0.1016
+      },
+      {
+        "horizon_min": 30,
+        "cov": 0.05,
+        "refit_policy": "rolling120_14d",
+        "n_trades_2026_jan_jul": 378,
+        "annualized_trades_approx": 652,
+        "win_rate": 0.5952,
+        "ev_per_unit": 0.0833
+      },
+      {
+        "horizon_min": 15,
+        "cov": 0.015,
+        "refit_policy": "frozen_2025",
+        "n_trades_2026_jan_jul": 137,
+        "annualized_trades_approx": 236,
+        "win_rate": 0.6204,
+        "ev_per_unit": 0.1022
+      },
+      {
+        "horizon_min": 15,
+        "cov": 0.015,
+        "refit_policy": "rolling120_14d",
+        "n_trades_2026_jan_jul": 272,
+        "annualized_trades_approx": 469,
+        "win_rate": 0.5956,
+        "ev_per_unit": 0.058
+      },
+      {
+        "horizon_min": 15,
+        "cov": 0.03,
+        "refit_policy": "frozen_2025",
+        "n_trades_2026_jan_jul": 200,
+        "annualized_trades_approx": 345,
+        "win_rate": 0.58,
+        "ev_per_unit": 0.0303
+      },
+      {
+        "horizon_min": 15,
+        "cov": 0.03,
+        "refit_policy": "rolling120_14d",
+        "n_trades_2026_jan_jul": 437,
+        "annualized_trades_approx": 753,
+        "win_rate": 0.5927,
+        "ev_per_unit": 0.0529
+      }
+    ]
+  }
+}
