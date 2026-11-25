@@ -1,0 +1,589 @@
+{
+  "captured_utc": "2026-11-24T23:21:05.763523+00:00",
+  "daily_and_long_intraday_risefall": {
+    "WLDUSD_240m": {
+      "CALL": {
+        "error": "ContractBuyValidationError",
+        "msg": "Trading on forex contracts with duration less than 5 hours is not available from 21:00:00 to 23:59:59"
+      },
+      "PUT": {
+        "error": "ContractBuyValidationError",
+        "msg": "Trading on forex contracts with duration less than 5 hours is not available from 21:00:00 to 23:59:59"
+      }
+    },
+    "WLDUSD_480m": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.659196,
+        "payout": 15.17,
+        "ratio": 1.517,
+        "spot": 1263.645
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.660502,
+        "payout": 15.14,
+        "ratio": 1.514,
+        "spot": 1263.648
+      }
+    },
+    "frxEURUSD_1d": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.550964,
+        "payout": 18.15,
+        "ratio": 1.815,
+        "spot": 1.09641
+      },
+      "CALLE": {
+        "ask": 10.0,
+        "implied_q": 0.550964,
+        "payout": 18.15,
+        "ratio": 1.815,
+        "spot": 1.09633
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.520833,
+        "payout": 19.2,
+        "ratio": 1.92,
+        "spot": 1.0964
+      },
+      "PUTE": {
+        "ask": 10.0,
+        "implied_q": 0.520833,
+        "payout": 19.2,
+        "ratio": 1.92,
+        "spot": 1.09633
+      }
+    },
+    "frxEURUSD_300m": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.639795,
+        "payout": 15.63,
+        "ratio": 1.563,
+        "spot": 1.0963
+      },
+      "CALLE": {
+        "ask": 10.0,
+        "implied_q": 0.639795,
+        "payout": 15.63,
+        "ratio": 1.563,
+        "spot": 1.0963
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.640205,
+        "payout": 15.62,
+        "ratio": 1.562,
+        "spot": 1.0963
+      },
+      "PUTE": {
+        "ask": 10.0,
+        "implied_q": 0.640205,
+        "payout": 15.62,
+        "ratio": 1.562,
+        "spot": 1.0963
+      }
+    },
+    "frxUSDJPY_1d": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.618812,
+        "payout": 16.16,
+        "ratio": 1.616,
+        "spot": 159.271
+      },
+      "CALLE": {
+        "ask": 10.0,
+        "implied_q": 0.618812,
+        "payout": 16.16,
+        "ratio": 1.616,
+        "spot": 159.271
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.461042,
+        "payout": 21.69,
+        "ratio": 2.169,
+        "spot": 159.27
+      },
+      "PUTE": {
+        "ask": 10.0,
+        "implied_q": 0.461042,
+        "payout": 21.69,
+        "ratio": 2.169,
+        "spot": 159.27
+      }
+    },
+    "frxUSDJPY_300m": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.629723,
+        "payout": 15.88,
+        "ratio": 1.588,
+        "spot": 159.273
+      },
+      "CALLE": {
+        "ask": 10.0,
+        "implied_q": 0.629723,
+        "payout": 15.88,
+        "ratio": 1.588,
+        "spot": 159.274
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.630517,
+        "payout": 15.86,
+        "ratio": 1.586,
+        "spot": 159.274
+      },
+      "PUTE": {
+        "ask": 10.0,
+        "implied_q": 0.630517,
+        "payout": 15.86,
+        "ratio": 1.586,
+        "spot": 159.274
+      }
+    },
+    "frxXAGUSD_1d": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.59453,
+        "payout": 16.82,
+        "ratio": 1.682,
+        "spot": 41.0389
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.506586,
+        "payout": 19.74,
+        "ratio": 1.974,
+        "spot": 41.0476
+      }
+    },
+    "frxXAUUSD_1d": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.595593,
+        "payout": 16.79,
+        "ratio": 1.679,
+        "spot": 3559.81
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.507099,
+        "payout": 19.72,
+        "ratio": 1.972,
+        "spot": 3560.1
+      }
+    },
+    "frxXPDUSD_1d": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.573066,
+        "payout": 17.45,
+        "ratio": 1.745,
+        "spot": 860.49
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.535332,
+        "payout": 18.68,
+        "ratio": 1.868,
+        "spot": 860.49
+      }
+    },
+    "frxXPTUSD_1d": {
+      "CALL": {
+        "ask": 10.0,
+        "implied_q": 0.571102,
+        "payout": 17.51,
+        "ratio": 1.751,
+        "spot": 1282.05
+      },
+      "PUT": {
+        "ask": 10.0,
+        "implied_q": 0.534188,
+        "payout": 18.72,
+        "ratio": 1.872,
+        "spot": 1281.8
+      }
+    }
+  },
+  "higher_lower_1d": {
+    "frxEURUSD": [
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.815661,
+          "payout": 12.26,
+          "ratio": 1.226,
+          "spot": 1.0963
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.336814,
+          "payout": 29.69,
+          "ratio": 2.969,
+          "spot": 1.0963
+        },
+        "barrier": "1.09383",
+        "k_sigma": -0.5,
+        "two_leg_overround": 0.152475
+      },
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.551876,
+          "payout": 18.12,
+          "ratio": 1.812,
+          "spot": 1.0963
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.521105,
+          "payout": 19.19,
+          "ratio": 1.919,
+          "spot": 1.09631
+        },
+        "barrier": "1.09630",
+        "k_sigma": 0.0,
+        "two_leg_overround": 0.072981
+      },
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.352858,
+          "payout": 28.34,
+          "ratio": 2.834,
+          "spot": 1.09631
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.794913,
+          "payout": 12.58,
+          "ratio": 1.258,
+          "spot": 1.09633
+        },
+        "barrier": "1.09877",
+        "k_sigma": 0.5,
+        "two_leg_overround": 0.147771
+      }
+    ],
+    "frxUSDJPY": [
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.961538,
+          "payout": 10.4,
+          "ratio": 1.04,
+          "spot": 159.269
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.258799,
+          "payout": 38.64,
+          "ratio": 3.864,
+          "spot": 159.27
+        },
+        "barrier": "158.792",
+        "k_sigma": -0.5,
+        "two_leg_overround": 0.220337
+      },
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.620732,
+          "payout": 16.11,
+          "ratio": 1.611,
+          "spot": 159.27
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.463822,
+          "payout": 21.56,
+          "ratio": 2.156,
+          "spot": 159.269
+        },
+        "barrier": "159.270",
+        "k_sigma": 0.0,
+        "two_leg_overround": 0.084554
+      },
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.291375,
+          "payout": 34.32,
+          "ratio": 3.432,
+          "spot": 159.269
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.930233,
+          "payout": 10.75,
+          "ratio": 1.075,
+          "spot": 159.269
+        },
+        "barrier": "159.748",
+        "k_sigma": 0.5,
+        "two_leg_overround": 0.221608
+      }
+    ],
+    "frxXAUUSD": [
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.747384,
+          "payout": 13.38,
+          "ratio": 1.338,
+          "spot": 3563.9
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.408831,
+          "payout": 24.46,
+          "ratio": 2.446,
+          "spot": 3563.91
+        },
+        "barrier": "3540.52",
+        "k_sigma": -0.5,
+        "two_leg_overround": 0.156215
+      },
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.625782,
+          "payout": 15.98,
+          "ratio": 1.598,
+          "spot": 3564.29
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.48852,
+          "payout": 20.47,
+          "ratio": 2.047,
+          "spot": 3564.41
+        },
+        "barrier": "3560.10",
+        "k_sigma": 0.0,
+        "two_leg_overround": 0.114302
+      },
+      {
+        "HIGHER": {
+          "ask": 10.0,
+          "implied_q": 0.518672,
+          "payout": 19.28,
+          "ratio": 1.928,
+          "spot": 3564.3
+        },
+        "LOWER": {
+          "ask": 10.0,
+          "implied_q": 0.615385,
+          "payout": 16.25,
+          "ratio": 1.625,
+          "spot": 3564.35
+        },
+        "barrier": "3579.68",
+        "k_sigma": 0.5,
+        "two_leg_overround": 0.134057
+      }
+    ]
+  },
+  "metals_barriers": {
+    "frxXAGUSD": {
+      "band_7d": [
+        {
+          "EXPIRYMISS": {
+            "ask": 10.0,
+            "implied_q": 0.649351,
+            "payout": 15.4,
+            "ratio": 1.54,
+            "spot": 41.0573
+          },
+          "EXPIRYRANGE": {
+            "ask": 10.0,
+            "implied_q": 0.570451,
+            "payout": 17.53,
+            "ratio": 1.753,
+            "spot": 41.055
+          },
+          "RANGE": {
+            "ask": 10.0,
+            "implied_q": 0.15873,
+            "payout": 63.0,
+            "ratio": 6.3,
+            "spot": 41.0552
+          },
+          "UPORDOWN": {
+            "error": "ContractBuyValidationError",
+            "msg": "This contract offers no return."
+          },
+          "expiry_overround": 0.219802,
+          "hi": "42.6997",
+          "lo": "39.3955",
+          "rel_half_width": 0.040249
+        }
+      ],
+      "spot": 41.0476,
+      "touch_1d": [
+        {
+          "NOTOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.29274,
+            "payout": 34.16,
+            "ratio": 3.416,
+            "spot": 41.0515
+          },
+          "ONETOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.888889,
+            "payout": 11.25,
+            "ratio": 1.125,
+            "spot": 41.0528
+          },
+          "barrier": "41.4170",
+          "k_sigma": 0.5,
+          "two_leg_overround": 0.181629
+        },
+        {
+          "NOTOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.517063,
+            "payout": 19.34,
+            "ratio": 1.934,
+            "spot": 41.0518
+          },
+          "ONETOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.727273,
+            "payout": 13.75,
+            "ratio": 1.375,
+            "spot": 41.0518
+          },
+          "barrier": "41.7865",
+          "k_sigma": 1.0,
+          "two_leg_overround": 0.244336
+        },
+        {
+          "NOTOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.707214,
+            "payout": 14.14,
+            "ratio": 1.414,
+            "spot": 41.0513
+          },
+          "ONETOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.575374,
+            "payout": 17.38,
+            "ratio": 1.738,
+            "spot": 41.0518
+          },
+          "barrier": "42.1559",
+          "k_sigma": 1.5,
+          "two_leg_overround": 0.282588
+        }
+      ]
+    },
+    "frxXAUUSD": {
+      "band_7d": [
+        {
+          "EXPIRYMISS": {
+            "ask": 10.0,
+            "implied_q": 0.665336,
+            "payout": 15.03,
+            "ratio": 1.503,
+            "spot": 3561.8
+          },
+          "EXPIRYRANGE": {
+            "ask": 10.0,
+            "implied_q": 0.571102,
+            "payout": 17.51,
+            "ratio": 1.751,
+            "spot": 3561.82
+          },
+          "RANGE": {
+            "ask": 10.0,
+            "implied_q": 0.159821,
+            "payout": 62.57,
+            "ratio": 6.257,
+            "spot": 3561.26
+          },
+          "UPORDOWN": {
+            "error": "ContractBuyValidationError",
+            "msg": "This contract offers no return."
+          },
+          "expiry_overround": 0.236438,
+          "hi": "3647.67",
+          "lo": "3472.53",
+          "rel_half_width": 0.024597
+        }
+      ],
+      "spot": 3560.1,
+      "touch_1d": [
+        {
+          "NOTOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.29274,
+            "payout": 34.16,
+            "ratio": 3.416,
+            "spot": 3560.99
+          },
+          "ONETOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.892061,
+            "payout": 11.21,
+            "ratio": 1.121,
+            "spot": 3560.79
+          },
+          "barrier": "3579.68",
+          "k_sigma": 0.5,
+          "two_leg_overround": 0.184801
+        },
+        {
+          "NOTOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.518672,
+            "payout": 19.28,
+            "ratio": 1.928,
+            "spot": 3561.56
+          },
+          "ONETOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.73046,
+            "payout": 13.69,
+            "ratio": 1.369,
+            "spot": 3561.01
+          },
+          "barrier": "3599.26",
+          "k_sigma": 1.0,
+          "two_leg_overround": 0.249132
+        },
+        {
+          "NOTOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.717875,
+            "payout": 13.93,
+            "ratio": 1.393,
+            "spot": 3561.28
+          },
+          "ONETOUCH": {
+            "ask": 10.0,
+            "implied_q": 0.577367,
+            "payout": 17.32,
+            "ratio": 1.732,
+            "spot": 3561.38
+          },
+          "barrier": "3618.84",
+          "k_sigma": 1.5,
+          "two_leg_overround": 0.295242
+        }
+      ]
+    }
+  },
+  "schema": "mexico-vps-gap-closure-probe/v1",
+  "trading_times": {},
+  "vps_hostname": "vultr"
+}
