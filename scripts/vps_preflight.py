@@ -92,6 +92,28 @@ def check_no_legacy_buyers() -> None:
                 raise RuntimeError(f"legacy buy-capable process running (pid={item.name}): {' '.join(parts)}")
 
 
+_UNSET = object()
+
+
+def _proposal_currency_is_usd(prop: dict[str, Any], echo_req: Any = _UNSET) -> bool:
+    """Require exact 'USD' currency in every supplied currency field, admitting omitted prop['currency'] only when echo_req['currency'] == 'USD'."""
+    has_prop = "currency" in prop
+    if has_prop:
+        raw_prop_ccy = prop["currency"]
+        if type(raw_prop_ccy) is not str or raw_prop_ccy != "USD":
+            return False
+    has_echo = False
+    if echo_req is not _UNSET:
+        if not isinstance(echo_req, dict):
+            return False
+        if "currency" in echo_req:
+            has_echo = True
+            raw_echo_ccy = echo_req["currency"]
+            if type(raw_echo_ccy) is not str or raw_echo_ccy != "USD":
+                return False
+    return bool(has_prop or has_echo)
+
+
 def evaluate_live_smoke_proposal_result(
     book: Any,
     prop: dict[str, Any],
@@ -99,9 +121,11 @@ def evaluate_live_smoke_proposal_result(
     expected_stake_cents: int = 100,
     absolute_breakeven_ceiling: float = 0.60,
     ev_margin: float = 0.005,
+    echo_req: Any = _UNSET,
 ) -> dict[str, Any]:
     """Strict per-book --live-smoke success predicate (spec §3.6 + B9)."""
     side = book.allowed_sides[0]
+    ccy_ok = _proposal_currency_is_usd(prop, echo_req)
     if book.contract_family == "multiplier":
         exp_ev = (float(book.ev_floors[side]) - float(book.payout_edge_margin)) if (book.ev_floors and side in book.ev_floors) else 0.01
         mdec = evaluate_sota_multiplier_gate(
@@ -122,11 +146,13 @@ def evaluate_live_smoke_proposal_result(
         }
         quote_ok = (
             bool(prop.get("id"))
+            and ccy_ok
             and not structural_err
             and mdec.ask is not None
             and mdec.stop_out_rel_dist is not None
             and math.isfinite(mdec.stop_out_rel_dist)
         )
+        m_reason = (None if ccy_ok else "missing_or_non_usd_proposal_currency") or mdec.reason
         return {
             "book_id": book.book_id,
             "pair": book.pair,
@@ -136,9 +162,9 @@ def evaluate_live_smoke_proposal_result(
             "ask": mdec.ask,
             "commission": mdec.commission,
             "stop_out_rel_dist": mdec.stop_out_rel_dist,
-            "gate_passed_at_floor": bool(mdec.passed),
-            "gate_reason": mdec.reason,
-            "smoke_passed": bool(quote_ok and mdec.passed),
+            "gate_passed_at_floor": bool(ccy_ok and mdec.passed),
+            "gate_reason": m_reason,
+            "smoke_passed": bool(quote_ok and ccy_ok and mdec.passed),
             "row_calibrated_evidence": False,
             "decision5_satisfied": False,
         }
@@ -161,8 +187,6 @@ def evaluate_live_smoke_proposal_result(
         min_payout_ratio=book.min_payout_ratio,
     )
     has_id = bool(str(prop.get("id") or "").strip())
-    # MAJOR #3: Require explicit USD currency evidence (reject missing/None currency!)
-    ccy_ok = str(prop.get("currency") or "").strip().upper() == "USD"
     quote_ok = (
         has_id
         and ccy_ok
@@ -332,6 +356,7 @@ async def run_network_proposal_smoke(
                             expected_stake_cents=expected_stake_cents,
                             absolute_breakeven_ceiling=absolute_breakeven_ceiling,
                             ev_margin=ev_margin,
+                            echo_req=(False if resp["echo_req"] is None else resp["echo_req"]) if "echo_req" in resp else _UNSET,
                         )
                     )
                 except Exception as exc:
@@ -346,7 +371,7 @@ async def run_network_proposal_smoke(
                             "smoke_passed": False,
                             "row_calibrated_evidence": False,
                             "decision5_satisfied": False,
-                            "error": str(exc)[:240],
+                            "error": "proposal_request_failed",
                         }
                     )
                 if idx_b + 1 < len(books) and pace_s > 0:
@@ -543,8 +568,8 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 all_ok = bool(smoke) and all(x.get("smoke_passed") is True for x in smoke)
                 record("network_proposal_smoke", all_ok, proposals=smoke)
-            except Exception as exc:
-                record("network_proposal_smoke", False, error=str(exc))
+            except Exception:
+                record("network_proposal_smoke", False, error="network_proposal_smoke_failed")
 
     report = {
         "schema": "deriv-sota-vps-preflight/v1",

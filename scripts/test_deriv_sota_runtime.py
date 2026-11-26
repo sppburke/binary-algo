@@ -4787,6 +4787,614 @@ def test_phase1_portfolio_replay_fixtures_a_to_f() -> None:
     assert compute_pareto_flags([rs1, rs2]) == [True, True]
 
 
+def test_portfolio_mvt_validator_and_options_proposal_ccy() -> None:
+    import contextlib as _ctx_v
+    import inspect as _insp_v
+    import io as _io_v
+    import os as _os_v
+    import shutil as _sh_v
+    import sqlite3 as _sq_v
+    import deriv_live_pnl_ledger as pnl_mod
+    import deriv_sota_executor as ex_mod
+    import vps_preflight as vp_mod
+
+    # 1. Options v1 proposal omitting top-level currency passes when echo_req.currency == "USD",
+    #    while explicit null, missing both, non-USD, padded, or conflicting currency in EITHER fails closed
+    #    in BOTH fixed-payout and multiplier branches!
+    from types import SimpleNamespace as _SNS
+    repo_real = Path(__file__).resolve().parents[1]
+    ens30 = load_sota_book("USDJPY.sota_ens5_m30_up.v1", repo_root=repo_real, allow_demo_canary=True)
+    mult_bk = _SNS(
+        book_id="USDJPY.test_mult.v1", pair="USDJPY", horizon_minutes=30, allowed_sides=("UP",),
+        contract_family="multiplier", ev_floors={"UP": 0.15}, payout_edge_margin=0.005,
+        certified_commission_frac=0.0, max_commission_frac=0.20, min_stop_out_rel_dist=0.0008,
+    )
+    ok_opt = vp_mod.evaluate_live_smoke_proposal_result(
+        ens30, {"id": "p-opt-1", "ask_price": "1.00", "payout": "1.82"}, echo_req={"currency": "USD"},
+    )
+    assert ok_opt["smoke_passed"] is True and ok_opt["gate_reason"] is None
+    for bad_prop, bad_echo in (
+        ({"id": "p-2", "ask_price": "1.00", "payout": "1.82"}, None),
+        ({"id": "p-2b", "ask_price": "1.00", "payout": "1.82", "currency": "USD"}, None),
+        ({"id": "p-3", "ask_price": "1.00", "payout": "1.82", "currency": None}, {"currency": "USD"}),
+        ({"id": "p-4", "ask_price": "1.00", "payout": "1.82", "currency": "USD"}, {"currency": "EUR"}),
+        ({"id": "p-5", "ask_price": "1.00", "payout": "1.82", "currency": "EUR"}, {"currency": "USD"}),
+        ({"id": "p-6", "ask_price": "1.00", "payout": "1.82"}, {"currency": " usd "}),
+    ):
+        r_bad_rf = vp_mod.evaluate_live_smoke_proposal_result(ens30, bad_prop, echo_req=bad_echo)
+        assert r_bad_rf["smoke_passed"] is False and r_bad_rf["gate_reason"] == "missing_or_non_usd_proposal_currency", (bad_prop, bad_echo, r_bad_rf)
+        mp = {"id": "m-1", "ask_price": "10.00", "spot": "150.00", "commission": "0.10", "limit_order": {"stop_out": {"value": "149.00"}}}
+        if "currency" in bad_prop:
+            mp["currency"] = bad_prop["currency"]
+        r_bad_m = vp_mod.evaluate_live_smoke_proposal_result(mult_bk, mp, echo_req=bad_echo)
+        assert r_bad_m["smoke_passed"] is False and r_bad_m["gate_reason"] == "missing_or_non_usd_proposal_currency", (bad_prop, bad_echo, r_bad_m)
+    # Multiplier accepts omitted prop currency + exact USD echo_req
+    r_ok_m = vp_mod.evaluate_live_smoke_proposal_result(
+        mult_bk, {"id": "m-ok", "ask_price": "10.00", "spot": "150.00", "commission": "0.10", "limit_order": {"stop_out": {"value": "149.00"}}},
+        echo_req={"currency": "USD"},
+    )
+    assert r_ok_m["smoke_passed"] is True and r_ok_m["gate_reason"] is None
+
+    # Malformed non-dict echo_req in proposal response MUST fail closed!
+    class _BadEchoClient:
+        allow_buy = False
+        expected_account_id = "VRTC999999"
+        def is_identity_verified(self) -> bool:
+            return True
+        async def request_proposal(self, *_a, **_kw):
+            return {"proposal": {"id": "p-mal-echo", "ask_price": "1.00", "payout": "1.82", "currency": "USD"}, "echo_req": "malformed"}
+    bad_echo_res = asyncio.run(vp_mod.run_network_proposal_smoke("demo", [ens30], 1.0, client_override=_BadEchoClient(), pace_s=0.0))
+    assert bad_echo_res[0]["smoke_passed"] is False and bad_echo_res[0]["gate_reason"] == "missing_or_non_usd_proposal_currency"
+
+    # Preflight run_network_proposal_smoke MUST NOT leak raw exception / secret text
+    class _SecretErrClient:
+        allow_buy = False
+        expected_account_id = "VRTC999999"
+        def is_identity_verified(self) -> bool:
+            return True
+        async def request_proposal(self, *_a, **_kw):
+            raise RuntimeError("venue rejected secret_pat_LEAK_999 for VRTC999999")
+    err_smoke = asyncio.run(vp_mod.run_network_proposal_smoke("demo", [ens30], 1.0, client_override=_SecretErrClient(), pace_s=0.0))
+    assert err_smoke[0]["smoke_passed"] is False and "secret_pat_LEAK_999" not in json.dumps(err_smoke) and err_smoke[0]["error"] == "proposal_request_failed"
+
+    # 2. Pure path-wise Wald SPRT & Payout Horizon Parity math checks
+    s_acc = pnl_mod.evaluate_wald_sprt(14, 14, p0=0.50, p1=0.625, alpha=0.05, beta=0.10, outcomes=[True] * 14)
+    assert s_acc["status"] == "ACCEPT_H1" and s_acc["min_consecutive_wins_to_accept"] == 0 and s_acc["stopped_at_n"] == 13
+    # Path-wise stopping: 8 losses cross ln_b -> permanently REJECT_TO_H0 even if 24 wins follow!
+    s_path_rej = pnl_mod.evaluate_wald_sprt(0, 0, p0=0.50, p1=0.625, alpha=0.05, beta=0.10, outcomes=[False] * 8 + [True] * 24)
+    assert s_path_rej["status"] == "REJECT_TO_H0" and s_path_rej["stopped_at_n"] == 8
+    s_cont = pnl_mod.evaluate_wald_sprt(5, 8, p0=0.50, p1=0.625, alpha=0.05, beta=0.10, outcomes=[True]*5 + [False]*3)
+    assert s_cont["status"] == "CONTINUE" and s_cont["min_consecutive_wins_to_accept"] >= 1
+
+    # Exact identical-payout floor check (30 identical 1.76 MUST pass 1.76 floor with zero float drift!)
+    pay_176 = pnl_mod.evaluate_payout_horizon_parity([1.76] * 30, min_payout_ratio=1.76, min_fills=15)
+    assert pay_176["passed"] is True and pay_176["ratio_ci99_lo"] == 1.76
+    pay_low = pnl_mod.evaluate_payout_horizon_parity([1.70] * 20, min_payout_ratio=1.76, min_fills=15)
+    assert pay_low["passed"] is False
+    pay_few = pnl_mod.evaluate_payout_horizon_parity([1.82] * 14, min_payout_ratio=1.78, min_fills=15)
+    assert pay_few["passed"] is False
+
+    # 3. End-to-end read-only evaluate_portfolio_mvt across all 4 verdicts + redaction!
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        pw_h = root / "home"
+        q_db = root / "repo" / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"
+        q_db.parent.mkdir(parents=True, exist_ok=True)
+        log_d = root / "logs"
+        log_d.mkdir(parents=True, exist_ok=True)
+        rcpt = root / "rcpt.json"
+        rcpt.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "account_id": "DMO99887766",
+                "account_mode": "demo",
+                "legacy_credentials_revoked": True,
+                "attested_by": "test",
+                "attested_utc": "2026-11-26T18:00:00Z",
+            }),
+            encoding="utf-8",
+        )
+        fur = root / "fur.json"
+        fur.write_text(
+            json.dumps({"schema": "sota-first-use-record/v1", "account_id": "DMO99887766", "account_mode": "demo"}),
+            encoding="utf-8",
+        )
+        ex_mod.init_v3_queue_first_use(
+            queue_db=q_db, account_id="DMO99887766", account_mode="demo",
+            first_use_record_path=fur, receipt_path=rcpt, pw_home=pw_h,
+        )
+        coh_start = "2026-11-26T20:05:00Z"
+        coh_ep = 1795723500
+        for bid in pnl_mod.DEFAULT_PHASE1_PORTFOLIO_BOOKS:
+            ex_mod.register_cohort_anchor(
+                queue_db=q_db, account_id="DMO99887766", account_mode="demo",
+                book_id=bid, cohort_start_utc=coh_start, venue_time_epoch=coh_ep - 300,
+                receipt_path=rcpt, repo_root=repo_real, pw_home=pw_h,
+            )
+
+        # 3a. Empty anchored queue -> HOLD_COLLECTING & zero raw account ID leak!
+        r_empty = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-01T00:00:00Z", log_dir=log_d,
+        )
+        assert r_empty["verdict"] == "HOLD_COLLECTING"
+        assert r_empty["live_trading_authorized"] is False
+        assert "DMO99887766" not in json.dumps(r_empty) and str(r_empty["account_id_sha256"]).startswith("sha256:")
+
+        # Helper to insert clean settled post-anchor fills
+        reg_books = {b: load_sota_book(b, repo_root=repo_real, allow_demo_canary=True) for b in pnl_mod.DEFAULT_PHASE1_PORTFOLIO_BOOKS}
+        def _insert_fills(specs: list[tuple[str, int, int, bool]]) -> None:
+            conn = ex_mod.connect_sota_queue_v3(q_db, expected_account_id="DMO99887766", expected_account_mode="demo")
+            try:
+                conn.execute("BEGIN IMMEDIATE")
+                for idx_f, (bid, offset_s, payout_cents, won) in enumerate(specs):
+                    bk = reg_books[bid]
+                    v_st = coh_ep + offset_s
+                    v_en = v_st + bk.horizon_minutes * 60
+                    sc_iso = datetime.fromtimestamp(v_st - 2, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    op_iso = datetime.fromtimestamp(v_st, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    cl_iso = datetime.fromtimestamp(v_en, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    sid = f"sig-{bid}-{idx_f}-{v_st}"
+                    cid = f"con-{bid}-{idx_f}-{v_st}"
+                    sp = payout_cents if won else 0
+                    pf = sp - 100
+                    st = "won" if won else "lost"
+                    conn.execute(
+                        "INSERT INTO sota_signals VALUES (?,?,?,?,?,'wall',0,?,0.58,0.62,'{}','bought',NULL,?,NULL,?,?)",
+                        (sid, bid, "USDJPY", bk.horizon_minutes, "UP", sc_iso, cid, op_iso, cl_iso),
+                    )
+                    conn.execute(
+                        """
+                        INSERT INTO sota_contracts (
+                            contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                            pair, horizon_minutes, side, contract_family, is_migrated_legacy,
+                            cost_unknown, buy_price_cents, payout_cents, sell_price_cents, profit_cents,
+                            stake_authoritative, venue_start_epoch, venue_end_epoch, venue_terminal_status,
+                            venue_underlying_symbol, venue_contract_type, signal_close_utc, status,
+                            opened_utc, closed_utc, updated_utc
+                        ) VALUES (?,?,?,?,?,?,?,?,'UP','risefall',0,0,100,?,?,?,1,?,?,?,'frxUSDJPY','CALL',?,?,?,?,?)
+                        """,
+                        (cid, sid, bid, bk.content_id, "DMO99887766", "demo", "USDJPY", bk.horizon_minutes,
+                         payout_cents, sp, pf, v_st, v_en, st, sc_iso, st, op_iso, cl_iso, cl_iso),
+                    )
+                conn.execute("COMMIT")
+            finally:
+                conn.close()
+
+        # 3b. Insert 15 NON-OVERLAPPING m15 fills (12W/3L @ 1.80) followed by 15 NON-OVERLAPPING m30 fills (12W/3L @ 1.82)
+        #     PLUS 2 intentionally overlapping stack05 fills that MUST be excluded from independent Bernoulli inference!
+        fills_30: list[tuple[str, int, int, bool]] = []
+        for i in range(15):
+            fills_30.append(("USDJPY.sota_ens5_m15_up.v1", 3600 * (i + 1), 180, i < 12))
+        for i in range(15):
+            fills_30.append(("USDJPY.sota_ens5_m30_up.v1", 3600 * 20 + 7200 * (i + 1), 182, i < 12))
+        # Add 2 cross-book overlapping wins inside m30 windows -> counted in accounting (32), excluded from independent (30)!
+        fills_30.append(("USDJPY.sota_stack05_m30_up.v1", 3600 * 20 + 7200 * 1 + 60, 182, True))
+        fills_30.append(("USDJPY.sota_stack05_m30_up.v1", 3600 * 20 + 7200 * 2 + 60, 182, True))
+        _insert_fills(fills_30)
+        # Write adversarial JSONL with non-object lines and a fake account ID as event name -> MUST be bucketed to other_events!
+        (log_d / "adv.jsonl").write_text('null\n[]\n{"event":"DMO99887766"}\n{"event":"buy_confirmed"}\n', encoding="utf-8")
+        # Verify ZERO WAL/SHM sidecar creation in DB dir during read-only MVT evaluation!
+        db_dir_before = sorted(_os_v.listdir(q_db.parent))
+        r_ready = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d,
+        )
+        assert sorted(_os_v.listdir(q_db.parent)) == db_dir_before
+        assert "DMO99887766" not in json.dumps(r_ready)
+        assert r_ready["log_dir_canonical"] is True
+        assert r_ready["pillar1_execution_and_parity"]["passed"] is True
+        assert r_ready["pillar1_execution_and_parity"]["n_total_accounting_settled"] == 32
+        assert r_ready["pillar1_execution_and_parity"]["n_independent_settled"] == 30
+        assert r_ready["pillar1_execution_and_parity"]["n_cross_book_overlaps_excluded_from_inference"] == 2
+        assert r_ready["pillar2_live_payout_parity"]["passed"] is True
+        assert r_ready["pillar2_live_payout_parity"]["by_horizon"]["30m"]["n"] == 15
+        assert r_ready["pillar2_live_payout_parity"]["by_horizon"]["30m"]["n_overlaps_excluded"] == 2
+        assert r_ready["pillar3_portfolio_sequential_wr"]["sprt_broken_execution"]["status"] == "ACCEPT_H1"
+        assert r_ready["pillar3_portfolio_sequential_wr"]["sprt_positive_ev"]["status"] == "CONTINUE"
+        assert r_ready["pillar3_portfolio_sequential_wr"]["all_books_strict_g6_eligible"] is False
+        assert r_ready["verdict"] == "READY_FOR_OWNER_MICRO_LIVE_REVIEW_G6_PENDING"
+        assert r_ready["live_trading_authorized"] is False
+
+        # Lowered OR raised min_horizon_fills/min_parity_fills MUST NEVER produce READY_*!
+        r_low = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d, min_horizon_fills=2,
+        )
+        assert r_low["verdict"] == "DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY" and "diagnostic_policy_override" in r_low["reasons"]
+        r_raised = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d, min_parity_fills=20,
+        )
+        assert r_raised["verdict"] == "DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY" and "diagnostic_policy_override" in r_raised["reasons"]
+
+        # Unrelated empty alternate --log-dir MUST NOT produce READY_* (diagnostic only), AND KILL in canonical log dir MUST still HALT!
+        alt_empty_log = root / "alt_empty_logs"
+        alt_empty_log.mkdir()
+        r_alt_log = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=alt_empty_log,
+        )
+        assert r_alt_log["log_dir_canonical"] is False and r_alt_log["verdict"] == "DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY"
+        assert "diagnostic_non_canonical_log_dir" in r_alt_log["reasons"]
+        (log_d / "KILL").write_text("canonical kill\n", encoding="utf-8")
+        r_alt_kill = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=alt_empty_log,
+        )
+        assert r_alt_kill["verdict"] == "HALT_INVESTIGATE" and "kill_marker_present" in r_alt_kill["reasons"]
+        (log_d / "KILL").unlink()
+
+        # Add 12 more independent wins on ens5_m30 -> sprt_positive_ev ALSO accepts H1!
+        extra_12 = [("USDJPY.sota_ens5_m30_up.v1", 3600 * 80 + 7200 * (i + 1), 182, True) for i in range(12)]
+        _insert_fills(extra_12)
+        r_ev_ready = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_ev_ready["pillar3_portfolio_sequential_wr"]["sprt_positive_ev"]["status"] == "ACCEPT_H1"
+        assert r_ev_ready["verdict"] == "READY_FOR_OWNER_MVT_EV_REVIEW_G6_PENDING"
+        assert r_ev_ready["live_trading_authorized"] is False
+
+        # Diagnostic subset (1 book alone clearing all 3 pillars) MUST NEVER produce READY_*!
+        r_sub = pnl_mod.evaluate_portfolio_mvt(
+            q_db, book_ids=("USDJPY.sota_ens5_m30_up.v1",), repo_root=repo_real,
+            canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True, eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_sub["verdict"] == "DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY" and "diagnostic_non_canonical_book_set" in r_sub["reasons"]
+
+        # 3c. Malformed safety latch row, root/nested KILL, symlinked ancestor/subdir, missing-DB+KILL,
+        #     CR* live account, future venue_end with earlier closed_utc, and corrupt table schema MUST HALT!
+        c_lat = ex_mod.connect_sota_queue_v3(q_db, expected_account_id="DMO99887766", expected_account_mode="demo")
+        try:
+            c_lat.execute("BEGIN IMMEDIATE")
+            c_lat.execute("INSERT INTO sota_risk_state (key, value_json, updated_utc) VALUES ('phase1_safety_latch', '{bad-json', '2026-12-10T00:00:00Z')")
+            c_lat.execute("COMMIT")
+        finally:
+            c_lat.close()
+        r_mal_latch = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d,
+        )
+        assert r_mal_latch["verdict"] == "HALT_INVESTIGATE" and r_mal_latch["pillar1_execution_and_parity"]["safety_latch_active"] is True
+        c_lat = ex_mod.connect_sota_queue_v3(q_db, expected_account_id="DMO99887766", expected_account_mode="demo")
+        try:
+            c_lat.execute("BEGIN IMMEDIATE")
+            c_lat.execute("DELETE FROM sota_risk_state WHERE key='phase1_safety_latch'")
+            c_lat.execute("COMMIT")
+        finally:
+            c_lat.close()
+
+        # Root KILL with missing DB -> MUST HALT_INVESTIGATE (not HOLD_COLLECTING)!
+        (log_d / "KILL").write_text("manual halt\n", encoding="utf-8")
+        r_kill_miss = pnl_mod.evaluate_portfolio_mvt(root / "no_such.sqlite", repo_root=repo_real, log_dir=log_d)
+        assert r_kill_miss["verdict"] == "HALT_INVESTIGATE" and "kill_marker_present" in r_kill_miss["reasons"]
+        r_halt = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d,
+        )
+        assert r_halt["verdict"] == "HALT_INVESTIGATE"
+        (log_d / "KILL").unlink()
+
+        # Symlinked sota_executor_demo subdir inside log_dir -> HALT_INVESTIGATE!
+        ext_d = root / "ext_target"
+        ext_d.mkdir()
+        (log_d / "sota_executor_demo").symlink_to(ext_d)
+        r_sub_sym = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d,
+        )
+        assert r_sub_sym["verdict"] == "HALT_INVESTIGATE" and "log_dir_symlink_refused" in r_sub_sym["reasons"]
+        (log_d / "sota_executor_demo").unlink()
+
+        # Symlinked DB leaf AND symlinked DB parent ancestor MUST both fail closed!
+        sym_db = root / "sym_queue.sqlite"
+        sym_db.symlink_to(q_db)
+        assert pnl_mod.evaluate_portfolio_mvt(sym_db, repo_root=repo_real, canonical_db_path=sym_db, enforce_canonical_db=True)["verdict"] == "HALT_INVESTIGATE"
+        sym_parent = root / "sym_parent"
+        sym_parent.symlink_to(q_db.parent)
+        assert pnl_mod.evaluate_portfolio_mvt(sym_parent / q_db.name, repo_root=repo_real, canonical_db_path=sym_parent / q_db.name, enforce_canonical_db=True)["verdict"] == "HALT_INVESTIGATE"
+
+        # Legacy summarize_settled_queue missing-DB preserves exact 'queue_db_missing' reason & has no preloaded_snapshot param!
+        assert "preloaded_snapshot" not in _insp_v.signature(pnl_mod.summarize_settled_queue).parameters
+        miss_g6 = pnl_mod.summarize_settled_queue(root / "absent.sqlite")
+        assert miss_g6["reasons"] == ["queue_db_missing"]
+
+        # Corrupt required table schema -> sanitized HALT_INVESTIGATE (never raises)!
+        bad_schema_db = root / "bad_schema.sqlite"
+        con_b = _sq_v.connect(str(bad_schema_db))
+        con_b.execute("CREATE TABLE sota_contracts (id INT)")
+        con_b.execute("CREATE TABLE sota_signals (id INT)")
+        con_b.commit()
+        con_b.close()
+        r_bad_sch = pnl_mod.evaluate_portfolio_mvt(bad_schema_db, repo_root=repo_real, canonical_db_path=bad_schema_db, enforce_canonical_db=True, log_dir=log_d)
+        assert r_bad_sch["verdict"] == "HALT_INVESTIGATE"
+
+        # Synthetic CR* binding with VALID eval_now_utc MUST HALT on queue_account_binding_invalid_or_non_demo!
+        cr_db = root / "cr_live_test.sqlite"
+        _sh_v.copy2(q_db, cr_db)
+        con_cr = _sq_v.connect(str(cr_db))
+        con_cr.execute("UPDATE sota_risk_state SET value_json=? WHERE key='queue_account_binding'", (json.dumps({"account_id": "CR1234567", "account_mode": "demo"}),))
+        con_cr.execute("UPDATE sota_contracts SET account_id='CR1234567'")
+        con_cr.commit()
+        con_cr.close()
+        r_cr = pnl_mod.evaluate_portfolio_mvt(
+            cr_db, repo_root=repo_real, canonical_db_path=cr_db, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_cr["verdict"] == "HALT_INVESTIGATE" and "queue_account_binding_invalid_or_non_demo" in r_cr["reasons"]
+        assert "CR1234567" not in json.dumps(r_cr)
+
+        # Separately verify invalid eval_now_utc token is never echoed and halts!
+        r_bad_ev = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, enforce_canonical_db=True,
+            eval_now_utc="SECRET_TOKEN_EVAL_999", log_dir=log_d,
+        )
+        assert r_bad_ev["verdict"] == "HALT_INVESTIGATE" and "invalid_eval_now_utc" in r_bad_ev["reasons"]
+        assert "SECRET_TOKEN_EVAL_999" not in json.dumps(r_bad_ev)
+
+        # Future venue_end_epoch > eval_now_utc WITH consistent closed_utc == venue_end -> excluded post-eval (NOT admitted)!
+        r_early_eval = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-11-26T20:10:00Z", log_dir=log_d,
+        )
+        assert r_early_eval["verdict"] == "HOLD_COLLECTING" and r_early_eval["pillar1_execution_and_parity"]["n_independent_settled"] == 0
+
+        # Forged closed_utc << venue_end_epoch -> integrity anomaly HALT_INVESTIGATE + secret cid NOT leaked!
+        fut_db = root / "fut_venue.sqlite"
+        _sh_v.copy2(q_db, fut_db)
+        con_f = _sq_v.connect(str(fut_db))
+        con_f.execute("UPDATE sota_contracts SET contract_id='SECRET_CID_LEAK_777', venue_start_epoch=1900000000, venue_end_epoch=1900001800 WHERE rowid=1")
+        con_f.commit()
+        con_f.close()
+        r_fut = pnl_mod.evaluate_portfolio_mvt(
+            fut_db, repo_root=repo_real, canonical_db_path=fut_db, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d,
+        )
+        assert r_fut["verdict"] == "HALT_INVESTIGATE" and "closed_utc_precedes_venue_end" in json.dumps(r_fut)
+        assert "SECRET_CID_LEAK_777" not in json.dumps(r_fut)
+
+        # Overlapping 30m quotes across ens5_m30 and stack05_m30 MUST be de-overlapped for Pillar 2 CI99!
+        dup_db = root / "dup_payout.sqlite"
+        ex_mod.init_v3_queue_first_use(
+            queue_db=dup_db, account_id="DMO99887766", account_mode="demo",
+            first_use_record_path=fur, receipt_path=rcpt, pw_home=pw_h,
+        )
+        for bid in pnl_mod.DEFAULT_PHASE1_PORTFOLIO_BOOKS:
+            ex_mod.register_cohort_anchor(
+                queue_db=dup_db, account_id="DMO99887766", account_mode="demo",
+                book_id=bid, cohort_start_utc=coh_start, venue_time_epoch=coh_ep - 300,
+                receipt_path=rcpt, repo_root=repo_real, pw_home=pw_h,
+            )
+        con_d = ex_mod.connect_sota_queue_v3(dup_db, expected_account_id="DMO99887766", expected_account_mode="demo")
+        try:
+            con_d.execute("BEGIN IMMEDIATE")
+            # 15 m15 wins @ 1.80, plus 15 marginal m30 quotes (eight 1.82 + seven 1.77 -> ci99_lo < 1.78 at n=15, > 1.78 if duplicated to n=30!)
+            m30_pays = [182] * 8 + [177] * 7
+            specs_d = [("USDJPY.sota_ens5_m15_up.v1", 3600 * (i + 1), 180, True) for i in range(15)]
+            for i, pay_c in enumerate(m30_pays):
+                off = 3600 * 20 + 7200 * (i + 1)
+                specs_d.append(("USDJPY.sota_ens5_m30_up.v1", off, pay_c, True))
+                specs_d.append(("USDJPY.sota_stack05_m30_up.v1", off + 60, pay_c, True))
+            for idx_f, (bid, offset_s, payout_cents, won) in enumerate(specs_d):
+                bk = reg_books[bid]
+                v_st = coh_ep + offset_s
+                v_en = v_st + bk.horizon_minutes * 60
+                sc_iso = datetime.fromtimestamp(v_st - 2, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                op_iso = datetime.fromtimestamp(v_st, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                cl_iso = datetime.fromtimestamp(v_en, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                sid = f"dsig-{bid}-{idx_f}-{v_st}"
+                cid = f"dcon-{bid}-{idx_f}-{v_st}"
+                con_d.execute(
+                    "INSERT INTO sota_signals VALUES (?,?,?,?,?,'wall',0,?,0.58,0.62,'{}','bought',NULL,?,NULL,?,?)",
+                    (sid, bid, "USDJPY", bk.horizon_minutes, "UP", sc_iso, cid, op_iso, cl_iso),
+                )
+                con_d.execute(
+                    """
+                    INSERT INTO sota_contracts (
+                        contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                        pair, horizon_minutes, side, contract_family, is_migrated_legacy,
+                        cost_unknown, buy_price_cents, payout_cents, sell_price_cents, profit_cents,
+                        stake_authoritative, venue_start_epoch, venue_end_epoch, venue_terminal_status,
+                        venue_underlying_symbol, venue_contract_type, signal_close_utc, status,
+                        opened_utc, closed_utc, updated_utc
+                    ) VALUES (?,?,?,?,?,?,?,?,'UP','risefall',0,0,100,?,?,?,1,?,?,?,'frxUSDJPY','CALL',?,?,?,?,?)
+                    """,
+                    (cid, sid, bid, bk.content_id, "DMO99887766", "demo", "USDJPY", bk.horizon_minutes,
+                     payout_cents, payout_cents, payout_cents - 100, v_st, v_en, "won", sc_iso, "won", op_iso, cl_iso, cl_iso),
+                )
+            con_d.execute("COMMIT")
+        finally:
+            con_d.close()
+        # Note: verify raw n=30 duplicated WOULD have cleared 1.78, while de-overlapped n=15 FAILS 1.78!
+        raw_30_ci = pnl_mod.evaluate_payout_horizon_parity([p / 100.0 for p in m30_pays] * 2, min_payout_ratio=1.78, min_fills=15)
+        raw_15_ci = pnl_mod.evaluate_payout_horizon_parity([p / 100.0 for p in m30_pays], min_payout_ratio=1.78, min_fills=15)
+        assert raw_30_ci["passed"] is True and raw_15_ci["passed"] is False, (raw_30_ci, raw_15_ci)
+        r_dup = pnl_mod.evaluate_portfolio_mvt(
+            dup_db, repo_root=repo_real, canonical_db_path=dup_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-20T00:00:00Z", log_dir=log_d,
+        )
+        assert r_dup["pillar2_live_payout_parity"]["by_horizon"]["30m"]["n"] == 15
+        assert r_dup["pillar2_live_payout_parity"]["by_horizon"]["30m"]["n_overlaps_excluded"] == 15
+        assert r_dup["pillar2_live_payout_parity"]["by_horizon"]["30m"]["passed"] is False
+        assert r_dup["verdict"] == "HOLD_COLLECTING"
+
+        # Absent log_dir OR enforce_canonical_db=False MUST NEVER produce READY_*!
+        r_no_log = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_db_path=q_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=root / "absent_logs",
+        )
+        assert r_no_log["verdict"] == "HOLD_COLLECTING" and "runtime_log_dir_missing_or_unverified" in r_no_log["reasons"]
+        r_off_canon = pnl_mod.evaluate_portfolio_mvt(
+            q_db, repo_root=repo_real, canonical_log_dir=log_d, enforce_canonical_db=False,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_off_canon["db_canonical"] is False and r_off_canon["verdict"] == "DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY"
+
+        # Unregistered regex-shaped book_id token MUST NOT be echoed!
+        r_unreg = pnl_mod.evaluate_portfolio_mvt(root / "no_such.sqlite", book_ids=("SECRET_BOOK_TOKEN_42",), repo_root=repo_real, canonical_log_dir=log_d, log_dir=log_d)
+        assert r_unreg["verdict"] == "HALT_INVESTIGATE" and "SECRET_BOOK_TOKEN_42" not in json.dumps(r_unreg)
+
+        # Real executor 1s NTP skew (closed_utc = venue_end - 1s with venue_end <= eval_now_utc) MUST be admitted cleanly,
+        # while closed_utc <= eval_now_utc < venue_end_epoch (within allowed skew) MUST be excluded post-eval!
+        skew_db = root / "skew_ok.sqlite"
+        _sh_v.copy2(q_db, skew_db)
+        con_sk = _sq_v.connect(str(skew_db))
+        r1 = con_sk.execute("SELECT contract_id, venue_end_epoch FROM sota_contracts ORDER BY venue_end_epoch ASC LIMIT 1").fetchone()
+        con_sk.execute(
+            "UPDATE sota_contracts SET closed_utc=? WHERE contract_id=?",
+            (datetime.fromtimestamp(int(r1[1]) - 10, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), r1[0]),
+        )
+        con_sk.commit()
+        con_sk.close()
+        r_skew = pnl_mod.evaluate_portfolio_mvt(
+            skew_db, repo_root=repo_real, canonical_db_path=skew_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_skew["verdict"] == "READY_FOR_OWNER_MVT_EV_REVIEW_G6_PENDING"
+        # Evaluate at eval_now_utc = venue_end - 5s: closed_utc (venue_end - 10s) <= eval_now_utc < venue_end_epoch -> MUST be excluded!
+        r_skew_cut = pnl_mod.evaluate_portfolio_mvt(
+            skew_db, repo_root=repo_real, canonical_db_path=skew_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc=datetime.fromtimestamp(int(r1[1]) - 5, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), log_dir=log_d,
+        )
+        assert r_skew_cut["pillar1_execution_and_parity"]["n_independent_settled"] == 0
+
+        # Status='lost' with positive profit MUST HALT (settlement_status_profit_mismatch), AND 'sold' stays in accounting
+        # while excluded from fixed-payout Bernoulli sample!
+        bad_lost_db = root / "bad_lost.sqlite"
+        _sh_v.copy2(q_db, bad_lost_db)
+        con_bl = _sq_v.connect(str(bad_lost_db))
+        con_bl.execute("UPDATE sota_contracts SET status='lost', venue_terminal_status='lost', sell_price_cents=180, profit_cents=80 WHERE rowid=1")
+        con_bl.commit()
+        con_bl.close()
+        r_bl = pnl_mod.evaluate_portfolio_mvt(
+            bad_lost_db, repo_root=repo_real, canonical_db_path=bad_lost_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_bl["verdict"] == "HALT_INVESTIGATE" and "settlement_status_profit_mismatch" in json.dumps(r_bl)
+
+        sold_db = root / "early_sold.sqlite"
+        _sh_v.copy2(q_db, sold_db)
+        con_sd = _sq_v.connect(str(sold_db))
+        # Exact executor-mapped zero-profit sold row (status='sold', venue_terminal_status='sold', sell==buy, profit==0)
+        con_sd.execute(
+            "UPDATE sota_contracts SET status='sold', venue_terminal_status='sold', sell_price_cents=100, profit_cents=0 WHERE contract_id=?",
+            (r1[0],),
+        )
+        con_sd.commit()
+        con_sd.close()
+        r_sd = pnl_mod.evaluate_portfolio_mvt(
+            sold_db, repo_root=repo_real, canonical_db_path=sold_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_sd["pillar1_execution_and_parity"]["n_total_accounting_settled"] == 44
+        assert r_sd["pillar1_execution_and_parity"]["n_early_sold_excluded_from_bernoulli"] == 1
+        assert r_sd["pillar1_execution_and_parity"]["n_independent_settled"] == 41
+
+        # Executor-mapped profitable early sell (status='won', venue_terminal_status='sold', sell<payout) MUST HALT!
+        sold_win_db = root / "sold_win.sqlite"
+        _sh_v.copy2(q_db, sold_win_db)
+        con_sw = _sq_v.connect(str(sold_win_db))
+        con_sw.execute(
+            "UPDATE sota_contracts SET status='won', venue_terminal_status='sold', sell_price_cents=120, profit_cents=20 WHERE contract_id=?",
+            (r1[0],),
+        )
+        con_sw.commit()
+        con_sw.close()
+        r_sw = pnl_mod.evaluate_portfolio_mvt(
+            sold_win_db, repo_root=repo_real, canonical_db_path=sold_win_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_sw["verdict"] == "HALT_INVESTIGATE"
+
+        # Missing required tables in standalone legacy v2 AND prospective mode emit 'missing_required_queue_tables'!
+        empty_tbl_db = root / "empty_tables.sqlite"
+        con_et = _sq_v.connect(str(empty_tbl_db))
+        con_et.execute("CREATE TABLE unrelated (id INT)")
+        con_et.commit()
+        con_et.close()
+        g6_miss_leg = pnl_mod.summarize_settled_queue(empty_tbl_db, book_id="USDJPY.sota_ens5_m30_up.v1", repo_root=repo_real)
+        assert g6_miss_leg["promotion_eligible"] is False and "missing_required_queue_tables" in g6_miss_leg["reasons"]
+
+        # CLI with custom DERIV_SOTA_LOG_DIR containing KILL MUST HALT even when explicit --log-dir points to a clean dir!
+        cfg_log_d = root / "configured_env_logs"
+        cfg_log_d.mkdir()
+        (cfg_log_d / "KILL").write_text("configured halt\n", encoding="utf-8")
+        orig_log_env = _os_v.environ.get("DERIV_SOTA_LOG_DIR")
+        try:
+            _os_v.environ["DERIV_SOTA_LOG_DIR"] = str(cfg_log_d)
+            buf_env_kill = _io_v.StringIO()
+            with _ctx_v.redirect_stdout(buf_env_kill):
+                assert pnl_mod.main(["--portfolio-mvt-report", "--db", str(q_db), "--log-dir", str(log_d), "--eval-now-utc", "2026-12-20T00:00:00Z"]) == 0
+            rep_env_kill = json.loads(buf_env_kill.getvalue())
+            assert rep_env_kill["verdict"] == "HALT_INVESTIGATE" and "kill_marker_present" in rep_env_kill["reasons"]
+        finally:
+            if orig_log_env is None:
+                _os_v.environ.pop("DERIV_SOTA_LOG_DIR", None)
+            else:
+                _os_v.environ["DERIV_SOTA_LOG_DIR"] = orig_log_env
+
+        # Standalone summarize_settled_queue MUST fail closed on symlinked canonical path AND on missing schema columns (both modes)!
+        sym_canon_g6 = root / "sym_canon_g6.sqlite"
+        sym_canon_g6.symlink_to(q_db)
+        g6_sym = pnl_mod.summarize_settled_queue(
+            q_db, book_id="USDJPY.sota_ens5_m30_up.v1", repo_root=repo_real,
+            require_registered_book=True, cohort_start_utc=coh_start, expected_account_id="DMO99887766",
+            expected_stake_usd="1.00", eval_now_utc="2026-12-28T00:00:00Z",
+            canonical_db_path=sym_canon_g6, enforce_canonical_db=True,
+        )
+        assert g6_sym["promotion_eligible"] is False and "non_canonical_db_diagnostic_only" in g6_sym["reasons"]
+        g6_bad_sch_leg = pnl_mod.summarize_settled_queue(bad_schema_db, book_id="USDJPY.sota_ens5_m30_up.v1", repo_root=repo_real)
+        assert g6_bad_sch_leg["promotion_eligible"] is False and "queue_schema_error" in g6_bad_sch_leg["reasons"]
+        g6_bad_sch_pro = pnl_mod.summarize_settled_queue(
+            bad_schema_db, book_id="USDJPY.sota_ens5_m30_up.v1", repo_root=repo_real,
+            cohort_start_utc=coh_start, canonical_db_path=bad_schema_db, enforce_canonical_db=True,
+        )
+        assert g6_bad_sch_pro["promotion_eligible"] is False and "queue_schema_error" in g6_bad_sch_pro["reasons"]
+
+        # Post-accept SPRT degradation preserves first_decision & stopped_at_n separately from degraded_at_n!
+        s_post_deg = pnl_mod.evaluate_wald_sprt(0, 0, p0=0.50, p1=0.625, alpha=0.05, beta=0.10, outcomes=[True] * 25 + [False] * 40)
+        assert s_post_deg["first_decision"] == "ACCEPT_H1"
+        assert s_post_deg["post_accept_degradation"] is True
+        assert s_post_deg["status"] == "REJECT_TO_H0"
+        assert s_post_deg["stopped_at_n"] is not None and s_post_deg["degraded_at_n"] is not None
+        assert s_post_deg["stopped_at_n"] < s_post_deg["degraded_at_n"]
+
+        txt_db = root / "text_payout.sqlite"
+        _sh_v.copy2(q_db, txt_db)
+        con_tx = _sq_v.connect(str(txt_db))
+        con_tx.execute("UPDATE sota_contracts SET payout_cents='bad_text_cents' WHERE rowid=1")
+        con_tx.commit()
+        con_tx.close()
+        r_txt = pnl_mod.evaluate_portfolio_mvt(
+            txt_db, repo_root=repo_real, canonical_db_path=txt_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_txt["verdict"] == "HALT_INVESTIGATE" and "bad_text_cents" not in json.dumps(r_txt)
+
+        spoof_db = root / "spoof_cid.sqlite"
+        _sh_v.copy2(q_db, spoof_db)
+        con_sp = _sq_v.connect(str(spoof_db))
+        con_sp.execute("UPDATE sota_contracts SET contract_id='insufficient_prospective_trades:spoof', book_content_id='wrong_cid' WHERE rowid=1")
+        con_sp.commit()
+        con_sp.close()
+        r_sp = pnl_mod.evaluate_portfolio_mvt(
+            spoof_db, repo_root=repo_real, canonical_db_path=spoof_db, canonical_log_dir=log_d, enforce_canonical_db=True,
+            eval_now_utc="2026-12-28T00:00:00Z", log_dir=log_d,
+        )
+        assert r_sp["verdict"] == "HALT_INVESTIGATE" and "book_content_id_mismatch" in json.dumps(r_sp)
+
+        # 3d. CLI --portfolio-mvt-report outputs valid redacted JSON!
+        buf_mvt = _io_v.StringIO()
+        with _ctx_v.redirect_stdout(buf_mvt):
+            assert pnl_mod.main(["--portfolio-mvt-report", "--db", str(q_db), "--eval-now-utc", "2026-12-20T00:00:00Z"]) == 0
+        cli_mvt = json.loads(buf_mvt.getvalue())
+        assert cli_mvt["schema"] == "deriv-sota-portfolio-mvt-validator/v1"
+        assert "DMO99887766" not in buf_mvt.getvalue()
+        assert str(q_db) not in buf_mvt.getvalue()
+        assert cli_mvt["verdict"] == "HALT_INVESTIGATE"  # non-canonical --db alias refused!
+
+
 def main() -> int:
     tests = [
         test_quote_parser_and_dual_ev_gate,
@@ -4806,6 +5414,7 @@ def main() -> int:
         test_phase1_v3_queue_and_6shape_adoption,
         test_phase1_prospective_g6_and_preflight,
         test_phase1_portfolio_replay_fixtures_a_to_f,
+        test_portfolio_mvt_validator_and_options_proposal_ccy,
     ]
     for fn in tests:
         fn()
