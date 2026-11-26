@@ -148,13 +148,37 @@ def test_quote_parser_and_dual_ev_gate() -> None:
 
 
 def test_account_mode_isolation() -> None:
-    # Valid Demo
+    # Valid Demo (WS v3 VRTC*/VRW* and Options v1 D[A-Z]{2}[0-9]+)
     validate_account_mode(
         account_mode="demo",
         account_id="VRTC991122",
         ws_url="wss://api.derivws.com/trading/v1/options/ws/demo",
         env_live_flag="0",
     )
+    validate_account_mode(
+        account_mode="demo",
+        account_id="VRW12345678",
+        ws_url="wss://ws.derivws.com/websockets/v3?app_id=1089",
+        env_live_flag="0",
+    )
+    validate_account_mode(
+        account_mode="demo",
+        account_id="DMO12345678",
+        ws_url="wss://api.derivws.com/trading/v1/options/ws/demo",
+        env_live_flag="0",
+    )
+    # Options v1 3-letter D-prefixed ID MUST be refused on WS v3 and in live mode!
+    _expect_raises(ExecutorError, validate_account_mode, account_mode="demo", account_id="DMO12345678", ws_url="wss://ws.derivws.com/websockets/v3?app_id=1089", env_live_flag="0")
+    _expect_raises(ExecutorError, validate_account_mode, account_mode="demo", account_id="DMO12345678", ws_url="wss://api.derivws.com/trading/v1/options/ws/live", env_live_flag="0")
+    _expect_raises(ExecutorError, validate_account_mode, account_mode="live", account_id="DMO12345678", ws_url="wss://api.derivws.com/trading/v1/options/ws/live", env_live_flag="1")
+    # options_otp transport MUST refuse WS v3 URL even for VRTC/VRW, and MUST NOT leak ?otp=... in error messages!
+    try:
+        validate_account_mode(account_mode="demo", account_id="VRTC991122", ws_url="wss://ws.derivws.com/websockets/v3?otp=SECRET_OTP_TOK", env_live_flag="0", expected_transport="options_otp")
+        raise AssertionError("expected options_otp refusal for v3 URL")
+    except ExecutorError as exc:
+        assert "SECRET_OTP_TOK" not in str(exc)
+    for bad_demo_acct in ("CR887766", "MF123456", "MLT123456", "MX123456", "REAL123456", "VRTC_FROM_ENV", "DMO", "D12345678"):
+        _expect_raises(ExecutorError, validate_account_mode, account_mode="demo", account_id=bad_demo_acct, ws_url="wss://api.derivws.com/trading/v1/options/ws/demo", env_live_flag="0")
     # Valid Live (Options OTP /live and Classic v3)
     validate_account_mode(
         account_mode="live",
@@ -3441,7 +3465,92 @@ def test_phase1_v3_queue_and_6shape_adoption() -> None:
             validate_credential_isolation_receipt(live_rcpt, expected_account_id="CR123456", expected_account_mode="live", pw_home=m_home)
             raise AssertionError("expected Demo-only refusal for live receipt")
         except ExecutorError as exc:
-            assert "ONLY for Demo VRTC*" in str(exc) and "CR123456" not in str(exc)
+            assert "ONLY for Demo accounts" in str(exc) and "CR123456" not in str(exc)
+        # Positive 1b: Deriv Options v1 D[A-Z]{2}[0-9]+ Demo ID passes receipt, first_use init, options_otp identity, and scrubbing!
+        validate_credential_isolation_receipt(
+            m_rcpt, expected_account_id="DMO12345678", expected_account_mode="demo", pw_home=m_home,
+            systemd_state_probe=lambda _units: ok_states,
+        )
+        m_db_opt = m_root / "runtime" / "sota_trade_queue_demo_opt.sqlite"
+        rm_opt = init_v3_queue_first_use(queue_db=m_db_opt, account_id="DMO12345678", account_mode="demo", first_use_record_path=m_fur, receipt_path=m_rcpt, pw_home=m_home)
+        assert rm_opt["status"] == "initialized_v3"
+        import deriv_sota_executor as _ex_scr
+        assert "DMO12345678" not in _ex_scr._scrub_secret_text("err DMO12345678 VRW87654321 MF12345")
+        assert "VRW87654321" not in _ex_scr._scrub_secret_text("err DMO12345678 VRW87654321 MF12345")
+        assert "MF12345" not in _ex_scr._scrub_secret_text("err DMO12345678 VRW87654321 MF12345")
+        # Standalone revoked receipt MUST refuse live-prefix MF* in demo mode!
+        mf_rcpt = m_root / "rcpt_mf_demo.json"
+        mf_rcpt.write_text(json.dumps({"schema": "sota-credential-isolation-receipt/v1", "account_id": "MF123456", "account_mode": "demo", "legacy_credentials_revoked": True, "attested_by": "owner_demo", "attested_utc": "2026-11-26T18:22:00Z"}), encoding="utf-8")
+        try:
+            validate_credential_isolation_receipt(mf_rcpt, expected_account_id="MF123456", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal for MF* in demo revoked receipt")
+        except ExecutorError:
+            pass
+        # Offline config validator MUST reject Options-only DMO* when DERIV_WS_TRANSPORT=v3_authorize!
+        fx_repo_dmo = m_root / "fx_repo"
+        fx_repo_dmo.mkdir(parents=True, exist_ok=True)
+        orig_tr = _os_m.environ.get("DERIV_WS_TRANSPORT")
+        try:
+            _os_m.environ["DERIV_WS_TRANSPORT"] = "v3_authorize"
+            try:
+                _ex_scr.resolve_and_validate_sota_runtime_config(
+                    account_mode="demo", account_id="DMO12345678",
+                    book_ids_raw="USDJPY.sota_ens5_m30_up.v1",
+                    stake_raw="1.0", max_stake_usd=5.0, max_daily_loss_usd=25.0, max_drawdown_usd=50.0,
+                    max_open_contracts=3, max_usd_factor_open=3, max_jpy_factor_open=3,
+                    absolute_breakeven_ceiling=0.60, ev_margin=0.005, max_buy_dispatch_delay_s=4.0,
+                    queue_db_raw="deriv_data/runtime/sota_trade_queue_demo.sqlite", log_dir_raw="logs/sota_runtime",
+                    credential_isolation_receipt_raw=str(m_rcpt),
+                    fixture_home=m_home, fixture_repo_root=fx_repo_dmo, allow_fixture=True,
+                )
+                raise AssertionError("expected refusal for DMO* with v3_authorize")
+            except ExecutorError as exc:
+                assert "DERIV_WS_TRANSPORT" in str(exc)
+            # And options_otp with relative queue_db_raw MUST pass!
+            _os_m.environ["DERIV_WS_TRANSPORT"] = "options_otp"
+            cfg_rel = _ex_scr.resolve_and_validate_sota_runtime_config(
+                account_mode="demo", account_id="DMO12345678",
+                book_ids_raw="USDJPY.sota_ens5_m30_up.v1",
+                stake_raw="1.0", max_stake_usd=5.0, max_daily_loss_usd=25.0, max_drawdown_usd=50.0,
+                max_open_contracts=3, max_usd_factor_open=3, max_jpy_factor_open=3,
+                absolute_breakeven_ceiling=0.60, ev_margin=0.005, max_buy_dispatch_delay_s=4.0,
+                queue_db_raw="deriv_data/runtime/sota_trade_queue_demo.sqlite", log_dir_raw="logs/sota_runtime",
+                credential_isolation_receipt_raw=str(m_rcpt),
+                fixture_home=m_home, fixture_repo_root=fx_repo_dmo, allow_fixture=True,
+            )
+            assert cfg_rel.queue_db == (fx_repo_dmo / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite")
+        finally:
+            if orig_tr is None:
+                _os_m.environ.pop("DERIV_WS_TRANSPORT", None)
+            else:
+                _os_m.environ["DERIV_WS_TRANSPORT"] = orig_tr
+        # Mocked options_otp identity with DMO12345678 passes, while v3_authorize with DMO12345678 refuses!
+        async def _check_dmo_identity() -> None:
+            class _MiniWS:
+                def __init__(self, responder: Any) -> None:
+                    self._r = responder
+                    self.inbox: asyncio.Queue[str] = asyncio.Queue()
+                async def send(self, text: str) -> None:
+                    req = json.loads(text)
+                    res = dict(self._r(req))
+                    res["req_id"] = req["req_id"]
+                    await self.inbox.put(json.dumps(res))
+                async def recv(self) -> str:
+                    return await self.inbox.get()
+                async def close(self) -> None:
+                    return None
+            ws_dmo = _MiniWS(lambda req: {"balance": {"loginid": "DMO12345678", "currency": "USD", "is_virtual": 1}} if "balance" in req else {"time": 1784124000})
+            async with _ex_scr.SotaDerivAsyncClient("wss://api.derivws.com/trading/v1/options/ws/demo", allow_buy=False, expected_account_id="DMO12345678", ws_opener=lambda _u: ws_dmo) as c_ok:
+                vt = await c_ok.establish_identity(account_id="DMO12345678", account_mode="demo", transport_kind="options_otp")
+                assert vt == 1784124000
+            ws_v3_bad = _MiniWS(lambda req: {"authorize": {"loginid": "DMO12345678", "currency": "USD", "is_virtual": 1}} if "authorize" in req else {"time": 1784124000})
+            async with _ex_scr.SotaDerivAsyncClient("wss://ws.derivws.com/websockets/v3?app_id=1089", allow_buy=False, expected_account_id="DMO12345678", ws_opener=lambda _u: ws_v3_bad) as c_bad:
+                try:
+                    await c_bad.establish_identity(account_id="DMO12345678", account_mode="demo", transport_kind="v3_authorize", pat="tok")
+                    raise AssertionError("expected v3_authorize refusal for DMO12345678")
+                except ExecutorError:
+                    pass
+        asyncio.run(_check_dmo_identity())
         for bad_acct, bad_mode in (("CR123456", "demo"), ("VRTC999999", "live")):
             try:
                 validate_credential_isolation_receipt(m_rcpt, expected_account_id=bad_acct, expected_account_mode=bad_mode, pw_home=m_home)

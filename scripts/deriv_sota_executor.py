@@ -77,6 +77,7 @@ from deriv_runtime_core_v2 import (
     format_barrier_levels,
     is_ny_16h_haircut_window,
     is_ny_session,
+    is_valid_demo_account_id,
     is_venue_sub5h_open,
     raw_hash,
     sota_account_lock_key,
@@ -421,7 +422,7 @@ def _scrub_secret_text(text: str, *, pat: str = "", account_id: str = "") -> str
         safe = safe.replace(pat, "[REDACTED_PAT]")
     if account_id:
         safe = safe.replace(account_id, "[REDACTED_ACCT]")
-    return re.sub(r"\b(?:VRTC|CR)[A-Za-z0-9_-]*\b", "[REDACTED_ACCT]", safe, flags=re.IGNORECASE)
+    return re.sub(r"\b(?:(?:VRTC|VRW|CR|MF|MLT|MX)[A-Za-z0-9_-]*|D[A-Z]{2}[0-9]+)\b", "[REDACTED_ACCT]", safe, flags=re.IGNORECASE)
 
 
 def redact_account_id(account_id: str) -> str:
@@ -530,6 +531,8 @@ def validate_credential_isolation_receipt(
     rcpt_acct = rcpt_acct_raw
 
     if iso_mode == CREDENTIAL_ISOLATION_MODE_REVOKED:
+        if expected_account_mode.lower() == "demo" and not is_valid_demo_account_id(exp_acct):
+            raise ExecutorError("demo credential isolation receipt requires a valid concrete Deriv Demo account_id")
         if rcpt_acct != exp_acct:
             raise ExecutorError("receipt account_id does not match expected account_id")
         if obj.get("legacy_credentials_revoked") is not True:
@@ -537,8 +540,8 @@ def validate_credential_isolation_receipt(
         return obj
 
     if iso_mode == CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED:
-        if expected_account_mode.lower() != "demo" or not exp_acct.upper().startswith("VRTC"):
-            raise ExecutorError("single_host_units_masked credential mode is permitted ONLY for Demo VRTC* accounts")
+        if expected_account_mode.lower() != "demo" or not is_valid_demo_account_id(exp_acct):
+            raise ExecutorError("single_host_units_masked credential mode is permitted ONLY for Demo accounts")
         if rcpt_acct not in (exp_acct, DEMO_ENV_ACCOUNT_SENTINEL):
             raise ExecutorError(f"receipt account_id does not match expected Demo account or {DEMO_ENV_ACCOUNT_SENTINEL!r}")
         if obj.get("legacy_credentials_revoked") is not False:
@@ -649,9 +652,12 @@ def resolve_and_validate_sota_runtime_config(
     mode = str(account_mode).strip().lower()
     if mode != "demo":
         raise ExecutorError(f"Phase 1 runtime policy permits account_mode='demo' only, got {account_mode!r}")
+    transport = os.environ.get("DERIV_WS_TRANSPORT", "options_otp").strip().lower()
+    if transport not in {"options_otp", "v3_authorize"}:
+        raise ExecutorError(f"unsupported DERIV_WS_TRANSPORT: {transport!r}")
     acct = str(account_id or "").strip()
-    if not acct.upper().startswith("VRTC") or acct.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
-        raise ExecutorError("Phase 1 Demo mode requires concrete VRTC* account_id")
+    if not is_valid_demo_account_id(acct, allow_v3_only=(transport == "v3_authorize")):
+        raise ExecutorError("Phase 1 Demo mode requires a concrete Deriv Demo account_id compatible with DERIV_WS_TRANSPORT")
 
     parsed_books = parse_book_ids_spec(book_ids_raw)
     if require_explicit_book_ids and not parsed_books:
@@ -811,7 +817,17 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             if asyncio.iscoroutine(ws):
                 ws = await ws
             return ws
-        return await super()._open(refresh_url=False)
+        conn = websockets.connect(
+            self.url,
+            compression=None,
+            open_timeout=self.open_timeout,
+            ping_interval=self.ping_interval,
+            ping_timeout=self.ping_interval * 2,
+            max_size=2**24,
+        )
+        # Never follow HTTP 3xx redirects after URL validation (prevents /demo -> /live redirect bypass!)
+        conn.process_redirect = lambda exc: exc  # type: ignore[method-assign]
+        return await conn
 
     async def close(self) -> None:
         self._invalidate_identity()
@@ -1048,6 +1064,8 @@ class SotaDerivAsyncClient(DerivAsyncClient):
                 raise ExecutorError(f"account currency must be USD, got {ccy!r}")
             if account_mode == "demo" and is_virt not in {1, True}:
                 raise ExecutorError("demo mode refused: token authorized non-virtual account")
+            if account_mode == "demo" and not is_valid_demo_account_id(loginid, allow_v3_only=True):
+                raise ExecutorError(f"v3_authorize non-demo account ({redact_account_id(loginid)}) in demo mode")
             if account_mode == "live" and is_virt in {1, True}:
                 raise ExecutorError("live mode refused: token authorized virtual account")
         elif transport_kind == "options_otp":
@@ -1064,8 +1082,8 @@ class SotaDerivAsyncClient(DerivAsyncClient):
                 raise ExecutorError(
                     f"OTP bootstrap balance missing or mismatched account: got={redact_account_id(loginid)} != expected={redact_account_id(account_id)}"
                 )
-            if account_mode == "demo" and not loginid.upper().startswith("VRTC"):
-                raise ExecutorError(f"OTP bootstrap balance non-VRTC account ({redact_account_id(loginid)}) in demo mode")
+            if account_mode == "demo" and not is_valid_demo_account_id(loginid):
+                raise ExecutorError(f"OTP bootstrap balance non-demo account ({redact_account_id(loginid)}) in demo mode")
             # MAJOR #1: reject conflicting virtual-account evidence on OTP bootstrap balance!
             if is_virt_otp is not None:
                 if account_mode == "demo" and is_virt_otp not in {1, True}:
@@ -1211,8 +1229,12 @@ def request_authenticated_ws_url(env: DerivEnv, account_mode: str, timeout: floa
     transport = os.environ.get("DERIV_WS_TRANSPORT", "options_otp").strip().lower()
     if transport == "v3_authorize":
         ws_url = CLASSIC_V3_WS_TEMPLATE.format(app_id=env.app_id)
-        validate_account_mode(account_mode=account_mode, account_id=env.account_id, ws_url=ws_url)
+        validate_account_mode(
+            account_mode=account_mode, account_id=env.account_id, ws_url=ws_url, expected_transport="v3_authorize"
+        )
         return ws_url, "v3_authorize"
+    if transport != "options_otp":
+        raise ExecutorError(f"unsupported DERIV_WS_TRANSPORT: {transport!r}")
 
     url = f"{API_BASE}/trading/v1/options/accounts/{env.account_id}/otp"
     req = urllib.request.Request(
@@ -1227,18 +1249,26 @@ def request_authenticated_ws_url(env: DerivEnv, account_mode: str, timeout: floa
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            payload = strict_json_loads_wire(resp.read())
+            raw_payload = resp.read()
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
-        raise DerivAPIError(f"OTP request failed: HTTP {exc.code}: {body}") from exc
+        safe_body = _scrub_secret_text(re.sub(r"otp=[^&\s\"']+", "otp=[REDACTED]", body), pat=env.pat, account_id=env.account_id)[:200]
+        raise DerivAPIError(f"OTP request failed: HTTP {exc.code}: {safe_body}") from None
     except urllib.error.URLError as exc:
-        raise DerivAPIError(f"OTP request failed: {exc}") from exc
+        safe_err = _scrub_secret_text(re.sub(r"otp=[^&\s\"']+", "otp=[REDACTED]", str(exc)), pat=env.pat, account_id=env.account_id)[:200]
+        raise DerivAPIError(f"OTP request failed: {safe_err}") from None
+    try:
+        payload = strict_json_loads_wire(raw_payload)
+    except Exception:
+        raise DerivAPIError("OTP response malformed JSON") from None
 
-    data = payload.get("data", payload)
-    ws_url = data.get("url") or data.get("websocket_url")
+    data = payload.get("data", payload) if isinstance(payload, dict) else {}
+    ws_url = data.get("url") or data.get("websocket_url") if isinstance(data, dict) else None
     if not isinstance(ws_url, str) or not ws_url.startswith("wss://"):
-        raise DerivAPIError(f"OTP response missing wss:// URL: {payload!r}")
-    validate_account_mode(account_mode=account_mode, account_id=env.account_id, ws_url=ws_url)
+        raise DerivAPIError("OTP response missing wss:// URL")
+    validate_account_mode(
+        account_mode=account_mode, account_id=env.account_id, ws_url=ws_url, expected_transport="options_otp"
+    )
     return ws_url, "options_otp"
 
 
@@ -1471,8 +1501,7 @@ def _validate_first_use_record(
     allow_env_sentinel = (
         rcpt_obj.get("credential_isolation_mode") == CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED
         and account_mode == "demo"
-        and account_id.upper().startswith("VRTC")
-        and account_id.upper() != DEMO_ENV_ACCOUNT_SENTINEL
+        and is_valid_demo_account_id(account_id)
     )
     fur_acct = fur.get("account_id")
     fur_acct_ok = (type(fur_acct) is str) and (
@@ -1498,8 +1527,8 @@ def init_v3_queue_first_use(
     pw_home: Path | None = None,
 ) -> dict[str, Any]:
     """--init-queue --reason first_use: creates persistent 3 flocks + single-txn v3 DB (idempotent on empty v3)."""
-    if account_mode != "demo" or not account_id.upper().startswith("VRTC") or account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
-        raise ExecutorError("Phase 1 --init-queue requires concrete demo VRTC* account")
+    if account_mode != "demo" or not is_valid_demo_account_id(account_id):
+        raise ExecutorError("Phase 1 --init-queue requires a concrete demo account")
     rcpt_obj = validate_credential_isolation_receipt(
         receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
     )
@@ -1773,8 +1802,8 @@ def adopt_legacy_account(
     crash_hook: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     """Steps 3 & 4: Intent-first crash-safe 6-shape predecessor adoption (spec §3.4 + B5 + B6 + D3 + B4)."""
-    if account_mode != "demo" or not account_id.upper().startswith("VRTC"):
-        raise ExecutorError("Phase 1 adoption requires demo VRTC* account")
+    if account_mode != "demo" or not is_valid_demo_account_id(account_id):
+        raise ExecutorError("Phase 1 adoption requires a concrete demo account")
     # B5: Receipt & credential isolation verified FIRST!
     validate_credential_isolation_receipt(
         receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
@@ -2827,7 +2856,9 @@ class SotaTradeExecutor:
             ccy = str(auth_info.get("currency") or "").strip().upper()
             is_virt = bool(auth_info.get("is_virtual"))
             if not loginid or loginid != self.env.account_id:
-                raise ExecutorError(f"PAT authorized loginid={loginid!r} != DERIV_ACCOUNT_ID {self.env.account_id!r}")
+                raise ExecutorError(
+                    f"PAT authorized account mismatch: got={redact_account_id(loginid)} != expected={redact_account_id(self.env.account_id)}"
+                )
             if ccy != "USD":
                 raise ExecutorError(f"SOTA executor requires USD account currency, got {ccy!r}")
             if self.account_mode == "live" and is_virt:
@@ -2840,7 +2871,9 @@ class SotaTradeExecutor:
             loginid = str(bal_info.get("loginid") or "").strip()
             ccy = str(bal_info.get("currency") or "").strip().upper()
             if loginid and loginid != self.env.account_id:
-                raise ExecutorError(f"OTP socket loginid={loginid!r} != DERIV_ACCOUNT_ID {self.env.account_id!r}")
+                raise ExecutorError(
+                    f"OTP socket account mismatch: got={redact_account_id(loginid)} != expected={redact_account_id(self.env.account_id)}"
+                )
             if ccy != "USD":
                 raise ExecutorError(f"SOTA executor requires USD account currency on OTP socket, got {ccy!r}")
         self._authorized_reconnect_epoch = reconnects
@@ -4143,8 +4176,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.reason != "first_use" or not args.first_use_record_json or not args.credential_isolation_receipt:
             raise ExecutorError("--init-queue requires --reason first_use, --first-use-record-json, and --credential-isolation-receipt")
         env = DerivEnv.from_env()
-        if args.account_mode != "demo" or not env.account_id.upper().startswith("VRTC") or env.account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
-            raise ExecutorError("Phase 1 --init-queue requires concrete demo VRTC* account")
+        if args.account_mode != "demo" or not is_valid_demo_account_id(env.account_id):
+            raise ExecutorError("Phase 1 --init-queue requires a concrete demo account")
         rcpt_pre = validate_credential_isolation_receipt(
             Path(args.credential_isolation_receipt),
             expected_account_id=env.account_id,
@@ -4179,8 +4212,8 @@ def main(argv: list[str] | None = None) -> int:
             raise ExecutorError("--adopt-legacy-account requires quarantine dir, staged dir, proof JSON, and receipt")
         _check_no_legacy_buyers_proc()
         env = DerivEnv.from_env()
-        if args.account_mode != "demo" or not env.account_id.upper().startswith("VRTC") or env.account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
-            raise ExecutorError("Phase 1 --adopt-legacy-account requires concrete demo VRTC* account")
+        if args.account_mode != "demo" or not is_valid_demo_account_id(env.account_id):
+            raise ExecutorError("Phase 1 --adopt-legacy-account requires a concrete demo account")
         validate_credential_isolation_receipt(
             Path(args.credential_isolation_receipt),
             expected_account_id=env.account_id,
@@ -4207,8 +4240,8 @@ def main(argv: list[str] | None = None) -> int:
         if not all((args.book_id, args.cohort_start_utc, args.credential_isolation_receipt)):
             raise ExecutorError("--register-cohort-anchor requires --book-id, --cohort-start-utc, and --credential-isolation-receipt")
         env = DerivEnv.from_env()
-        if args.account_mode != "demo" or not env.account_id.upper().startswith("VRTC") or env.account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
-            raise ExecutorError("Phase 1 --register-cohort-anchor requires concrete demo VRTC* account")
+        if args.account_mode != "demo" or not is_valid_demo_account_id(env.account_id):
+            raise ExecutorError("Phase 1 --register-cohort-anchor requires a concrete demo account")
         validate_credential_isolation_receipt(
             Path(args.credential_isolation_receipt),
             expected_account_id=env.account_id,

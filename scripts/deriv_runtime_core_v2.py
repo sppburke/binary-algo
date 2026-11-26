@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import math
 import os
+import re
 import socket
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -152,45 +153,103 @@ def sota_account_lock_key(account_id: str, account_mode: str = "demo") -> str:
     raise ExecutorError(f"unknown account_mode {account_mode!r}")
 
 
+_DEMO_ACCOUNT_OPTIONS_RE = re.compile(r"^(?:VRTC[A-Za-z0-9_-]*|VRW[0-9]+|D[A-Z]{2}[0-9]+)$")
+_DEMO_ACCOUNT_V3_RE = re.compile(r"^(?:VRTC[A-Za-z0-9_-]*|VRW[0-9]+)$")
+_LIVE_ACCOUNT_PREFIXES = ("CR", "MF", "MLT", "MX", "REAL")
+_DEMO_ENV_SENTINEL = "VRTC_FROM_ENV"
+
+
+def is_valid_demo_account_id(account_id: str, *, allow_v3_only: bool = False) -> bool:
+    """Return True iff account_id is a concrete Deriv Demo ID (never a sentinel or live prefix).
+
+    - WS v3 (`allow_v3_only=True`): admits `VRTC*` and `VRW<digits>` only.
+    - Options v1 (`allow_v3_only=False`): additionally admits Deriv Options v1 3-letter `D`-prefixed
+      demo IDs (`D[A-Z]{2}[0-9]+`); live safety is additionally pinned by the `/options/ws/demo` URL
+      path and `is_virtual` check.
+    """
+    acct = str(account_id or "").strip()
+    if not acct:
+        return False
+    u = acct.upper()
+    if u == _DEMO_ENV_SENTINEL:
+        return False
+    if any(u.startswith(p) for p in _LIVE_ACCOUNT_PREFIXES):
+        return False
+    pat = _DEMO_ACCOUNT_V3_RE if allow_v3_only else _DEMO_ACCOUNT_OPTIONS_RE
+    return bool(pat.fullmatch(u))
+
+
+def _safe_ws_url_for_error(url: str) -> str:
+    """Return scheme://host/path without query/OTP tokens, userinfo, or raw account IDs for error messages."""
+    try:
+        p = urlsplit(str(url or "").strip())
+        if p.scheme and p.hostname:
+            safe_path = re.sub(
+                r"\b(?:(?:VRTC|VRW|CR|MF|MLT|MX)[A-Za-z0-9_-]*|D[A-Z]{2}[0-9]+)\b",
+                "[REDACTED_ACCT]",
+                p.path,
+                flags=re.IGNORECASE,
+            )
+            return f"{p.scheme}://{p.hostname}{safe_path}"
+    except Exception:
+        pass
+    return "<invalid-url>"
+
+
 def validate_account_mode(
     *,
     account_mode: str,
     account_id: str,
     ws_url: str,
     env_live_flag: str | None = None,
+    expected_transport: str | None = None,
 ) -> None:
-    """Fail-closed boundary separating VRTC demo sockets from CR real-money sockets.
+    """Fail-closed boundary separating Demo sockets (`VRTC*`/`VRW*`/`D[A-Z]{2}[0-9]+`) from CR/MF real-money sockets.
     Pins exact Deriv hostnames and paths via urlsplit (never substring matching).
     """
     mode = str(account_mode).strip().lower()
     acct = str(account_id).strip()
     url = str(ws_url).strip()
+    safe_url = _safe_ws_url_for_error(url)
     flag = (os.environ.get(LIVE_CONFIRM_ENV, "") if env_live_flag is None else str(env_live_flag)).strip()
+    exp_tr = None if expected_transport is None else str(expected_transport).strip().lower()
+    if exp_tr is not None and exp_tr not in {"options_otp", "v3_authorize"}:
+        raise ExecutorError(f"unsupported expected_transport {expected_transport!r}")
 
     if not acct:
         raise ExecutorError("missing DERIV_ACCOUNT_ID")
     parts = urlsplit(url)
     if parts.scheme != "wss" or not parts.hostname or parts.username is not None or parts.password is not None:
-        raise ExecutorError(f"Deriv WebSocket URL must be clean wss:// host URL, got {url!r}")
+        raise ExecutorError(f"Deriv WebSocket URL must be clean wss:// host URL, got {safe_url!r}")
 
     host = parts.hostname.lower()
-    norm_path = parts.path.rstrip("/")
-    is_v3 = host == "ws.derivws.com" and norm_path == "/websockets/v3"
-    is_opt_demo = host == "api.derivws.com" and norm_path == "/trading/v1/options/ws/demo"
-    is_opt_live = host == "api.derivws.com" and norm_path == "/trading/v1/options/ws/live"
+    raw_path = parts.path
+    is_v3 = host == "ws.derivws.com" and raw_path == "/websockets/v3"
+    is_opt_demo = host == "api.derivws.com" and raw_path == "/trading/v1/options/ws/demo"
+    is_opt_live = host == "api.derivws.com" and raw_path == "/trading/v1/options/ws/live"
 
     if mode == "demo":
         if flag not in {"", "0", "false", "False"}:
             raise ExecutorError(
                 f"demo mode refuses startup while {LIVE_CONFIRM_ENV}={flag!r} is set"
             )
-        if not acct.upper().startswith("VRTC"):
+        if exp_tr == "options_otp":
+            if not is_opt_demo:
+                raise ExecutorError(
+                    f"demo options_otp mode requires wss://api.derivws.com/trading/v1/options/ws/demo, got {safe_url!r}"
+                )
+        elif exp_tr == "v3_authorize":
+            if not is_v3:
+                raise ExecutorError(
+                    f"demo v3_authorize mode requires wss://ws.derivws.com/websockets/v3, got {safe_url!r}"
+                )
+        elif not (is_opt_demo or is_v3):
             raise ExecutorError(
-                f"demo mode requires a VRTC* demo account id, got {acct[:6]!r}"
+                f"demo mode requires wss://api.derivws.com/trading/v1/options/ws/demo or wss://ws.derivws.com/websockets/v3, got {safe_url!r}"
             )
-        if not (is_opt_demo or is_v3):
+        if not is_valid_demo_account_id(acct, allow_v3_only=is_v3):
             raise ExecutorError(
-                f"demo mode requires wss://api.derivws.com/trading/v1/options/ws/demo or wss://ws.derivws.com/websockets/v3, got {url!r}"
+                "demo mode requires a valid concrete Deriv demo account id (VRTC*/VRW* for v3; VRTC*/VRW*/D[A-Z]{2}[0-9]+ for options_otp)"
             )
         return
 
@@ -200,12 +259,20 @@ def validate_account_mode(
                 f"live real-money mode requires {LIVE_CONFIRM_ENV}=1 explicitly set"
             )
         if not acct.upper().startswith("CR") and not acct.upper().startswith("MF"):
+            raise ExecutorError("live real-money mode requires a CR*/MF* real account id")
+        if exp_tr == "options_otp":
+            if not is_opt_live:
+                raise ExecutorError(
+                    f"live options_otp mode requires wss://api.derivws.com/trading/v1/options/ws/live, got {safe_url!r}"
+                )
+        elif exp_tr == "v3_authorize":
+            if not is_v3:
+                raise ExecutorError(
+                    f"live v3_authorize mode requires wss://ws.derivws.com/websockets/v3, got {safe_url!r}"
+                )
+        elif not (is_opt_live or is_v3):
             raise ExecutorError(
-                f"live real-money mode requires a CR*/MF* real account id, got {acct[:6]!r}"
-            )
-        if not (is_opt_live or is_v3):
-            raise ExecutorError(
-                f"live real-money mode requires wss://api.derivws.com/trading/v1/options/ws/live or wss://ws.derivws.com/websockets/v3, got {url!r}"
+                f"live real-money mode requires wss://api.derivws.com/trading/v1/options/ws/live or wss://ws.derivws.com/websockets/v3, got {safe_url!r}"
             )
         return
 
