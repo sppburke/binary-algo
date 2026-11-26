@@ -50,6 +50,7 @@ from deriv_sota_executor import (
     is_safety_latch_set,
     open_sota_queue_readonly,
     parse_exact_whole_cents,
+    redact_account_id,
     request_authenticated_ws_url,
     resolve_and_validate_sota_runtime_config,
     verify_v3_queue_binding,
@@ -471,7 +472,7 @@ def main(argv: list[str] | None = None) -> int:
             fixture_repo_root=Path(args.fixture_repo_root) if using_fixture else None,
             allow_fixture=bool(args.offline_only and using_fixture),
         )
-        record("phase1_runtime_config", True, account_id=cfg.account_id, book_ids=list(cfg.book_ids))
+        record("phase1_runtime_config", True, account_id_sha256=redact_account_id(cfg.account_id), book_ids=list(cfg.book_ids))
     except Exception as exc:
         record("phase1_runtime_config", False, error=str(exc))
 
@@ -503,7 +504,7 @@ def main(argv: list[str] | None = None) -> int:
                             reconciliation_only = True
                             if args.live_smoke:
                                 raise RuntimeError("live-smoke refused on latched or KILL queue")
-                        record("sqlite_v3_queue", True, db_path=str(cfg.queue_db), bound_account=binding["account_id"], latched=latch is not None)
+                        record("sqlite_v3_queue", True, db_path=str(cfg.queue_db), bound_account_sha256=redact_account_id(binding["account_id"]), latched=latch is not None)
                     finally:
                         ro.close()
         except Exception as exc:

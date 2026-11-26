@@ -3379,6 +3379,332 @@ def test_phase1_v3_queue_and_6shape_adoption() -> None:
         # Idempotent retry on empty v3
         r2 = init_v3_queue_first_use(queue_db=q_db, account_id="VRTC123456", account_mode="demo", first_use_record_path=fur, receipt_path=rcpt, pw_home=pw_home)
         assert r2["status"] == "idempotent_empty_v3"
+
+        # 1b. Demo-only single_host_units_masked credential mode (positive + 5 adversarial refusals)
+        import os as _os_m
+        from deriv_sota_executor import (
+            CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED,
+            DEMO_ENV_ACCOUNT_SENTINEL,
+            LEGACY_MASKED_UNIT_NAMES,
+            validate_credential_isolation_receipt,
+        )
+        m_root = root / "masked_mode"
+        m_home = m_root / "home"
+        m_systemd = m_home / ".config" / "systemd" / "user"
+        m_systemd.mkdir(parents=True)
+        for u_name in LEGACY_MASKED_UNIT_NAMES:
+            _os_m.symlink("/dev/null", m_systemd / u_name)
+        m_rcpt = m_root / "rcpt_masked.json"
+        m_rcpt.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "credential_isolation_mode": CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED,
+                "account_id": DEMO_ENV_ACCOUNT_SENTINEL,
+                "account_mode": "demo",
+                "legacy_credentials_revoked": False,
+                "legacy_units_masked": list(LEGACY_MASKED_UNIT_NAMES),
+                "attested_by": "owner_demo",
+                "attested_utc": "2026-11-26T18:22:00Z",
+            }),
+            encoding="utf-8",
+        )
+        m_fur = m_root / "fur_masked.json"
+        m_fur.write_text(
+            json.dumps({"schema": "sota-first-use-record/v1", "account_id": DEMO_ENV_ACCOUNT_SENTINEL, "account_mode": "demo"}),
+            encoding="utf-8",
+        )
+        m_db = m_root / "runtime" / "sota_trade_queue_demo.sqlite"
+        # Positive: Demo VRTC* + all 4 /dev/null mask symlinks + systemd probe passes receipt & first_use init!
+        ok_states = {u: {"Id": u, "LoadState": "masked", "UnitFileState": "masked", "ActiveState": "inactive"} for u in LEGACY_MASKED_UNIT_NAMES}
+        validate_credential_isolation_receipt(
+            m_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home,
+            systemd_state_probe=lambda _units: ok_states,
+        )
+        rm1 = init_v3_queue_first_use(queue_db=m_db, account_id="VRTC999999", account_mode="demo", first_use_record_path=m_fur, receipt_path=m_rcpt, pw_home=m_home)
+        assert rm1["status"] == "initialized_v3"
+        # Negative 1: Live / non-VRTC account unconditionally refused (including live receipt hitting Demo-only guard)!
+        live_rcpt = m_root / "rcpt_masked_live.json"
+        live_rcpt.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "credential_isolation_mode": CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED,
+                "account_id": "CR123456",
+                "account_mode": "live",
+                "legacy_credentials_revoked": False,
+                "legacy_units_masked": list(LEGACY_MASKED_UNIT_NAMES),
+                "attested_by": "owner_demo",
+                "attested_utc": "2026-11-26T18:22:00Z",
+            }),
+            encoding="utf-8",
+        )
+        try:
+            validate_credential_isolation_receipt(live_rcpt, expected_account_id="CR123456", expected_account_mode="live", pw_home=m_home)
+            raise AssertionError("expected Demo-only refusal for live receipt")
+        except ExecutorError as exc:
+            assert "ONLY for Demo VRTC*" in str(exc) and "CR123456" not in str(exc)
+        for bad_acct, bad_mode in (("CR123456", "demo"), ("VRTC999999", "live")):
+            try:
+                validate_credential_isolation_receipt(m_rcpt, expected_account_id=bad_acct, expected_account_mode=bad_mode, pw_home=m_home)
+                raise AssertionError(f"expected refusal for {bad_acct}/{bad_mode}")
+            except ExecutorError as exc:
+                assert bad_acct not in str(exc)
+        # Negative 1c: VRTC_FROM_ENV as expected_account_id refused everywhere (revoked, masked, config, first_use)!
+        for r_path in (rcpt, m_rcpt):
+            try:
+                validate_credential_isolation_receipt(r_path, expected_account_id=DEMO_ENV_ACCOUNT_SENTINEL, expected_account_mode="demo", pw_home=m_home)
+                raise AssertionError("expected refusal when expected_account_id is sentinel VRTC_FROM_ENV")
+            except ExecutorError:
+                pass
+        try:
+            init_v3_queue_first_use(queue_db=m_root / "runtime" / "s2.sqlite", account_id=DEMO_ENV_ACCOUNT_SENTINEL, account_mode="demo", first_use_record_path=m_fur, receipt_path=m_rcpt, pw_home=m_home)
+            raise AssertionError("expected refusal for sentinel expected account in init_v3_queue_first_use")
+        except ExecutorError:
+            pass
+        # Negative 1d: systemd user manager overrides (LoadState=loaded, ActiveState=active, UnitFileState=masked-runtime) refused!
+        for field_k, bad_v in (("LoadState", "loaded"), ("ActiveState", "active"), ("UnitFileState", "masked-runtime")):
+            bad_st = {u: dict(v) for u, v in ok_states.items()}
+            bad_st[LEGACY_MASKED_UNIT_NAMES[0]][field_k] = bad_v
+            try:
+                validate_credential_isolation_receipt(
+                    m_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home,
+                    systemd_state_probe=lambda _units, _st=bad_st: _st,
+                )
+                raise AssertionError(f"expected systemd probe refusal for {field_k}={bad_v}")
+            except ExecutorError as exc:
+                assert "LoadState=masked" in str(exc)
+        # Negative 2: Contradictory legacy_credentials_revoked=True refused!
+        bad_rev = m_root / "rcpt_bad_rev.json"
+        bad_rev.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "credential_isolation_mode": CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED,
+                "account_id": DEMO_ENV_ACCOUNT_SENTINEL,
+                "account_mode": "demo",
+                "legacy_credentials_revoked": True,
+                "legacy_units_masked": list(LEGACY_MASKED_UNIT_NAMES),
+                "attested_by": "owner_demo",
+                "attested_utc": "2026-11-26T18:22:00Z",
+            }),
+            encoding="utf-8",
+        )
+        try:
+            validate_credential_isolation_receipt(bad_rev, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal when legacy_credentials_revoked=true in single_host_units_masked")
+        except ExecutorError as exc:
+            assert "legacy_credentials_revoked=false" in str(exc)
+        # Negative 3: VRTC_FROM_ENV refused under default revoked mode!
+        bad_sent = m_root / "rcpt_bad_sent.json"
+        bad_sent.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "account_id": DEMO_ENV_ACCOUNT_SENTINEL,
+                "account_mode": "demo",
+                "legacy_credentials_revoked": True,
+                "attested_by": "owner_demo",
+                "attested_utc": "2026-11-26T18:22:00Z",
+            }),
+            encoding="utf-8",
+        )
+        try:
+            validate_credential_isolation_receipt(bad_sent, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal for VRTC_FROM_ENV under revoked mode")
+        except ExecutorError as exc:
+            assert "VRTC999999" not in str(exc)
+        # Negative 3b: Non-string & _WireDecimal attested_by, explicit null mode, duplicate unit names,
+        # duplicate-key receipt, symlinked receipt parent & symlink+.. traversal, secret in first_use_record!
+        for bad_name, bad_obj in (
+            ("bad_att", {"schema": "sota-credential-isolation-receipt/v1", "account_id": "VRTC999999", "account_mode": "demo", "legacy_credentials_revoked": True, "attested_by": {"user": "sean"}, "attested_utc": "2026-11-26T18:22:00Z"}),
+            ("dec_att", {"schema": "sota-credential-isolation-receipt/v1", "account_id": "VRTC999999", "account_mode": "demo", "legacy_credentials_revoked": True, "attested_by": 1.25, "attested_utc": "2026-11-26T18:22:00Z"}),
+            ("null_mode", {"schema": "sota-credential-isolation-receipt/v1", "credential_isolation_mode": None, "account_id": "VRTC999999", "account_mode": "demo", "legacy_credentials_revoked": True, "attested_by": "owner_demo", "attested_utc": "2026-11-26T18:22:00Z"}),
+            ("dup_units", {"schema": "sota-credential-isolation-receipt/v1", "credential_isolation_mode": CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED, "account_id": DEMO_ENV_ACCOUNT_SENTINEL, "account_mode": "demo", "legacy_credentials_revoked": False, "legacy_units_masked": [LEGACY_MASKED_UNIT_NAMES[0], LEGACY_MASKED_UNIT_NAMES[0], LEGACY_MASKED_UNIT_NAMES[1], LEGACY_MASKED_UNIT_NAMES[2]], "attested_by": "owner_demo", "attested_utc": "2026-11-26T18:22:00Z"}),
+        ):
+            bp = m_root / f"{bad_name}.json"
+            bp.write_text(json.dumps(bad_obj), encoding="utf-8")
+            try:
+                validate_credential_isolation_receipt(bp, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+                raise AssertionError(f"expected refusal for {bad_name}")
+            except ExecutorError:
+                pass
+        dup_key_rcpt = m_root / "dup_key_rcpt.json"
+        dup_key_rcpt.write_text('{"LEAK_KEY_NAME": 1, "LEAK_KEY_NAME": 2}', encoding="utf-8")
+        try:
+            validate_credential_isolation_receipt(dup_key_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal for duplicate-key receipt")
+        except ExecutorError as exc:
+            assert "LEAK_KEY_NAME" not in str(exc)
+        sym_parent = m_root / "sym_rcpt_dir"
+        _os_m.symlink(m_root, sym_parent)
+        for bad_sym_p in (sym_parent / "rcpt_masked.json", sym_parent / ".." / "masked_mode" / "rcpt_masked.json"):
+            try:
+                validate_credential_isolation_receipt(bad_sym_p, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+                raise AssertionError(f"expected refusal for symlink path {bad_sym_p}")
+            except ExecutorError:
+                pass
+        # Negative 3c: Redirected XDG_CONFIG_HOME (including trailing space!) refused on real-host check!
+        import deriv_sota_executor as _ex_xdg
+        orig_pw_fn = _ex_xdg.canonical_pw_home
+        orig_xdg = _os_m.environ.get("XDG_CONFIG_HOME")
+        try:
+            _ex_xdg.canonical_pw_home = lambda: m_home  # type: ignore[assignment]
+            for bad_xdg in (f"{m_home / '.config'} ", str(m_root / "alt_cfg")):
+                _os_m.environ["XDG_CONFIG_HOME"] = bad_xdg
+                try:
+                    validate_credential_isolation_receipt(
+                        m_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo",
+                        pw_home=m_home, systemd_state_probe=lambda _u: ok_states,
+                    )
+                    raise AssertionError(f"expected refusal for XDG_CONFIG_HOME={bad_xdg!r}")
+                except ExecutorError as exc:
+                    assert "XDG_CONFIG_HOME" in str(exc)
+        finally:
+            _ex_xdg.canonical_pw_home = orig_pw_fn  # type: ignore[assignment]
+            if orig_xdg is None:
+                _os_m.environ.pop("XDG_CONFIG_HOME", None)
+            else:
+                _os_m.environ["XDG_CONFIG_HOME"] = orig_xdg
+        bad_fur_sec = m_root / "fur_secret.json"
+        bad_fur_sec.write_text(json.dumps({"schema": "sota-first-use-record/v1", "account_id": "VRTC999999", "account_mode": "demo", "token": "TOPSECRET_SHOULD_NOT_ECHO"}), encoding="utf-8")
+        try:
+            init_v3_queue_first_use(queue_db=m_root / "runtime" / "s3.sqlite", account_id="VRTC999999", account_mode="demo", first_use_record_path=bad_fur_sec, receipt_path=m_rcpt, pw_home=m_home)
+            raise AssertionError("expected refusal for secret key in first_use_record")
+        except ExecutorError as exc:
+            assert "TOPSECRET_SHOULD_NOT_ECHO" not in str(exc) and "VRTC999999" not in str(exc)
+        # Negative 4: Relative mask symlink (../../dev/null), unmasked regular file, and symlinked systemd dir refused!
+        (m_systemd / LEGACY_MASKED_UNIT_NAMES[0]).unlink()
+        _os_m.symlink("../../../../../dev/null", m_systemd / LEGACY_MASKED_UNIT_NAMES[0])
+        try:
+            validate_credential_isolation_receipt(m_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal for relative /dev/null symlink")
+        except ExecutorError as exc:
+            assert "/dev/null" in str(exc)
+        (m_systemd / LEGACY_MASKED_UNIT_NAMES[0]).unlink()
+        (m_systemd / LEGACY_MASKED_UNIT_NAMES[0]).write_text("[Unit]\n", encoding="utf-8")
+        try:
+            validate_credential_isolation_receipt(m_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal when one legacy unit is unmasked")
+        except ExecutorError as exc:
+            assert "/dev/null" in str(exc)
+        sym_home = m_root / "sym_home"
+        (sym_home / ".config" / "systemd").mkdir(parents=True)
+        _os_m.symlink(m_systemd, sym_home / ".config" / "systemd" / "user")
+        try:
+            validate_credential_isolation_receipt(m_rcpt, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=sym_home)
+            raise AssertionError("expected refusal for symlinked .config/systemd/user directory")
+        except ExecutorError as exc:
+            assert "non-symlink directory" in str(exc)
+        # Negative 5: Unknown credential_isolation_mode refused!
+        bad_mode_p = m_root / "rcpt_bad_mode.json"
+        bad_mode_p.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "credential_isolation_mode": "bogus_mode",
+                "account_id": "VRTC999999",
+                "account_mode": "demo",
+                "legacy_credentials_revoked": False,
+                "attested_by": "owner_demo",
+                "attested_utc": "2026-11-26T18:22:00Z",
+            }),
+            encoding="utf-8",
+        )
+        try:
+            validate_credential_isolation_receipt(bad_mode_p, expected_account_id="VRTC999999", expected_account_mode="demo", pw_home=m_home)
+            raise AssertionError("expected refusal for unknown credential_isolation_mode")
+        except ExecutorError as exc:
+            assert "unsupported credential_isolation_mode" in str(exc) and "bogus_mode" not in str(exc)
+        # Negative 6: Maintenance CLIs (--init-queue, --adopt-legacy-account, --register-cohort-anchor)
+        # validate BEFORE any network call (for non-demo account, bad receipt, AND bad first_use record),
+        # and CLI stdout redacts raw account_id!
+        import contextlib as _ctx_cli
+        import deriv_sota_executor as _ex_pre
+        import io as _io_cli
+        net_calls: list[str] = []
+        orig_env_fn = _ex_pre.DerivEnv.from_env
+        orig_ws_fn = _ex_pre.request_authenticated_ws_url
+        try:
+            _ex_pre.request_authenticated_ws_url = lambda *a, **kw: (net_calls.append("called") or ("wss://x", "options_otp"))  # type: ignore[assignment]
+            # 6a. CR* account refused pre-network across ALL 3 maintenance CLIs
+            _ex_pre.DerivEnv.from_env = classmethod(lambda cls: type("E", (), {"account_id": "CR999999", "pat": "tok", "app_id": "1089"})())  # type: ignore[assignment]
+            for bad_argv in (
+                ["--init-queue", "--reason", "first_use", "--first-use-record-json", str(m_fur), "--credential-isolation-receipt", str(m_rcpt), "--account-mode", "demo"],
+                ["--adopt-legacy-account", "--maintenance-quarantine-dir", str(m_root / "q"), "--staged-v3-dir", str(m_root / "s"), "--ownership-proof-json", str(m_root / "p.json"), "--credential-isolation-receipt", str(m_rcpt), "--account-mode", "demo"],
+                ["--register-cohort-anchor", "--book-id", "USDJPY.sota_ens5_m30_up.v1", "--cohort-start-utc", "2026-12-01T00:00:00Z", "--credential-isolation-receipt", str(m_rcpt), "--account-mode", "demo"],
+            ):
+                try:
+                    _ex_pre.main(bad_argv)
+                    raise AssertionError(f"expected pre-network refusal for {bad_argv}")
+                except ExecutorError:
+                    pass
+            # 6b. Concrete VRTC* account with bad receipt OR bad first_use_record refused pre-network!
+            cli_rcpt = m_root / "rcpt_cli_ok.json"
+            cli_rcpt.write_text(
+                json.dumps({
+                    "schema": "sota-credential-isolation-receipt/v1",
+                    "account_id": "VRTC999999",
+                    "account_mode": "demo",
+                    "legacy_credentials_revoked": True,
+                    "attested_by": "owner_demo",
+                    "attested_utc": "2026-11-26T18:22:00Z",
+                }),
+                encoding="utf-8",
+            )
+            _ex_pre.DerivEnv.from_env = classmethod(lambda cls: type("E", (), {"account_id": "VRTC999999", "pat": "tok", "app_id": "1089"})())  # type: ignore[assignment]
+            for bad_argv, exp_sub in (
+                (["--init-queue", "--reason", "first_use", "--first-use-record-json", str(m_fur), "--credential-isolation-receipt", str(bad_mode_p), "--account-mode", "demo"], "unsupported credential_isolation_mode"),
+                (["--init-queue", "--reason", "first_use", "--first-use-record-json", str(bad_fur_sec), "--credential-isolation-receipt", str(cli_rcpt), "--account-mode", "demo"], "first_use record"),
+                (["--adopt-legacy-account", "--maintenance-quarantine-dir", str(m_root / "q"), "--staged-v3-dir", str(m_root / "s"), "--ownership-proof-json", str(m_root / "p.json"), "--credential-isolation-receipt", str(bad_mode_p), "--account-mode", "demo"], "unsupported credential_isolation_mode"),
+                (["--register-cohort-anchor", "--book-id", "USDJPY.sota_ens5_m30_up.v1", "--cohort-start-utc", "2026-12-01T00:00:00Z", "--credential-isolation-receipt", str(bad_mode_p), "--account-mode", "demo"], "unsupported credential_isolation_mode"),
+            ):
+                try:
+                    _ex_pre.main(bad_argv)
+                    raise AssertionError(f"expected pre-network refusal for {bad_argv}")
+                except ExecutorError as exc:
+                    assert exp_sub in str(exc), f"expected {exp_sub!r} in {exc!r}"
+            assert len(net_calls) == 0, f"network call happened before validation: {net_calls}"
+            # 6c. Redacted CLI stdout for --init-queue and --register-cohort-anchor (mocked venue + isolated queue/pw_home)
+            cli_fur = m_root / "fur_cli_ok.json"
+            cli_fur.write_text(
+                json.dumps({"schema": "sota-first-use-record/v1", "account_id": "VRTC999999", "account_mode": "demo"}),
+                encoding="utf-8",
+            )
+            cli_q = m_root / "runtime" / "cli_redacted_demo.sqlite"
+            orig_canon_q = _ex_pre.canonical_sota_queue_path
+            orig_pw_cli = _ex_pre.canonical_pw_home
+            orig_cli_cls = _ex_pre.SotaDerivAsyncClient
+            class _FakeCli:
+                def __init__(self, *a: Any, **kw: Any) -> None:
+                    pass
+                async def __aenter__(self) -> "_FakeCli":
+                    return self
+                async def __aexit__(self, *a: Any) -> None:
+                    return None
+                async def establish_identity(self, **kw: Any) -> int:
+                    return 1784124000
+            try:
+                _ex_pre.canonical_sota_queue_path = lambda _m, repo_root=None: cli_q  # type: ignore[assignment]
+                _ex_pre.canonical_pw_home = lambda: m_home  # type: ignore[assignment]
+                _ex_pre.request_authenticated_ws_url = lambda *a, **kw: ("wss://demo.test", "options_otp")  # type: ignore[assignment]
+                _ex_pre.SotaDerivAsyncClient = _FakeCli  # type: ignore[assignment]
+                b_init = _io_cli.StringIO()
+                with _ctx_cli.redirect_stdout(b_init):
+                    assert _ex_pre.main(["--init-queue", "--reason", "first_use", "--first-use-record-json", str(cli_fur), "--credential-isolation-receipt", str(cli_rcpt), "--account-mode", "demo"]) == 0
+                assert "VRTC999999" not in b_init.getvalue() and "account_id_sha256" in b_init.getvalue()
+                b_anc = _io_cli.StringIO()
+                with _ctx_cli.redirect_stdout(b_anc):
+                    assert _ex_pre.main(["--register-cohort-anchor", "--book-id", "USDJPY.sota_ens5_m30_up.v1", "--cohort-start-utc", "2026-12-01T00:00:00Z", "--credential-isolation-receipt", str(cli_rcpt), "--account-mode", "demo"]) == 0
+                assert "VRTC999999" not in b_anc.getvalue() and "account_id_sha256" in b_anc.getvalue()
+                # Queue binding mismatch error must also redact both raw account IDs!
+                try:
+                    connect_sota_queue_v3(cli_q, expected_account_id="VRTC888888", expected_account_mode="demo")
+                    raise AssertionError("expected binding mismatch")
+                except ExecutorError as exc:
+                    assert "VRTC999999" not in str(exc) and "VRTC888888" not in str(exc) and "sha256:" in str(exc)
+            finally:
+                _ex_pre.canonical_sota_queue_path = orig_canon_q  # type: ignore[assignment]
+                _ex_pre.canonical_pw_home = orig_pw_cli  # type: ignore[assignment]
+                _ex_pre.SotaDerivAsyncClient = orig_cli_cls  # type: ignore[assignment]
+        finally:
+            _ex_pre.DerivEnv.from_env = orig_env_fn  # type: ignore[assignment]
+            _ex_pre.request_authenticated_ws_url = orig_ws_fn  # type: ignore[assignment]
         conn_v3 = connect_sota_queue_v3(q_db, expected_account_id="VRTC123456", expected_account_mode="demo")
         assert int(conn_v3.execute("PRAGMA foreign_keys").fetchone()[0]) == 1
         assert str(conn_v3.execute("PRAGMA journal_mode").fetchone()[0]).lower() == "wal"
@@ -4074,7 +4400,13 @@ def test_phase1_prospective_g6_and_preflight() -> None:
                 "--queue-db", str(q_db), "--log-dir", str(root / "logs"),
                 "--credential-isolation-receipt", str(rcpt),
             ]
-            assert vp_mod.main(base_argv) == 0
+            import contextlib as _ctx_m
+            import io as _io_m
+            buf_bound = _io_m.StringIO()
+            with _ctx_m.redirect_stdout(buf_bound):
+                assert vp_mod.main(base_argv) == 0
+            out_bound = buf_bound.getvalue()
+            assert "VRTC123456" not in out_bound and "account_id_sha256" in out_bound and "bound_account_sha256" in out_bound
             # sota_activation.hold present MUST refuse!
             locks_fx = canonical_sota_lock_paths(q_db, pw_home=pw_h)
             locks_fx["hold"].parent.mkdir(parents=True, exist_ok=True)
@@ -4085,6 +4417,54 @@ def test_phase1_prospective_g6_and_preflight() -> None:
             q_db.unlink()
             assert vp_mod.main(base_argv) != 0
             assert vp_mod.main(base_argv + ["--allow-unprovisioned-queue"]) == 0
+
+            # End-to-end 3-book --offline-only preflight under single_host_units_masked + VRTC_FROM_ENV
+            shutil.copytree(
+                repo_real / "books" / "USDJPY.sota_stack05_m30_up.v1",
+                fix_repo / "books" / "USDJPY.sota_stack05_m30_up.v1",
+                symlinks=False,
+            )
+            masked_dir = pw_h / ".config" / "systemd" / "user"
+            masked_dir.mkdir(parents=True, exist_ok=True)
+            for u_name in ex_mod.LEGACY_MASKED_UNIT_NAMES:
+                (masked_dir / u_name).symlink_to("/dev/null")
+            rcpt_masked = root / "rcpt_masked_preflight.json"
+            rcpt_masked.write_text(
+                json.dumps({
+                    "schema": "sota-credential-isolation-receipt/v1",
+                    "credential_isolation_mode": ex_mod.CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED,
+                    "account_id": ex_mod.DEMO_ENV_ACCOUNT_SENTINEL,
+                    "account_mode": "demo",
+                    "legacy_credentials_revoked": False,
+                    "legacy_units_masked": list(ex_mod.LEGACY_MASKED_UNIT_NAMES),
+                    "attested_by": "owner_demo",
+                    "attested_utc": "2026-11-26T18:22:00Z",
+                }),
+                encoding="utf-8",
+            )
+            masked_argv = [
+                "--offline-only", "--phase1-policy", "--require-explicit-book-ids", "--enforce-3book-cutover",
+                "--allow-unprovisioned-queue",
+                "--fixture-home", str(pw_h), "--fixture-repo-root", str(fix_repo),
+                "--account-mode", "demo",
+                "--book-ids", "USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_stack05_m30_up.v1,USDJPY.sota_ens5_m15_up.v1",
+                "--stake", "1.0", "--max-stake-usd", "5.0", "--max-daily-loss-usd", "25.0", "--max-drawdown-usd", "50.0",
+                "--max-open-contracts", "3", "--max-usd-factor-open", "3", "--max-jpy-factor-open", "3",
+                "--absolute-breakeven-ceiling", "0.60", "--ev-margin", "0.005", "--max-buy-dispatch-delay-s", "4.0",
+                "--queue-db", str(q_db), "--log-dir", str(root / "logs"),
+                "--credential-isolation-receipt", str(rcpt_masked),
+            ]
+            import contextlib as _ctx_m
+            import io as _io_m
+            buf_masked = _io_m.StringIO()
+            with _ctx_m.redirect_stdout(buf_masked):
+                rc_m = vp_mod.main(masked_argv)
+            assert rc_m == 0
+            out_m = buf_masked.getvalue()
+            assert "VRTC123456" not in out_m and "account_id_sha256" in out_m
+            # Removing one /dev/null mask symlink MUST fail preflight immediately!
+            (masked_dir / ex_mod.LEGACY_MASKED_UNIT_NAMES[0]).unlink()
+            assert vp_mod.main(masked_argv) != 0
         finally:
             if orig_acct is None:
                 os.environ.pop("DERIV_ACCOUNT_ID", None)

@@ -36,8 +36,10 @@ import math
 import os
 import pwd
 import re
+import shutil
 import sqlite3
 import stat
+import subprocess
 import tempfile
 import time
 import urllib.error
@@ -117,6 +119,15 @@ SQLITE_INT64_MAX = (1 << 63) - 1
 _STRICT_DEC_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$")
 CREDENTIAL_RECEIPT_SCHEMA = "sota-credential-isolation-receipt/v1"
 FIRST_USE_RECORD_SCHEMA = "sota-first-use-record/v1"
+CREDENTIAL_ISOLATION_MODE_REVOKED = "revoked"
+CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED = "single_host_units_masked"
+LEGACY_MASKED_UNIT_NAMES: tuple[str, ...] = (
+    "deriv-trade-executor.service",
+    "deriv-runtime-supervisor.service",
+    "deriv-demo-executor.service",
+    "deriv-demo-executor.timer",
+)
+DEMO_ENV_ACCOUNT_SENTINEL = "VRTC_FROM_ENV"
 
 
 def utc_now() -> datetime:
@@ -404,27 +415,177 @@ def acquire_ordered_locks(lock_specs: list[tuple[Path, bool, bool]]) -> Iterator
             yield
 
 
-def validate_credential_isolation_receipt(receipt_path: Path, *, expected_account_id: str, expected_account_mode: str = "demo") -> dict[str, Any]:
-    """Authenticate non-secret sota-credential-isolation-receipt/v1 (never contains tokens)."""
+def _scrub_secret_text(text: str, *, pat: str = "", account_id: str = "") -> str:
+    safe = str(text)
+    if pat:
+        safe = safe.replace(pat, "[REDACTED_PAT]")
+    if account_id:
+        safe = safe.replace(account_id, "[REDACTED_ACCT]")
+    return re.sub(r"\b(?:VRTC|CR)[A-Za-z0-9_-]*\b", "[REDACTED_ACCT]", safe, flags=re.IGNORECASE)
+
+
+def redact_account_id(account_id: str) -> str:
+    """Return a non-reversible SHA-256 prefix fingerprint for logs/CLI output (never prints raw account_id)."""
+    raw = str(account_id or "").strip()
+    return f"sha256:{hashlib.sha256(raw.encode('utf-8')).hexdigest()[:12]}"
+
+
+def _has_symlink_ancestor(path: Path) -> bool:
+    """Return True if path contains '..', is a symlink, or traverses any symlinked ancestor component."""
+    raw = Path(path)
+    if ".." in raw.parts:
+        return True
+    full = raw if raw.is_absolute() else (Path.cwd() / raw)
+    if ".." in full.parts:
+        return True
+    cur = Path(full.parts[0])
+    if cur.is_symlink():
+        return True
+    for part in full.parts[1:]:
+        cur = cur / part
+        if cur.is_symlink():
+            return True
+    return False
+
+
+def query_systemd_user_unit_states(units: tuple[str, ...]) -> dict[str, dict[str, str]]:
+    """Query the live systemd --user manager for effective LoadState/UnitFileState/ActiveState."""
+    systemctl_bin = shutil.which("systemctl") or "/usr/bin/systemctl"
+    try:
+        proc = subprocess.run(
+            [systemctl_bin, "--user", "show", *units, "-p", "Id", "-p", "LoadState", "-p", "UnitFileState", "-p", "ActiveState"],
+            capture_output=True,
+            text=True,
+            timeout=5.0,
+            check=False,
+        )
+    except Exception as exc:
+        raise ExecutorError(f"failed to query systemd --user manager for masked legacy units: {exc}") from exc
+    if proc.returncode != 0:
+        raise ExecutorError(f"systemctl --user show failed (rc={proc.returncode})")
+    states: dict[str, dict[str, str]] = {}
+    for block in proc.stdout.strip().split("\n\n"):
+        rec: dict[str, str] = {}
+        for line in block.splitlines():
+            if "=" in line:
+                k, v = line.split("=", 1)
+                rec[k.strip()] = v.strip()
+        uid = rec.get("Id")
+        if uid:
+            states[uid] = rec
+    return states
+
+
+def validate_credential_isolation_receipt(
+    receipt_path: Path,
+    *,
+    expected_account_id: str,
+    expected_account_mode: str = "demo",
+    pw_home: Path | None = None,
+    systemd_state_probe: Callable[[tuple[str, ...]], dict[str, dict[str, str]]] | None = None,
+) -> dict[str, Any]:
+    """Authenticate non-secret sota-credential-isolation-receipt/v1 (never contains tokens).
+
+    Supports two explicit modes:
+    - `"revoked"` (default): requires exact matching `account_id` and `legacy_credentials_revoked=true`.
+    - `"single_host_units_masked"` (Demo VRTC* ONLY): requires `legacy_credentials_revoked=false`,
+      exact 4 legacy unit names in `legacy_units_masked`, verified `/dev/null` mask symlinks in
+      `<pw_home>/.config/systemd/user/`, effective `systemd --user` `LoadState=masked` /
+      `UnitFileState=masked` / `ActiveState=inactive` on real host (or via `systemd_state_probe`),
+      and either exact `account_id` or `"VRTC_FROM_ENV"`.
+    """
+    exp_acct = str(expected_account_id or "").strip()
+    if not exp_acct or exp_acct.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
+        raise ExecutorError("expected_account_id must be a concrete account_id, not empty or sentinel")
     p = Path(receipt_path)
-    if not p.is_file() or p.is_symlink():
-        raise ExecutorError(f"missing or symlinked credential isolation receipt: {p}")
-    obj = strict_json_loads_wire(p.read_bytes())
+    if _has_symlink_ancestor(p) or not p.is_file():
+        raise ExecutorError(f"missing or symlinked credential isolation receipt (or symlink ancestor): {p}")
+    try:
+        obj = strict_json_loads_wire(p.read_bytes())
+    except Exception:
+        raise ExecutorError(f"malformed JSON in credential isolation receipt: {p.name}") from None
     if not isinstance(obj, dict) or obj.get("schema") != CREDENTIAL_RECEIPT_SCHEMA:
         raise ExecutorError(f"invalid credential isolation receipt schema at {p}")
-    if str(obj.get("account_id") or "") != expected_account_id:
-        raise ExecutorError(f"receipt account_id {obj.get('account_id')!r} != {expected_account_id!r}")
-    if str(obj.get("account_mode") or "").lower() != expected_account_mode.lower():
-        raise ExecutorError(f"receipt account_mode {obj.get('account_mode')!r} != {expected_account_mode!r}")
-    if obj.get("legacy_credentials_revoked") is not True:
-        raise ExecutorError("credential isolation receipt does not attest legacy_credentials_revoked=true")
-    if not str(obj.get("attested_by") or "").strip() or _parse_iso_utc(obj.get("attested_utc")) is None:
-        raise ExecutorError("credential isolation receipt missing attested_by or valid attested_utc")
     # Guard against accidentally storing secrets inside the receipt
     for forbidden_k in ("pat", "token", "deriv_pat", "secret", "password"):
-        if forbidden_k in {k.lower() for k in obj.keys()}:
+        if forbidden_k in {str(k).lower() for k in obj.keys()}:
             raise ExecutorError(f"forbidden secret key {forbidden_k!r} inside non-secret receipt")
-    return obj
+    if type(obj.get("account_mode")) is not str or obj["account_mode"].lower() != expected_account_mode.lower():
+        raise ExecutorError(f"receipt account_mode does not match expected mode {expected_account_mode!r}")
+    attested_by = obj.get("attested_by")
+    if type(attested_by) is not str or not attested_by.strip() or _parse_iso_utc(obj.get("attested_utc")) is None:
+        raise ExecutorError("credential isolation receipt missing string attested_by or valid attested_utc")
+
+    if "credential_isolation_mode" in obj:
+        mode_raw = obj["credential_isolation_mode"]
+        if type(mode_raw) is not str:
+            raise ExecutorError("credential_isolation_mode must be a string when present")
+        iso_mode = mode_raw
+    else:
+        iso_mode = CREDENTIAL_ISOLATION_MODE_REVOKED
+
+    rcpt_acct_raw = obj.get("account_id")
+    if type(rcpt_acct_raw) is not str or not rcpt_acct_raw.strip():
+        raise ExecutorError("credential isolation receipt missing string account_id")
+    rcpt_acct = rcpt_acct_raw
+
+    if iso_mode == CREDENTIAL_ISOLATION_MODE_REVOKED:
+        if rcpt_acct != exp_acct:
+            raise ExecutorError("receipt account_id does not match expected account_id")
+        if obj.get("legacy_credentials_revoked") is not True:
+            raise ExecutorError("credential isolation receipt does not attest legacy_credentials_revoked=true")
+        return obj
+
+    if iso_mode == CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED:
+        if expected_account_mode.lower() != "demo" or not exp_acct.upper().startswith("VRTC"):
+            raise ExecutorError("single_host_units_masked credential mode is permitted ONLY for Demo VRTC* accounts")
+        if rcpt_acct not in (exp_acct, DEMO_ENV_ACCOUNT_SENTINEL):
+            raise ExecutorError(f"receipt account_id does not match expected Demo account or {DEMO_ENV_ACCOUNT_SENTINEL!r}")
+        if obj.get("legacy_credentials_revoked") is not False:
+            raise ExecutorError("single_host_units_masked receipt must explicitly set legacy_credentials_revoked=false")
+        masked_decl = obj.get("legacy_units_masked")
+        if (
+            not isinstance(masked_decl, list)
+            or not all(type(x) is str for x in masked_decl)
+            or len(masked_decl) != len(LEGACY_MASKED_UNIT_NAMES)
+            or set(masked_decl) != set(LEGACY_MASKED_UNIT_NAMES)
+        ):
+            raise ExecutorError(
+                f"single_host_units_masked receipt must declare exact legacy_units_masked={list(LEGACY_MASKED_UNIT_NAMES)}"
+            )
+        real_home = canonical_pw_home()
+        home_base = Path(pw_home) if pw_home is not None else real_home
+        is_real_host = (pw_home is None) or (os.path.abspath(str(home_base)) == os.path.abspath(str(real_home)))
+        if is_real_host:
+            xdg_cfg = os.environ.get("XDG_CONFIG_HOME")
+            if xdg_cfg and xdg_cfg != str(home_base / ".config"):
+                raise ExecutorError("single_host_units_masked refuses redirected XDG_CONFIG_HOME")
+        systemd_dir = home_base / ".config" / "systemd" / "user"
+        for ancestor in (home_base / ".config", home_base / ".config" / "systemd", systemd_dir):
+            if ancestor.is_symlink() or not ancestor.is_dir():
+                raise ExecutorError(f"single_host_units_masked requires real non-symlink directory {ancestor}")
+        for unit_name in LEGACY_MASKED_UNIT_NAMES:
+            u_path = systemd_dir / unit_name
+            if not u_path.is_symlink() or os.readlink(u_path) != "/dev/null":
+                raise ExecutorError(f"single_host_units_masked requires masked /dev/null symlink at {u_path}")
+        if is_real_host or systemd_state_probe is not None:
+            probe_fn = systemd_state_probe if systemd_state_probe is not None else query_systemd_user_unit_states
+            states = probe_fn(LEGACY_MASKED_UNIT_NAMES)
+            for unit_name in LEGACY_MASKED_UNIT_NAMES:
+                st = states.get(unit_name) or {}
+                if (
+                    st.get("LoadState") != "masked"
+                    or st.get("UnitFileState") != "masked"
+                    or st.get("ActiveState") != "inactive"
+                ):
+                    raise ExecutorError(
+                        f"single_host_units_masked requires systemd --user LoadState=masked, UnitFileState=masked, "
+                        f"ActiveState=inactive for {unit_name}; got LoadState={st.get('LoadState')!r}, "
+                        f"UnitFileState={st.get('UnitFileState')!r}, ActiveState={st.get('ActiveState')!r}"
+                    )
+        return obj
+
+    raise ExecutorError("unsupported credential_isolation_mode")
 
 
 # ---------------------------------------------------------------------------
@@ -489,8 +650,8 @@ def resolve_and_validate_sota_runtime_config(
     if mode != "demo":
         raise ExecutorError(f"Phase 1 runtime policy permits account_mode='demo' only, got {account_mode!r}")
     acct = str(account_id or "").strip()
-    if not acct.upper().startswith("VRTC"):
-        raise ExecutorError(f"Phase 1 Demo mode requires VRTC* account_id, got {acct[:6]!r}")
+    if not acct.upper().startswith("VRTC") or acct.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
+        raise ExecutorError("Phase 1 Demo mode requires concrete VRTC* account_id")
 
     parsed_books = parse_book_ids_spec(book_ids_raw)
     if require_explicit_book_ids and not parsed_books:
@@ -549,7 +710,7 @@ def resolve_and_validate_sota_runtime_config(
     if not credential_isolation_receipt_raw:
         raise ExecutorError("missing --credential-isolation-receipt")
     rcpt_path = Path(credential_isolation_receipt_raw)
-    validate_credential_isolation_receipt(rcpt_path, expected_account_id=acct, expected_account_mode="demo")
+    validate_credential_isolation_receipt(rcpt_path, expected_account_id=acct, expected_account_mode="demo", pw_home=pw_home)
 
     log_dir = Path(log_dir_raw) if Path(log_dir_raw).is_absolute() else (repo_root / log_dir_raw)
     lock_paths = canonical_sota_lock_paths(q_path, pw_home=pw_home)
@@ -697,7 +858,7 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             raise ExecutorError(f"send_class {send_class!r} requires verified identity on current generation")
         if self.expected_account_id and self._verified_account_id != self.expected_account_id:
             raise ExecutorError(
-                f"verified account {self._verified_account_id!r} != expected {self.expected_account_id!r}"
+                f"verified account {redact_account_id(str(self._verified_account_id or ''))} != expected {redact_account_id(self.expected_account_id)}"
             )
 
         if send_class == "proposal":
@@ -873,14 +1034,16 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             try:
                 auth_resp = await self.request_identity({"authorize": pat}, timeout=timeout)
             except Exception as exc:
-                safe_msg = str(exc).replace(pat, "[REDACTED_PAT]") if pat else str(exc)
+                safe_msg = _scrub_secret_text(str(exc), pat=pat, account_id=account_id)
                 raise ExecutorError(f"v3_authorize failed: {safe_msg}") from None
             info = auth_resp.get("authorize") or {}
             loginid = str(info.get("loginid") or "").strip()
             ccy = str(info.get("currency") or "").strip().upper()
             is_virt = info.get("is_virtual")
             if not loginid or loginid != account_id:
-                raise ExecutorError(f"PAT authorized loginid={loginid!r} != expected {account_id!r}")
+                raise ExecutorError(
+                    f"PAT authorized account mismatch: got={redact_account_id(loginid)} != expected={redact_account_id(account_id)}"
+                )
             if ccy != "USD":
                 raise ExecutorError(f"account currency must be USD, got {ccy!r}")
             if account_mode == "demo" and is_virt not in {1, True}:
@@ -888,15 +1051,21 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             if account_mode == "live" and is_virt in {1, True}:
                 raise ExecutorError("live mode refused: token authorized virtual account")
         elif transport_kind == "options_otp":
-            bal_resp = await self.request_identity({"balance": 1}, timeout=timeout)
+            try:
+                bal_resp = await self.request_identity({"balance": 1}, timeout=timeout)
+            except Exception as exc:
+                safe_msg = _scrub_secret_text(str(exc), pat=pat, account_id=account_id)
+                raise ExecutorError(f"OTP bootstrap balance failed: {safe_msg}") from None
             binfo = bal_resp.get("balance") or {}
             loginid = str(binfo.get("loginid") or "").strip()
             ccy = str(binfo.get("currency") or "").strip().upper()
             is_virt_otp = binfo.get("is_virtual")
             if not loginid or loginid != account_id:
-                raise ExecutorError(f"OTP bootstrap balance missing or mismatched loginid={loginid!r} != {account_id!r}")
+                raise ExecutorError(
+                    f"OTP bootstrap balance missing or mismatched account: got={redact_account_id(loginid)} != expected={redact_account_id(account_id)}"
+                )
             if account_mode == "demo" and not loginid.upper().startswith("VRTC"):
-                raise ExecutorError(f"OTP bootstrap balance non-VRTC loginid={loginid!r} in demo mode")
+                raise ExecutorError(f"OTP bootstrap balance non-VRTC account ({redact_account_id(loginid)}) in demo mode")
             # MAJOR #1: reject conflicting virtual-account evidence on OTP bootstrap balance!
             if is_virt_otp is not None:
                 if account_mode == "demo" and is_virt_otp not in {1, True}:
@@ -1233,8 +1402,11 @@ def verify_v3_queue_binding(
         raise ExecutorError("v3 queue missing queue_account_binding")
     binding = json.loads(str(row[0]))
     if binding.get("account_id") != expected_account_id or str(binding.get("account_mode") or "").lower() != expected_account_mode.lower():
+        raw_mode = str(binding.get("account_mode") or "").lower()
+        safe_mode = raw_mode if raw_mode in ("demo", "live") else "<invalid>"
         raise ExecutorError(
-            f"queue account binding mismatch: {binding!r} != ({expected_account_id!r}, {expected_account_mode!r})"
+            f"queue account binding mismatch: got=({redact_account_id(str(binding.get('account_id') or ''))}, {safe_mode!r}) "
+            f"!= expected=({redact_account_id(expected_account_id)}, {expected_account_mode!r})"
         )
     return binding
 
@@ -1277,6 +1449,45 @@ def _is_empty_predecessor_db(conn: sqlite3.Connection) -> bool:
     return True
 
 
+def _validate_first_use_record(
+    first_use_record_path: Path,
+    *,
+    account_id: str,
+    account_mode: str,
+    rcpt_obj: dict[str, Any],
+) -> dict[str, Any]:
+    fur_p = Path(first_use_record_path)
+    if _has_symlink_ancestor(fur_p) or not fur_p.is_file():
+        raise ExecutorError(f"missing or symlinked first_use record JSON: {fur_p}")
+    try:
+        fur = strict_json_loads_wire(fur_p.read_bytes())
+    except Exception:
+        raise ExecutorError(f"malformed JSON in first_use record: {fur_p.name}") from None
+    if not isinstance(fur, dict):
+        raise ExecutorError("invalid first_use record: expected JSON object")
+    for forbidden_k in ("pat", "token", "deriv_pat", "secret", "password"):
+        if forbidden_k in {str(k).lower() for k in fur.keys()}:
+            raise ExecutorError(f"forbidden secret key {forbidden_k!r} inside first_use record")
+    allow_env_sentinel = (
+        rcpt_obj.get("credential_isolation_mode") == CREDENTIAL_ISOLATION_MODE_SINGLE_HOST_MASKED
+        and account_mode == "demo"
+        and account_id.upper().startswith("VRTC")
+        and account_id.upper() != DEMO_ENV_ACCOUNT_SENTINEL
+    )
+    fur_acct = fur.get("account_id")
+    fur_acct_ok = (type(fur_acct) is str) and (
+        fur_acct == account_id or (allow_env_sentinel and fur_acct == DEMO_ENV_ACCOUNT_SENTINEL)
+    )
+    if (
+        fur.get("schema") != FIRST_USE_RECORD_SCHEMA
+        or not fur_acct_ok
+        or type(fur.get("account_mode")) is not str
+        or fur["account_mode"].lower() != account_mode
+    ):
+        raise ExecutorError("invalid or mismatched first_use record")
+    return fur
+
+
 def init_v3_queue_first_use(
     *,
     queue_db: Path,
@@ -1287,20 +1498,14 @@ def init_v3_queue_first_use(
     pw_home: Path | None = None,
 ) -> dict[str, Any]:
     """--init-queue --reason first_use: creates persistent 3 flocks + single-txn v3 DB (idempotent on empty v3)."""
-    if account_mode != "demo" or not account_id.upper().startswith("VRTC"):
-        raise ExecutorError("Phase 1 --init-queue requires demo VRTC* account")
-    validate_credential_isolation_receipt(receipt_path, expected_account_id=account_id, expected_account_mode=account_mode)
-    fur_p = Path(first_use_record_path)
-    if not fur_p.is_file() or fur_p.is_symlink():
-        raise ExecutorError(f"missing first_use record JSON: {fur_p}")
-    fur = strict_json_loads_wire(fur_p.read_bytes())
-    if (
-        not isinstance(fur, dict)
-        or fur.get("schema") != FIRST_USE_RECORD_SCHEMA
-        or fur.get("account_id") != account_id
-        or str(fur.get("account_mode") or "").lower() != account_mode
-    ):
-        raise ExecutorError(f"invalid or mismatched first_use record: {fur!r}")
+    if account_mode != "demo" or not account_id.upper().startswith("VRTC") or account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
+        raise ExecutorError("Phase 1 --init-queue requires concrete demo VRTC* account")
+    rcpt_obj = validate_credential_isolation_receipt(
+        receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
+    )
+    _validate_first_use_record(
+        first_use_record_path, account_id=account_id, account_mode=account_mode, rcpt_obj=rcpt_obj
+    )
 
     locks = canonical_sota_lock_paths(queue_db, pw_home=pw_home)
     with acquire_ordered_locks([(locks["acct"], True, True), (locks["queue"], True, True)]):
@@ -1571,7 +1776,9 @@ def adopt_legacy_account(
     if account_mode != "demo" or not account_id.upper().startswith("VRTC"):
         raise ExecutorError("Phase 1 adoption requires demo VRTC* account")
     # B5: Receipt & credential isolation verified FIRST!
-    validate_credential_isolation_receipt(receipt_path, expected_account_id=account_id, expected_account_mode=account_mode)
+    validate_credential_isolation_receipt(
+        receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
+    )
 
     qdir = Path(quarantine_dir)
     sdir = Path(staged_v3_dir)
@@ -2250,7 +2457,9 @@ def register_cohort_anchor(
     pw_home: Path | None = None,
 ) -> dict[str, Any]:
     """--register-cohort-anchor: binds registered_utc to verified venue time epoch (spec §3.5)."""
-    validate_credential_isolation_receipt(receipt_path, expected_account_id=account_id, expected_account_mode=account_mode)
+    validate_credential_isolation_receipt(
+        receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
+    )
     book = load_sota_book(book_id, repo_root=repo_root, allow_demo_canary=(account_mode == "demo"))
     start_dt = _parse_iso_utc(cohort_start_utc)
     if start_dt is None or start_dt.microsecond != 0:
@@ -2276,7 +2485,7 @@ def register_cohort_anchor(
                     and ex.get("book_content_id") == book.content_id
                 ):
                     return {"status": "idempotent_existing_anchor", "anchor": ex}
-                raise ExecutorError(f"conflicting existing cohort anchor for {anchor_key}: {ex!r}")
+                raise ExecutorError(f"conflicting existing cohort anchor for book={book.book_id} content_id={book.content_id}")
 
             if start_ep <= reg_ep:
                 raise ExecutorError(f"cohort_start_utc ({start_iso}) must be strictly > verified venue time ({reg_iso})")
@@ -3934,6 +4143,19 @@ def main(argv: list[str] | None = None) -> int:
         if args.reason != "first_use" or not args.first_use_record_json or not args.credential_isolation_receipt:
             raise ExecutorError("--init-queue requires --reason first_use, --first-use-record-json, and --credential-isolation-receipt")
         env = DerivEnv.from_env()
+        if args.account_mode != "demo" or not env.account_id.upper().startswith("VRTC") or env.account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
+            raise ExecutorError("Phase 1 --init-queue requires concrete demo VRTC* account")
+        rcpt_pre = validate_credential_isolation_receipt(
+            Path(args.credential_isolation_receipt),
+            expected_account_id=env.account_id,
+            expected_account_mode=args.account_mode,
+        )
+        _validate_first_use_record(
+            Path(args.first_use_record_json),
+            account_id=env.account_id,
+            account_mode=args.account_mode,
+            rcpt_obj=rcpt_pre,
+        )
         async def _verify_venue() -> int:
             ws_url, tk = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
             async with SotaDerivAsyncClient(ws_url, allow_buy=False, expected_account_id=env.account_id) as cli:
@@ -3946,7 +4168,10 @@ def main(argv: list[str] | None = None) -> int:
             first_use_record_path=Path(args.first_use_record_json),
             receipt_path=Path(args.credential_isolation_receipt),
         )
-        print(json.dumps(out, indent=2, sort_keys=True))
+        pub_out = {k: v for k, v in out.items() if k != "account_id"}
+        if "account_id" in out:
+            pub_out["account_id_sha256"] = redact_account_id(str(out["account_id"]))
+        print(json.dumps(pub_out, indent=2, sort_keys=True))
         return 0
 
     if args.adopt_legacy_account:
@@ -3954,6 +4179,13 @@ def main(argv: list[str] | None = None) -> int:
             raise ExecutorError("--adopt-legacy-account requires quarantine dir, staged dir, proof JSON, and receipt")
         _check_no_legacy_buyers_proc()
         env = DerivEnv.from_env()
+        if args.account_mode != "demo" or not env.account_id.upper().startswith("VRTC") or env.account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
+            raise ExecutorError("Phase 1 --adopt-legacy-account requires concrete demo VRTC* account")
+        validate_credential_isolation_receipt(
+            Path(args.credential_isolation_receipt),
+            expected_account_id=env.account_id,
+            expected_account_mode=args.account_mode,
+        )
         async def _verify_venue_ad() -> int:
             ws_url, tk = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
             async with SotaDerivAsyncClient(ws_url, allow_buy=False, expected_account_id=env.account_id) as cli:
@@ -3975,6 +4207,13 @@ def main(argv: list[str] | None = None) -> int:
         if not all((args.book_id, args.cohort_start_utc, args.credential_isolation_receipt)):
             raise ExecutorError("--register-cohort-anchor requires --book-id, --cohort-start-utc, and --credential-isolation-receipt")
         env = DerivEnv.from_env()
+        if args.account_mode != "demo" or not env.account_id.upper().startswith("VRTC") or env.account_id.upper() == DEMO_ENV_ACCOUNT_SENTINEL:
+            raise ExecutorError("Phase 1 --register-cohort-anchor requires concrete demo VRTC* account")
+        validate_credential_isolation_receipt(
+            Path(args.credential_isolation_receipt),
+            expected_account_id=env.account_id,
+            expected_account_mode=args.account_mode,
+        )
         async def _get_vtime() -> int:
             ws_url, tk = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
             async with SotaDerivAsyncClient(ws_url, allow_buy=False, expected_account_id=env.account_id) as cli:
@@ -3989,7 +4228,13 @@ def main(argv: list[str] | None = None) -> int:
             venue_time_epoch=v_ep,
             receipt_path=Path(args.credential_isolation_receipt),
         )
-        print(json.dumps(out, indent=2, sort_keys=True))
+        pub_out = dict(out)
+        if isinstance(pub_out.get("anchor"), dict):
+            anc = {k: v for k, v in pub_out["anchor"].items() if k != "account_id"}
+            if "account_id" in pub_out["anchor"]:
+                anc["account_id_sha256"] = redact_account_id(str(pub_out["anchor"]["account_id"]))
+            pub_out["anchor"] = anc
+        print(json.dumps(pub_out, indent=2, sort_keys=True))
         return 0
 
     return 0

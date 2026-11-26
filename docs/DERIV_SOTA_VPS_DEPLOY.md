@@ -45,19 +45,19 @@ Mask `deriv-sota-executor.service` and all **4** legacy units by their distinct 
 ```bash
 systemctl --user stop deriv-sota-executor.service deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
 systemctl --user disable deriv-sota-executor.service deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
+# If regular unit files already exist under ~/.config/systemd/user/, move them aside before masking:
+mkdir -p ~/.config/systemd/user/.legacy_disabled && mv -n ~/.config/systemd/user/deriv-{trade-executor,runtime-supervisor,demo-executor}.service ~/.config/systemd/user/deriv-demo-executor.timer ~/.config/systemd/user/.legacy_disabled/ 2>/dev/null || true
+systemctl --user daemon-reload
 systemctl --user mask deriv-sota-executor.service deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
 ```
 
-### Step 3 — Revoke Legacy Credentials & Establish Dedicated Demo Credentials + Receipt FIRST
-Establish dedicated Demo credentials and the human-attested non-secret credential isolation receipt **BEFORE** any first-use or adoption command:
-```bash
-mkdir -p ~/.config/binary-algo && chmod 700 ~/.config/binary-algo
-cp ops/deriv-sota-executor.env.example ~/.config/binary-algo/deriv-sota-executor.env
-chmod 600 ~/.config/binary-algo/deriv-sota-executor.env
-# Populate dedicated VRTC* credentials (never print or share private env file)
-# Revoke legacy Deriv PATs in the Deriv dashboard, then write non-secret receipt:
-# ~/.config/binary-algo/sota-credential-isolation-receipt.json (schema: sota-credential-isolation-receipt/v1)
-```
+### Step 3 — Establish Demo Credentials & Non-Secret Receipt FIRST
+Establish Demo (`VRTC*`) credentials and the non-secret credential isolation receipt **BEFORE** any first-use or adoption command:
+- **Mode A (Strict dedicated PAT — `"credential_isolation_mode": "revoked"`, default):** Revoke legacy Deriv PATs in the Deriv dashboard, populate `DERIV_APP_ID`/`DERIV_PAT`/`DERIV_ACCOUNT_ID` in `~/.config/binary-algo/deriv-sota-executor.env` (`chmod 600`), do **NOT** install `ops/deriv-sota-executor.single-host-demo.conf`, and write `~/.config/binary-algo/sota-credential-isolation-receipt.json` with `"legacy_credentials_revoked": true` and exact `VRTC*` `account_id`.
+- **Mode B (Opt-in owner-authorized single-host Demo reuse — `"credential_isolation_mode": "single_host_units_masked"`, Demo `VRTC*` ONLY):** Comment out the 3 credential lines in `~/.config/binary-algo/deriv-sota-executor.env`, install the opt-in drop-in `~/.config/systemd/user/deriv-sota-executor.service.d/10-single-host-demo.conf` from `ops/deriv-sota-executor.single-host-demo.conf` (zero secret copying; default Mode A never loads `deriv-demo-executor.env`), and write:
+  - `~/.config/binary-algo/sota-credential-isolation-receipt.json` with `"schema": "sota-credential-isolation-receipt/v1"`, `"credential_isolation_mode": "single_host_units_masked"`, `"account_mode": "demo"`, `"account_id": "VRTC_FROM_ENV"`, `"legacy_credentials_revoked": false`, exact `legacy_units_masked`, non-empty string `"attested_by"`, and RFC3339 UTC `"attested_utc"` (verified at runtime against both `/dev/null` symlinks in `~/.config/systemd/user/` AND live `systemctl --user show` reporting `LoadState=masked`, `UnitFileState=masked`, `ActiveState=inactive` for all 4 units).
+  - `~/.config/binary-algo/sota-first-use-record.json` (`schema: "sota-first-use-record/v1"`, `"account_mode": "demo"`, `"account_id": "VRTC_FROM_ENV"` — sentinel admitted ONLY under Mode B Demo).
+  Live (`CR*`) accounts unconditionally refuse Mode B. For manual Mode B commands in Steps 4–5 (while the service is masked/inactive), run them via `systemd-run --user --wait --pipe --collect --working-directory="$HOME/git/binary-algo" --property=EnvironmentFile="$HOME/.config/binary-algo/deriv-demo-executor.env" --property=EnvironmentFile="$HOME/.config/binary-algo/deriv-sota-executor.env" -- ...` (using absolute `$HOME` paths, since transient `systemd-run` `EnvironmentFile=` properties reject `%h`) so credentials stay inside systemd's `EnvironmentFile=` boundary without shell sourcing or printing.
 
 ### Step 4 — Inspect Predecessor Queue & Branch Cleanly to First Use or Coherent-Backup Adoption
 Perform sanitized schema/row-state and positive venue identity/settlement inspection on `vultr`:
@@ -97,7 +97,7 @@ touch ~/.local/state/binary-algo/locks/sota_activation.hold
 systemctl --user unmask deriv-sota-executor.service
 cp ~/git/binary-algo/ops/deriv-sota-executor.service ~/.config/systemd/user/
 systemctl --user daemon-reload
-systemctl --user show deriv-sota-executor.service -p ExecStartPre,ExecStart,Environment,UnsetEnvironment,DropInPaths,ConditionPathExists
+systemctl --user show deriv-sota-executor.service -p ExecStartPre,ExecStart,Environment,EnvironmentFiles,UnsetEnvironment,DropInPaths,ConditionPathExists,Conflicts
 # Only after owner authorizes Decision 5 / Demo activation:
 rm -f ~/.local/state/binary-algo/locks/sota_activation.hold
 systemctl --user enable --now deriv-sota-executor.service

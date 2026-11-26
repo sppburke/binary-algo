@@ -2,7 +2,7 @@
 Description=binary-algo Deriv SOTA certified multi-book EV-gated executor (Demo VRTC only — Phase 1 hardened)
 After=network-online.target
 Wants=network-online.target
-Conflicts=deriv-trade-executor.service deriv-demo-executor.service deriv-demo-executor.timer
+Conflicts=deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
 ConditionPathExists=!%h/.local/state/binary-algo/locks/sota_activation.hold
 
 [Service]
