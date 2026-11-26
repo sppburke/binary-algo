@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -879,22 +880,25 @@ def _authenticate_stack05_pass_inputs(
     expected_receipt_sha256: str,
     repo_root: Path,
     bundle_dir: Path | None = None,
+    arm_name: str = "stack05_m30_up_v1",
 ) -> tuple[dict[str, Any], dict[str, Any], bytes, bytes]:
     from certify_sota_stack05 import (
         BOOK_ID,
-        CANONICAL_DOSSIER_NAME,
-        CANONICAL_LEDGER_NAME,
-        CANONICAL_RECEIPT_NAME,
         DOSSIER_SCHEMA,
+        G4_MODE_PLATT_EV,
+        G4_MODE_RAW_TOP5,
         RECEIPT_SCHEMA,
+        artifact_names_for_arm,
         sha256_bytes,
         strict_json_loads,
+        validate_arm_g4_mode,
         validate_fit_ledger_obj,
     )
 
-    rcpt_path = (bundle_dir / CANONICAL_RECEIPT_NAME) if bundle_dir is not None else (repo_root / "logs" / CANONICAL_RECEIPT_NAME)
-    dos_path = (bundle_dir / CANONICAL_DOSSIER_NAME) if bundle_dir is not None else (repo_root / "results" / "json" / CANONICAL_DOSSIER_NAME)
-    ldg_path = (bundle_dir / CANONICAL_LEDGER_NAME) if bundle_dir is not None else (repo_root / "logs" / CANONICAL_LEDGER_NAME)
+    names = artifact_names_for_arm(arm_name)
+    rcpt_path = (bundle_dir / names["receipt"]) if bundle_dir is not None else (repo_root / "logs" / names["receipt"])
+    dos_path = (bundle_dir / names["dossier"]) if bundle_dir is not None else (repo_root / "results" / "json" / names["dossier"])
+    ldg_path = (bundle_dir / names["ledger"]) if bundle_dir is not None else (repo_root / "logs" / names["ledger"])
     for p in (rcpt_path, dos_path, ldg_path):
         if not p.is_file():
             raise SotaBookError(f"{BOOK_ID}: missing required certifier artifact {p}")
@@ -905,6 +909,8 @@ def _authenticate_stack05_pass_inputs(
     rcpt = strict_json_loads(rcpt_raw)
     if rcpt.get("schema") != RECEIPT_SCHEMA or rcpt.get("verdict") != "PASS":
         raise SotaBookError(f"{BOOK_ID}: certifier receipt is not PASS ({rcpt.get('verdict')!r})")
+    if str(rcpt.get("arm_name") or "stack05_m30_up_v1") != arm_name:
+        raise SotaBookError(f"{BOOK_ID}: certifier receipt arm_name mismatch ({rcpt.get('arm_name')!r} != {arm_name!r})")
 
     dos_raw = dos_path.read_bytes()
     if sha256_bytes(dos_raw) != rcpt.get("dossier_sha256"):
@@ -912,6 +918,17 @@ def _authenticate_stack05_pass_inputs(
     dos = strict_json_loads(dos_raw)
     if dos.get("schema") != DOSSIER_SCHEMA or dos.get("book_id") != BOOK_ID or dos.get("verdict") != "PASS":
         raise SotaBookError(f"{BOOK_ID}: invalid or non-PASS v3 dossier")
+    if str(dos.get("arm_name") or "stack05_m30_up_v1") != arm_name or str((dos.get("preregistration_payload") or {}).get("arm_name") or "stack05_m30_up_v1") != arm_name:
+        raise SotaBookError(f"{BOOK_ID}: dossier/prereg arm_name mismatch vs {arm_name!r}")
+    prereg_g4_mode = (
+        G4_MODE_RAW_TOP5
+        if (dos.get("preregistration_payload") or {}).get("g4_selection_mode") == "raw_top5_apples_to_apples"
+        else G4_MODE_PLATT_EV
+    )
+    try:
+        validate_arm_g4_mode(arm_name, prereg_g4_mode)
+    except Exception as exc:
+        raise SotaBookError(f"{BOOK_ID}: {exc}") from exc
     if dos.get("all_5_gates_passed") is not True or dos.get("drift_check_passed") is not True:
         raise SotaBookError(f"{BOOK_ID}: dossier missing all_5_gates_passed or drift_check_passed")
     for g in ("G1_cpcv", "G2_placebo", "G3_entry_delay", "G4_sign_null", "G5_payout"):
@@ -1024,13 +1041,13 @@ def verify_staged_stack05_in_dir(
     stage_dir: Path,
     expected_receipt_sha256: str,
     repo_root: Path = REPO_ROOT,
+    arm_name: str = "stack05_m30_up_v1",
 ) -> dict[str, Any]:
     """Authenticate complete staged $T/staged_book/, manifest, parity, and 1-builder $T ledger (zero fits; §3.2 (6b) + B3)."""
     import tempfile
     from certify_sota_stack05 import (
-        ARM_NAME,
         BOOK_ID,
-        CANONICAL_LEDGER_NAME,
+        artifact_names_for_arm,
         canonical_json_bytes,
         sha256_bytes,
         strict_json_loads,
@@ -1039,14 +1056,16 @@ def verify_staged_stack05_in_dir(
     from sota_book_freeze import _verify_7input_stack_parity, fsync_dir
     from sota_book_runtime import SOTA_INDEX_SCHEMA, compute_sota_content_id_from_buffers, load_sota_book
 
+    names = artifact_names_for_arm(arm_name)
     rcpt, dos, _, prefix_ldg_raw = _authenticate_stack05_pass_inputs(
         expected_receipt_sha256=expected_receipt_sha256,
         repo_root=repo_root,
+        arm_name=arm_name,
     )
     prereg_sha = str(rcpt["preregistration_sha256"])
     stage_manifest_path = stage_dir / "staged_install_manifest.json"
     staged_book_dir = stage_dir / "staged_book"
-    t_ledger_path = stage_dir / CANONICAL_LEDGER_NAME
+    t_ledger_path = stage_dir / names["ledger"]
     if not stage_manifest_path.is_file() or not staged_book_dir.is_dir() or not t_ledger_path.is_file():
         raise SotaBookError(f"{BOOK_ID}: incomplete staged evidence in {stage_dir} (holding before witness/install)")
 
@@ -1156,7 +1175,7 @@ def verify_staged_stack05_in_dir(
     fsync_dir(stage_dir)
 
     witness_line = (
-        f"Builder fit debit: arm={ARM_NAME} preregistration_sha256={prereg_sha} "
+        f"Builder fit debit: arm={arm_name} preregistration_sha256={prereg_sha} "
         f"receipt_sha256={expected_receipt_sha256} ledger_sha256={post_builder_sha} "
         f"attempt_id={int(builder_attempt['attempt_id'])}"
     )
@@ -1190,18 +1209,16 @@ def stage_stack05_in_lab_dir(
     ticks_root: Path = Path("/mnt/data/deriv/ticks"),
     allow_fixture_digest_override: bool = False,
     fixture_root: Path | None = None,
+    arm_name: str = "stack05_m30_up_v1",
 ) -> dict[str, Any]:
     """Step (6a): Lab-capped staging fit writing STRICTLY inside out_dir ($T); zero checkout/$A writes."""
     import tempfile
     from certify_sota_stack05 import (
         BOOK_ID,
-        CANONICAL_DOSSIER_NAME,
-        CANONICAL_LEDGER_NAME,
-        CANONICAL_LOCK_NAME,
-        CANONICAL_SCORES_NAME,
         HORIZON_S,
         PAIR,
         TOL_S,
+        artifact_names_for_arm,
         build_all_role_specs,
         build_eligible_indices,
         build_stack05_strategy_dict,
@@ -1246,16 +1263,18 @@ def stage_stack05_in_lab_dir(
         check_pipeline_features_dir_exists()
         verify_source_closure_and_loaded_modules(repo_root)
 
+    names = artifact_names_for_arm(arm_name)
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     rcpt, dos, _, prefix_ldg_raw = _authenticate_stack05_pass_inputs(
         expected_receipt_sha256=expected_receipt_sha256,
         repo_root=repo_root,
+        arm_name=arm_name,
     )
     prereg_sha = str(rcpt["preregistration_sha256"])
 
-    t_ledger_path = out_dir / CANONICAL_LEDGER_NAME
-    t_lock_path = out_dir / CANONICAL_LOCK_NAME
+    t_ledger_path = out_dir / names["ledger"]
+    t_lock_path = out_dir / names["lock"]
     stage_manifest_path = out_dir / "staged_install_manifest.json"
     staged_book_dir = out_dir / "staged_book"
 
@@ -1275,6 +1294,7 @@ def stage_stack05_in_lab_dir(
                         stage_dir=out_dir,
                         expected_receipt_sha256=expected_receipt_sha256,
                         repo_root=repo_root,
+                        arm_name=arm_name,
                     )
                     return {
                         "staged": True,
@@ -1290,7 +1310,7 @@ def stage_stack05_in_lab_dir(
             atomic_write_file_bytes(t_ledger_path, prefix_ldg_raw, noreplace=True, sync_parent=True)
 
     # Authenticate certifier final_fit_val before debiting
-    scores_dict, _, scores_sha = load_verified_scores_npz(repo_root / "logs" / CANONICAL_SCORES_NAME)
+    scores_dict, _, scores_sha = load_verified_scores_npz(repo_root / "logs" / names["scores"])
     if scores_sha != str(rcpt["scores_npz_sha256"]):
         raise SotaBookError(f"{BOOK_ID}: checkout scores.npz sha256 mismatch vs receipt")
     cert_ff_val = scores_dict["final_fit_val"]
@@ -1373,7 +1393,7 @@ def stage_stack05_in_lab_dir(
     if got_arts != exp_arts:
         raise SotaBookError(f"{BOOK_ID}: builder artifact digests mismatch vs certifier receipt")
 
-    dossier_rel = f"results/json/{CANONICAL_DOSSIER_NAME}"
+    dossier_rel = f"results/json/{names['dossier']}"
     certs, metrics, summary = _build_stack05_gate_certs_and_metrics(dos, dossier_rel)
     manifest = {
         "schema": SOTA_MANIFEST_SCHEMA,
@@ -1511,7 +1531,7 @@ def stage_stack05_in_lab_dir(
     fsync_dir(out_dir)
 
     witness_line = (
-        f"Builder fit debit: arm=stack05_m30_up_v1 preregistration_sha256={prereg_sha} "
+        f"Builder fit debit: arm={arm_name} preregistration_sha256={prereg_sha} "
         f"receipt_sha256={expected_receipt_sha256} ledger_sha256={post_builder_sha} "
         f"attempt_id={int(builder_attempt['attempt_id'])}"
     )
@@ -1533,16 +1553,18 @@ def install_staged_stack05(
     progress_md: Path,
     repo_root: Path = REPO_ROOT,
     pre_index_hook: Any | None = None,
+    arm_name: str = "stack05_m30_up_v1",
 ) -> Path:
     """Step (6b): Strictly ZERO-FIT installer publishing staged book, 0444 builder_suffix.json & SOTA_INDEX.json."""
     from certify_sota_stack05 import (
         BOOK_ID,
         CANONICAL_BUILDER_SUFFIX_NAME,
-        CANONICAL_DOSSIER_NAME,
+        artifact_names_for_arm,
         parse_progress_builder_witnesses,
     )
     from sota_book_freeze import complete_interrupted_stack_index_install
 
+    names = artifact_names_for_arm(arm_name)
     expected_install_path = repo_root / "logs" / "sota_stack05_expected_install.json"
     book_dir = repo_root / "books" / BOOK_ID
 
@@ -1551,11 +1573,13 @@ def install_staged_stack05(
         expected_receipt_sha256=expected_receipt_sha256,
         repo_root=repo_root,
         bundle_dir=None,
+        arm_name=arm_name,
     )
     rcpt_arc, _, _, ldg_arc = _authenticate_stack05_pass_inputs(
         expected_receipt_sha256=expected_receipt_sha256,
         repo_root=repo_root,
         bundle_dir=bundle_dir,
+        arm_name=arm_name,
     )
     if ldg_chk != ldg_arc or rcpt_chk != rcpt_arc:
         raise SotaBookError(f"{BOOK_ID}: checkout and archive 0-builder prefixes disagree")
@@ -1602,7 +1626,7 @@ def install_staged_stack05(
         witnesses_r = [
             w
             for w in parse_progress_builder_witnesses(progress_md)
-            if w["preregistration_sha256"] == prereg_sha_r and w["receipt_sha256"] == expected_receipt_sha256
+            if w["preregistration_sha256"] == prereg_sha_r and w["receipt_sha256"] == expected_receipt_sha256 and w["arm"] == arm_name
         ]
         if (
             len(witnesses_r) != 1
@@ -1620,12 +1644,13 @@ def install_staged_stack05(
         stage_dir=stage_dir,
         expected_receipt_sha256=expected_receipt_sha256,
         repo_root=repo_root,
+        arm_name=arm_name,
     )
     prereg_sha = str(rcpt_chk["preregistration_sha256"])
     witnesses = [
         w
         for w in parse_progress_builder_witnesses(progress_md)
-        if w["preregistration_sha256"] == prereg_sha and w["receipt_sha256"] == expected_receipt_sha256
+        if w["preregistration_sha256"] == prereg_sha and w["receipt_sha256"] == expected_receipt_sha256 and w["arm"] == arm_name
     ]
     if len(witnesses) != 1 or witnesses[0]["ledger_sha256"] != staged["post_builder_fit_ledger_sha256"]:
         raise SotaBookError(
@@ -1641,7 +1666,7 @@ def install_staged_stack05(
 
     strat = staged["strategy"]
     par = staged["parity"]
-    dossier_rel = f"results/json/{CANONICAL_DOSSIER_NAME}"
+    dossier_rel = f"results/json/{names['dossier']}"
     certs, metrics, summary = _build_stack05_gate_certs_and_metrics(dos_chk, dossier_rel)
     ev_binding = {
         "dossier_path": dossier_rel,
@@ -1707,12 +1732,13 @@ def main() -> int:
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--books", default="", help="Optional specific book builder target (e.g. 'stack05')")
+    ap.add_argument("--arm-name", default="stack05_m30_up_v1", help="Registered stack05 arm name (default: stack05_m30_up_v1)")
     ap.add_argument("--stage-only", action="store_true", help="Stack05 step (6a): capped fit staging strictly inside --out-dir")
     ap.add_argument("--install-staged-stack05", action="store_true", help="Stack05 step (6b): zero-fit installer from --stage-dir")
     ap.add_argument("--verify-staged-stack05", action="store_true", help="Stack05 step (6b) pre-witness zero-fit stage check")
-    ap.add_argument("--out-dir", default="/mnt/data/deriv-sota-lab/tests/stack05_m30_up_v1")
-    ap.add_argument("--stage-dir", default="/mnt/data/deriv-sota-lab/tests/stack05_m30_up_v1")
-    ap.add_argument("--bundle-dir", default="/mnt/data/deriv-sota-lab/archive/stack05_m30_up_v1")
+    ap.add_argument("--out-dir", default=None)
+    ap.add_argument("--stage-dir", default=None)
+    ap.add_argument("--bundle-dir", default=None)
     ap.add_argument("--expected-receipt-sha256", default="")
     ap.add_argument("--progress-md", default="/mnt/data/deriv-sota-lab/PROGRESS.md")
     ap.add_argument("--allow-fixture-digest-override", action="store_true")
@@ -1723,24 +1749,31 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.books == "stack05" or args.stage_only or args.install_staged_stack05 or args.verify_staged_stack05:
+        from certify_sota_stack05 import default_archive_dir_for_arm, default_out_dir_for_arm
+        arm_name = str(args.arm_name)
+        eff_out_dir = Path(args.out_dir) if args.out_dir else default_out_dir_for_arm(arm_name)
+        eff_stage_dir = Path(args.stage_dir) if args.stage_dir else default_out_dir_for_arm(arm_name)
+        eff_bundle_dir = Path(args.bundle_dir) if args.bundle_dir else default_archive_dir_for_arm(arm_name)
         if not args.expected_receipt_sha256:
             raise SotaBookError("stack05 builder requires --expected-receipt-sha256")
         if args.stage_only and args.install_staged_stack05:
             raise SotaBookError("--stage-only and --install-staged-stack05 are mutually exclusive")
         if args.stage_only:
             res = stage_stack05_in_lab_dir(
-                out_dir=Path(args.out_dir),
+                out_dir=eff_out_dir,
                 expected_receipt_sha256=args.expected_receipt_sha256.strip(),
                 progress_md=Path(args.progress_md),
                 allow_fixture_digest_override=bool(args.allow_fixture_digest_override),
                 fixture_root=Path(args.fixture_root) if args.fixture_root else None,
+                arm_name=arm_name,
             )
             print(json.dumps(res, indent=2, sort_keys=True))
             return 0
         if args.verify_staged_stack05:
             info = verify_staged_stack05_in_dir(
-                stage_dir=Path(args.stage_dir),
+                stage_dir=eff_stage_dir,
                 expected_receipt_sha256=args.expected_receipt_sha256.strip(),
+                arm_name=arm_name,
             )
             print(
                 json.dumps(
@@ -1757,10 +1790,11 @@ def main() -> int:
             return 0
         if args.install_staged_stack05:
             man = install_staged_stack05(
-                stage_dir=Path(args.stage_dir),
-                bundle_dir=Path(args.bundle_dir),
+                stage_dir=eff_stage_dir,
+                bundle_dir=eff_bundle_dir,
                 expected_receipt_sha256=args.expected_receipt_sha256.strip(),
                 progress_md=Path(args.progress_md),
+                arm_name=arm_name,
             )
             print(f"FROZEN: {man}")
             return 0

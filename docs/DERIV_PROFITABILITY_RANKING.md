@@ -29,16 +29,16 @@ Across Deriv's **95** active symbols ([deriv_mexico_vps_step0_pricing_result.jso
 
 ---
 
-## Table 1 — Master Rank-Ordered Strategies Passing v2 `G1–G5` DEV Certification (`3` Frozen Demo Canary Books + `1` Research Comparator)
+## Table 1 — Master Rank-Ordered Strategies Passing `G1–G5` DEV Certification (`4` Frozen Demo Canary Books; `USDJPY.sota_stack05_m30_up.v1` Frozen via Follow-Up Arm `stack05_m30_up_v2`)
 
-All four rows in Table 1 passed pre-registered falsifiers and **v2 `G1–G5` DEV certification under the program's Owner Decision 1 drift amendment** ([DERIV_SOTA_PROGRAM.md](DERIV_SOTA_PROGRAM.md) §"Owner decisions (resolved)" #1: `in_strict_047_053_moved_band: false`, `moved_up_rate = 0.54235` at `[USDJPY·30m]` and `0.53195` at `[USDJPY·15m]`, mirage check `tie_rate = 0.00806` and `0.01172`, `G2` `NY hour × rv_60m` placebo passed, `G4` week-shift null passed) on **native 1-second Deriv venue ticks** (`2025-08-11 .. 2026-07-31` DEV `< 2026-08-01T00:00:00Z`; sealed holdout `>= 2026-08-01T00:00:00Z` untouched) on **shared deterministic UTC calendar CPCV boundaries** with **block-purged validation (`gap = H`)** and **zero hindsight macro columns** ([deriv_master_profitability_ranking_result.json](../results/json/deriv_master_profitability_ranking_result.json); Tier-2 records in [USDJPY_RESULTS.md](../results/USDJPY_RESULTS.md) and [SOTA_MODEL_REGISTRY.md](../SOTA_MODEL_REGISTRY.md)). Frozen books carry `lifecycle_status: "demo_venue_settled_canary"` (`G6` prospective `n >= 50` pending); Rank `#2` (`USDJPY_m30_up_stack_cov05`) is an unfrozen Nyström⊕LightGBM research comparator retained in the ranking for completeness.
+All four rows in Table 1 passed pre-registered falsifiers and **`G1–G5` DEV certification under the program's Owner Decision 1 drift amendment** ([DERIV_SOTA_PROGRAM.md](DERIV_SOTA_PROGRAM.md) §"Owner decisions (resolved)" #1: `in_strict_047_053_moved_band: false`, `moved_up_rate = 0.54235` at `[USDJPY·30m]` and `0.53195` at `[USDJPY·15m]`, mirage check `tie_rate = 0.00806` and `0.01172`, `G2` `NY hour × rv_60m` placebo passed, `G4` week-shift null passed) on **native 1-second Deriv venue ticks** (`2025-08-11 .. 2026-07-31` DEV `< 2026-08-01T00:00:00Z`; sealed holdout `>= 2026-08-01T00:00:00Z` untouched) on **shared deterministic UTC calendar CPCV boundaries** with **block-purged validation (`gap = H`)** and **zero hindsight macro columns** ([deriv_master_profitability_ranking_result.json](../results/json/deriv_master_profitability_ranking_result.json); Tier-2 records in [USDJPY_RESULTS.md](../results/USDJPY_RESULTS.md) and [SOTA_MODEL_REGISTRY.md](../SOTA_MODEL_REGISTRY.md)). All four books carry `lifecycle_status: "demo_venue_settled_canary"` (`G6` prospective `n >= 50` pending). Rank `#2` (`USDJPY.sota_stack05_m30_up.v1`, `3c85e5c866ebf289`) was formally certified and frozen on `2026-11-26` via owner-authorized post-`v1` follow-up arm `stack05_m30_up_v2` ([deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json](../results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json), `--g4-mode raw_top5` apples-to-apples raw top-5% `G4` comparator; initial `v1` arm preserved as `KILL-STACK` in [deriv_5gate_USDJPY_sota_stack05_m30_up_v1_result.json](../results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v1_result.json); Decision 5 per-trade `30m` payout reading remains `"unavailable"`).
 
 - **Primary ranking metric:** `Path-p10 Annual Floor Log-Growth` (`10th` percentile across the 15 purged OOS paths of annualized log-equity growth `(1 / path_years) * ln(E_final / 1000)` under fixed `p10`-floor Quarter-Kelly fraction `f_qk = min(0.05, 0.25 * f*(p10_wr))`). Plug-in `Trades/yr × g*(p10_wr)` is reported alongside for analytical comparison.
 
 | Rank | Book / Candidate ID & Status | Key & Contract | Deriv Symbol | Horizon | Trades / Yr | Quoted Payout | CPCV Clear | `p10_wr` / `mean_wr` | `p10_ev` / `mean_ev` (per `$1`) | Quarter-Kelly `%` | Path-`p10` Floor Log-Growth (Plug-In) | Floor Net `$/Yr` per `$1,000` (Mean `$/Yr`) | Max CPCV QK DD (`p90` DD) | `G2` Placebo / `G3` `+4s` / `G4` Null | Frozen `2025 -> 2026` OOS | Daily P&L Corr vs `#1` / `#4` |
 |---:|---|---|---|---|---:|---:|---:|---|---|---:|---|---|---|---|---|---|
 | **`#1`** | **`USDJPY.sota_ens5_m30_up.v1`** (`c8d0b13768a4c649`, **Frozen Demo Canary Book**, `G6` pending, zero-pickle `nystroem-ens`, `cov=0.03`) | `[USDJPY·30m]` `CALL` (`risefall`) | `frxUSDJPY` | `30m` | `316` (`316.22`) | `1.8200` (flat `0.00` skew) | `15/15` | `0.6031` / `0.6329` | **`+0.0976`** / `+0.1519` | `2.98%` | **`+0.6495`** (`+0.8062`) | **`+$914.67`** (`+$2,307.94`) | `31.56%` (`27.84%`) | `+0.0691` / `0.5992` / `16/16` (`0` pass) | `0.5855` (`n=152`, `EV +0.0657`) | `1.0000` / `0.3141` |
-| **`#2`** | `USDJPY_m30_up_stack_cov05` (**Unfrozen Research Comparator**, 50/50 Nyström⊕LGBM, `cov=0.05`, trailed `#1` floor growth) | `[USDJPY·30m]` `CALL` (`risefall`) | `frxUSDJPY` | `30m` | `415` (`415.02`) | `1.8200` (flat `0.00` skew) | `15/15` | `0.5887` / `0.6272` | `+0.0715` / `+0.1415` | `2.18%` | `+0.5570` (`+0.5666`) | `+$745.41` (`+$2,060.44`) | `22.10%` (`20.28%`) | `+0.0634` / `0.5887` / `16/16` (`0` pass) | `0.6359` (`n=217`, `EV +0.1574`) | `0.5297` / `0.2877` |
+| **`#2`** | **`USDJPY.sota_stack05_m30_up.v1`** (`3c85e5c866ebf289`, **Frozen Demo Canary Book**, `G6` pending, zero-pickle `nystroem-lgb-stack`, `cov=0.05`, `v2` `raw_top5` `G4`, Decision 5 unavailable; historical comparator `USDJPY_m30_up_stack_cov05` `+0.5570`) | `[USDJPY·30m]` `CALL` (`risefall`) | `frxUSDJPY` | `30m` | `416` (`v2`) / `415` (hist) | `1.8200` (fixed-ratio `R=1.82` DEV sensitivity; Decision 5 unavailable) | `15/15` (`15/15 >= 0.565`) | `0.5900` / `0.6242` (`v2`) | `+0.0738` / `+0.1360` (`v2`) | `2.25%` (`v2`) | **`+0.5718`** (`v2`; hist `+0.5570`) | **`+$771.39`** (`v2` floor) | `hist: 22.10% (20.28% p90); v2 DD not tabulated separately` | `+0.0605` / `0.5895` / `1/17` (`1` pass @ `0.5411`) | `0.6359` (`n=217`, `EV +0.1574`) | `0.5297` / `0.2877` (hist comparator) |
 | **`#3`** | **`USDJPY.sota_e49nys30_m30_up.v1`** (`662ac7ffe7084276`, **Frozen 1-Seed Baseline Canary**, `G6` pending, zero-pickle `nystroem`, `cov=0.03`) | `[USDJPY·30m]` `CALL` (`risefall`) | `frxUSDJPY` | `30m` | `331` (`330.65`) | `1.8200` (flat `0.00` skew) | `15/15` | `0.5845` / `0.6372` | `+0.0637` / `+0.1597` | `1.94%` | `+0.3819` (`+0.3587`) | `+$465.03` (`+$1,596.72`) | `20.15%` (`16.67%`) | `+0.0765` / `0.5830` / `16/16` (`0` pass) | `0.5936` (`n=187`, `EV +0.0803`) | `0.7007` / `0.2938` |
 | **`#4`** | **`USDJPY.sota_ens5_m15_up.v1`** (`51b8c7fd6d179b3f`, **Frozen Demo Canary Book**, `G6` pending, zero-pickle `nystroem-ens`, `cov=0.015`) | `[USDJPY·15m]` `CALL` (`risefall`) | `frxUSDJPY` | `15m` | `274` (`273.54`) | `1.7764` (NY quote mean) | `14/15` | `0.5763` / `0.6144` | **`+0.0238`** / `+0.0915` | `0.77%` | **`+0.0494`** (`+0.0439`) | **`+$50.63`** (`+$204.37`) | **`8.01%`** (`7.27%`) | `+0.0721` / `0.5864` / `15/15` (`0` pass) | `0.6012` (`n=168`, `EV +0.0680`) | `0.3141` / `1.0000` |
 
@@ -46,7 +46,7 @@ All four rows in Table 1 passed pre-registered falsifiers and **v2 `G1–G5` DEV
 
 - **Per-candidate 5-gate dossiers (Tier-2 records: [USDJPY_RESULTS.md](../results/USDJPY_RESULTS.md), [SOTA_MODEL_REGISTRY.md](../SOTA_MODEL_REGISTRY.md)):**
   - `#1` `[USDJPY·30m]`: [deriv_5gate_USDJPY_sota_ens5_m30_up_v1_result.json](../results/json/deriv_5gate_USDJPY_sota_ens5_m30_up_v1_result.json) · Manifest: [USDJPY.sota_ens5_m30_up.v1.manifest.json](../books/USDJPY.sota_ens5_m30_up.v1/USDJPY.sota_ens5_m30_up.v1.manifest.json)
-  - `#2` `[USDJPY·30m]`: [deriv_5gate_USDJPY_m30_up_stack_cov05_result.json](../results/json/deriv_5gate_USDJPY_m30_up_stack_cov05_result.json)
+  - `#2` `[USDJPY·30m]`: [deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json](../results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json) · Manifest: [USDJPY.sota_stack05_m30_up.v1.manifest.json](../books/USDJPY.sota_stack05_m30_up.v1/USDJPY.sota_stack05_m30_up.v1.manifest.json) (preserved `v1` `KILL-STACK`: [deriv_5gate_USDJPY_sota_stack05_m30_up_v1_result.json](../results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v1_result.json); historical comparator: [deriv_5gate_USDJPY_m30_up_stack_cov05_result.json](../results/json/deriv_5gate_USDJPY_m30_up_stack_cov05_result.json))
   - `#3` `[USDJPY·30m]`: [deriv_5gate_USDJPY_sota_e49nys30_m30_up_v1_result.json](../results/json/deriv_5gate_USDJPY_sota_e49nys30_m30_up_v1_result.json) · Manifest: [USDJPY.sota_e49nys30_m30_up.v1.manifest.json](../books/USDJPY.sota_e49nys30_m30_up.v1/USDJPY.sota_e49nys30_m30_up.v1.manifest.json)
   - `#4` `[USDJPY·15m]`: [deriv_5gate_USDJPY_sota_ens5_m15_up_v1_result.json](../results/json/deriv_5gate_USDJPY_sota_ens5_m15_up_v1_result.json) · Manifest: [USDJPY.sota_ens5_m15_up.v1.manifest.json](../books/USDJPY.sota_ens5_m15_up.v1/USDJPY.sota_ens5_m15_up.v1.manifest.json)
 - **Reconciliation of legacy 1-seed `[USDJPY·15m]` `USDJPY.sota_c2nysabs_m15_up.v1` (`456b095585e5696b`, [USDJPY_RESULTS.md](../results/USDJPY_RESULTS.md)):** Under `cpcv_deriv_x.py`'s random 15% validation split, 1-seed `c2nysabs` at `cov = 0.03` recorded `p10_wr = 0.5760` and `p10_ev = +0.0143` ([deriv_a24pay_USDJPY_15m_result.json](../results/json/deriv_a24pay_USDJPY_15m_result.json)). Under the stricter shared-calendar chronological **block-purged validation (`gap = 900s`)**, `c2nysabs` passed `G1–G4` (`p10_wr = 0.5458`, `G2 = +0.0453`, `G3 = 0.5443`, `G4 = 15/15`) and **failed `G5`** (`9/15` paths `EV > 0`, `p10_ev = -0.0303` in [deriv_5gate_USDJPY_sota_c2nysabs_m15_up_v1_result.json](../results/json/deriv_5gate_USDJPY_sota_c2nysabs_m15_up_v1_result.json)). Tightening coverage to `cov = 0.015` with a 5-seed ensemble (`#4` `USDJPY.sota_ens5_m15_up.v1`) restores `p10_wr = 0.5763` and `p10_ev = +0.0238` under block-purged validation. `USDJPY.sota_c2nysabs_m15_up.v1` remains intact in [SOTA_INDEX.json](../books/SOTA_INDEX.json) for reproducibility and is superseded by `USDJPY.sota_ens5_m15_up.v1`.
@@ -72,6 +72,22 @@ Evaluated in [deriv_master_profitability_ranking_result.json](../results/json/de
 | **Option A — Multi-Horizon Frozen Champion Portfolio (Recommended Demo Canary)** | `[USDJPY·30m]` `USDJPY.sota_ens5_m30_up.v1`, `[USDJPY·15m]` `USDJPY.sota_ens5_m15_up.v1` | **`533` combined** (`289.32` at `30m` + `243.64` at `15m`; `56` blocked) | `14/15` | `+0.4533` | **`+1.0747`** | `+$577.19` | **`+$1,929.09` / `+$2,481.09`** | `+$192.93` / **`+$531.19`** | `39.78%` (`28.04%`) | Highest mean log-growth and mean flat-stake P&L between the two frozen options; accumulates `n = 50` settled Demo trades in ~`9.0` weeks (`[USDJPY·30m]`) and ~`10.7` weeks (`[USDJPY·15m]`) at retrospective trade rates (`corr = 0.3141`). |
 | **Option B — Single-Book Frozen Floor-Maximizer (`[USDJPY·30m]` Only)** | `[USDJPY·30m]` `USDJPY.sota_ens5_m30_up.v1` | `316` (`0`) | **`14/15`** (worst path `-0.2787`; `G1` WR clear `15/15`) | **`+0.6495`** | `+1.0624` | **`+$914.67`** | `+$1,893.23` / `+$2,307.94` | **`+$236.82`** / `+$394.52` | **`31.56%`** (`27.84%`) | Highest `10th`-percentile (`p10`) floor log-growth and lowest max drawdown between the two frozen options, with zero `15m` quote-skew exposure. |
 
+### Phase 1 72-Scenario Multi-Book DEV Portfolio Sensitivity Replay (`results/json/deriv_4book_portfolio_pareto_result.json`)
+
+> **Sensitivity Scope Only:** Deterministic event-driven replay (`scripts/replay_sota_portfolio.py`, `sota-portfolio-pareto-replay/v1`, `sha256: 696ee4340d0e3642a45435b18c8c422eef76f1e43284f95925115eb1cb112528`) across all `15/15` shared certified DEV paths (`all_15_exported_paths == certified_3book_common_supported_paths`, `m60` intersection = `13` paths). Confers **no** execution authority for `m60`, Kelly sizing, or Decision 5 (`USDJPY.sota_stack05_m30_up.v1` carries `decision5_per_trade_30m_payout_reading: "unavailable"`).
+
+| Portfolio (`all_15_exported_paths`) | Cap | Sizing | Trades / Yr (`Skipped`) | `p10_g` (`/yr`) | `mean_g` (`/yr`) | `p90_dd` (`Worst DD`) | `p10_g / p90_dd` | Pareto Efficient |
+|---|---:|---|---:|---:|---:|---:|---:|---|
+| `1b_ens5_m30` (`ens5_m30`) | `2` | `flat_1usd` | `316` (`0`) | `+0.0235` | `+0.0391` | `1.00%` (`1.13%`) | `2.338` | `true` |
+| `2b_incumbent` (`ens5_m30 + ens5_m15`) | `2` | `flat_1usd` | `589` (`0`) | `+0.0322` | `+0.0624` | `1.39%` (`1.60%`) | `2.323` | `true` |
+| **`3b_phase1` (`ens5_m30 + stack05_m30 + ens5_m15`)** | `2` | `flat_1usd` | **`811`** (`194/yr`) | **`+0.0578`** | **`+0.0915`** | `1.59%` (`1.73%`) | **`3.647`** | **`true`** |
+| **`3b_phase1` (`ens5_m30 + stack05_m30 + ens5_m15`)** | `3` | `flat_1usd` | **`1,005`** (`0`) | **`+0.0625`** | **`+0.1083`** | `1.81%` (`2.22%`) | **`3.451`** | **`true`** |
+| `1b_ens5_m30` (`ens5_m30`) | `2` | `kelly_0.25` | `316` (`0`) | `+0.6468` | `+1.0603` | `27.84%` (`31.56%`) | `2.323` | `false` (dominated) |
+| `2b_incumbent` (`ens5_m30 + ens5_m15`) | `2` | `kelly_0.25` | `589` (`0`) | `+0.6404` | `+1.2171` | `29.35%` (`33.11%`) | `2.182` | `false` (dominated) |
+| **`3b_phase1` (`ens5_m30 + stack05_m30 + ens5_m15`)** | `2` | `kelly_0.25` | **`811`** (`194/yr`) | **`+1.1156`** | **`+1.9440`** | `33.81%` (`39.37%`) | **`3.300`** | **`true`** |
+| **`3b_phase1` (`ens5_m30 + stack05_m30 + ens5_m15`)** | `3` | `kelly_0.25` | **`1,005`** (`0`) | **`+1.1654`** | **`+2.0660`** | `35.86%` (`41.98%`) | **`3.250`** | **`true`** |
+| `4b_with_m60` (exploratory `13`-path common set; unfrozen) | `3` | `kelly_0.25` | `1,174` (`175/yr`) | `+1.9688` | `+2.9069` | `44.87%` (`45.41%`) | `4.388` | `true` (exploratory) |
+
 ### Compounding, Frequency-Scaling & Portfolio-Expansion Sensitivity (Post-G6 Live Research)
 
 Archived in [deriv_compounding_and_frequency_study_result.json](../results/json/deriv_compounding_and_frequency_study_result.json) (DEV `< 2026-08-01T00:00:00Z` only; Tier-2 ledger [USDJPY_RESULTS.md](../results/USDJPY_RESULTS.md)). Keep **flat stakes (`--stake 1.0` or `$5.00`) and strict non-overlap** during Demo (`VRTC*`) `G6` certification so [deriv_live_pnl_ledger.py](../scripts/deriv_live_pnl_ledger.py)'s unit-EV bootstrap CI stays unweighted and independent; apply the levers below only after `G6` passes and with explicit live authorization:
@@ -87,9 +103,9 @@ Archived in [deriv_compounding_and_frequency_study_result.json](../results/json/
 1. **Memory Envelope (`MemoryMax=1G` in [deriv-sota-executor.service](../ops/deriv-sota-executor.service)):** `LiveTickBuffer` ([deriv_sota_tick_stream.py](../scripts/deriv_sota_tick_stream.py)) stores `int64` epoch + `float64` quote (`16` bytes/tick) across `7` USD majors: `129,600` dense 1-second ticks/pair at the configured `36h` warmup (`13.84 MiB` raw NumPy ring arrays across `7` pairs) and `345,600` ticks/pair at the `96h` ring cap (`36.91 MiB` raw NumPy ring arrays; persisted parquet scan covers up to `5` days), inside the unit's `1 GiB` cgroup limit alongside `deriv-market-stream.service` and `deriv-quote-audit.service`. Run `--tick-feed-mode integrated` so tick rings reside in a single process.
 2. **Configured API Pacing ([deriv_sota_tick_stream.py](../scripts/deriv_sota_tick_stream.py), [deriv_sota_executor.py](../scripts/deriv_sota_executor.py)):** Steady-state streaming maintains **1 WebSocket `ticks` subscription per major (`7` streams, `0` polling requests/min)** plus `1–2` `proposal` calls only when a minute bar clears `conf_thr`. Cold `36h` warmup pages `ticks_history` (`count = 5000`) with a configured `2.6s` inter-request sleep (`23.08 req/min` ceiling; ~`39m` latency-free estimate at dense 1s ticks on an empty `deriv_data/sota_ticks_1s/` store, whereas restarts reload persisted parquets and page only the delta since the last saved timestamp). Pause `deriv-market-stream.service` during an initial empty-store warmup if needed to avoid overlapping `ticks_history` paging.
 
-### Exact Mexico VPS Deployment Sequence (Zero US Traffic)
+### Exact Mexico VPS Deployment Sequence (Zero US Traffic; Separate Owner Host Authorization Required)
 
-Run all Deriv commands exclusively on `sean@64.177.80.63` (`vultr`) after syncing the committed `vps-certified-strategies` branch:
+Run all Deriv commands exclusively on `sean@64.177.80.63` (`vultr`) after syncing the landed `origin/main` commit via `git merge --ff-only <approved>` (`git-workflow` / `deriv-runtime-ops`). **Note:** `USDJPY.sota_stack05_m30_up.v1` carries `decision5_per_trade_30m_payout_reading: "unavailable"`, so 3-book activation on `vultr` requires explicit owner authorization (or keep the 2-book incumbent list `USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_ens5_m15_up.v1` until Decision 5 is recorded):
 
 ```bash
 # 1. Connect to Mexico VPS from workstation
@@ -101,20 +117,25 @@ test "$(hostname -s)" = vultr || exit 1
 sota_python="$HOME/binary-algo-venv/bin/python"
 set -a; . "$HOME/.config/binary-algo/deriv-sota-executor.env" || exit 1; set +a
 export DERIV_HOST_JURISDICTION=mexico_vps DERIV_ALLOW_LIVE_REAL_MONEY=0
-export DERIV_SOTA_BOOK_IDS="USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_ens5_m15_up.v1"
+export DERIV_SOTA_BOOK_IDS="USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_stack05_m30_up.v1,USDJPY.sota_ens5_m15_up.v1"
 
-"$sota_python" scripts/vps_preflight.py --account-mode demo --live-smoke --stake 1.0 --book-ids "$DERIV_SOTA_BOOK_IDS"
+"$sota_python" scripts/vps_preflight.py --account-mode demo --phase1-policy \
+  --require-explicit-book-ids --enforce-3book-cutover --live-smoke --stake 1.0 \
+  --max-open-contracts 3 --max-usd-factor-open 3 --max-jpy-factor-open 3 \
+  --book-ids "$DERIV_SOTA_BOOK_IDS" --credential-isolation-receipt "<path-to-host-receipt>"
 
 # 3. Launch integrated Demo canary daemon (VRTC* only; Live CR* hard-blocked)
 demo_db="deriv_data/runtime/sota_trade_queue_demo.sqlite"
-"$sota_python" scripts/deriv_sota_executor.py --run --account-mode demo \
+"$sota_python" scripts/deriv_sota_executor.py --run --account-mode demo --phase1-policy \
+  --require-explicit-book-ids --enforce-3book-cutover \
   --book-ids "$DERIV_SOTA_BOOK_IDS" --tick-feed-mode integrated --queue-db "$demo_db" \
+  --credential-isolation-receipt "<path-to-host-receipt>" \
   --stake 1.0 --max-stake-usd 5 --max-daily-loss-usd 25 --max-drawdown-usd 50 \
-  --max-open-contracts 4 --max-usd-factor-open 2 --max-jpy-factor-open 2 \
+  --max-open-contracts 3 --max-usd-factor-open 3 --max-jpy-factor-open 3 \
   --absolute-breakeven-ceiling 0.60 --ev-margin 0.005
 
 # 4. Per-book G6 prospective promotion check (run after >= 50 settled Demo trades with idle queue)
-for bid in USDJPY.sota_ens5_m30_up.v1 USDJPY.sota_ens5_m15_up.v1; do
+for bid in USDJPY.sota_ens5_m30_up.v1 USDJPY.sota_stack05_m30_up.v1 USDJPY.sota_ens5_m15_up.v1; do
   "$sota_python" scripts/deriv_live_pnl_ledger.py --db "$demo_db" --book-id "$bid" --min-trades 50
 done
 ```

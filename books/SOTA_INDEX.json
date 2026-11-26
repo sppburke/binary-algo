@@ -81,6 +81,29 @@
       },
       "model_kind": "nystroem-ens",
       "pair": "USDJPY"
+    },
+    {
+      "allowed_sides": [
+        "UP"
+      ],
+      "content_id": "3c85e5c866ebf289",
+      "horizon_minutes": 30,
+      "id": "USDJPY.sota_stack05_m30_up.v1",
+      "lifecycle_status": "demo_venue_settled_canary",
+      "manifest": "books/USDJPY.sota_stack05_m30_up.v1/USDJPY.sota_stack05_m30_up.v1.manifest.json",
+      "metrics": {
+        "annual_floor_log_growth_p10": 0.5718,
+        "cpcv_mean_ev": 0.136,
+        "cpcv_mean_wr": 0.6242,
+        "cpcv_p10_ev": 0.0738,
+        "cpcv_p10_wr": 0.59,
+        "cpcv_paths_clear": "15/15",
+        "cpcv_paths_clear_0565": "15/15",
+        "decision5_per_trade_30m_payout_reading": "unavailable",
+        "est_trades_per_year": 416
+      },
+      "model_kind": "nystroem-lgb-stack",
+      "pair": "USDJPY"
     }
   ],
   "schema": "sota-book-index/v1"

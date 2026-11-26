@@ -17,9 +17,10 @@ Full cross-contract ranking, falsification ledger, compounding study, and Mexico
 | Rank | Book ID (`content_id`) | Key & Contract | Trades/Yr | Payout | `p10_wr` / `p10_ev` | Path-`p10` Floor Log-Growth (`$/Yr` per `$1k`) | Tier-2 Ledger & Dossier |
 |---:|---|---|---:|---:|---|---|---|
 | **`#1`** | `USDJPY.sota_ens5_m30_up.v1` (`c8d0b13768a4c649`) | `[USDJPY·30m]` `CALL` (`risefall`, `cov=0.03`, 5-seed RBF Nyström) | `316` | `1.8200` (flat `0.00` skew) | `0.6031` / `+0.0976` | **`+0.6495/yr`** (`+$914.67/yr`, `maxDD 31.56%`) | [USDJPY_RESULTS.md](results/USDJPY_RESULTS.md), [SOTA_MODEL_REGISTRY.md](SOTA_MODEL_REGISTRY.md), [5-gate JSON](results/json/deriv_5gate_USDJPY_sota_ens5_m30_up_v1_result.json) |
+| **`#2`** | `USDJPY.sota_stack05_m30_up.v1` (`3c85e5c866ebf289`) | `[USDJPY·30m]` `CALL` (`risefall`, `cov=0.05`, 50/50 5-seed Nyström + LGBM; `v2` `raw_top5` `G4`, Decision 5 unavailable) | `416` | `1.8200` (fixed DEV sensitivity) | `0.5900` / `+0.0738` | **`+0.5718/yr`** (`+$771.39/yr`) | [USDJPY_RESULTS.md](results/USDJPY_RESULTS.md), [SOTA_MODEL_REGISTRY.md](SOTA_MODEL_REGISTRY.md), [5-gate v2 JSON](results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json) |
 | **`#4`** | `USDJPY.sota_ens5_m15_up.v1` (`51b8c7fd6d179b3f`) | `[USDJPY·15m]` `CALL` (`risefall`, `cov=0.015`, 5-seed RBF Nyström) | `274` | `1.7764` (NY mean) | `0.5763` / `+0.0238` | **`+0.0494/yr`** (`+$50.63/yr`, `maxDD 8.01%`) | [USDJPY_RESULTS.md](results/USDJPY_RESULTS.md), [SOTA_MODEL_REGISTRY.md](SOTA_MODEL_REGISTRY.md), [5-gate JSON](results/json/deriv_5gate_USDJPY_sota_ens5_m15_up_v1_result.json) |
 
-*(Legacy 1-seed baselines `USDJPY.sota_e49nys30_m30_up.v1` and `USDJPY.sota_c2nysabs_m15_up.v1` remain in `books/SOTA_INDEX.json` for reproducibility and are superseded by the two 5-seed books above; deploy with `--book-ids USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_ens5_m15_up.v1`.)*
+*(Legacy 1-seed baselines `USDJPY.sota_e49nys30_m30_up.v1` and `USDJPY.sota_c2nysabs_m15_up.v1` remain in `books/SOTA_INDEX.json` for reproducibility. In the deterministic 72-scenario DEV portfolio replay [deriv_4book_portfolio_pareto_result.json](results/json/deriv_4book_portfolio_pareto_result.json), the 3-book portfolio `USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_stack05_m30_up.v1,USDJPY.sota_ens5_m15_up.v1` at `cap=2` lifts `flat_1usd` `p10_g` from `+0.0322` to `+0.0578` (`811` tr/yr) and Quarter-Kelly sensitivity `p10_g` from `+0.6404/yr` to `+1.1156/yr` (`p90_dd 33.81%`, Pareto-efficient). Mexico VPS Demo cutover requires explicit owner authorization.)*
 
 ### Closed Real-Market Sweeps, Conditional Candidate & Compounding Study
 
@@ -111,6 +112,7 @@ binary-algo/
 ├── books/                  ← frozen certified models (one subdir per book)
 │   ├── SOTA_INDEX.json                  ← active Deriv-feed zero-pickle SOTA book index
 │   ├── USDJPY.sota_ens5_m30_up.v1/      ← SOTA #1 frozen Demo canary (30m flat 1.82)
+│   ├── USDJPY.sota_stack05_m30_up.v1/   ← SOTA #2 frozen Demo canary (30m stack05 cov=0.05)
 │   ├── USDJPY.sota_ens5_m15_up.v1/      ← SOTA #4 frozen Demo canary (15m cov=0.015)
 │   ├── USDCHF.m15ny_xpair_seedens.v1/   ← legacy Dukascopy v1 books below
 │   ├── GBPUSD.m15ny_xpair_seedens8.v1/

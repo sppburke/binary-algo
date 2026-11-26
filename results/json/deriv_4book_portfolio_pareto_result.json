@@ -1,0 +1,4857 @@
+{
+  "classification": "dev_portfolio_sensitivity_only_no_m60_or_kelly_execution_authority",
+  "initial_cash": 1000.0,
+  "inputs": [
+    {
+      "book_id": "USDJPY.sota_ens5_m30_up.v1",
+      "dossier_rel": "results/json/deriv_5gate_USDJPY_sota_ens5_m30_up_v1_result.json",
+      "dossier_sha256": "182505e2155cc8d88bba5a653275daa8e407cc1fcd7db1a6d2170e5c995f6922",
+      "g1_p10_wr": 0.60309,
+      "horizon_s": 1800,
+      "payout_ratio": 1.82,
+      "role": "certified_incumbent",
+      "short_id": "ens5_m30",
+      "supported_paths_count": 15
+    },
+    {
+      "book_id": "USDJPY.sota_stack05_m30_up.v1",
+      "dossier_rel": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+      "dossier_sha256": "287e0e264c93b9ec9a86adda722b3288e41ed28a4de2bde017dec64e0adbd88a",
+      "g1_p10_wr": 0.5899763076362311,
+      "horizon_s": 1800,
+      "payout_ratio": 1.82,
+      "role": "certified_phase1_candidate",
+      "short_id": "stack05_m30",
+      "supported_paths_count": 15
+    },
+    {
+      "book_id": "USDJPY.sota_ens5_m15_up.v1",
+      "dossier_rel": "results/json/deriv_5gate_USDJPY_sota_ens5_m15_up_v1_result.json",
+      "dossier_sha256": "c7961663210ff7d9263c4ac9a709b302c5a96f063af7626c978df935ae5127cb",
+      "g1_p10_wr": 0.576345,
+      "horizon_s": 900,
+      "payout_ratio": 1.776447,
+      "role": "certified_incumbent",
+      "short_id": "ens5_m15",
+      "supported_paths_count": 15
+    },
+    {
+      "book_id": "USDJPY.sota_ens5_m60_up.v1",
+      "dossier_rel": "results/json/deriv_5gate_USDJPY_sota_ens5_m60_up_v1_result.json",
+      "dossier_sha256": "07ce706bb4a12d689d3da9ee4dcc50e3a7e130632c1aeb597f011591006745b0",
+      "g1_p10_wr": 0.603595,
+      "horizon_s": 3600,
+      "payout_ratio": 1.82,
+      "role": "exploratory_m60_sensitivity",
+      "short_id": "ens5_m60",
+      "supported_paths_count": 13
+    }
+  ],
+  "path_sets": {
+    "all_15_exported_paths": [
+      "0_1",
+      "0_2",
+      "0_3",
+      "0_4",
+      "0_5",
+      "1_2",
+      "1_3",
+      "1_4",
+      "1_5",
+      "2_3",
+      "2_4",
+      "2_5",
+      "3_4",
+      "3_5",
+      "4_5"
+    ],
+    "certified_3book_common_supported_paths": [
+      "0_1",
+      "0_2",
+      "0_3",
+      "0_4",
+      "0_5",
+      "1_2",
+      "1_3",
+      "1_4",
+      "1_5",
+      "2_3",
+      "2_4",
+      "2_5",
+      "3_4",
+      "3_5",
+      "4_5"
+    ],
+    "m60_common_supported_paths": [
+      "0_2",
+      "0_4",
+      "0_5",
+      "1_2",
+      "1_3",
+      "1_4",
+      "1_5",
+      "2_3",
+      "2_4",
+      "2_5",
+      "3_4",
+      "3_5",
+      "4_5"
+    ]
+  },
+  "path_years": 0.323979009810632,
+  "payout_policy": [
+    [
+      "ens5_m30",
+      1.82
+    ],
+    [
+      "stack05_m30",
+      1.82
+    ],
+    [
+      "ens5_m15",
+      1.776447
+    ],
+    [
+      "ens5_m60",
+      1.82
+    ]
+  ],
+  "scenario_count": 72,
+  "scenarios": [
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.03907419550897832,
+      "n_paths": 15,
+      "p10_g": 0.02349214482731169,
+      "p10_g_over_p90_dd": 2.3376539450614495,
+      "p90_dd": 0.010049453588689389,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__all_15_exported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.011332282223096892
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.017858012195121956
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 0.6630226143894586,
+      "n_paths": 15,
+      "p10_g": 0.401370935615336,
+      "p10_g_over_p90_dd": 2.2952275805407183,
+      "p90_dd": 0.17487195562575958,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__all_15_exported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.19269683479541444
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.02381068292682928
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 0.8661534518402283,
+      "n_paths": 15,
+      "p10_g": 0.5263753481023329,
+      "p10_g_over_p90_dd": 2.30939727019729,
+      "p90_dd": 0.2279275873818648,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__all_15_exported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.2550131434075537
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.029763353658536596
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.0603288370966395,
+      "n_paths": 15,
+      "p10_g": 0.6467977152344548,
+      "p10_g_over_p90_dd": 2.323078341593722,
+      "p90_dd": 0.2784226875408457,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__all_15_exported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.3156173486213438
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.03907419550897832,
+      "n_paths": 15,
+      "p10_g": 0.02349214482731169,
+      "p10_g_over_p90_dd": 2.3376539450614495,
+      "p90_dd": 0.010049453588689389,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__certified_3book_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.011332282223096892
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.017858012195121956
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 0.6630226143894586,
+      "n_paths": 15,
+      "p10_g": 0.401370935615336,
+      "p10_g_over_p90_dd": 2.2952275805407183,
+      "p90_dd": 0.17487195562575958,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__certified_3book_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.19269683479541444
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.02381068292682928
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 0.8661534518402283,
+      "n_paths": 15,
+      "p10_g": 0.5263753481023329,
+      "p10_g_over_p90_dd": 2.30939727019729,
+      "p90_dd": 0.2279275873818648,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__certified_3book_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.2550131434075537
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.029763353658536596
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.0603288370966395,
+      "n_paths": 15,
+      "p10_g": 0.6467977152344548,
+      "p10_g_over_p90_dd": 2.323078341593722,
+      "p90_dd": 0.2784226875408457,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__certified_3book_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1534,
+      "total_wins": 948,
+      "worst_path_max_dd": 0.3156173486213438
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.03948248719756472,
+      "n_paths": 13,
+      "p10_g": 0.023430881100405532,
+      "p10_g_over_p90_dd": 2.24308334038165,
+      "p90_dd": 0.010445836174958563,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__m60_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1454,
+      "total_wins": 891,
+      "worst_path_max_dd": 0.011332282223096892
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.017858012195121956
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 0.6666851674877319,
+      "n_paths": 13,
+      "p10_g": 0.40099475154563496,
+      "p10_g_over_p90_dd": 2.186055946992946,
+      "p90_dd": 0.18343297759475363,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__m60_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1454,
+      "total_wins": 891,
+      "worst_path_max_dd": 0.19269683479541444
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.02381068292682928
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 0.8693151082161652,
+      "n_paths": 13,
+      "p10_g": 0.5261975403553868,
+      "p10_g_over_p90_dd": 2.2017804844020463,
+      "p90_dd": 0.23898728510089873,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__m60_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1454,
+      "total_wins": 891,
+      "worst_path_max_dd": 0.2550131434075537
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.029763353658536596
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.06212512217136,
+      "n_paths": 13,
+      "p10_g": 0.6466145739044232,
+      "p10_g_over_p90_dd": 2.2160356231364555,
+      "p90_dd": 0.2917888896520717,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "1b_ens5_m30",
+      "scenario_id": "1b_ens5_m30__cap2__m60_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 1454,
+      "total_wins": 891,
+      "worst_path_max_dd": 0.3156173486213438
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.062378380486737696,
+      "n_paths": 15,
+      "p10_g": 0.03221479635396851,
+      "p10_g_over_p90_dd": 2.322865332931331,
+      "p90_dd": 0.013868559617838531,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__all_15_exported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.01595838598036763
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 0.7632386940826658,
+      "n_paths": 15,
+      "p10_g": 0.4001069916272112,
+      "p10_g_over_p90_dd": 2.20927561410606,
+      "p90_dd": 0.18110324898919714,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__all_15_exported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.20922035074227166
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 0.9956629388085827,
+      "n_paths": 15,
+      "p10_g": 0.5229182204773444,
+      "p10_g_over_p90_dd": 2.1944736987653926,
+      "p90_dd": 0.23828867066009374,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__all_15_exported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.2719176879033312
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.2170727146921991,
+      "n_paths": 15,
+      "p10_g": 0.640437912980791,
+      "p10_g_over_p90_dd": 2.182179184045811,
+      "p90_dd": 0.2934854835309189,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__all_15_exported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.3311164713905755
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.062378380486737696,
+      "n_paths": 15,
+      "p10_g": 0.03221479635396851,
+      "p10_g_over_p90_dd": 2.322865332931331,
+      "p90_dd": 0.013868559617838531,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__certified_3book_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.01595838598036763
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 0.7632386940826658,
+      "n_paths": 15,
+      "p10_g": 0.4001069916272112,
+      "p10_g_over_p90_dd": 2.20927561410606,
+      "p90_dd": 0.18110324898919714,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__certified_3book_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.20922035074227166
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 0.9956629388085827,
+      "n_paths": 15,
+      "p10_g": 0.5229182204773444,
+      "p10_g_over_p90_dd": 2.1944736987653926,
+      "p90_dd": 0.23828867066009374,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__certified_3book_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.2719176879033312
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.2170727146921991,
+      "n_paths": 15,
+      "p10_g": 0.640437912980791,
+      "p10_g_over_p90_dd": 2.182179184045811,
+      "p90_dd": 0.2934854835309189,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__certified_3book_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2861,
+      "total_wins": 1760,
+      "worst_path_max_dd": 0.3311164713905755
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.06345190972121652,
+      "n_paths": 13,
+      "p10_g": 0.030815891638802072,
+      "p10_g_over_p90_dd": 2.2121053915093585,
+      "p90_dd": 0.013930571191174506,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__m60_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2710,
+      "total_wins": 1656,
+      "worst_path_max_dd": 0.01595838598036763
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 0.7691923958600608,
+      "n_paths": 13,
+      "p10_g": 0.39219802398073356,
+      "p10_g_over_p90_dd": 2.1000627773252827,
+      "p90_dd": 0.18675538094163616,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__m60_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2710,
+      "total_wins": 1656,
+      "worst_path_max_dd": 0.20922035074227166
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 1.0014833657494395,
+      "n_paths": 13,
+      "p10_g": 0.5123011430551747,
+      "p10_g_over_p90_dd": 2.078115308862541,
+      "p90_dd": 0.2465220004252716,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__m60_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2710,
+      "total_wins": 1656,
+      "worst_path_max_dd": 0.2719176879033312
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.2216953163606057,
+      "n_paths": 13,
+      "p10_g": 0.6270818618484971,
+      "p10_g_over_p90_dd": 2.059647440249718,
+      "p90_dd": 0.30446077789530224,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "2b_incumbent",
+      "scenario_id": "2b_incumbent__cap2__m60_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 2710,
+      "total_wins": 1656,
+      "worst_path_max_dd": 0.3311164713905755
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.0914704720633667,
+      "n_paths": 15,
+      "p10_g": 0.05784322603960842,
+      "p10_g_over_p90_dd": 3.6474286740169535,
+      "p90_dd": 0.015858631164377242,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__all_15_exported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.01728685212502847
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 1.2402117044544059,
+      "n_paths": 15,
+      "p10_g": 0.7102827440641745,
+      "p10_g_over_p90_dd": 3.372169478213608,
+      "p90_dd": 0.21063079677728525,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__all_15_exported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.24413366546170326
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 1.604460835429855,
+      "n_paths": 15,
+      "p10_g": 0.9198060118266534,
+      "p10_g_over_p90_dd": 3.334631486461459,
+      "p90_dd": 0.2758343809686463,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__all_15_exported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.3207088799265452
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.9440371268159877,
+      "n_paths": 15,
+      "p10_g": 1.1156410905423175,
+      "p10_g_over_p90_dd": 3.2996360021826154,
+      "p90_dd": 0.33811035211288537,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__all_15_exported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.3936935580689183
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.0914704720633667,
+      "n_paths": 15,
+      "p10_g": 0.05784322603960842,
+      "p10_g_over_p90_dd": 3.6474286740169535,
+      "p90_dd": 0.015858631164377242,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__certified_3book_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.01728685212502847
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 1.2402117044544059,
+      "n_paths": 15,
+      "p10_g": 0.7102827440641745,
+      "p10_g_over_p90_dd": 3.372169478213608,
+      "p90_dd": 0.21063079677728525,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__certified_3book_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.24413366546170326
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 1.604460835429855,
+      "n_paths": 15,
+      "p10_g": 0.9198060118266534,
+      "p10_g_over_p90_dd": 3.334631486461459,
+      "p90_dd": 0.2758343809686463,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__certified_3book_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.3207088799265452
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.9440371268159877,
+      "n_paths": 15,
+      "p10_g": 1.1156410905423175,
+      "p10_g_over_p90_dd": 3.2996360021826154,
+      "p90_dd": 0.33811035211288537,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__certified_3book_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 941,
+      "total_skipped_cash": 0,
+      "total_trades": 3941,
+      "total_wins": 2421,
+      "worst_path_max_dd": 0.3936935580689183
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 2,
+      "mean_g": 0.09340130090843023,
+      "n_paths": 13,
+      "p10_g": 0.05907262124677388,
+      "p10_g_over_p90_dd": 3.696832951782072,
+      "p90_dd": 0.015979250893199733,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__m60_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 901,
+      "total_skipped_cash": 0,
+      "total_trades": 3741,
+      "total_wins": 2282,
+      "worst_path_max_dd": 0.01728685212502847
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 2,
+      "mean_g": 1.2608371586017375,
+      "n_paths": 13,
+      "p10_g": 0.6848041259546365,
+      "p10_g_over_p90_dd": 3.2181857269223757,
+      "p90_dd": 0.2127919840753039,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__m60_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 901,
+      "total_skipped_cash": 0,
+      "total_trades": 3741,
+      "total_wins": 2282,
+      "worst_path_max_dd": 0.24413366546170326
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 2,
+      "mean_g": 1.6271370889036283,
+      "n_paths": 13,
+      "p10_g": 0.8845243127198804,
+      "p10_g_over_p90_dd": 3.1636524704661086,
+      "p90_dd": 0.27958959493093793,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__m60_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 901,
+      "total_skipped_cash": 0,
+      "total_trades": 3741,
+      "total_wins": 2282,
+      "worst_path_max_dd": 0.3207088799265452
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 2,
+      "mean_g": 1.9663335107107665,
+      "n_paths": 13,
+      "p10_g": 1.0698807154673067,
+      "p10_g_over_p90_dd": 3.1129675537001735,
+      "p90_dd": 0.34368514833879715,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap2__m60_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 901,
+      "total_skipped_cash": 0,
+      "total_trades": 3741,
+      "total_wins": 2282,
+      "worst_path_max_dd": 0.3936935580689183
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.10830458019145854,
+      "n_paths": 15,
+      "p10_g": 0.062495712673293506,
+      "p10_g_over_p90_dd": 3.45060788283663,
+      "p90_dd": 0.01811150811546801,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__all_15_exported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.0222228709403729
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.3248043546433896,
+      "n_paths": 15,
+      "p10_g": 0.7433941011736113,
+      "p10_g_over_p90_dd": 3.2264060069128075,
+      "p90_dd": 0.23040934698882776,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__all_15_exported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.26228703091873395
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 1.709673354685374,
+      "n_paths": 15,
+      "p10_g": 0.9617646787065802,
+      "p10_g_over_p90_dd": 3.239787734005099,
+      "p90_dd": 0.2968603987884184,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__all_15_exported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.3433063349849688
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.0660479842040362,
+      "n_paths": 15,
+      "p10_g": 1.1653596186331248,
+      "p10_g_over_p90_dd": 3.249979947053324,
+      "p90_dd": 0.3585744028020011,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__all_15_exported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.41983500048028766
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.10830458019145854,
+      "n_paths": 15,
+      "p10_g": 0.062495712673293506,
+      "p10_g_over_p90_dd": 3.45060788283663,
+      "p90_dd": 0.01811150811546801,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__certified_3book_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.0222228709403729
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.3248043546433896,
+      "n_paths": 15,
+      "p10_g": 0.7433941011736113,
+      "p10_g_over_p90_dd": 3.2264060069128075,
+      "p90_dd": 0.23040934698882776,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__certified_3book_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.26228703091873395
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 1.709673354685374,
+      "n_paths": 15,
+      "p10_g": 0.9617646787065802,
+      "p10_g_over_p90_dd": 3.239787734005099,
+      "p90_dd": 0.2968603987884184,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__certified_3book_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.3433063349849688
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.0660479842040362,
+      "n_paths": 15,
+      "p10_g": 1.1653596186331248,
+      "p10_g_over_p90_dd": 3.249979947053324,
+      "p90_dd": 0.3585744028020011,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "certified_3book_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__certified_3book_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4882,
+      "total_wins": 2997,
+      "worst_path_max_dd": 0.41983500048028766
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.11092416028362306,
+      "n_paths": 13,
+      "p10_g": 0.06051567664687825,
+      "p10_g_over_p90_dd": 3.180594949656782,
+      "p90_dd": 0.019026527302198133,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__m60_common_supported_paths__flat_1usd",
+      "scope": "certified_phase1",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4642,
+      "total_wins": 2831,
+      "worst_path_max_dd": 0.0222228709403729
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.3451681377043114,
+      "n_paths": 13,
+      "p10_g": 0.7360930190970155,
+      "p10_g_over_p90_dd": 3.0962888191312343,
+      "p90_dd": 0.2377339654327049,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__m60_common_supported_paths__kelly_0.15",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4642,
+      "total_wins": 2831,
+      "worst_path_max_dd": 0.26228703091873395
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 1.7313038868185529,
+      "n_paths": 13,
+      "p10_g": 0.951100117876035,
+      "p10_g_over_p90_dd": 3.110861646511271,
+      "p90_dd": 0.30573526757214115,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__m60_common_supported_paths__kelly_0.20",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4642,
+      "total_wins": 2831,
+      "worst_path_max_dd": 0.3433063349849688
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.0861599632710277,
+      "n_paths": 13,
+      "p10_g": 1.1508597528830058,
+      "p10_g_over_p90_dd": 3.121872087610219,
+      "p90_dd": 0.36864410859446345,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_phase1",
+      "scenario_id": "3b_phase1__cap3__m60_common_supported_paths__kelly_0.25",
+      "scope": "certified_phase1",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4642,
+      "total_wins": 2831,
+      "worst_path_max_dd": 0.41983500048028766
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.11929086930890263,
+      "n_paths": 15,
+      "p10_g": 0.06939065940507826,
+      "p10_g_over_p90_dd": 3.474711692297323,
+      "p90_dd": 0.019970191932442104,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__all_15_exported_paths__flat_1usd",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4630,
+      "total_wins": 2870,
+      "worst_path_max_dd": 0.02117581499024591
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.017858012195121956,
+        "ens5_m60": 0.018026140243902436,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.7836087384124897,
+      "n_paths": 15,
+      "p10_g": 1.0268150959338844,
+      "p10_g_over_p90_dd": 3.6082568999560483,
+      "p90_dd": 0.28457372199479253,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__all_15_exported_paths__kelly_0.15",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4630,
+      "total_wins": 2870,
+      "worst_path_max_dd": 0.3005676034575603
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.02381068292682928,
+        "ens5_m60": 0.02403485365853658,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 2.2907538725624814,
+      "n_paths": 15,
+      "p10_g": 1.3291620318779742,
+      "p10_g_over_p90_dd": 3.619822202133023,
+      "p90_dd": 0.3671898666997373,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__all_15_exported_paths__kelly_0.20",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4630,
+      "total_wins": 2870,
+      "worst_path_max_dd": 0.38321941084561567
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.029763353658536596,
+        "ens5_m60": 0.030043567073170727,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.753863303909827,
+      "n_paths": 15,
+      "p10_g": 1.6114125499708303,
+      "p10_g_over_p90_dd": 3.6238076912859927,
+      "p90_dd": 0.4446738588931531,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__all_15_exported_paths__kelly_0.25",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4630,
+      "total_wins": 2870,
+      "worst_path_max_dd": 0.46666574782885506
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.12531662998744109,
+      "n_paths": 13,
+      "p10_g": 0.0750067489148037,
+      "p10_g_over_p90_dd": 3.6674098348762607,
+      "p90_dd": 0.02045224076172399,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__m60_common_supported_paths__flat_1usd",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4426,
+      "total_wins": 2729,
+      "worst_path_max_dd": 0.02117581499024591
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.017858012195121956,
+        "ens5_m60": 0.018026140243902436,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.8696015636135486,
+      "n_paths": 13,
+      "p10_g": 1.088676834036771,
+      "p10_g_over_p90_dd": 3.7307428843742487,
+      "p90_dd": 0.2918123461674505,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__m60_common_supported_paths__kelly_0.15",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4426,
+      "total_wins": 2729,
+      "worst_path_max_dd": 0.3005676034575603
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.02381068292682928,
+        "ens5_m60": 0.02403485365853658,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 2.3964970716934406,
+      "n_paths": 13,
+      "p10_g": 1.3834508388871751,
+      "p10_g_over_p90_dd": 3.689208846015598,
+      "p90_dd": 0.37499932821133813,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__m60_common_supported_paths__kelly_0.20",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4426,
+      "total_wins": 2729,
+      "worst_path_max_dd": 0.38321941084561567
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m30": 0.029763353658536596,
+        "ens5_m60": 0.030043567073170727,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.874855829515668,
+      "n_paths": 13,
+      "p10_g": 1.6437963575073788,
+      "p10_g_over_p90_dd": 3.64217223437414,
+      "p90_dd": 0.45132307088433005,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "3b_with_m60",
+      "scenario_id": "3b_with_m60__cap3__m60_common_supported_paths__kelly_0.25",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 4426,
+      "total_wins": 2729,
+      "worst_path_max_dd": 0.46666574782885506
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.128211772229602,
+      "n_paths": 15,
+      "p10_g": 0.07768688773843105,
+      "p10_g_over_p90_dd": 3.8766319600693055,
+      "p90_dd": 0.02003978931676614,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__all_15_exported_paths__flat_1usd",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 759,
+      "total_skipped_cash": 0,
+      "total_trades": 5198,
+      "total_wins": 3217,
+      "worst_path_max_dd": 0.021126047713964546
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "ens5_m60": 0.018026140243902436,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.8108868605881716,
+      "n_paths": 15,
+      "p10_g": 1.1271699979674359,
+      "p10_g_over_p90_dd": 3.953687490484843,
+      "p90_dd": 0.2850933465733303,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__all_15_exported_paths__kelly_0.15",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 759,
+      "total_skipped_cash": 0,
+      "total_trades": 5198,
+      "total_wins": 3217,
+      "worst_path_max_dd": 0.2977187984857575
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "ens5_m60": 0.02403485365853658,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 2.3286644627209396,
+      "n_paths": 15,
+      "p10_g": 1.4643616929880061,
+      "p10_g_over_p90_dd": 3.9647978712063163,
+      "p90_dd": 0.36934081901695137,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__all_15_exported_paths__kelly_0.20",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 759,
+      "total_skipped_cash": 0,
+      "total_trades": 5198,
+      "total_wins": 3217,
+      "worst_path_max_dd": 0.3797703887494199
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "ens5_m60": 0.030043567073170727,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.803224831323094,
+      "n_paths": 15,
+      "p10_g": 1.7644472312214625,
+      "p10_g_over_p90_dd": 3.9426011799509784,
+      "p90_dd": 0.44753378561191454,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__all_15_exported_paths__kelly_0.25",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 759,
+      "total_skipped_cash": 0,
+      "total_trades": 5198,
+      "total_wins": 3217,
+      "worst_path_max_dd": 0.4540755283215995
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 3,
+      "mean_g": 0.1326241002516184,
+      "n_paths": 13,
+      "p10_g": 0.08519436431676627,
+      "p10_g_over_p90_dd": 4.162147143901496,
+      "p90_dd": 0.020468849699750675,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__m60_common_supported_paths__flat_1usd",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 737,
+      "total_skipped_cash": 0,
+      "total_trades": 4945,
+      "total_wins": 3041,
+      "worst_path_max_dd": 0.021126047713964546
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "ens5_m60": 0.018026140243902436,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 3,
+      "mean_g": 1.8863625000866682,
+      "n_paths": 13,
+      "p10_g": 1.3000960648426763,
+      "p10_g_over_p90_dd": 4.508671812374694,
+      "p90_dd": 0.2883545573830361,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__m60_common_supported_paths__kelly_0.15",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 737,
+      "total_skipped_cash": 0,
+      "total_trades": 4945,
+      "total_wins": 3041,
+      "worst_path_max_dd": 0.2977187984857575
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "ens5_m60": 0.02403485365853658,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 3,
+      "mean_g": 2.4204761175984073,
+      "n_paths": 13,
+      "p10_g": 1.667470722400636,
+      "p10_g_over_p90_dd": 4.4849491016281275,
+      "p90_dd": 0.3717925632189026,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__m60_common_supported_paths__kelly_0.20",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 737,
+      "total_skipped_cash": 0,
+      "total_trades": 4945,
+      "total_wins": 3041,
+      "worst_path_max_dd": 0.3797703887494199
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "ens5_m60": 0.030043567073170727,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 3,
+      "mean_g": 2.9069117463560366,
+      "n_paths": 13,
+      "p10_g": 1.9687632644839153,
+      "p10_g_over_p90_dd": 4.387875125192474,
+      "p90_dd": 0.44868261021843814,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap3__m60_common_supported_paths__kelly_0.25",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 737,
+      "total_skipped_cash": 0,
+      "total_trades": 4945,
+      "total_wins": 3041,
+      "worst_path_max_dd": 0.4540755283215995
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 4,
+      "mean_g": 0.14197678292067198,
+      "n_paths": 15,
+      "p10_g": 0.08306567931539605,
+      "p10_g_over_p90_dd": 3.7226109139769683,
+      "p90_dd": 0.02231382253877687,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__all_15_exported_paths__flat_1usd",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5957,
+      "total_wins": 3682,
+      "worst_path_max_dd": 0.024732545490962307
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "ens5_m60": 0.018026140243902436,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 4,
+      "mean_g": 1.874525568950305,
+      "n_paths": 15,
+      "p10_g": 1.0898494128947822,
+      "p10_g_over_p90_dd": 3.7895138393524923,
+      "p90_dd": 0.2875961031141142,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__all_15_exported_paths__kelly_0.15",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5957,
+      "total_wins": 3682,
+      "worst_path_max_dd": 0.3094110367787951
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "ens5_m60": 0.02403485365853658,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 4,
+      "mean_g": 2.4036991132743575,
+      "n_paths": 15,
+      "p10_g": 1.4097143944019113,
+      "p10_g_over_p90_dd": 3.834642121422591,
+      "p90_dd": 0.36762606516170265,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__all_15_exported_paths__kelly_0.20",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5957,
+      "total_wins": 3682,
+      "worst_path_max_dd": 0.40006584217623675
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "ens5_m60": 0.030043567073170727,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 4,
+      "mean_g": 2.8846441440984054,
+      "n_paths": 15,
+      "p10_g": 1.7077286883077618,
+      "p10_g_over_p90_dd": 3.852038634771688,
+      "p90_dd": 0.44333114234431337,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "all_15_exported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__all_15_exported_paths__kelly_0.25",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5957,
+      "total_wins": 3682,
+      "worst_path_max_dd": 0.4884483414551031
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {},
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": null,
+      "max_open_cap": 4,
+      "mean_g": 0.14861730914675028,
+      "n_paths": 13,
+      "p10_g": 0.0918336575918225,
+      "p10_g_over_p90_dd": 3.9599177858120966,
+      "p90_dd": 0.02319079904154862,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__m60_common_supported_paths__flat_1usd",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "flat_1usd",
+      "sizing_family": "flat",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5682,
+      "total_wins": 3494,
+      "worst_path_max_dd": 0.024732545490962307
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.00460682046842863,
+        "ens5_m30": 0.017858012195121956,
+        "ens5_m60": 0.018026140243902436,
+        "stack05_m30": 0.01349211217645256
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.15,
+      "max_open_cap": 4,
+      "mean_g": 1.9617469613909793,
+      "n_paths": 13,
+      "p10_g": 1.185425115238677,
+      "p10_g_over_p90_dd": 4.096998720974078,
+      "p90_dd": 0.2893398792560124,
+      "pareto_efficient": false,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__m60_common_supported_paths__kelly_0.15",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.15",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5682,
+      "total_wins": 3494,
+      "worst_path_max_dd": 0.3094110367787951
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.006142427291238175,
+        "ens5_m30": 0.02381068292682928,
+        "ens5_m60": 0.02403485365853658,
+        "stack05_m30": 0.017989482901936745
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.2,
+      "max_open_cap": 4,
+      "mean_g": 2.510201848678421,
+      "n_paths": 13,
+      "p10_g": 1.5120521125465949,
+      "p10_g_over_p90_dd": 4.088030950501894,
+      "p90_dd": 0.36987296105499345,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__m60_common_supported_paths__kelly_0.20",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.20",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5682,
+      "total_wins": 3494,
+      "worst_path_max_dd": 0.40006584217623675
+    },
+    {
+      "any_ruined": false,
+      "book_kelly_fractions": {
+        "ens5_m15": 0.007678034114047718,
+        "ens5_m30": 0.029763353658536596,
+        "ens5_m60": 0.030043567073170727,
+        "stack05_m30": 0.022486853627420932
+      },
+      "books": [
+        "USDJPY.sota_ens5_m30_up.v1",
+        "USDJPY.sota_stack05_m30_up.v1",
+        "USDJPY.sota_ens5_m15_up.v1",
+        "USDJPY.sota_ens5_m60_up.v1"
+      ],
+      "kelly_multiplier": 0.25,
+      "max_open_cap": 4,
+      "mean_g": 3.0054757851477594,
+      "n_paths": 13,
+      "p10_g": 1.7807077012266799,
+      "p10_g_over_p90_dd": 4.005351800489858,
+      "p90_dd": 0.4445820966360303,
+      "pareto_efficient": true,
+      "path_ids": [
+        "0_2",
+        "0_4",
+        "0_5",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "2_3",
+        "2_4",
+        "2_5",
+        "3_4",
+        "3_5",
+        "4_5"
+      ],
+      "path_set": "m60_common_supported_paths",
+      "payout_policy": [
+        [
+          "ens5_m30",
+          1.82
+        ],
+        [
+          "stack05_m30",
+          1.82
+        ],
+        [
+          "ens5_m15",
+          1.776447
+        ],
+        [
+          "ens5_m60",
+          1.82
+        ]
+      ],
+      "portfolio": "4b_with_m60",
+      "scenario_id": "4b_with_m60__cap4__m60_common_supported_paths__kelly_0.25",
+      "scope": "exploratory_m60_sensitivity",
+      "sizing": "kelly_0.25",
+      "sizing_family": "kelly",
+      "status": "ok",
+      "total_skipped_cap": 0,
+      "total_skipped_cash": 0,
+      "total_trades": 5682,
+      "total_wins": 3494,
+      "worst_path_max_dd": 0.4884483414551031
+    }
+  ],
+  "schema": "sota-portfolio-pareto-replay/v1"
+}

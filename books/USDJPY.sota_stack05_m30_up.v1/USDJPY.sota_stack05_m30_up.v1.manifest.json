@@ -1,0 +1,122 @@
+{
+  "allowed_sides": [
+    "UP"
+  ],
+  "artifacts": [
+    {
+      "bytes": 49811,
+      "file": "USDJPY.sota_stack05_m30_up.v1_lgb_s0.txt",
+      "sha256": "929c19e8ce81a201c219f0fc9a67d76f60f5e8be471eab645d69c1ec6ed55792"
+    },
+    {
+      "bytes": 1892,
+      "file": "USDJPY.sota_stack05_m30_up.v1_strategy.json",
+      "sha256": "758da6da3dd4b103d3dc3f3d6cdb9626828a20543305587f7119679a7ac3e242"
+    },
+    {
+      "bytes": 10675358,
+      "file": "USDJPY.sota_stack05_m30_up.v1_weights.npz",
+      "sha256": "d98cfa5effc3f1f5a6619a860e0c9550d5317fbcd682faa9f5eb159411d14187"
+    }
+  ],
+  "content_id": "3c85e5c866ebf289",
+  "created_utc": "2026-11-26T17:13:44Z",
+  "env": {
+    "libs": {
+      "lightgbm": "4.6.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.3",
+      "pyarrow": "24.0.0",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.1"
+    },
+    "python": "/home/sean/binary-algo-venv/bin/python",
+    "python_version": "3.12.3"
+  },
+  "evidence_binding": {
+    "certifier_fit_ledger_prefix_sha256": "67e48f06f180dd428bdb6241d04d20912f948ef165307f901a13c68ca5ed5135",
+    "certifier_receipt_sha256": "681c96d375374fc045357e4b17b5106a32b0a1ded745c2dfbeb10c9a083f5c3a",
+    "dossier_path": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+    "dossier_sha256": "287e0e264c93b9ec9a86adda722b3288e41ed28a4de2bde017dec64e0adbd88a",
+    "post_builder_fit_ledger_sha256": "3ffa4a87687a0c48ef5a9acc713207c735ee6ef730c3585359638255b91786da",
+    "preregistration_sha256": "245982ee1fb7ccaf36d614ae234fc4653d0502477fd4b683d5a5890d208ca4a1"
+  },
+  "gate_certificates": {
+    "G1_cpcv": {
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+      "forward_mean_ev": 0.1086004923786742,
+      "mean_wr": 0.6241557962579809,
+      "p10_wr": 0.5899763076362311,
+      "passed": true,
+      "paths_clear": 15,
+      "paths_clear_0565": 15,
+      "paths_counted": 15,
+      "validity_note": "Owner Decision 1 drift amendment satisfied via G2_placebo + G4_sign_null + frozen 2025->2026 OOS"
+    },
+    "G2_placebo": {
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+      "mean_excess_hour_vol": 0.06045164700228314,
+      "passed": true,
+      "paths_positive": 15,
+      "verdict": "SKILL BEYOND DRIFT TIMING"
+    },
+    "G3_entry_delay": {
+      "d4_p10_wr": 0.5895003162555345,
+      "d4_paths_clear": 15,
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+      "passed": true,
+      "verdict_delay": "OPERATIONALLY ROBUST",
+      "verdict_staleness": "NOT A STALE-FEED ARTIFACT"
+    },
+    "G4_sign_null": {
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+      "null_max_p10": 0.5410972297664313,
+      "null_passes": 1,
+      "passed": true,
+      "real_p10_rank": "1/17",
+      "verdict": "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS"
+    },
+    "G5_payout": {
+      "annual_floor_log_growth_p10": 0.5717518016380138,
+      "classification": "fixed_ratio_dev_sensitivity_only_not_decision5",
+      "decision5_per_trade_30m_payout_reading": "unavailable",
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+      "mean_ev": 0.13596354918952575,
+      "p10_ev": 0.07375687989794062,
+      "passed": true,
+      "paths_counted": 15,
+      "paths_ev_positive": 15,
+      "quoted_payout_ratio": 1.82,
+      "verdict": "FIXED_RATIO_SENSITIVITY_PASS"
+    },
+    "G6_holdout_or_prospective": {
+      "mode": "prospective_demo_venue_settled",
+      "passed": false,
+      "reason": "Sealed >= 2026-08-01 holdout preserved untouched; promote after >=50 Demo VENUE_SETTLED trades with EV CI95_lo > 0 via scripts/deriv_live_pnl_ledger.py."
+    }
+  },
+  "horizon_minutes": 30,
+  "id": "USDJPY.sota_stack05_m30_up.v1",
+  "lifecycle_status": "demo_venue_settled_canary",
+  "metrics": {
+    "annual_floor_log_growth_p10": 0.5718,
+    "cpcv_mean_ev": 0.136,
+    "cpcv_mean_wr": 0.6242,
+    "cpcv_p10_ev": 0.0738,
+    "cpcv_p10_wr": 0.59,
+    "cpcv_paths_clear": "15/15",
+    "cpcv_paths_clear_0565": "15/15",
+    "decision5_per_trade_30m_payout_reading": "unavailable",
+    "est_trades_per_year": 416
+  },
+  "model_kind": "nystroem-lgb-stack",
+  "pair": "USDJPY",
+  "schema": "sota-book-manifest/v1",
+  "settlement_substrate": "deriv_1s_ticks",
+  "source": {
+    "git_sha": "9c25ed18af9de30fffe18f6b909cf745f495614c",
+    "script": "scripts/build_certified_sota_books.py",
+    "source_sha256": "6f377e63ac92330cec10af9b08764d19e6c0039d4c67350280190e60ec851247"
+  },
+  "summary": "[USDJPY\u00b730m\u00b7UP] SOTA nystroem-lgb-stack (50/50 5-seed 500-comp RBF Nystroem + single-booster LightGBM) on 66 native 1s-tick features (cov=0.05, fixed-ratio R=1.82 DEV sensitivity; Decision 5 30m per-trade reading unavailable). Passed G1 (15/15, >=0.565: 15/15, p10=0.5900, mean=0.6242), G2 (+0.0605), G3 (+4s p10=0.5895), G4 (DESCRIPTIVE_RANK_DIAGNOSTIC_PASS, rank 1/17), and G5 sensitivity (p10_ev=+0.0738, g*_p10=0.5718/yr)."
+}

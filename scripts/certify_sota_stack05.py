@@ -198,6 +198,58 @@ CANONICAL_LEDGER_NAME = "sota_stack05_fit_ledger.json"
 CANONICAL_RECEIPT_NAME = "sota_stack05_cert_receipt.json"
 CANONICAL_BUILDER_SUFFIX_NAME = "builder_suffix.json"
 
+G4_MODE_PLATT_EV = "platt_ev"
+G4_MODE_RAW_TOP5 = "raw_top5"
+REGISTERED_ARM_G4_MODES: dict[str, str] = {
+    "stack05_m30_up_v1": G4_MODE_PLATT_EV,
+    "stack05_m30_up_v2": G4_MODE_RAW_TOP5,
+}
+
+
+def validate_arm_g4_mode(arm_name: str, g4_mode: str) -> None:
+    if g4_mode not in (G4_MODE_PLATT_EV, G4_MODE_RAW_TOP5):
+        raise OperationalHoldError(f"unsupported g4_mode: {g4_mode!r}")
+    expected = REGISTERED_ARM_G4_MODES.get(arm_name)
+    if expected is not None and g4_mode != expected:
+        raise OperationalHoldError(
+            f"registered arm {arm_name!r} requires g4_mode={expected!r}, got {g4_mode!r}"
+        )
+
+
+def default_out_dir_for_arm(arm_name: str = ARM_NAME) -> Path:
+    artifact_names_for_arm(arm_name)
+    return DEFAULT_OUT_DIR.parent / arm_name
+
+
+def default_archive_dir_for_arm(arm_name: str = ARM_NAME) -> Path:
+    artifact_names_for_arm(arm_name)
+    return DEFAULT_ARCHIVE_DIR.parent / arm_name
+
+
+def artifact_names_for_arm(arm_name: str = ARM_NAME) -> dict[str, str]:
+    """Return canonical artifact filenames for arm_name (exact legacy names preserved for v1)."""
+    if arm_name == ARM_NAME:
+        return {
+            "dossier": CANONICAL_DOSSIER_NAME,
+            "lock": CANONICAL_LOCK_NAME,
+            "ckpt": CANONICAL_CKPT_NAME,
+            "scores": CANONICAL_SCORES_NAME,
+            "ledger": CANONICAL_LEDGER_NAME,
+            "receipt": CANONICAL_RECEIPT_NAME,
+            "builder_suffix": CANONICAL_BUILDER_SUFFIX_NAME,
+        }
+    if arm_name == "stack05" or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", arm_name):
+        raise OperationalHoldError(f"invalid or reserved arm_name: {arm_name!r}")
+    return {
+        "dossier": f"deriv_5gate_USDJPY_sota_{arm_name}_result.json",
+        "lock": f"sota_{arm_name}_cert.lock",
+        "ckpt": f"sota_{arm_name}_cert_ckpt.json",
+        "scores": f"sota_{arm_name}_cert_scores.npz",
+        "ledger": f"sota_{arm_name}_fit_ledger.json",
+        "receipt": f"sota_{arm_name}_cert_receipt.json",
+        "builder_suffix": CANONICAL_BUILDER_SUFFIX_NAME,
+    }
+
 FIT_LEDGER_SCHEMA = "sota-stack05-fit-ledger/v1"
 RECEIPT_SCHEMA = "sota-5gate-certification-receipt/v1"
 DOSSIER_SCHEMA = "sota-5gate-certification-dossier/v3"
@@ -1233,6 +1285,38 @@ def _select_role_trades(
     }
 
 
+def _select_role_trades_raw_top_cov(
+    p_raw: np.ndarray,
+    ts_sub: np.ndarray,
+    ret_sub: np.ndarray,
+    *,
+    conf_thr: float,
+) -> dict[str, Any]:
+    """Raw uncalibrated top-coverage UP selection (no Platt/EV filter; apples-to-apples G4 comparator)."""
+    mask = (
+        np.isfinite(p_raw)
+        & (p_raw > 0.5)
+        & (np.abs(p_raw - 0.5) >= float(conf_thr))
+    )
+    sel_local = nonoverlap_chrono(ts_sub, mask, gap=HORIZON_S)
+    trade_ts = ts_sub[sel_local].astype(np.int64)
+    trade_wins = (ret_sub[sel_local] > 0.0).astype(np.int64)
+    n = int(len(sel_local))
+    wins = int(np.sum(trade_wins)) if n > 0 else 0
+    wr = float(wins / n) if n > 0 else None
+    ev = float((wins / n) * QUOTED_PAYOUT_RATIO - 1.0) if n > 0 else None
+    return {
+        "sel_local": sel_local,
+        "trade_ts": trade_ts,
+        "trade_wins": trade_wins,
+        "trade_ts_sha256": sha256_bytes(trade_ts.tobytes()),
+        "n": n,
+        "wins": wins,
+        "wr": wr,
+        "ev": ev,
+    }
+
+
 def _linear_p10(values: list[float]) -> float | None:
     finite = [float(v) for v in values if v is not None and math.isfinite(float(v))]
     if not finite:
@@ -1320,9 +1404,22 @@ def evaluate_all_gates_from_scores(
     local_source_closure_sha256: str,
     final_fit_expected_identity: dict[str, Any] | None = None,
     strict_verify_cal: bool = False,
+    arm_name: str = ARM_NAME,
+    g4_mode: str | None = None,
 ) -> dict[str, Any]:
     """Pure zero-fit evaluation of all 262 roles, G1-G5, final_fit, and raw strict_certificate."""
     from fractions import Fraction
+
+    eff_g4_mode = g4_mode
+    if eff_g4_mode is None:
+        eff_g4_mode = (
+            G4_MODE_RAW_TOP5
+            if preregistration_payload.get("g4_selection_mode") == "raw_top5_apples_to_apples"
+            else G4_MODE_PLATT_EV
+        )
+    if eff_g4_mode not in (G4_MODE_PLATT_EV, G4_MODE_RAW_TOP5):
+        raise OperationalHoldError(f"unsupported g4_mode: {eff_g4_mode!r}")
+    arm_names = artifact_names_for_arm(arm_name)
 
     ts_all = df_dev["decision_ts"].to_numpy(dtype=np.int64)
     rv60_all = df_dev["rv_60m"].to_numpy(dtype=np.float64)
@@ -1330,9 +1427,12 @@ def evaluate_all_gates_from_scores(
     # 1. Reconstruct every role's metrics strictly from scores_dict + cal_by_role (zero fitting!)
     role_records: dict[str, dict[str, Any]] = {}
     role_trades: dict[str, dict[str, Any]] = {}
+    raw_top5_trades: dict[str, dict[str, Any]] = {}
     for spec in role_specs:
         role = spec["role"]
         is_final = role == "final_fit"
+        is_null = spec["kind"] == "null"
+        is_real = spec["kind"] == "real"
         val_key = "final_fit_val" if is_final else f"{role}_val"
         test_key = None if is_final else f"{role}_test"
         val_scores = np.asarray(scores_dict[val_key], dtype=np.float64)
@@ -1393,8 +1493,63 @@ def evaluate_all_gates_from_scores(
                 ):
                     raise OperationalHoldError(f"{role}: inadmissible persisted Platt parameters")
 
+        # Under raw_top5 G4 mode, null roles always evaluate raw top-5% confidence regardless of Platt admissibility!
+        if eff_g4_mode == G4_MODE_RAW_TOP5 and is_null:
+            if len(test_scores) != len(spec["test_idx"]):
+                raise OperationalHoldError(f"{role}: raw_top5 null test score length {len(test_scores)} != {len(spec['test_idx'])}")
+            if exp_thr is not None:
+                tr_raw = _select_role_trades_raw_top_cov(
+                    test_scores,
+                    ts_all[spec["test_idx"]],
+                    spec["ret_arr"][spec["test_idx"]],
+                    conf_thr=exp_thr,
+                )
+            else:
+                tr_raw = {"sel_local": np.empty(0, dtype=np.int64), "trade_ts": np.empty(0, dtype=np.int64), "trade_wins": np.empty(0, dtype=np.int64), "trade_ts_sha256": sha256_bytes(b""), "n": 0, "wins": 0, "wr": None, "ev": None}
+            supported_null = bool(tr_raw["n"] >= MIN_PATH_TRADES)
+            role_records[role] = {
+                "support_ok": True,
+                "cal_admissible": cal_ok,
+                "failure_reason": c_meta.get("failure_reason"),
+                "n_val_oos": int(len(spec["val_idx"])),
+                "conf_thr": exp_thr,
+                "platt_coef": c_meta.get("platt_coef"),
+                "platt_intercept": c_meta.get("platt_intercept"),
+                "role_indices_sha256": spec["role_indices_sha256"],
+                "trade_ts_sha256": tr_raw["trade_ts_sha256"],
+                "n": tr_raw["n"],
+                "wins": tr_raw["wins"],
+                "wr": tr_raw["wr"],
+                "ev": tr_raw["ev"],
+                "supported": supported_null,
+            }
+            role_trades[role] = tr_raw
+            raw_top5_trades[role] = tr_raw
+            continue
+
         if not cal_ok:
-            if not is_final and len(test_scores) != 0:
+            if eff_g4_mode == G4_MODE_RAW_TOP5 and is_real:
+                if len(test_scores) != len(spec["test_idx"]):
+                    raise OperationalHoldError(f"{role}: raw_top5 real test score length {len(test_scores)} != {len(spec['test_idx'])}")
+                if exp_thr is not None:
+                    raw_top5_trades[role] = _select_role_trades_raw_top_cov(
+                        test_scores,
+                        ts_all[spec["test_idx"]],
+                        spec["ret_arr"][spec["test_idx"]],
+                        conf_thr=exp_thr,
+                    )
+                else:
+                    raw_top5_trades[role] = {
+                        "sel_local": np.empty(0, dtype=np.int64),
+                        "trade_ts": np.empty(0, dtype=np.int64),
+                        "trade_wins": np.empty(0, dtype=np.int64),
+                        "trade_ts_sha256": sha256_bytes(b""),
+                        "n": 0,
+                        "wins": 0,
+                        "wr": None,
+                        "ev": None,
+                    }
+            elif not is_final and len(test_scores) != 0:
                 raise OperationalHoldError(f"{role}: expected empty test scores on calibration refusal")
             role_records[role] = {
                 "support_ok": True,
@@ -1471,6 +1626,13 @@ def evaluate_all_gates_from_scores(
                 platt_coef=p_coef,
                 platt_intercept=p_int,
             )
+            if eff_g4_mode == G4_MODE_RAW_TOP5 and is_real:
+                raw_top5_trades[role] = _select_role_trades_raw_top_cov(
+                    test_scores,
+                    ts_all[spec["test_idx"]],
+                    spec["ret_arr"][spec["test_idx"]],
+                    conf_thr=exp_thr,
+                )
             min_sup = 50 if role in ("frozen_past", "incumbent_frozen_past") else MIN_PATH_TRADES
             supported = bool(tr["n"] >= min_sup)
             role_records[role] = {
@@ -1793,6 +1955,23 @@ def evaluate_all_gates_from_scores(
     readable_null_p10s: list[float] = []
     null_passes = 0
     n_null_ge_real = 0
+    n_null_ge_real_raw = 0
+    n_null_ge_real_platt = 0
+
+    if eff_g4_mode == G4_MODE_RAW_TOP5:
+        real_raw_wrs = [
+            float(raw_top5_trades[s["role"]]["wr"])
+            for s in real_specs
+            if s["role"] in raw_top5_trades
+            and int(raw_top5_trades[s["role"]]["n"]) >= MIN_PATH_TRADES
+            and raw_top5_trades[s["role"]]["wr"] is not None
+        ]
+        real_raw_paths_counted = len(real_raw_wrs)
+        real_raw_p10_wr = _linear_p10(real_raw_wrs)
+    else:
+        real_raw_paths_counted = None
+        real_raw_p10_wr = None
+
     for w in NULL_SHIFTS_WEEKS:
         w_specs = [s for s in role_specs if s["kind"] == "null" and s["week_shift"] == w]
         w_wrs = [
@@ -1810,7 +1989,13 @@ def evaluate_all_gates_from_scores(
         if readable_w and p10_w is not None:
             readable_null_p10s.append(float(p10_w))
             if g1_p10_wr is not None and float(p10_w) >= float(g1_p10_wr):
-                n_null_ge_real += 1
+                n_null_ge_real_platt += 1
+            if eff_g4_mode == G4_MODE_RAW_TOP5:
+                if real_raw_p10_wr is not None and float(p10_w) >= float(real_raw_p10_wr):
+                    n_null_ge_real_raw += 1
+            else:
+                if g1_p10_wr is not None and float(p10_w) >= float(g1_p10_wr):
+                    n_null_ge_real += 1
         if passed_like_real_w:
             null_passes += 1
         null_shift_summaries.append(
@@ -1826,19 +2011,47 @@ def evaluate_all_gates_from_scores(
 
     readable_null_shifts = len(readable_null_p10s)
     null_max_p10 = float(max(readable_null_p10s)) if readable_null_p10s else None
-    g4_passed = bool(
-        g1_p10_wr is not None and readable_null_shifts >= 12 and null_passes <= 1 and n_null_ge_real <= 1
-    )
-    g4_obj = {
-        "passed": g4_passed,
-        "verdict": "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS" if g4_passed else "DESCRIPTIVE_RANK_DIAGNOSTIC_FAIL",
-        "readable_null_shifts": readable_null_shifts,
-        "null_passes": null_passes,
-        "n_null_ge_real": n_null_ge_real,
-        "null_max_p10": null_max_p10,
-        "real_p10_rank": f"{1 + n_null_ge_real}/{readable_null_shifts + 1}" if g1_p10_wr is not None else None,
-        "shifts": null_shift_summaries,
-    }
+    if eff_g4_mode == G4_MODE_RAW_TOP5:
+        n_null_ge_real = max(n_null_ge_real_raw, n_null_ge_real_platt)
+        g4_passed = bool(
+            g1_p10_wr is not None
+            and real_raw_paths_counted is not None
+            and real_raw_paths_counted >= 12
+            and real_raw_p10_wr is not None
+            and readable_null_shifts >= 12
+            and null_passes <= 1
+            and n_null_ge_real_raw <= 1
+            and n_null_ge_real_platt <= 1
+        )
+        g4_obj: dict[str, Any] = {
+            "passed": g4_passed,
+            "verdict": "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS" if g4_passed else "DESCRIPTIVE_RANK_DIAGNOSTIC_FAIL",
+            "g4_selection_mode": "raw_top5_apples_to_apples",
+            "real_raw_top5_paths_counted": real_raw_paths_counted,
+            "real_raw_top5_p10_wr": real_raw_p10_wr,
+            "readable_null_shifts": readable_null_shifts,
+            "null_passes": null_passes,
+            "n_null_ge_real_raw": n_null_ge_real_raw,
+            "n_null_ge_real_platt": n_null_ge_real_platt,
+            "n_null_ge_real": n_null_ge_real,
+            "null_max_p10": null_max_p10,
+            "real_p10_rank": f"{1 + n_null_ge_real}/{readable_null_shifts + 1}" if (g1_p10_wr is not None and real_raw_p10_wr is not None) else None,
+            "shifts": null_shift_summaries,
+        }
+    else:
+        g4_passed = bool(
+            g1_p10_wr is not None and readable_null_shifts >= 12 and null_passes <= 1 and n_null_ge_real <= 1
+        )
+        g4_obj = {
+            "passed": g4_passed,
+            "verdict": "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS" if g4_passed else "DESCRIPTIVE_RANK_DIAGNOSTIC_FAIL",
+            "readable_null_shifts": readable_null_shifts,
+            "null_passes": null_passes,
+            "n_null_ge_real": n_null_ge_real,
+            "null_max_p10": null_max_p10,
+            "real_p10_rank": f"{1 + n_null_ge_real}/{readable_null_shifts + 1}" if g1_p10_wr is not None else None,
+            "shifts": null_shift_summaries,
+        }
 
     # 6. Drift amendment & G1_cpcv aggregate
     max_6pair_frac = Fraction(int(peer_tie_info["max_ties"]), int(peer_tie_info["max_total"]))
@@ -2005,7 +2218,7 @@ def evaluate_all_gates_from_scores(
     dossier: dict[str, Any] = {
         "schema": DOSSIER_SCHEMA,
         "book_id": BOOK_ID,
-        "arm_name": ARM_NAME,
+        "arm_name": arm_name,
         "pair": PAIR,
         "horizon_min": HORIZON_MIN,
         "side": "UP",
@@ -2078,7 +2291,7 @@ def evaluate_all_gates_from_scores(
     sc_up = cert_mod.strict_certificate(dossier, "UP")
     sc_up_clean = {k: (None if isinstance(v, float) and not math.isfinite(v) else v) for k, v in sc_up.items()}
     dossier["strict_certificate_up"] = sc_up_clean
-    exact, differ, unreadable, legacy_only = cert_mod._reread_result(CANONICAL_DOSSIER_NAME, dossier)
+    exact, differ, unreadable, legacy_only = cert_mod._reread_result(arm_names["dossier"], dossier)
     if (exact, differ, unreadable, legacy_only) != (2, [], [], []):
         raise OperationalHoldError(
             f"certificate._reread_result mismatch: exact={exact} differ={differ} unreadable={unreadable} legacy={legacy_only}"
@@ -2261,24 +2474,26 @@ def verify_bundle(
     pinned_parquets: dict[str, tuple[int, str]] | None = None,
     expected_manifest_sha256: str | None = DEV_MANIFEST_SHA256,
     skip_closure_check: bool = False,
+    arm_name: str = ARM_NAME,
     _injected_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Strictly read-only, ZERO-FIT authentication of certifier bundle (+ optional builder suffix)."""
     if not skip_closure_check:
         verify_source_closure_and_loaded_modules(repo_root)
 
+    names = artifact_names_for_arm(arm_name)
     if bundle_dir is not None:
         bdir = Path(bundle_dir)
-        receipt_path = bdir / CANONICAL_RECEIPT_NAME
-        dossier_path = bdir / CANONICAL_DOSSIER_NAME
-        scores_path = bdir / CANONICAL_SCORES_NAME
-        ledger_path = bdir / CANONICAL_LEDGER_NAME
-        suffix_path = bdir / CANONICAL_BUILDER_SUFFIX_NAME
+        receipt_path = bdir / names["receipt"]
+        dossier_path = bdir / names["dossier"]
+        scores_path = bdir / names["scores"]
+        ledger_path = bdir / names["ledger"]
+        suffix_path = bdir / names["builder_suffix"]
     else:
-        receipt_path = repo_root / "logs" / CANONICAL_RECEIPT_NAME
-        dossier_path = repo_root / "results" / "json" / CANONICAL_DOSSIER_NAME
-        scores_path = repo_root / "logs" / CANONICAL_SCORES_NAME
-        ledger_path = repo_root / "logs" / CANONICAL_LEDGER_NAME
+        receipt_path = repo_root / "logs" / names["receipt"]
+        dossier_path = repo_root / "results" / "json" / names["dossier"]
+        scores_path = repo_root / "logs" / names["scores"]
+        ledger_path = repo_root / "logs" / names["ledger"]
         suffix_path = None
 
     for req_p in (receipt_path, dossier_path, scores_path, ledger_path):
@@ -2292,12 +2507,25 @@ def verify_bundle(
     receipt = strict_json_loads(receipt_raw)
     if receipt.get("schema") != RECEIPT_SCHEMA:
         raise OperationalHoldError(f"invalid receipt schema: {receipt.get('schema')!r}")
+    rcpt_arm = str(receipt.get("arm_name") or ARM_NAME)
+    if rcpt_arm != arm_name:
+        raise OperationalHoldError(f"receipt arm_name mismatch: {rcpt_arm!r} != {arm_name!r}")
 
     dossier_raw = dossier_path.read_bytes()
     actual_dos_sha = sha256_bytes(dossier_raw)
     if actual_dos_sha != receipt.get("dossier_sha256"):
         raise OperationalHoldError(f"dossier SHA-256 mismatch: {actual_dos_sha} != {receipt.get('dossier_sha256')}")
     dossier = strict_json_loads(dossier_raw)
+    dos_arm = str(dossier.get("arm_name") or ARM_NAME)
+    prereg_arm = str((dossier.get("preregistration_payload") or {}).get("arm_name") or ARM_NAME)
+    if dos_arm != arm_name or prereg_arm != arm_name:
+        raise OperationalHoldError(f"dossier/prereg arm_name mismatch: dossier={dos_arm!r}, prereg={prereg_arm!r}, expected={arm_name!r}")
+    prereg_g4_mode = (
+        G4_MODE_RAW_TOP5
+        if (dossier.get("preregistration_payload") or {}).get("g4_selection_mode") == "raw_top5_apples_to_apples"
+        else G4_MODE_PLATT_EV
+    )
+    validate_arm_g4_mode(arm_name, prereg_g4_mode)
 
     scores_dict, scores_bytes, scores_sha = load_verified_scores_npz(scores_path)
     if scores_bytes != int(receipt["scores_npz_bytes"]) or scores_sha != str(receipt["scores_npz_sha256"]):
@@ -2319,7 +2547,7 @@ def verify_bundle(
     witnesses = [
         w
         for w in (parse_progress_builder_witnesses(progress_md) if progress_md is not None else [])
-        if w["preregistration_sha256"] == prereg_sha and w["receipt_sha256"] == expected_receipt_sha256
+        if w["preregistration_sha256"] == prereg_sha and w["receipt_sha256"] == expected_receipt_sha256 and w["arm"] == arm_name
     ]
     if not allow_builder_suffix:
         if witnesses:
@@ -2432,6 +2660,7 @@ def verify_bundle(
             else None
         ),
         strict_verify_cal=True,
+        arm_name=arm_name,
     )
 
     # Compare every role's reconstructed metadata & trade_ts_sha256
@@ -2483,7 +2712,7 @@ def verify_bundle(
     if recon["verdict"] == "PASS" and not receipt.get("final_fit_expected_content_id"):
         raise OperationalHoldError("PASS receipt missing final_fit_expected_content_id")
 
-    exact, differ, unreadable, legacy_only = cert_mod._reread_result(CANONICAL_DOSSIER_NAME, dossier)
+    exact, differ, unreadable, legacy_only = cert_mod._reread_result(names["dossier"], dossier)
     if (exact, differ, unreadable, legacy_only) != (2, [], [], []):
         raise OperationalHoldError(
             f"stored dossier failed certificate._reread_result: {(exact, differ, unreadable, legacy_only)}"
@@ -2508,25 +2737,31 @@ def verify_bundle(
 
 def run_certification(
     *,
-    out_dir: Path = DEFAULT_OUT_DIR,
+    out_dir: Path | None = None,
     max_wall_s: float = 14400.0,
     dev_dir: Path = DEFAULT_DEV_DATASET_DIR,
     ticks_root: Path = DEFAULT_TICKS_ROOT,
     repo_root: Path = REPO_ROOT,
+    arm_name: str = ARM_NAME,
+    g4_mode: str | None = None,
 ) -> dict[str, Any]:
+    eff_g4_mode = g4_mode if g4_mode is not None else REGISTERED_ARM_G4_MODES.get(arm_name, G4_MODE_PLATT_EV)
+    validate_arm_g4_mode(arm_name, eff_g4_mode)
+    g4_mode = eff_g4_mode
     t_start = time.monotonic()
     check_pipeline_features_dir_exists()
     closure_sha, closure_files = verify_source_closure_and_loaded_modules(repo_root)
 
-    out_dir = Path(out_dir)
+    names = artifact_names_for_arm(arm_name)
+    out_dir = Path(out_dir) if out_dir is not None else default_out_dir_for_arm(arm_name)
     out_dir.mkdir(parents=True, exist_ok=True)
-    lock_path = out_dir / CANONICAL_LOCK_NAME
-    ckpt_path = out_dir / CANONICAL_CKPT_NAME
-    ledger_path = out_dir / CANONICAL_LEDGER_NAME
-    scores_path = out_dir / CANONICAL_SCORES_NAME
-    dossier_path = out_dir / CANONICAL_DOSSIER_NAME
-    receipt_path = out_dir / CANONICAL_RECEIPT_NAME
-    role_cache_dir = out_dir / ".role_scores_cache"
+    lock_path = out_dir / names["lock"]
+    ckpt_path = out_dir / names["ckpt"]
+    ledger_path = out_dir / names["ledger"]
+    scores_path = out_dir / names["scores"]
+    dossier_path = out_dir / names["dossier"]
+    receipt_path = out_dir / names["receipt"]
+    role_cache_dir = out_dir / (".role_scores_cache" if arm_name == ARM_NAME else f".role_scores_cache_{arm_name}")
     role_cache_dir.mkdir(parents=True, exist_ok=True)
 
     # Authenticate pinned DEV inputs BEFORE any debit or fit!
@@ -2540,9 +2775,9 @@ def run_certification(
     comp_raw = read_verified_file_nofollow(repo_root, HISTORICAL_COMPARATOR_REL.split("/"), expected_sha256=HISTORICAL_COMPARATOR_SHA256)
     assert len(comp_raw) > 0
 
-    preregistration_payload = {
+    preregistration_payload: dict[str, Any] = {
         "schema": "sota-stack05-preregistration/v1",
-        "arm_name": ARM_NAME,
+        "arm_name": arm_name,
         "book_id": BOOK_ID,
         "pair": PAIR,
         "horizon_min": HORIZON_MIN,
@@ -2560,6 +2795,8 @@ def run_certification(
         "g3_freshness_rule": "owner_decision_1_deoverlapped_le2s_subgroup_baseline",
         "percentile_method": "linear",
     }
+    if g4_mode == G4_MODE_RAW_TOP5:
+        preregistration_payload["g4_selection_mode"] = "raw_top5_apples_to_apples"
     prereg_sha = sha256_bytes(canonical_json_bytes(preregistration_payload))
     init_or_load_fit_ledger(ledger_path, prereg_sha, allow_builder_attempt=False)
 
@@ -2639,7 +2876,7 @@ def run_certification(
             fit_res = fit_role_trainer(X_all, fcols, sp, return_estimators=is_final)
             v_arr = fit_res["val_p_raw"]
             cal_m = fit_role_calibration(v_arr, sp["ret_arr"][sp["val_idx"]], float(sp["cov"]))
-            if not cal_m["cal_admissible"]:
+            if not cal_m["cal_admissible"] and not (g4_mode == G4_MODE_RAW_TOP5 and sp["kind"] in ("real", "null")):
                 t_arr = np.empty(0, dtype=np.float64)
             else:
                 t_arr = fit_res["test_p_raw"]
@@ -2729,6 +2966,8 @@ def run_certification(
         local_source_closure_sha256=closure_sha,
         final_fit_expected_identity=None,
         strict_verify_cal=True,
+        arm_name=arm_name,
+        g4_mode=g4_mode,
     )
 
     # On PASS, independently compute final_fit_expected_content_id & artifact digests in memory!
@@ -2785,6 +3024,8 @@ def run_certification(
             local_source_closure_sha256=closure_sha,
             final_fit_expected_identity=ff_expected_identity,
             strict_verify_cal=True,
+            arm_name=arm_name,
+            g4_mode=g4_mode,
         )
     else:
         dossier = dossier_prelim
@@ -2806,7 +3047,7 @@ def run_certification(
     receipt: dict[str, Any] = {
         "schema": RECEIPT_SCHEMA,
         "book_id": BOOK_ID,
-        "arm_name": ARM_NAME,
+        "arm_name": arm_name,
         "preregistration_sha256": prereg_sha,
         "local_source_closure_sha256": closure_sha,
         "dossier_sha256": dossier_sha,
@@ -2843,15 +3084,26 @@ def publish_certifier_prefix_bundle(
     *,
     src_dir: Path,
     checkout_root: Path = REPO_ROOT,
-    archive_dir: Path = DEFAULT_ARCHIVE_DIR,
+    archive_dir: Path | None = None,
     lab_root: Path | None = None,
+    arm_name: str = ARM_NAME,
 ) -> dict[str, str]:
     """Durably stage & atomically publish the 4 immutable 0-builder prefix files to checkout & $A (spec §3.2 + B1)."""
+    names = artifact_names_for_arm(arm_name)
+    archive_dir = Path(archive_dir) if archive_dir is not None else default_archive_dir_for_arm(arm_name)
+    if archive_dir.name.startswith("stack05_") and archive_dir.name != arm_name:
+        raise OperationalHoldError(f"refusing cross-arm archive target {archive_dir} for arm {arm_name!r}")
+    if archive_dir.is_dir():
+        allowed_names = {names["scores"], names["ledger"], names["dossier"], names["receipt"], names["builder_suffix"]}
+        for existing in archive_dir.iterdir():
+            if existing.name not in allowed_names:
+                raise OperationalHoldError(f"refusing cross-arm or non-empty archive {archive_dir}: unexpected file {existing.name}")
+    scores_n, ledger_n, dossier_n, receipt_n = names["scores"], names["ledger"], names["dossier"], names["receipt"]
     src_files = {
-        CANONICAL_SCORES_NAME: src_dir / CANONICAL_SCORES_NAME,
-        CANONICAL_LEDGER_NAME: src_dir / CANONICAL_LEDGER_NAME,
-        CANONICAL_DOSSIER_NAME: src_dir / CANONICAL_DOSSIER_NAME,
-        CANONICAL_RECEIPT_NAME: src_dir / CANONICAL_RECEIPT_NAME,
+        scores_n: src_dir / scores_n,
+        ledger_n: src_dir / ledger_n,
+        dossier_n: src_dir / dossier_n,
+        receipt_n: src_dir / receipt_n,
     }
     raw_map: dict[str, bytes] = {}
     sha_map: dict[str, str] = {}
@@ -2861,13 +3113,16 @@ def publish_certifier_prefix_bundle(
         raw = p.read_bytes()
         raw_map[name] = raw
         sha_map[name] = sha256_bytes(raw)
+    rcpt_obj = strict_json_loads(raw_map[receipt_n])
+    if str(rcpt_obj.get("arm_name") or ARM_NAME) != arm_name:
+        raise OperationalHoldError(f"source receipt arm_name mismatch for {arm_name!r}")
 
-    order = (CANONICAL_SCORES_NAME, CANONICAL_LEDGER_NAME, CANONICAL_DOSSIER_NAME, CANONICAL_RECEIPT_NAME)
+    order = (scores_n, ledger_n, dossier_n, receipt_n)
     checkout_targets = {
-        CANONICAL_SCORES_NAME: checkout_root / "logs" / CANONICAL_SCORES_NAME,
-        CANONICAL_LEDGER_NAME: checkout_root / "logs" / CANONICAL_LEDGER_NAME,
-        CANONICAL_DOSSIER_NAME: checkout_root / "results" / "json" / CANONICAL_DOSSIER_NAME,
-        CANONICAL_RECEIPT_NAME: checkout_root / "logs" / CANONICAL_RECEIPT_NAME,
+        scores_n: checkout_root / "logs" / scores_n,
+        ledger_n: checkout_root / "logs" / ledger_n,
+        dossier_n: checkout_root / "results" / "json" / dossier_n,
+        receipt_n: checkout_root / "logs" / receipt_n,
     }
 
     def _publish_one(dst: Path, raw: bytes, mode: int | None) -> None:
@@ -2900,7 +3155,9 @@ def publish_certifier_prefix_bundle(
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
+    ap.add_argument("--arm-name", default=ARM_NAME)
+    ap.add_argument("--g4-mode", choices=(G4_MODE_PLATT_EV, G4_MODE_RAW_TOP5), default=None)
+    ap.add_argument("--out-dir", default=None)
     ap.add_argument("--max-wall-s", type=float, default=14400.0)
     ap.add_argument("--dev-dir", default=str(DEFAULT_DEV_DATASET_DIR))
     ap.add_argument("--ticks-root", default=str(DEFAULT_TICKS_ROOT))
@@ -2909,43 +3166,57 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--expected-verdict", choices=("PASS", "KILL-STACK"), default=None)
     ap.add_argument("--allow-builder-suffix", action="store_true")
     ap.add_argument("--progress-md", default=None)
-    ap.add_argument("--bundle-dir", default=None)
+    ap.add_argument(
+        "--bundle-dir",
+        default=None,
+        help="Archive directory to verify (default: verify checkout logs/ + results/json/ copy, or per-arm archive when --allow-builder-suffix is set)",
+    )
     ap.add_argument("--publish-prefix", action="store_true", help="Publish 4 immutable 0-builder prefix files from --out-dir to checkout & --archive-dir")
-    ap.add_argument("--archive-dir", default=str(DEFAULT_ARCHIVE_DIR))
+    ap.add_argument("--archive-dir", default=None)
     args = ap.parse_args(argv)
+    arm_name = str(args.arm_name)
+    out_dir = Path(args.out_dir) if args.out_dir else default_out_dir_for_arm(arm_name)
+    archive_dir = Path(args.archive_dir) if args.archive_dir else default_archive_dir_for_arm(arm_name)
+    eff_g4_mode = args.g4_mode if args.g4_mode is not None else REGISTERED_ARM_G4_MODES.get(arm_name, G4_MODE_PLATT_EV)
+    validate_arm_g4_mode(arm_name, eff_g4_mode)
 
     if args.verify_bundle:
         if not args.expected_receipt_sha256:
             print("ERROR: --verify-bundle requires --expected-receipt-sha256", file=sys.stderr)
             return 2
+        verify_bdir = Path(args.bundle_dir) if args.bundle_dir else (default_archive_dir_for_arm(arm_name) if args.allow_builder_suffix else None)
         res = verify_bundle(
             expected_receipt_sha256=args.expected_receipt_sha256.strip(),
-            bundle_dir=Path(args.bundle_dir) if args.bundle_dir else None,
+            bundle_dir=verify_bdir,
             repo_root=REPO_ROOT,
             expected_verdict=args.expected_verdict,
             allow_builder_suffix=bool(args.allow_builder_suffix),
             progress_md=Path(args.progress_md) if args.progress_md else None,
             dev_dir=Path(args.dev_dir),
             ticks_root=Path(args.ticks_root),
+            arm_name=arm_name,
         )
         print(json.dumps(res, indent=2, sort_keys=True))
         return 0
 
     if args.publish_prefix:
         shas = publish_certifier_prefix_bundle(
-            src_dir=Path(args.out_dir),
+            src_dir=out_dir,
             checkout_root=REPO_ROOT,
-            archive_dir=Path(args.archive_dir),
+            archive_dir=archive_dir,
+            arm_name=arm_name,
         )
         print(json.dumps({"published": True, "sha256": shas}, indent=2, sort_keys=True))
         return 0
 
     res = run_certification(
-        out_dir=Path(args.out_dir),
+        out_dir=out_dir,
         max_wall_s=float(args.max_wall_s),
         dev_dir=Path(args.dev_dir),
         ticks_root=Path(args.ticks_root),
         repo_root=REPO_ROOT,
+        arm_name=arm_name,
+        g4_mode=eff_g4_mode,
     )
     print(json.dumps(res, indent=2, sort_keys=True))
     return 0

@@ -1749,7 +1749,9 @@ def test_phase1_stack05_runtime_and_freezer() -> None:
             cert_mod.CANONICAL_DOSSIER_NAME,
             cert_mod.CANONICAL_RECEIPT_NAME,
         ):
-            (src_t / fname).write_bytes(f"payload:{fname}\n".encode("utf-8"))
+            (src_t / fname).write_bytes(
+                b'{"arm_name":"stack05_m30_up_v1"}\n' if fname == cert_mod.CANONICAL_RECEIPT_NAME else f"payload:{fname}\n".encode("utf-8")
+            )
         synced_dirs: list[str] = []
         orig_cfd = cert_mod.fsync_dir
         orig_ffd = freeze_mod.fsync_dir
@@ -1860,6 +1862,8 @@ def test_phase1_stack05_runtime_and_freezer() -> None:
         except SotaBookError as exc:
             assert "builder debit already spent" in str(exc), f"expected debit refusal, got: {exc}"
         assert (stage_t / cert_mod.CANONICAL_LEDGER_NAME).read_bytes() == led_1_b
+        import build_certified_sota_books as bcsb_mod
+        assert hasattr(bcsb_mod, "os") and callable(bcsb_mod.os.fsync), "build_certified_sota_books must import os for stage fsync"
         assert callable(install_staged_stack05)
 
 
@@ -2275,6 +2279,446 @@ def test_phase1_certifier_reducers_and_verify_bundle() -> None:
                 raise AssertionError("D1 trade_wins swap was NOT rejected by verify_bundle!")
             except cert_mod.OperationalHoldError as exc:
                 assert "trade_wins mismatch" in str(exc), f"expected refusal specifically at trade_wins comparison, got: {exc}"
+
+            # (e) stack05_m30_up_v2 raw_top5 G4 mode: null roles with cal_admissible=False & full _test scores remain readable & verify_bundle PASSES!
+            cal_v2 = copy.deepcopy(cal_by_role)
+            scores_v2 = dict(scores_dict)
+            rng_v2 = np.random.default_rng(2026)
+            for rs in role_specs:
+                if rs["kind"] == "null" and rs["support_ok"]:
+                    r_n = rs["role"]
+                    cal_v2[r_n]["cal_admissible"] = False
+                    cal_v2[r_n]["failure_reason"] = "up_calibration_inadmissible"
+                    cal_v2[r_n]["platt_coef"] = -0.1
+                    # Keep conf_thr consistent with val_scores while ensuring >= 25 uncorrelated UP tail trades on compact synthetic test fold
+                    v_n = scores_v2[f"{r_n}_val"]
+                    thr_n = float(np.quantile(np.abs(v_n - 0.5), 1.0 - float(rs["cov"]), method="linear"))
+                    cal_v2[r_n]["conf_thr"] = thr_n
+                    t_n = rng_v2.uniform(0.50 + thr_n + 0.01, 0.70, size=len(rs["test_idx"]))
+                    scores_v2[f"{r_n}_test"] = t_n.astype(np.float64)
+            prereg_v2 = {"schema": "test", "version": 2, "arm_name": "stack05_m30_up_v2", "g4_selection_mode": "raw_top5_apples_to_apples"}
+            prereg_v2_sha = cert_mod.sha256_bytes(cert_mod.canonical_json_bytes(prereg_v2))
+            dos_v2 = cert_mod.evaluate_all_gates_from_scores(
+                df_dev=df_syn,
+                fcols=fcols_syn,
+                tick_ts=tk_ts,
+                tick_px=tk_px,
+                ret_fwd_true=ret_t,
+                valid_true=val_t,
+                entry_true=ent_t,
+                exit_true=ext_t,
+                eligible_idx=elig_syn,
+                role_specs=role_specs,
+                scores_dict=scores_v2,
+                cal_by_role=cal_v2,
+                peer_tie_info=peer_tie_info,
+                preregistration_payload=prereg_v2,
+                preregistration_sha256=prereg_v2_sha,
+                local_source_closure_sha256="b" * 64,
+                final_fit_expected_identity=exp_id,
+                arm_name="stack05_m30_up_v2",
+                g4_mode="raw_top5",
+            )
+            assert dos_v2["arm_name"] == "stack05_m30_up_v2"
+            assert dos_v2["G4_sign_null"]["g4_selection_mode"] == "raw_top5_apples_to_apples"
+            assert dos_v2["G4_sign_null"]["real_raw_top5_paths_counted"] == 15
+            assert dos_v2["G4_sign_null"]["readable_null_shifts"] == 8  # all 8 support-ok synthetic shifts readable despite cal_admissible=False!
+            assert dos_v2["G4_sign_null"]["n_null_ge_real_raw"] == 0 and dos_v2["G4_sign_null"]["n_null_ge_real_platt"] == 0
+            with tempfile.TemporaryDirectory() as td_v2:
+                b2 = Path(td_v2)
+                nm2 = cert_mod.artifact_names_for_arm("stack05_m30_up_v2")
+                npz2 = cert_mod.write_deterministic_uncompressed_npz(b2 / nm2["scores"], [(k, scores_v2[k]) for k in ordered_keys])
+                ldg2 = cert_mod.canonical_json_bytes({
+                    "schema": cert_mod.FIT_LEDGER_SCHEMA,
+                    "preregistration_sha256": prereg_v2_sha,
+                    "max_fit_units": 263,
+                    "attempts": [{"attempt_id": 1, "stage": "certifier", "role": "real_0_1", "preregistration_sha256": prereg_v2_sha, "started_utc": "2026-11-26T00:00:00Z"}],
+                })
+                (b2 / nm2["ledger"]).write_bytes(ldg2)
+                dos2_b = cert_mod.pretty_json_bytes(dos_v2)
+                (b2 / nm2["dossier"]).write_bytes(dos2_b)
+                rcpt2_b = cert_mod.pretty_json_bytes({
+                    "schema": cert_mod.RECEIPT_SCHEMA,
+                    "book_id": cert_mod.BOOK_ID,
+                    "arm_name": "stack05_m30_up_v2",
+                    "dossier_sha256": cert_mod.sha256_bytes(dos2_b),
+                    "scores_npz_sha256": cert_mod.sha256_bytes(npz2),
+                    "scores_npz_bytes": len(npz2),
+                    "certifier_attempt_count": 1,
+                    "certifier_fit_ledger_prefix_sha256": cert_mod.sha256_bytes(ldg2),
+                    "preregistration_sha256": prereg_v2_sha,
+                    "local_source_closure_sha256": "b" * 64,
+                    "verdict": dos_v2["verdict"],
+                    "failed_predicates": dos_v2["failed_predicates"],
+                    "final_fit_expected_content_id": exp_id["content_id"] if dos_v2["verdict"] == "PASS" else None,
+                    "final_fit_expected_artifacts": exp_id["artifacts"] if dos_v2["verdict"] == "PASS" else None,
+                })
+                (b2 / nm2["receipt"]).write_bytes(rcpt2_b)
+                res_v2 = cert_mod.verify_bundle(
+                    expected_receipt_sha256=cert_mod.sha256_bytes(rcpt2_b),
+                    bundle_dir=b2,
+                    expected_verdict=dos_v2["verdict"],
+                    skip_closure_check=True,
+                    arm_name="stack05_m30_up_v2",
+                    _injected_data=injected,
+                )
+                assert res_v2["verified"] is True
+
+                # Cross-arm identity & protocol binding refusals (review MAJOR #2 & #3 + delta review edge cases)
+                for bad_arm in ("stack05", "..", "../escape", "a.b"):
+                    try:
+                        cert_mod.artifact_names_for_arm(bad_arm)
+                        raise AssertionError(f"expected invalid arm_name refusal for {bad_arm!r}")
+                    except cert_mod.OperationalHoldError:
+                        pass
+                try:
+                    cert_mod.validate_arm_g4_mode("stack05_m30_up_v1", "raw_top5")
+                    raise AssertionError("expected refusal for v1 + raw_top5")
+                except cert_mod.OperationalHoldError:
+                    pass
+                assert cert_mod.default_out_dir_for_arm("stack05_m30_up_v2").name == "stack05_m30_up_v2"
+                assert cert_mod.default_archive_dir_for_arm("stack05_m30_up_v2").name == "stack05_m30_up_v2"
+                # Verify --verify-bundle CLI dispatch when --bundle-dir is omitted (with & without --allow-builder-suffix)
+                cli_calls: list[dict[str, Any]] = []
+                orig_vb = cert_mod.verify_bundle
+                try:
+                    def _spy_vb(**kw: Any) -> dict[str, Any]:
+                        cli_calls.append(kw)
+                        return {"verified": True}
+                    cert_mod.verify_bundle = _spy_vb  # type: ignore[assignment]
+                    rc_chk = cert_mod.main(["--verify-bundle", "--expected-receipt-sha256", "a" * 64, "--arm-name", "stack05_m30_up_v2"])
+                    rc_arc = cert_mod.main(["--verify-bundle", "--expected-receipt-sha256", "a" * 64, "--arm-name", "stack05_m30_up_v2", "--allow-builder-suffix"])
+                    assert rc_chk == 0 and rc_arc == 0
+                    assert cli_calls[0]["bundle_dir"] is None and cli_calls[0]["allow_builder_suffix"] is False
+                    assert cli_calls[1]["bundle_dir"] == cert_mod.default_archive_dir_for_arm("stack05_m30_up_v2") and cli_calls[1]["allow_builder_suffix"] is True
+                finally:
+                    cert_mod.verify_bundle = orig_vb  # type: ignore[assignment]
+                try:
+                    cert_mod.publish_certifier_prefix_bundle(
+                        src_dir=b2,
+                        checkout_root=b2,
+                        archive_dir=b2 / "stack05_m30_up_v1",
+                        arm_name="stack05_m30_up_v2",
+                    )
+                    raise AssertionError("expected refusal on cross-arm archive target")
+                except cert_mod.OperationalHoldError as exc:
+                    assert "cross-arm" in str(exc)
+                # Custom archive dir containing foreign v1 scores file must also be refused before writing!
+                custom_arc = b2 / "custom_arc"
+                custom_arc.mkdir()
+                (custom_arc / cert_mod.CANONICAL_SCORES_NAME).write_bytes(b"v1-scores")
+                try:
+                    cert_mod.publish_certifier_prefix_bundle(
+                        src_dir=b2,
+                        checkout_root=b2,
+                        archive_dir=custom_arc,
+                        arm_name="stack05_m30_up_v2",
+                    )
+                    raise AssertionError("expected refusal on foreign scores file in custom archive")
+                except cert_mod.OperationalHoldError as exc:
+                    assert "unexpected file" in str(exc)
+                # Builder must also reject a hash-consistent v2 PASS bundle carrying platt_ev instead of raw_top5!
+                from build_certified_sota_books import _authenticate_stack05_pass_inputs
+                b_bad_proto = b2 / "bad_v2_proto"
+                b_bad_proto.mkdir()
+                dos_bad = copy.deepcopy(dos_v2)
+                dos_bad["verdict"] = "PASS"
+                dos_bad["all_5_gates_passed"] = True
+                dos_bad["drift_check_passed"] = True
+                for g_k in ("G1_cpcv", "G2_placebo", "G3_entry_delay", "G4_sign_null", "G5_payout"):
+                    dos_bad[g_k]["passed"] = True
+                dos_bad["G4_sign_null"]["verdict"] = "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS"
+                dos_bad["preregistration_payload"] = {"schema": "test", "arm_name": "stack05_m30_up_v2"}  # missing raw_top5!
+                dos_bad_b = cert_mod.pretty_json_bytes(dos_bad)
+                rcpt_bad_b = cert_mod.pretty_json_bytes({
+                    "schema": cert_mod.RECEIPT_SCHEMA,
+                    "book_id": cert_mod.BOOK_ID,
+                    "arm_name": "stack05_m30_up_v2",
+                    "dossier_sha256": cert_mod.sha256_bytes(dos_bad_b),
+                    "certifier_fit_ledger_prefix_sha256": cert_mod.sha256_bytes(ldg2),
+                    "preregistration_sha256": prereg_v2_sha,
+                    "certifier_attempt_count": 1,
+                    "verdict": "PASS",
+                })
+                (b_bad_proto / nm2["dossier"]).write_bytes(dos_bad_b)
+                (b_bad_proto / nm2["receipt"]).write_bytes(rcpt_bad_b)
+                (b_bad_proto / nm2["ledger"]).write_bytes(ldg2)
+                try:
+                    _authenticate_stack05_pass_inputs(
+                        expected_receipt_sha256=cert_mod.sha256_bytes(rcpt_bad_b),
+                        repo_root=b2,
+                        bundle_dir=b_bad_proto,
+                        arm_name="stack05_m30_up_v2",
+                    )
+                    raise AssertionError("expected builder refusal for v2 PASS bundle with platt_ev")
+                except SotaBookError as exc:
+                    assert "requires g4_mode='raw_top5'" in str(exc)
+                # Copy v2 bundle under v1 filenames to verify verify_bundle rejects arm_name mismatch
+                b_cross = b2 / "cross_arm"
+                b_cross.mkdir()
+                nm1 = cert_mod.artifact_names_for_arm("stack05_m30_up_v1")
+                for k_n in ("scores", "ledger", "dossier", "receipt"):
+                    (b_cross / nm1[k_n]).write_bytes((b2 / nm2[k_n]).read_bytes())
+                try:
+                    cert_mod.verify_bundle(
+                        expected_receipt_sha256=cert_mod.sha256_bytes(rcpt2_b),
+                        bundle_dir=b_cross,
+                        skip_closure_check=True,
+                        arm_name="stack05_m30_up_v1",
+                        _injected_data=injected,
+                    )
+                    raise AssertionError("expected arm_name mismatch refusal in verify_bundle")
+                except cert_mod.OperationalHoldError as exc:
+                    assert "arm_name mismatch" in str(exc)
+
+            # (f) G4 raw_top5 PASS case, BLOCKER real-path Platt-refusal symmetry test, & independent comparator refusals!
+            # Construct full 16-shift support-ok synthetic specs so all 16 shifts are readable (>=12).
+            all_sup_specs = copy.deepcopy(role_specs)
+            real0_spec = next(s for s in all_sup_specs if s["role"] == "real_0_1")
+            for sp in all_sup_specs:
+                if sp["kind"] == "null" and not sp["support_ok"]:
+                    sp["support_ok"] = True
+                    sp["failure_reason"] = None
+                    sp["val_idx"] = real0_spec["val_idx"].copy()
+                    sp["test_idx"] = real0_spec["test_idx"].copy()
+                    sp["role_indices_sha256"] = real0_spec["role_indices_sha256"]
+
+            ts_syn = df_syn["decision_ts"].to_numpy(dtype=np.int64)
+            def _make_scores_for_wr(spec_obj: dict[str, Any], target_wr: float) -> tuple[np.ndarray, np.ndarray]:
+                n_v = len(spec_obj["val_idx"])
+                v_s = np.linspace(0.40, 0.70, n_v, dtype=np.float64)
+                t_idx = spec_obj["test_idx"]
+                r_t = spec_obj["ret_arr"][t_idx]
+                pos_l = np.flatnonzero(r_t > 0.0)
+                neg_l = np.flatnonzero(r_t <= 0.0)
+                t_s = np.full(len(t_idx), 0.45, dtype=np.float64)
+                # Place 36 well-spaced (>=1800s) candidate bars at score 0.90 matching target_wr
+                used_ts: list[int] = []
+                cand_w: list[int] = []
+                n_tot = 36
+                n_w = int(round(n_tot * target_wr))
+                for idx_c in pos_l:
+                    t_c = int(ts_syn[t_idx[idx_c]])
+                    if all(abs(t_c - u) >= 1800 for u in used_ts):
+                        used_ts.append(t_c)
+                        cand_w.append(int(idx_c))
+                        if len(cand_w) >= n_w:
+                            break
+                cand_l: list[int] = []
+                for idx_c in neg_l:
+                    t_c = int(ts_syn[t_idx[idx_c]])
+                    if all(abs(t_c - u) >= 1800 for u in used_ts):
+                        used_ts.append(t_c)
+                        cand_l.append(int(idx_c))
+                        if len(cand_l) >= (n_tot - len(cand_w)):
+                            break
+                for i_c in cand_w + cand_l:
+                    t_s[i_c] = 0.90
+                return v_s, t_s
+
+            def _run_g4_matrix(real_wrs: list[float], real_cal_ok: list[bool], null_wrs_by_w: dict[int, float], *, platt_high_subset: bool = False) -> dict[str, Any]:
+                sc_m = copy.deepcopy(scores_v2)
+                cal_m = copy.deepcopy(cal_v2)
+                real_only = [s for s in all_sup_specs if s["kind"] == "real"]
+                for idx_rp, sp in enumerate(real_only):
+                    rname = sp["role"]
+                    v_s, t_s = _make_scores_for_wr(sp, real_wrs[idx_rp])
+                    if platt_high_subset:
+                        # Give winning bars score 0.95 and losing bars score 0.72 so Platt EV>0 filters out losing bars -> high Platt WR, low raw WR!
+                        t_idx = sp["test_idx"]
+                        r_t = sp["ret_arr"][t_idx]
+                        high = t_s > 0.80
+                        t_s = np.where(high & (r_t > 0.0), 0.95, np.where(high, 0.72, 0.45))
+                    sc_m[f"{rname}_val"] = v_s
+                    sc_m[f"{rname}_test"] = t_s
+                    thr_v = float(np.percentile(np.abs(v_s - 0.5), 95.0, method="linear"))
+                    if real_cal_ok[idx_rp]:
+                        cal_m[rname] = {
+                            "cal_admissible": True,
+                            "failure_reason": None,
+                            "n_val_oos": len(v_s),
+                            "conf_thr": thr_v,
+                            "platt_coef": 2.0 if platt_high_subset else 1.5,
+                            "platt_intercept": -3.5 if platt_high_subset else 1.2,
+                        }
+                    else:
+                        cal_m[rname] = {
+                            "cal_admissible": False,
+                            "failure_reason": "nonpositive_platt_slope",
+                            "n_val_oos": len(v_s),
+                            "conf_thr": thr_v,
+                            "platt_coef": -0.2,
+                            "platt_intercept": 0.1,
+                        }
+                for sp in all_sup_specs:
+                    if sp["kind"] == "null":
+                        rname = sp["role"]
+                        w_sh = int(sp["week_shift"])
+                        v_s, t_s = _make_scores_for_wr(sp, null_wrs_by_w[w_sh])
+                        sc_m[f"{rname}_val"] = v_s
+                        sc_m[f"{rname}_test"] = t_s
+                        cal_m[rname] = {
+                            "cal_admissible": False,
+                            "failure_reason": "nonpositive_platt_slope",
+                            "n_val_oos": len(v_s),
+                            "conf_thr": float(np.percentile(np.abs(v_s - 0.5), 95.0, method="linear")),
+                            "platt_coef": -0.1,
+                            "platt_intercept": 0.0,
+                        }
+                return cert_mod.evaluate_all_gates_from_scores(
+                    df_dev=df_syn,
+                    fcols=fcols_syn,
+                    tick_ts=tk_ts,
+                    tick_px=tk_px,
+                    ret_fwd_true=ret_t,
+                    valid_true=val_t,
+                    entry_true=ent_t,
+                    exit_true=ext_t,
+                    eligible_idx=elig_syn,
+                    role_specs=all_sup_specs,
+                    scores_dict=sc_m,
+                    cal_by_role=cal_m,
+                    peer_tie_info=peer_tie_info,
+                    preregistration_payload=prereg_v2,
+                    preregistration_sha256=prereg_v2_sha,
+                    local_source_closure_sha256="b" * 64,
+                    final_fit_expected_identity=exp_id,
+                    arm_name="stack05_m30_up_v2",
+                    g4_mode="raw_top5",
+                )
+
+            # (f1) Passing 16/16 readable raw_top5 G4 case
+            dos_pass_g4 = _run_g4_matrix([0.70] * 15, [True] * 15, {w: 0.48 for w in cert_mod.NULL_SHIFTS_WEEKS})
+            assert dos_pass_g4["G4_sign_null"]["passed"] is True
+            assert dos_pass_g4["G4_sign_null"]["verdict"] == "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS"
+            assert dos_pass_g4["G4_sign_null"]["readable_null_shifts"] == 16
+            assert dos_pass_g4["G4_sign_null"]["real_raw_top5_paths_counted"] == 15
+
+            # (f2) BLOCKER regression: 13 Platt-admissible real paths @ 0.70 + 2 Platt-inadmissible raw real paths @ 0.35 vs 16 null shifts @ 0.50 -> MUST include the 2 raw real paths & FAIL G4!
+            dos_sym_fail = _run_g4_matrix([0.70] * 13 + [0.35, 0.35], [True] * 13 + [False, False], {w: 0.50 for w in cert_mod.NULL_SHIFTS_WEEKS})
+            assert dos_sym_fail["G1_cpcv"]["paths_counted"] == 13  # Platt eligibility for G1 unchanged
+            assert dos_sym_fail["G4_sign_null"]["real_raw_top5_paths_counted"] == 15  # Raw comparator includes all 15!
+            assert dos_sym_fail["G4_sign_null"]["n_null_ge_real_raw"] > 1
+            assert dos_sym_fail["G4_sign_null"]["passed"] is False
+
+            # (f3) Independent comparator refusal: n_null_ge_real_raw > 1 while n_null_ge_real_platt == 0 -> FAIL!
+            dos_raw_only_fail = _run_g4_matrix([0.45] * 15, [True] * 15, {w: 0.52 for w in cert_mod.NULL_SHIFTS_WEEKS}, platt_high_subset=True)
+            assert dos_raw_only_fail["G4_sign_null"]["n_null_ge_real_raw"] > 1
+            assert dos_raw_only_fail["G4_sign_null"]["n_null_ge_real_platt"] == 0
+            assert dos_raw_only_fail["G4_sign_null"]["passed"] is False
+
+            # (f3b) Opposite independent comparator refusal: n_null_ge_real_platt > 1 while n_null_ge_real_raw == 0 -> FAIL!
+            # Real raw top-5% has 70% WR, but Platt keeps only the losing top subset (score 0.95) -> Platt p10 < 0.50 < null 0.52 < raw 0.70!
+            sc_rev = copy.deepcopy(scores_v2)
+            cal_rev = copy.deepcopy(cal_v2)
+            for sp in all_sup_specs:
+                rname = sp["role"]
+                if sp["kind"] == "real":
+                    v_s, t_s = _make_scores_for_wr(sp, 0.70)
+                    r_t = sp["ret_arr"][sp["test_idx"]]
+                    high = t_s > 0.80
+                    # Wins sit at 0.72 (above raw conf_thr ~0.185, rejected by Platt intercept -3.5), losses + a few wins sit at 0.95 (admitted by Platt -> ~0.30 Platt WR)
+                    win_hi = np.flatnonzero(high & (r_t > 0.0))
+                    loss_hi = np.flatnonzero(high & (r_t <= 0.0))
+                    t_s2 = np.full(len(t_s), 0.45, dtype=np.float64)
+                    t_s2[win_hi] = 0.72
+                    t_s2[loss_hi] = 0.95
+                    # Add enough wins at 0.95 only to stay < 0.40 Platt WR while keeping >=25 Platt trades (need >=25 losses or high subset)
+                    # Easier: use target_wr=0.60 with 60 candidate bars if available, or place 26 losses at 0.95 and 34 wins at 0.72 -> raw 34/60=0.567 > 0.52, Platt 0/26=0.0 < 0.52!
+                    pos_l = np.flatnonzero(r_t > 0.0)
+                    neg_l = np.flatnonzero(r_t <= 0.0)
+                    used_t: list[int] = []
+                    w_i: list[int] = []
+                    for ic in pos_l:
+                        tc = int(ts_syn[sp["test_idx"][ic]])
+                        if all(abs(tc - u) >= 1800 for u in used_t):
+                            used_t.append(tc)
+                            w_i.append(int(ic))
+                            if len(w_i) >= 36:
+                                break
+                    l_i: list[int] = []
+                    for ic in neg_l:
+                        tc = int(ts_syn[sp["test_idx"][ic]])
+                        if all(abs(tc - u) >= 1800 for u in used_t):
+                            used_t.append(tc)
+                            l_i.append(int(ic))
+                            if len(l_i) >= 26:
+                                break
+                    t_s2 = np.full(len(t_s), 0.45, dtype=np.float64)
+                    for ic in w_i:
+                        t_s2[ic] = 0.72
+                    for ic in l_i:
+                        t_s2[ic] = 0.95
+                    sc_rev[f"{rname}_val"] = v_s
+                    sc_rev[f"{rname}_test"] = t_s2
+                    cal_rev[rname] = {
+                        "cal_admissible": True,
+                        "failure_reason": None,
+                        "n_val_oos": len(v_s),
+                        "conf_thr": float(np.percentile(np.abs(v_s - 0.5), 95.0, method="linear")),
+                        "platt_coef": 2.0,
+                        "platt_intercept": -3.5,
+                    }
+                elif sp["kind"] == "null":
+                    v_s, t_s = _make_scores_for_wr(sp, 0.50)
+                    sc_rev[f"{rname}_val"] = v_s
+                    sc_rev[f"{rname}_test"] = t_s
+                    cal_rev[rname] = {
+                        "cal_admissible": False,
+                        "failure_reason": "nonpositive_platt_slope",
+                        "n_val_oos": len(v_s),
+                        "conf_thr": float(np.percentile(np.abs(v_s - 0.5), 95.0, method="linear")),
+                        "platt_coef": -0.1,
+                        "platt_intercept": 0.0,
+                    }
+            dos_platt_only_fail = cert_mod.evaluate_all_gates_from_scores(
+                df_dev=df_syn,
+                fcols=fcols_syn,
+                tick_ts=tk_ts,
+                tick_px=tk_px,
+                ret_fwd_true=ret_t,
+                valid_true=val_t,
+                entry_true=ent_t,
+                exit_true=ext_t,
+                eligible_idx=elig_syn,
+                role_specs=all_sup_specs,
+                scores_dict=sc_rev,
+                cal_by_role=cal_rev,
+                peer_tie_info=peer_tie_info,
+                preregistration_payload=prereg_v2,
+                preregistration_sha256=prereg_v2_sha,
+                local_source_closure_sha256="b" * 64,
+                final_fit_expected_identity=exp_id,
+                arm_name="stack05_m30_up_v2",
+                g4_mode="raw_top5",
+            )
+            assert dos_platt_only_fail["G4_sign_null"]["n_null_ge_real_raw"] == 0
+            assert dos_platt_only_fail["G4_sign_null"]["n_null_ge_real_platt"] > 1
+            assert dos_platt_only_fail["G4_sign_null"]["passed"] is False
+
+            # (f4) Replay O_NOFOLLOW & dossier_path allowlist refusal (review MAJOR #4)
+            import os
+            import replay_sota_portfolio as rsp_mod
+            with tempfile.TemporaryDirectory() as td_rp:
+                r_root = Path(td_rp)
+                (r_root / "books" / "USDJPY.sota_stack05_m30_up.v1").mkdir(parents=True)
+                (r_root / "books" / "USDJPY.sota_stack05_m30_up.v1" / "USDJPY.sota_stack05_m30_up.v1.manifest.json").write_text(
+                    json.dumps({"evidence_binding": {"dossier_sha256": "a" * 64, "dossier_path": "/etc/passwd"}}), encoding="utf-8"
+                )
+                try:
+                    rsp_mod._load_and_validate_dossiers(r_root)
+                    raise AssertionError("expected refusal on unapproved manifest dossier_path")
+                except RuntimeError as exc:
+                    assert "unapproved stack05 manifest dossier_path" in str(exc)
+                (r_root / "results" / "json").mkdir(parents=True)
+                sym_target = r_root / "outside.json"
+                sym_target.write_text("{}", encoding="utf-8")
+                os.symlink(sym_target, r_root / "results" / "json" / "deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json")
+                try:
+                    rsp_mod._read_repo_file_nofollow(r_root, "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json")
+                    raise AssertionError("expected O_NOFOLLOW refusal on symlink")
+                except RuntimeError as exc:
+                    assert "failed to safely read" in str(exc)
     finally:
         cert_mod.split_train_val = orig_split  # type: ignore[assignment]
 

@@ -12,6 +12,8 @@ import hashlib
 import heapq
 import json
 import math
+import os
+import stat
 from pathlib import Path
 from typing import Any
 
@@ -305,25 +307,66 @@ def compute_pareto_flags(scenarios: list[dict[str, Any]]) -> list[bool]:
     return flags
 
 
-def _load_and_validate_dossiers(repo_root: Path) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+ALLOWED_STACK05_DOSSIER_RELS: frozenset[str] = frozenset(
+    {
+        "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v1_result.json",
+        "results/json/deriv_5gate_USDJPY_sota_stack05_m30_up_v2_result.json",
+    }
+)
+
+
+def _read_repo_file_nofollow(repo_root: Path, rel_path: str) -> bytes:
+    """Read a repo-relative regular file with component-by-component O_NOFOLLOW."""
+    p_rel = Path(rel_path)
+    if p_rel.is_absolute() or not p_rel.parts or any(part in ("", ".", "..") for part in p_rel.parts):
+        raise RuntimeError(f"refusing non-canonical replay relative path: {rel_path!r}")
+    root_fd = os.open(str(repo_root), os.O_RDONLY | os.O_DIRECTORY)
+    cur_fd = root_fd
+    try:
+        for part in p_rel.parts[:-1]:
+            nxt = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=cur_fd)
+            if cur_fd != root_fd:
+                os.close(cur_fd)
+            cur_fd = nxt
+        leaf_fd = os.open(p_rel.parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=cur_fd)
+        try:
+            st = os.fstat(leaf_fd)
+            if not stat.S_ISREG(st.st_mode):
+                raise RuntimeError(f"replay input is not a regular file: {rel_path!r}")
+            with os.fdopen(leaf_fd, "rb") as fh:
+                leaf_fd = -1
+                return fh.read()
+        finally:
+            if leaf_fd >= 0:
+                os.close(leaf_fd)
+    except OSError as exc:
+        raise RuntimeError(f"failed to safely read replay input {rel_path!r}: {exc}") from exc
+    finally:
+        if cur_fd != root_fd:
+            os.close(cur_fd)
+        os.close(root_fd)
+
+
+def _load_and_validate_dossiers(repo_root: Path) -> tuple[dict[str, dict[str, Any]], dict[str, str], dict[str, str]]:
     """Load & authenticate all 4 book dossiers (stack05 pinned to manifest.evidence_binding.dossier_sha256)."""
     # Read stack05 expected dossier SHA-256 from its frozen manifest
-    stack_manifest_path = repo_root / "books" / "USDJPY.sota_stack05_m30_up.v1" / "USDJPY.sota_stack05_m30_up.v1.manifest.json"
-    if not stack_manifest_path.is_file():
-        raise RuntimeError(f"missing frozen stack05 manifest: {stack_manifest_path}")
-    stack_manifest = json.loads(stack_manifest_path.read_text(encoding="utf-8"))
+    stack_manifest_rel = "books/USDJPY.sota_stack05_m30_up.v1/USDJPY.sota_stack05_m30_up.v1.manifest.json"
+    stack_manifest_raw = _read_repo_file_nofollow(repo_root, stack_manifest_rel)
+    stack_manifest = json.loads(stack_manifest_raw.decode("utf-8"))
     stack_expected_sha = str((stack_manifest.get("evidence_binding") or {}).get("dossier_sha256") or "")
+    stack_dossier_rel = str((stack_manifest.get("evidence_binding") or {}).get("dossier_path") or "")
     if len(stack_expected_sha) != 64:
         raise RuntimeError("stack05 manifest missing valid evidence_binding.dossier_sha256")
+    if stack_dossier_rel and stack_dossier_rel not in ALLOWED_STACK05_DOSSIER_RELS:
+        raise RuntimeError(f"refusing unapproved stack05 manifest dossier_path: {stack_dossier_rel!r}")
 
     dossiers: dict[str, dict[str, Any]] = {}
     shas: dict[str, str] = {}
+    rels: dict[str, str] = {}
     for spec in BOOK_SPECS:
         sid = spec["short_id"]
-        path = repo_root / spec["dossier_rel"]
-        if not path.is_file():
-            raise RuntimeError(f"missing replay input dossier: {path}")
-        raw = path.read_bytes()
+        d_rel = stack_dossier_rel if (sid == "stack05_m30" and stack_dossier_rel) else str(spec["dossier_rel"])
+        raw = _read_repo_file_nofollow(repo_root, d_rel)
         got_sha = _sha256_bytes(raw)
         exp_sha = stack_expected_sha if sid == "stack05_m30" else str(spec["pinned_sha256"])
         if got_sha != exp_sha:
@@ -344,11 +387,12 @@ def _load_and_validate_dossiers(repo_root: Path) -> tuple[dict[str, dict[str, An
                 raise RuntimeError(f"{sid}: trade_ts/trade_wins length mismatch vs n={n}")
         dossiers[sid] = dos
         shas[sid] = got_sha
-    return dossiers, shas
+        rels[sid] = d_rel
+    return dossiers, shas, rels
 
 
 def build_portfolio_pareto_report(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
-    dossiers, shas = _load_and_validate_dossiers(repo_root)
+    dossiers, shas, rels = _load_and_validate_dossiers(repo_root)
     spec_by_short = {b["short_id"]: b for b in BOOK_SPECS}
     prio_by_short = {b["short_id"]: idx for idx, b in enumerate(BOOK_SPECS)}
 
@@ -469,7 +513,7 @@ def build_portfolio_pareto_report(repo_root: Path = REPO_ROOT) -> dict[str, Any]
             {
                 "short_id": b["short_id"],
                 "book_id": b["book_id"],
-                "dossier_rel": b["dossier_rel"],
+                "dossier_rel": rels[b["short_id"]],
                 "dossier_sha256": shas[b["short_id"]],
                 "horizon_s": b["horizon_s"],
                 "payout_ratio": b["payout_ratio"],
