@@ -1,145 +1,121 @@
-> **SCOPE: GENERIC** — Deriv SOTA certified multi-horizon runtime deployment, monitoring, and promotion runbook.
+> **SCOPE: GENERIC** — Deriv SOTA certified multi-horizon runtime deployment, queue adoption, monitoring, and promotion runbook.
 
 # Deriv SOTA Certified Strategy VPS Deployment & Promotion Runbook
 
 > [!CAUTION]
 > **MANDATORY JURISDICTION BOUNDARY (MEXICO VPS ONLY — ZERO USA DERIV CONNECTIONS):**
-> **Never run any live or public Deriv WebSocket / REST command (`deriv_sota_executor.py`, `deriv_sota_tick_stream.py`, `vps_preflight.py --live-smoke`, `run_lh16_yencross_certifier.py --download`, or ad-hoc `*.derivws.com` scripts) from the USA (`quantum`).** Every direct connection to Deriv servers must originate **exclusively from the Mexico VPS (`sean@64.177.80.63`, hostname `vultr`, accessed via `ssh -i ~/.ssh/id_personal -o IdentitiesOnly=yes -o BatchMode=yes sean@64.177.80.63`)** with `DERIV_HOST_JURISDICTION=mexico_vps` set in `~/.config/binary-algo/deriv-sota-executor.env`. The runtime enforces `assert_non_us_deriv_host()` fail-closed before opening any network socket.
+> **Never run any live or public Deriv WebSocket / REST command (`deriv_sota_executor.py`, `deriv_sota_tick_stream.py`, `vps_preflight.py --live-smoke`, or ad-hoc `*.derivws.com` scripts) from the USA (`quantum`).** Every direct connection to Deriv servers must originate **exclusively from the Mexico VPS (`sean@64.177.80.63`, hostname `vultr`)** with `DERIV_HOST_JURISDICTION=mexico_vps` set in `~/.config/binary-algo/deriv-sota-executor.env`. The runtime enforces `assert_non_us_deriv_host()` fail-closed before opening any network socket.
 
-This runbook covers deploying, verifying, monitoring, and promoting certified SOTA binary-options books on the Mexico Linux VPS (`sean@64.177.80.63`, `vultr`, `3.3 GiB` RAM — note `MemoryMax` in `ops/deriv-sota-executor.service` is capped at `1G` so it fits alongside OS buffers comfortably).
+> [!IMPORTANT]
+> **PHASE 1 DEPLOYMENT & DECISION 5 BOUNDARY:**
+> Local inactive packaging on `refs/heads/vps-certified-strategies` (`lifecycle_status: "demo_venue_settled_canary"`) does **NOT** authorize Mexico VPS (`vultr`) deployment or activation. Any `vultr` git fetch/move, sole-buyer transition, or unit activation requires **separate explicit owner authorization** under `deriv-runtime-ops` + `git-workflow`, including:
+> 1. Outcome-blind `scripts/usdchf_m15_prospective_v1.py status` BEFORE any `git fetch` or checkout move (requiring terminal or positively absent state);
+> 2. Explicit commit transfer disposition (`origin/main` `ff-only` or explicit non-`main` disposition);
+> 3. Explicit legacy KILL #0 parity re-check disposition (Phase 1 leaves all 9 `PARITY_TRACKED_PATHS` byte-identical);
+> 4. **Explicit Owner Decision 5 payout deployment disposition** — per-trade payout-aware path evidence for `[USDJPY·30m·UP]` OR a separately owner-approved amendment expressly authorizing Demo deployment without it (`--live-smoke` proves current proposal admission ONLY and never satisfies Decision 5).
 
 ---
 
 ## 1. Safety & Certification Architecture
 
-1. **Zero Uncertified Execution:** `scripts/sota_book_runtime.py` refuses to load any book missing cryptographic SHA-256 verification or passed `G1_cpcv`, `G2_placebo`, `G3_entry_delay`, `G4_sign_null`, and `G5_payout` (`PAYOUT-CLEARED`) certificates in `books/<BOOK_ID>/<BOOK_ID>.manifest.json`.
-2. **Lifecycle Isolation (`demo` vs. `live`):**
-   - Books with `lifecycle_status = "demo_venue_settled_canary"` (e.g., `[USDJPY·15m]` / `[USDJPY·30m]` in `results/USDJPY_RESULTS.md` while Look 2 remains sealed) execute **only** in `--account-mode demo` (`VRTC*`).
-   - `--account-mode live` (`CR*` real money) loads **only** books with `lifecycle_status = "active"` and `G6_holdout_or_prospective.passed == true`.
-3. **Dual Mathematical Proposal Gate (`deriv_runtime_core_v2.py`):**
-   - `parse_quote_v2` rejects `NaN`, `±inf`, `<= 0`, booleans, or missing `ask_price`/`payout`.
-   - Every live Deriv proposal must clear **both** the certified refit-CPCV `p10` floor (`effective_floor > ask / payout`) **and** row-calibrated expected value (`p_cal * (payout / ask) - 1 >= ev_margin`).
-4. **Session, Venue Blackout & Haircut Guards:**
-   - Gated to `America/New_York` `08:00–17:00` (`ZoneInfo("America/New_York")` handles EDT/EST transitions automatically).
-   - Blocks `21:00:00–23:59:59 UTC` sub-5h FX venue blackout (`Owner Decision 14`).
-   - Blocks `16:50 - H` NY rollover (`16:35:00 NY` for `15m`, `16:20:00 NY` for `30m`).
-   - Drops `16:00–16:35 NY` payout-haircut bars (`~1.58` payout) when `drop_ny_16h = true`.
-5. **Currency-Leg Concentration & Persisted Circuit Breakers (`deriv_sota_executor.py`):**
-   - Enforces independent open-contract caps on **both** `USD` (`max_usd_factor_open=2`) and `JPY` (`max_jpy_factor_open=2`), preventing simultaneous correlated JPY exposure across `USDJPY`, `EURJPY`, `NZDJPY`, and `GBPJPY`.
-   - Persists all contracts and realized cent P&L in WAL-mode SQLite (`deriv_data/runtime/sota_trade_queue_{demo,live}.sqlite`), enforcing `max_stake_usd`, `max_daily_loss_usd`, `max_drawdown_usd`, `max_open_contracts`, and automatic `KILL` switch tripwire on 5 consecutive reconciliation errors.
+1. **Zero Uncertified Execution:** `scripts/sota_book_runtime.py` refuses any book missing cryptographic SHA-256 verification, exact `content_id`, ordered LightGBM `feature_name() == feature_cols` (for `nystroem-lgb-stack`), or passed `G1_cpcv`–`G5_payout` certificates.
+2. **Phase 1 Priority & Exact-Money Policy:** Explicit priority order `USDJPY.sota_ens5_m30_up.v1 -> USDJPY.sota_stack05_m30_up.v1 -> USDJPY.sota_ens5_m15_up.v1`, flat `100` authoritative USD cents (`--stake 1.0`), exact rational quote floors (`1.76` m15 / `1.78` m30, defeating `1.7799999999`), and `SotaDerivAsyncClient` 5-class generation-bound transport supporting both `options_otp` (bootstrap `balance` + venue `time`) and `v3_authorize`, with `allow_buy=False` blocking both `buy` and `sell` (`0` bytes sent).
+3. **Account-Bound `v3` SQLite Queue & Locks:** Canonical passwd-home absolute locks (`~/.local/state/binary-algo/locks/sota_{acct,queue,handoff}_<sha12>.flock`, acquired strictly in order `sota_acct -> sota_queue -> sota_handoff`) and `user_version = 3` queue (`deriv_data/runtime/sota_trade_queue_demo.sqlite`) with `UNIQUE(book_id, pair, horizon_minutes, side, lane, offset_id, signal_close_utc)`, `sota_contracts.signal_id UNIQUE`, durable pre-send `buy_intent`, and log/feed-independent latched recovery (`--request-stop-latch`).
+4. **Exclusivity Controls:** Revoking legacy Deriv credentials (`sota-credential-isolation-receipt/v1`), masking all 4 legacy units, and canonical locks are the **primary** exclusivity controls; startup `/proc` cmdline scanning is supplementary evidence only (`deriv-runtime-ops:105`).
 
 ---
 
-## 2. VPS Host Setup
+## 2. Separately Authorized Mexico VPS Cutover Sequence (`vultr` Only)
+
+Run these steps **strictly on `vultr`** after separate explicit owner authorization:
+
+### Step 1 — Outcome-Blind Prospective Shadow Check (Before Any `git fetch` or Move)
+```bash
+cd ~/git/binary-algo
+~/binary-algo-venv/bin/python scripts/usdchf_m15_prospective_v1.py status
+```
+Require terminal or positively absent state; stop immediately on open or unclear state.
+
+### Step 2 — Drain, Stop, Disable & Mask All 4 Legacy Units by Role + Current SOTA Unit
+Mask `deriv-sota-executor.service` and all **4** legacy units by their distinct operational roles:
+- `deriv-trade-executor.service` — legacy sole credentialed buyer (`deriv_trade_executor.py --run`)
+- `deriv-runtime-supervisor.service` — legacy queue producer (also carries a manual `--demo-buy` path under a separate lock)
+- `deriv-demo-executor.service` & `deriv-demo-executor.timer` — deprecated one-shot & minute timer (disabled for store-write and service conflicts)
 
 ```bash
-# 1. Verify NTP clock sync (mandatory for exact minute-close bar alignment)
-timedatectl status | grep -E "System clock synchronized|NTP service"
+systemctl --user stop deriv-sota-executor.service deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
+systemctl --user disable deriv-sota-executor.service deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
+systemctl --user mask deriv-sota-executor.service deriv-trade-executor.service deriv-runtime-supervisor.service deriv-demo-executor.service deriv-demo-executor.timer
+```
 
-# 2. Clone repository and create isolated Python 3.12 virtualenv
-mkdir -p ~/git
-git clone git@github.com:sppburke/binary-algo.git ~/git/binary-algo
-cd ~/git/binary-algo
-
-python3 -m venv ~/binary-algo-venv
-~/binary-algo-venv/bin/pip install --upgrade pip
-~/binary-algo-venv/bin/pip install -r ENVIRONMENT_libs.txt
-
-# 3. Configure private credentials outside the git tree
+### Step 3 — Revoke Legacy Credentials & Establish Dedicated Demo Credentials + Receipt FIRST
+Establish dedicated Demo credentials and the human-attested non-secret credential isolation receipt **BEFORE** any first-use or adoption command:
+```bash
 mkdir -p ~/.config/binary-algo && chmod 700 ~/.config/binary-algo
 cp ops/deriv-sota-executor.env.example ~/.config/binary-algo/deriv-sota-executor.env
 chmod 600 ~/.config/binary-algo/deriv-sota-executor.env
-nano ~/.config/binary-algo/deriv-sota-executor.env
+# Populate dedicated VRTC* credentials (never print or share private env file)
+# Revoke legacy Deriv PATs in the Deriv dashboard, then write non-secret receipt:
+# ~/.config/binary-algo/sota-credential-isolation-receipt.json (schema: sota-credential-isolation-receipt/v1)
 ```
 
----
+### Step 4 — Inspect Predecessor Queue & Branch Cleanly to First Use or Coherent-Backup Adoption
+Perform sanitized schema/row-state and positive venue identity/settlement inspection on `vultr`:
+- **First Use (no existing predecessor DB):**
+  ```bash
+  ~/binary-algo-venv/bin/python -B -E -s scripts/deriv_sota_executor.py \
+    --init-queue --reason first_use \
+    --first-use-record-json ~/.config/binary-algo/sota-first-use-record.json \
+    --account-mode demo --credential-isolation-receipt ~/.config/binary-algo/sota-credential-isolation-receipt.json
+  ```
+- **Staged Adoption (existing drained `user_version == 0` predecessor DB):**
+  1. Prepare coherent SQLite online backup `<quarantine_dir>/predecessor_coherent_backup.sqlite` (`fsync` + `integrity_check`) FIRST;
+  2. Export preimage strictly from that prepared backup (`0` bytes written to source):
+     ```bash
+     ~/binary-algo-venv/bin/python -B -E -s scripts/deriv_sota_executor.py \
+       --export-legacy-ownership-preimage --maintenance-quarantine-dir "$QUARANTINE_DIR" --account-mode demo
+     ```
+  3. Build venue ownership proof (`backup_sha256` + 1-to-1 `contract_ownership_records` bijection against `statement`/`profit_table` + `proposal_open_contract`);
+  4. Run `--adopt-legacy-account` (dispatches existing `install_intent.json` crash recovery BEFORE fresh predecessor checks, authenticates backup/proof/receipt, verifies directory ancestry durability before unlinking predecessor files, installs single-file `v3` via `renameat2(RENAME_NOREPLACE)`, leaves `deriv_data/runtime/locks/sota_index.lock` and `<quarantine_dir>` untouched):
+     ```bash
+     ~/binary-algo-venv/bin/python -B -E -s scripts/deriv_sota_executor.py \
+       --adopt-legacy-account --account-mode demo \
+       --maintenance-quarantine-dir "$QUARANTINE_DIR" \
+       --staged-v3-dir "$STAGED_V3_DIR" \
+       --ownership-proof-json "$PROOF_JSON" \
+       --credential-isolation-receipt ~/.config/binary-algo/sota-credential-isolation-receipt.json
+     ```
+  5. Register strictly prospective `G6` cohort anchors per book via `--register-cohort-anchor` (binding `registered_utc` to verified venue `time` epoch).
 
-## 3. Preflight & Proposal-Only Smoke Verification
+### Step 5 — Manual Masked Preflight (`--offline-only` & `--live-smoke`)
+While `deriv-sota-executor.service` stays `/dev/null`-masked and `sota_activation.hold` is absent, verify `--offline-only` and `--live-smoke` (every selected book must pass strict exact rational quote floor `1.76` m15 / `1.78` m30, `0` buy/sell frames sent).
 
-Always run offline tests, 1s-tick parity, and a read-only proposal check **before** enabling automatic buying:
-
+### Step 6 — Activation Hold, Unit Install, Public Directive Audit & Gated Enablement
 ```bash
-cd ~/git/binary-algo
-
-# 1. Run full positive + negative runtime safety suite
-~/binary-algo-venv/bin/python scripts/test_deriv_sota_runtime.py
-
-# 2. Run offline + read-only live proposal preflight (never sends buy)
-set -a && source ~/.config/binary-algo/deriv-sota-executor.env && set +a
-~/binary-algo-venv/bin/python scripts/vps_preflight.py --account-mode demo --live-smoke
-
-# 3. Optional 15-minute dry-run proposal-only session during NY hours
-~/binary-algo-venv/bin/python scripts/deriv_sota_executor.py \
-  --run --account-mode demo --tick-feed-mode integrated \
-  --dry-run-proposal-only --duration-seconds 900
-```
-
----
-
-## 4. Enabling Systemd User Services (Demo `VENUE_SETTLED` Stage)
-
-```bash
-# Enable lingering so user services stay active across SSH logouts and reboots
-sudo loginctl enable-linger "$USER"
-
-mkdir -p ~/.config/systemd/user
+mkdir -p ~/.local/state/binary-algo/locks && chmod 700 ~/.local/state/binary-algo/locks
+touch ~/.local/state/binary-algo/locks/sota_activation.hold
+systemctl --user unmask deriv-sota-executor.service
 cp ~/git/binary-algo/ops/deriv-sota-executor.service ~/.config/systemd/user/
-cp ~/git/binary-algo/ops/deriv-sota-tick-stream.service ~/.config/systemd/user/
 systemctl --user daemon-reload
-
-# Default integrated mode runs public 1s tick stream + credentialed executor in one loop:
+systemctl --user show deriv-sota-executor.service -p ExecStartPre,ExecStart,Environment,UnsetEnvironment,DropInPaths,ConditionPathExists
+# Only after owner authorizes Decision 5 / Demo activation:
+rm -f ~/.local/state/binary-algo/locks/sota_activation.hold
 systemctl --user enable --now deriv-sota-executor.service
-# (Optional: if DERIV_SOTA_TICK_FEED_MODE=external is set, also enable deriv-sota-tick-stream.service)
-
-# Inspect live status and structured JSONL logs
-systemctl --user status deriv-sota-executor.service
-tail -f ~/git/binary-algo/logs/sota_runtime/sota_executor_demo/*.jsonl
 ```
 
 ---
 
-## 5. Monitoring Settled P&L & Promoting to Real-Money (`CR`)
+## 3. Prospective `G6` Cohort Ledger & Safe Rollback
 
-### Step 5.1 — Check Per-Book Prospective Demo `VENUE_SETTLED` Gate
-
-Promotion is evaluated strictly **per book** (`--book-id <BOOK_ID>`, never pooled across timeframes or books):
-
-```bash
-cd ~/git/binary-algo
-~/binary-algo-venv/bin/python scripts/deriv_live_pnl_ledger.py \
-  --db deriv_data/runtime/sota_trade_queue_demo.sqlite \
-  --book-id USDJPY.sota_e49nys30_m30_up.v1 \
-  --min-trades 50
-```
-
-Wait until `"promotion_eligible": true` (`n >= 50` settled trades for that specific `book_id`, two-sided 95% bootstrap lower bound `ev_ci95[0] > 0.0`, and zero `open`/`unknown`/`unresolved` records). For any `demo_venue_settled_canary` book (such as `[USDJPY·15m]` or `[USDJPY·30m]` in `results/USDJPY_RESULTS.md`), record the per-book settled ledger output as its `G6_holdout_or_prospective` certificate and update that book's lifecycle to `"active"` via `sota_book_freeze.py`.
-
-### Step 5.2 — Switch Executor to Opt-In Real-Money (`CR`) Mode
-
-1. Stop the demo service cleanly:
-   ```bash
-   systemctl --user stop deriv-sota-executor.service
-   ```
-2. Update `~/.config/binary-algo/deriv-sota-executor.env`:
-   - `DERIV_ACCOUNT_ID=CRxxxxxxx` (USD real-money account)
-   - `DERIV_PAT=<real_account_pat_token>`
-   - `DERIV_ACCOUNT_MODE=live`
-   - `DERIV_ALLOW_LIVE_REAL_MONEY=1`
-   - Start with conservative caps (`DERIV_SOTA_STAKE=1.0`, `DERIV_SOTA_MAX_DAILY_LOSS_USD=25.0`, `DERIV_SOTA_MAX_DRAWDOWN_USD=50.0`).
-3. Run the live read-only preflight check (zero buys):
-   ```bash
-   set -a && source ~/.config/binary-algo/deriv-sota-executor.env && set +a
-   ~/binary-algo-venv/bin/python scripts/vps_preflight.py --account-mode live --live-smoke
-   ```
-4. Start the live executor:
-   ```bash
-   systemctl --user start deriv-sota-executor.service
-   ```
-
-### Emergency Stop (`KILL` Switch)
-
-To immediately halt all new proposals and buys while letting open contracts settle cleanly:
-
-```bash
-touch ~/git/binary-algo/logs/sota_runtime/KILL
-```
+- **Prospective `G6` Evaluation (Per-Book Only, Never Pooled):**
+  ```bash
+  ~/binary-algo-venv/bin/python -B -E -s scripts/deriv_live_pnl_ledger.py \
+    --book-id USDJPY.sota_stack05_m30_up.v1 \
+    --cohort-start-utc <RFC3339_UTC> \
+    --expected-account-id VRTC... \
+    --expected-stake-usd 1.0 \
+    --min-trades 50
+  ```
+  `--db` is diagnostic only (`promotion_eligible: false` on non-canonical path). Eligibility requires verified anchor match, `venue_start_epoch >= cohort_start_epoch`, full `proposal_open_contract` venue-field and contract-spec agreement, zero anomalies, `n >= max(50, min_trades)`, and exact `Fraction` 95% bootstrap lower bound `> 0`.
+- **Safe Rollback / Emergency Stop:**
+  Trigger `<log_dir>/KILL` OR run `--request-stop-latch --reason <text>` (commits `phase1_safety_latch` atomically in SQLite under `LOCK_EX` on `sota_handoff` even if `log_dir` is unwritable). Keep the service in log/feed-independent reconciliation-only mode until `0` open/unknown contracts and `0` `buy_intent`/`buy_unknown` signals remain, then stop the unit while keeping `v3` risk history and latch intact.

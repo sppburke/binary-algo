@@ -94,13 +94,36 @@ def file_sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def compute_sota_content_id(paths: list[Path]) -> str:
+def compute_sota_content_id_from_buffers(items: list[tuple[str, bytes]]) -> str:
+    """Compute exact SOTA 16-hex content_id from in-memory (basename, bytes) pairs."""
+    if not items:
+        raise SotaBookError("compute_sota_content_id_from_buffers requires non-empty items")
+    names = [str(name) for name, _ in items]
+    if len(set(names)) != len(names):
+        raise SotaBookError(f"duplicate artifact basenames in content_id input: {names!r}")
     h = hashlib.sha256()
-    for p in sorted(paths, key=lambda item: item.name):
-        h.update(p.name.encode("utf-8"))
+    for name, raw in sorted(items, key=lambda kv: kv[0]):
+        if not name or Path(name).name != name:
+            raise SotaBookError(f"invalid artifact basename {name!r}")
+        h.update(name.encode("utf-8"))
         h.update(b"\0")
-        h.update(p.read_bytes())
+        h.update(raw)
     return h.hexdigest()[:16]
+
+
+def compute_sota_content_id(paths: list[Path]) -> str:
+    return compute_sota_content_id_from_buffers([(p.name, p.read_bytes()) for p in paths])
+
+
+def check_pipeline_features_dir_exists(
+    features_dir: Path = Path("/home/sean/git/binary-algo/features"),
+) -> None:
+    """Fail closed before importing pipeline.py if its hard-coded features directory is absent."""
+    if not features_dir.exists() or not features_dir.is_dir():
+        raise SotaBookError(
+            f"pre-import guard failed: required directory {features_dir} does not exist "
+            f"(refusing to let pipeline.py mutate sibling repo)"
+        )
 
 
 def _rbf_nystroem_member_prob(
@@ -214,6 +237,27 @@ def _validate_weights_npz(
         }
         if set(weights_npz.keys()) != expected_keys:
             raise SotaBookError(f"{book_id}: nystroem-ens key mismatch vs n_seeds={n_seeds}")
+        _check_scaler("")
+        for i in range(n_seeds):
+            _check_nys_member(f"s{i}_")
+    elif model_kind == "nystroem-lgb-stack":
+        if "n_seeds" not in weights_npz or weights_npz["n_seeds"].size != 1 or weights_npz["n_seeds"].dtype.kind not in {"i", "u"}:
+            raise SotaBookError(f"{book_id}: nystroem-lgb-stack requires scalar integer 'n_seeds'")
+        n_seeds = int(weights_npz["n_seeds"].reshape(-1)[0])
+        if n_seeds != 5:
+            raise SotaBookError(f"{book_id}: nystroem-lgb-stack requires exact n_seeds=5, got {n_seeds}")
+        if "blend_weight" not in weights_npz or weights_npz["blend_weight"].size != 1 or weights_npz["blend_weight"].dtype != np.float64:
+            raise SotaBookError(f"{book_id}: nystroem-lgb-stack requires scalar float64 'blend_weight'")
+        bw = float(weights_npz["blend_weight"].reshape(-1)[0])
+        if not math.isfinite(bw) or bw != 0.5:
+            raise SotaBookError(f"{book_id}: nystroem-lgb-stack requires exact blend_weight==0.5, got {bw!r}")
+        expected_keys = {"med", "mu", "sd", "n_seeds", "blend_weight"} | {
+            f"s{i}_{sfx}"
+            for i in range(n_seeds)
+            for sfx in ("nys_components", "nys_normalization", "nys_gamma", "sgd_coef", "sgd_intercept")
+        }
+        if set(weights_npz.keys()) != expected_keys:
+            raise SotaBookError(f"{book_id}: nystroem-lgb-stack key mismatch vs n_seeds={n_seeds}")
         _check_scaler("")
         for i in range(n_seeds):
             _check_nys_member(f"s{i}_")
@@ -346,7 +390,7 @@ class LoadedSotaBook:
                 coef = self.weights_npz[f"h{h}_coef"]
                 intercept = float(self.weights_npz[f"h{h}_intercept"].reshape(-1)[0])
                 preds[m] = _expit(Z @ coef + intercept)
-        elif self.model_kind in {"nystroem", "nystroem-ens"}:
+        elif self.model_kind in {"nystroem", "nystroem-ens", "nystroem-lgb-stack"}:
             assert self.weights_npz is not None
             Z = self._transform_std(X)
             z_sq = np.sum(Z * Z, axis=1, keepdims=True)
@@ -373,7 +417,17 @@ class LoadedSotaBook:
                         self.weights_npz[f"s{s_i}_sgd_coef"],
                         float(self.weights_npz[f"s{s_i}_sgd_intercept"].reshape(-1)[0]),
                     )
-                preds = acc / float(n_seeds)
+                p_nys = acc / float(n_seeds)
+                if self.model_kind == "nystroem-ens":
+                    preds = p_nys
+                else:
+                    if not self.boosters or len(self.boosters) != 1:
+                        raise SotaBookError(f"{self.book_id}: nystroem-lgb-stack requires exact 1 LightGBM booster")
+                    bw = float(self.weights_npz["blend_weight"].reshape(-1)[0])
+                    p_lgb = np.asarray(self.boosters[0].predict(X), dtype=np.float64)
+                    if p_lgb.shape != (len(X),) or not np.isfinite(p_lgb).all():
+                        raise SotaBookError(f"{self.book_id}: non-finite LightGBM probabilities")
+                    preds = bw * p_nys + (1.0 - bw) * p_lgb
         else:
             raise SotaBookError(f"{self.book_id}: unsupported model_kind {self.model_kind!r}")
 
@@ -565,6 +619,30 @@ def load_sota_book(
         with np.load(npz_file, allow_pickle=False) as z:
             weights_npz = {k: z[k].copy() for k in z.files}
         _validate_weights_npz(book_id, model_kind, weights_npz, len(feature_cols))
+    elif model_kind == "nystroem-lgb-stack":
+        npz_files = [p for p in art_paths if p.suffix == ".npz"]
+        txt_files = [p for p in art_paths if p.suffix == ".txt"]
+        if len(npz_files) != 1:
+            raise SotaBookError(f"{book_id}: nystroem-lgb-stack requires exact 1 .npz weights artifact, got {len(npz_files)}")
+        if len(txt_files) != 1 or txt_files[0].name != f"{book_id}_lgb_s0.txt":
+            raise SotaBookError(
+                f"{book_id}: nystroem-lgb-stack requires exact 1 LightGBM booster artifact '{book_id}_lgb_s0.txt'"
+            )
+        with np.load(npz_files[0], allow_pickle=False) as z:
+            weights_npz = {k: z[k].copy() for k in z.files}
+        _validate_weights_npz(book_id, model_kind, weights_npz, len(feature_cols))
+        booster = lgb.Booster(model_file=str(txt_files[0]))
+        if int(booster.num_feature()) != len(feature_cols):
+            raise SotaBookError(
+                f"{book_id}: LightGBM num_feature={booster.num_feature()} != len(feature_cols)={len(feature_cols)}"
+            )
+        b_names = list(booster.feature_name())
+        if b_names != feature_cols:
+            raise SotaBookError(
+                f"{book_id}: LightGBM feature_name() mismatch vs ordered feature_cols "
+                f"(first diffs: {b_names[:5]!r} vs {feature_cols[:5]!r})"
+            )
+        boosters = [booster]
     elif model_kind == "lgb":
         txt_files = [p for p in art_paths if p.suffix == ".txt"]
         if not txt_files:

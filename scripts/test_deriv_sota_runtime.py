@@ -1383,21 +1383,27 @@ def test_da2_adversarial_hardening_regressions() -> None:
             orig_env = vp_mod.DerivEnv.from_env
             orig_req_ws = vp_mod.request_authenticated_ws_url
             orig_val = vp_mod.validate_account_mode
-            orig_client = vp_mod.DerivAsyncClient
+            orig_client = vp_mod.SotaDerivAsyncClient
 
             class _EmptyPropClient:
                 def __init__(self, *a: Any, **kw: Any) -> None:
-                    pass
+                    self.allow_buy = False
+                    self.expected_account_id = "VRTC123"
+                    self.url = "wss://ws.derivws.com/websockets/v3?app_id=1089"
 
-                async def __aenter__(self) -> "_EmptyPropClient":
-                    return self
-
-                async def __aexit__(self, *a: Any) -> None:
+                async def connect(self) -> None:
                     return None
 
-                async def request(self, payload: dict[str, Any], timeout: float = 8.0) -> dict[str, Any]:
-                    if "authorize" in payload:
-                        return {"authorize": {"loginid": "VRTC123", "currency": "USD", "is_virtual": 1}}
+                async def close(self) -> None:
+                    return None
+
+                def is_identity_verified(self) -> bool:
+                    return False
+
+                async def establish_identity(self, **kw: Any) -> int:
+                    return 1780000000
+
+                async def request_proposal(self, payload: dict[str, Any], timeout: float = 8.0) -> dict[str, Any]:
                     return {}
 
             try:
@@ -1405,29 +1411,2447 @@ def test_da2_adversarial_hardening_regressions() -> None:
                 vp_mod.DerivEnv.from_env = classmethod(lambda cls: type("E", (), {"account_id": "VRTC123", "pat": "tok", "app_id": "1089"})())  # type: ignore[assignment]
                 vp_mod.request_authenticated_ws_url = lambda env, mode: ("wss://ws.derivws.com/websockets/v3?app_id=1089", "v3_authorize")  # type: ignore[assignment]
                 vp_mod.validate_account_mode = lambda **kw: None  # type: ignore[assignment]
-                vp_mod.DerivAsyncClient = _EmptyPropClient  # type: ignore[assignment]
+                vp_mod.SotaDerivAsyncClient = _EmptyPropClient  # type: ignore[assignment]
                 repo_real = Path(__file__).resolve().parents[1]
                 b1 = load_enabled_sota_books(repo_root=repo_real, account_mode="demo", book_ids=["USDJPY.sota_ens5_m30_up.v1"])
-                smoke_res = await run_network_proposal_smoke("demo", b1, 1.0)
-                assert smoke_res[0]["proposal_received"] is False
+                smoke_res = await run_network_proposal_smoke("demo", b1, 1.0, pace_s=0.0)
+                assert smoke_res[0]["proposal_received"] is False and smoke_res[0]["smoke_passed"] is False
 
                 class _BadRatioPropClient(_EmptyPropClient):
-                    async def request(self, payload: dict[str, Any], timeout: float = 8.0) -> dict[str, Any]:
-                        if "authorize" in payload:
-                            return {"authorize": {"loginid": "VRTC123", "currency": "USD", "is_virtual": 1}}
+                    async def request_proposal(self, payload: dict[str, Any], timeout: float = 8.0) -> dict[str, Any]:
                         return {"proposal": {"id": "p1", "ask_price": 5.0, "payout": 4.5, "currency": "USD"}}
 
-                vp_mod.DerivAsyncClient = _BadRatioPropClient  # type: ignore[assignment]
-                smoke_bad_ratio = await run_network_proposal_smoke("demo", b1, 1.0)
-                assert smoke_bad_ratio[0]["proposal_received"] is False
+                vp_mod.SotaDerivAsyncClient = _BadRatioPropClient  # type: ignore[assignment]
+                smoke_bad_ratio = await run_network_proposal_smoke("demo", b1, 1.0, pace_s=0.0)
+                assert smoke_bad_ratio[0]["proposal_received"] is False and smoke_bad_ratio[0]["smoke_passed"] is False
             finally:
                 vp_mod.assert_non_us_deriv_host = orig_assert  # type: ignore[assignment]
                 vp_mod.DerivEnv.from_env = orig_env  # type: ignore[assignment]
                 vp_mod.request_authenticated_ws_url = orig_req_ws  # type: ignore[assignment]
                 vp_mod.validate_account_mode = orig_val  # type: ignore[assignment]
-                vp_mod.DerivAsyncClient = orig_client  # type: ignore[assignment]
+                vp_mod.SotaDerivAsyncClient = orig_client  # type: ignore[assignment]
 
     asyncio.run(_exec_hardening())
+
+
+# ---------------------------------------------------------------------------
+# Phase 1 Comprehensive Unit, Negative-Control & Consumer Proof Suites (§6 #1)
+# ---------------------------------------------------------------------------
+
+
+def _fit_synthetic_stack05_bundle(n_rows: int = 240, n_feat: int = 8, seed: int = 11) -> dict[str, Any]:
+    import lightgbm as lgb
+    from sota_book_freeze import (
+        extract_nystroem_lgb_stack_arrays,
+        serialize_sota_lgb_txt_bytes,
+        serialize_sota_strategy_bytes,
+        serialize_sota_weights_npz_bytes,
+    )
+    from sota_book_runtime import compute_sota_content_id_from_buffers
+
+    rng = np.random.default_rng(seed)
+    fcols = [f"f_{i}" for i in range(n_feat)]
+    X = rng.normal(size=(n_rows, n_feat)).astype(np.float64)
+    X[1, 0] = np.nan
+    X[2, 1] = np.nan
+    y = ((np.nan_to_num(X[:, 0]) + 0.7 * np.nan_to_num(X[:, 1]) + rng.normal(scale=0.4, size=n_rows)) > 0).astype(int)
+    med = np.nanmedian(X, axis=0)
+    X_imp = np.where(np.isfinite(X), X, med)
+    mu = X_imp.mean(axis=0)
+    sd = X_imp.std(axis=0) + 1e-12
+    Z = np.clip((X_imp - mu) / sd, -5.0, 5.0)
+
+    ny_list, sgd_list, p_nys_list = [], [], []
+    for s_i in range(5):
+        ny_s = Nystroem(kernel="rbf", gamma=1.0 / n_feat, n_components=24, random_state=s_i).fit(Z)
+        sgd_s = SGDClassifier(loss="log_loss", alpha=1e-4, max_iter=30, tol=1e-4, random_state=s_i).fit(ny_s.transform(Z), y)
+        ny_list.append(ny_s)
+        sgd_list.append(sgd_s)
+        p_nys_list.append(sgd_s.predict_proba(ny_s.transform(Z))[:, 1])
+    p_nys = np.mean(p_nys_list, axis=0)
+
+    clf = lgb.LGBMClassifier(
+        n_estimators=20,
+        learning_rate=0.05,
+        num_leaves=7,
+        min_child_samples=10,
+        random_state=42,
+        deterministic=True,
+        force_col_wise=True,
+        n_jobs=1,
+        verbose=-1,
+    )
+    clf.fit(X, y, feature_name=fcols)
+    p_lgb = clf.booster_.predict(X, num_iteration=20)
+    p_raw = 0.5 * p_nys + 0.5 * p_lgb
+
+    # Construct 7-input parity rows covering finite UP, <50%-NaN, UP boundary, and disallowed DOWN!
+    order = np.argsort(p_raw)
+    pick_idx = [int(order[-1]), 1, int(order[len(order) // 2]), int(order[0])]
+    p_sub = p_raw[pick_idx]
+    conf_thr = float(max(0.01, abs(p_sub[2] - 0.5) * 0.5))
+    coef, intercept = 1.2, 0.05
+    logits = np.clip(np.log(np.clip(p_sub, 1e-6, 1.0 - 1e-6) / (1.0 - np.clip(p_sub, 1e-6, 1.0 - 1e-6))), -15.0, 15.0)
+    p_up_cal = 1.0 / (1.0 + np.exp(-(coef * logits + intercept)))
+    dirs = ["UP" if p >= 0.5 else "DOWN" for p in p_sub]
+    gates = [bool(d == "UP" and abs(p - 0.5) >= conf_thr) for d, p in zip(dirs, p_sub)]
+    cal_present = [bool(d == "UP") for d in dirs]
+    epochs = np.full(len(pick_idx), int(datetime(2026, 7, 15, 14, 0, tzinfo=timezone.utc).timestamp()), dtype=np.int64)
+
+    weights_arrays = extract_nystroem_lgb_stack_arrays(med, mu, sd, ny_list, sgd_list, blend_weight=0.5)
+    lgb_bytes = serialize_sota_lgb_txt_bytes(clf, fcols, num_iteration=20)
+    npz_bytes = serialize_sota_weights_npz_bytes(weights_arrays)
+    strat = {
+        "book_id": "USDJPY.test_stack05.v1",
+        "pair": "USDJPY",
+        "horizon_minutes": 30,
+        "allowed_sides": ["UP"],
+        "model_kind": "nystroem-lgb-stack",
+        "contract_family": "risefall",
+        "feature_cols": fcols,
+        "coverage": 0.05,
+        "confidence_threshold": conf_thr,
+        "refit_cpcv_p10_floors": {"UP": 0.58},
+        "payout_edge_margin": 0.005,
+        "min_payout_ratio": 1.78,
+        "drop_ny_16h": False,
+        "platt_calibration": {"UP": {"coef": coef, "intercept": intercept}},
+    }
+    strat_bytes = serialize_sota_strategy_bytes(strat)
+    cid = compute_sota_content_id_from_buffers(
+        [
+            ("USDJPY.test_stack05.v1_strategy.json", strat_bytes),
+            ("USDJPY.test_stack05.v1_weights.npz", npz_bytes),
+            ("USDJPY.test_stack05.v1_lgb_s0.txt", lgb_bytes),
+        ]
+    )
+    return {
+        "fcols": fcols,
+        "df_parity": pd.DataFrame(X[pick_idx], columns=fcols),
+        "epochs": epochs,
+        "p_raw": p_sub,
+        "p_up_cal": p_up_cal,
+        "dirs": dirs,
+        "gates": gates,
+        "cal_present": cal_present,
+        "conf_thr": conf_thr,
+        "platt": {"UP": {"coef": coef, "intercept": intercept}},
+        "weights_arrays": weights_arrays,
+        "lgb_clf": clf,
+        "lgb_bytes": lgb_bytes,
+        "npz_bytes": npz_bytes,
+        "strat_bytes": strat_bytes,
+        "content_id": cid,
+        "X": X,
+        "y": y,
+    }
+
+
+def test_phase1_stack05_runtime_and_freezer() -> None:
+    import hashlib
+    import os
+    import subprocess
+    import sys
+    import lightgbm as lgb
+    import certify_sota_stack05 as cert_mod
+    import sota_book_freeze as freeze_mod
+    from build_certified_sota_books import (
+        install_staged_stack05,
+        stage_stack05_in_lab_dir,
+        verify_staged_stack05_in_dir,
+    )
+    from sota_book_freeze import (
+        canonical_deterministic_manifest_sha256,
+        complete_interrupted_stack_index_install,
+        serialize_sota_lgb_txt_bytes,
+        serialize_sota_weights_npz_bytes,
+    )
+    from sota_book_runtime import check_pipeline_features_dir_exists
+
+    syn = _fit_synthetic_stack05_bundle()
+    # 1. Byte determinism + feature_name enforcement (unnamed Column_0.. booster MUST be rejected!)
+    assert serialize_sota_weights_npz_bytes(syn["weights_arrays"]) == syn["npz_bytes"]
+    assert serialize_sota_lgb_txt_bytes(syn["lgb_clf"], syn["fcols"], num_iteration=20) == syn["lgb_bytes"]
+    unnamed_clf = lgb.LGBMClassifier(n_estimators=10, num_leaves=7, min_child_samples=10, random_state=42, verbose=-1)
+    unnamed_clf.fit(syn["X"], syn["y"])  # omits feature_name -> emits Column_0..
+    _expect_raises(SotaBookError, serialize_sota_lgb_txt_bytes, unnamed_clf, syn["fcols"], num_iteration=10)
+
+    # 2. Pre-import /home/sean/git/binary-algo/features existence check & sys.path / 15-file closure
+    check_pipeline_features_dir_exists(Path("/home/sean/git/binary-algo/features"))
+    _expect_raises(SotaBookError, check_pipeline_features_dir_exists, Path("/tmp/definitely_missing_features_dir_xyz"))
+    # Calling inside test_deriv_sota_runtime.py MUST reject non-closure module (__main__)!
+    _expect_raises(cert_mod.OperationalHoldError, cert_mod.verify_source_closure_and_loaded_modules, Path(__file__).resolve().parents[1])
+    # Clean subprocess importing ONLY certify_sota_stack05 MUST pass with exact 15-file closure!
+    clo_res = subprocess.run(
+        [
+            sys.executable, "-B", "-E", "-s", "-c",
+            "import sys, json; sys.path.insert(0, 'scripts'); import certify_sota_stack05 as c; s, m = c.verify_source_closure_and_loaded_modules(); print(json.dumps({'sha': s, 'n': len(m)}))",
+        ],
+        cwd=str(Path(__file__).resolve().parents[1]),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert clo_res.returncode == 0, f"clean closure check failed: {clo_res.stdout} {clo_res.stderr}"
+    clo_obj = json.loads(clo_res.stdout)
+    assert len(clo_obj["sha"]) == 64 and clo_obj["n"] == 15
+
+    # 3. O_NOFOLLOW DEV loader symlink & hash mismatch negative controls
+    with tempfile.TemporaryDirectory() as td_nf:
+        tdp = Path(td_nf)
+        real_f = tdp / "a.bin"
+        real_f.write_bytes(b"hello-world")
+        sym_f = tdp / "sym.bin"
+        sym_f.symlink_to(real_f)
+        assert cert_mod.read_verified_file_nofollow(tdp, ["a.bin"], expected_bytes=11, expected_sha256=hashlib.sha256(b"hello-world").hexdigest()) == b"hello-world"
+        _expect_raises(cert_mod.OperationalHoldError, cert_mod.read_verified_file_nofollow, tdp, ["sym.bin"])
+        _expect_raises(cert_mod.OperationalHoldError, cert_mod.read_verified_file_nofollow, tdp, ["a.bin"], expected_sha256="0" * 64)
+
+    # 4. 7-input staged parity, D2 staged fsync, B4 dual books/ fsync, pre-rename expected install + 0444 builder_suffix,
+    #    and B2 zero-fit interrupted-index recovery after book rename before first books/ barrier!
+    dev_certs = {
+        "G1_cpcv": {"passed": True, "p10_wr": 0.58},
+        "G2_placebo": {"passed": True, "mean_excess": 0.05},
+        "G3_entry_delay": {"passed": True, "d4_p10": 0.57},
+        "G4_sign_null": {"passed": True, "null_max": 0.52},
+        "G5_payout": {"passed": True, "p10_ev": 0.05},
+    }
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "books").mkdir()
+        (root / "logs").mkdir()
+        arch_dir = root / "lab" / "archive" / "stack05_m30_up_v1"
+        arch_dir.mkdir(parents=True)
+        exp_install_p = root / "logs" / "sota_stack05_expected_install.json"
+        bsuf_p = arch_dir / "builder_suffix.json"
+
+        # Spy on fsync_file & fsync_dir during interrupted install (interrupt right after rename_noreplace, before first books/ fsync!)
+        fsync_events: list[tuple[str, str]] = []
+        orig_ff = freeze_mod.fsync_file
+        orig_fd = freeze_mod.fsync_dir
+
+        def _spy_ff(p: Path) -> None:
+            fsync_events.append(("file", str(p.resolve())))
+            orig_ff(p)
+
+        def _spy_fd(p: Path) -> None:
+            fsync_events.append(("dir", str(p.resolve())))
+            orig_fd(p)
+
+        class _InjectedCrash(RuntimeError):
+            pass
+
+        def _crash_after_rename() -> None:
+            raise _InjectedCrash("crash_right_after_book_rename_before_books_fsync")
+
+        try:
+            freeze_mod.fsync_file = _spy_ff  # type: ignore[assignment]
+            freeze_mod.fsync_dir = _spy_fd  # type: ignore[assignment]
+            try:
+                freeze_mod.freeze_sota_book(
+                    book_id="USDJPY.test_stack05.v1",
+                    pair="USDJPY",
+                    horizon_minutes=30,
+                    allowed_sides=["UP"],
+                    lifecycle_status=DEMO_CANARY_LIFECYCLE,
+                    model_kind="nystroem-lgb-stack",
+                    feature_cols=syn["fcols"],
+                    coverage=0.05,
+                    confidence_threshold=syn["conf_thr"],
+                    refit_cpcv_p10_floors={"UP": 0.58},
+                    platt_calibration=syn["platt"],
+                    gate_certificates=dev_certs,
+                    summary="test stack05",
+                    metrics={"p10_wr": 0.58},
+                    source_script="scripts/test_deriv_sota_runtime.py",
+                    weights_arrays=syn["weights_arrays"],
+                    lgb_model_bytes=("USDJPY.test_stack05.v1_lgb_s0.txt", syn["lgb_bytes"]),
+                    min_payout_ratio=1.78,
+                    parity_check_df=syn["df_parity"],
+                    parity_check_epochs=syn["epochs"],
+                    parity_expected_probs=syn["p_raw"],
+                    parity_expected_up_cal_probs=syn["p_up_cal"],
+                    parity_expected_directions=syn["dirs"],
+                    parity_expected_gates=syn["gates"],
+                    parity_expected_row_cal_present=syn["cal_present"],
+                    expected_content_id=syn["content_id"],
+                    expected_install_path=exp_install_p,
+                    builder_suffix_path=bsuf_p,
+                    builder_suffix_metadata={"schema": "sota-stack05-builder-suffix/v1", "book_id": "USDJPY.test_stack05.v1"},
+                    archive_sync_stop_at=root / "lab",
+                    pre_index_hook=_crash_after_rename,
+                    repo_root=root,
+                )
+                raise AssertionError("expected _InjectedCrash")
+            except _InjectedCrash:
+                pass
+
+            # Verify D2 + MAJOR #5: staged files & staged dir were fsynced BEFORE descriptor/suffix publish,
+            # AND pre_index_hook fired right after rename_noreplace BEFORE the first books/ fsync!
+            books_dir_res = str((root / "books").resolve())
+            assert any(kind == "file" and "_lgb_s0.txt" in path for kind, path in fsync_events)
+            assert any(kind == "dir" and ".stage_USDJPY.test_stack05.v1_" in path for kind, path in fsync_events)
+            assert books_dir_res not in [p for k, p in fsync_events if k == "dir"], (
+                f"pre_index_hook must fire BEFORE first books/ fsync, saw: {fsync_events}"
+            )
+            # Verify pre-rename durable files exist, builder_suffix is 0444, book dir exists, SOTA_INDEX.json does NOT yet exist!
+            assert exp_install_p.is_file() and bsuf_p.is_file()
+            assert (os.stat(bsuf_p).st_mode & 0o777) == 0o444
+            assert (root / "books" / "USDJPY.test_stack05.v1").is_dir()
+            assert not (root / "books" / "SOTA_INDEX.json").exists()
+
+            # B2 Zero-fit interrupted-index recovery: MUST fsync books/ BEFORE AND AFTER index replacement, then retire marker!
+            fsync_events.clear()
+            complete_interrupted_stack_index_install(
+                book_id="USDJPY.test_stack05.v1",
+                repo_root=root,
+                expected_install_path=exp_install_p,
+            )
+            books_sync_count = sum(1 for k, p in fsync_events if k == "dir" and p == books_dir_res)
+            assert books_sync_count >= 2, f"expected >=2 books/ fsyncs (before & after index), got {books_sync_count}"
+            assert not exp_install_p.exists(), "expected_install marker was not retired after index publish"
+            assert (root / "books" / "SOTA_INDEX.json").is_file()
+            loaded = load_sota_book("USDJPY.test_stack05.v1", repo_root=root, allow_demo_canary=True)
+            assert loaded.content_id == syn["content_id"]
+            assert loaded.boosters is not None and loaded.boosters[0].feature_name() == syn["fcols"]
+
+            # Tampering booster text to unnamed Column_0.. MUST fail reload!
+            man_path = root / "books" / "USDJPY.test_stack05.v1" / "USDJPY.test_stack05.v1.manifest.json"
+            assert len(canonical_deterministic_manifest_sha256(json.loads(man_path.read_text()))) == 64
+
+            # Verify check_book_manifests.py accepts sota-book-manifest/v1 with pair & rejects conflicting currency!
+            chk = subprocess.run(
+                [sys.executable, "-B", str(Path(__file__).resolve().parent / "check_book_manifests.py")],
+                cwd=str(Path(__file__).resolve().parents[1]),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            assert chk.returncode == 0, f"check_book_manifests failed: {chk.stdout} {chk.stderr}"
+        finally:
+            freeze_mod.fsync_file = orig_ff  # type: ignore[assignment]
+            freeze_mod.fsync_dir = orig_fd  # type: ignore[assignment]
+
+    # 5. B1: Fresh archive tree & custody retry sync $A, $LAB/archive, and $LAB bottom-up!
+    with tempfile.TemporaryDirectory() as td_b1:
+        root_b1 = Path(td_b1)
+        src_t = root_b1 / "src_t"
+        src_t.mkdir()
+        ck_root = root_b1 / "checkout"
+        (ck_root / "results" / "json").mkdir(parents=True)
+        (ck_root / "logs").mkdir(parents=True)
+        lab_root = root_b1 / "lab"
+        lab_root.mkdir()
+        arch_a = lab_root / "archive" / "stack05_m30_up_v1"
+        for fname in (
+            cert_mod.CANONICAL_SCORES_NAME,
+            cert_mod.CANONICAL_LEDGER_NAME,
+            cert_mod.CANONICAL_DOSSIER_NAME,
+            cert_mod.CANONICAL_RECEIPT_NAME,
+        ):
+            (src_t / fname).write_bytes(f"payload:{fname}\n".encode("utf-8"))
+        synced_dirs: list[str] = []
+        orig_cfd = cert_mod.fsync_dir
+        orig_ffd = freeze_mod.fsync_dir
+        try:
+            def _spy_cfd(p: Path) -> None:
+                synced_dirs.append(str(p.resolve()))
+                orig_ffd(p)
+
+            cert_mod.fsync_dir = _spy_cfd  # type: ignore[assignment]
+            freeze_mod.fsync_dir = _spy_cfd  # type: ignore[assignment]
+            # Fresh publish
+            cert_mod.publish_certifier_prefix_bundle(src_dir=src_t, checkout_root=ck_root, archive_dir=arch_a, lab_root=lab_root)
+            want_order = [str(arch_a.resolve()), str((lab_root / "archive").resolve()), str(lab_root.resolve())]
+            # Assert bottom-up subsequence $A -> $LAB/archive -> $LAB on fresh publish
+            pos = [synced_dirs.index(d) for d in want_order]
+            assert pos == sorted(pos), f"fresh archive ancestry order wrong: {synced_dirs}"
+            for fname in (cert_mod.CANONICAL_SCORES_NAME, cert_mod.CANONICAL_LEDGER_NAME, cert_mod.CANONICAL_DOSSIER_NAME, cert_mod.CANONICAL_RECEIPT_NAME):
+                assert (os.stat(arch_a / fname).st_mode & 0o777) == 0o444
+
+            # Retry publish MUST re-sync $A -> $LAB/archive -> $LAB bottom-up idempotently!
+            synced_dirs.clear()
+            cert_mod.publish_certifier_prefix_bundle(src_dir=src_t, checkout_root=ck_root, archive_dir=arch_a, lab_root=lab_root)
+            pos2 = [synced_dirs.index(d) for d in want_order]
+            assert pos2 == sorted(pos2), f"retry archive ancestry order wrong: {synced_dirs}"
+        finally:
+            cert_mod.fsync_dir = orig_cfd  # type: ignore[assignment]
+            freeze_mod.fsync_dir = orig_ffd  # type: ignore[assignment]
+
+    # 6. B3: Interrupted/uncertain capped launch (absent debit vs spent debit with incomplete stage evidence) -> HOLD!
+    with tempfile.TemporaryDirectory() as td_b3:
+        root_b3 = Path(td_b3)
+        ck = root_b3 / "ck"
+        (ck / "results" / "json").mkdir(parents=True)
+        (ck / "logs").mkdir(parents=True)
+        stage_t = root_b3 / "stage_t"
+        stage_t.mkdir()
+        prereg_sha = "a" * 64
+        dos_stub = {
+            "schema": "sota-5gate-certification-dossier/v3",
+            "book_id": "USDJPY.sota_stack05_m30_up.v1",
+            "verdict": "PASS",
+            "all_5_gates_passed": True,
+            "drift_check_passed": True,
+            "preregistration_sha256": prereg_sha,
+            "G1_cpcv": {"passed": True, "p10_wr": 0.59},
+            "G2_placebo": {"passed": True},
+            "G3_entry_delay": {"passed": True},
+            "G4_sign_null": {"passed": True, "verdict": "DESCRIPTIVE_RANK_DIAGNOSTIC_PASS"},
+            "G5_payout": {"passed": True, "classification": "fixed_ratio_dev_sensitivity_only_not_decision5"},
+            "final_fit_expected_content_id": syn["content_id"],
+        }
+        dos_b = cert_mod.pretty_json_bytes(dos_stub)
+        (ck / "results" / "json" / cert_mod.CANONICAL_DOSSIER_NAME).write_bytes(dos_b)
+        led_0 = {"schema": cert_mod.FIT_LEDGER_SCHEMA, "preregistration_sha256": prereg_sha, "max_fit_units": 263, "attempts": []}
+        led_0_b = cert_mod.canonical_json_bytes(led_0)
+        (ck / "logs" / cert_mod.CANONICAL_LEDGER_NAME).write_bytes(led_0_b)
+        rcpt_obj = {
+            "schema": cert_mod.RECEIPT_SCHEMA,
+            "verdict": "PASS",
+            "dossier_sha256": hashlib.sha256(dos_b).hexdigest(),
+            "certifier_attempt_count": 0,
+            "certifier_fit_ledger_prefix_sha256": hashlib.sha256(led_0_b).hexdigest(),
+            "preregistration_sha256": prereg_sha,
+            "final_fit_expected_content_id": syn["content_id"],
+            "final_fit_expected_artifacts": [
+                {"filename": "USDJPY.sota_stack05_m30_up.v1_strategy.json", "bytes": len(syn["strat_bytes"]), "sha256": hashlib.sha256(syn["strat_bytes"]).hexdigest()},
+            ],
+        }
+        rcpt_b = cert_mod.pretty_json_bytes(rcpt_obj)
+        rcpt_sha = hashlib.sha256(rcpt_b).hexdigest()
+        (ck / "logs" / cert_mod.CANONICAL_RECEIPT_NAME).write_bytes(rcpt_b)
+
+        # Case 6a: Absent debit + missing staged_install_manifest.json -> verify_staged_stack05_in_dir HOLDS specifically on incomplete stage!
+        try:
+            verify_staged_stack05_in_dir(stage_dir=stage_t, expected_receipt_sha256=rcpt_sha, repo_root=ck)
+            raise AssertionError("expected SotaBookError on incomplete stage")
+        except SotaBookError as exc:
+            assert "incomplete staged evidence" in str(exc), f"unexpected error: {exc}"
+
+        # Case 6b: Spent builder debit in $T ledger + incomplete stage evidence -> HOLDS specifically on debit check AND ledger stays intact!
+        led_1 = {
+            "schema": cert_mod.FIT_LEDGER_SCHEMA,
+            "preregistration_sha256": prereg_sha,
+            "max_fit_units": 263,
+            "attempts": [{"attempt_id": 1, "stage": "builder", "role": "builder_final_fit", "preregistration_sha256": prereg_sha, "started_utc": "2026-11-25T00:00:00Z"}],
+        }
+        led_1_b = cert_mod.canonical_json_bytes(led_1)
+        (stage_t / cert_mod.CANONICAL_LEDGER_NAME).write_bytes(led_1_b)
+        try:
+            verify_staged_stack05_in_dir(stage_dir=stage_t, expected_receipt_sha256=rcpt_sha, repo_root=ck)
+            raise AssertionError("expected SotaBookError on spent debit with incomplete stage")
+        except SotaBookError as exc:
+            assert "incomplete staged evidence" in str(exc), f"unexpected error: {exc}"
+        assert (stage_t / cert_mod.CANONICAL_LEDGER_NAME).read_bytes() == led_1_b
+        # Re-invoking stage_stack05_in_lab_dir on spent debit with incomplete stage MUST reach debit check & refuse without overwriting ledger!
+        prog_p = root_b3 / "PROGRESS.md"
+        prog_p.write_text("# progress\n", encoding="utf-8")
+        try:
+            stage_stack05_in_lab_dir(
+                out_dir=stage_t,
+                expected_receipt_sha256=rcpt_sha,
+                progress_md=prog_p,
+                repo_root=ck,
+                allow_fixture_digest_override=True,
+                fixture_root=root_b3,
+            )
+            raise AssertionError("expected SotaBookError on spent builder debit")
+        except SotaBookError as exc:
+            assert "builder debit already spent" in str(exc), f"expected debit refusal, got: {exc}"
+        assert (stage_t / cert_mod.CANONICAL_LEDGER_NAME).read_bytes() == led_1_b
+        assert callable(install_staged_stack05)
+
+
+def test_phase1_certifier_reducers_and_verify_bundle() -> None:
+    import copy
+    import hashlib
+    import certificate as cert_check_mod
+    import certify_sota_stack05 as cert_mod
+    import deriv_dataset as dd_mod
+
+    # 1. settle_with_intervals bit-identical to deriv_dataset.settle() at d=0 + [0,1]->(inf,False) + empty ticks safe!
+    tick_ts = np.array([1000, 1001, 1061, 2801, 2860, 4000, 5800], dtype=np.int64)
+    tick_px = np.array([150.0, 0.0, 150.1, 1.0, 150.5, 151.0, 151.0], dtype=np.float64)
+    dec_ts = np.array([1000, 1060, 3999, 9000], dtype=np.int64)  # includes zero-price [0,1]->(inf,False), valid win, tie, out-of-range
+    r_ref, v_ref = dd_mod.settle(dec_ts, tick_ts, tick_px, horizon_s=1800, tol_s=60)
+    r_got, v_got, ei_got, xi_got = cert_mod.settle_with_intervals(dec_ts, tick_ts, tick_px, horizon_s=1800, delay_s=0, tol_s=60)
+    assert np.array_equal(v_got, v_ref)
+    assert np.array_equal(np.isnan(r_got), np.isnan(r_ref))
+    assert np.array_equal(np.isinf(r_got), np.isinf(r_ref))
+    fin = np.isfinite(r_ref)
+    assert np.array_equal(r_got[fin], r_ref[fin])
+    assert not v_got[0] and np.isinf(r_got[0])  # [0, 1] -> (inf, False)!
+    assert ei_got[0] == -1 and xi_got[0] == -1
+    # Empty ticks -> safe no IndexError!
+    r_e, v_e, ei_e, xi_e = cert_mod.settle_with_intervals(dec_ts, np.empty(0, dtype=np.int64), np.empty(0, dtype=np.float64))
+    assert len(r_e) == len(dec_ts) and not v_e.any() and np.all(ei_e == -1) and np.all(xi_e == -1)
+
+    # Empty registered DEV tick file -> OperationalHoldError before any fit!
+    with tempfile.TemporaryDirectory() as td_emp:
+        tdp = Path(td_emp)
+        ddir = tdp / "dev"
+        tdir = tdp / "ticks" / "USDJPY"
+        ddir.mkdir()
+        tdir.mkdir(parents=True)
+        empty_pq = tdir / "USDJPY_2025-08-11_ticks.parquet"
+        pd.DataFrame({"datetime_utc": pd.Series([], dtype="datetime64[ns, UTC]"), "price": pd.Series([], dtype="float64")}).to_parquet(empty_pq, index=False)
+        raw_pq = empty_pq.read_bytes()
+        man = {"inputs": {"USDJPY": [{"file": empty_pq.name, "bytes": len(raw_pq), "sha256": hashlib.sha256(raw_pq).hexdigest()}]}}
+        man_b = json.dumps(man).encode("utf-8")
+        (ddir / "manifest.json").write_bytes(man_b)
+        _expect_raises(
+            cert_mod.OperationalHoldError,
+            cert_mod.load_pinned_dev_ticks,
+            "USDJPY",
+            dev_dir=ddir,
+            ticks_root=tdp / "ticks",
+            expected_manifest_sha256=hashlib.sha256(man_b).hexdigest(),
+        )
+
+    # 2. split_train_val support guards + null receiver-cut/donor-purge precedence!
+    n_p = 4000
+    ts_s = np.arange(1755000000, 1755000000 + n_p * 600, 600, dtype=np.int64)
+    ent_s = ts_s + 1
+    ext_s = ent_s + 1800
+    ret_s = np.where(np.arange(n_p) % 2 == 0, 0.001, -0.001)
+    sp_ok = cert_mod.split_train_val(np.arange(n_p, dtype=np.int64), ts_s, ent_s, ext_s, ret_s)
+    assert sp_ok["support_ok"] is True
+    # Zero overlap across (fit_all, val), (val_h1, val_h2), (tr_sub, es_sub)
+    assert not cert_mod.intervals_overlap_any(ent_s[sp_ok["fit_all_idx"]], ext_s[sp_ok["fit_all_idx"]], ent_s[sp_ok["val_idx"]], ext_s[sp_ok["val_idx"]]).any()
+    assert not cert_mod.intervals_overlap_any(ent_s[sp_ok["val_h1_idx"]], ext_s[sp_ok["val_h1_idx"]], ent_s[sp_ok["val_h2_idx"]], ext_s[sp_ok["val_h2_idx"]]).any()
+    assert not cert_mod.intervals_overlap_any(ent_s[sp_ok["tr_sub_idx"]], ext_s[sp_ok["tr_sub_idx"]], ent_s[sp_ok["es_sub_idx"]], ext_s[sp_ok["es_sub_idx"]]).any()
+    # Too-small pool -> exact ordered failure reason
+    assert cert_mod.split_train_val(np.arange(100, dtype=np.int64), ts_s, ent_s, ext_s, ret_s)["failure_reason"] == "pool_below_min_val"
+    # Donor-purge precedence: make all donor intervals of earlier half collide with val_h2 -> val_h1 purged -> val_support_failed!
+    donor_ent = np.full(n_p, int(ent_s[-1]), dtype=np.int64)
+    donor_ext = donor_ent + 1800
+    sp_null_collide = cert_mod.split_train_val(
+        np.arange(n_p, dtype=np.int64),
+        ts_s,
+        ent_s,
+        ext_s,
+        ret_s,
+        donor_entry_ts=donor_ent,
+        donor_exit_ts=donor_ext,
+    )
+    assert sp_null_collide["support_ok"] is False and sp_null_collide["failure_reason"] == "val_support_failed"
+
+    # 3. Linear percentiles, G5 unavailable branch, strict JSON allow_nan=False, certificate._reread_result (exact=2)
+    assert abs((cert_mod._linear_p10([0.50, 0.60, 0.70, 0.80, 0.90]) or 0.0) - 0.54) < 1e-12
+    assert cert_mod._linear_p10([]) is None
+
+    # 4. Full synthetic 262-role bundle + verify_bundle PASS + B3 D1 trade_wins swap refusal + missing builder_suffix + false KILL-STACK!
+    # Build a compact synthetic DEV dataframe spanning all 6 shared CPCV groups with valid NY weekday rows so all 262 roles exist!
+    group_bounds = cert_mod.SHARED_GROUP_BOUNDS_UTC
+    rows_ts: list[int] = []
+    # Pick valid NY weekday bars spaced 32m (1920s > 1805+2s) apart strictly inside each of the 6 shared CPCV groups!
+    for g in range(6):
+        dt_g = datetime.fromtimestamp(group_bounds[g] + 86400, tz=timezone.utc).replace(hour=13, minute=0, second=0)
+        end_ep = group_bounds[g + 1] - 86400
+        while int(dt_g.timestamp()) < end_ep:
+            if dt_g.weekday() < 5:
+                for m_step in range(0, 448, 32):
+                    cand_ep = int((dt_g + timedelta(minutes=m_step)).timestamp())
+                    if cand_ep < end_ep:
+                        rows_ts.append(cand_ep)
+            dt_g += timedelta(days=1)
+    ts_all = np.array(sorted(set(rows_ts)), dtype=np.int64)
+    n_syn = len(ts_all)
+    # Create ticks covering entry (ts+1..ts+30) and expiry (ts+1801..ts+1830) for every synthetic bar, plus fresh prior ticks (ts-1)!
+    tk_ts_list: list[int] = []
+    tk_px_list: list[float] = []
+    for i, t_i in enumerate(ts_all):
+        # 70% win rate on positive-score rows, ~2% ties, ~50% overall moved_up_rate
+        is_tie = (i % 50 == 0)
+        is_up = (i % 2 == 0)
+        p0 = 150.0
+        p_end = 150.0 if is_tie else (150.2 if is_up else 149.8)
+        # Strictly prior tick at t_i - 1 with price change so fresh_quote_le2s and fresh_midchg_le2s are nonempty!
+        tk_ts_list.extend([int(t_i - 2), int(t_i - 1), int(t_i + 1), int(t_i + 5), int(t_i + 1801), int(t_i + 1805)])
+        tk_px_list.extend([149.99, p0, p0, p0, p_end, p_end])
+    order_tk = np.argsort(tk_ts_list, kind="mergesort")
+    tk_ts = np.asarray(tk_ts_list, dtype=np.int64)[order_tk]
+    tk_px = np.asarray(tk_px_list, dtype=np.float64)[order_tk]
+    # Deduplicate timestamps keeping last
+    _, uniq_inv = np.unique(tk_ts[::-1], return_index=True)
+    keep_idx = (len(tk_ts) - 1) - uniq_inv
+    keep_idx.sort()
+    tk_ts = tk_ts[keep_idx]
+    tk_px = tk_px[keep_idx]
+
+    ret_t, val_t, ent_t, ext_t = cert_mod.settle_with_intervals(ts_all, tk_ts, tk_px, horizon_s=1800, delay_s=0, tol_s=60)
+    fcols_syn = ["rv_60m"] + [f"f_{i}" for i in range(65)]
+    rng_df = np.random.default_rng(1234)
+    df_syn = pd.DataFrame(rng_df.normal(size=(n_syn, 66)), columns=fcols_syn)
+    df_syn["rv_60m"] = np.linspace(0.001, 0.010, n_syn)
+    df_syn["decision_ts"] = ts_all
+    df_syn["bar_start_ts"] = ts_all - 60
+
+    elig_syn = cert_mod.build_eligible_indices(df_syn, fcols_syn, val_t, ret_t)
+    # Build synthetic scores favoring even-indexed winning bars on real/fwd/frozen_past/final_fit and noisy on nulls!
+    # Use a compact split helper with small min_val so synthetic 4,200 rows support all real/fwd/frozen/final roles cleanly!
+    orig_split = cert_mod.split_train_val
+    try:
+        def _fast_split(pool_idx, ts, entry_ts, exit_ts, ret_fwd, **kw):
+            n_pool = len(pool_idx)
+            if n_pool < 620:
+                return {"support_ok": False, "failure_reason": "pool_below_min_val", "fit_all_idx": np.empty(0, dtype=np.int64), "val_h1_idx": np.empty(0, dtype=np.int64), "val_h2_idx": np.empty(0, dtype=np.int64), "val_idx": np.empty(0, dtype=np.int64), "tr_sub_idx": np.empty(0, dtype=np.int64), "es_sub_idx": np.empty(0, dtype=np.int64)}
+            n_val = max(560, int(round(n_pool * 0.25)))
+            val_raw = pool_idx[-n_val:]
+            mid = len(val_raw) // 2
+            val_h2 = val_raw[mid:]
+            val_h1 = val_raw[:mid][(ts[val_raw[:mid]] < int(ts[val_h2[0]]) - 1800) & (exit_ts[val_raw[:mid]] < int(entry_ts[val_h2[0]]))]
+            val_idx = np.concatenate([val_h1, val_h2])
+            fit_all = pool_idx[(ts[pool_idx] < int(ts[val_idx[0]]) - 1800) & (exit_ts[pool_idx] < int(entry_ts[val_idx[0]]))]
+            mv_fit = fit_all[ret_fwd[fit_all] != 0.0]
+            if len(val_h1) < 1 or len(val_h2) < 1 or len(val_idx) < 500 or len(fit_all) < 20 or len(mv_fit) < 20:
+                return {"support_ok": False, "failure_reason": "val_support_failed", "fit_all_idx": np.empty(0, dtype=np.int64), "val_h1_idx": np.empty(0, dtype=np.int64), "val_h2_idx": np.empty(0, dtype=np.int64), "val_idx": np.empty(0, dtype=np.int64), "tr_sub_idx": np.empty(0, dtype=np.int64), "es_sub_idx": np.empty(0, dtype=np.int64)}
+            n_es = max(10, len(mv_fit) // 5)
+            es_sub = mv_fit[-n_es:]
+            tr_sub = mv_fit[(ts[mv_fit] < int(ts[es_sub[0]]) - 1800) & (exit_ts[mv_fit] < int(entry_ts[es_sub[0]]))]
+            return {"support_ok": True, "failure_reason": None, "fit_all_idx": fit_all, "val_h1_idx": val_h1, "val_h2_idx": val_h2, "val_idx": val_idx, "tr_sub_idx": tr_sub, "es_sub_idx": es_sub}
+
+        cert_mod.split_train_val = _fast_split  # type: ignore[assignment]
+        role_specs = cert_mod.build_all_role_specs(ts_all, ret_t, val_t, ent_t, ext_t, elig_syn)
+        scores_dict: dict[str, np.ndarray] = {}
+        cal_by_role: dict[str, dict[str, Any]] = {}
+        rng_sc = np.random.default_rng(77)
+        for rs in role_specs:
+            rname = rs["role"]
+            if not rs["support_ok"]:
+                scores_dict[f"{rname}_val"] = np.empty(0, dtype=np.float64)
+                if rname != "final_fit":
+                    scores_dict[f"{rname}_test"] = np.empty(0, dtype=np.float64)
+                cal_by_role[rname] = {"support_ok": False, "cal_admissible": False, "failure_reason": rs["failure_reason"], "n_val_oos": 0, "conf_thr": None, "platt_coef": None, "platt_intercept": None}
+                continue
+            v_idx = rs["val_idx"]
+            t_idx = rs["test_idx"]
+            is_null = rname.startswith("null_")
+            if is_null:
+                v_p = rng_sc.uniform(0.35, 0.65, size=len(v_idx))
+                t_p = rng_sc.uniform(0.35, 0.65, size=len(t_idx))
+            else:
+                # High score on winning rows + a subset of losing rows well above conf_thr -> strong PASS with both wins & losses!
+                v_win = rs["ret_arr"][v_idx] > 0.0
+                v_p = np.where(v_win, 0.72, 0.35) + rng_sc.uniform(-0.02, 0.02, size=len(v_idx))
+                if len(t_idx) > 0:
+                    t_win = rs["ret_arr"][t_idx] > 0.0
+                    t_p = np.where(t_win, 0.85, 0.30)
+                    lose_pos = np.where(~t_win)[0]
+                    if len(lose_pos) >= 10:
+                        t_p[lose_pos[::10]] = 0.90
+                    t_p = np.clip(t_p + rng_sc.uniform(-0.005, 0.005, size=len(t_idx)), 0.05, 0.95)
+                else:
+                    t_p = np.empty(0, dtype=np.float64)
+            scores_dict[f"{rname}_val"] = v_p.astype(np.float64)
+            if rname != "final_fit":
+                scores_dict[f"{rname}_test"] = t_p.astype(np.float64)
+            conf_thr = float(np.quantile(np.abs(v_p - 0.5), 1.0 - float(rs["cov"]), method="linear"))
+            cal_by_role[rname] = {
+                "support_ok": True,
+                "cal_admissible": True,
+                "failure_reason": None,
+                "n_val_oos": int(len(v_idx)),
+                "conf_thr": conf_thr,
+                "platt_coef": 2.0,
+                "platt_intercept": 0.2,
+            }
+
+        prereg_payload = {"schema": "test", "version": 1}
+        prereg_sha = cert_mod.sha256_bytes(cert_mod.canonical_json_bytes(prereg_payload))
+        peer_tie_info = {"max_ties": 1, "max_total": 20, "max_tie_rate": 0.05, "pairs": {}}
+        exp_id = {"content_id": "0123456789abcdef", "artifacts": []}
+        dossier = cert_mod.evaluate_all_gates_from_scores(
+            df_dev=df_syn,
+            fcols=fcols_syn,
+            tick_ts=tk_ts,
+            tick_px=tk_px,
+            ret_fwd_true=ret_t,
+            valid_true=val_t,
+            entry_true=ent_t,
+            exit_true=ext_t,
+            eligible_idx=elig_syn,
+            role_specs=role_specs,
+            scores_dict=scores_dict,
+            cal_by_role=cal_by_role,
+            peer_tie_info=peer_tie_info,
+            preregistration_payload=prereg_payload,
+            preregistration_sha256=prereg_sha,
+            local_source_closure_sha256="b" * 64,
+            final_fit_expected_identity=exp_id,
+        )
+        # Verify strict allow_nan=False JSON + certificate._reread_result == (2, [], [], ...)
+        dos_bytes = cert_mod.pretty_json_bytes(dossier)
+        reread = cert_check_mod._reread_result(cert_mod.CANONICAL_DOSSIER_NAME, json.loads(dos_bytes.decode("utf-8")))
+        assert reread[0] == 2 and reread[1] == [] and reread[2] == [], f"certificate._reread_result mismatch: {reread}"
+        assert dossier["G4_sign_null"]["verdict"].startswith("DESCRIPTIVE_RANK_DIAGNOSTIC_")
+        assert "SIGNIFICANT" not in dossier["G4_sign_null"]["verdict"]
+        # Verify G3 empty subgroup & G5 unavailable branch on zero-counted-path KILL-STACK (calibration refusal: _val full, _test empty!)
+        zero_scores = {
+            k: (scores_dict[k] if k.endswith("_val") else np.empty(0, dtype=np.float64))
+            for k in scores_dict
+        }
+        zero_cal = {
+            r["role"]: {
+                "support_ok": bool(r["support_ok"]),
+                "cal_admissible": False,
+                "failure_reason": "up_calibration_inadmissible" if r["support_ok"] else r["failure_reason"],
+                "n_val_oos": len(r["val_idx"]),
+                "conf_thr": None,
+                "platt_coef": None,
+                "platt_intercept": None,
+            }
+            for r in role_specs
+        }
+        dos_no_prior = cert_mod.evaluate_all_gates_from_scores(
+            df_dev=df_syn,
+            fcols=fcols_syn,
+            tick_ts=tk_ts[tk_ts >= ts_all[0] + 1],
+            tick_px=tk_px[tk_ts >= ts_all[0] + 1],
+            ret_fwd_true=ret_t,
+            valid_true=val_t,
+            entry_true=ent_t,
+            exit_true=ext_t,
+            eligible_idx=elig_syn,
+            role_specs=role_specs,
+            scores_dict=zero_scores,
+            cal_by_role=zero_cal,
+            peer_tie_info=peer_tie_info,
+            preregistration_payload=prereg_payload,
+            preregistration_sha256=prereg_sha,
+            local_source_closure_sha256="b" * 64,
+        )
+        assert dos_no_prior["verdict"] == "KILL-STACK"
+        assert dos_no_prior["G5_payout"]["passed"] is False and dos_no_prior["G5_payout"]["p10_ev"] is None
+        assert dos_no_prior["G3_entry_delay"]["freshness_subgroups"]["fresh_quote_le2s"]["excess"] is None
+        rr_zero = cert_check_mod._reread_result(cert_mod.CANONICAL_DOSSIER_NAME, json.loads(cert_mod.pretty_json_bytes(dos_no_prior)))
+        assert rr_zero[0] == 2 and rr_zero[1] == [] and rr_zero[2] == []
+
+        # Write bundle fixture to temp dir and test verify_bundle:
+        # (a) Unchanged fixture PASSES!
+        # (b) Missing builder_suffix.json under --allow-builder-suffix FAILS!
+        # (c) Digest-consistent false KILL-STACK FAILS!
+        # (d) D1/B3 digest-consistent G1_cpcv.paths.trade_wins win/loss swap FAILS specifically at trade_wins comparison!
+        with tempfile.TemporaryDirectory() as td_vb:
+            bdir = Path(td_vb)
+            ordered_keys = cert_mod.canonical_scores_npz_keys()
+            npz_bytes = cert_mod.write_deterministic_uncompressed_npz(bdir / cert_mod.CANONICAL_SCORES_NAME, [(k, scores_dict[k]) for k in ordered_keys])
+            ledger_obj = {
+                "schema": cert_mod.FIT_LEDGER_SCHEMA,
+                "preregistration_sha256": prereg_sha,
+                "max_fit_units": 263,
+                "attempts": [{"attempt_id": 1, "stage": "certifier", "role": "real_0_1", "preregistration_sha256": prereg_sha, "started_utc": "2026-11-25T00:00:00Z"}],
+            }
+            led_bytes = cert_mod.canonical_json_bytes(ledger_obj)
+            (bdir / cert_mod.CANONICAL_LEDGER_NAME).write_bytes(led_bytes)
+            (bdir / cert_mod.CANONICAL_DOSSIER_NAME).write_bytes(dos_bytes)
+
+            def _write_receipt(d_bytes: bytes, verdict_v: str, failed_p: list[str]) -> str:
+                r_obj = {
+                    "schema": cert_mod.RECEIPT_SCHEMA,
+                    "book_id": cert_mod.BOOK_ID,
+                    "dossier_sha256": cert_mod.sha256_bytes(d_bytes),
+                    "scores_npz_sha256": cert_mod.sha256_bytes(npz_bytes),
+                    "scores_npz_bytes": len(npz_bytes),
+                    "certifier_attempt_count": 1,
+                    "certifier_fit_ledger_prefix_sha256": cert_mod.sha256_bytes(led_bytes),
+                    "preregistration_sha256": prereg_sha,
+                    "local_source_closure_sha256": "b" * 64,
+                    "verdict": verdict_v,
+                    "failed_predicates": failed_p,
+                    "final_fit_expected_content_id": exp_id["content_id"] if verdict_v == "PASS" else None,
+                    "final_fit_expected_artifacts": exp_id["artifacts"] if verdict_v == "PASS" else None,
+                }
+                rb = cert_mod.pretty_json_bytes(r_obj)
+                (bdir / cert_mod.CANONICAL_RECEIPT_NAME).write_bytes(rb)
+                return cert_mod.sha256_bytes(rb)
+
+            injected = {
+                "df_dev": df_syn,
+                "fcols": fcols_syn,
+                "tick_ts": tk_ts,
+                "tick_px": tk_px,
+                "ret_fwd_true": ret_t,
+                "valid_true": val_t,
+                "entry_true": ent_t,
+                "exit_true": ext_t,
+                "eligible_idx": elig_syn,
+                "role_specs": role_specs,
+                "peer_tie_info": peer_tie_info,
+            }
+            rcpt_sha_ok = _write_receipt(dos_bytes, dossier["verdict"], dossier["failed_predicates"])
+            res_ok = cert_mod.verify_bundle(
+                expected_receipt_sha256=rcpt_sha_ok,
+                bundle_dir=bdir,
+                expected_verdict=dossier["verdict"],
+                skip_closure_check=True,
+                _injected_data=injected,
+            )
+            assert res_ok["verified"] is True
+
+            # (b) Missing progress_md / builder_suffix.json / non-builder_final_fit role under allow_builder_suffix=True MUST FAIL!
+            _expect_raises(
+                cert_mod.OperationalHoldError,
+                cert_mod.verify_bundle,
+                expected_receipt_sha256=rcpt_sha_ok,
+                bundle_dir=bdir,
+                allow_builder_suffix=True,
+                progress_md=None,
+                skip_closure_check=True,
+                _injected_data=injected,
+            )
+            prog_vb = bdir / "PROGRESS.md"
+            prog_vb.write_text("# empty\n", encoding="utf-8")
+            _expect_raises(
+                cert_mod.OperationalHoldError,
+                cert_mod.verify_bundle,
+                expected_receipt_sha256=rcpt_sha_ok,
+                bundle_dir=bdir,
+                allow_builder_suffix=True,
+                progress_md=prog_vb,
+                skip_closure_check=True,
+                _injected_data=injected,
+            )
+            # Non-builder_final_fit role in ledger MUST be refused!
+            bad_role_ldg = {
+                "schema": cert_mod.FIT_LEDGER_SCHEMA,
+                "preregistration_sha256": prereg_sha,
+                "max_fit_units": 263,
+                "attempts": ledger_obj["attempts"] + [
+                    {"attempt_id": 2, "stage": "builder", "role": "rogue_role", "preregistration_sha256": prereg_sha, "started_utc": "2026-11-25T00:00:00Z"}
+                ],
+            }
+            _expect_raises(
+                cert_mod.OperationalHoldError,
+                cert_mod.validate_fit_ledger_obj,
+                bad_role_ldg,
+                expected_prereg_sha=prereg_sha,
+                allow_builder_attempt=True,
+            )
+
+            # (c) Digest-consistent false KILL-STACK (mutated verdict with recomputed dossier & receipt SHA-256) MUST FAIL!
+            if dossier["verdict"] == "PASS":
+                dos_fk = copy.deepcopy(dossier)
+                dos_fk["verdict"] = "KILL-STACK"
+                dos_fk["failed_predicates"] = ["fake_kill"]
+                dos_fk_b = cert_mod.pretty_json_bytes(dos_fk)
+                (bdir / cert_mod.CANONICAL_DOSSIER_NAME).write_bytes(dos_fk_b)
+                rcpt_fk = _write_receipt(dos_fk_b, "KILL-STACK", ["fake_kill"])
+                _expect_raises(
+                    cert_mod.OperationalHoldError,
+                    cert_mod.verify_bundle,
+                    expected_receipt_sha256=rcpt_fk,
+                    bundle_dir=bdir,
+                    expected_verdict="KILL-STACK",
+                    skip_closure_check=True,
+                    _injected_data=injected,
+                )
+
+            # (d) D1 / B3 Negative Fixture: swap an early win & early loss in G1_cpcv.paths.trade_wins while preserving
+            #     trade_ts, n, wins, scores.npz, trade_ts_sha256, role_indices_sha256; recompute dossier & receipt SHA-256!
+            dos_swap = copy.deepcopy(dossier)
+            swapped = False
+            for p_ent in dos_swap["G1_cpcv"]["paths"]:
+                tw = p_ent["trade_wins"]
+                if 1 in tw and 0 in tw:
+                    i1 = tw.index(1)
+                    i0 = tw.index(0)
+                    tw[i1], tw[i0] = tw[i0], tw[i1]
+                    swapped = True
+                    break
+            assert swapped, "synthetic fixture must have at least one path with both a win and a loss"
+            dos_swap_b = cert_mod.pretty_json_bytes(dos_swap)
+            (bdir / cert_mod.CANONICAL_DOSSIER_NAME).write_bytes(dos_swap_b)
+            rcpt_swap = _write_receipt(dos_swap_b, dossier["verdict"], dossier["failed_predicates"])
+            try:
+                cert_mod.verify_bundle(
+                    expected_receipt_sha256=rcpt_swap,
+                    bundle_dir=bdir,
+                    expected_verdict=dossier["verdict"],
+                    skip_closure_check=True,
+                    _injected_data=injected,
+                )
+                raise AssertionError("D1 trade_wins swap was NOT rejected by verify_bundle!")
+            except cert_mod.OperationalHoldError as exc:
+                assert "trade_wins mismatch" in str(exc), f"expected refusal specifically at trade_wins comparison, got: {exc}"
+    finally:
+        cert_mod.split_train_val = orig_split  # type: ignore[assignment]
+
+
+def test_phase1_tick_warmup_and_standalone_consumer() -> None:
+    from deriv_sota_tick_stream import (
+        LiveTickBuffer,
+        build_pair_decision_snapshot,
+        read_tick_store_watermark,
+    )
+    from deriv_sota_executor import SotaDerivAsyncClient
+    import certify_sota_stack05 as cert_mod
+
+    # Load pinned DEV USDJPY parquet & real ticks for all 7 majors over a slice covering all 4 spec DEV epochs:
+    # 1756123200, 1755698400, 1766757600, 1767362400
+    target_epochs = [1755698400, 1756123200, 1766757600, 1767362400]
+    dev_dir = Path("/mnt/data/deriv-sota-lab/cache/dataset_dev_v0.1")
+    ticks_root = Path("/mnt/data/deriv/ticks")
+    if not (dev_dir / "manifest.json").is_file():
+        return  # Skip DEV archive check only if running in an environment without /mnt/data
+    man = cert_mod.load_pinned_dev_manifest(dev_dir)
+    df_usdjpy = cert_mod.load_pinned_dev_parquet("USDJPY", dev_dir)
+    ts_col = df_usdjpy["decision_ts"].to_numpy(np.int64)
+    repo = Path(__file__).resolve().parents[1]
+    demo_books = load_enabled_sota_books(repo_root=repo, account_mode="demo")
+    check_books = [
+        b
+        for b in demo_books
+        if b.book_id in {"USDJPY.sota_ens5_m30_up.v1", "USDJPY.sota_ens5_m15_up.v1", "USDJPY.sota_stack05_m30_up.v1"}
+    ]
+    assert len(check_books) >= 2
+    fcols = check_books[0].feature_cols
+
+    # Build a helper that reads only the exact DEV daily tick files needed around each epoch (4-day window <= epoch)
+    # via the O_NOFOLLOW loader so this test runs in ~3 seconds while exercising REAL pinned DEV ticks!
+    def _load_window_ticks(epoch_s: int) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+        lo_s = epoch_s - 5 * 86400
+        d_lo = datetime.fromtimestamp(lo_s, tz=timezone.utc).strftime("%Y-%m-%d")
+        d_hi = datetime.fromtimestamp(epoch_s, tz=timezone.utc).strftime("%Y-%m-%d")
+        out: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+        for p in MAJORS:
+            ts_parts, px_parts = [], []
+            for ent in man["inputs"][p]:
+                day_str = ent["file"][len(p) + 1 : len(p) + 11]
+                if d_lo <= day_str <= d_hi:
+                    raw = cert_mod.read_verified_file_nofollow(
+                        ticks_root, [p, ent["file"]], expected_bytes=int(ent["bytes"]), expected_sha256=str(ent["sha256"])
+                    )
+                    import io
+                    tdf = pd.read_parquet(io.BytesIO(raw), columns=["datetime_utc", "price"])
+                    t_ns = tdf["datetime_utc"].astype("int64").to_numpy()
+                    t_s = (t_ns // 1_000_000_000).astype(np.int64)
+                    px = tdf["price"].to_numpy(np.float64)
+                    m = (t_s >= lo_s) & (t_s < epoch_s)
+                    if m.any():
+                        ts_parts.append(t_s[m])
+                        px_parts.append(px[m])
+            if ts_parts:
+                t_cat = np.concatenate(ts_parts)
+                p_cat = np.concatenate(px_parts)
+                ord_i = np.argsort(t_cat, kind="mergesort")
+                out[p] = (t_cat[ord_i], p_cat[ord_i])
+            else:
+                out[p] = (np.empty(0, dtype=np.int64), np.empty(0, dtype=np.float64))
+        return out
+
+    # Serve 1,000s ticks_history pages through REAL SotaDerivAsyncClient.request_public_read over a fake WS!
+    class _HistWS:
+        def __init__(self, sym_to_ticks: dict[str, tuple[np.ndarray, np.ndarray]]) -> None:
+            self.sym_to_ticks = sym_to_ticks
+            self.inbox: asyncio.Queue[str] = asyncio.Queue()
+            self.sent: list[dict[str, Any]] = []
+
+        async def send(self, text: str) -> None:
+            req = json.loads(text)
+            self.sent.append(req)
+            rid = req["req_id"]
+            if "ticks_history" in req:
+                sym = req["ticks_history"]
+                s_ep = int(req["start"])
+                e_ep = int(req["end"])
+                ts_a, px_a = self.sym_to_ticks[sym]
+                m = (ts_a >= s_ep) & (ts_a <= e_ep)
+                resp = {"req_id": rid, "history": {"times": ts_a[m].tolist(), "prices": px_a[m].tolist()}}
+                await self.inbox.put(json.dumps(resp))
+            else:
+                await self.inbox.put(json.dumps({"req_id": rid, "echo_req": req}))
+
+        async def recv(self) -> str:
+            return await self.inbox.get()
+
+        async def close(self) -> None:
+            return None
+
+    async def _run_warmup_proofs() -> None:
+        sym_map_inv = {SOTA_DERIV_SYMBOLS[p]: p for p in MAJORS}
+        for ep in target_epochs:
+            win_ticks = _load_window_ticks(ep)
+            sym_ticks = {SOTA_DERIV_SYMBOLS[p]: win_ticks[p] for p in MAJORS}
+            fws = _HistWS(sym_ticks)
+            with tempfile.TemporaryDirectory() as td_w:
+                buf = LiveTickBuffer(pairs=["USDJPY"], store_dir=Path(td_w) / "store", ring_seconds=345600)
+                async with SotaDerivAsyncClient(
+                    "wss://api.derivws.com/trading/v1/options/ws/public",
+                    allow_buy=False,
+                    ws_opener=lambda _u: fws,
+                ) as scli:
+                    # Warmup via SotaDerivAsyncClient.request_public_read (1,000s chunks, 36h/1600 active bars/5d!)
+                    await buf.warmup_from_public_ws(
+                        scli,
+                        lookback_hours=36,
+                        min_bars=1600,
+                        request_spacing_s=0.0,
+                        history_request_fn=scli.request_public_read,
+                        now_epoch=ep,
+                    )
+
+                assert any("ticks_history" in m for m in fws.sent)
+                snap = buf.snapshot_ticks()
+                frow = build_pair_decision_snapshot("USDJPY", snap, ep, fcols, min_active_bars=1600)
+                # Compare against reference DEV parquet row at exact epoch ep!
+                idx_pos = int(np.searchsorted(ts_col, ep))
+                assert idx_pos < len(ts_col) and int(ts_col[idx_pos]) == ep
+                ref_row = df_usdjpy.iloc[idx_pos][fcols].astype(np.float64)
+                got_row = frow.row[fcols].astype(np.float64)
+                assert np.array_equal(np.isnan(got_row.to_numpy()), np.isnan(ref_row.to_numpy())), f"NaN mask drift at {ep}"
+                fin_m = np.isfinite(ref_row.to_numpy())
+                max_diff = float(np.max(np.abs(got_row.to_numpy()[fin_m] - ref_row.to_numpy()[fin_m])))
+                assert max_diff <= 1e-5, f"feature drift {max_diff} > 1e-5 at epoch {ep}"
+                # Exact score_row() direction & gate agreement across incumbents (+ candidate when frozen)!
+                for b in check_books:
+                    sc_ref = b.score_row(ref_row, ep)
+                    sc_got = b.score_row(got_row, ep)
+                    assert sc_got.direction == sc_ref.direction and sc_got.gate_passed == sc_ref.gate_passed, (
+                        f"score_row mismatch on {b.book_id} at {ep}: {sc_got} vs {sc_ref}"
+                    )
+
+                # Restart persistence & standalone watermark consumer check (on first epoch)!
+                if ep == target_epochs[0]:
+                    buf.persist_snapshot(minute_boundary_epoch=ep)
+                    wm = read_tick_store_watermark(Path(td_w) / "store")
+                    assert int(wm["minute_boundary_epoch"]) == ep
+                    buf_reloaded = LiveTickBuffer(pairs=["USDJPY"], store_dir=Path(td_w) / "store")
+                    buf_reloaded.load_persisted()
+                    frow2 = build_pair_decision_snapshot("USDJPY", buf_reloaded.snapshot_ticks(), ep, fcols, min_active_bars=1600)
+                    assert np.allclose(frow2.row[fcols].fillna(-999.0), got_row.fillna(-999.0), atol=1e-12)
+
+                    # Missing-peer scenario -> fails closed with SotaFeatureError!
+                    snap_no_peer = dict(snap)
+                    snap_no_peer["EURUSD"] = (np.empty(0, dtype=np.int64), np.empty(0, dtype=np.float64))
+                    _expect_raises(SotaFeatureError, build_pair_decision_snapshot, "USDJPY", snap_no_peer, ep, fcols, min_active_bars=1600)
+
+                    # Insufficient active bars (< 1600) -> fails closed SotaFeatureError!
+                    short_snap = {p: (t[-50:], px[-50:]) for p, (t, px) in snap.items()}
+                    _expect_raises(SotaFeatureError, build_pair_decision_snapshot, "USDJPY", short_snap, ep, fcols, min_active_bars=1600)
+
+        # Standalone run_stream_daemon compatibility: plain public client.request callable (NOT SotaDerivAsyncClient)!
+        ep0 = target_epochs[0]
+        win0 = _load_window_ticks(ep0)
+        sym0 = {SOTA_DERIV_SYMBOLS[p]: win0[p] for p in MAJORS}
+        pub_calls = 0
+
+        class _StandalonePubClient:
+            async def request(self, payload: dict[str, Any], timeout: float = 10.0) -> dict[str, Any]:
+                nonlocal pub_calls
+                pub_calls += 1
+                sym = payload["ticks_history"]
+                ts_a, px_a = sym0[sym]
+                m = (ts_a >= int(payload["start"])) & (ts_a <= int(payload["end"]))
+                return {"history": {"times": ts_a[m].tolist(), "prices": px_a[m].tolist()}}
+
+        with tempfile.TemporaryDirectory() as td_st:
+            st_dir = Path(td_st) / "ext_store"
+            buf_ext = LiveTickBuffer(pairs=["USDJPY"], store_dir=st_dir)
+            # Omitting history_request_fn defaults to standalone client.request!
+            await buf_ext.warmup_from_public_ws(
+                _StandalonePubClient(),
+                lookback_hours=36,
+                min_bars=1600,
+                request_spacing_s=0.0,
+                now_epoch=ep0,
+            )
+            assert pub_calls > 0
+            buf_ext.persist_snapshot(minute_boundary_epoch=ep0)
+            wm_ext = read_tick_store_watermark(st_dir)
+            assert int(wm_ext["minute_boundary_epoch"]) == ep0
+            # External executor consumes persisted store + watermark!
+            ext_reader = LiveTickBuffer(pairs=["USDJPY"], store_dir=st_dir)
+            ext_reader.load_persisted()
+            frow_ext = build_pair_decision_snapshot("USDJPY", ext_reader.snapshot_ticks(), ep0, fcols, min_active_bars=1600)
+            assert frow_ext.decision_epoch == ep0
+
+    asyncio.run(_run_warmup_proofs())
+
+
+def test_phase1_sota_client_and_buy_intent_recovery() -> None:
+    from deriv_client import DerivEnv
+    from deriv_sota_executor import (
+        SotaDerivAsyncClient,
+        _WireDecimal,
+        check_exact_rational_quote_floor,
+        connect_sota_queue_v3,
+        create_v3_queue_schema_atomic,
+        is_safety_latch_set,
+        strict_json_loads_wire,
+    )
+
+    # 1. Exact wire JSON decoding: _WireDecimal raw token, duplicate-key & non-finite rejection, exact rational floor!
+    from deriv_client import DerivAPIError
+    parsed_w = strict_json_loads_wire('{"ask_price": 1.0, "payout": 1.7799999999}')
+    assert isinstance(parsed_w["payout"], _WireDecimal) and str(parsed_w["payout"]) == "1.7799999999"
+    _expect_raises(DerivAPIError, strict_json_loads_wire, '{"a": 1, "a": 2}')
+    _expect_raises(DerivAPIError, strict_json_loads_wire, '{"a": NaN}')
+    _expect_raises(DerivAPIError, strict_json_loads_wire, '{"a": Infinity}')
+    _, _, _, err_1779 = check_exact_rational_quote_floor(parsed_w, min_payout_ratio=1.78)
+    assert err_1779 == "payout_below_exact_rational_floor"
+    _, _, _, err_1780 = check_exact_rational_quote_floor(strict_json_loads_wire('{"ask_price": 1.0, "payout": 1.78}'), min_payout_ratio=1.78)
+    assert err_1780 is None
+
+    # 2. Fake WS testing ALL 5 capability classes, both options_otp bootstrap balance AND v3_authorize,
+    #    generation invalidation, allow_buy=False blocking buy & sell (0 bytes!), durable buy_intent & recovery!
+    class _FakeWS:
+        def __init__(self, handler: Any) -> None:
+            self.handler = handler
+            self.inbox: asyncio.Queue[str] = asyncio.Queue()
+            self.raw_sent: list[str] = []
+
+        async def send(self, text: str) -> None:
+            self.raw_sent.append(text)
+            req = json.loads(text)
+            resp = self.handler(req)
+            if isinstance(resp, BaseException):
+                raise resp
+            if isinstance(resp, str):
+                await self.inbox.put(resp.replace("__REQ_ID__", str(req["req_id"])))
+            elif resp is not None:
+                resp["req_id"] = req["req_id"]
+                await self.inbox.put(json.dumps(resp))
+
+        async def recv(self) -> str:
+            return await self.inbox.get()
+
+        async def close(self) -> None:
+            return None
+
+    async def _run_client_tests() -> None:
+        # (a) options_otp bootstrap balance + venue time + allow_buy=False blocking BOTH buy & sell (0 bytes!)
+        def _otp_handler(req: dict[str, Any]) -> dict[str, Any]:
+            if "balance" in req:
+                return {"balance": {"loginid": "VRTC123456", "currency": "USD", "balance": 1000.0}}
+            if "time" in req:
+                return {"time": 1784124000}
+            if "portfolio" in req:
+                return {"portfolio": {"contracts": []}}
+            if "proposal" in req:
+                return {"proposal": {"id": "p-otp-1", "ask_price": 1.0, "payout": 1.82, "currency": "USD"}}
+            return {"echo_req": req}
+
+        fws_otp = _FakeWS(_otp_handler)
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: fws_otp,
+        ) as cli:
+            # Generic request() MUST refuse!
+            try:
+                await cli.request({"balance": 1})
+                raise AssertionError("generic request() must be refused")
+            except ExecutorError:
+                pass
+            # Unverified account_read/proposal MUST refuse with 0 bytes!
+            sent_before = len(fws_otp.raw_sent)
+            try:
+                await cli.request_account_read({"portfolio": 1})
+                raise AssertionError("unverified account_read must fail")
+            except ExecutorError:
+                pass
+            assert len(fws_otp.raw_sent) == sent_before
+
+            # Establish options_otp identity (bootstrap balance + time)
+            v_ep = await cli.establish_identity(account_id="VRTC123456", account_mode="demo", transport_kind="options_otp")
+            assert v_ep == 1784124000 and cli.is_identity_verified()
+            # Second bootstrap balance on same generation MUST refuse!
+            try:
+                await cli.request_identity({"balance": 1})
+                raise AssertionError("second bootstrap balance on same generation must fail")
+            except ExecutorError:
+                pass
+            # Verified account_read & proposal succeed!
+            await cli.request_account_read({"portfolio": 1})
+            await cli.request_proposal({"proposal": 1, "amount": 1.0})
+            # allow_buy=False MUST refuse BOTH buy AND sell with ZERO bytes sent!
+            n_before_mut = len(fws_otp.raw_sent)
+            for mut_payload in ({"buy": "p-otp-1", "price": 1.0}, {"sell": 12345, "price": 0}):
+                try:
+                    await cli.request_trade_mutation(mut_payload)
+                    raise AssertionError(f"allow_buy=False failed to block {mut_payload}")
+                except ExecutorError:
+                    pass
+            assert len(fws_otp.raw_sent) == n_before_mut, "allow_buy=False sent bytes on buy/sell!"
+            # Stale generation refused with 0 bytes!
+            try:
+                await cli.request_proposal({"proposal": 1}, expected_generation=cli.generation + 99)
+                raise AssertionError("stale generation must fail")
+            except ExecutorError:
+                pass
+            assert len(fws_otp.raw_sent) == n_before_mut
+
+        # (b) Reject conflicting/missing OTP bootstrap loginid, conflicting is_virtual=0, AND failed time clearing verification!
+        fws_bad_otp = _FakeWS(lambda req: {"balance": {"loginid": "VRTC999999", "currency": "USD"}} if "balance" in req else {"time": 1784124000})
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: fws_bad_otp,
+        ) as cli_bad:
+            try:
+                await cli_bad.establish_identity(account_id="VRTC123456", account_mode="demo", transport_kind="options_otp")
+                raise AssertionError("mismatched OTP loginid must fail")
+            except ExecutorError:
+                pass
+            assert not cli_bad.is_identity_verified()
+
+        fws_bad_virt = _FakeWS(lambda req: {"balance": {"loginid": "VRTC123456", "currency": "USD", "is_virtual": 0}} if "balance" in req else {"time": 1784124000})
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: fws_bad_virt,
+        ) as cli_bv:
+            try:
+                await cli_bv.establish_identity(account_id="VRTC123456", account_mode="demo", transport_kind="options_otp")
+                raise AssertionError("OTP conflicting is_virtual=0 on demo must fail")
+            except ExecutorError:
+                pass
+            assert not cli_bv.is_identity_verified()
+
+        fws_bad_time = _FakeWS(lambda req: {"balance": {"loginid": "VRTC123456", "currency": "USD", "is_virtual": 1}} if "balance" in req else {"time": "not-an-int"})
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: fws_bad_time,
+        ) as cli_bt:
+            try:
+                await cli_bt.establish_identity(account_id="VRTC123456", account_mode="demo", transport_kind="options_otp")
+                raise AssertionError("invalid venue time during bootstrap must fail")
+            except ExecutorError:
+                pass
+            assert not cli_bt.is_identity_verified(), "failed venue time MUST clear identity verification!"
+
+        # (c) v3_authorize + SotaTradeExecutor on v3 queue:
+        #     - 1.7799999999 payout & 1.0000000000000001 ask rejected with 0 buy bytes
+        #     - pre-handoff refusal & stop latch set AT handoff-lock acquisition -> 0 buy bytes
+        #     - post-handoff failure -> buy_unknown + blocks new buys + fails closed if POC unavailable + recovers via portfolio + authoritative POC!
+        #     - live same-generation venue clock refresh clears cooldown without reconnect!
+        #     - two 30m books open at same bar close without false same_pair_horizon_cooldown!
+        #     - unwritable 0500 log_dir still allows SotaTradeExecutor construction & reconciliation!
+        #     - differing venue buy_price trips phase1_safety_latch atomically!
+        with tempfile.TemporaryDirectory() as td_ex:
+            import os
+            import sqlite3
+            from deriv_sota_executor import commit_safety_latch
+            root = Path(td_ex)
+            db_p = root / "sota_trade_queue_demo.sqlite"
+            raw_c = sqlite3.connect(str(db_p), isolation_level=None)
+            raw_c.execute("PRAGMA foreign_keys=ON")
+            raw_c.execute("PRAGMA journal_mode=WAL")
+            create_v3_queue_schema_atomic(raw_c, account_id="VRTC123456", account_mode="demo")
+            raw_c.close()
+            conn = connect_sota_queue_v3(db_p, expected_account_id="VRTC123456", expected_account_mode="demo")
+            t0 = datetime(2026, 7, 15, 14, 0, 0, tzinfo=timezone.utc)
+            ep0 = int(t0.timestamp())
+
+            mode_state: dict[str, Any] = {
+                "ask_token": "1.0",
+                "payout_token": "1.7799999999",
+                "venue_time": ep0 + 2,
+                "fail_buy": False,
+                "fail_poc": False,
+                "omit_poc_money": False,
+                "buy_price": 1.0,
+                "poc_buy_price": 1.0,
+                "contract_seq": 7000,
+                "portfolio": [],
+            }
+
+            def _v3_handler(req: dict[str, Any]) -> Any:
+                if "authorize" in req:
+                    return {"authorize": {"loginid": "VRTC123456", "currency": "USD", "is_virtual": 1}}
+                if "time" in req:
+                    return {"time": mode_state["venue_time"]}
+                if "proposal" in req:
+                    return (
+                        f'{{"req_id": __REQ_ID__, "proposal": {{"id": "prop-{req["req_id"]}", '
+                        f'"ask_price": {mode_state["ask_token"]}, "payout": {mode_state["payout_token"]}, "currency": "USD"}}}}'
+                    )
+                if "buy" in req:
+                    if mode_state["fail_buy"]:
+                        raise RuntimeError("simulated post-handoff transport loss")
+                    mode_state["contract_seq"] += 1
+                    cid_n = mode_state["contract_seq"]
+                    return {
+                        "buy": {
+                            "contract_id": cid_n,
+                            "buy_price": mode_state["buy_price"],
+                            "payout": float(mode_state["payout_token"]),
+                            "start_time": mode_state["venue_time"],
+                            "expiry_time": mode_state["venue_time"] + 1800,
+                        }
+                    }
+                if "portfolio" in req:
+                    return {"portfolio": {"contracts": list(mode_state["portfolio"])}}
+                if "statement" in req:
+                    return {"statement": {"transactions": []}}
+                if "proposal_open_contract" in req:
+                    if mode_state["fail_poc"]:
+                        raise RuntimeError("simulated POC read failure")
+                    poc_obj: dict[str, Any] = {
+                        "contract_id": req["contract_id"],
+                        "is_sold": 1,
+                        "status": "won",
+                        "buy_price": mode_state["poc_buy_price"],
+                        "payout": 1.82,
+                        "date_start": ep0 + 2,
+                        "date_expiry": ep0 + 1802,
+                        "underlying_symbol": "frxUSDJPY",
+                        "contract_type": "CALL",
+                    }
+                    if not mode_state["omit_poc_money"]:
+                        poc_obj["sell_price"] = 1.82
+                        poc_obj["profit"] = 0.82
+                    return {"proposal_open_contract": poc_obj}
+                return {"echo_req": req}
+
+            fws_v3 = _FakeWS(_v3_handler)
+            env_t = DerivEnv(app_id="1089", pat="tok", account_id="VRTC123456")
+            ex = SotaTradeExecutor(
+                account_mode="demo",
+                stake_usd=1.0,
+                db_path=db_p,
+                log_dir=root / "logs",
+                risk_cfg=RiskBreakerConfig(max_stake_usd=5.0, max_daily_loss_usd=25.0, max_drawdown_usd=50.0, max_open_contracts=3, max_usd_factor_open=3, max_jpy_factor_open=3),
+                ev_margin=0.005,
+                env=env_t,
+            )
+            ex.transport_kind = "v3_authorize"
+            handoff_lp = root / "sota_handoff.lock"
+            async with SotaDerivAsyncClient(
+                "wss://ws.derivws.com/websockets/v3?app_id=1089",
+                allow_buy=True,
+                expected_account_id="VRTC123456",
+                handoff_lock_path=handoff_lp,
+                ws_opener=lambda _u: fws_v3,
+            ) as cli_v3:
+                ex.client = cli_v3
+                # 1.7799999999 MUST be rejected with 0 buy bytes!
+                sig1 = {
+                    "book_id": "USDJPY.sota_ens5_m30_up.v1",
+                    "pair": "USDJPY",
+                    "horizon_minutes": 30,
+                    "side": "UP",
+                    "lane": "wall",
+                    "offset_id": 0,
+                    "signal_close_utc": t0.isoformat(),
+                    "effective_floor": 0.57,
+                    "calibrated_win_prob": 0.59,
+                    "min_payout_ratio": 1.78,
+                    "book_content_id": "c8d0b13768a4c649",
+                }
+                _, sid1 = enqueue_sota_signal(conn, sig1)
+                r1 = await ex.process_one_signal(conn, sid1, sig1, now_utc=t0 + timedelta(seconds=2))
+                assert r1["reason"] == "payout_below_exact_rational_floor"
+                assert not any('"buy"' in s for s in fws_v3.raw_sent)
+
+                # Raw ask 1.0000000000000001 MUST be rejected with 0 buy bytes (BLOCKER #2)!
+                mode_state["ask_token"] = "1.0000000000000001"
+                mode_state["payout_token"] = "1.82"
+                sig_ask = {**sig1, "offset_id": 99}
+                _, sid_ask = enqueue_sota_signal(conn, sig_ask)
+                r_ask = await ex.process_one_signal(conn, sid_ask, sig_ask, now_utc=t0 + timedelta(seconds=2))
+                assert r_ask["reason"] == "ask_price_not_exact_whole_cents", f"unexpected ask rejection: {r_ask}"
+                assert not any('"buy"' in s for s in fws_v3.raw_sent)
+                mode_state["ask_token"] = "1.0"
+
+                # Pre-handoff refusal when allow_buy=False -> buy_refused_pre_send & 0 buy bytes!
+                cli_v3.allow_buy = False
+                sig2 = {**sig1, "offset_id": 1}
+                _, sid2 = enqueue_sota_signal(conn, sig2)
+                r2 = await ex.process_one_signal(conn, sid2, sig2, now_utc=t0 + timedelta(seconds=2))
+                assert r2["status"] == "buy_refused_pre_send"
+                assert not any('"buy"' in s for s in fws_v3.raw_sent)
+
+                # Stop latch committed AT handoff lock acquisition MUST abort inside sota_handoff lock with 0 buy bytes (BLOCKER #2)!
+                cli_v3.allow_buy = True
+                import deriv_sota_executor as ex_mod
+                orig_flock = ex_mod.acquire_sota_flock
+                from contextlib import contextmanager
+
+                @contextmanager
+                def _trip_latch_at_handoff(path_l: Path, *a: Any, **kw: Any):
+                    with orig_flock(path_l, *a, **kw):
+                        if path_l == handoff_lp:
+                            handoff_hits[0] += 1
+                            # Trip latch on the 2nd handoff lock acquisition (the BUY frame, AFTER proposal succeeded!)
+                            if handoff_hits[0] == 2 and is_safety_latch_set(conn) is None:
+                                commit_safety_latch(conn, "mid_handoff_stop_latch")
+                        yield
+
+                handoff_hits = [0]
+                ex_mod.acquire_sota_flock = _trip_latch_at_handoff  # type: ignore[assignment]
+                try:
+                    sig_lat = {**sig1, "offset_id": 98}
+                    _, sid_lat = enqueue_sota_signal(conn, sig_lat)
+                    r_lat = await ex.process_one_signal(conn, sid_lat, sig_lat, now_utc=t0 + timedelta(seconds=2))
+                    db_lat_reason = str(conn.execute("SELECT reason FROM sota_signals WHERE signal_id=?", (sid_lat,)).fetchone()[0])
+                    assert handoff_hits[0] == 2, f"expected proposal+buy handoff hits, got {handoff_hits[0]}"
+                    assert r_lat["status"] == "buy_refused_pre_send" and r_lat["reason"] == "pre_send_refused", f"unexpected: {r_lat}"
+                    assert "latch_or_kill_detected_under_handoff_lock" in db_lat_reason, f"unexpected db reason: {db_lat_reason}"
+                    assert not any('"buy"' in s for s in fws_v3.raw_sent), "buy frame crossed handoff after latch committed!"
+                finally:
+                    ex_mod.acquire_sota_flock = orig_flock  # type: ignore[assignment]
+                    conn.execute("DELETE FROM sota_risk_state WHERE key='phase1_safety_latch'")
+
+                # Post-handoff failure -> buy_unknown, blocks new buy until authoritative POC confirms!
+                mode_state["fail_buy"] = True
+                sig3 = {**sig1, "offset_id": 2}
+                _, sid3 = enqueue_sota_signal(conn, sig3)
+                r3 = await ex.process_one_signal(conn, sid3, sig3, now_utc=t0 + timedelta(seconds=2))
+                assert r3["status"] == "buy_unknown"
+                # Next signal blocked by unresolved_buy_uncertainty_halt
+                sig_blk = {**sig1, "book_id": "USDJPY.sota_stack05_m30_up.v1", "offset_id": 2}
+                _, sid_blk = enqueue_sota_signal(conn, sig_blk)
+                r_blk = await ex.process_one_signal(conn, sid_blk, sig_blk, now_utc=t0 + timedelta(seconds=2))
+                assert r_blk["reason"] == "unresolved_buy_uncertainty_halt"
+                # BLOCKER #3: Ambiguous duplicate candidates MUST refuse & set safety latch (leaving buy_unknown)!
+                mode_state["portfolio"] = [
+                    {"contract_id": 7999, "buy_price": 1.0, "payout": 1.82, "date_start": ep0 + 2, "expiry_time": ep0 + 1802, "passthrough": {"sota_signal_id": sid3}},
+                    {"contract_id": 7998, "buy_price": 1.0, "payout": 1.82, "date_start": ep0 + 2, "expiry_time": ep0 + 1802, "passthrough": {"sota_signal_id": sid3}},
+                ]
+                await ex.reconcile_open_contracts(conn, now_utc=t0 + timedelta(minutes=31))
+                assert conn.execute("SELECT status FROM sota_signals WHERE signal_id=?", (sid3,)).fetchone()[0] == "buy_unknown"
+                assert is_safety_latch_set(conn) is not None
+                conn.execute("DELETE FROM sota_risk_state WHERE key='phase1_safety_latch'")
+
+                # BLOCKER #3: If POC fails during recovery, signal MUST remain buy_unknown (never clear uncertainty on inferred cost)!
+                mode_state["portfolio"] = [{"contract_id": 7999, "buy_price": 1.0, "payout": 1.82, "date_start": ep0 + 2, "expiry_time": ep0 + 1802, "passthrough": {"sota_signal_id": sid3}}]
+                mode_state["fail_poc"] = True
+                await ex.reconcile_open_contracts(conn, now_utc=t0 + timedelta(minutes=31))
+                assert conn.execute("SELECT status FROM sota_signals WHERE signal_id=?", (sid3,)).fetchone()[0] == "buy_unknown"
+                # Now allow POC, but omit sell_price/profit AND buy_price first -> adopts as cost_unknown=1 + latched, stays open!
+                mode_state["fail_poc"] = False
+                mode_state["omit_poc_money"] = True
+                mode_state["poc_buy_price"] = None
+                await ex.reconcile_open_contracts(conn, now_utc=t0 + timedelta(minutes=31))
+                c7999_u = conn.execute("SELECT status, cost_unknown, buy_price_cents FROM sota_contracts WHERE contract_id='7999'").fetchone()
+                assert c7999_u["status"] == "open" and int(c7999_u["cost_unknown"]) == 1 and c7999_u["buy_price_cents"] is None
+                assert is_safety_latch_set(conn) is not None
+                conn.execute("DELETE FROM sota_risk_state WHERE key='phase1_safety_latch'")
+                # Now supply authoritative POC buy_price + sell_price + profit -> settles cleanly & resolves cost_unknown=0!
+                mode_state["poc_buy_price"] = 1.0
+                mode_state["omit_poc_money"] = False
+                await ex.reconcile_open_contracts(conn, now_utc=t0 + timedelta(minutes=31, seconds=5))
+                c7999 = conn.execute("SELECT status, cost_unknown, buy_price_cents, venue_underlying_symbol, venue_contract_type, profit_cents FROM sota_contracts WHERE contract_id='7999'").fetchone()
+                assert c7999["status"] == "won" and int(c7999["cost_unknown"]) == 0 and int(c7999["buy_price_cents"]) == 100 and c7999["venue_underlying_symbol"] == "frxUSDJPY" and c7999["venue_contract_type"] == "CALL" and int(c7999["profit_cents"]) == 82
+
+                # Two distinct 30m books (ens5_m30 & stack05_m30) BOTH open at same bar close t1 using FRESH same-generation venue clock (MAJOR #1)!
+                mode_state["fail_buy"] = False
+                mode_state["portfolio"] = []
+                t1 = t0 + timedelta(hours=1)
+                # Do NOT touch ex.last_venue_time_epoch manually; advance server venue_time to prove live clock refresh clears cooldown!
+                mode_state["venue_time"] = int(t1.timestamp()) + 2
+                sig_a = {**sig1, "signal_close_utc": t1.isoformat(), "offset_id": 0}
+                sig_b = {**sig1, "book_id": "USDJPY.sota_stack05_m30_up.v1", "signal_close_utc": t1.isoformat(), "offset_id": 0}
+                ok_a, sid_a = enqueue_sota_signal(conn, sig_a)
+                ok_b, sid_b = enqueue_sota_signal(conn, sig_b)
+                assert ok_a and ok_b  # UNIQUE(book_id, ...) allows both!
+                ra = await ex.process_one_signal(conn, sid_a, sig_a, now_utc=t1 + timedelta(seconds=2))
+                rb = await ex.process_one_signal(conn, sid_b, sig_b, now_utc=t1 + timedelta(seconds=2))
+                assert ra["status"] == "bought" and rb["status"] == "bought", f"both 30m books should open: {ra}, {rb}"
+
+                # Differing venue buy_price (1.50 != 1.00) trips phase1_safety_latch atomically!
+                mode_state["buy_price"] = 1.50
+                sig_m = {**sig1, "book_id": "USDJPY.sota_ens5_m15_up.v1", "horizon_minutes": 15, "min_payout_ratio": 1.76, "signal_close_utc": t1.isoformat(), "offset_id": 0}
+                _, sid_m = enqueue_sota_signal(conn, sig_m)
+                rm = await ex.process_one_signal(conn, sid_m, sig_m, now_utc=t1 + timedelta(seconds=2))
+                assert rm["status"] == "bought"
+                assert is_safety_latch_set(conn) is not None
+
+                # MAJOR #2: Unwritable 0500 log_dir MUST NOT break SotaTradeExecutor construction or reconcile_open_contracts!
+                ro_log_d = root / "ro_exec_logs"
+                ro_log_d.mkdir(mode=0o500)
+                try:
+                    ex_ro = SotaTradeExecutor(
+                        account_mode="demo",
+                        stake_usd=1.0,
+                        db_path=db_p,
+                        log_dir=ro_log_d,
+                        risk_cfg=RiskBreakerConfig(max_stake_usd=5.0, max_daily_loss_usd=25.0, max_drawdown_usd=50.0),
+                        env=env_t,
+                    )
+                    ex_ro.client = cli_v3
+                    await ex_ro.reconcile_open_contracts(conn, now_utc=t1 + timedelta(minutes=35))
+                finally:
+                    os.chmod(ro_log_d, 0o700)
+            conn.close()
+
+    asyncio.run(_run_client_tests())
+
+
+def test_phase1_v3_queue_and_6shape_adoption() -> None:
+    import hashlib
+    import os
+    import sqlite3
+    import deriv_sota_executor as ex_mod
+    from deriv_sota_executor import (
+        adopt_legacy_account,
+        canonical_sota_lock_paths,
+        clear_stale_legacy_lock,
+        connect_sota_queue_v3,
+        detect_predecessor_shape,
+        export_legacy_ownership_preimage,
+        init_v3_queue_first_use,
+        is_safety_latch_set,
+        prepare_coherent_predecessor_backup,
+        request_stop_latch,
+    )
+
+    def _make_receipt(p: Path, acct: str = "VRTC123456") -> Path:
+        p.write_text(
+            json.dumps(
+                {
+                    "schema": "sota-credential-isolation-receipt/v1",
+                    "account_id": acct,
+                    "account_mode": "demo",
+                    "legacy_credentials_revoked": True,
+                    "dedicated_sota_credentials_provisioned": True,
+                    "attested_by": "owner",
+                    "attested_utc": "2026-11-25T00:00:00Z",
+                }
+            ),
+            encoding="utf-8",
+        )
+        return p
+
+    # 1. --init-queue --reason first_use (absent, empty v0, idempotent empty v3, PRAGMA assertions)
+    with tempfile.TemporaryDirectory() as td_i:
+        root = Path(td_i)
+        pw_home = root / "home"
+        pw_home.mkdir()
+        rcpt = _make_receipt(root / "rcpt.json")
+        fur = root / "fur.json"
+        fur.write_text(json.dumps({"schema": "sota-first-use-record/v1", "account_id": "VRTC123456", "account_mode": "demo"}), encoding="utf-8")
+        q_db = root / "runtime" / "sota_trade_queue_demo.sqlite"
+        r1 = init_v3_queue_first_use(queue_db=q_db, account_id="VRTC123456", account_mode="demo", first_use_record_path=fur, receipt_path=rcpt, pw_home=pw_home)
+        assert r1["status"] == "initialized_v3"
+        # Idempotent retry on empty v3
+        r2 = init_v3_queue_first_use(queue_db=q_db, account_id="VRTC123456", account_mode="demo", first_use_record_path=fur, receipt_path=rcpt, pw_home=pw_home)
+        assert r2["status"] == "idempotent_empty_v3"
+        conn_v3 = connect_sota_queue_v3(q_db, expected_account_id="VRTC123456", expected_account_mode="demo")
+        assert int(conn_v3.execute("PRAGMA foreign_keys").fetchone()[0]) == 1
+        assert str(conn_v3.execute("PRAGMA journal_mode").fetchone()[0]).lower() == "wal"
+
+        # Unbounded Python int risk sum (> 2**62 cents!) + direct venue-time cooldown!
+        t_c = datetime(2026, 7, 15, 14, 0, 0, tzinfo=timezone.utc)
+        conn_v3.execute(
+            "INSERT INTO sota_signals VALUES ('s-big','b1','USDJPY',30,'UP','wall',0,?,0.57,0.60,'{}','bought',NULL,'c-big',NULL,?,?)",
+            (t_c.isoformat(), t_c.isoformat(), t_c.isoformat()),
+        )
+        # Direct venue-time cooldown: venue_end_epoch = 1784125800 -> venue_time 1784125800 blocked, 1784125801 allowed!
+        conn_v3.execute(
+            """
+            INSERT INTO sota_contracts (
+                contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                buy_price_cents, payout_cents, sell_price_cents, profit_cents, stake_authoritative,
+                venue_start_epoch, venue_end_epoch, signal_close_utc, status, opened_utc, closed_utc, updated_utc
+            ) VALUES ('c-big','s-big','b1','cid1','VRTC123456','demo','USDJPY',30,'UP','risefall',0,0,100,182,182,82,1,1784124000,1784125800,?,'won',?,?,?)
+            """,
+            (t_c.isoformat(), t_c.isoformat(), t_c.isoformat(), t_c.isoformat()),
+        )
+        cfg_r = RiskBreakerConfig(max_stake_usd=5.0, max_daily_loss_usd=25.0, max_drawdown_usd=50.0, same_book_min_gap_seconds=0)
+        assert check_risk_and_exposure(conn_v3, book_id="b1", pair="USDJPY", horizon_minutes=30, side="UP", stake_usd=1.0, cfg=cfg_r, now_utc=t_c + timedelta(hours=2), venue_time_epoch=1784125800) == "venue_clock_cooldown_active"
+        assert check_risk_and_exposure(conn_v3, book_id="b1", pair="USDJPY", horizon_minutes=30, side="UP", stake_usd=1.0, cfg=cfg_r, now_utc=t_c + timedelta(hours=2), venue_time_epoch=1784125801) is None
+
+        # Unbounded Python int risk sum (> 2**62 cents across two huge losses without SQLite 64-bit SUM overflow!)
+        big_loss = -(2**62)
+        for k_idx in range(2):
+            conn_v3.execute(
+                "INSERT INTO sota_signals VALUES (?,?,?,?,?,'wall',?, ?,0.57,0.60,'{}','bought',NULL,?,NULL,?,?)",
+                (f"s-ov-{k_idx}", "b2", "EURUSD", 15, "UP", k_idx, t_c.isoformat(), f"c-ov-{k_idx}", t_c.isoformat(), t_c.isoformat()),
+            )
+            conn_v3.execute(
+                """
+                INSERT INTO sota_contracts (
+                    contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                    pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                    buy_price_cents, payout_cents, sell_price_cents, profit_cents, stake_authoritative,
+                    signal_close_utc, status, opened_utc, closed_utc, updated_utc
+                ) VALUES (?,?,'b2','cid2','VRTC123456','demo','EURUSD',15,'UP','risefall',0,0,100,182,0,?,0,?,'cancelled',?,?,?)
+                """,
+                (f"c-ov-{k_idx}", f"s-ov-{k_idx}", big_loss, t_c.isoformat(), t_c.isoformat(), t_c.isoformat(), t_c.isoformat()),
+            )
+        assert check_risk_and_exposure(conn_v3, book_id="b3", pair="GBPUSD", horizon_minutes=15, side="UP", stake_usd=1.0, cfg=cfg_r, now_utc=t_c) == "daily_loss_circuit_breaker"
+        conn_v3.close()
+
+        # --request-stop-latch under unwritable 0500 log_dir MUST succeed & commit phase1_safety_latch!
+        ro_logs = root / "ro_logs"
+        ro_logs.mkdir(mode=0o500)
+        try:
+            lat = request_stop_latch(queue_db=q_db, account_id="VRTC123456", account_mode="demo", reason="operator_halt", log_dir=ro_logs, pw_home=pw_home)
+            assert lat["reason"] == "operator_halt"
+            c_chk = connect_sota_queue_v3(q_db, expected_account_id="VRTC123456", expected_account_mode="demo")
+            assert is_safety_latch_set(c_chk) is not None
+            c_chk.close()
+        finally:
+            os.chmod(ro_logs, 0o700)
+
+        # --clear-stale-legacy-lock: clears dead PID, refuses live PID (current os.getpid())!
+        from deriv_runtime_core_v2 import executor_lock_path, sota_account_lock_key
+        lroot = root / "legacy_locks"
+        lroot.mkdir(mode=0o700)
+        lp = executor_lock_path(lroot, sota_account_lock_key("VRTC123456", "demo"))
+        lp.write_text(json.dumps({"pid": os.getpid()}), encoding="utf-8")
+        _expect_raises(ExecutorError, clear_stale_legacy_lock, account_id="VRTC123456", account_mode="demo", lock_root=lroot)
+        lp.write_text(json.dumps({"pid": 9999999}), encoding="utf-8")
+        clr = clear_stale_legacy_lock(account_id="VRTC123456", account_mode="demo", lock_root=lroot)
+        assert clr["cleared"] is True and not lp.exists()
+
+    # 2. ALL 6 source-derived predecessor shapes + B6 multiplier payout_cents=0->NULL & absent/null signal_close_utc backfill
+    #    + uncheckpointed -wal coherent backup (0 bytes written to canonical!) + real `--adopt-legacy-account` command crash-recovery!
+    def _build_predecessor_db(db_path: Path, shape_idx: int, *, leave_uncheckpointed_wal: bool = False) -> None:
+        conn = sqlite3.connect(str(db_path), isolation_level=None)
+        conn.execute("PRAGMA journal_mode=WAL")
+        neutral_chk = "('UP','DOWN','NEUTRAL')" if shape_idx >= 3 else "('UP','DOWN')"
+        conn.execute(
+            f"""
+            CREATE TABLE sota_signals (
+                signal_id TEXT PRIMARY KEY, book_id TEXT NOT NULL, pair TEXT NOT NULL,
+                horizon_minutes INTEGER NOT NULL, side TEXT NOT NULL CHECK (side IN {neutral_chk}),
+                lane TEXT NOT NULL DEFAULT 'wall', offset_id INTEGER NOT NULL DEFAULT 0,
+                signal_close_utc TEXT NOT NULL, effective_floor REAL NOT NULL, calibrated_win_prob REAL,
+                payload_json TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('queued','claimed','buy_intent','bought','contract_closed','terminal_skip','signal_expired','buy_blocked_risk','buy_unknown')),
+                reason TEXT, created_utc TEXT NOT NULL, updated_utc TEXT NOT NULL
+            )
+            """
+        )
+        extra_cols = []
+        if shape_idx >= 2:
+            extra_cols.append("signal_close_utc TEXT")
+        if shape_idx >= 3:
+            extra_cols.append("contract_family TEXT NOT NULL DEFAULT 'risefall'")
+        if shape_idx >= 4:
+            extra_cols.append("sell_ack_cents INTEGER DEFAULT NULL")
+        if shape_idx >= 5:
+            extra_cols.append("account_mode TEXT NOT NULL DEFAULT 'demo'")
+        if shape_idx >= 6:
+            extra_cols.append("book_content_id TEXT DEFAULT NULL")
+        extra_ddl = (",\n" + ",\n".join(extra_cols)) if extra_cols else ""
+        conn.execute(
+            f"""
+            CREATE TABLE sota_contracts (
+                contract_id TEXT PRIMARY KEY, signal_id TEXT NOT NULL UNIQUE REFERENCES sota_signals(signal_id),
+                book_id TEXT NOT NULL, pair TEXT NOT NULL, horizon_minutes INTEGER NOT NULL,
+                side TEXT NOT NULL CHECK (side IN {neutral_chk}), proposal_id TEXT NOT NULL,
+                buy_price_cents INTEGER NOT NULL, payout_cents INTEGER NOT NULL,
+                sell_price_cents INTEGER NOT NULL DEFAULT 0, profit_cents INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL CHECK (status IN ('open','won','lost','sold','expired','cancelled','unknown')),
+                opened_utc TEXT NOT NULL, expected_expiry_utc TEXT NOT NULL, closed_utc TEXT, raw_hash TEXT NOT NULL
+                {extra_ddl}
+            )
+            """
+        )
+        t_s = "2026-07-15T14:00:00+00:00"
+        conn.execute("INSERT INTO sota_signals VALUES ('s1','USDJPY.sota_ens5_m30_up.v1','USDJPY',30,'UP','wall',0,?,0.58,0.60,'{}','contract_closed',NULL,?,?)", (t_s, t_s, t_s))
+        if shape_idx >= 3:
+            # Also include a legacy NEUTRAL expired signal (allowed in signals!) and a settled multiplier row (500/640/140, payout_cents=0 -> NULL!)
+            conn.execute("INSERT INTO sota_signals VALUES ('s-neu','EURGBP.r.v1','EURGBP',1440,'NEUTRAL','wall',0,?,0.58,0.60,'{}','signal_expired',NULL,?,?)", (t_s, t_s, t_s))
+            conn.execute("INSERT INTO sota_signals VALUES ('s-m','USDJPY.mult100.v1','USDJPY',30,'UP','wall',1,?,0.0,NULL,'{}','contract_closed',NULL,?,?)", (t_s, t_s, t_s))
+
+        # Insert risefall contract (with NULL signal_close_utc on shape2 to test backfill!)
+        base_vals = ["c1", "s1", "USDJPY.sota_ens5_m30_up.v1", "USDJPY", 30, "UP", "p1", 100, 182, 182, 82, "won", t_s, t_s, t_s, "h1"]
+        if shape_idx >= 2:
+            base_vals.append(None if shape_idx == 2 else t_s)
+        if shape_idx >= 3:
+            base_vals.append("risefall")
+        if shape_idx >= 4:
+            base_vals.append(None)
+        if shape_idx >= 5:
+            base_vals.append("demo")
+        if shape_idx >= 6:
+            base_vals.append("c8d0b13768a4c649")
+        conn.execute(f"INSERT INTO sota_contracts VALUES ({','.join('?' * len(base_vals))})", tuple(base_vals))
+
+        if shape_idx >= 3:
+            # Settled multiplier row with payout_cents=0, buy=500, sell=640, profit=140, NULL signal_close_utc!
+            m_vals: list[Any] = ["c-mult", "s-m", "USDJPY.mult100.v1", "USDJPY", 30, "UP", "pm", 500, 0, 640, 140, "won", t_s, t_s, t_s, "hm", None, "multiplier"]
+            if shape_idx >= 4:
+                m_vals.append(640)
+            if shape_idx >= 5:
+                m_vals.append("demo")
+            if shape_idx >= 6:
+                m_vals.append(None)
+            conn.execute(f"INSERT INTO sota_contracts VALUES ({','.join('?' * len(m_vals))})", tuple(m_vals))
+
+        if leave_uncheckpointed_wal:
+            # MAJOR #5: Produce a REAL non-empty uncheckpointed committed WAL-only row ('c-wal') on disk with 0 open connections!
+            import shutil as _sh
+            src_tmp = db_path.parent / f".src_wal_{db_path.name}"
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            conn.close()
+            _sh.copy2(db_path, src_tmp)
+            r_hold = sqlite3.connect(str(src_tmp), isolation_level=None)
+            r_hold.execute("PRAGMA journal_mode=WAL")
+            r_hold.execute("BEGIN")
+            r_hold.execute("SELECT COUNT(*) FROM sota_contracts").fetchone()
+            w_wal = sqlite3.connect(str(src_tmp), isolation_level=None)
+            w_wal.execute("PRAGMA wal_autocheckpoint=0")
+            w_wal.execute("INSERT INTO sota_signals VALUES ('s-wal','USDJPY.sota_ens5_m30_up.v1','USDJPY',30,'UP','wall',9,?,0.58,0.60,'{}','contract_closed',NULL,?,?)", (t_s, t_s, t_s))
+            w_vals: list[Any] = ["c-wal", "s-wal", "USDJPY.sota_ens5_m30_up.v1", "USDJPY", 30, "UP", "pw", 100, 182, 182, 82, "won", t_s, t_s, t_s, "hw"]
+            if shape_idx >= 2:
+                w_vals.append(t_s)
+            if shape_idx >= 3:
+                w_vals.append("risefall")
+            if shape_idx >= 4:
+                w_vals.append(None)
+            if shape_idx >= 5:
+                w_vals.append("demo")
+            if shape_idx >= 6:
+                w_vals.append("c8d0b13768a4c649")
+            w_wal.execute(f"INSERT INTO sota_contracts VALUES ({','.join('?' * len(w_vals))})", tuple(w_vals))
+            # Snapshot exact db + non-empty -wal + -shm while r_hold keeps checkpoint blocked!
+            for sfx in ("", "-wal", "-shm"):
+                sp = Path(f"{src_tmp}{sfx}")
+                dp = Path(f"{db_path}{sfx}")
+                if sp.exists():
+                    _sh.copy2(sp, dp)
+            w_wal.close()
+            r_hold.close()
+            for sfx in ("", "-wal", "-shm"):
+                Path(f"{src_tmp}{sfx}").unlink(missing_ok=True)
+        else:
+            conn.close()
+
+    # Test ALL 6 shapes detect cleanly and adopt cleanly!
+    for shape_i in range(1, 7):
+        with tempfile.TemporaryDirectory() as td_s:
+            root = Path(td_s)
+            pw_h = root / "home"
+            pw_h.mkdir()
+            rt_dir = root / "repo" / "deriv_data" / "runtime"
+            (rt_dir / "locks").mkdir(parents=True)
+            idx_lock = rt_dir / "locks" / "sota_index.lock"
+            idx_lock.write_text("preserve-me\n", encoding="utf-8")
+            cdb = rt_dir / "sota_trade_queue_demo.sqlite"
+            _build_predecessor_db(cdb, shape_i)
+            ro_chk = ex_mod.open_sota_queue_readonly(cdb)
+            got_shape = detect_predecessor_shape(ro_chk)
+            ro_chk.close()
+            assert got_shape.startswith(f"shape{shape_i}_"), f"wrong shape {got_shape} for {shape_i}"
+
+            qdir = root / "new_a" / "new_b" / "quarantine"
+            sdir = root / "new_c" / "new_d" / "staged"
+            rcpt = _make_receipt(root / "rcpt.json")
+            bak_info = prepare_coherent_predecessor_backup(cdb, qdir, durable_ancestor=root)
+            preimg = export_legacy_ownership_preimage(qdir)
+            assert preimg["backup_sha256"] == bak_info["backup_sha256"]
+            proof_p = root / "proof.json"
+            proof_p.write_text(
+                json.dumps(
+                    {
+                        "backup_sha256": preimg["backup_sha256"],
+                        "account_id": "VRTC123456",
+                        "contract_ownership_records": [
+                            {"contract_id": c["contract_id"], "account_id": "VRTC123456", "verified_against_venue": True}
+                            for c in preimg["contracts"]
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            res_ad = adopt_legacy_account(
+                canonical_db=cdb,
+                quarantine_dir=qdir,
+                staged_v3_dir=sdir,
+                ownership_proof_path=proof_p,
+                receipt_path=rcpt,
+                account_id="VRTC123456",
+                pw_home=pw_h,
+                durable_ancestor=root,
+            )
+            assert res_ad["status"] == "adopted_v3_installed"
+            assert idx_lock.read_text(encoding="utf-8") == "preserve-me\n"
+            c_new = connect_sota_queue_v3(cdb, expected_account_id="VRTC123456", expected_account_mode="demo")
+            c1 = c_new.execute("SELECT signal_close_utc, is_migrated_legacy FROM sota_contracts WHERE contract_id='c1'").fetchone()
+            assert c1["signal_close_utc"] == "2026-07-15T14:00:00+00:00" and int(c1["is_migrated_legacy"]) == 1
+            if shape_i >= 3:
+                cm = c_new.execute("SELECT contract_family, buy_price_cents, payout_cents, sell_price_cents, profit_cents, signal_close_utc FROM sota_contracts WHERE contract_id='c-mult'").fetchone()
+                assert cm["contract_family"] == "multiplier" and int(cm["buy_price_cents"]) == 500 and cm["payout_cents"] is None and int(cm["sell_price_cents"]) == 640 and int(cm["profit_cents"]) == 140 and cm["signal_close_utc"] == "2026-07-15T14:00:00+00:00"
+            c_new.close()
+
+    # 3. REAL `--adopt-legacy-account` command crash-recovery across EVERY crash point + newly created nested dirs fsync
+    #    + single-file v3 dual-dir re-sync + unexpected sidecar hold without unlinking v3!
+    for crash_pt in ("after_intent_before_unlink", "mid_canonical_removal", "after_sync_predecessor_removals", "after_rename_before_dir_fsync"):
+        with tempfile.TemporaryDirectory() as td_cr:
+            root = Path(td_cr)
+            pw_h = root / "home"
+            pw_h.mkdir()
+            rt_dir = root / "repo" / "deriv_data" / "runtime"
+            (rt_dir / "locks").mkdir(parents=True)
+            idx_lock = rt_dir / "locks" / "sota_index.lock"
+            idx_lock.write_text("lock-untouched\n", encoding="utf-8")
+            cdb = rt_dir / "sota_trade_queue_demo.sqlite"
+            _build_predecessor_db(cdb, 6, leave_uncheckpointed_wal=True)
+            # Authentic non-empty uncheckpointed -wal containing committed row 'c-wal'!
+            wal_p = Path(f"{cdb}-wal")
+            shm_p = Path(f"{cdb}-shm")
+            assert wal_p.is_file() and wal_p.stat().st_size > 0, "expected real non-empty uncheckpointed -wal file"
+            pre_cdb_sha = hashlib.sha256(cdb.read_bytes()).hexdigest()
+            pre_wal_sha = hashlib.sha256(wal_p.read_bytes()).hexdigest()
+
+            qdir = root / "nested_q1" / "nested_q2" / "quarantine"
+            sdir = root / "nested_s1" / "nested_s2" / "staged"
+            rcpt = _make_receipt(root / "rcpt.json")
+            bak_info = prepare_coherent_predecessor_backup(cdb, qdir, durable_ancestor=root)
+            # Backup MUST NOT mutate canonical predecessor (.sqlite OR -wal)!
+            assert hashlib.sha256(cdb.read_bytes()).hexdigest() == pre_cdb_sha
+            assert hashlib.sha256(wal_p.read_bytes()).hexdigest() == pre_wal_sha
+            preimg = export_legacy_ownership_preimage(qdir)
+            # Assert real uncheckpointed WAL-only row 'c-wal' was captured in coherent backup!
+            assert any(c["contract_id"] == "c-wal" for c in preimg["contracts"]), "coherent backup missed uncheckpointed WAL-only row 'c-wal'!"
+            proof_p = root / "proof.json"
+            proof_p.write_text(
+                json.dumps(
+                    {
+                        "backup_sha256": preimg["backup_sha256"],
+                        "account_id": "VRTC123456",
+                        "contract_ownership_records": [
+                            {"contract_id": c["contract_id"], "account_id": "VRTC123456", "verified_against_venue": True}
+                            for c in preimg["contracts"]
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            class _SimCrash(RuntimeError):
+                pass
+
+            def _hook(pt: str) -> None:
+                if pt == crash_pt:
+                    raise _SimCrash(pt)
+
+            # Trigger simulated crash in first pass
+            try:
+                adopt_legacy_account(
+                    canonical_db=cdb,
+                    quarantine_dir=qdir,
+                    staged_v3_dir=sdir,
+                    ownership_proof_path=proof_p,
+                    receipt_path=rcpt,
+                    account_id="VRTC123456",
+                    pw_home=pw_h,
+                    durable_ancestor=root,
+                    crash_hook=_hook,
+                )
+                raise AssertionError(f"expected _SimCrash at {crash_pt}")
+            except _SimCrash:
+                pass
+
+            # Now invoke REAL `deriv_sota_executor.main(["--adopt-legacy-account", ...])` to recover from install_intent.json!
+            import sota_book_freeze as sbf_mod
+            synced_dirs_r: list[str] = []
+            orig_qpath = ex_mod.canonical_sota_queue_path
+            orig_pwhome = ex_mod.canonical_pw_home
+            orig_env = ex_mod.DerivEnv.from_env
+            orig_ws_url = ex_mod.request_authenticated_ws_url
+            orig_scli = ex_mod.SotaDerivAsyncClient
+            orig_fd = ex_mod.fsync_dir
+            orig_sbf_fd = sbf_mod.fsync_dir
+            orig_proc = ex_mod._check_no_legacy_buyers_proc
+
+            class _OkIdCli:
+                def __init__(self, *a: Any, **kw: Any) -> None:
+                    pass
+                async def __aenter__(self) -> "_OkIdCli":
+                    return self
+                async def __aexit__(self, *a: Any) -> None:
+                    return None
+                async def establish_identity(self, **kw: Any) -> int:
+                    return 1784124000
+
+            try:
+                ex_mod.canonical_sota_queue_path = lambda mode, repo_root=None: cdb  # type: ignore[assignment]
+                ex_mod.canonical_pw_home = lambda **kw: pw_h  # type: ignore[assignment]
+                ex_mod.DerivEnv.from_env = classmethod(lambda cls: type("E", (), {"account_id": "VRTC123456", "pat": "tok", "app_id": "1089"})())  # type: ignore[assignment]
+                ex_mod.request_authenticated_ws_url = lambda env, mode: ("wss://api.derivws.com/trading/v1/options/ws/demo", "options_otp")  # type: ignore[assignment]
+                ex_mod.SotaDerivAsyncClient = _OkIdCli  # type: ignore[assignment]
+                ex_mod._check_no_legacy_buyers_proc = lambda: None  # type: ignore[assignment]
+                def _spy_ex_fd(p: Path) -> None:
+                    synced_dirs_r.append(str(p.resolve()))
+                    orig_sbf_fd(p)
+                ex_mod.fsync_dir = _spy_ex_fd  # type: ignore[assignment]
+                sbf_mod.fsync_dir = _spy_ex_fd  # type: ignore[assignment]
+
+                rc_ad = ex_mod.main(
+                    [
+                        "--adopt-legacy-account",
+                        "--account-mode", "demo",
+                        "--maintenance-quarantine-dir", str(qdir),
+                        "--staged-v3-dir", str(sdir),
+                        "--ownership-proof-json", str(proof_p),
+                        "--credential-isolation-receipt", str(rcpt),
+                    ]
+                )
+                assert rc_ad == 0
+                # Assert BOTH rename directories synced on completion (and nested dirs synced on pre-install retry!)
+                assert str(sdir.resolve()) in synced_dirs_r and str(rt_dir.resolve()) in synced_dirs_r
+                if crash_pt != "after_rename_before_dir_fsync":
+                    assert str((root / "nested_q1").resolve()) in synced_dirs_r
+                    assert str((root / "nested_s1").resolve()) in synced_dirs_r
+                assert idx_lock.read_text(encoding="utf-8") == "lock-untouched\n"
+                assert hashlib.sha256((qdir / "predecessor_coherent_backup.sqlite").read_bytes()).hexdigest() == bak_info["backup_sha256"]
+
+                # On after_rename_before_dir_fsync: also verify unexpected -wal sidecar HOLDS without unlinking installed v3!
+                if crash_pt == "after_rename_before_dir_fsync":
+                    v3_sha = hashlib.sha256(cdb.read_bytes()).hexdigest()
+                    wal_p.write_bytes(b"rogue-wal")
+                    _expect_raises(
+                        ExecutorError,
+                        ex_mod.main,
+                        [
+                            "--adopt-legacy-account",
+                            "--account-mode", "demo",
+                            "--maintenance-quarantine-dir", str(qdir),
+                            "--staged-v3-dir", str(sdir),
+                            "--ownership-proof-json", str(proof_p),
+                            "--credential-isolation-receipt", str(rcpt),
+                        ],
+                    )
+                    assert cdb.is_file() and hashlib.sha256(cdb.read_bytes()).hexdigest() == v3_sha
+            finally:
+                ex_mod.canonical_sota_queue_path = orig_qpath  # type: ignore[assignment]
+                ex_mod.canonical_pw_home = orig_pwhome  # type: ignore[assignment]
+                ex_mod.DerivEnv.from_env = orig_env  # type: ignore[assignment]
+                ex_mod.request_authenticated_ws_url = orig_ws_url  # type: ignore[assignment]
+                ex_mod.SotaDerivAsyncClient = orig_scli  # type: ignore[assignment]
+                ex_mod.fsync_dir = orig_fd  # type: ignore[assignment]
+                sbf_mod.fsync_dir = orig_sbf_fd  # type: ignore[assignment]
+                ex_mod._check_no_legacy_buyers_proc = orig_proc  # type: ignore[assignment]
+
+
+    # 4. BLOCKER #4 extra checks: unexpected extra table rejected by detect_predecessor_shape,
+    #    and cross-FS staging (st_dev mismatch) refused BEFORE unlinking canonical DB!
+    with tempfile.TemporaryDirectory() as td_ex4:
+        root4 = Path(td_ex4)
+        extra_db = root4 / "extra_tbl.sqlite"
+        _build_predecessor_db(extra_db, 6)
+        ec = sqlite3.connect(str(extra_db))
+        ec.execute("CREATE TABLE rogue_table (id INTEGER PRIMARY KEY)")
+        ec.commit()
+        ec.close()
+        ro_e = ex_mod.open_sota_queue_readonly(extra_db)
+        try:
+            _expect_raises(ExecutorError, detect_predecessor_shape, ro_e)
+        finally:
+            ro_e.close()
+
+        # Cross-FS staging refusal before any unlink
+        pw4 = root4 / "home"
+        pw4.mkdir()
+        rt4 = root4 / "repo" / "deriv_data" / "runtime"
+        rt4.mkdir(parents=True)
+        cdb4 = rt4 / "sota_trade_queue_demo.sqlite"
+        _build_predecessor_db(cdb4, 6)
+        qdir4 = root4 / "q4"
+        sdir4 = root4 / "s4"
+        rcpt4 = _make_receipt(root4 / "rcpt4.json")
+        prepare_coherent_predecessor_backup(cdb4, qdir4, durable_ancestor=root4)
+        preimg4 = export_legacy_ownership_preimage(qdir4)
+        proof4 = root4 / "proof4.json"
+        proof4.write_text(
+            json.dumps(
+                {
+                    "backup_sha256": preimg4["backup_sha256"],
+                    "account_id": "VRTC123456",
+                    "contract_ownership_records": [
+                        {"contract_id": c["contract_id"], "account_id": "VRTC123456", "verified_against_venue": True}
+                        for c in preimg4["contracts"]
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        orig_stat = ex_mod.os.stat
+        sdir4_str = str(sdir4.resolve())
+
+        def _fake_cross_dev_stat(path_s: Any, *a: Any, **kw: Any):
+            st = orig_stat(path_s, *a, **kw)
+            if isinstance(path_s, (str, Path)) and str(path_s) == sdir4_str:
+                return type("_FakeStat", (), {"st_dev": st.st_dev + 999, "st_size": st.st_size, "st_mode": st.st_mode})()
+            return st
+
+        ex_mod.os.stat = _fake_cross_dev_stat  # type: ignore[assignment]
+        try:
+            _expect_raises(
+                ExecutorError,
+                adopt_legacy_account,
+                canonical_db=cdb4,
+                quarantine_dir=qdir4,
+                staged_v3_dir=sdir4,
+                ownership_proof_path=proof4,
+                receipt_path=rcpt4,
+                account_id="VRTC123456",
+                pw_home=pw4,
+                durable_ancestor=root4,
+            )
+            assert cdb4.is_file(), "canonical DB was unlinked despite cross-FS st_dev refusal!"
+        finally:
+            ex_mod.os.stat = orig_stat  # type: ignore[assignment]
+
+
+def test_phase1_prospective_g6_and_preflight() -> None:
+    import shutil
+    import sqlite3
+    from fractions import Fraction
+    from deriv_live_pnl_ledger import exact_fraction_bootstrap_ci95
+    from deriv_sota_executor import (
+        SotaDerivAsyncClient,
+        canonical_sota_lock_paths,
+        connect_sota_queue_v3,
+        create_v3_queue_schema_atomic,
+        register_cohort_anchor,
+    )
+    import vps_preflight as vp_mod
+
+    repo_real = Path(__file__).resolve().parents[1]
+    ens30 = load_sota_book("USDJPY.sota_ens5_m30_up.v1", repo_root=repo_real, allow_demo_canary=True)
+
+    # 1. Exact Fraction bootstrap (s[124] + 39*s[125]) / (40 * n * 100) + huge-integer (>2**61) overflow safety (MAJOR #4)!
+    profits = [82] * 35 + [-100] * 15
+    lo_f, hi_f = exact_fraction_bootstrap_ci95(profits, stake_cents=100, n_boot=5000, seed=7)
+    rng_v = np.random.default_rng(7)
+    arr_p = np.asarray(profits, dtype=np.int64)
+    sums_v = sorted(int(arr_p[rng_v.integers(0, 50, 50)].sum()) for _ in range(5000))
+    assert lo_f == Fraction(sums_v[124] + 39 * sums_v[125], 40 * 50 * 100)
+    assert hi_f == Fraction(39 * sums_v[4874] + sums_v[4875], 40 * 50 * 100)
+    assert lo_f > 0
+    big_lo, big_hi = exact_fraction_bootstrap_ci95([2**61] * 10, stake_cents=100, n_boot=100, seed=1)
+    assert big_lo == Fraction(2**61, 100) and big_hi == Fraction(2**61, 100)
+
+    # 2. Prospective G6 cohort anchor, boundary-crossing exclusion, contract-spec & POC venue-field checks, canonical DB enforcement!
+    with tempfile.TemporaryDirectory() as td_g6:
+        root = Path(td_g6)
+        pw_h = root / "home"
+        pw_h.mkdir()
+        rt_dir = root / "repo" / "deriv_data" / "runtime"
+        rt_dir.mkdir(parents=True)
+        q_db = rt_dir / "sota_trade_queue_demo.sqlite"
+        raw_c = sqlite3.connect(str(q_db), isolation_level=None)
+        raw_c.execute("PRAGMA foreign_keys=ON")
+        raw_c.execute("PRAGMA journal_mode=WAL")
+        create_v3_queue_schema_atomic(raw_c, account_id="VRTC123456", account_mode="demo")
+        raw_c.close()
+        rcpt = root / "rcpt.json"
+        rcpt.write_text(
+            json.dumps(
+                {
+                    "schema": "sota-credential-isolation-receipt/v1",
+                    "account_id": "VRTC123456",
+                    "account_mode": "demo",
+                    "legacy_credentials_revoked": True,
+                    "dedicated_sota_credentials_provisioned": True,
+                    "attested_by": "owner",
+                    "attested_utc": "2026-11-25T00:00:00Z",
+                }
+            ),
+            encoding="utf-8",
+        )
+        v_reg = 1785000000
+        coh_start_ep = v_reg + 3600
+        coh_start_iso = datetime.fromtimestamp(coh_start_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        # Past/equal start refused; future whole-second accepted; exact retry idempotent!
+        _expect_raises(
+            ExecutorError,
+            register_cohort_anchor,
+            queue_db=q_db, account_id="VRTC123456", account_mode="demo", book_id=ens30.book_id,
+            cohort_start_utc=datetime.fromtimestamp(v_reg, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            venue_time_epoch=v_reg, receipt_path=rcpt, repo_root=repo_real, pw_home=pw_h,
+        )
+        ra1 = register_cohort_anchor(
+            queue_db=q_db, account_id="VRTC123456", account_mode="demo", book_id=ens30.book_id,
+            cohort_start_utc=coh_start_iso, venue_time_epoch=v_reg, receipt_path=rcpt, repo_root=repo_real, pw_home=pw_h,
+        )
+        assert ra1["status"] == "registered"
+        ra2 = register_cohort_anchor(
+            queue_db=q_db, account_id="VRTC123456", account_mode="demo", book_id=ens30.book_id,
+            cohort_start_utc=coh_start_iso, venue_time_epoch=v_reg + 10, receipt_path=rcpt, repo_root=repo_real, pw_home=pw_h,
+        )
+        assert ra2["status"] == "idempotent_existing_anchor"
+
+        conn = connect_sota_queue_v3(q_db, expected_account_id="VRTC123456", expected_account_mode="demo")
+        # Insert 1 boundary-crossing contract (started BEFORE cohort_start_ep, closed AFTER!) -> MUST be excluded!
+        bc_start = coh_start_ep - 600
+        bc_close = datetime.fromtimestamp(coh_start_ep + 1200, tz=timezone.utc).isoformat()
+        bc_sig = datetime.fromtimestamp(bc_start - 2, tz=timezone.utc).isoformat()
+        conn.execute("INSERT INTO sota_signals VALUES ('sig-bc',?,'USDJPY',30,'UP','wall',0,?,0.58,0.60,'{}','bought',NULL,'c-bc',NULL,?,?)", (ens30.book_id, bc_sig, bc_sig, bc_sig))
+        conn.execute(
+            """
+            INSERT INTO sota_contracts (
+                contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                buy_price_cents, payout_cents, sell_price_cents, profit_cents, stake_authoritative,
+                venue_start_epoch, venue_end_epoch, venue_terminal_status, venue_underlying_symbol, venue_contract_type,
+                signal_close_utc, status, opened_utc, closed_utc, updated_utc
+            ) VALUES ('c-bc','sig-bc',?,?,'VRTC123456','demo','USDJPY',30,'UP','risefall',0,0,100,182,0,-100,1,?,?,'lost','frxUSDJPY','CALL',?,'lost',?,?,?)
+            """,
+            (ens30.book_id, ens30.content_id, bc_start, bc_start + 1800, bc_sig, bc_sig, bc_close, bc_close),
+        )
+        # Insert 52 clean prospective settled contracts (38 wins, 14 losses -> strong positive CI95!)
+        for k in range(52):
+            s_ep = coh_start_ep + k * 3600 + 2
+            e_ep = s_ep + 1800
+            sig_iso = datetime.fromtimestamp(s_ep - 2, tz=timezone.utc).isoformat()
+            cl_iso = datetime.fromtimestamp(e_ep, tz=timezone.utc).isoformat()
+            is_win = (k % 4) != 0
+            st_k = "won" if is_win else "lost"
+            sp_k = 182 if is_win else 0
+            pf_k = 82 if is_win else -100
+            conn.execute("INSERT INTO sota_signals VALUES (?,?,?,?,?,'wall',?, ?,0.58,0.60,'{}','bought',NULL,?,NULL,?,?)", (f"sg-{k}", ens30.book_id, "USDJPY", 30, "UP", k, sig_iso, f"cg-{k}", sig_iso, sig_iso))
+            conn.execute(
+                """
+                INSERT INTO sota_contracts (
+                    contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                    pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                    buy_price_cents, payout_cents, sell_price_cents, profit_cents, stake_authoritative,
+                    venue_start_epoch, venue_end_epoch, venue_terminal_status, venue_underlying_symbol, venue_contract_type,
+                    signal_close_utc, status, opened_utc, closed_utc, updated_utc
+                ) VALUES (?,?,?,?,'VRTC123456','demo','USDJPY',30,'UP','risefall',0,0,100,182,?,?,1,?,?,?,'frxUSDJPY','CALL',?,?,?, ?,?)
+                """,
+                (f"cg-{k}", f"sg-{k}", ens30.book_id, ens30.content_id, sp_k, pf_k, s_ep, e_ep, st_k, sig_iso, st_k, sig_iso, cl_iso, cl_iso),
+            )
+        eval_iso = datetime.fromtimestamp(coh_start_ep + 60 * 3600, tz=timezone.utc).isoformat()
+
+        rep_ok = summarize_settled_queue(
+            q_db,
+            min_settled_for_promotion=50,
+            book_id=ens30.book_id,
+            repo_root=repo_real,
+            require_registered_book=True,
+            cohort_start_utc=coh_start_iso,
+            expected_account_id="VRTC123456",
+            expected_stake_usd="1.00",
+            eval_now_utc=eval_iso,
+            canonical_db_path=q_db,
+            enforce_canonical_db=True,
+        )
+        assert rep_ok["promotion_eligible"] is True and rep_ok["settled_contracts"] == 52 and rep_ok["by_book"][ens30.book_id]["n"] == 52
+        assert rep_ok["by_book"][ens30.book_id]["excluded_pre_anchor"] == 1
+
+        # Non-canonical diagnostic DB path MUST return promotion_eligible: False!
+        rep_noncanon = summarize_settled_queue(
+            q_db,
+            min_settled_for_promotion=50,
+            book_id=ens30.book_id,
+            repo_root=repo_real,
+            cohort_start_utc=coh_start_iso,
+            expected_account_id="VRTC123456",
+            expected_stake_usd="1.00",
+            eval_now_utc=eval_iso,
+            canonical_db_path=root / "other.sqlite",
+            enforce_canonical_db=True,
+        )
+        assert rep_noncanon["promotion_eligible"] is False and "non_canonical_db_diagnostic_only" in rep_noncanon["reasons"]
+
+        # Corrupt ONE contract's venue_contract_type ('PUT' != 'CALL') -> MUST refuse promotion!
+        conn.execute("UPDATE sota_contracts SET venue_contract_type='PUT' WHERE contract_id='cg-0'")
+        rep_bad_poc = summarize_settled_queue(
+            q_db,
+            min_settled_for_promotion=50,
+            book_id=ens30.book_id,
+            repo_root=repo_real,
+            cohort_start_utc=coh_start_iso,
+            expected_account_id="VRTC123456",
+            expected_stake_usd="1.00",
+            eval_now_utc=eval_iso,
+            canonical_db_path=q_db,
+            enforce_canonical_db=True,
+        )
+        assert rep_bad_poc["promotion_eligible"] is False
+        assert any("venue_symbol_or_contract_type_mismatch" in r for r in rep_bad_poc["reasons"])
+        conn.close()
+
+        # BLOCKER #5: CLI --db --book-id WITHOUT cohort args MUST NOT promote retrospective data!
+        import deriv_live_pnl_ledger as pnl_mod
+        import io as _io
+        from contextlib import redirect_stdout
+        buf_cli = _io.StringIO()
+        with redirect_stdout(buf_cli):
+            rc_pnl = pnl_mod.main(["--db", str(q_db), "--book-id", ens30.book_id])
+        assert rc_pnl == 0
+        cli_rep = json.loads(buf_cli.getvalue())
+        assert cli_rep["promotion_eligible"] is False
+
+        # 3. vps_preflight.py negative & positive controls:
+        #    - Mutually exclusive --offline-only + --live-smoke -> RC 2
+        assert vp_mod.main(["--offline-only", "--live-smoke"]) == 2
+        #    - Fixture flags refused on --live-smoke and on deriv_sota_executor.py!
+        assert vp_mod.main(["--live-smoke", "--fixture-home", str(pw_h), "--fixture-repo-root", str(root / "repo")]) == 2
+        import deriv_sota_executor as ex_mod
+        _expect_raises(ExecutorError, ex_mod.main, ["--run", "--fixture-home", str(pw_h), "--fixture-repo-root", str(root / "repo")])
+        #    - Fixture root pointing at real repo -> refused!
+        #    - BLOCKER #1: Omitting --phase1-policy STILL enforces Phase 1 admission, AND empty --fixture-home "" is refused!
+        import os
+        orig_acct = os.environ.get("DERIV_ACCOUNT_ID")
+        try:
+            os.environ["DERIV_ACCOUNT_ID"] = "VRTC123456"
+            assert vp_mod.main(["--offline-only", "--account-mode", "demo", "--book-ids", "USDJPY.sota_ens5_m30_up.v1"]) != 0
+            assert vp_mod.main(
+                [
+                    "--offline-only", "--fixture-home", "", "--fixture-repo-root", str(root / "repo"),
+                    "--allow-unprovisioned-queue", "--account-mode", "demo", "--book-ids", "USDJPY.sota_ens5_m30_up.v1",
+                ]
+            ) != 0
+            rc_real_ref = vp_mod.main(
+                [
+                    "--offline-only", "--phase1-policy", "--require-explicit-book-ids",
+                    "--fixture-home", str(pw_h), "--fixture-repo-root", str(repo_real),
+                    "--account-mode", "demo", "--book-ids", "USDJPY.sota_ens5_m30_up.v1",
+                    "--queue-db", str(repo_real / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"),
+                    "--credential-isolation-receipt", str(rcpt),
+                ]
+            )
+            assert rc_real_ref != 0
+
+            # Valid disposable fixture root with copied books & bound v3 DB passes --offline-only;
+            # sota_activation.hold present fails; missing DB with --allow-unprovisioned-queue passes!
+            fix_repo = root / "repo"
+            (fix_repo / "books").mkdir(parents=True, exist_ok=True)
+            shutil.copy2(repo_real / "books" / "SOTA_INDEX.json", fix_repo / "books" / "SOTA_INDEX.json")
+            for b_id in ("USDJPY.sota_ens5_m30_up.v1", "USDJPY.sota_ens5_m15_up.v1"):
+                shutil.copytree(repo_real / "books" / b_id, fix_repo / "books" / b_id, symlinks=False)
+            base_argv = [
+                "--offline-only", "--phase1-policy", "--require-explicit-book-ids",
+                "--fixture-home", str(pw_h), "--fixture-repo-root", str(fix_repo),
+                "--account-mode", "demo",
+                "--book-ids", "USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_ens5_m15_up.v1",
+                "--stake", "1.0", "--max-stake-usd", "5.0", "--max-daily-loss-usd", "25.0", "--max-drawdown-usd", "50.0",
+                "--max-open-contracts", "3", "--max-usd-factor-open", "3", "--max-jpy-factor-open", "3",
+                "--absolute-breakeven-ceiling", "0.60", "--ev-margin", "0.005", "--max-buy-dispatch-delay-s", "4.0",
+                "--queue-db", str(q_db), "--log-dir", str(root / "logs"),
+                "--credential-isolation-receipt", str(rcpt),
+            ]
+            assert vp_mod.main(base_argv) == 0
+            # sota_activation.hold present MUST refuse!
+            locks_fx = canonical_sota_lock_paths(q_db, pw_home=pw_h)
+            locks_fx["hold"].parent.mkdir(parents=True, exist_ok=True)
+            locks_fx["hold"].write_text("hold\n", encoding="utf-8")
+            assert vp_mod.main(base_argv) != 0
+            locks_fx["hold"].unlink()
+            # Missing DB with --allow-unprovisioned-queue passes inside validated fixture root!
+            q_db.unlink()
+            assert vp_mod.main(base_argv) != 0
+            assert vp_mod.main(base_argv + ["--allow-unprovisioned-queue"]) == 0
+        finally:
+            if orig_acct is None:
+                os.environ.pop("DERIV_ACCOUNT_ID", None)
+            else:
+                os.environ["DERIV_ACCOUNT_ID"] = orig_acct
+
+    # 4. --live-smoke negative test: valid-shaped m30 proposal at 1.7799999999 FAILS with 0 buy/sell frames + wall timeout!
+    async def _run_smoke_1779_and_timeout() -> None:
+        class _SmokeWS:
+            def __init__(self, delay_s: float = 0.0) -> None:
+                self.delay_s = delay_s
+                self.inbox: asyncio.Queue[str] = asyncio.Queue()
+                self.raw_sent: list[str] = []
+
+            async def send(self, text: str) -> None:
+                self.raw_sent.append(text)
+                req = json.loads(text)
+                if self.delay_s > 0 and "proposal" in req:
+                    await asyncio.sleep(self.delay_s)
+                rid = req["req_id"]
+                if "balance" in req:
+                    await self.inbox.put(json.dumps({"req_id": rid, "balance": {"loginid": "VRTC123456", "currency": "USD"}}))
+                elif "time" in req:
+                    await self.inbox.put(json.dumps({"req_id": rid, "time": 1784124000}))
+                elif "proposal" in req:
+                    # Emit exact literal JSON token 1.7799999999 (below 1.78!)
+                    await self.inbox.put(f'{{"req_id": {rid}, "proposal": {{"id": "p-1779", "ask_price": 1.0, "payout": 1.7799999999, "currency": "USD"}}}}')
+
+            async def recv(self) -> str:
+                return await self.inbox.get()
+
+            async def close(self) -> None:
+                return None
+
+        ws_1779 = _SmokeWS(delay_s=0.0)
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: ws_1779,
+        ) as cli_sm:
+            sm_res = await vp_mod.run_network_proposal_smoke(
+                "demo", [ens30], 1.0, client_override=cli_sm, transport_kind_override="options_otp", pace_s=0.0
+            )
+            assert len(sm_res) == 1
+            assert sm_res[0]["proposal_received"] is True
+            assert sm_res[0]["gate_passed_at_floor"] is False
+            assert sm_res[0]["smoke_passed"] is False
+            assert sm_res[0]["gate_reason"] == "payout_below_exact_rational_floor"
+            assert sm_res[0]["row_calibrated_evidence"] is False
+            assert sm_res[0]["decision5_satisfied"] is False
+            assert not any('"buy"' in s or '"sell"' in s for s in ws_1779.raw_sent)
+
+        # MAJOR #3: Missing "currency" in proposal MUST be rejected!
+        class _NoCcyWS(_SmokeWS):
+            async def send(self, text: str) -> None:
+                self.raw_sent.append(text)
+                req = json.loads(text)
+                rid = req["req_id"]
+                if "balance" in req:
+                    await self.inbox.put(json.dumps({"req_id": rid, "balance": {"loginid": "VRTC123456", "currency": "USD"}}))
+                elif "time" in req:
+                    await self.inbox.put(json.dumps({"req_id": rid, "time": 1784124000}))
+                elif "proposal" in req:
+                    await self.inbox.put(f'{{"req_id": {rid}, "proposal": {{"id": "p-noccy", "ask_price": 1.0, "payout": 1.82}}}}')
+
+        ws_noccy = _NoCcyWS()
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: ws_noccy,
+        ) as cli_nc:
+            sm_nc = await vp_mod.run_network_proposal_smoke(
+                "demo", [ens30], 1.0, client_override=cli_nc, transport_kind_override="options_otp", pace_s=0.0
+            )
+            assert sm_nc[0]["smoke_passed"] is False and sm_nc[0]["gate_reason"] == "missing_or_non_usd_proposal_currency"
+
+        # Bounded wall timeout (--smoke-timeout-s) covering BOTH slow proposal AND slow OTP!
+        ws_slow = _SmokeWS(delay_s=2.0)
+        async with SotaDerivAsyncClient(
+            "wss://api.derivws.com/trading/v1/options/ws/demo",
+            allow_buy=False,
+            expected_account_id="VRTC123456",
+            ws_opener=lambda _u: ws_slow,
+        ) as cli_sl:
+            try:
+                await vp_mod.run_network_proposal_smoke(
+                    "demo", [ens30], 1.0, smoke_timeout_s=0.15, client_override=cli_sl, transport_kind_override="options_otp", pace_s=0.0
+                )
+                raise AssertionError("expected asyncio.TimeoutError on bounded smoke_timeout_s")
+            except asyncio.TimeoutError:
+                pass
+
+        # OTP hang timeout check (verify outer wait_for bounds request_authenticated_ws_url!)
+        orig_non_us = vp_mod.assert_non_us_deriv_host
+        orig_req_ws2 = vp_mod.request_authenticated_ws_url
+        orig_val2 = vp_mod.validate_account_mode
+        import time as _tm
+        try:
+            vp_mod.assert_non_us_deriv_host = lambda *a, **kw: None  # type: ignore[assignment]
+            vp_mod.validate_account_mode = lambda **kw: None  # type: ignore[assignment]
+            def _slow_otp(env_o: Any, mode_o: str):
+                _tm.sleep(0.5)
+                return ("wss://api.derivws.com/trading/v1/options/ws/demo", "options_otp")
+            vp_mod.request_authenticated_ws_url = _slow_otp  # type: ignore[assignment]
+            from deriv_client import DerivEnv as _DE
+            try:
+                await vp_mod.run_network_proposal_smoke(
+                    "demo", [ens30], 1.0, smoke_timeout_s=0.1, env_override=_DE(app_id="1089", pat="tok", account_id="VRTC123456"), pace_s=0.0
+                )
+                raise AssertionError("expected asyncio.TimeoutError on hung OTP")
+            except asyncio.TimeoutError:
+                pass
+        finally:
+            vp_mod.assert_non_us_deriv_host = orig_non_us  # type: ignore[assignment]
+            vp_mod.request_authenticated_ws_url = orig_req_ws2  # type: ignore[assignment]
+            vp_mod.validate_account_mode = orig_val2  # type: ignore[assignment]
+
+    asyncio.run(_run_smoke_1779_and_timeout())
+
+
+def test_phase1_portfolio_replay_fixtures_a_to_f() -> None:
+    from replay_sota_portfolio import (
+        PATH_YEARS,
+        PAYOUT_POLICY,
+        compute_pareto_flags,
+        reduce_scenario_paths,
+        simulate_path_events,
+    )
+
+    # Fixture A: initial_cash=2.0, cap=1, flat_1usd, R=1.82
+    fa = simulate_path_events(
+        [(0, 0, 1800, 0, 1.82), (0, 2, 900, 1, 1.82), (1800, 2, 900, 1, 1.82)],
+        max_open_cap=1,
+        sizing_family="flat",
+        initial_cash=2.0,
+        path_years=PATH_YEARS,
+    )
+    assert fa["trades"] == 2 and fa["wins"] == 1 and fa["skipped_cap"] == 1 and fa["skipped_cash"] == 0
+    assert abs(fa["final_cash"] - 1.82) < 1e-12 and fa["ruined"] is False and abs(fa["path_max_dd"] - 0.5) < 1e-12
+    assert abs(fa["path_log_growth"] - (-0.2911012029031342)) < 1e-12
+
+    # Fixture B: 3rd event win=0 -> ruined
+    fb = simulate_path_events(
+        [(0, 0, 1800, 0, 1.82), (0, 2, 900, 1, 1.82), (1800, 2, 900, 0, 1.82)],
+        max_open_cap=1,
+        sizing_family="flat",
+        initial_cash=2.0,
+        path_years=PATH_YEARS,
+    )
+    assert fb["final_cash"] == 0.0 and fb["ruined"] is True and fb["path_max_dd"] == 1.0 and fb["path_log_growth"] is None
+    rb = reduce_scenario_paths(["0_1"], [fb])
+    assert rb["status"] == "ruined" and rb["any_ruined"] is True and rb["pareto_efficient"] is False
+
+    # Fixture C: initial_cash=1.0, cap=2, flat_1usd -> cash debited at admission, 2nd event skipped_cash
+    fc = simulate_path_events(
+        [(0, 0, 1800, 0, 1.82), (60, 2, 900, 1, 1.82)],
+        max_open_cap=2,
+        sizing_family="flat",
+        initial_cash=1.0,
+        path_years=PATH_YEARS,
+    )
+    assert fc["trades"] == 1 and fc["skipped_cash"] == 1 and fc["final_cash"] == 0.0 and fc["ruined"] is True
+
+    # Fixture D: empty intersection -> status="empty_intersection", any_ruined=False
+    rd = reduce_scenario_paths([], [])
+    assert rd["status"] == "empty_intersection" and rd["any_ruined"] is False and rd["n_paths"] == 0 and rd["pareto_efficient"] is False
+
+    # Fixture E: direct (p10_g, p90_dd) Pareto + cross-multiplier dominance in "kelly" + cross-family isolation ("flat" vs "kelly")!
+    def _sc(p10: float, dd90: float, fam: str = "kelly", mult: float | None = 0.20) -> dict[str, Any]:
+        return {
+            "status": "ok",
+            "path_ids": ["0_1"],
+            "payout_policy": [list(x) for x in PAYOUT_POLICY],
+            "sizing_family": fam,
+            "kelly_multiplier": mult,
+            "scope": "certified_phase1",
+            "p10_g": p10,
+            "p90_dd": dd90,
+        }
+
+    fe_sc = [
+        _sc(0.20, 0.10, "kelly", 0.15),
+        _sc(0.15, 0.12, "kelly", 0.20),  # dominated by kelly 0.15 across multipliers!
+        _sc(0.25, 0.15, "kelly", 0.25),
+        _sc(0.20, 0.10, "kelly", 0.20),  # tie -> stays True!
+        _sc(0.05, 0.50, "flat", None),   # isolated in "flat" -> NOT dominated by "kelly"!
+    ]
+    assert compute_pareto_flags(fe_sc) == [True, False, True, True, True]
+
+    # Fixture F: 5-path aggregation rejecting mean-growth or worst-DD substitutes!
+    s1_paths = [
+        {"ruined": False, "path_log_growth": g, "path_max_dd": d}
+        for g, d in zip([0.05, 0.50, 0.50, 0.50, 0.50], [0.10, 0.10, 0.10, 0.10, 0.50])
+    ]
+    s2_paths = [
+        {"ruined": False, "path_log_growth": g, "path_max_dd": d}
+        for g, d in zip([0.25, 0.30, 0.30, 0.30, 0.30], [0.35, 0.35, 0.35, 0.35, 0.35])
+    ]
+    pids5 = ["0_1", "0_2", "0_3", "0_4", "0_5"]
+    rs1 = reduce_scenario_paths(pids5, s1_paths)
+    rs2 = reduce_scenario_paths(pids5, s2_paths)
+    assert abs(rs1["p10_g"] - 0.23) < 1e-12 and abs(rs1["mean_g"] - 0.41) < 1e-12 and abs(rs1["p90_dd"] - 0.34) < 1e-12 and abs(rs1["worst_path_max_dd"] - 0.50) < 1e-12
+    assert abs(rs2["p10_g"] - 0.27) < 1e-12 and abs(rs2["mean_g"] - 0.29) < 1e-12 and abs(rs2["p90_dd"] - 0.35) < 1e-12 and abs(rs2["worst_path_max_dd"] - 0.35) < 1e-12
+    for obj in (rs1, rs2):
+        obj["path_ids"] = pids5
+        obj["payout_policy"] = [list(x) for x in PAYOUT_POLICY]
+        obj["sizing_family"] = "kelly"
+        obj["scope"] = "certified_phase1"
+    assert compute_pareto_flags([rs1, rs2]) == [True, True]
 
 
 def main() -> int:
@@ -1442,6 +3866,13 @@ def main() -> int:
         test_real_frozen_sota_books_end_to_end,
         test_nystroem_ens_multiplier_and_barrier_extensions,
         test_da2_adversarial_hardening_regressions,
+        test_phase1_stack05_runtime_and_freezer,
+        test_phase1_certifier_reducers_and_verify_bundle,
+        test_phase1_tick_warmup_and_standalone_consumer,
+        test_phase1_sota_client_and_buy_intent_recovery,
+        test_phase1_v3_queue_and_6shape_adoption,
+        test_phase1_prospective_g6_and_preflight,
+        test_phase1_portfolio_replay_fixtures_a_to_f,
     ]
     for fn in tests:
         fn()

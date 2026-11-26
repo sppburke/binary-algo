@@ -19,8 +19,9 @@ import time
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 import numpy as np
 import pandas as pd
@@ -29,6 +30,8 @@ import deriv_dataset as dd
 from deriv_async_client import DerivAsyncClient
 from deriv_client import PUBLIC_WS_URL, DerivAPIError
 from deriv_runtime_core_v2 import SOTA_DERIV_SYMBOLS, JsonlLogger, assert_non_us_deriv_host
+
+HistoryRequestFn = Callable[[dict[str, Any], float], Awaitable[dict[str, Any]]]
 
 MAJORS: tuple[str, ...] = tuple(dd.PAIRS)
 DEFAULT_RING_SECONDS = 345_600  # 96h of 1s ticks (~2.8 MB/pair) spans 48h FX weekends + 1440m lookbacks
@@ -158,6 +161,40 @@ def extract_decision_feature_row(
     )
 
 
+def build_pair_decision_snapshot(
+    target_pair: str,
+    ticks_by_pair: dict[str, tuple[np.ndarray, np.ndarray]],
+    decision_epoch: int,
+    feature_cols: list[str],
+    *,
+    min_active_bars: int = DEFAULT_WARMUP_MIN_BARS,
+    max_tick_staleness_s: float = 120.0,
+    source: str = "live_1s_ticks",
+) -> LiveSotaFeatureRow:
+    """Build ONE causal pair snapshot enforcing min_active_bars=1600 strictly before decision_epoch (spec §3.3)."""
+    dec_t = int(decision_epoch)
+    target_u = target_pair.upper()
+    if target_u not in ticks_by_pair:
+        raise SotaFeatureError(f"{target_u}: target tick series missing")
+    ts_tgt, _ = ticks_by_pair[target_u]
+    cut = int(np.searchsorted(ts_tgt, dec_t, side="left"))
+    if cut == 0:
+        raise SotaFeatureError(f"{target_u}: no ticks strictly before decision_epoch {dec_t}")
+    active_bars = int(len(np.unique(ts_tgt[:cut] // 60)))
+    if active_bars < int(min_active_bars):
+        raise SotaFeatureError(
+            f"{target_u}: insufficient warmup active bars before {dec_t} ({active_bars} < {min_active_bars})"
+        )
+    return extract_decision_feature_row(
+        target_u,
+        ticks_by_pair,
+        dec_t,
+        feature_cols,
+        max_tick_staleness_s=max_tick_staleness_s,
+        source=source,
+    )
+
+
 def read_tick_store_watermark(store_dir: Path) -> dict[str, Any]:
     wm = Path(store_dir) / "watermark.json"
     if not wm.exists():
@@ -266,28 +303,32 @@ class LiveTickBuffer:
 
     async def _request_history_paced(
         self,
-        client: DerivAsyncClient,
+        client: Any,
         sym: str,
         w_start: int,
         w_end: int,
         *,
         request_spacing_s: float,
+        history_request_fn: HistoryRequestFn | None = None,
     ) -> tuple[list[int], list[float]]:
-        """Fetch one <=1000s window with explicit {start, end} (PUBLIC_WS_URL ignores `end` without `start` and caps at 1000 ticks)."""
+        """Fetch one <=1000s window with explicit {start, end} via injected history_request_fn (spec §3.3)."""
+        req_fn: Any = history_request_fn if history_request_fn is not None else client.request
         backoff = 5.0
         for attempt in range(4):
             try:
-                resp = await client.request(
-                    {
-                        "ticks_history": sym,
-                        "style": "ticks",
-                        "start": int(w_start),
-                        "end": int(w_end),
-                        "count": 1000,
-                    },
-                    timeout=20.0,
-                )
-                await asyncio.sleep(request_spacing_s)
+                payload = {
+                    "ticks_history": sym,
+                    "style": "ticks",
+                    "start": int(w_start),
+                    "end": int(w_end),
+                    "count": 1000,
+                }
+                try:
+                    resp = await req_fn(payload, timeout=20.0)
+                except TypeError:
+                    resp = await req_fn(payload, 20.0)
+                if request_spacing_s > 0.0:
+                    await asyncio.sleep(request_spacing_s)
                 hist = resp.get("history") or {}
                 raw_t = [int(x) for x in (hist.get("times") or [])]
                 raw_p = [float(x) for x in (hist.get("prices") or [])]
@@ -305,14 +346,16 @@ class LiveTickBuffer:
 
     async def warmup_from_public_ws(
         self,
-        client: DerivAsyncClient,
+        client: Any,
         *,
         lookback_hours: int = 36,
         min_bars: int = DEFAULT_WARMUP_MIN_BARS,
         request_spacing_s: float = 2.6,
+        history_request_fn: HistoryRequestFn | None = None,
+        now_epoch: int | None = None,
     ) -> None:
         """Rate-limit-safe (< 24 req/min), weekend-aware incremental warmup using 1000s {start, end} windows."""
-        now_s = int(time.time())
+        now_s = int(time.time()) if now_epoch is None else int(now_epoch)
         max_scan_floor = now_s - 5 * 86_400  # 5 calendar days spans any 48h weekend + holiday + 1440m lookback
         for p in self.pairs:
             sym = SOTA_DERIV_SYMBOLS[p]
@@ -328,7 +371,12 @@ class LiveTickBuffer:
                     break
                 w_start = max(max_scan_floor, (existing_max + 1) if existing_max is not None else (cursor - 999), cursor - 999)
                 times, prices = await self._request_history_paced(
-                    client, sym, w_start, cursor, request_spacing_s=request_spacing_s
+                    client,
+                    sym,
+                    w_start,
+                    cursor,
+                    request_spacing_s=request_spacing_s,
+                    history_request_fn=history_request_fn,
                 )
                 if times:
                     self.merge_sorted_ticks(
@@ -345,7 +393,12 @@ class LiveTickBuffer:
                 while cursor_old > max_scan_floor and self.distinct_minute_count(p) < min_bars:
                     w_start = max(max_scan_floor, cursor_old - 999)
                     times, prices = await self._request_history_paced(
-                        client, sym, w_start, cursor_old, request_spacing_s=request_spacing_s
+                        client,
+                        sym,
+                        w_start,
+                        cursor_old,
+                        request_spacing_s=request_spacing_s,
+                        history_request_fn=history_request_fn,
                     )
                     if times:
                         self.merge_sorted_ticks(
@@ -355,7 +408,7 @@ class LiveTickBuffer:
                         )
                     cursor_old = w_start - 1
 
-        self.persist_snapshot(minute_boundary_epoch=(int(time.time()) // 60) * 60)
+        self.persist_snapshot(minute_boundary_epoch=(now_s // 60) * 60)
 
 
 def run_dataset_parity_selfcheck(
@@ -363,34 +416,45 @@ def run_dataset_parity_selfcheck(
     ticks_dir: Path = Path("/mnt/data/deriv/ticks"),
     pair: str = "USDJPY",
 ) -> dict[str, Any]:
-    """Prove 0.0 float32 drift between build_sota_feature_frame_from_ticks and cached dataset_dev_v0.1."""
-    from datetime import date
+    """Prove exact Decimal 0.0 float32 drift via O_NOFOLLOW DEV loader across all 7 input lanes (spec §3.3)."""
+    from certify_sota_stack05 import (
+        load_pinned_dev_manifest,
+        load_pinned_dev_parquet,
+        load_pinned_dev_ticks,
+    )
 
-    first_d, last_d = date(2025, 8, 11), date(2025, 8, 28)
+    dev_manifest = load_pinned_dev_manifest(dataset_dir)
+    # Load all 7 pinned input lanes including holiday files 2025-12-24 & 2025-12-31 via O_NOFOLLOW!
     ticks_by_pair: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-    old_allow = dd.os.environ.get("DERIV_ALLOW_INCOMPLETE")
-    dd.os.environ["DERIV_ALLOW_INCOMPLETE"] = "1"
-    try:
-        old_arch = dd.ARCHIVE
-        dd.ARCHIVE = ticks_dir
-        for p in MAJORS:
-            files = dd.day_files(p, first_d, last_d)
-            ticks_by_pair[p] = dd.load_ticks(files)
-    finally:
-        dd.ARCHIVE = old_arch
-        if old_allow is None:
-            dd.os.environ.pop("DERIV_ALLOW_INCOMPLETE", None)
-        else:
-            dd.os.environ["DERIV_ALLOW_INCOMPLETE"] = old_allow
+    files_by_pair: dict[str, int] = {}
+    holiday_files_verified: list[str] = []
+    for p in MAJORS:
+        ts_p, px_p, fnames = load_pinned_dev_ticks(
+            p,
+            dev_dir=dataset_dir,
+            ticks_root=ticks_dir,
+            manifest=dev_manifest,
+            first_day="2025-08-11",
+            last_day="2026-07-31",
+        )
+        ticks_by_pair[p] = (ts_p, px_p)
+        files_by_pair[p] = len(fnames)
+        for hf in (f"{p}_2025-12-24_ticks.parquet", f"{p}_2025-12-31_ticks.parquet"):
+            if hf not in fnames:
+                raise SotaFeatureError(f"missing expected holiday file {hf} in DEV manifest inputs")
+            holiday_files_verified.append(hf)
 
-    ref = pd.read_parquet(dataset_dir / f"{pair}.parquet")
+    ref = load_pinned_dev_parquet(pair, dev_dir=dataset_dir)
     fcols = [c for c in ref.columns if c not in ("bar_start_ts", "decision_ts") and not c.startswith(("ret_fwd_", "valid_"))]
     rebuilt = build_sota_feature_frame_from_ticks(pair, ticks_by_pair, feature_cols=fcols)
 
-    t_lo = int(datetime(2025, 8, 18, 0, 0, tzinfo=timezone.utc).timestamp())
-    t_hi = int(datetime(2025, 8, 27, 0, 0, tzinfo=timezone.utc).timestamp())
+    # Compare across nonempty multi-week window spanning both early DEV and Dec holiday files
+    t_lo = int(datetime(2025, 12, 18, 0, 0, tzinfo=timezone.utc).timestamp())
+    t_hi = int(datetime(2026, 1, 5, 0, 0, tzinfo=timezone.utc).timestamp())
     ref_sub = ref[(ref["decision_ts"] >= t_lo) & (ref["decision_ts"] < t_hi)].set_index("decision_ts")[fcols]
     reb_sub = rebuilt[(rebuilt["decision_ts"] >= t_lo) & (rebuilt["decision_ts"] < t_hi)].set_index("decision_ts")[fcols]
+    if ref_sub.empty:
+        raise SotaFeatureError("empty USDJPY comparison window")
     if not ref_sub.index.equals(reb_sub.index):
         raise SotaFeatureError(f"decision_ts index mismatch: ref={len(ref_sub)} vs rebuilt={len(reb_sub)}")
 
@@ -400,10 +464,14 @@ def run_dataset_parity_selfcheck(
     fin = np.isfinite(a) & np.isfinite(b)
     max_diff = float(np.max(np.abs(a[fin] - b[fin]))) if fin.any() else 0.0
     exact_share = float(np.mean(a[fin] == b[fin])) if fin.any() else 1.0
-    if not nan_match or max_diff > 1e-5:
+    if not nan_match or Decimal(str(max_diff)) != Decimal("0"):
         raise SotaFeatureError(f"feature parity failed: nan_match={nan_match}, max_diff={max_diff}")
     return {
         "pair": pair,
+        "input_pair_lanes": list(MAJORS),
+        "daily_files_verified_by_pair": files_by_pair,
+        "holiday_files_verified_count": len(holiday_files_verified),
+        "window_utc": [t_lo, t_hi],
         "rows_checked": int(len(ref_sub)),
         "features_checked": int(len(fcols)),
         "nan_mask_identical": nan_match,

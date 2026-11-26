@@ -31,9 +31,22 @@ def check(paths: list[Path]) -> list[str]:
         except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             failures.append(f"{path}: cannot read: {exc}")
             continue
-        book_id = manifest.get("id") if isinstance(manifest, dict) else None
-        currency = manifest.get("currency") if isinstance(manifest, dict) else None
-        pair = book_id.split(".", 1)[0] if isinstance(book_id, str) else ""
+        if not isinstance(manifest, dict):
+            failures.append(f"{path}: manifest must be a JSON object")
+            continue
+        book_id = manifest.get("id")
+        pair = book_id.split(".", 1)[0] if isinstance(book_id, str) and "." in book_id else ""
+        if manifest.get("schema") == "sota-book-manifest/v1":
+            m_pair = manifest.get("pair")
+            currency = manifest.get("currency")
+            if not pair or not isinstance(m_pair, str) or not m_pair:
+                failures.append(f"{path}: sota-book-manifest/v1 needs string id '<PAIR>.<book>.v<N>' and non-empty pair")
+            elif m_pair != pair:
+                failures.append(f"{path}: pair {m_pair!r} does not match book id {book_id!r}")
+            elif currency is not None and (not isinstance(currency, str) or currency != pair):
+                failures.append(f"{path}: conflicting currency {currency!r} for sota-book-manifest/v1 book id {book_id!r}")
+            continue
+        currency = manifest.get("currency")
         if not pair or not isinstance(currency, str) or not currency:
             failures.append(f"{path}: needs a string id '<PAIR>.<book>.v<N>' and a currency")
         elif currency != pair:
