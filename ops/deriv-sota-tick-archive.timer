@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Deriv SOTA operational tick archive top-up every 6 hours UTC (accommodates Downloader 1.7 6h empty-window recheck)
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:10:00 UTC
+RandomizedDelaySec=120
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -5395,6 +5395,1890 @@ def test_portfolio_mvt_validator_and_options_proposal_ccy() -> None:
         assert cli_mvt["verdict"] == "HALT_INVESTIGATE"  # non-canonical --db alias refused!
 
 
+def _create_bound_v3_test_db(db_path: Path, account_id: str) -> Any:
+    import sqlite3 as _sq_c
+    import deriv_sota_executor as _ex_c
+
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    c = _sq_c.connect(str(db_path), timeout=5.0, isolation_level=None)
+    c.row_factory = _sq_c.Row
+    _ex_c._configure_writable_pragmas_outside_txn(c)
+    _ex_c.create_v3_queue_schema_atomic(c, account_id=account_id, account_mode="demo")
+    return c
+
+
+def _stage_test_rolling_vintage(
+    book_v_dir: Path,
+    policy: Any,
+    *,
+    sched_ep: int,
+    pub_ep: int,
+    seed: int = 0,
+    platt_coef: float = 0.25,
+    platt_intercept: float = 0.40,
+    trusted_root: Path | None = None,
+) -> dict[str, Any]:
+    import hashlib as _hl_r
+    import io as _io_r
+    import sota_rolling_runtime as _srr
+    from sota_book_freeze import atomic_write_file_bytes
+    from sota_book_runtime import compute_sota_content_id_from_buffers
+
+    rng = np.random.default_rng(seed)
+    k = int(policy.policy_dict.get("n_seeds", 5))
+    d = len(policy.feature_cols)
+    m = int(policy.policy_dict.get("n_components", 500))
+    gamma_v = float(policy.policy_dict.get("gamma", 1.0 / d))
+    arrays: dict[str, np.ndarray] = {
+        "med": np.zeros(d, dtype=np.float64),
+        "mu": np.zeros(d, dtype=np.float64),
+        "sd": np.ones(d, dtype=np.float64),
+        "n_seeds": np.asarray([k], dtype=np.int64),
+    }
+    for i in range(k):
+        arrays[f"s{i}_nys_components"] = rng.normal(0.0, 0.05, size=(m, d)).astype(np.float64)
+        arrays[f"s{i}_nys_normalization"] = np.eye(m, dtype=np.float64) * 0.05
+        arrays[f"s{i}_nys_gamma"] = np.asarray([gamma_v], dtype=np.float64)
+        arrays[f"s{i}_sgd_coef"] = rng.normal(0.0, 0.02, size=(m,)).astype(np.float64)
+        arrays[f"s{i}_sgd_intercept"] = np.asarray([0.65], dtype=np.float64)
+
+    buf = _io_r.BytesIO()
+    np.savez(buf, **arrays)
+    w_bytes = buf.getvalue()
+    vf_ep = max(int(pub_ep), int(sched_ep))
+    vu_ep = int(sched_ep) + int(policy.max_vintage_age_days) * 86400
+    sched_iso = datetime.fromtimestamp(sched_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    vf_iso = datetime.fromtimestamp(vf_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    vu_iso = datetime.fromtimestamp(vu_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    strat_obj = {
+        "book_id": policy.book_id,
+        "policy_content_id": policy.content_id,
+        "pair": policy.pair,
+        "horizon_minutes": policy.horizon_minutes,
+        "allowed_sides": list(policy.allowed_sides),
+        "model_kind": policy.model_kind,
+        "contract_family": policy.contract_family,
+        "feature_cols": list(policy.feature_cols),
+        "coverage": policy.coverage,
+        "confidence_threshold": 0.05,
+        "rolling_oos_p10_floors": dict(policy.rolling_oos_p10_floors),
+        "payout_edge_margin": policy.payout_edge_margin,
+        "min_payout_ratio": policy.min_payout_ratio,
+        "drop_ny_16h": policy.drop_ny_16h,
+        "platt_calibration": {"UP": {"coef": float(platt_coef), "intercept": float(platt_intercept)}},
+        "scheduled_refit_utc": sched_iso,
+        "valid_from_utc": vf_iso,
+        "valid_until_utc": vu_iso,
+    }
+    s_bytes = (json.dumps(strat_obj, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    s_name = f"{policy.book_id}_strategy.json"
+    w_name = f"{policy.book_id}_weights.npz"
+    vcid = compute_sota_content_id_from_buffers([(s_name, s_bytes), (w_name, w_bytes)])
+    vid = f"{datetime.fromtimestamp(sched_ep, tz=timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{vcid}"
+    v_dir = book_v_dir / "vintages" / vid
+    v_dir.mkdir(parents=True, exist_ok=True)
+    atomic_write_file_bytes(v_dir / s_name, s_bytes, mode=0o600, sync_parent=True)
+    atomic_write_file_bytes(v_dir / w_name, w_bytes, mode=0o600, sync_parent=True)
+    v_man = {
+        "schema": _srr.SOTA_ROLLING_VINTAGE_MANIFEST_SCHEMA,
+        "book_id": policy.book_id,
+        "policy_content_id": policy.content_id,
+        "vintage_id": vid,
+        "vintage_content_id": vcid,
+        "scheduled_refit_utc": sched_iso,
+        "valid_from_utc": vf_iso,
+        "valid_until_utc": vu_iso,
+        "artifacts": [
+            {"file": s_name, "sha256": _hl_r.sha256(s_bytes).hexdigest(), "bytes": len(s_bytes)},
+            {"file": w_name, "sha256": _hl_r.sha256(w_bytes).hexdigest(), "bytes": len(w_bytes)},
+        ],
+    }
+    m_bytes = (json.dumps(v_man, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    atomic_write_file_bytes(v_dir / "vintage.manifest.json", m_bytes, mode=0o600, sync_parent=True)
+    return _srr.commit_rolling_transition(
+        book_v_dir,
+        policy=policy,
+        status="active",
+        published_epoch=pub_ep,
+        scheduled_refit_epoch=sched_ep,
+        next_refit_epoch=vu_ep,
+        vintage_id=vid,
+        vintage_content_id=vcid,
+        vintage_manifest_sha256=_hl_r.sha256(m_bytes).hexdigest(),
+        valid_from_epoch=vf_ep,
+        valid_until_epoch=vu_ep,
+        train_window_utc=["2026-07-01T00:00:00Z", sched_iso],
+        platt_coef=platt_coef,
+        platt_intercept=platt_intercept,
+        trusted_root=trusted_root,
+    )
+
+
+def test_rolling_policy_index_journal_and_watermark() -> None:
+    import os as _os_r
+    import shutil as _sh_r
+    import sqlite3 as _sq_r
+    import deriv_sota_executor as _ex_r
+    import sota_rolling_runtime as _srr
+
+    repo_real = Path(__file__).resolve().parents[1]
+    bid = "USDJPY.sota_roll14d_m60_up.v1"
+
+    # 1. Static loader remains completely isolated from SOTA_ROLLING_INDEX.json
+    static_books = load_enabled_sota_books(repo_root=repo_real, account_mode="demo")
+    assert bid not in {b.book_id for b in static_books} and len(static_books) == 5
+
+    # 2. Tracked rolling policy loads in demo, unconditionally refused in live
+    r_idx = _srr.load_rolling_index(repo_root=repo_real)
+    assert bid in r_idx
+    pol = _srr.load_rolling_policy(bid, repo_root=repo_real, allow_demo_canary=True)
+    assert pol.content_id == "c0bc05ed06e288c1" and pol.pair == "USDJPY" and pol.horizon_minutes == 60
+    assert len(pol.feature_cols) == 66 and pol.min_payout_ratio == 1.78
+    _expect_raises(_srr.RollingVintageError, _srr.load_rolling_policy, bid, repo_root=repo_real, allow_demo_canary=False)
+    _expect_raises(_srr.RollingVintageError, _srr.load_enabled_sota_books_any, repo_root=repo_real, account_mode="live", book_ids=[bid])
+
+    # 3. Tampered manifest/policy checks (missing G1_rolling_oos, missing protocol_amendment, refit_cpcv_p10_floors, bad sha)
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        fake_repo = root / "repo"
+        _sh_r.copytree(repo_real / "books", fake_repo / "books")
+        pol_path = fake_repo / "books" / bid / f"{bid}_policy.json"
+        man_path = fake_repo / "books" / bid / f"{bid}.manifest.json"
+        orig_pol = pol_path.read_bytes()
+        orig_man = man_path.read_bytes()
+
+        # 3a. Tampered policy SHA refused
+        pol_path.write_bytes(orig_pol + b"\n")
+        _expect_raises(_srr.RollingVintageError, _srr.load_rolling_policy, bid, repo_root=fake_repo, allow_demo_canary=True)
+        pol_path.write_bytes(orig_pol)
+
+        # 3b. Missing protocol_amendment or missing G1_rolling_oos refused
+        bad_m = json.loads(orig_man.decode("utf-8"))
+        bad_m["protocol_amendment"] = ""
+        man_path.write_text(json.dumps(bad_m), encoding="utf-8")
+        _expect_raises(_srr.RollingVintageError, _srr.load_rolling_policy, bid, repo_root=fake_repo, allow_demo_canary=True)
+        bad_m2 = json.loads(orig_man.decode("utf-8"))
+        bad_m2["gate_certificates"].pop("G1_rolling_oos")
+        man_path.write_text(json.dumps(bad_m2), encoding="utf-8")
+        _expect_raises(_srr.RollingVintageError, _srr.load_rolling_policy, bid, repo_root=fake_repo, allow_demo_canary=True)
+        man_path.write_bytes(orig_man)
+
+        # 4. Hash-chained transitions.jsonl + crash-lagged state.json repair + durable SQLite watermark + zero fallback
+        v_root = fake_repo / "deriv_data" / "runtime" / "rolling_vintages"
+        book_v_dir = v_root / bid
+        t0 = 1795564800  # 2026-11-25T00:00:00Z
+        rec1 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t0, pub_ep=t0 + 60, seed=1, trusted_root=fake_repo)
+        rec2 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t0 + 14 * 86400, pub_ep=t0 + 14 * 86400 + 60, seed=2, trusted_root=fake_repo)
+        assert rec1["seq"] == 1 and rec2["seq"] == 2 and rec2["prev_transition_sha256"] == rec1["transition_sha256"]
+
+        # Create bound v3 queue DB for durable watermark tests
+        q_db = fake_repo / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"
+        conn = _create_bound_v3_test_db(q_db, "VRTC998877")
+        try:
+            handle = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_ok, tr_ok, rsn_ok = handle.resolve_active_vintage(t0 + 14 * 86400 + 120, conn=conn, persist_watermark=True)
+            assert b_ok is not None and tr_ok is not None and rsn_ok is None and tr_ok["seq"] == 2
+            wm = _srr.read_rolling_watermark(conn, bid, pol.content_id)
+            assert wm is not None and wm["max_seq"] == 2 and wm["last_transition_sha256"] == rec2["transition_sha256"]
+
+            # Crash-lagged state.json (points to seq=1 while transitions.jsonl has seq=2):
+            # runtime reader MUST fail closed (no fallback to seq=1!); repair_state_mirror_from_journal repairs it!
+            (book_v_dir / "state.json").write_bytes(_srr._canonical_json_bytes(rec1) + b"\n")
+            b_lag, _, rsn_lag = handle.resolve_active_vintage(t0 + 14 * 86400 + 180, conn=conn, persist_watermark=False)
+            assert b_lag is None and rsn_lag == "rolling_state_mirror_mismatch" and handle._active_book is None
+            _srr.repair_state_mirror_from_journal(
+                book_v_dir, expected_book_id=bid, expected_policy_cid=pol.content_id, max_vintage_age_days=14, trusted_root=fake_repo
+            )
+            b_rep, tr_rep, rsn_rep = handle.resolve_active_vintage(t0 + 14 * 86400 + 240, conn=conn, persist_watermark=True)
+            assert b_rep is not None and tr_rep is not None and rsn_rep is None
+
+            # Restart rollback attack #1a: truncate transitions.jsonl while writer_watermark.json intact -> refused BEFORE SQLite!
+            j_orig = (book_v_dir / "transitions.jsonl").read_bytes()
+            s_orig = (book_v_dir / "state.json").read_bytes()
+            w_orig_wm = (book_v_dir / "writer_watermark.json").read_bytes()
+            (book_v_dir / "transitions.jsonl").write_bytes(_srr._canonical_json_bytes(rec1) + b"\n")
+            h_wr = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_wr, _, rsn_wr = h_wr.resolve_active_vintage(t0 + 14 * 86400 + 300, conn=None, persist_watermark=False)
+            assert b_wr is None and "rolling_writer_watermark_seq_rollback" in str(rsn_wr)
+
+            # Restart rollback attack #1b: delete writer_watermark.json while state.json still at seq=2 ->
+            # repair_state_mirror_from_journal MUST REFUSE (never overwrite ahead state.json with truncated seq=1)!
+            (book_v_dir / "writer_watermark.json").unlink()
+            _expect_raises(
+                _srr.RollingVintageError,
+                _srr.repair_state_mirror_from_journal,
+                book_v_dir,
+                expected_book_id=bid,
+                expected_policy_cid=pol.content_id,
+                max_vintage_age_days=14,
+                trusted_root=fake_repo,
+            )
+            assert (book_v_dir / "state.json").read_bytes() == s_orig, "mirror repair overwrote ahead state.json!"
+
+            # Restart rollback attack #1c: truncate transitions.jsonl + state.json + remove writer_watermark -> SQLite watermark catches it!
+            (book_v_dir / "state.json").write_bytes(_srr._canonical_json_bytes(rec1) + b"\n")
+            h_restart = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_rb, _, rsn_rb = h_restart.resolve_active_vintage(t0 + 14 * 86400 + 300, conn=conn, persist_watermark=False)
+            assert b_rb is None and "rolling_watermark_seq_rollback" in str(rsn_rb)
+
+            # Restart rollback attack #2: equal-seq hash substitution (rewrite seq=2 with different seed/hash) -> refused!
+            (book_v_dir / "transitions.jsonl").write_bytes(_srr._canonical_json_bytes(rec1) + b"\n")
+            (book_v_dir / "state.json").write_bytes(_srr._canonical_json_bytes(rec1) + b"\n")
+            if (book_v_dir / "writer_watermark.json").exists():
+                (book_v_dir / "writer_watermark.json").unlink()
+            rec2_alt = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t0 + 14 * 86400, pub_ep=t0 + 14 * 86400 + 61, seed=99, trusted_root=fake_repo)
+            assert rec2_alt["transition_sha256"] != rec2["transition_sha256"]
+            h_sub = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_sub, _, rsn_sub = h_sub.resolve_active_vintage(t0 + 14 * 86400 + 300, conn=conn, persist_watermark=False)
+            assert b_sub is None and "rolling_watermark_chain_fork" in str(rsn_sub)
+
+            # Restart rollback attack #3: chain fork (seq=3 built on substituted seq=2) -> refused!
+            _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t0 + 28 * 86400, pub_ep=t0 + 28 * 86400 + 60, seed=100, trusted_root=fake_repo)
+            h_fork = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_fk, _, rsn_fk = h_fork.resolve_active_vintage(t0 + 28 * 86400 + 120, conn=conn, persist_watermark=False)
+            assert b_fk is None and "rolling_watermark_chain_fork" in str(rsn_fk)
+
+            # Restore genuine chain & verify wall-clock rollback > 60s refused!
+            (book_v_dir / "transitions.jsonl").write_bytes(j_orig)
+            (book_v_dir / "state.json").write_bytes(s_orig)
+            (book_v_dir / "writer_watermark.json").write_bytes(w_orig_wm)
+            h_clk = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_clk, _, rsn_clk = h_clk.resolve_active_vintage(t0 + 14 * 86400 + 100, conn=conn, persist_watermark=False)
+            assert b_clk is None and "rolling_clock_rollback_detected" in str(rsn_clk)
+
+            # Expiry & abstention unload in-memory weights immediately (zero fallback!)
+            h_exp = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_exp0, _, _ = h_exp.resolve_active_vintage(t0 + 14 * 86400 + 300, conn=conn, persist_watermark=False)
+            assert b_exp0 is not None and h_exp._active_book is not None
+            b_exp, _, rsn_exp = h_exp.resolve_active_vintage(int(rec2["valid_until_epoch"]), conn=conn, persist_watermark=False)
+            assert b_exp is None and rsn_exp == "rolling_vintage_expired" and h_exp._active_book is None
+
+            # Symlink refusal on transitions.jsonl & weights.npz (O_NOFOLLOW)
+            sym_j = book_v_dir / "transitions.jsonl"
+            real_j_copy = root / "real_j.jsonl"
+            real_j_copy.write_bytes(j_orig)
+            sym_j.unlink()
+            _os_r.symlink(real_j_copy, sym_j)
+            b_sym, _, rsn_sym = handle.resolve_active_vintage(t0 + 14 * 86400 + 300, conn=conn, persist_watermark=False)
+            assert b_sym is None and "symlink" in str(rsn_sym)
+            sym_j.unlink()
+            sym_j.write_bytes(j_orig)
+
+            # Corrupt weights.npz -> single-read SHA-256 refusal & unload
+            w_path = book_v_dir / "vintages" / rec2["vintage_id"] / f"{bid}_weights.npz"
+            w_orig = w_path.read_bytes()
+            w_path.write_bytes(w_orig[:-4] + b"XXXX")
+            h_tam = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=fake_repo)
+            b_tam, _, rsn_tam = h_tam.resolve_active_vintage(t0 + 14 * 86400 + 300, conn=conn, persist_watermark=False)
+            assert b_tam is None and "rolling_vintage_corrupt" in str(rsn_tam)
+            w_path.write_bytes(w_orig)
+
+            # Abstention commit -> unloads immediately, refuses signals with zero fallback
+            _srr.commit_rolling_transition(
+                book_v_dir,
+                policy=pol,
+                status="abstained",
+                published_epoch=t0 + 14 * 86400 + 360,
+                scheduled_refit_epoch=t0 + 14 * 86400,
+                next_refit_epoch=t0 + 28 * 86400,
+                platt_coef=-0.15,
+                platt_intercept=0.10,
+                reason="platt_slope_nonpositive",
+                trusted_root=fake_repo,
+            )
+            b_ab, tr_ab, rsn_ab = handle.resolve_active_vintage(t0 + 14 * 86400 + 400, conn=conn, persist_watermark=True)
+            assert b_ab is None and tr_ab is not None and str(rsn_ab).startswith("rolling_vintage_abstained:")
+        finally:
+            conn.close()
+
+
+def test_rolling_midflight_revocation_lock_and_send_timeout() -> None:
+    import deriv_sota_executor as _ex_m
+    import sota_rolling_runtime as _srr
+    from deriv_client import DerivEnv
+
+    repo_real = Path(__file__).resolve().parents[1]
+    bid = "USDJPY.sota_roll14d_m60_up.v1"
+    pol = _srr.load_rolling_policy(bid, repo_root=repo_real, allow_demo_canary=True)
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        v_root = root / "rolling_vintages"
+        book_v_dir = v_root / bid
+        # Pick NY trading hour timestamp: 2026-11-25 14:00:00Z (09:00 EST)
+        t_sched = int(datetime(2026, 11, 25, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_sig = int(datetime(2026, 11, 25, 14, 0, 0, tzinfo=timezone.utc).timestamp())
+        rec = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t_sched, pub_ep=t_sched + 60, seed=7, trusted_root=root)
+
+        q_db = root / "sota_queue.sqlite"
+        log_d = root / "logs"
+        handoff_lock = root / "handoff.flock"
+        conn = _create_bound_v3_test_db(q_db, "VRTC554433")
+        r_handle = _srr.RollingSotaBookHandle(pol, runtime_vintage_root=v_root, trusted_root=root)
+
+        # Fake WS supporting injected revocation mid-proposal, rejected quote, and slow ws.send timeout
+        class _MidFlightWS:
+            def __init__(self) -> None:
+                self.sent_msgs: list[dict[str, Any]] = []
+                self.in_q: asyncio.Queue[str] = asyncio.Queue()
+                self.on_proposal_cb: Any = None
+                self.proposal_payout: str = "1.82"
+                self.buy_send_delay_s: float = 0.0
+                self.venue_time_ep: int = t_sig + 2
+                self.cid_seq: int = 9000
+
+            async def send(self, text: str) -> None:
+                obj = json.loads(text)
+                if "buy" in obj and self.buy_send_delay_s > 0.0:
+                    await asyncio.sleep(self.buy_send_delay_s)
+                self.sent_msgs.append(obj)
+                rid = obj["req_id"]
+                if "balance" in obj:
+                    resp = {"req_id": rid, "balance": {"loginid": "VRTC554433", "currency": "USD", "balance": 1000.0}}
+                elif "time" in obj:
+                    resp = {"req_id": rid, "time": self.venue_time_ep}
+                elif "proposal" in obj:
+                    resp = {
+                        "req_id": rid,
+                        "echo_req": {"currency": "USD"},
+                        "proposal": {
+                            "id": f"prop-{rid}",
+                            "ask_price": "1.00",
+                            "payout": self.proposal_payout,
+                            "currency": "USD",
+                            "spot": 154.25,
+                        },
+                    }
+                    if self.on_proposal_cb is not None:
+                        cb = self.on_proposal_cb
+                        self.on_proposal_cb = None
+                        asyncio.get_running_loop().call_soon(cb)
+                elif "buy" in obj:
+                    self.cid_seq += 1
+                    resp = {
+                        "req_id": rid,
+                        "buy": {
+                            "contract_id": self.cid_seq,
+                            "buy_price": "1.00",
+                            "payout": self.proposal_payout,
+                            "start_time": self.venue_time_ep,
+                            "expiry_time": self.venue_time_ep + 3600,
+                        },
+                    }
+                else:
+                    resp = {"req_id": rid}
+                await self.in_q.put(json.dumps(resp))
+
+            async def recv(self) -> str:
+                return await self.in_q.get()
+
+            def __aiter__(self) -> "_MidFlightWS":
+                return self
+
+            async def __anext__(self) -> str:
+                return await self.in_q.get()
+
+            async def close(self) -> None:
+                return None
+
+        def _make_sig(sig_ep: int, tr: dict[str, Any], *, book_id_s: str = bid, horizon_m: int = 60) -> dict[str, Any]:
+            base = {
+                "book_id": book_id_s,
+                "pair": "USDJPY",
+                "horizon_minutes": horizon_m,
+                "side": "UP",
+                "lane": "wall",
+                "offset_id": 0,
+                "signal_close_utc": datetime.fromtimestamp(sig_ep, tz=timezone.utc).isoformat(),
+                "effective_floor": 0.567332,
+                "calibrated_win_prob": 0.63,
+                "min_payout_ratio": 1.78,
+                "drop_ny_16h": False,
+                "contract_family": "risefall",
+                "book_content_id": tr["vintage_content_id"] if book_id_s == bid else "c8d0b13768a4c649",
+            }
+            if book_id_s == bid:
+                base.update(
+                    {
+                        "book_mode": _srr.ROLLING_BOOK_MODE,
+                        "policy_content_id": pol.content_id,
+                        "vintage_id": tr["vintage_id"],
+                        "transition_seq": int(tr["seq"]),
+                        "transition_sha256": tr["transition_sha256"],
+                        "vintage_valid_from_epoch": int(tr["valid_from_epoch"]),
+                        "vintage_valid_until_epoch": int(tr["valid_until_epoch"]),
+                    }
+                )
+            return base
+
+        async def _run_cases() -> None:
+            ws = _MidFlightWS()
+            env = DerivEnv(app_id="1089", pat="tok", account_id="VRTC554433")
+            cli = _ex_m.SotaDerivAsyncClient(
+                "wss://api.derivws.com/trading/v1/options/ws/demo",
+                allow_buy=True,
+                expected_account_id="VRTC554433",
+                handoff_lock_path=handoff_lock,
+                ws_opener=lambda _u: ws,
+            )
+            ex = SotaTradeExecutor(
+                account_mode="demo",
+                stake_usd=1.0,
+                db_path=q_db,
+                log_dir=log_d,
+                risk_cfg=RiskBreakerConfig(max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, same_book_min_gap_seconds=0),
+                env=env,
+                rolling_handles={bid: r_handle},
+            )
+            ex.client = cli
+            await cli.connect()
+            try:
+                # Case (d): Rejected quote (1.75 < 1.78) followed by nearby passing candidate (1.82 >= 1.78)
+                ws.proposal_payout = "1.75"
+                s_rej = _make_sig(t_sig, rec)
+                ok1, sid1 = enqueue_sota_signal(conn, s_rej)
+                assert ok1
+                res_rej = await ex.process_one_signal(conn, sid1, s_rej, now_utc=datetime.fromtimestamp(t_sig + 2, tz=timezone.utc))
+                assert res_rej["status"] == "rejected" and "payout_below_exact_rational_floor" in res_rej["reason"]
+
+                ws.proposal_payout = "1.82"
+                ws.venue_time_ep = t_sig + 62
+                s_pass = _make_sig(t_sig + 60, rec)
+                ok2, sid2 = enqueue_sota_signal(conn, s_pass)
+                assert ok2
+                res_pass = await ex.process_one_signal(conn, sid2, s_pass, now_utc=datetime.fromtimestamp(t_sig + 62, tz=timezone.utc))
+                assert res_pass["status"] == "bought"
+                # Watermark MUST be persisted in SQLite!
+                wm_chk = _srr.read_rolling_watermark(conn, bid, pol.content_id)
+                assert wm_chk is not None and wm_chk["max_seq"] == 1
+                # Close that contract so next tests don't hit same-book cooldown
+                conn.execute(
+                    "UPDATE sota_contracts SET status='won', sell_price_cents=182, profit_cents=82, venue_end_epoch=? WHERE signal_id=?",
+                    (t_sig + 100, sid2),
+                )
+
+                # Case (b): Active .transition.flock LOCK_EX blocks rolling proposal/buy with 0 WS bytes sent,
+                # while static book send succeeds unaffected!
+                ws.venue_time_ep = t_sig + 3700
+                s_busy = _make_sig(t_sig + 3700, rec)
+                ok3, sid3 = enqueue_sota_signal(conn, s_busy)
+                assert ok3
+                pre_props = sum(1 for m in ws.sent_msgs if "proposal" in m)
+                with _srr.acquire_rolling_transition_lock(book_v_dir, exclusive=True, nonblocking=True, trusted_root=root):
+                    res_busy = await ex.process_one_signal(conn, sid3, s_busy, now_utc=datetime.fromtimestamp(t_sig + 3702, tz=timezone.utc))
+                    assert res_busy["status"] == "rejected" and "rolling_vintage_pre_proposal_refused" in res_busy["reason"]
+                    assert sum(1 for m in ws.sent_msgs if "proposal" in m) == pre_props, "rolling proposal sent while .transition.flock locked!"
+                    # Static book MUST succeed unaffected while rolling .transition.flock is held!
+                    s_stat = _make_sig(t_sig + 3700, rec, book_id_s="USDJPY.sota_ens5_m30_up.v1", horizon_m=30)
+                    ok_st, sid_st = enqueue_sota_signal(conn, s_stat)
+                    assert ok_st
+                    res_st = await ex.process_one_signal(conn, sid_st, s_stat, now_utc=datetime.fromtimestamp(t_sig + 3702, tz=timezone.utc))
+                    assert res_st["status"] == "bought"
+
+                # Case (a): Mid-flight revocation BETWEEN proposal response and buy -> rejected / buy_refused_pre_send with 0 buy WS bytes!
+                t_sched_ny = int(datetime(2026, 11, 25, 16, 0, 0, tzinfo=timezone.utc).timestamp())
+                rec_ny = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t_sched_ny, pub_ep=t_sig + 7400, seed=8, trusted_root=root)
+                vu_ny = int(rec_ny["valid_until_epoch"])  # 2026-12-09T16:00:00Z (11:00 EST -> inside NY session!)
+                ws.venue_time_ep = t_sig + 7500
+                pre_buys = sum(1 for m in ws.sent_msgs if "buy" in m)
+
+                def _revoke_midflight() -> None:
+                    _srr.commit_rolling_transition(
+                        book_v_dir,
+                        policy=pol,
+                        status="revoked",
+                        published_epoch=t_sig + 7501,
+                        scheduled_refit_epoch=t_sched_ny,
+                        next_refit_epoch=vu_ny,
+                        reason="midflight_operator_revoke",
+                        trusted_root=root,
+                    )
+
+                ws.on_proposal_cb = _revoke_midflight
+                s_rev = _make_sig(t_sig + 7500, rec_ny)
+                ok_rv, sid_rv = enqueue_sota_signal(conn, s_rev)
+                assert ok_rv
+                res_rv = await ex.process_one_signal(conn, sid_rv, s_rev, now_utc=datetime.fromtimestamp(t_sig + 7502, tz=timezone.utc))
+                assert res_rv["status"] in ("rejected", "buy_refused_pre_send") and "rolling_vintage_revoked" in str(res_rv["reason"])
+                assert sum(1 for m in ws.sent_msgs if "buy" in m) == pre_buys, "buy frame sent after mid-flight revocation!"
+
+                # Also verify revocation right AFTER buy_intent commit and BEFORE trade_mutation send -> exact buy_refused_pre_send, 0 buy bytes!
+                rec_ny2 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t_sched_ny + 3600, pub_ep=t_sig + 11000, seed=9, trusted_root=root)
+                ws.venue_time_ep = t_sig + 11500
+                pre_buys2 = sum(1 for m in ws.sent_msgs if "buy" in m)
+                orig_call_typed = ex._call_typed
+                revoked_once = [False]
+
+                async def _revoke_right_before_trade_send(send_class: str, payload_arg: dict[str, Any], **kw: Any) -> dict[str, Any]:
+                    if send_class == "trade_mutation" and not revoked_once[0]:
+                        revoked_once[0] = True
+                        _srr.commit_rolling_transition(
+                            book_v_dir,
+                            policy=pol,
+                            status="revoked",
+                            published_epoch=t_sig + 11501,
+                            scheduled_refit_epoch=t_sched_ny + 3600,
+                            next_refit_epoch=int(rec_ny2["valid_until_epoch"]),
+                            reason="handoff_lock_revoke",
+                            trusted_root=root,
+                        )
+                    return await orig_call_typed(send_class, payload_arg, **kw)
+
+                ex._call_typed = _revoke_right_before_trade_send  # type: ignore[method-assign]
+                try:
+                    s_hrev = _make_sig(t_sig + 11500, rec_ny2)
+                    ok_hr, sid_hr = enqueue_sota_signal(conn, s_hrev)
+                    assert ok_hr
+                    res_hr = await ex.process_one_signal(conn, sid_hr, s_hrev, now_utc=datetime.fromtimestamp(t_sig + 11502, tz=timezone.utc))
+                    assert res_hr["status"] == "buy_refused_pre_send", f"expected buy_refused_pre_send, got {res_hr}"
+                    assert sum(1 for m in ws.sent_msgs if "buy" in m) == pre_buys2, "buy bytes leaked after handoff revocation!"
+                finally:
+                    ex._call_typed = orig_call_typed  # type: ignore[method-assign]
+
+                # Case (c): Suspended ws.send exceeding remaining vintage validity -> DerivAPIError -> buy_unknown (NEVER buy_refused_pre_send)!
+                rec_ny3 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t_sched_ny + 7200, pub_ep=t_sig + 15000, seed=10, trusted_root=root)
+                vu_ny3 = int(rec_ny3["valid_until_epoch"])  # 2026-12-09T18:00:00Z (13:00 EST -> inside NY session!)
+                ws.venue_time_ep = vu_ny3 - 2
+                ex._post_quote_clock_fn = lambda: datetime.fromtimestamp(float(vu_ny3) - 0.55, tz=timezone.utc)  # type: ignore[attr-defined]
+                ws.buy_send_delay_s = 0.75
+                s_slow_ny = _make_sig(vu_ny3 - 10, rec_ny3)
+                ok_sl, sid_sl = enqueue_sota_signal(conn, s_slow_ny)
+                assert ok_sl
+                res_sl = await ex.process_one_signal(conn, sid_sl, s_slow_ny, now_utc=datetime.fromtimestamp(vu_ny3 - 2, tz=timezone.utc))
+                assert res_sl["status"] == "buy_unknown", f"expected buy_unknown on ws.send timeout, got {res_sl}"
+                ex._post_quote_clock_fn = None  # type: ignore[attr-defined]
+                ws.buy_send_delay_s = 0.0
+
+                # Case (e): Pre-send lock OSError BEFORE ws.send -> buy_refused_pre_send (0 buy bytes sent, NEVER false buy_unknown!)
+                conn.execute("UPDATE sota_signals SET status='rejected' WHERE signal_id=?", (sid_sl,))
+                conn.commit()
+                rec_ny4 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=vu_ny3 + 120, pub_ep=vu_ny3 + 180, seed=12, trusted_root=root)
+                t_os = vu_ny3 + 240  # 2026-12-09T18:04:00Z (13:04 EST -> inside NY session, strictly monotonic > vu_ny3!)
+                pre_buys_os = sum(1 for m in ws.sent_msgs if "buy" in m)
+                orig_hold = r_handle.hold_transition_read_lock
+
+                def _broken_lock(*_a: Any, **_kw: Any) -> Any:
+                    raise OSError("synthetic_lock_io_error")
+
+                # Trigger on trade_mutation ONLY (let proposal succeed first!)
+                orig_call2 = ex._call_typed
+
+                async def _break_lock_on_buy(send_class: str, payload_arg: dict[str, Any], **kw: Any) -> dict[str, Any]:
+                    if send_class == "trade_mutation":
+                        kw["extra_send_lock_ctx"] = _broken_lock
+                    return await orig_call2(send_class, payload_arg, **kw)
+
+                ex._call_typed = _break_lock_on_buy  # type: ignore[method-assign]
+                try:
+                    ws.venue_time_ep = t_os + 2
+                    s_os = _make_sig(t_os, rec_ny4)
+                    ok_os, sid_os = enqueue_sota_signal(conn, s_os)
+                    assert ok_os
+                    res_os = await ex.process_one_signal(conn, sid_os, s_os, now_utc=datetime.fromtimestamp(t_os + 2, tz=timezone.utc))
+                    assert res_os["status"] == "buy_refused_pre_send", f"pre-send lock OSError must refuse pre-send, got {res_os}"
+                    assert sum(1 for m in ws.sent_msgs if "buy" in m) == pre_buys_os
+                finally:
+                    ex._call_typed = orig_call2  # type: ignore[method-assign]
+                    r_handle.hold_transition_read_lock = orig_hold  # type: ignore[method-assign]
+
+                # Case (f): Corrupt transitions.jsonl AND mismatched payload validity epochs refused cleanly (never crossing authenticated expiry!)
+                s_bad_win = _make_sig(t_os + 60, rec_ny4)
+                s_bad_win["vintage_valid_until_epoch"] = int(rec_ny4["valid_until_epoch"]) + 99999
+                _expect_raises(_srr.RollingVintageError, r_handle.verify_vintage_active_for_signal, s_bad_win, float(t_os + 62), conn=conn, persist_watermark=False)
+
+                j_save = (book_v_dir / "transitions.jsonl").read_bytes()
+                (book_v_dir / "transitions.jsonl").write_bytes(b"{broken-json\n")
+                try:
+                    t_cor = vu_ny3 + 300
+                    ws.venue_time_ep = t_cor + 2
+                    s_cor = _make_sig(t_cor, rec_ny4)
+                    ok_cor, sid_cor = enqueue_sota_signal(conn, s_cor)
+                    assert ok_cor
+                    res_cor = await ex.process_one_signal(conn, sid_cor, s_cor, now_utc=datetime.fromtimestamp(t_cor + 2, tz=timezone.utc))
+                    assert res_cor["status"] == "rejected" and "rolling_vintage_inactive" in str(res_cor["reason"])
+                finally:
+                    (book_v_dir / "transitions.jsonl").write_bytes(j_save)
+
+                # Case (g): End-to-end buy_unknown recovery + settlement on rolling book through reconcile_open_contracts!
+                conn.execute("UPDATE sota_signals SET status='buy_unknown', reason='proposal_id:p-rec|buy_transport_uncertain' WHERE signal_id=?", (sid_sl,))
+                conn.commit()
+                rec_cid = "777888999"
+                rec_start_ep = vu_ny3 - 8
+                rec_end_ep = rec_start_ep + 3600
+                orig_ws_send = ws.send
+
+                async def _recovery_ws_send(text: str) -> None:
+                    obj = json.loads(text)
+                    rid = obj["req_id"]
+                    if "portfolio" in obj:
+                        r = {
+                            "req_id": rid,
+                            "portfolio": {
+                                "contracts": [
+                                    {
+                                        "contract_id": int(rec_cid),
+                                        "proposal_id": "p-rec",
+                                        "passthrough": {"sota_signal_id": sid_sl},
+                                        "symbol": "frxUSDJPY",
+                                        "contract_type": "CALL",
+                                        "date_start": rec_start_ep,
+                                        "expiry_time": rec_end_ep,
+                                        "buy_price": "1.00",
+                                        "payout": "1.82",
+                                    }
+                                ]
+                            },
+                        }
+                        await ws.in_q.put(json.dumps(r))
+                        return
+                    if "statement" in obj:
+                        await ws.in_q.put(json.dumps({"req_id": rid, "statement": {"transactions": []}}))
+                        return
+                    if "profit_table" in obj:
+                        await ws.in_q.put(json.dumps({"req_id": rid, "profit_table": {"transactions": []}}))
+                        return
+                    if "proposal_open_contract" in obj:
+                        r = {
+                            "req_id": rid,
+                            "proposal_open_contract": {
+                                "contract_id": int(rec_cid),
+                                "underlying_symbol": "frxUSDJPY",
+                                "contract_type": "CALL",
+                                "date_start": rec_start_ep,
+                                "date_expiry": rec_end_ep,
+                                "buy_price": "1.00",
+                                "payout": "1.82",
+                                "sell_price": "1.82",
+                                "profit": "0.82",
+                                "status": "won",
+                                "is_sold": 1,
+                                "is_settled": 1,
+                            },
+                        }
+                        await ws.in_q.put(json.dumps(r))
+                        return
+                    await orig_ws_send(text)
+
+                ws.send = _recovery_ws_send  # type: ignore[method-assign]
+                try:
+                    # 1st reconcile recovers buy_unknown -> open contract; 2nd settles it -> won!
+                    await ex.reconcile_open_contracts(conn, now_utc=datetime.fromtimestamp(rec_end_ep + 5, tz=timezone.utc))
+                    await ex.reconcile_open_contracts(conn, now_utc=datetime.fromtimestamp(rec_end_ep + 10, tz=timezone.utc))
+                    st_rec_row = conn.execute(
+                        "SELECT status, book_content_id, payout_cents, profit_cents, venue_start_epoch, venue_end_epoch FROM sota_contracts WHERE contract_id=?",
+                        (rec_cid,),
+                    ).fetchone()
+                    assert st_rec_row is not None and st_rec_row["status"] == "won"
+                    assert st_rec_row["book_content_id"] == rec_ny3["vintage_content_id"]
+                    assert st_rec_row["payout_cents"] == 182 and st_rec_row["profit_cents"] == 82
+                    assert st_rec_row["venue_start_epoch"] == rec_start_ep and st_rec_row["venue_end_epoch"] == rec_end_ep
+                finally:
+                    ws.send = orig_ws_send  # type: ignore[method-assign]
+            finally:
+                await cli.close()
+                conn.close()
+
+        asyncio.run(_run_cases())
+
+
+def test_rolling_4book_cutover_config_and_preflight() -> None:
+    import contextlib as _ctx_p
+    import fcntl as _fc_p
+    import io as _io_p
+    import os as _os_p
+    import shutil as _sh_p
+    import deriv_sota_executor as _ex_p
+    import sota_rolling_runtime as _srr
+    import vps_preflight as _pf_p
+
+    repo_real = Path(__file__).resolve().parents[1]
+    bid4 = "USDJPY.sota_roll14d_m60_up.v1"
+    books3 = ",".join(_ex_p.PHASE1_ORDERED_BOOK_IDS)
+    books4 = ",".join(_ex_p.PHASE1_4BOOK_ORDERED_BOOK_IDS)
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        f_home = root / "home"
+        f_home.mkdir()
+        f_repo = root / "repo"
+        _sh_p.copytree(repo_real / "books", f_repo / "books")
+        (f_repo / "deriv_data" / "runtime").mkdir(parents=True)
+        (f_repo / "logs" / "sota_runtime").mkdir(parents=True)
+        rcpt = f_home / "rcpt.json"
+        rcpt.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "account_id": "VRTC123456",
+                "account_mode": "demo",
+                "legacy_credentials_revoked": True,
+                "attested_by": "test",
+                "attested_utc": "2026-11-26T00:00:00Z",
+            }),
+            encoding="utf-8",
+        )
+        base_kw: dict[str, Any] = dict(
+            account_mode="demo",
+            account_id="VRTC123456",
+            stake_raw="1.0",
+            max_stake_usd=5.0,
+            max_daily_loss_usd=25.0,
+            max_drawdown_usd=50.0,
+            absolute_breakeven_ceiling=0.60,
+            ev_margin=0.005,
+            max_buy_dispatch_delay_s=4.0,
+            queue_db_raw="",
+            log_dir_raw="logs/sota_runtime",
+            credential_isolation_receipt_raw=str(rcpt),
+            fixture_home=f_home,
+            fixture_repo_root=f_repo,
+            allow_fixture=True,
+        )
+
+        # 1. Default & --enforce-3book-cutover MUST refuse rolling 4th book and cap=4!
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books4, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, **base_kw)
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books3, max_open_contracts=4, max_usd_factor_open=3, max_jpy_factor_open=3, **base_kw)
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books4, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, enforce_3book_cutover=True, **base_kw)
+        # Mutual exclusion
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books4, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, enforce_3book_cutover=True, enforce_4book_cutover=True, **base_kw)
+        # --enforce-4book-cutover refuses 3/3/3 caps, wrong order, non-canonical rolling_vintage_dir, and '..'
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books4, max_open_contracts=3, max_usd_factor_open=3, max_jpy_factor_open=3, enforce_4book_cutover=True, **base_kw)
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books3, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, enforce_4book_cutover=True, **base_kw)
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books4, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, enforce_4book_cutover=True, rolling_vintage_dir_raw="/tmp/alt_vintages", **base_kw)
+        _expect_raises(ExecutorError, _ex_p.resolve_and_validate_sota_runtime_config, book_ids_raw=books4, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, enforce_4book_cutover=True, rolling_vintage_dir_raw="../escape", **base_kw)
+
+        # Valid 4-book config succeeds
+        cfg4 = _ex_p.resolve_and_validate_sota_runtime_config(
+            book_ids_raw=books4, max_open_contracts=4, max_usd_factor_open=4, max_jpy_factor_open=4, enforce_4book_cutover=True, **base_kw
+        )
+        assert cfg4.enforce_4book_cutover is True and cfg4.book_ids == _ex_p.PHASE1_4BOOK_ORDERED_BOOK_IDS
+
+        # 2. vps_preflight 4-book cutoff enforcement + dual rolling modes + static isolation from bad rolling index!
+        q_db = f_repo / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"
+        conn = _create_bound_v3_test_db(q_db, "VRTC123456")
+        # Unsealed queue MUST fail assert_4book_cutover_cutoff_sealed!
+        _expect_raises(ExecutorError, _ex_p.assert_4book_cutover_cutoff_sealed, conn, expected_account_id="VRTC123456")
+        conn.close()
+        orig_acct = _os_p.environ.get("DERIV_ACCOUNT_ID")
+        try:
+            _os_p.environ["DERIV_ACCOUNT_ID"] = "VRTC123456"
+            common_argv = [
+                "--offline-only", "--phase1-policy", "--require-explicit-book-ids", "--enforce-4book-cutover",
+                "--account-mode", "demo", "--book-ids", books4,
+                "--max-open-contracts", "4", "--max-usd-factor-open", "4", "--max-jpy-factor-open", "4",
+                "--credential-isolation-receipt", str(rcpt),
+                "--fixture-home", str(f_home), "--fixture-repo-root", str(f_repo),
+            ]
+            # 2.0 Unsealed 3-book cutoff MUST fail 4-book preflight!
+            buf_unsealed = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_unsealed):
+                rc_uns = _pf_p.main(common_argv)
+            rep_uns = json.loads(buf_unsealed.getvalue())
+            assert rc_uns == 1 and rep_uns["passed"] is False
+            cut_chk_u = [c for c in rep_uns["checks"] if c["check"] == "three_book_cohort_cutoff_sealed"][0]
+            assert cut_chk_u["passed"] is False
+
+            # Future cutoff MUST be refused by seal_3book_cohort_cutoff!
+            now_ep = int(datetime.now(timezone.utc).timestamp())
+            fut_iso = datetime.fromtimestamp(now_ep + 3600, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            _expect_raises(
+                ExecutorError,
+                _ex_p.seal_3book_cohort_cutoff,
+                queue_db=q_db,
+                account_id="VRTC123456",
+                account_mode="demo",
+                cutoff_utc=fut_iso,
+                reason="future_rejected",
+                receipt_path=rcpt,
+                pw_home=f_home,
+            )
+            # Future-dated cutoff (even with cutoff == sealed_utc in 2099!) MUST be rejected by validate_3book_cohort_cutoff_record!
+            _expect_raises(
+                ExecutorError,
+                _ex_p.validate_3book_cohort_cutoff_record,
+                {
+                    "schema": "sota-3book-cohort-cutoff/v1",
+                    "account_id": "VRTC123456",
+                    "cutoff_utc": "2099-01-01T00:00:00Z",
+                    "cutoff_epoch": 4070908800,
+                    "reason": "future_2099",
+                    "sealed_utc": "2099-01-01T00:00:00Z",
+                },
+                expected_account_id="VRTC123456",
+            )
+            # Seal valid past cutoff!
+            past_iso = datetime.fromtimestamp(now_ep - 60, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            _ex_p.seal_3book_cohort_cutoff(
+                queue_db=q_db,
+                account_id="VRTC123456",
+                account_mode="demo",
+                cutoff_utc=past_iso,
+                reason="preflight_4book_cutover_test",
+                receipt_path=rcpt,
+                pw_home=f_home,
+            )
+
+            # 2a. Uninitialized rolling vintage: default restart mode PASSES, --strict-rolling-vintage-state FAILS!
+            buf_def = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_def):
+                rc_def = _pf_p.main(common_argv)
+            rep_def = json.loads(buf_def.getvalue())
+            assert rc_def == 0 and rep_def["passed"] is True
+            rv_chk = [c for c in rep_def["checks"] if c["check"] == "rolling_vintage_state"][0]
+            assert rv_chk["strict_mode"] is False and rv_chk["strict_passed"] is False
+
+            buf_st = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_st):
+                rc_st = _pf_p.main(common_argv + ["--strict-rolling-vintage-state"])
+            rep_st = json.loads(buf_st.getvalue())
+            assert rc_st == 1 and rep_st["passed"] is False
+
+            # 2b. Expired abstention AND future abstention MUST FAIL --strict-rolling-vintage-state!
+            pol = _srr.load_rolling_policy(bid4, repo_root=f_repo, allow_demo_canary=True)
+            book_v_dir = f_repo / "deriv_data" / "runtime" / "rolling_vintages" / bid4
+            _srr.commit_rolling_transition(
+                book_v_dir,
+                policy=pol,
+                status="abstained",
+                published_epoch=now_ep - 20 * 86400,
+                scheduled_refit_epoch=now_ep - 20 * 86400,
+                next_refit_epoch=now_ep - 6 * 86400,
+                platt_coef=-0.10,
+                platt_intercept=0.05,
+                reason="expired_abstention",
+                trusted_root=f_repo,
+            )
+            buf_exp_ab = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_exp_ab):
+                rc_exp_ab = _pf_p.main(common_argv + ["--strict-rolling-vintage-state"])
+            assert rc_exp_ab == 1 and json.loads(buf_exp_ab.getvalue())["passed"] is False
+
+            # Current-block abstention -> --strict-rolling-vintage-state PASSES!
+            _srr.commit_rolling_transition(
+                book_v_dir,
+                policy=pol,
+                status="abstained",
+                published_epoch=now_ep - 60,
+                scheduled_refit_epoch=now_ep - 120,
+                next_refit_epoch=(now_ep - 120) + 14 * 86400,
+                platt_coef=-0.10,
+                platt_intercept=0.05,
+                reason="platt_slope_nonpositive",
+                trusted_root=f_repo,
+            )
+            buf_ab = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_ab):
+                rc_ab = _pf_p.main(common_argv + ["--strict-rolling-vintage-state"])
+            rep_ab = json.loads(buf_ab.getvalue())
+            assert rc_ab == 0 and rep_ab["passed"] is True
+
+            # Future-dated abstention -> --strict-rolling-vintage-state FAILS!
+            _srr.commit_rolling_transition(
+                book_v_dir,
+                policy=pol,
+                status="abstained",
+                published_epoch=now_ep + 300,
+                scheduled_refit_epoch=now_ep + 300,
+                next_refit_epoch=now_ep + 300 + 14 * 86400,
+                platt_coef=-0.10,
+                platt_intercept=0.05,
+                reason="future_abstention",
+                trusted_root=f_repo,
+            )
+            buf_fut_ab = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_fut_ab):
+                rc_fut_ab = _pf_p.main(common_argv + ["--strict-rolling-vintage-state"])
+            assert rc_fut_ab == 1 and json.loads(buf_fut_ab.getvalue())["passed"] is False
+
+            # Reset journal & stage active valid vintage -> --strict-rolling-vintage-state PASSES!
+            for fn_rst in ("transitions.jsonl", "state.json", "writer_watermark.json"):
+                if (book_v_dir / fn_rst).exists():
+                    (book_v_dir / fn_rst).unlink()
+            _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=now_ep - 30, pub_ep=now_ep - 10, seed=11, trusted_root=f_repo)
+            buf_act = _io_p.StringIO()
+            with _ctx_p.redirect_stdout(buf_act):
+                rc_act = _pf_p.main(common_argv + ["--strict-rolling-vintage-state"])
+            rep_act = json.loads(buf_act.getvalue())
+            assert rc_act == 0 and rep_act["passed"] is True
+
+            # 2d. Corrupt SOTA_ROLLING_INDEX.json MUST NOT break static-only 3-book preflight or load_sota_book_any!
+            r_idx_p = f_repo / "books" / "SOTA_ROLLING_INDEX.json"
+            orig_r_idx = r_idx_p.read_bytes()
+            r_idx_p.write_bytes(b"{corrupt-rolling-index")
+            try:
+                buf_st3 = _io_p.StringIO()
+                with _ctx_p.redirect_stdout(buf_st3):
+                    rc_st3 = _pf_p.main([
+                        "--offline-only", "--phase1-policy", "--require-explicit-book-ids", "--enforce-3book-cutover",
+                        "--account-mode", "demo", "--book-ids", books3,
+                        "--max-open-contracts", "3", "--max-usd-factor-open", "3", "--max-jpy-factor-open", "3",
+                        "--credential-isolation-receipt", str(rcpt),
+                        "--fixture-home", str(f_home), "--fixture-repo-root", str(f_repo),
+                    ])
+                assert rc_st3 == 0 and json.loads(buf_st3.getvalue())["passed"] is True
+                sb_any = _srr.load_enabled_sota_books_any(repo_root=f_repo, account_mode="demo", book_ids=list(_ex_p.PHASE1_ORDERED_BOOK_IDS))
+                assert len(sb_any) == 3
+            finally:
+                r_idx_p.write_bytes(orig_r_idx)
+        finally:
+            if orig_acct is None:
+                _os_p.environ.pop("DERIV_ACCOUNT_ID", None)
+            else:
+                _os_p.environ["DERIV_ACCOUNT_ID"] = orig_acct
+
+        # 3. Verify default_smoke_timeout_s scales to >=20.0s for 4 books (covering 3*2.6s pacing + network allowance)
+        assert _pf_p.default_smoke_timeout_s(3) == 10.0
+        assert _pf_p.default_smoke_timeout_s(4) >= 20.0
+
+        # 4-book --live-smoke quotes ALL 4 books (including abstained rolling book via policy metadata) with 0 buy/sell!
+        books_loaded = _srr.load_enabled_sota_books_any(
+            repo_root=f_repo, account_mode="demo", book_ids=list(_ex_p.PHASE1_4BOOK_ORDERED_BOOK_IDS),
+            runtime_vintage_root=f_repo / "deriv_data" / "runtime" / "rolling_vintages",
+        )
+        assert len(books_loaded) == 4 and isinstance(books_loaded[-1], _srr.RollingSotaBookHandle)
+
+        class _Smoke4WS:
+            def __init__(self) -> None:
+                self.q: asyncio.Queue[str] = asyncio.Queue()
+                self.sent: list[dict[str, Any]] = []
+
+            async def send(self, text: str) -> None:
+                obj = json.loads(text)
+                self.sent.append(obj)
+                rid = obj["req_id"]
+                if "balance" in obj:
+                    r = {"req_id": rid, "balance": {"loginid": "VRTC123456", "currency": "USD", "balance": 1000.0}}
+                elif "time" in obj:
+                    r = {"req_id": rid, "time": int(datetime.now(timezone.utc).timestamp())}
+                elif "proposal" in obj:
+                    r = {"req_id": rid, "echo_req": {"currency": "USD"}, "proposal": {"id": f"p{rid}", "ask_price": "1.00", "payout": "1.82", "currency": "USD"}}
+                else:
+                    r = {"req_id": rid}
+                await self.q.put(json.dumps(r))
+
+            async def recv(self) -> str:
+                return await self.q.get()
+
+            def __aiter__(self) -> "_Smoke4WS":
+                return self
+
+            async def __anext__(self) -> str:
+                return await self.q.get()
+
+            async def close(self) -> None:
+                return None
+
+        async def _smoke4() -> list[dict[str, Any]]:
+            sws = _Smoke4WS()
+            scli = _ex_p.SotaDerivAsyncClient("wss://api.derivws.com/trading/v1/options/ws/demo", allow_buy=False, expected_account_id="VRTC123456", ws_opener=lambda _u: sws)
+            await scli.connect()
+            try:
+                res = await _pf_p.run_network_proposal_smoke(
+                    "demo", books_loaded, 1.0, client_override=scli, pace_s=0.0, smoke_timeout_s=15.0
+                )
+                assert all("buy" not in m and "sell" not in m for m in sws.sent)
+                return res
+            finally:
+                await scli.close()
+
+        smoke4_res = asyncio.run(_smoke4())
+        assert len(smoke4_res) == 4 and all(x["smoke_passed"] is True for x in smoke4_res)
+
+        # 4. maybe_host_connection_lock creates missing VPS lock atomically, enforces LOCK_EX|LOCK_NB, and respects admission cooldown!
+        vps_lock, vps_adm = _srr.canonical_vps_connection_paths(pw_home=f_home)
+        assert not vps_lock.exists()
+        with _pf_p.maybe_host_connection_lock(pw_home=f_home):
+            assert vps_lock.is_file()
+            # Second concurrent caller MUST see busy while first holds lock!
+            try:
+                with _pf_p.maybe_host_connection_lock(pw_home=f_home):
+                    raise AssertionError("expected RuntimeError when VPS host connection lock held")
+            except RuntimeError as exc:
+                assert "host connection lock busy" in str(exc)
+        # Active rate-limit cooldown in admission JSON MUST block --live-smoke!
+        import time as _tm_p
+        cur_bid_t = Path("/proc/sys/kernel/random/boot_id").read_text(encoding="utf-8").strip()
+        vps_adm.write_text(
+            json.dumps({
+                "boot_id": cur_bid_t,
+                "not_before_boot": _tm_p.clock_gettime(_tm_p.CLOCK_BOOTTIME) + 300.0,
+                "not_before_utc": _tm_p.time() + 300.0,
+            }),
+            encoding="utf-8",
+        )
+        try:
+            with _pf_p.maybe_host_connection_lock(pw_home=f_home):
+                raise AssertionError("expected RuntimeError on active host admission cooldown")
+        except RuntimeError as exc:
+            assert "cooldown active" in str(exc)
+        vps_adm.unlink()
+
+        # 5. Verify systemd 4-book cutover drop-in pins 4-book CLI flags directly (never relying on Environment= beaten by EnvironmentFile=)!
+        cutover_conf = (repo_real / "ops" / "deriv-sota-4book-cutover.conf").read_text(encoding="utf-8")
+        assert "\nEnvironment=" not in cutover_conf
+        assert cutover_conf.count("USDJPY.sota_roll14d_m60_up.v1") >= 2
+        assert cutover_conf.count("--max-open-contracts 4 --max-usd-factor-open 4 --max-jpy-factor-open 4") == 2
+
+
+def test_rolling_refitter_downloader_and_4book_g6_mvt_e2e() -> None:
+    import fcntl as _fc_e
+    import hashlib as _hl_e
+    import os as _os_e
+    import shutil as _sh_e
+    import sqlite3 as _sq_e
+    import deriv_live_pnl_ledger as _pnl_e
+    import deriv_sota_executor as _ex_e
+    import deriv_sota_rolling_refit as _ref_e
+    import deriv_ticks_download_vps as _dl_e
+    import sota_rolling_runtime as _srr
+
+    repo_real = Path(__file__).resolve().parents[1]
+    bid4 = "USDJPY.sota_roll14d_m60_up.v1"
+
+    # --- PART A: Vendored Archive Downloader 1.7 safety checks ---
+    with tempfile.TemporaryDirectory() as td_dl:
+        dl_root = Path(td_dl)
+        orig_jur = _os_e.environ.get("DERIV_HOST_JURISDICTION")
+        orig_clk = _dl_e.CONNECTION_LOCK
+        orig_cad = _dl_e.CONNECTION_ADMISSION
+        try:
+            _dl_e.CONNECTION_LOCK = dl_root / "conn.lock"
+            _dl_e.CONNECTION_ADMISSION = dl_root / "conn.admission.json"
+            _os_e.environ["DERIV_HOST_JURISDICTION"] = "us_workstation"
+            _expect_raises(ExecutorError, _dl_e.main, ["--data-dir", str(dl_root / "arch"), "--symbols", "frxUSDJPY", "--rolling-days", "2"])
+            _os_e.environ["DERIV_HOST_JURISDICTION"] = "mexico_vps"
+            # Non-pinned URL, window > 1000, per-minute > 24, research roots, traversal symbols & bad log-file all refused with SystemExit(2)!
+            for bad_dl_argv in (
+                ["--data-dir", str(dl_root / "arch"), "--url", "wss://evil.example/ws"],
+                ["--data-dir", str(dl_root / "arch"), "--window", "1500"],
+                ["--data-dir", str(dl_root / "arch"), "--per-minute", "30.0"],
+                ["--data-dir", "/mnt/data/deriv/ticks"],
+                ["--data-dir", str(dl_root / "arch"), "--symbols", "../escape"],
+                ["--data-dir", str(dl_root / "arch"), "--log-file", "/mnt/data/deriv/evil.log"],
+            ):
+                try:
+                    _dl_e.main(bad_dl_argv)
+                    raise AssertionError(f"expected SystemExit(2) for {bad_dl_argv}")
+                except SystemExit as exc:
+                    assert exc.code == 2, f"expected exit 2 for {bad_dl_argv}, got {exc.code}"
+            _expect_raises(ValueError, _dl_e.validate_vps_archive_dir, Path("/mnt/data/deriv/ticks"))
+            _expect_raises(ValueError, _dl_e.validate_vps_archive_dir, Path("/mnt/data/deriv-sota-lab/cache"))
+            # Verify TickDownloader day_needs_fetch retries interrupted parquet_sha256_next and skips gaps_reconfirmed!
+            arch_dn = dl_root / "arch_dn"
+            dl_obj = _dl_e.TickDownloader(arch_dn, _dl_e.PUBLIC_WS_URL, 20.0, window_seconds=1000)
+            p_dn = dl_obj.meta_for("frxUSDJPY", "2026-10-01")
+            p_dn.parent.mkdir(parents=True, exist_ok=True)
+            p_dn.write_text(json.dumps({"tool": _dl_e.TOOL_VERSION, "complete": True, "parquet_sha256_next": "a" * 64}), encoding="utf-8")
+            assert dl_obj.day_needs_fetch("frxUSDJPY", "2026-10-01") is True
+            p_dn.write_text(json.dumps({"tool": _dl_e.TOOL_VERSION, "complete": False, "gaps_reconfirmed": True, "gaps_first_seen": "2026-10-02T00:00:00+00:00", "gaps_final_check": True}), encoding="utf-8")
+            assert dl_obj.day_needs_fetch("frxUSDJPY", "2026-10-01") is False
+            # Lock busy -> exit 75 (verified directly on both acquire_lock and acquire_connection_lock)!
+            arch_d = dl_root / "arch_busy"
+            arch_d.mkdir()
+            lkp = arch_d / ".download.lock"
+            lkp.write_text("", encoding="utf-8")
+            lfd = _os_e.open(str(lkp), _os_e.O_RDWR)
+            try:
+                _fc_e.flock(lfd, _fc_e.LOCK_EX | _fc_e.LOCK_NB)
+                try:
+                    _dl_e.acquire_lock(lkp)
+                    raise AssertionError("expected SystemExit(75) when .download.lock held")
+                except SystemExit as exc:
+                    assert exc.code == 75, f"expected exit 75, got {exc.code}"
+            finally:
+                _fc_e.flock(lfd, _fc_e.LOCK_UN)
+                _os_e.close(lfd)
+
+            # AdmissionState round-trip persistence + connection-lock contention exit 75!
+            clk = _dl_e.acquire_connection_lock(_dl_e.CONNECTION_LOCK)
+            try:
+                try:
+                    _dl_e.acquire_connection_lock(_dl_e.CONNECTION_LOCK)
+                    raise AssertionError("expected SystemExit(75) on held connection lock")
+                except SystemExit as exc:
+                    assert exc.code == 75, f"expected exit 75, got {exc.code}"
+                st_a = _dl_e.AdmissionState(clk)
+                st_a.rest(120.0)
+                nb_a = st_a.not_before
+                st_b = _dl_e.AdmissionState(clk)
+                assert abs(st_b.not_before - nb_a) < 1e-3 and st_b.wait(3.0) > 100.0
+            finally:
+                clk.close()
+        finally:
+            _dl_e.CONNECTION_LOCK = orig_clk
+            _dl_e.CONNECTION_ADMISSION = orig_cad
+            if orig_jur is None:
+                _os_e.environ.pop("DERIV_HOST_JURISDICTION", None)
+            else:
+                _os_e.environ["DERIV_HOST_JURISDICTION"] = orig_jur
+
+    # --- PART B: Offline Rolling Refitter (deriv_sota_rolling_refit.py) ---
+    with tempfile.TemporaryDirectory() as td_rf:
+        rf_root = Path(td_rf)
+        f_repo = rf_root / "repo"
+        _sh_e.copytree(repo_real / "books", f_repo / "books")
+        pol = _srr.load_rolling_policy(bid4, repo_root=f_repo, allow_demo_canary=True)
+        arch_dir = f_repo / "deriv_data" / "rolling_ticks_archive"
+        v_root = f_repo / "deriv_data" / "runtime" / "rolling_vintages"
+
+        # Synthesize minimal 130-day Downloader 1.7 archive across 7 MAJORS (with 1 holiday early close on a weekday!)
+        # Use exact current 14-day block: origin 2025-08-11 + 33*14d = 2026-11-16T00:00:00Z (next refit 2026-11-30T00:00:00Z)!
+        sched_ep = pol.cadence_origin_utc_epoch + 33 * 14 * 86400
+        sched_dt = datetime.fromtimestamp(sched_ep, tz=timezone.utc)
+        start_day = (sched_dt - timedelta(days=129)).date()
+        end_day = (sched_dt - timedelta(days=1)).date()
+
+        rng_t = np.random.default_rng(42)
+        base_px = {"USDJPY": 150.0, "EURUSD": 1.08, "GBPUSD": 1.27, "USDCHF": 0.88, "USDCAD": 1.38, "AUDUSD": 0.65, "NZDUSD": 0.60}
+        day_list: list[Any] = []
+        d_cur = start_day
+        while d_cur <= end_day:
+            if d_cur.weekday() < 5:
+                day_list.append(d_cur)
+            d_cur = d_cur + timedelta(days=1)
+        holiday_early = day_list[20]
+
+        for p_idx, pair in enumerate(MAJORS):
+            p_dir = arch_dir / "ticks" / pair
+            p_dir.mkdir(parents=True, exist_ok=True)
+            px = base_px[pair]
+            for d_i in day_list:
+                d_s = d_i.isoformat()
+                t0_d = int(datetime(d_i.year, d_i.month, d_i.day, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+                # 1 tick/min (1440/day; holiday early close ends at 18:00Z = 1080 ticks) so settle_with_intervals(tol_s=60) settles cleanly!
+                n_pts = 1080 if d_i == holiday_early else 1440
+                step_s = 60
+                eps = np.arange(t0_d, t0_d + n_pts * step_s, step_s, dtype=np.int64)
+                deltas = rng_t.normal(0.0, px * 0.0004, size=n_pts)
+                mids = px + np.cumsum(deltas)
+                px = float(mids[-1])
+                pq_p = p_dir / f"{pair}_{d_s}_ticks.parquet"
+                import pyarrow as _pa_e
+                import pyarrow.parquet as _pq_e
+
+                tbl_t = _pa_e.Table.from_arrays(
+                    [
+                        _pa_e.array((eps * 1_000_000_000).astype(np.int64), type=_pa_e.timestamp("ns", tz="UTC")),
+                        _pa_e.array(mids.astype(np.float64), type=_pa_e.float64()),
+                    ],
+                    schema=_dl_e.TICK_SCHEMA,
+                )
+                _pq_e.write_table(tbl_t, pq_p)
+                sha_d = _hl_e.sha256(pq_p.read_bytes()).hexdigest()
+                sc_obj: dict[str, Any] = {
+                    "symbol": f"frx{pair}",
+                    "date": d_s,
+                    "complete": True,
+                    "market_closed": False,
+                    "gaps_reconfirmed": False,
+                    "clipped_by_retention": False,
+                    "clipped_by_now": False,
+                    "ticks": n_pts,
+                    "parquet_sha256": sha_d,
+                }
+                (p_dir / f"{pair}_{d_s}_ticks.meta.json").write_text(json.dumps(sc_obj), encoding="utf-8")
+
+        # Test archive confinement refusal (outside deriv_data/)
+        _expect_raises(
+            ValueError,
+            _ref_e.run_rolling_refit,
+            book_id=bid4,
+            archive_dir=rf_root / "outside_archive",
+            vintage_root=v_root,
+            repo_root=f_repo,
+            now_epoch=sched_ep + 120,
+        )
+
+        # Test shared .download.lock contention -> ArchiveLockBusyError (and main() exits 75)!
+        dl_lock = arch_dir / ".download.lock"
+        dl_lock.write_text("", encoding="utf-8")
+        dfd = _os_e.open(str(dl_lock), _os_e.O_RDWR)
+        try:
+            _fc_e.flock(dfd, _fc_e.LOCK_EX | _fc_e.LOCK_NB)
+            _expect_raises(
+                _ref_e.ArchiveLockBusyError,
+                _ref_e.run_rolling_refit,
+                book_id=bid4,
+                archive_dir=arch_dir,
+                vintage_root=v_root,
+                repo_root=f_repo,
+                now_epoch=sched_ep + 120,
+            )
+        finally:
+            _fc_e.flock(dfd, _fc_e.LOCK_UN)
+            _os_e.close(dfd)
+
+        # Test unfinished downloader crash marker (parquet_sha256_next), wrong symbol, and clipped_by_retention refusal!
+        bad_meta_p = arch_dir / "ticks" / "USDJPY" / f"USDJPY_{day_list[0].isoformat()}_ticks.meta.json"
+        orig_bad_meta = bad_meta_p.read_text(encoding="utf-8")
+        for mut_k, mut_v in (("parquet_sha256_next", "0" * 64), ("symbol", "frxEURUSD"), ("clipped_by_retention", True)):
+            bm_obj = json.loads(orig_bad_meta)
+            bm_obj[mut_k] = mut_v
+            bad_meta_p.write_text(json.dumps(bm_obj), encoding="utf-8")
+            _expect_raises(
+                _ref_e.ArchiveIncompleteError,
+                _ref_e._audit_and_plan_pair_files,
+                arch_dir / "ticks",
+                "USDJPY",
+                first_day=start_day,
+                last_day=end_day,
+                trusted_root=f_repo,
+            )
+        bad_meta_p.write_text(orig_bad_meta, encoding="utf-8")
+
+        # Run refitter with deterministic fast trainer stub verifying active publish + <1e-11 reload parity + --if-due + Platt abstention lockout + fit_ok=False (ModelFitFailedError)!
+        def _mk_fake_fit_res(
+            X_all_arg: np.ndarray,
+            pool_idx_arg: np.ndarray,
+            *,
+            platt_coef: float,
+            platt_ok: bool,
+            fit_ok: bool,
+        ) -> dict[str, Any]:
+            if not fit_ok:
+                return {"ok": False, "reason": "synthetic_fit_fail", "n_fit": 0, "n_val": 0}
+            d_f = X_all_arg.shape[1]
+            v_idx = pool_idx_arg[-32:] if len(pool_idx_arg) >= 32 else pool_idx_arg
+            X_val_s = np.nan_to_num(X_all_arg[v_idx].astype(np.float64), nan=0.0)
+            med = np.zeros(d_f, dtype=np.float64)
+            mu = np.zeros(d_f, dtype=np.float64)
+            sd = np.ones(d_f, dtype=np.float64)
+            X_val_s = np.clip((X_val_s - mu) / sd, -5.0, 5.0)
+            n_seeds_f = int(pol.policy_dict.get("n_seeds", 5))
+            n_comp_f = min(int(pol.policy_dict.get("n_components", 500)), len(X_val_s))
+            gamma_f = 1.0 / d_f
+            y_f = np.arange(len(X_val_s)) % 2
+            ny_list = []
+            sgd_list = []
+            probs = []
+            for sd_i in range(n_seeds_f):
+                ny = Nystroem(kernel="rbf", gamma=gamma_f, n_components=n_comp_f, random_state=int(sd_i)).fit(X_val_s)
+                Z = ny.transform(X_val_s)
+                clf = SGDClassifier(loss="log_loss", alpha=1e-4, max_iter=50, random_state=int(sd_i)).fit(Z, y_f)
+                ny_list.append(ny)
+                sgd_list.append(clf)
+                probs.append(clf.predict_proba(Z)[:, 1])
+            return {
+                "ok": True,
+                "platt_ok": platt_ok,
+                "med": med,
+                "mu": mu,
+                "sd": sd,
+                "ny_list": ny_list,
+                "sgd_list": sgd_list,
+                "conf_thr": 0.05,
+                "platt_coef": platt_coef,
+                "platt_intercept": 0.25,
+                "n_fit": int(len(pool_idx_arg)),
+                "n_val": int(len(v_idx)),
+                "val_idx": v_idx,
+                "p_val": np.mean(probs, axis=0),
+            }
+
+        orig_fit_fn = _ref_e.fit_rolling_window_ens5
+        try:
+            # 1. Active publish (verifies <1e-11 reload parity inside _stage_immutable_vintage_dir!)
+            _ref_e.fit_rolling_window_ens5 = lambda X_a, dec_t, ent, ext, ret, pidx, *a, **kw: _mk_fake_fit_res(X_a, pidx, platt_coef=0.42, platt_ok=True, fit_ok=True)  # type: ignore[assignment]
+            out_ok = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=sched_ep + 120
+            )
+            assert out_ok["status"] == "published_active" and out_ok["vintage_id"]
+
+            # 2. --if-due skips cleanly on same schedule slot
+            out_due = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=sched_ep + 180, if_due=True
+            )
+            assert out_due["status"] == "skipped_not_due"
+
+            # 3. fit_ok=False -> raises ModelFitFailedError (exit 5 in CLI) WITHOUT overwriting active state!
+            _ref_e.fit_rolling_window_ens5 = lambda X_a, dec_t, ent, ext, ret, pidx, *a, **kw: _mk_fake_fit_res(X_a, pidx, platt_coef=0.0, platt_ok=False, fit_ok=False)  # type: ignore[assignment]
+            _expect_raises(
+                _ref_e.ModelFitFailedError,
+                _ref_e.run_rolling_refit,
+                book_id=bid4,
+                archive_dir=arch_dir,
+                vintage_root=v_root,
+                repo_root=f_repo,
+                now_epoch=sched_ep + 200,
+                force=True,
+            )
+
+            # 3b. Durable manual revocation via CLI --revoke-reason: blocks --if-due AND --force until explicit --resume-after-revoke!
+            import contextlib as _ctx_rf
+            import io as _io_rf
+            orig_ref_root = _ref_e.REPO_ROOT
+            _ref_e.REPO_ROOT = f_repo
+            try:
+                buf_rev = _io_rf.StringIO()
+                with _ctx_rf.redirect_stdout(buf_rev):
+                    rc_rev = _ref_e.main([
+                        "--book-id", bid4,
+                        "--vintage-root", str(v_root),
+                        "--revoke-reason", "operator_emergency_halt",
+                    ])
+                assert rc_rev == 0
+                rev_cli_out = json.loads(buf_rev.getvalue())
+                assert rev_cli_out["status"] == "revoked" and rev_cli_out["reason"] == "operator_emergency_halt"
+            finally:
+                _ref_e.REPO_ROOT = orig_ref_root
+            # Ensure subsequent refit timestamps sit strictly >= CLI revocation's wall-clock published_epoch
+            rev_pub_ep = int(_srr.load_verified_transitions(v_root / bid4, expected_book_id=bid4, expected_policy_cid=pol.content_id, max_vintage_age_days=14, trusted_root=f_repo)[0][-1]["published_epoch"])
+            test_now_after_rev = max(sched_ep + 220, rev_pub_ep + 5)
+            # Re-align sched_ep window if CLI wall clock was earlier/later; here sched_ep is 2026-11-30 > 2026-11-26 so sched_ep + 220 > rev_pub_ep!
+            assert test_now_after_rev >= rev_pub_ep
+            _ref_e.fit_rolling_window_ens5 = lambda X_a, dec_t, ent, ext, ret, pidx, *a, **kw: _mk_fake_fit_res(X_a, pidx, platt_coef=0.55, platt_ok=True, fit_ok=True)  # type: ignore[assignment]
+            out_rev_due = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=test_now_after_rev, if_due=True
+            )
+            assert out_rev_due["status"] == "skipped_manual_revocation_active"
+            out_rev_force = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=test_now_after_rev + 5, force=True
+            )
+            assert out_rev_force["status"] == "skipped_manual_revocation_active"
+            out_resumed = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=test_now_after_rev + 10, resume_after_revoke=True
+            )
+            assert out_resumed["status"] == "published_active"
+
+            # 3c. Intervening revocation mid-fit MUST cause active commit to fail closed (rolling_journal_head_changed_during_fit)!
+            def _fit_with_concurrent_revoke(X_a: Any, dec_t: Any, ent: Any, ext: Any, ret: Any, pidx: Any, *a: Any, **kw: Any) -> dict[str, Any]:
+                _srr.commit_rolling_transition(
+                    v_root / bid4,
+                    policy=pol,
+                    status="revoked",
+                    published_epoch=test_now_after_rev + 15,
+                    scheduled_refit_epoch=sched_ep,
+                    next_refit_epoch=sched_ep + 14 * 86400,
+                    reason="concurrent_midfit_revoke",
+                    trusted_root=f_repo,
+                )
+                return _mk_fake_fit_res(X_a, pidx, platt_coef=0.60, platt_ok=True, fit_ok=True)
+
+            _ref_e.fit_rolling_window_ens5 = _fit_with_concurrent_revoke  # type: ignore[assignment]
+            _expect_raises(
+                _srr.RollingVintageError,
+                _ref_e.run_rolling_refit,
+                book_id=bid4,
+                archive_dir=arch_dir,
+                vintage_root=v_root,
+                repo_root=f_repo,
+                now_epoch=test_now_after_rev + 16,
+                force=True,
+            )
+
+            # 4. platt_coef <= 0 -> commits abstained; subsequent refit EVEN AFTER revocation + --resume-after-revoke MUST stay locked out!
+            _ref_e.fit_rolling_window_ens5 = lambda X_a, dec_t, ent, ext, ret, pidx, *a, **kw: _mk_fake_fit_res(X_a, pidx, platt_coef=-0.25, platt_ok=False, fit_ok=True)  # type: ignore[assignment]
+            out_ab = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=test_now_after_rev + 20, resume_after_revoke=True
+            )
+            assert out_ab["status"] == "abstained"
+            # Appending a manual revocation in the same block MUST NOT clear the abstention lockout!
+            _srr.commit_rolling_transition(
+                v_root / bid4,
+                policy=pol,
+                status="revoked",
+                published_epoch=test_now_after_rev + 30,
+                scheduled_refit_epoch=sched_ep,
+                next_refit_epoch=sched_ep + 14 * 86400,
+                reason="revoke_after_abstention",
+                trusted_root=f_repo,
+            )
+            _ref_e.fit_rolling_window_ens5 = lambda X_a, dec_t, ent, ext, ret, pidx, *a, **kw: _mk_fake_fit_res(X_a, pidx, platt_coef=0.99, platt_ok=True, fit_ok=True)  # type: ignore[assignment]
+            out_locked = _ref_e.run_rolling_refit(
+                book_id=bid4, archive_dir=arch_dir, vintage_root=v_root, repo_root=f_repo, now_epoch=test_now_after_rev + 40, force=True, resume_after_revoke=True
+            )
+            assert out_locked["status"] == "skipped_abstained_block_locked", f"expected lockout after revoke, got {out_locked}"
+        finally:
+            _ref_e.fit_rolling_window_ens5 = orig_fit_fn  # type: ignore[assignment]
+
+    # --- PART C: Rotating-Vintage G6 + 4-Book Demo MVT + Persisted 3-Book Cutoff E2E ---
+    with tempfile.TemporaryDirectory() as td_g6:
+        root = Path(td_g6)
+        f_home = root / "home"
+        f_home.mkdir()
+        f_repo = root / "repo"
+        _sh_e.copytree(repo_real / "books", f_repo / "books")
+        v_root = f_repo / "deriv_data" / "runtime" / "rolling_vintages"
+        book_v_dir = v_root / bid4
+        log_d = f_repo / "logs" / "sota_runtime"
+        log_d.mkdir(parents=True)
+        q_db = f_repo / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"
+        q_db.parent.mkdir(parents=True, exist_ok=True)
+        rcpt = f_home / "rcpt.json"
+        rcpt.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "account_id": "DMO55667788",
+                "account_mode": "demo",
+                "legacy_credentials_revoked": True,
+                "attested_by": "test",
+                "attested_utc": "2026-11-26T00:00:00Z",
+            }),
+            encoding="utf-8",
+        )
+        pol = _srr.load_rolling_policy(bid4, repo_root=f_repo, allow_demo_canary=True)
+
+        # Past timeline (< 2026-11-26 so cutoff sealing obeys cutoff <= now!):
+        # Pre-cutover 3-book era: 2026-09-15..2026-09-30; Cutoff sealed at 2026-10-01T00:00:00Z!
+        # Post-cutover 4-book era: V1 active Oct 1..15; V2 active Oct 15..29; Revoked at Oct 28T00:00:00Z.
+        t_pre = int(datetime(2026, 9, 15, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_cut = int(datetime(2026, 10, 1, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_v1 = t_cut
+        t_v2 = t_v1 + 14 * 86400
+        t_rev = t_v2 + 13 * 86400  # Oct 28 00:00Z
+        cut_iso = "2026-10-01T00:00:00Z"
+        eval_end_iso = "2026-10-29T00:00:00Z"
+        tr_v1 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t_v1, pub_ep=t_v1 + 60, seed=21, trusted_root=f_repo)
+        tr_v2 = _stage_test_rolling_vintage(book_v_dir, pol, sched_ep=t_v2, pub_ep=t_v2 + 60, seed=22, trusted_root=f_repo)
+        tr_rev = _srr.commit_rolling_transition(
+            book_v_dir,
+            policy=pol,
+            status="revoked",
+            published_epoch=t_rev,
+            scheduled_refit_epoch=t_v2,
+            next_refit_epoch=t_v2 + 14 * 86400,
+            reason="end_of_test_revoke",
+            trusted_root=f_repo,
+        )
+
+        # Register prospective cohort anchors for ALL 4 books (3 static starting Sep 15 + 1 rolling starting Oct 1)
+        conn = _create_bound_v3_test_db(q_db, "DMO55667788")
+        conn.close()
+        coh_start_static = "2026-09-15T00:00:00Z"
+        coh_start = cut_iso
+        for b_anc in _ex_e.PHASE1_ORDERED_BOOK_IDS:
+            _ex_e.register_cohort_anchor(
+                queue_db=q_db,
+                account_id="DMO55667788",
+                account_mode="demo",
+                book_id=b_anc,
+                cohort_start_utc=coh_start_static,
+                venue_time_epoch=t_pre - 120,
+                receipt_path=rcpt,
+                repo_root=f_repo,
+                pw_home=f_home,
+            )
+        _ex_e.register_cohort_anchor(
+            queue_db=q_db,
+            account_id="DMO55667788",
+            account_mode="demo",
+            book_id=bid4,
+            cohort_start_utc=coh_start,
+            venue_time_epoch=t_v1 - 120,
+            receipt_path=rcpt,
+            repo_root=f_repo,
+            pw_home=f_home,
+        )
+
+        # Helper to insert one settled contract + signal
+        conn = _ex_e.connect_sota_queue_v3(q_db, expected_account_id="DMO55667788", expected_account_mode="demo")
+        reg_map = _pnl_e._load_registered_books(f_repo)
+        # Advance durable SQLite rolling watermark to seq=3 (rev)
+        _srr.verify_and_update_rolling_watermark(
+            conn,
+            book_id=bid4,
+            policy_content_id=pol.content_id,
+            transitions=[tr_v1, tr_v2, tr_rev],
+            now_epoch=t_rev + 60,
+            persist=True,
+        )
+
+        def _ins_trade(
+            conn_i: Any,
+            b_id: str,
+            trade_tag: str,
+            cur_ep_i: int,
+            *,
+            won: bool,
+            tr_use: dict[str, Any] | None = None,
+            po_override: int | None = None,
+            portfolio_mode: str = "4book",
+        ) -> int:
+            hm = int(reg_map[b_id]["horizon_minutes"])
+            v_st = cur_ep_i + 2
+            v_en = v_st + hm * 60
+            sig_iso = datetime.fromtimestamp(cur_ep_i, tz=timezone.utc).isoformat()
+            cls_iso = datetime.fromtimestamp(v_en + 1, tz=timezone.utc).isoformat()
+            if b_id == bid4:
+                assert tr_use is not None
+                cid_b = str(tr_use["vintage_content_id"])
+                spj_obj: dict[str, Any] = {
+                    "book_id": b_id,
+                    "book_mode": _srr.ROLLING_BOOK_MODE,
+                    "portfolio_mode": portfolio_mode,
+                    "pair": "USDJPY",
+                    "side": "UP",
+                    "horizon_minutes": hm,
+                    "contract_family": "risefall",
+                    "signal_close_utc": sig_iso,
+                    "policy_content_id": pol.content_id,
+                    "book_content_id": cid_b,
+                    "vintage_id": tr_use["vintage_id"],
+                    "transition_seq": int(tr_use["seq"]),
+                    "transition_sha256": tr_use["transition_sha256"],
+                    "vintage_valid_from_epoch": int(tr_use["valid_from_epoch"]),
+                    "vintage_valid_until_epoch": int(tr_use["valid_until_epoch"]),
+                }
+            else:
+                cid_b = str(reg_map[b_id]["content_id"])
+                spj_obj = {"book_id": b_id, "book_content_id": cid_b, "portfolio_mode": portfolio_mode}
+            sid_t = f"sig-{b_id}-{trade_tag}"
+            cid_t = f"con-{b_id}-{trade_tag}"
+            st_str = "won" if won else "lost"
+            po_c = po_override if po_override is not None else (180 if hm == 15 else 182)
+            sp_c = po_c if won else 0
+            pf_c = (po_c - 100) if won else -100
+            conn_i.execute(
+                """
+                INSERT INTO sota_signals (
+                    signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
+                    signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
+                    status, reason, contract_id, proposal_id, created_utc, updated_utc
+                ) VALUES (?, ?, 'USDJPY', ?, 'UP', 'wall', 0, ?, 0.56, 0.63, ?, 'bought', 'buy_confirmed', ?, 'p1', ?, ?)
+                """,
+                (sid_t, b_id, hm, sig_iso, json.dumps(spj_obj, sort_keys=True), cid_t, sig_iso, cls_iso),
+            )
+            conn_i.execute(
+                """
+                INSERT INTO sota_contracts (
+                    contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                    pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                    buy_price_cents, payout_cents, sell_price_cents, profit_cents, stake_authoritative,
+                    venue_start_epoch, venue_end_epoch, venue_terminal_status,
+                    venue_underlying_symbol, venue_contract_type, signal_close_utc, status,
+                    proposal_id, expected_expiry_utc, raw_hash, opened_utc, closed_utc, updated_utc
+                ) VALUES (?, ?, ?, ?, 'DMO55667788', 'demo', 'USDJPY', ?, 'UP', 'risefall', 0, 0,
+                          100, ?, ?, ?, 1, ?, ?, ?, 'frxUSDJPY', 'CALL', ?, ?, 'p1', ?, 'rh', ?, ?, ?)
+                """,
+                (cid_t, sid_t, b_id, cid_b, hm, po_c, sp_c, pf_c, v_st, v_en, st_str, sig_iso, st_str, cls_iso, sig_iso, cls_iso, cls_iso),
+            )
+            return v_en + 120
+
+        # Populate 50 pre-cutoff settled trades on each of the 3 static books (in [Sep 15, Oct 1), portfolio_mode='3book')
+        cur_pre = t_pre + 3600
+        for i_pre in range(50):
+            for b_st in _ex_e.PHASE1_ORDERED_BOOK_IDS:
+                cur_pre = _ins_trade(conn, b_st, f"pre-{i_pre}", cur_pre, won=(i_pre % 5 != 0), portfolio_mode="3book")
+        assert cur_pre < t_cut
+        # Populate 55 post-cutoff rolling trades spanning V1 (28) + V2 (27), portfolio_mode='4book'
+        cur_post = t_v1 + 3600
+        for i_rl in range(55):
+            if i_rl == 28 and cur_post < t_v2 + 3600:
+                cur_post = t_v2 + 3600
+            tr_use = tr_v1 if i_rl < 28 else tr_v2
+            cur_post = _ins_trade(conn, bid4, str(i_rl), cur_post, won=(i_rl % 5 != 0), tr_use=tr_use, portfolio_mode="4book")
+        conn.commit()
+        conn.close()
+
+        # 0. Unsealed 4-book MVT MUST HALT_INVESTIGATE with missing_or_invalid_3book_cohort_cutoff!
+        mvt4_unsealed = _pnl_e.evaluate_portfolio_mvt(
+            q_db,
+            book_ids=_pnl_e.DEFAULT_PHASE1_4BOOK_PORTFOLIO_BOOKS,
+            repo_root=f_repo,
+            canonical_db_path=q_db,
+            canonical_log_dir=log_d,
+            rolling_vintage_root=v_root,
+            canonical_rolling_vintage_root_path=v_root,
+            enforce_canonical_db=True,
+            eval_now_utc=eval_end_iso,
+            log_dir=log_d,
+        )
+        assert mvt4_unsealed["verdict"] == "HALT_INVESTIGATE" and "missing_or_invalid_3book_cohort_cutoff" in mvt4_unsealed["reasons"]
+
+        # Seal 3-book cohort cutoff via CLI --seal-3book-cohort-cutoff (verifying redacted account_id_sha256 output)!
+        import contextlib as _ctx_cl
+        import io as _io_cl
+        orig_q_fn = _ex_e.canonical_sota_queue_path
+        orig_pw_fn = _ex_e.canonical_pw_home
+        orig_env_cli = {k: _os_e.environ.get(k) for k in ("DERIV_ACCOUNT_ID", "DERIV_APP_ID", "DERIV_PAT")}
+        _ex_e.canonical_sota_queue_path = lambda _m, repo_root=None: q_db  # type: ignore[assignment]
+        _ex_e.canonical_pw_home = lambda: f_home  # type: ignore[assignment]
+        _os_e.environ["DERIV_ACCOUNT_ID"] = "DMO55667788"
+        _os_e.environ["DERIV_APP_ID"] = "1089"
+        _os_e.environ["DERIV_PAT"] = "dummy-pat"
+        try:
+            buf_seal = _io_cl.StringIO()
+            with _ctx_cl.redirect_stdout(buf_seal):
+                rc_seal = _ex_e.main([
+                    "--seal-3book-cohort-cutoff",
+                    "--cutoff-utc", cut_iso,
+                    "--reason", "pre_4book_cutover_test",
+                    "--account-mode", "demo",
+                    "--credential-isolation-receipt", str(rcpt),
+                ])
+            assert rc_seal == 0
+            seal_cli_txt = buf_seal.getvalue()
+            assert "DMO55667788" not in seal_cli_txt
+            sealed = json.loads(seal_cli_txt)
+            assert sealed["status"] == "sealed" and sealed["cutoff"]["cutoff_utc"] == cut_iso
+        finally:
+            _ex_e.canonical_sota_queue_path = orig_q_fn  # type: ignore[assignment]
+            _ex_e.canonical_pw_home = orig_pw_fn  # type: ignore[assignment]
+            for k_e, v_e in orig_env_cli.items():
+                if v_e is None:
+                    _os_e.environ.pop(k_e, None)
+                else:
+                    _os_e.environ[k_e] = v_e
+        sealed2 = _ex_e.seal_3book_cohort_cutoff(
+            queue_db=q_db,
+            account_id="DMO55667788",
+            account_mode="demo",
+            cutoff_utc=cut_iso,
+            reason="pre_4book_cutover_test",
+            receipt_path=rcpt,
+            pw_home=f_home,
+        )
+        assert sealed2["status"] == "idempotent_existing_cutoff"
+        _expect_raises(
+            ExecutorError,
+            _ex_e.seal_3book_cohort_cutoff,
+            queue_db=q_db,
+            account_id="DMO55667788",
+            account_mode="demo",
+            cutoff_utc="2026-10-02T00:00:00Z",
+            reason="conflict",
+            receipt_path=rcpt,
+            pw_home=f_home,
+        )
+
+        # 0b. 4-book MVT with 150 PRE-cutoff static fills and 0 POST-cutoff static fills MUST stay HOLD_COLLECTING (NEVER FULL_G6)!
+        mvt4_zero_post_static = _pnl_e.evaluate_portfolio_mvt(
+            q_db,
+            book_ids=_pnl_e.DEFAULT_PHASE1_4BOOK_PORTFOLIO_BOOKS,
+            repo_root=f_repo,
+            canonical_db_path=q_db,
+            canonical_log_dir=log_d,
+            rolling_vintage_root=v_root,
+            canonical_rolling_vintage_root_path=v_root,
+            enforce_canonical_db=True,
+            eval_now_utc=eval_end_iso,
+            log_dir=log_d,
+        )
+        assert mvt4_zero_post_static["verdict"] == "HOLD_COLLECTING", f"expected HOLD_COLLECTING with 0 post-cutoff static fills, got {mvt4_zero_post_static['verdict']}"
+        assert mvt4_zero_post_static["pillar2_live_payout_parity"]["by_horizon"]["15m"]["n"] == 0
+        assert mvt4_zero_post_static["pillar2_live_payout_parity"]["by_horizon"]["30m"]["n"] == 0
+        assert mvt4_zero_post_static["pillar2_live_payout_parity"]["by_horizon"]["60m"]["n"] == 55
+
+        # Now add 20 post-cutoff settled trades on each of the 3 static books (portfolio_mode='4book')
+        # PLUS 5 post-rollback 3-book static trades (portfolio_mode='3book') that MUST be excluded from the 4-book pool!
+        conn = _ex_e.connect_sota_queue_v3(q_db, expected_account_id="DMO55667788", expected_account_mode="demo")
+        cur_post_st = cur_post + 3600
+        for i_pst in range(20):
+            for b_st in _ex_e.PHASE1_ORDERED_BOOK_IDS:
+                cur_post_st = _ins_trade(conn, b_st, f"post-{i_pst}", cur_post_st, won=(i_pst % 5 != 0), portfolio_mode="4book")
+        for i_rb in range(5):
+            cur_post_st = _ins_trade(conn, "USDJPY.sota_ens5_m15_up.v1", f"rb3-{i_rb}", cur_post_st, won=True, portfolio_mode="3book")
+        conn.commit()
+        conn.close()
+
+        # 1. Single-book rolling G6: demo_rolling_g6_passed=True, promotion_eligible=False, live_real_money_eligible=False!
+        g6_roll = _pnl_e.summarize_settled_queue(
+            q_db,
+            min_settled_for_promotion=50,
+            book_id=bid4,
+            repo_root=f_repo,
+            require_registered_book=True,
+            cohort_start_utc=coh_start,
+            expected_account_id="DMO55667788",
+            expected_stake_usd="1.00",
+            eval_now_utc=eval_end_iso,
+            canonical_db_path=q_db,
+            enforce_canonical_db=True,
+            rolling_vintage_root=v_root,
+            canonical_rolling_vintage_root_path=v_root,
+        )
+        assert g6_roll["demo_rolling_g6_passed"] is True, f"rolling G6 failed: {g6_roll}"
+        assert g6_roll["promotion_eligible"] is False
+        assert g6_roll["promotion_eligible_books"] == []
+        assert g6_roll["live_real_money_eligible"] is False
+        assert g6_roll["settled_contracts"] == 55
+
+        # 1b. Legacy v2 summarize_settled_queue MUST unconditionally veto rolling book (BOTH with repo_root and repo_root=None)!
+        v2_db = root / "v2_veto.sqlite"
+        _sh_e.copy2(q_db, v2_db)
+        c_v2 = _sq_e.connect(str(v2_db))
+        c_v2.execute("UPDATE sota_contracts SET book_content_id=? WHERE book_id=?", (pol.content_id, bid4))
+        c_v2.commit()
+        c_v2.close()
+        for rr_arg in (f_repo, None):
+            v2_rep = _pnl_e.summarize_settled_queue(v2_db, min_settled_for_promotion=50, book_id=bid4, repo_root=rr_arg)
+            assert v2_rep["promotion_eligible"] is False and bid4 not in v2_rep["promotion_eligible_books"]
+            assert "rolling_book_demo_only_never_live_eligible" in v2_rep["reasons"]
+
+        # 2. Negative rolling G6: alternate non-canonical vintage dir refused EVEN WHEN enforce_canonical_db=False!
+        alt_v_root = root / "alt_vintages"
+        _sh_e.copytree(v_root, alt_v_root)
+        g6_alt = _pnl_e.summarize_settled_queue(
+            q_db,
+            min_settled_for_promotion=50,
+            book_id=bid4,
+            repo_root=f_repo,
+            require_registered_book=True,
+            cohort_start_utc=coh_start,
+            expected_account_id="DMO55667788",
+            expected_stake_usd="1.00",
+            eval_now_utc=eval_end_iso,
+            enforce_canonical_db=False,
+            rolling_vintage_root=alt_v_root,
+        )
+        assert g6_alt["demo_rolling_g6_passed"] is False and "rolling_journal_non_canonical" in g6_alt["reasons"]
+
+        # 3. Negative rolling G6: post-revocation fill (v_start >= t_rev) refused with rolling_vintage_window_violation!
+        post_rev_db = root / "post_rev.sqlite"
+        _sh_e.copy2(q_db, post_rev_db)
+        c_pr = _sq_e.connect(str(post_rev_db))
+        pr_sig_iso = datetime.fromtimestamp(t_rev + 58, tz=timezone.utc).isoformat()
+        c_pr.execute(
+            "UPDATE sota_contracts SET venue_start_epoch=?, venue_end_epoch=?, signal_close_utc=?, closed_utc=? WHERE contract_id=?",
+            (t_rev + 60, t_rev + 3660, pr_sig_iso, datetime.fromtimestamp(t_rev + 3661, tz=timezone.utc).isoformat(), f"con-{bid4}-54"),
+        )
+        old_p = json.loads(c_pr.execute("SELECT payload_json FROM sota_signals WHERE signal_id=?", (f"sig-{bid4}-54",)).fetchone()[0])
+        old_p["signal_close_utc"] = pr_sig_iso
+        c_pr.execute("UPDATE sota_signals SET signal_close_utc=?, payload_json=? WHERE signal_id=?", (pr_sig_iso, json.dumps(old_p), f"sig-{bid4}-54"))
+        c_pr.commit()
+        c_pr.close()
+        g6_pr = _pnl_e.summarize_settled_queue(
+            post_rev_db, min_settled_for_promotion=50, book_id=bid4, repo_root=f_repo, require_registered_book=True,
+            cohort_start_utc=coh_start, expected_account_id="DMO55667788", expected_stake_usd="1.00", eval_now_utc=eval_end_iso,
+            canonical_db_path=post_rev_db, enforce_canonical_db=True, rolling_vintage_root=v_root, canonical_rolling_vintage_root_path=v_root,
+        )
+        assert g6_pr["demo_rolling_g6_passed"] is False and any("rolling_vintage_window_violation" in r for r in g6_pr["reasons"])
+
+        # 4a. Negative rolling G6: stale SQLite watermark (max_seq=1 while fills cite seq=2) -> rolling_watermark_sequence_not_covered!
+        stale_wm_db = root / "stale_wm.sqlite"
+        _sh_e.copy2(q_db, stale_wm_db)
+        c_sw = _sq_e.connect(str(stale_wm_db))
+        wm_k = _srr.rolling_watermark_key(bid4, pol.content_id)
+        c_sw.execute(
+            "UPDATE sota_risk_state SET value_json=? WHERE key=?",
+            (json.dumps({
+                "schema": "sota-rolling-watermark/v1", "book_id": bid4, "policy_content_id": pol.content_id,
+                "max_seq": 1, "last_transition_sha256": tr_v1["transition_sha256"],
+                "max_seen_epoch": t_v1 + 120, "updated_utc": tr_v1["published_utc"],
+            }), wm_k),
+        )
+        c_sw.commit()
+        c_sw.close()
+        g6_sw = _pnl_e.summarize_settled_queue(
+            stale_wm_db, min_settled_for_promotion=50, book_id=bid4, repo_root=f_repo, require_registered_book=True,
+            cohort_start_utc=coh_start, expected_account_id="DMO55667788", expected_stake_usd="1.00", eval_now_utc=eval_end_iso,
+            canonical_db_path=stale_wm_db, enforce_canonical_db=True, rolling_vintage_root=v_root, canonical_rolling_vintage_root_path=v_root,
+        )
+        assert g6_sw["demo_rolling_g6_passed"] is False and any("rolling_watermark_sequence_not_covered" in r for r in g6_sw["reasons"])
+
+        # 4b. Negative rolling G6: below-floor rolling payout ($1.77 < 1.78) -> payout_below_min_floor!
+        low_po_db = root / "low_po.sqlite"
+        _sh_e.copy2(q_db, low_po_db)
+        c_lp = _sq_e.connect(str(low_po_db))
+        c_lp.execute("UPDATE sota_contracts SET payout_cents=177, sell_price_cents=177, profit_cents=77 WHERE contract_id=?", (f"con-{bid4}-1",))
+        c_lp.commit()
+        c_lp.close()
+        g6_lp = _pnl_e.summarize_settled_queue(
+            low_po_db, min_settled_for_promotion=50, book_id=bid4, repo_root=f_repo, require_registered_book=True,
+            cohort_start_utc=coh_start, expected_account_id="DMO55667788", expected_stake_usd="1.00", eval_now_utc=eval_end_iso,
+            canonical_db_path=low_po_db, enforce_canonical_db=True, rolling_vintage_root=v_root, canonical_rolling_vintage_root_path=v_root,
+        )
+        assert g6_lp["demo_rolling_g6_passed"] is False and any("payout_below_min_floor" in r for r in g6_lp["reasons"])
+
+        # 4c. Negative rolling G6: contradictory sig_payload_json (book_mode='static') -> rolling_vintage_provenance_mismatch!
+        bad_spj_db = root / "bad_spj.sqlite"
+        _sh_e.copy2(q_db, bad_spj_db)
+        c_bs = _sq_e.connect(str(bad_spj_db))
+        p0 = json.loads(c_bs.execute("SELECT payload_json FROM sota_signals WHERE signal_id=?", (f"sig-{bid4}-0",)).fetchone()[0])
+        p0["book_mode"] = "static"
+        c_bs.execute("UPDATE sota_signals SET payload_json=? WHERE signal_id=?", (json.dumps(p0), f"sig-{bid4}-0"))
+        c_bs.commit()
+        c_bs.close()
+        g6_bs = _pnl_e.summarize_settled_queue(
+            bad_spj_db, min_settled_for_promotion=50, book_id=bid4, repo_root=f_repo, require_registered_book=True,
+            cohort_start_utc=coh_start, expected_account_id="DMO55667788", expected_stake_usd="1.00", eval_now_utc=eval_end_iso,
+            canonical_db_path=bad_spj_db, enforce_canonical_db=True, rolling_vintage_root=v_root, canonical_rolling_vintage_root_path=v_root,
+        )
+        assert g6_bs["demo_rolling_g6_passed"] is False and any("rolling_vintage_provenance_mismatch" in r for r in g6_bs["reasons"])
+
+        # 5. Full 4-book --portfolio-mvt-report emits strictly Demo-only verdict DEMO_4BOOK_FULL_G6_REVIEW_PENDING_OWNER!
+        mvt4 = _pnl_e.evaluate_portfolio_mvt(
+            q_db,
+            book_ids=_pnl_e.DEFAULT_PHASE1_4BOOK_PORTFOLIO_BOOKS,
+            repo_root=f_repo,
+            canonical_db_path=q_db,
+            canonical_log_dir=log_d,
+            rolling_vintage_root=v_root,
+            canonical_rolling_vintage_root_path=v_root,
+            enforce_canonical_db=True,
+            eval_now_utc=eval_end_iso,
+            log_dir=log_d,
+        )
+        assert mvt4["verdict"] == "DEMO_4BOOK_FULL_G6_REVIEW_PENDING_OWNER", f"unexpected 4-book verdict: {mvt4}"
+        assert "LIVE" not in mvt4["verdict"]
+        assert mvt4["four_book_cohort_start_utc"] == cut_iso
+        assert mvt4["pillar3_portfolio_sequential_wr"]["all_books_strict_g6_eligible"] is False
+        assert mvt4["pillar3_portfolio_sequential_wr"]["all_books_demo_g6_eligible"] is True
+        assert mvt4["pillar3_portfolio_sequential_wr"]["rolling_book_live_real_money_eligible"] is False
+        assert mvt4["by_book"][bid4]["demo_rolling_g6_passed"] is True and mvt4["by_book"][bid4]["g6_promotion_eligible"] is False
+        assert "60m" in mvt4["pillar2_live_payout_parity"]["by_horizon"]
+        # Post-rollback 3-book fills (portfolio_mode='3book') MUST NOT enter the 4-book 15m horizon pool (exact 20, not 25)!
+        assert mvt4["pillar2_live_payout_parity"]["by_horizon"]["15m"]["n"] == 20
+
+        # 6. Sealed 3-book MVT stays clean even when a post-cutoff open static fill AND post-cutoff buy_intent exist!
+        open_post_db = root / "open_post.sqlite"
+        _sh_e.copy2(q_db, open_post_db)
+        c_op = _sq_e.connect(str(open_post_db))
+        t_open_sig = t_cut + 7200
+        open_sig_iso = datetime.fromtimestamp(t_open_sig, tz=timezone.utc).isoformat()
+        c_op.execute(
+            """
+            INSERT INTO sota_signals (
+                signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
+                signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
+                status, reason, contract_id, proposal_id, created_utc, updated_utc
+            ) VALUES ('sig-post-open', 'USDJPY.sota_ens5_m30_up.v1', 'USDJPY', 30, 'UP', 'wall', 0, ?, 0.56, 0.63, '{}', 'bought', 'buy_confirmed', 'con-post-open', 'p1', ?, ?)
+            """,
+            (open_sig_iso, open_sig_iso, open_sig_iso),
+        )
+        c_op.execute(
+            """
+            INSERT INTO sota_contracts (
+                contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                buy_price_cents, payout_cents, stake_authoritative,
+                venue_start_epoch, venue_end_epoch, signal_close_utc, status,
+                proposal_id, expected_expiry_utc, raw_hash, opened_utc, updated_utc
+            ) VALUES ('con-post-open', 'sig-post-open', 'USDJPY.sota_ens5_m30_up.v1', ?, 'DMO55667788', 'demo', 'USDJPY', 30, 'UP', 'risefall', 0, 0,
+                      100, 182, 1, ?, ?, ?, 'open', 'p1', ?, 'rh', ?, ?)
+            """,
+            (reg_map["USDJPY.sota_ens5_m30_up.v1"]["content_id"], t_open_sig + 2, t_open_sig + 1802, open_sig_iso, open_sig_iso, open_sig_iso, open_sig_iso),
+        )
+        c_op.execute(
+            """
+            INSERT INTO sota_signals (
+                signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
+                signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
+                status, reason, created_utc, updated_utc
+            ) VALUES ('sig-post-intent', ?, 'USDJPY', 60, 'UP', 'wall', 0, ?, 0.56, 0.63, '{}', 'buy_intent', 'p2', ?, ?)
+            """,
+            (bid4, open_sig_iso, open_sig_iso, open_sig_iso),
+        )
+        c_op.commit()
+        c_op.close()
+
+        mvt3_capped = _pnl_e.evaluate_portfolio_mvt(
+            open_post_db,
+            book_ids=_pnl_e.DEFAULT_PHASE1_PORTFOLIO_BOOKS,
+            repo_root=f_repo,
+            canonical_db_path=open_post_db,
+            canonical_log_dir=log_d,
+            enforce_canonical_db=True,
+            eval_now_utc=eval_end_iso,
+            log_dir=log_d,
+        )
+        assert mvt3_capped["verdict"] != "HALT_INVESTIGATE", f"post-cutoff open fill poisoned sealed 3-book MVT: {mvt3_capped}"
+        assert mvt3_capped["three_book_cohort_cutoff_utc"] == cut_iso
+        assert mvt3_capped["eval_now_utc"] == cut_iso
+        assert mvt3_capped["by_book"]["USDJPY.sota_ens5_m30_up.v1"]["n"] == 50
+        assert mvt3_capped["pillar1_execution_and_parity"]["unresolved_signals"] == 0
+        assert mvt3_capped["pillar1_execution_and_parity"]["live_unresolved_signals_total"] == 1
+
+
 def main() -> int:
     tests = [
         test_quote_parser_and_dual_ev_gate,
@@ -5415,6 +7299,10 @@ def main() -> int:
         test_phase1_prospective_g6_and_preflight,
         test_phase1_portfolio_replay_fixtures_a_to_f,
         test_portfolio_mvt_validator_and_options_proposal_ccy,
+        test_rolling_policy_index_journal_and_watermark,
+        test_rolling_midflight_revocation_lock_and_send_timeout,
+        test_rolling_4book_cutover_config_and_preflight,
+        test_rolling_refitter_downloader_and_4book_g6_mvt_e2e,
     ]
     for fn in tests:
         fn()

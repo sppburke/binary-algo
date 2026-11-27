@@ -1,0 +1,93 @@
+{
+  "allowed_sides": [
+    "UP"
+  ],
+  "artifacts": [
+    {
+      "bytes": 2216,
+      "file": "USDJPY.sota_roll14d_m60_up.v1_policy.json",
+      "sha256": "1fe9dcccf2c0ada692728685254e72cadfc959c3c3a3dc966a2ef12b8a9be622"
+    }
+  ],
+  "book_mode": "rolling_refit",
+  "content_id": "c0bc05ed06e288c1",
+  "created_utc": "2026-11-26T22:56:49Z",
+  "gate_certificates": {
+    "G1_rolling_oos": {
+      "all_4_shifts_passed": true,
+      "est_trades_per_year": 229.17,
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_roll14d_m60_up_v1_result.json",
+      "note": "Overlapping C(6,2) rolling sub-block pair-paths on causal 14d/120d DEV stream (<2026-08-01); NOT strict_certificate CPCV.",
+      "p10_wr": 0.572332,
+      "passed": true,
+      "paths_clear_0541": 15,
+      "paths_counted": 15,
+      "primary_ev": 0.151429,
+      "primary_ev_ci95": [
+        0.015238,
+        0.287619
+      ],
+      "primary_n": 147,
+      "primary_wr": 0.632653,
+      "protocol_amendment": "Owner Decision 15 (2026-11-26)"
+    },
+    "G2_placebo": {
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_roll14d_m60_up_v1_result.json",
+      "mean_excess_hour_vol": 0.051554,
+      "min_shift_excess_hr_rv": 0.053276,
+      "passed": true,
+      "paths_positive": 14,
+      "verdict": "SKILL BEYOND DRIFT TIMING"
+    },
+    "G3_entry_delay": {
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_roll14d_m60_up_v1_result.json",
+      "min_shift_d4_wr": 0.619048,
+      "passed": true,
+      "verdict_delay": "OPERATIONALLY ROBUST",
+      "verdict_staleness": "NOT A STALE-FEED ARTIFACT"
+    },
+    "G4_sign_null": {
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_roll14d_m60_up_v1_result.json",
+      "null_joint_passes": 0,
+      "null_protocol": "circular_week_shift_donor_interval_purged_with_receiver_time_causal_blocks",
+      "passed": true,
+      "rank_excess_hr_rv": "17/17",
+      "rank_wr": "17/17",
+      "readable_nulls": 16
+    },
+    "G5_payout": {
+      "decision5_per_trade_60m_payout_reading": "unavailable",
+      "evidence_json": "results/json/deriv_5gate_USDJPY_sota_roll14d_m60_up_v1_result.json",
+      "mean_ev": 0.151429,
+      "p10_ev": 0.041643,
+      "passed": true,
+      "paths_ev_positive": 14,
+      "quoted_payout_ratio": 1.82,
+      "verdict": "PAYOUT-CLEARED"
+    },
+    "G6_holdout_or_prospective": {
+      "live_real_money_eligible": false,
+      "mode": "prospective_demo_venue_settled_rotating_vintage",
+      "passed": false,
+      "reason": "Demo-only rotating-vintage canary under Owner Decision 15; requires >=50 prospective Demo VENUE_SETTLED trades with EV CI95_lo > 0 verified against canonical transitions.jsonl; never authorizes live CR* trading."
+    }
+  },
+  "horizon_minutes": 60,
+  "id": "USDJPY.sota_roll14d_m60_up.v1",
+  "lifecycle_status": "demo_rolling_refit_canary",
+  "metrics": {
+    "decision5_per_trade_60m_payout_reading": "unavailable",
+    "est_trades_per_year": 229.17,
+    "rolling_oos_mean_ev": 0.1514,
+    "rolling_oos_p10_ev": 0.0416,
+    "rolling_oos_p10_wr": 0.5723,
+    "rolling_oos_paths_clear": "15/15",
+    "rolling_oos_primary_wr": 0.6327
+  },
+  "model_kind": "nystroem-ens",
+  "pair": "USDJPY",
+  "protocol_amendment": "Owner Decision 15 (2026-11-26)",
+  "schema": "sota-book-manifest/v1",
+  "settlement_substrate": "deriv_1s_ticks",
+  "summary": "[USDJPY\u00b760m\u00b7UP] Bounded Demo-only 14d trailing-120d causal rolling-refit policy (nystroem-ens, core66, cov=0.04, min_payout=1.78) under Owner Decision 15 (2026-11-26). Runtime weights rotate dynamically outside Git via hash-chained transitions.jsonl + atomic state.json with immediate revocation on platt_coef <= 0."
+}

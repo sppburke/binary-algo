@@ -120,3 +120,53 @@ systemctl --user enable --now deriv-sota-executor.service
   `--db` is diagnostic only (`promotion_eligible: false` on non-canonical path). Eligibility requires verified anchor match, `venue_start_epoch >= cohort_start_epoch`, full `proposal_open_contract` venue-field and contract-spec agreement, zero anomalies, `n >= max(50, min_trades)`, and exact `Fraction` 95% bootstrap lower bound `> 0`.
 - **Safe Rollback / Emergency Stop:**
   Trigger `<log_dir>/KILL` OR run `--request-stop-latch --reason <text>` (commits `phase1_safety_latch` atomically in SQLite under `LOCK_EX` on `sota_handoff` even if `log_dir` is unwritable). Keep the service in log/feed-independent reconciliation-only mode until `0` open/unknown contracts and `0` `buy_intent`/`buy_unknown` signals remain, then stop the unit while keeping `v3` risk history and latch intact.
+
+---
+
+## 4. Separately Authorized 4-Book Rolling-Refit Expansion (`USDJPY.sota_roll14d_m60_up.v1`, Demo-Only — Owner Decision 15)
+
+> [!IMPORTANT]
+> **INACTIVE PACKAGING & SEPARATE AUTHORIZATION BOUNDARY:**
+> Tracked policy `books/USDJPY.sota_roll14d_m60_up.v1/` (`books/SOTA_ROLLING_INDEX.json`, `policy_content_id = c0bc05ed06e288c1`, `lifecycle_status: "demo_rolling_refit_canary"`) and systemd templates `ops/deriv-sota-4book-cutover.conf`, `ops/deriv-sota-tick-archive.{service,timer}`, and `ops/deriv-sota-rolling-refit.{service,timer}` are **inactive** on `main`. They do **NOT** authorize starting archive backfill, running refits, or cutting over the running 3-book Demo cohort on `vultr`. Each VPS activation step requires **separate explicit owner authorization** under `deriv-runtime-ops`.
+> - **Parity & Custody Disposition:** All 5 static frozen books in `books/SOTA_INDEX.json`, all 15 `PHASE1_SOURCE_CLOSURE_FILES`, and all 9 `PARITY_TRACKED_PATHS` remain **byte-identical** (legacy KILL #0 parity preserved unchanged).
+> - **Demo-Only Boundary:** `USDJPY.sota_roll14d_m60_up.v1` is strictly Demo-only (`live_real_money_eligible: false`, unconditionally refused in `live` mode).
+
+### Stage A — Non-Credentialed Rolling Tick Archive Bootstrap (Can Coexist With Live 3-Book Demo)
+1. Vendored Archive Downloader 1.7 (`scripts/deriv_ticks_download_vps.py`) connects strictly from `vultr` (`DERIV_HOST_JURISDICTION=mexico_vps`), uses pinned `wss://api.derivws.com/trading/v1/options/ws/public` (zero credentials, zero `EnvironmentFile=`), atomically creates/acquires `~/.local/state/binary-algo/deriv_public_connection.{lock,admission.json}` (`O_NOFOLLOW`, `0o600`), configures `--window 1000` and `--per-minute 20.0` in `ops/deriv-sota-tick-archive.service` (CLI hard ceiling `24.0 req/min`), fetches `--rolling-days 145` (`120` train + `7` warmup + up to `14` cadence-lag + `4` buffer calendar days) into repo-relative `deriv_data/rolling_ticks_archive/`, and refuses `/mnt/data/deriv*` research roots and symlinks.
+2. Resource & timeout bounds on `vultr` (`3.3 GiB` RAM, `~34 GiB` disk free): `ops/deriv-sota-tick-archive.service` pins `Nice=10`, `MemoryHigh=512M`, `MemoryMax=1G`, and `TimeoutStopSec=1920` (covering WebSocket teardown plus full `900s` cooldown and `900s` failed-persistence quiet drain). One-time 145-day 7-pair bootstrap takes `~61,500` base requests (`~51h` at the configured `20 req/min` before retries); scheduled top-ups run every `6h` via `ops/deriv-sota-tick-archive.timer` (`OnCalendar=*-*-* 00,06,12,18:10:00 UTC` with `RandomizedDelaySec=120`), with a full Monday–Thursday 7-pair weekday top-up taking `~609` base requests (`~30.5 min` at `20 req/min` before retries).
+3. Separate owner authorization installs `ops/deriv-sota-tick-archive.{service,timer}` into `~/.config/systemd/user/` without touching `deriv-sota-executor.service` or `deriv_data/ticks_1s/`.
+
+### Stage B — Offline Causal 14-Day Rolling Refit Verification (`deriv-sota-rolling-refit.{service,timer}`)
+1. `scripts/deriv_sota_rolling_refit.py` runs **strictly offline** (zero Deriv sockets; `Nice=15`, `MemoryHigh=1G`, `MemoryMax=1536M`; repo-relative `--archive-dir deriv_data/rolling_ticks_archive --vintage-root deriv_data/runtime/rolling_vintages` safe under `vultr`'s `~/git/binary-algo` symlink layout), acquires shared `LOCK_SH | LOCK_NB` on `<archive_dir>/.download.lock` (exiting `75` if a download is writing), audits Downloader 1.7 `complete == true` / `gaps_reconfirmed` sidecars (`symbol`, `date`, `clipped_by_*`, `parquet_sha256`, unfinished `parquet_sha256_next` refusal), freshness, and weekday gap budgets, streams the 6 non-target pairs day-by-day (`< 1 GiB` peak RSS), builds causal `core66` features with explicit `cutoff_utc = scheduled_refit_epoch` and `horizon_s = 3600`, verifies `< 1e-11` reload parity via `load_verified_vintage_book()`, and atomically replaces `transitions.jsonl`, `writer_watermark.json`, and `state.json` under `.transition.flock` (sampling publication time under the lock and verifying the journal head did not change during fit).
+2. When trailing-120d validation produces `platt_coef <= 0`, the refitter commits `status = "abstained"` locked across the entire 14-day block (`--force`, `--revoke-reason`, and `--resume-after-revoke` never override a block abstention), immediately preventing trading until the next scheduled 14-day refit clears `platt_coef > 0`.
+
+### Stage C — Clean Drain-to-4-Book Cutover Sequence (`vultr` Only, After Separate Owner Approval)
+1. Confirm `0` open/unknown contracts and `0` `buy_intent`/`buy_unknown` signals on the 3-book Demo cohort (wait for any open contract to settle cleanly).
+2. Stop `deriv-sota-executor.service` cleanly (`systemctl --user stop deriv-sota-executor.service`) **without** creating `<log_dir>/KILL` or setting `phase1_safety_latch` (an unlatched drained queue is required for `--live-smoke`). Pause `deriv-sota-tick-archive.service` if running so `~/.local/state/binary-algo/deriv_public_connection.lock` is free for `--live-smoke`.
+3. Durably seal the original 3-book (`3/3/3`) cohort observation cutoff in `sota_risk_state` (`cutoff_utc <= now`, whole-second RFC3339 UTC; required before 4-book cutover startup or preflight will admit 4-book buys) so post-cutover 4-book trades never retroactively contaminate the 3-book MVT cohort (pass `deriv-sota-executor.env` for Mode A; add `--property=EnvironmentFile="$HOME/.config/binary-algo/deriv-demo-executor.env"` only on Mode B hosts):
+   ```bash
+   systemd-run --user --wait --pipe --collect --working-directory="$HOME/git/binary-algo" \
+     --property=EnvironmentFile="$HOME/.config/binary-algo/deriv-sota-executor.env" -- \
+     ~/binary-algo-venv/bin/python -B -E -s scripts/deriv_sota_executor.py \
+       --seal-3book-cohort-cutoff \
+       --cutoff-utc <RFC3339_WHOLE_SECOND_UTC> \
+       --reason "pre_4book_cutover_owner_decision_15" \
+       --account-mode demo \
+       --credential-isolation-receipt ~/.config/binary-algo/sota-credential-isolation-receipt.json
+   ```
+4. Run strict 4-book cutover readiness preflight (`--enforce-4book-cutover --strict-rolling-vintage-state --live-smoke`) with 4-book `--book-ids`, `--rolling-vintage-dir deriv_data/runtime/rolling_vintages`, and `4/4/4` caps (auto-scales `--smoke-timeout-s` to `20.0s` covering `3 * 2.6s` pacing plus OTP/connect/proposal allowance; verifies `phase1_3book_cohort_cutoff` is sealed and no host rate-limit cooldown is active; passes if the rolling vintage is active OR currently `abstained` within `[scheduled_refit_epoch, next_refit_epoch)` and `[published_epoch, next_refit_epoch)`; fails closed if missing/expired/future/corrupt/tampered).
+5. Register the prospective rotating-vintage `G6` cohort anchor for `USDJPY.sota_roll14d_m60_up.v1` via `--register-cohort-anchor` (`vintage_policy: "rotating_vintages"`).
+6. Keep `~/.config/binary-algo/deriv-sota-executor.env` untouched at its 3-book/`3/3/3` baseline! Install `ops/deriv-sota-4book-cutover.conf` to `~/.config/systemd/user/deriv-sota-executor.service.d/20-4book-cutover.conf` (the drop-in pins the 4-book `--book-ids`, `--rolling-vintage-dir`, and `4/4/4` CLI arguments directly in `ExecStartPre`/`ExecStart`, overriding `EnvironmentFile=` cleanly while keeping `.env` untouched), install `ops/deriv-sota-rolling-refit.{service,timer}` into `~/.config/systemd/user/`, run `systemctl --user daemon-reload`, inspect `systemctl --user show deriv-sota-executor.service -p ExecStartPre,ExecStart,DropInPaths`, start `deriv-sota-executor.service`, and enable `deriv-sota-tick-archive.timer` and `deriv-sota-rolling-refit.timer`.
+
+### Stage D — 4-Book Demo MVT Evaluation & Audited Rollback
+- **Read-Only 4-Book Demo MVT Report:**
+  ```bash
+  ~/binary-algo-venv/bin/python -B -E -s scripts/deriv_live_pnl_ledger.py \
+    --portfolio-mvt-report \
+    --book-ids USDJPY.sota_ens5_m30_up.v1,USDJPY.sota_stack05_m30_up.v1,USDJPY.sota_ens5_m15_up.v1,USDJPY.sota_roll14d_m60_up.v1
+  ```
+  Requires a valid sealed `phase1_3book_cohort_cutoff`, admits ONLY `portfolio_mode == "4book"` fills started at/after the sealed cutover boundary into the 4-book portfolio pool (so neither pre-cutover 3-book static fills nor post-rollback 3-book fills can contaminate 4-book MVT, while keeping full per-book historical G6 evidence), and emits strictly Demo-only verdicts (`DEMO_4BOOK_FULL_G6_REVIEW_PENDING_OWNER`, `DEMO_4BOOK_MVT_EV_REVIEW_PENDING_OWNER`, `DEMO_4BOOK_MVT_MICRO_REVIEW_PENDING_OWNER`, `HOLD_COLLECTING`, `HALT_INVESTIGATE`, `DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY`) with `all_books_strict_g6_eligible: false` and `rolling_book_live_real_money_eligible: false`. Running the default 3-book `--portfolio-mvt-report` automatically caps evaluation at `phase1_3book_cohort_cutoff`.
+- **Zero-Downtime Rolling Book Revocation / Full Rollback to 3-Book:**
+  - Immediate durable 4th-book halt (zero restart of the 3 static books; remains halted across scheduled `--if-due` and `--force` runs until an explicit `--resume-after-revoke` refit is invoked):
+    `~/binary-algo-venv/bin/python -B -E -s scripts/deriv_sota_rolling_refit.py --book-id USDJPY.sota_roll14d_m60_up.v1 --revoke-reason <reason>`
+  - Full atomic revert to 3-book (`3/3/3`): stop `deriv-sota-rolling-refit.timer` & `deriv-sota-tick-archive.timer`, remove `~/.config/systemd/user/deriv-sota-executor.service.d/20-4book-cutover.conf` (which restores the untouched 3-book/`3/3/3` base `.env` and `ExecStart` atomically), `systemctl --user daemon-reload`, and restart `deriv-sota-executor.service` once open contracts settle.

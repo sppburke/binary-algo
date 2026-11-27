@@ -1,0 +1,28 @@
+{
+  "books": [
+    {
+      "allowed_sides": [
+        "UP"
+      ],
+      "book_mode": "rolling_refit",
+      "content_id": "c0bc05ed06e288c1",
+      "horizon_minutes": 60,
+      "id": "USDJPY.sota_roll14d_m60_up.v1",
+      "lifecycle_status": "demo_rolling_refit_canary",
+      "manifest": "books/USDJPY.sota_roll14d_m60_up.v1/USDJPY.sota_roll14d_m60_up.v1.manifest.json",
+      "metrics": {
+        "decision5_per_trade_60m_payout_reading": "unavailable",
+        "est_trades_per_year": 229.17,
+        "rolling_oos_mean_ev": 0.1514,
+        "rolling_oos_p10_ev": 0.0416,
+        "rolling_oos_p10_wr": 0.5723,
+        "rolling_oos_paths_clear": "15/15",
+        "rolling_oos_primary_wr": 0.6327
+      },
+      "model_kind": "nystroem-ens",
+      "pair": "USDJPY"
+    }
+  ],
+  "protocol_amendment": "Owner Decision 15 (2026-11-26)",
+  "schema": "sota-rolling-book-index/v1"
+}

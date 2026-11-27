@@ -1,0 +1,21 @@
+[Unit]
+Description=binary-algo Deriv SOTA operational trailing-145d tick archive downloader (Archive Downloader 1.7, public WS, zero credentials, Mexico VPS only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=DERIV_HOST_JURISDICTION=mexico_vps
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_ALLOW_LIVE_REAL_MONEY PYTHONPATH PYTHONSTARTUP PYTHONHOME PYTHONUSERBASE PYTHONINSPECT PYTHONWARNINGS
+WorkingDirectory=%h/git/binary-algo
+# Exit 0 = complete; Exit 3 = empty trading-hour windows awaiting 6h second fetch (retried on next 6h timer tick);
+# Exit 75 = canonical host connection or archive lock busy; Exit 76 = quiet-drain persistence unconfirmed.
+SuccessExitStatus=0 3
+# Cover WebSocket shutdown plus full 900s cooldown + 900s failed-persistence quiet drain before SIGKILL.
+TimeoutStopSec=1920
+# 145 calendar days covers train_days(120) + warmup_days(7) + max cadence lag(14) + 4d buffer from any day in a 14d cycle.
+ExecStart=%h/binary-algo-venv/bin/python -B -E -s scripts/deriv_ticks_download_vps.py --data-dir deriv_data/rolling_ticks_archive --rolling-days 145 --per-minute 20
+Nice=10
+MemoryHigh=512M
+MemoryMax=1G

@@ -106,6 +106,17 @@ from sota_book_runtime import (
     load_sota_book,
     parse_book_ids_spec,
 )
+from sota_rolling_runtime import (
+    DEFAULT_ROLLING_VINTAGE_DIR_REL,
+    ROLLING_BOOK_MODE,
+    RollingSotaBookHandle,
+    RollingTransitionLockBusyError,
+    RollingVintageError,
+    acquire_rolling_transition_lock,
+    canonical_rolling_vintage_root,
+    load_enabled_sota_books_any,
+    load_sota_book_any,
+)
 
 CLASSIC_V3_WS_TEMPLATE = "wss://ws.derivws.com/websockets/v3?app_id={app_id}"
 TERMINAL_CONTRACT_STATUSES = frozenset({"won", "lost", "sold", "expired", "cancelled"})
@@ -114,6 +125,12 @@ PHASE1_ORDERED_BOOK_IDS: tuple[str, ...] = (
     "USDJPY.sota_ens5_m30_up.v1",
     "USDJPY.sota_stack05_m30_up.v1",
     "USDJPY.sota_ens5_m15_up.v1",
+)
+PHASE1_4BOOK_ORDERED_BOOK_IDS: tuple[str, ...] = (
+    "USDJPY.sota_ens5_m30_up.v1",
+    "USDJPY.sota_stack05_m30_up.v1",
+    "USDJPY.sota_ens5_m15_up.v1",
+    "USDJPY.sota_roll14d_m60_up.v1",
 )
 SQLITE_INT64_MIN = -(1 << 63)
 SQLITE_INT64_MAX = (1 << 63) - 1
@@ -618,6 +635,8 @@ class ValidatedSotaRuntimeConfig:
     repo_root: Path
     pw_home: Path
     lock_paths: dict[str, Path]
+    rolling_vintage_dir: Path | None = None
+    enforce_4book_cutover: bool = False
 
 
 def resolve_and_validate_sota_runtime_config(
@@ -639,15 +658,20 @@ def resolve_and_validate_sota_runtime_config(
     log_dir_raw: str,
     credential_isolation_receipt_raw: str | None,
     enforce_3book_cutover: bool = False,
+    enforce_4book_cutover: bool = False,
+    rolling_vintage_dir_raw: str | None = None,
     require_explicit_book_ids: bool = True,
     fixture_home: Path | None = None,
     fixture_repo_root: Path | None = None,
     allow_fixture: bool = False,
 ) -> ValidatedSotaRuntimeConfig:
-    """Single non-bypassable Phase 1 Demo runtime configuration validator (spec §3.6)."""
+    """Single non-bypassable Phase 1 Demo runtime configuration validator (spec §3.6 + Decision 15)."""
     fh, fr = validate_fixture_roots(fixture_home, fixture_repo_root, allow_fixture=allow_fixture)
     pw_home = fh if fh is not None else canonical_pw_home()
     repo_root = fr if fr is not None else LEXICAL_REPO_ROOT
+
+    if enforce_3book_cutover and enforce_4book_cutover:
+        raise ExecutorError("--enforce-3book-cutover and --enforce-4book-cutover are mutually exclusive")
 
     mode = str(account_mode).strip().lower()
     if mode != "demo":
@@ -663,23 +687,35 @@ def resolve_and_validate_sota_runtime_config(
     if require_explicit_book_ids and not parsed_books:
         raise ExecutorError("explicit non-empty --book-ids is required")
     assert parsed_books is not None
-    allowed_set = set(PHASE1_ORDERED_BOOK_IDS)
-    for b in parsed_books:
-        if b not in allowed_set:
-            raise ExecutorError(f"unauthorized Phase 1 book_id: {b!r}")
-    # Preserve exact priority order among selected authorized books
-    idx_pos = [PHASE1_ORDERED_BOOK_IDS.index(b) for b in parsed_books]
-    if idx_pos != sorted(idx_pos):
-        raise ExecutorError(f"--book-ids violates Phase 1 priority order {PHASE1_ORDERED_BOOK_IDS}: {parsed_books}")
-    if enforce_3book_cutover:
-        if tuple(parsed_books) != PHASE1_ORDERED_BOOK_IDS:
+    # Rolling 4th-book admission is strictly gated on --enforce-4book-cutover!
+    if enforce_4book_cutover:
+        if tuple(parsed_books) != PHASE1_4BOOK_ORDERED_BOOK_IDS:
             raise ExecutorError(
-                f"--enforce-3book-cutover requires exact ordered 3 books {PHASE1_ORDERED_BOOK_IDS}, got {tuple(parsed_books)}"
+                f"--enforce-4book-cutover requires exact ordered 4 books {PHASE1_4BOOK_ORDERED_BOOK_IDS}, got {tuple(parsed_books)}"
             )
-        if (max_open_contracts, max_usd_factor_open, max_jpy_factor_open) != (3, 3, 3):
+        if (max_open_contracts, max_usd_factor_open, max_jpy_factor_open) != (4, 4, 4):
             raise ExecutorError(
-                f"--enforce-3book-cutover requires 3/3/3 caps, got {(max_open_contracts, max_usd_factor_open, max_jpy_factor_open)}"
+                f"--enforce-4book-cutover requires 4/4/4 caps, got {(max_open_contracts, max_usd_factor_open, max_jpy_factor_open)}"
             )
+        cap_upper = 4
+    else:
+        allowed_set = set(PHASE1_ORDERED_BOOK_IDS)
+        for b in parsed_books:
+            if b not in allowed_set:
+                raise ExecutorError(f"unauthorized Phase 1 book_id: {b!r}")
+        idx_pos = [PHASE1_ORDERED_BOOK_IDS.index(b) for b in parsed_books]
+        if idx_pos != sorted(idx_pos):
+            raise ExecutorError(f"--book-ids violates Phase 1 priority order {PHASE1_ORDERED_BOOK_IDS}: {parsed_books}")
+        if enforce_3book_cutover:
+            if tuple(parsed_books) != PHASE1_ORDERED_BOOK_IDS:
+                raise ExecutorError(
+                    f"--enforce-3book-cutover requires exact ordered 3 books {PHASE1_ORDERED_BOOK_IDS}, got {tuple(parsed_books)}"
+                )
+            if (max_open_contracts, max_usd_factor_open, max_jpy_factor_open) != (3, 3, 3):
+                raise ExecutorError(
+                    f"--enforce-3book-cutover requires 3/3/3 caps, got {(max_open_contracts, max_usd_factor_open, max_jpy_factor_open)}"
+                )
+        cap_upper = 3
 
     stake_cents = parse_exact_whole_cents(stake_raw, allow_zero=False, allow_negative=False)
     if stake_cents != 100:
@@ -696,8 +732,8 @@ def resolve_and_validate_sota_runtime_config(
         ("max_usd_factor_open", max_usd_factor_open),
         ("max_jpy_factor_open", max_jpy_factor_open),
     ):
-        if isinstance(cap_val, bool) or not (1 <= int(cap_val) <= 3):
-            raise ExecutorError(f"{cap_name}={cap_val} outside [1, 3]")
+        if isinstance(cap_val, bool) or not (1 <= int(cap_val) <= cap_upper):
+            raise ExecutorError(f"{cap_name}={cap_val} outside [1, {cap_upper}]")
     if not (0.0 < float(absolute_breakeven_ceiling) <= 0.60):
         raise ExecutorError(f"absolute_breakeven_ceiling={absolute_breakeven_ceiling} > 0.60")
     if not (0.005 <= float(ev_margin) < 1.0):
@@ -712,6 +748,16 @@ def resolve_and_validate_sota_runtime_config(
         if os.path.abspath(str(q_abs)) != os.path.abspath(str(canon_q)):
             raise ExecutorError(f"non-canonical --queue-db refused: {q_abs} != {canon_q}")
     q_path = canon_q
+
+    canon_vdir = canonical_rolling_vintage_root(repo_root=repo_root)
+    if rolling_vintage_dir_raw:
+        v_in = Path(rolling_vintage_dir_raw)
+        if ".." in v_in.parts:
+            raise ExecutorError(f"unsafe --rolling-vintage-dir refused: {rolling_vintage_dir_raw!r}")
+        v_abs = v_in if v_in.is_absolute() else (repo_root / v_in)
+        if os.path.abspath(str(v_abs)) != os.path.abspath(str(canon_vdir)):
+            raise ExecutorError(f"non-canonical --rolling-vintage-dir refused: {v_abs} != {canon_vdir}")
+    v_path = canon_vdir
 
     if not credential_isolation_receipt_raw:
         raise ExecutorError("missing --credential-isolation-receipt")
@@ -742,6 +788,8 @@ def resolve_and_validate_sota_runtime_config(
         repo_root=repo_root,
         pw_home=pw_home,
         lock_paths=lock_paths,
+        rolling_vintage_dir=v_path,
+        enforce_4book_cutover=bool(enforce_4book_cutover),
     )
 
 
@@ -895,25 +943,43 @@ class SotaDerivAsyncClient(DerivAsyncClient):
         expected_generation: int | None = None,
         expect_response: bool = True,
         send_guard_fn: Callable[[str, dict[str, Any]], None] | None = None,
+        extra_send_lock_ctx: Callable[[], Any] | None = None,
+        send_timeout_fn: Callable[[], float] | None = None,
     ) -> dict[str, Any] | int:
-        """Single gated outbound transport funnel enforcing capability class, generation & handoff lock."""
+        """Single gated outbound transport funnel enforcing capability class, generation, handoff & rolling transition lock."""
         if self._dead:
+            if send_class == "trade_mutation":
+                raise ExecutorError(f"pre_send_client_dead: {self._dead}")
             raise DerivAPIError(f"client dead: {self._dead}")
         if self._closing:
+            if send_class == "trade_mutation":
+                raise ExecutorError("pre_send_client_closed")
             raise DerivAPIError("client closed")
         if expect_response:
             try:
                 await asyncio.wait_for(self._connected.wait(), timeout or self.request_timeout)
             except asyncio.TimeoutError:
+                if send_class == "trade_mutation":
+                    raise ExecutorError("pre_send_not_connected_within_timeout") from None
                 raise DerivAPIError("not connected within request timeout") from None
 
         async with self._send_lock:
+            if self._dead:
+                if send_class == "trade_mutation":
+                    raise ExecutorError(f"pre_send_client_dead: {self._dead}")
+                raise DerivAPIError(f"client dead: {self._dead}")
+            if self._closing:
+                if send_class == "trade_mutation":
+                    raise ExecutorError("pre_send_client_closed")
+                raise DerivAPIError("client closed")
             self._validate_send_capability(send_class, payload, expected_generation=expected_generation)
             if send_class == "identity" and "balance" in payload:
                 self._bootstrap_balance_used_gen = self._generation
 
             ws = self._ws
             if ws is None:
+                if send_class == "trade_mutation":
+                    raise ExecutorError("pre_send_websocket_closed")
                 raise DerivAPIError("websocket closed before send")
             self._req_id += 1
             rid = self._req_id
@@ -928,26 +994,50 @@ class SotaDerivAsyncClient(DerivAsyncClient):
                 self._pending[rid] = fut
 
             need_handoff_lock = send_class in ("proposal", "trade_mutation") and self.handoff_lock_path is not None
+            ws_send_entered = False
+
+            async def _run_guarded_send() -> None:
+                nonlocal ws_send_entered
+                if need_handoff_lock or extra_send_lock_ctx is not None:
+                    self._validate_send_capability(send_class, payload, expected_generation=expected_generation)
+                if send_guard_fn is not None:
+                    send_guard_fn(send_class, payload)
+                ws_t = send_timeout_fn() if send_timeout_fn is not None else None
+                if ws_t is not None and ws_t <= 0.0:
+                    raise ExecutorError("send_window_expired_before_ws_send")
+                self.outbound_log.append((send_class, dict(msg)))
+                ws_send_entered = True
+                if ws_t is not None:
+                    try:
+                        await asyncio.wait_for(ws.send(raw_text), timeout=ws_t)
+                    except asyncio.TimeoutError:
+                        # Bytes may have left socket before send timeout -> MUST raise DerivAPIError so buy_unknown is preserved!
+                        raise DerivAPIError(f"ws_send_timeout_uncertain:{ws_t:.3f}s") from None
+                else:
+                    await ws.send(raw_text)
+
             try:
-                if need_handoff_lock:
+                if need_handoff_lock and extra_send_lock_ctx is not None:
                     assert self.handoff_lock_path is not None
                     with acquire_sota_flock(self.handoff_lock_path, exclusive=False, nonblocking=True):
-                        # Re-check capability, client guard & per-call guard INSIDE handoff lock before sending a single byte!
-                        self._validate_send_capability(send_class, payload, expected_generation=expected_generation)
-                        if send_guard_fn is not None:
-                            send_guard_fn(send_class, payload)
-                        self.outbound_log.append((send_class, dict(msg)))
-                        await ws.send(raw_text)
+                        with extra_send_lock_ctx():
+                            await _run_guarded_send()
+                elif need_handoff_lock:
+                    assert self.handoff_lock_path is not None
+                    with acquire_sota_flock(self.handoff_lock_path, exclusive=False, nonblocking=True):
+                        await _run_guarded_send()
+                elif extra_send_lock_ctx is not None:
+                    with extra_send_lock_ctx():
+                        await _run_guarded_send()
                 else:
-                    if send_guard_fn is not None:
-                        send_guard_fn(send_class, payload)
-                    self.outbound_log.append((send_class, dict(msg)))
-                    await ws.send(raw_text)
+                    await _run_guarded_send()
             except Exception as exc:
                 if expect_response:
                     self._pending.pop(rid, None)
                 if isinstance(exc, (ExecutorError, DerivAPIError)):
                     raise
+                if not ws_send_entered:
+                    raise ExecutorError(f"pre_send_guard_or_lock_failed: {exc}") from exc
                 raise DerivAPIError(f"transport send failed: {exc}") from exc
 
         if not expect_response:
@@ -992,9 +1082,19 @@ class SotaDerivAsyncClient(DerivAsyncClient):
         timeout: float | None = None,
         *,
         expected_generation: int | None = None,
+        send_guard_fn: Callable[[str, dict[str, Any]], None] | None = None,
+        extra_send_lock_ctx: Callable[[], Any] | None = None,
+        send_timeout_fn: Callable[[], float] | None = None,
     ) -> dict[str, Any]:
         res = await self._exclusive_send_text(
-            "proposal", payload, timeout=timeout, expected_generation=expected_generation, expect_response=True
+            "proposal",
+            payload,
+            timeout=timeout,
+            expected_generation=expected_generation,
+            expect_response=True,
+            send_guard_fn=send_guard_fn,
+            extra_send_lock_ctx=extra_send_lock_ctx,
+            send_timeout_fn=send_timeout_fn,
         )
         assert isinstance(res, dict)
         return res
@@ -1006,6 +1106,8 @@ class SotaDerivAsyncClient(DerivAsyncClient):
         *,
         expected_generation: int | None = None,
         send_guard_fn: Callable[[str, dict[str, Any]], None] | None = None,
+        extra_send_lock_ctx: Callable[[], Any] | None = None,
+        send_timeout_fn: Callable[[], float] | None = None,
     ) -> dict[str, Any]:
         res = await self._exclusive_send_text(
             "trade_mutation",
@@ -1014,6 +1116,8 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             expected_generation=expected_generation,
             expect_response=True,
             send_guard_fn=send_guard_fn,
+            extra_send_lock_ctx=extra_send_lock_ctx,
+            send_timeout_fn=send_timeout_fn,
         )
         assert isinstance(res, dict)
         return res
@@ -2489,7 +2593,8 @@ def register_cohort_anchor(
     validate_credential_isolation_receipt(
         receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
     )
-    book = load_sota_book(book_id, repo_root=repo_root, allow_demo_canary=(account_mode == "demo"))
+    book = load_sota_book_any(book_id, repo_root=repo_root, allow_demo_canary=(account_mode == "demo"))
+    is_rolling = isinstance(book, RollingSotaBookHandle)
     start_dt = _parse_iso_utc(cohort_start_utc)
     if start_dt is None or start_dt.microsecond != 0:
         raise ExecutorError(f"cohort_start_utc must be whole-second RFC3339 UTC, got {cohort_start_utc!r}")
@@ -2506,12 +2611,17 @@ def register_cohort_anchor(
             ex_row = conn.execute("SELECT value_json FROM sota_risk_state WHERE key=?", (anchor_key,)).fetchone()
             if ex_row is not None:
                 ex = json.loads(str(ex_row[0]))
+                rolling_match = (not is_rolling) or (
+                    ex.get("vintage_policy") == "rotating_vintages"
+                    and ex.get("policy_content_id") == book.content_id
+                )
                 if (
                     ex.get("cohort_start_utc") == start_iso
                     and ex.get("required_stake_cents") == 100
                     and ex.get("account_id") == account_id
                     and ex.get("book_id") == book.book_id
                     and ex.get("book_content_id") == book.content_id
+                    and rolling_match
                 ):
                     return {"status": "idempotent_existing_anchor", "anchor": ex}
                 raise ExecutorError(f"conflicting existing cohort anchor for book={book.book_id} content_id={book.content_id}")
@@ -2541,7 +2651,7 @@ def register_cohort_anchor(
             if ambig > 0:
                 raise ExecutorError(f"cannot register cohort anchor with {ambig} open/unknown/cohort contracts for {book.book_id}")
 
-            anchor = {
+            anchor: dict[str, Any] = {
                 "account_id": account_id,
                 "book_id": book.book_id,
                 "book_content_id": book.content_id,
@@ -2553,6 +2663,10 @@ def register_cohort_anchor(
                 "registered_utc": reg_iso,
                 "required_stake_cents": 100,
             }
+            if is_rolling:
+                anchor["vintage_policy"] = "rotating_vintages"
+                anchor["policy_content_id"] = book.content_id
+                anchor["protocol_amendment"] = book.policy.protocol_amendment
             conn.execute("BEGIN IMMEDIATE")
             try:
                 conn.execute(
@@ -2564,6 +2678,127 @@ def register_cohort_anchor(
                 conn.execute("ROLLBACK")
                 raise
             return {"status": "registered", "anchor": anchor}
+        finally:
+            conn.close()
+
+
+def validate_3book_cohort_cutoff_record(
+    rec: Any,
+    *,
+    expected_account_id: str,
+    now_epoch: int | None = None,
+) -> dict[str, Any]:
+    """Validate durable phase1_3book_cohort_cutoff record (typed schema, account binding, cutoff <= sealed_utc <= now)."""
+    if not isinstance(rec, dict):
+        raise ExecutorError("invalid phase1_3book_cohort_cutoff: not a JSON object")
+    if rec.get("schema") != "sota-3book-cohort-cutoff/v1":
+        raise ExecutorError(f"invalid phase1_3book_cohort_cutoff schema: {rec.get('schema')!r}")
+    if rec.get("account_id") != expected_account_id:
+        raise ExecutorError("phase1_3book_cohort_cutoff account_id mismatch")
+    reason = rec.get("reason")
+    if type(reason) is not str or not reason.strip():
+        raise ExecutorError("phase1_3book_cohort_cutoff missing non-empty reason")
+    cut_ep = rec.get("cutoff_epoch")
+    if type(cut_ep) is not int or cut_ep <= 0:
+        raise ExecutorError("phase1_3book_cohort_cutoff invalid cutoff_epoch")
+    cut_dt = _parse_iso_utc(rec.get("cutoff_utc"))
+    if cut_dt is None or cut_dt.microsecond != 0 or int(cut_dt.timestamp()) != cut_ep:
+        raise ExecutorError("phase1_3book_cohort_cutoff cutoff_utc mismatch")
+    sealed_dt = _parse_iso_utc(rec.get("sealed_utc"))
+    if sealed_dt is None:
+        raise ExecutorError("phase1_3book_cohort_cutoff invalid sealed_utc")
+    sealed_ep = int(sealed_dt.timestamp())
+    if cut_ep > sealed_ep:
+        raise ExecutorError("phase1_3book_cohort_cutoff cutoff_epoch exceeds sealed_utc")
+    ref_now = int(time.time()) if now_epoch is None else int(now_epoch)
+    if sealed_ep > ref_now + 60 or cut_ep > ref_now + 60:
+        raise ExecutorError("phase1_3book_cohort_cutoff is future-dated relative to current clock")
+    return rec
+
+
+def assert_4book_cutover_cutoff_sealed(
+    conn: sqlite3.Connection,
+    *,
+    expected_account_id: str,
+) -> dict[str, Any]:
+    """Verify canonical v3 queue contains a valid account-bound phase1_3book_cohort_cutoff before 4-book activation."""
+    row = conn.execute(
+        "SELECT value_json FROM sota_risk_state WHERE key='phase1_3book_cohort_cutoff'"
+    ).fetchone()
+    if row is None:
+        raise ExecutorError("4book_cutover_requires_sealed_3book_cohort_cutoff")
+    try:
+        obj = json.loads(str(row[0]))
+    except Exception as exc:
+        raise ExecutorError(f"4book_cutover_corrupt_3book_cohort_cutoff: {exc}") from exc
+    return validate_3book_cohort_cutoff_record(obj, expected_account_id=expected_account_id)
+
+
+def seal_3book_cohort_cutoff(
+    *,
+    queue_db: Path,
+    account_id: str,
+    account_mode: str,
+    cutoff_utc: str,
+    reason: str,
+    receipt_path: Path,
+    pw_home: Path | None = None,
+) -> dict[str, Any]:
+    """Durably seal the original 3-book (3/3/3) observation cutoff in sota_risk_state prior to any 4-book cutover."""
+    if account_mode != "demo" or not is_valid_demo_account_id(account_id):
+        raise ExecutorError("--seal-3book-cohort-cutoff requires a concrete demo account")
+    if not str(reason or "").strip():
+        raise ExecutorError("--seal-3book-cohort-cutoff requires non-empty --reason")
+    validate_credential_isolation_receipt(
+        receipt_path, expected_account_id=account_id, expected_account_mode=account_mode, pw_home=pw_home
+    )
+    cut_dt = _parse_iso_utc(cutoff_utc)
+    if cut_dt is None or cut_dt.microsecond != 0:
+        raise ExecutorError(f"cutoff_utc must be whole-second RFC3339 UTC, got {cutoff_utc!r}")
+    cut_ep = int(cut_dt.timestamp())
+    now_dt = utc_now().astimezone(timezone.utc)
+    now_ep = int(now_dt.timestamp())
+    if cut_ep > now_ep:
+        raise ExecutorError(f"cutoff_utc {cutoff_utc!r} is in the future relative to sealing time")
+    cut_iso = datetime.fromtimestamp(cut_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    locks = canonical_sota_lock_paths(queue_db, pw_home=pw_home)
+    with acquire_ordered_locks([(locks["acct"], True, True), (locks["queue"], True, True)]):
+        conn = connect_sota_queue_v3(queue_db, expected_account_id=account_id, expected_account_mode=account_mode)
+        try:
+            ex = conn.execute("SELECT value_json FROM sota_risk_state WHERE key='phase1_3book_cohort_cutoff'").fetchone()
+            if ex is not None:
+                ex_obj = json.loads(str(ex[0]))
+                validate_3book_cohort_cutoff_record(ex_obj, expected_account_id=account_id)
+                if ex_obj.get("cutoff_epoch") == cut_ep:
+                    return {"status": "idempotent_existing_cutoff", "cutoff": ex_obj}
+                raise ExecutorError("conflicting phase1_3book_cohort_cutoff already sealed")
+            unresolved = int(conn.execute("SELECT COUNT(*) FROM sota_signals WHERE status IN ('buy_intent','buy_unknown')").fetchone()[0])
+            open_c = int(conn.execute("SELECT COUNT(*) FROM sota_contracts WHERE status IN ('open','unknown')").fetchone()[0])
+            if unresolved > 0 or open_c > 0:
+                raise ExecutorError(f"cannot seal 3-book cutoff while unresolved={unresolved} or open/unknown={open_c}")
+            sealed_dt = utc_now().astimezone(timezone.utc)
+            if cut_ep > int(sealed_dt.timestamp()):
+                raise ExecutorError(f"cutoff_utc {cutoff_utc!r} exceeds sealing clock")
+            rec = {
+                "schema": "sota-3book-cohort-cutoff/v1",
+                "account_id": account_id,
+                "cutoff_utc": cut_iso,
+                "cutoff_epoch": cut_ep,
+                "reason": str(reason).strip(),
+                "sealed_utc": utc_iso(sealed_dt),
+            }
+            validate_3book_cohort_cutoff_record(rec, expected_account_id=account_id)
+            conn.execute("BEGIN IMMEDIATE")
+            try:
+                conn.execute(
+                    "INSERT INTO sota_risk_state (key, value_json, updated_utc) VALUES ('phase1_3book_cohort_cutoff', ?, ?)",
+                    (json.dumps(rec, sort_keys=True), rec["sealed_utc"]),
+                )
+                conn.execute("COMMIT")
+            except Exception:
+                conn.execute("ROLLBACK")
+                raise
+            return {"status": "sealed", "cutoff": rec}
         finally:
             conn.close()
 
@@ -2758,8 +2993,11 @@ class SotaTradeExecutor:
         max_signal_age_s: float = 45.0,
         max_buy_dispatch_delay_s: float = 4.0,
         env: DerivEnv | None = None,
+        rolling_handles: dict[str, RollingSotaBookHandle] | None = None,
+        portfolio_cohort_mode: str = "3book",
     ):
         self.account_mode = str(account_mode).strip().lower()
+        self.portfolio_cohort_mode = str(portfolio_cohort_mode)
         self.stake_usd = float(stake_usd)
         self.db_path = Path(db_path)
         self.log_dir = Path(log_dir)
@@ -2781,11 +3019,24 @@ class SotaTradeExecutor:
         self.max_signal_age_s = float(max_signal_age_s)
         self.max_buy_dispatch_delay_s = float(max_buy_dispatch_delay_s)
         self.env = env
+        self.rolling_handles: dict[str, RollingSotaBookHandle] = dict(rolling_handles or {})
         self.client: Any = None
         self.transport_kind: str = "options_otp"
         self._authorized_reconnect_epoch: int = -1
         self.last_venue_time_epoch: int | None = None
+        self.last_venue_time_mono: float | None = None
         self.consecutive_reconcile_errors = 0
+
+    def _set_venue_time_epoch(self, venue_ep: int) -> None:
+        self.last_venue_time_epoch = int(venue_ep)
+        self.last_venue_time_mono = time.monotonic()
+
+    def _projected_venue_epoch(self) -> float | None:
+        if self.last_venue_time_epoch is None:
+            return None
+        if self.last_venue_time_mono is None:
+            return float(self.last_venue_time_epoch)
+        return float(self.last_venue_time_epoch) + max(0.0, time.monotonic() - self.last_venue_time_mono)
 
     def _safe_log(self, event: str, **fields: Any) -> None:
         if self.logger is None:
@@ -2810,16 +3061,30 @@ class SotaTradeExecutor:
         timeout: float = 6.0,
         expected_generation: int | None = None,
         send_guard_fn: Callable[[str, dict[str, Any]], None] | None = None,
+        extra_send_lock_ctx: Callable[[], Any] | None = None,
+        send_timeout_fn: Callable[[], float] | None = None,
     ) -> dict[str, Any]:
         assert self.client is not None
         if isinstance(self.client, SotaDerivAsyncClient):
             if send_class == "account_read":
                 return await self.client.request_account_read(payload, timeout=timeout, expected_generation=expected_generation)
             if send_class == "proposal":
-                return await self.client.request_proposal(payload, timeout=timeout, expected_generation=expected_generation)
+                return await self.client.request_proposal(
+                    payload,
+                    timeout=timeout,
+                    expected_generation=expected_generation,
+                    send_guard_fn=send_guard_fn,
+                    extra_send_lock_ctx=extra_send_lock_ctx,
+                    send_timeout_fn=send_timeout_fn,
+                )
             if send_class == "trade_mutation":
                 return await self.client.request_trade_mutation(
-                    payload, timeout=timeout, expected_generation=expected_generation, send_guard_fn=send_guard_fn
+                    payload,
+                    timeout=timeout,
+                    expected_generation=expected_generation,
+                    send_guard_fn=send_guard_fn,
+                    extra_send_lock_ctx=extra_send_lock_ctx,
+                    send_timeout_fn=send_timeout_fn,
                 )
             if send_class == "identity":
                 return await self.client.request_identity(payload, timeout=timeout)
@@ -2833,12 +3098,14 @@ class SotaTradeExecutor:
         if isinstance(self.client, SotaDerivAsyncClient):
             if self.client.is_identity_verified():
                 return
-            self.last_venue_time_epoch = await self.client.establish_identity(
-                account_id=self.env.account_id,
-                account_mode=self.account_mode,
-                transport_kind=self.transport_kind,
-                pat=self.env.pat,
-                timeout=10.0,
+            self._set_venue_time_epoch(
+                await self.client.establish_identity(
+                    account_id=self.env.account_id,
+                    account_mode=self.account_mode,
+                    transport_kind=self.transport_kind,
+                    pat=self.env.pat,
+                    timeout=10.0,
+                )
             )
             return
 
@@ -2934,6 +3201,49 @@ class SotaTradeExecutor:
                     (st_val, rsn, utc_iso(ts_dt), signal_id),
                 )
 
+        r_handle = self.rolling_handles.get(str(payload["book_id"]))
+
+        def _rolling_epoch(is_post: bool, *, include_venue: bool = False) -> float:
+            if is_post and getattr(self, "_post_quote_clock_fn", None) is not None:
+                local_ep = float(self._post_quote_clock_fn().astimezone(timezone.utc).timestamp())
+            elif now_utc is None:
+                local_ep = time.time()
+            else:
+                local_ep = float((now + timedelta(seconds=max(0.0, time.monotonic() - mono_start))).timestamp())
+            if include_venue:
+                v_proj = self._projected_venue_epoch()
+                if v_proj is not None:
+                    return max(local_ep, v_proj)
+            return local_ep
+
+        auth_window_box: list[int | None] = [None, None]  # [valid_from_epoch, valid_until_epoch] from verified journal!
+
+        def _verify_rolling(is_post: bool, *, include_venue: bool, persist_watermark: bool) -> float:
+            assert r_handle is not None
+            rem_v = r_handle.verify_vintage_active_for_signal(
+                payload,
+                _rolling_epoch(is_post, include_venue=include_venue),
+                conn=conn,
+                persist_watermark=persist_watermark,
+            )
+            auth_vf = r_handle._last_verified_valid_from_epoch
+            auth_vu = r_handle._last_verified_valid_until_epoch
+            if auth_vf is None or auth_vu is None:
+                raise RollingVintageError("rolling_vintage_unauthenticated_window")
+            auth_window_box[0] = auth_vf
+            auth_window_box[1] = auth_vu
+            if include_venue:
+                v_proj = self._projected_venue_epoch()
+                if v_proj is not None and v_proj < float(auth_vf):
+                    raise RollingVintageError("rolling_vintage_not_yet_active_at_venue_clock")
+            return rem_v
+
+        def _fresh_rolling_remaining(is_post: bool, _fallback_rem: float) -> float:
+            auth_vu = auth_window_box[1]
+            if auth_vu is None:
+                return 0.0
+            return float(auth_vu) - _rolling_epoch(is_post, include_venue=True)
+
         pre_reason = self.pre_proposal_gate(payload, now_utc=now)
         if pre_reason is not None:
             status = self._reject_status_for(conn, "signal_expired" if pre_reason == "signal_expired" else "terminal_skip")
@@ -2941,18 +3251,40 @@ class SotaTradeExecutor:
             self._safe_log("signal_rejected_pre_proposal", **{**payload, "signal_id": signal_id, "reason": pre_reason})
             return {"signal_id": signal_id, "status": status, "reason": pre_reason}
 
+        if r_handle is not None:
+            try:
+                _verify_rolling(False, include_venue=False, persist_watermark=False)
+            except RollingVintageError as exc:
+                st_rv = self._reject_status_for(conn, "terminal_skip")
+                rsn_rv = f"rolling_vintage_inactive:{str(exc)[:120]}"
+                _set_sig_status(st_rv, rsn_rv, now)
+                self._safe_log("signal_rejected_pre_proposal", **{**payload, "signal_id": signal_id, "reason": rsn_rv})
+                return {"signal_id": signal_id, "status": st_rv, "reason": rsn_rv}
+
         assert self.client is not None
         await self.ensure_authenticated()
         expected_gen = self.client.generation if isinstance(self.client, SotaDerivAsyncClient) else None
         # MAJOR #1: Refresh same-generation venue clock on v3 before cooldown admission so cooldown never goes stale!
         if is_v3 and isinstance(self.client, SotaDerivAsyncClient):
             try:
-                self.last_venue_time_epoch = await self.client.fetch_venue_time_epoch(timeout=4.0, expected_generation=expected_gen)
+                self._set_venue_time_epoch(
+                    await self.client.fetch_venue_time_epoch(timeout=4.0, expected_generation=expected_gen)
+                )
             except Exception as exc:
                 st_f = self._reject_status_for(conn, "terminal_skip")
                 _set_sig_status(st_f, "venue_time_refresh_failed", now)
                 self._safe_log("venue_time_refresh_failed", signal_id=signal_id, error=str(exc)[:240])
                 return {"signal_id": signal_id, "status": st_f, "reason": "venue_time_refresh_failed"}
+
+        if r_handle is not None:
+            try:
+                _verify_rolling(False, include_venue=True, persist_watermark=True)
+            except RollingVintageError as exc:
+                st_rv = self._reject_status_for(conn, "terminal_skip")
+                rsn_rv = f"rolling_vintage_inactive:{str(exc)[:120]}"
+                _set_sig_status(st_rv, rsn_rv, now)
+                self._safe_log("signal_rejected_pre_proposal", **{**payload, "signal_id": signal_id, "reason": rsn_rv})
+                return {"signal_id": signal_id, "status": st_rv, "reason": rsn_rv}
 
         risk_reason = check_risk_and_exposure(
             conn,
@@ -3031,13 +3363,42 @@ class SotaTradeExecutor:
             self._safe_log("invalid_family_payload", **{**payload, "signal_id": signal_id, "error": str(exc)[:240]})
             return {"signal_id": signal_id, "status": st_f, "reason": "invalid_family_payload"}
 
+        prop_rem_box = [2.0]
+
+        def _rolling_prop_guard(_cls: str, _pay: dict[str, Any]) -> None:
+            if r_handle is not None:
+                rem_p = _verify_rolling(False, include_venue=True, persist_watermark=True)
+                if rem_p <= 0.25:
+                    raise ExecutorError("rolling_vintage_expiring_before_proposal_send")
+                prop_rem_box[0] = rem_p
+
+        prop_lock_ctx = (
+            (lambda: r_handle.hold_transition_read_lock(nonblocking=True))
+            if r_handle is not None
+            else None
+        )
+        prop_send_timeout = (lambda: min(2.0, _fresh_rolling_remaining(False, prop_rem_box[0]))) if r_handle is not None else None
+
         try:
-            prop_resp = await self._call_typed("proposal", prop_req, timeout=4.0, expected_generation=expected_gen)
+            prop_resp = await self._call_typed(
+                "proposal",
+                prop_req,
+                timeout=4.0,
+                expected_generation=expected_gen,
+                send_guard_fn=_rolling_prop_guard if r_handle is not None else None,
+                extra_send_lock_ctx=prop_lock_ctx,
+                send_timeout_fn=prop_send_timeout,
+            )
         except Exception as exc:
             st_f = self._reject_status_for(conn, "terminal_skip")
-            _set_sig_status(st_f, "proposal_failed", now)
+            rsn_pf = (
+                f"rolling_vintage_pre_proposal_refused:{str(exc)[:120]}"
+                if (r_handle is not None and isinstance(exc, ExecutorError))
+                else "proposal_failed"
+            )
+            _set_sig_status(st_f, rsn_pf, now)
             self._safe_log("proposal_failed", **{**payload, "signal_id": signal_id, "error": str(exc)[:240]})
-            return {"signal_id": signal_id, "status": st_f, "reason": "proposal_failed"}
+            return {"signal_id": signal_id, "status": st_f, "reason": rsn_pf}
 
         prop = prop_resp.get("proposal") or {}
         payout_exact_frac: Fraction | None = None
@@ -3159,6 +3520,18 @@ class SotaTradeExecutor:
             self._safe_log("quote_ask_blocked_risk", **{**payload, "signal_id": signal_id, "ask": ask_approved, "reason": post_quote_risk})
             return {"signal_id": signal_id, "status": st_r, "reason": post_quote_risk}
 
+        if r_handle is not None:
+            try:
+                rem_post = _verify_rolling(True, include_venue=True, persist_watermark=True)
+                if rem_post <= 0.25:
+                    raise RollingVintageError("rolling_vintage_expiring_post_quote")
+            except RollingVintageError as exc:
+                st_rvp = self._reject_status_for(conn, "terminal_skip")
+                rsn_rvp = f"rolling_vintage_inactive:{str(exc)[:120]}"
+                _set_sig_status(st_rvp, rsn_rvp, post_now, prop_id=str(proposal_id))
+                self._safe_log("signal_rejected_post_quote", **{**payload, "signal_id": signal_id, "reason": rsn_rvp})
+                return {"signal_id": signal_id, "status": st_rvp, "reason": rsn_rvp}
+
         # Atomically commit durable buy_intent BEFORE transport handoff!
         conn.execute("BEGIN IMMEDIATE")
         try:
@@ -3185,12 +3558,13 @@ class SotaTradeExecutor:
                 self._safe_log("buy_refused_pre_send", signal_id=signal_id, reason=pre_refusal)
                 return {"signal_id": signal_id, "status": st_pre, "reason": pre_refusal}
 
-        # BLOCKER #2: Recheck live latch, KILL, dispatch deadline, exact 100-cent ask & quote binding INSIDE handoff lock!
+        # BLOCKER #2: Recheck live latch, KILL, dispatch deadline, exact 100-cent ask, quote binding & rolling vintage INSIDE locks!
         buy_price_wire = (
             parse_exact_whole_cents(self.stake_usd, allow_zero=False, allow_negative=False) / 100.0
             if (is_v3 and family != "multiplier")
             else float(ask_approved)
         )
+        buy_rem_box = [2.0]
 
         def _handoff_buy_guard(_cls: str, _pay: dict[str, Any]) -> None:
             if is_safety_latch_set(conn) is not None or self.kill_path.exists():
@@ -3202,6 +3576,22 @@ class SotaTradeExecutor:
             if is_v3 and family != "multiplier":
                 if parse_exact_whole_cents(prop.get("ask_price"), allow_zero=False, allow_negative=False) != parse_exact_whole_cents(self.stake_usd, allow_zero=False, allow_negative=False):
                     raise ExecutorError("exact_ask_cents_mismatch_under_handoff_lock")
+            if r_handle is not None:
+                rem_b = _verify_rolling(True, include_venue=True, persist_watermark=True)
+                if rem_b <= 0.25:
+                    raise ExecutorError("rolling_vintage_expiring_before_buy_send")
+                buy_rem_box[0] = rem_b
+
+        buy_lock_ctx = (
+            (lambda: r_handle.hold_transition_read_lock(nonblocking=True))
+            if r_handle is not None
+            else None
+        )
+        buy_send_timeout = (
+            (lambda: min(2.0, _fresh_rolling_remaining(True, buy_rem_box[0]), max(0.0, float(self.max_buy_dispatch_delay_s) - (time.monotonic() - mono_start))))
+            if r_handle is not None
+            else None
+        )
 
         try:
             buy_resp = await self._call_typed(
@@ -3210,6 +3600,8 @@ class SotaTradeExecutor:
                 timeout=5.0,
                 expected_generation=expected_gen,
                 send_guard_fn=_handoff_buy_guard,
+                extra_send_lock_ctx=buy_lock_ctx,
+                send_timeout_fn=buy_send_timeout,
             )
         except ExecutorError as exc:
             # Pre-handoff client capability/guard refusal -> 0 bytes sent!
@@ -3823,13 +4215,28 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
         log_dir_raw=args.log_dir,
         credential_isolation_receipt_raw=args.credential_isolation_receipt,
         enforce_3book_cutover=bool(args.enforce_3book_cutover),
+        enforce_4book_cutover=bool(args.enforce_4book_cutover),
+        rolling_vintage_dir_raw=args.rolling_vintage_dir,
         require_explicit_book_ids=True,
         allow_fixture=False,
     )
     if cfg.lock_paths["hold"].exists():
         raise ExecutorError(f"activation hold present: {cfg.lock_paths['hold']}")
     _check_no_legacy_buyers_proc()
-    books = load_enabled_sota_books(repo_root=cfg.repo_root, account_mode="demo", book_ids=list(cfg.book_ids))
+    if cfg.enforce_4book_cutover:
+        books = load_enabled_sota_books_any(
+            repo_root=cfg.repo_root,
+            account_mode="demo",
+            book_ids=list(cfg.book_ids),
+            runtime_vintage_root=cfg.rolling_vintage_dir,
+        )
+    else:
+        books = load_enabled_sota_books(
+            repo_root=cfg.repo_root,
+            account_mode="demo",
+            book_ids=list(cfg.book_ids),
+        )
+    rolling_handles = {b.book_id: b for b in books if isinstance(b, RollingSotaBookHandle)}
     db_path = cfg.queue_db
     log_dir = cfg.log_dir
     lock_paths = cfg.lock_paths
@@ -3843,7 +4250,6 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
         max_jpy_factor_open=cfg.max_jpy_factor_open,
     )
 
-    ws_url, transport_kind = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
     pairs_needed = sorted({b.pair for b in books})
     tick_store_dir = Path(args.tick_store_dir)
     external_ticks = str(args.tick_feed_mode).lower() == "external"
@@ -3856,9 +4262,16 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
         assert_non_us_deriv_host()
         return PUBLIC_WS_URL
 
-    # MAJOR #2: Acquire locks, open bound v3 queue & determine recovery mode BEFORE initializing logging/tick_buf!
+    # MAJOR #2: Acquire locks, open bound v3 queue & validate 4-book cutoff BEFORE requesting authenticated URL/logging!
     with acquire_ordered_locks([(lock_paths["acct"], True, True), (lock_paths["queue"], True, True)]):
         conn = connect_sota_queue_v3(db_path, expected_account_id=env.account_id, expected_account_mode=args.account_mode)
+        try:
+            if cfg.enforce_4book_cutover:
+                assert_4book_cutover_cutoff_sealed(conn, expected_account_id=env.account_id)
+            ws_url, transport_kind = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
+        except Exception:
+            conn.close()
+            raise
         latched_recovery_only = is_safety_latch_set(conn) is not None or (log_dir / "KILL").exists()
         executor = SotaTradeExecutor(
             account_mode=args.account_mode,
@@ -3871,6 +4284,8 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
             dry_run_proposal_only=args.dry_run_proposal_only,
             max_buy_dispatch_delay_s=cfg.max_buy_dispatch_delay_s,
             env=env,
+            rolling_handles=rolling_handles,
+            portfolio_cohort_mode="4book" if cfg.enforce_4book_cutover else "3book",
         )
         executor.transport_kind = transport_kind
 
@@ -3940,6 +4355,7 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
             last_scored_minute = int(time.time() // 60) * 60
             last_reconcile = time.monotonic()
             deadline = (time.monotonic() + args.duration_seconds) if args.duration_seconds else None
+            rolling_last_state: dict[str, tuple[str | None, str | None]] = {}
 
             while deadline is None or time.monotonic() < deadline:
                 if auth_client._background_failed.is_set():
@@ -4005,7 +4421,59 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
                                 executor._safe_log("feature_or_book_skip", book_id=book.book_id, pair=book.pair, reason=str(f_err))
                                 continue
                             try:
-                                sc = book.score_row(frow.row, minute_close)
+                                active_transition: dict[str, Any] | None = None
+                                scoring_book: Any = book
+                                if isinstance(book, RollingSotaBookHandle):
+                                    v_book, v_trans, v_reason = book.resolve_active_vintage(
+                                        minute_close, conn=conn, persist_watermark=True
+                                    )
+                                    cur_vid = str(v_trans["vintage_id"]) if (v_book is not None and v_trans is not None) else None
+                                    prev_vid, prev_rsn = rolling_last_state.get(book.book_id, (None, None))
+                                    if v_book is None or v_trans is None:
+                                        if prev_vid is not None:
+                                            executor._safe_log(
+                                                "rolling_vintage_revoked",
+                                                book_id=book.book_id,
+                                                policy_content_id=book.content_id,
+                                                previous_vintage_id=prev_vid,
+                                                reason=str(v_reason or "inactive")[:180],
+                                            )
+                                        elif prev_rsn != v_reason:
+                                            ev_name = (
+                                                "rolling_vintage_load_failed"
+                                                if str(v_reason or "").startswith(
+                                                    ("rolling_journal_or_watermark_error", "rolling_vintage_corrupt")
+                                                )
+                                                else "rolling_vintage_inactive"
+                                            )
+                                            executor._safe_log(
+                                                ev_name,
+                                                book_id=book.book_id,
+                                                policy_content_id=book.content_id,
+                                                reason=str(v_reason or "inactive")[:180],
+                                            )
+                                        rolling_last_state[book.book_id] = (None, v_reason)
+                                        continue
+                                    if prev_vid != cur_vid:
+                                        executor._safe_log(
+                                            "rolling_vintage_loaded",
+                                            book_id=book.book_id,
+                                            policy_content_id=book.content_id,
+                                            vintage_id=cur_vid,
+                                            vintage_content_id=v_book.content_id,
+                                            transition_seq=int(v_trans["seq"]),
+                                            valid_from_utc=v_trans["valid_from_utc"],
+                                            valid_until_utc=v_trans["valid_until_utc"],
+                                        )
+                                    rolling_last_state[book.book_id] = (cur_vid, None)
+                                    scoring_book = v_book
+                                    active_transition = v_trans
+
+                                sc = scoring_book.score_row(frow.row, minute_close)
+                                log_extra: dict[str, Any] = {}
+                                if active_transition is not None:
+                                    log_extra["vintage_id"] = str(active_transition["vintage_id"])
+                                    log_extra["policy_content_id"] = book.content_id
                                 executor._safe_log(
                                     "book_scored",
                                     book_id=book.book_id,
@@ -4018,9 +4486,10 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
                                     calibrated_win_prob=sc.calibrated_win_prob,
                                     gate_passed=sc.gate_passed,
                                     gate_reasons=sc.gate_reasons,
+                                    **log_extra,
                                 )
                                 if sc.gate_passed:
-                                    sig = {
+                                    sig: dict[str, Any] = {
                                         "book_id": book.book_id,
                                         "pair": book.pair,
                                         "horizon_minutes": book.horizon_minutes,
@@ -4030,19 +4499,28 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
                                         "signal_close_utc": frow.decision_utc,
                                         "effective_floor": sc.effective_floor,
                                         "calibrated_win_prob": sc.calibrated_win_prob,
-                                        "min_payout_ratio": book.min_payout_ratio,
-                                        "drop_ny_16h": book.drop_ny_16h,
-                                        "contract_family": book.contract_family,
-                                        "multiplier": book.multiplier,
+                                        "min_payout_ratio": scoring_book.min_payout_ratio,
+                                        "drop_ny_16h": scoring_book.drop_ny_16h,
+                                        "contract_family": scoring_book.contract_family,
+                                        "multiplier": scoring_book.multiplier,
                                         "expected_ev": sc.expected_ev,
-                                        "certified_commission_frac": book.certified_commission_frac,
-                                        "max_commission_frac": book.max_commission_frac,
-                                        "min_stop_out_rel_dist": book.min_stop_out_rel_dist,
-                                        "barrier_contract_type": book.barrier_contract_type,
-                                        "barrier_rel_half_width": book.barrier_rel_half_width,
+                                        "certified_commission_frac": scoring_book.certified_commission_frac,
+                                        "max_commission_frac": scoring_book.max_commission_frac,
+                                        "min_stop_out_rel_dist": scoring_book.min_stop_out_rel_dist,
+                                        "barrier_contract_type": scoring_book.barrier_contract_type,
+                                        "barrier_rel_half_width": scoring_book.barrier_rel_half_width,
                                         "spot_ref": frow.spot_ref,
-                                        "book_content_id": book.content_id,
+                                        "book_content_id": scoring_book.content_id,
+                                        "portfolio_mode": executor.portfolio_cohort_mode,
                                     }
+                                    if active_transition is not None:
+                                        sig["book_mode"] = ROLLING_BOOK_MODE
+                                        sig["policy_content_id"] = book.content_id
+                                        sig["vintage_id"] = str(active_transition["vintage_id"])
+                                        sig["transition_seq"] = int(active_transition["seq"])
+                                        sig["transition_sha256"] = str(active_transition["transition_sha256"])
+                                        sig["vintage_valid_from_epoch"] = int(active_transition["valid_from_epoch"])
+                                        sig["vintage_valid_until_epoch"] = int(active_transition["valid_until_epoch"])
                                     inserted, sid = enqueue_sota_signal(conn, sig)
                                     if inserted:
                                         await executor.process_one_signal(conn, sid, sig)
@@ -4068,12 +4546,14 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--export-legacy-ownership-preimage", action="store_true")
     ap.add_argument("--adopt-legacy-account", action="store_true")
     ap.add_argument("--register-cohort-anchor", action="store_true")
+    ap.add_argument("--seal-3book-cohort-cutoff", action="store_true")
     ap.add_argument("--clear-stale-legacy-lock", action="store_true")
     ap.add_argument("--request-stop-latch", action="store_true")
 
     ap.add_argument("--phase1-policy", action="store_true")
     ap.add_argument("--require-explicit-book-ids", action="store_true")
     ap.add_argument("--enforce-3book-cutover", action="store_true")
+    ap.add_argument("--enforce-4book-cutover", action="store_true")
     ap.add_argument("--account-mode", choices=("demo", "live"), default=os.environ.get("DERIV_ACCOUNT_MODE", "demo"))
     ap.add_argument("--book-ids", default=os.environ.get("DERIV_SOTA_BOOK_IDS", ""))
     ap.add_argument("--book-id", default="")
@@ -4090,6 +4570,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--max-buy-dispatch-delay-s", type=float, default=float(os.environ.get("DERIV_SOTA_MAX_BUY_DISPATCH_DELAY_S", "4.0")))
     ap.add_argument("--dry-run-proposal-only", action="store_true")
     ap.add_argument("--queue-db", default=os.environ.get("DERIV_SOTA_QUEUE_DB", ""))
+    ap.add_argument("--rolling-vintage-dir", default=os.environ.get("DERIV_SOTA_ROLLING_VINTAGE_DIR", str(DEFAULT_ROLLING_VINTAGE_DIR_REL)))
     ap.add_argument("--tick-store-dir", default=os.environ.get("DERIV_SOTA_TICK_STORE_DIR", str(DEFAULT_SOTA_TICK_STORE)))
     ap.add_argument("--log-dir", default=os.environ.get("DERIV_SOTA_LOG_DIR", "logs/sota_runtime"))
     ap.add_argument("--lock-root", default=os.environ.get("DERIV_RUNTIME_LOCK_ROOT", ""))
@@ -4100,6 +4581,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--staged-v3-dir", default="")
     ap.add_argument("--ownership-proof-json", default="")
     ap.add_argument("--cohort-start-utc", default="")
+    ap.add_argument("--cutoff-utc", default="")
     ap.add_argument("--duration-seconds", type=float, default=0.0)
     # Explicitly parse fixture flags solely to refuse them fail-closed on production CLI!
     ap.add_argument("--fixture-home", default=None)
@@ -4120,6 +4602,7 @@ def main(argv: list[str] | None = None) -> int:
             ("--export-legacy-ownership-preimage", args.export_legacy_ownership_preimage),
             ("--adopt-legacy-account", args.adopt_legacy_account),
             ("--register-cohort-anchor", args.register_cohort_anchor),
+            ("--seal-3book-cohort-cutoff", args.seal_3book_cohort_cutoff),
             ("--clear-stale-legacy-lock", args.clear_stale_legacy_lock),
             ("--request-stop-latch", args.request_stop_latch),
         )
@@ -4267,6 +4750,27 @@ def main(argv: list[str] | None = None) -> int:
             if "account_id" in pub_out["anchor"]:
                 anc["account_id_sha256"] = redact_account_id(str(pub_out["anchor"]["account_id"]))
             pub_out["anchor"] = anc
+        print(json.dumps(pub_out, indent=2, sort_keys=True))
+        return 0
+
+    if args.seal_3book_cohort_cutoff:
+        if not all((args.cutoff_utc, args.reason, args.credential_isolation_receipt)):
+            raise ExecutorError("--seal-3book-cohort-cutoff requires --cutoff-utc, --reason, and --credential-isolation-receipt")
+        env = DerivEnv.from_env()
+        out = seal_3book_cohort_cutoff(
+            queue_db=q_db,
+            account_id=env.account_id,
+            account_mode=args.account_mode,
+            cutoff_utc=args.cutoff_utc,
+            reason=args.reason,
+            receipt_path=Path(args.credential_isolation_receipt),
+        )
+        pub_out = dict(out)
+        if isinstance(pub_out.get("cutoff"), dict):
+            co = {k: v for k, v in pub_out["cutoff"].items() if k != "account_id"}
+            if "account_id" in pub_out["cutoff"]:
+                co["account_id_sha256"] = redact_account_id(str(pub_out["cutoff"]["account_id"]))
+            pub_out["cutoff"] = co
         print(json.dumps(pub_out, indent=2, sort_keys=True))
         return 0
 

@@ -1066,6 +1066,54 @@ go ahead with this" (verbatim; lab `PROGRESS.md`, "Owner decisions (2026-11-20)"
   8 × 2 job: a light lane holds the neural CPU full arms, shortest first, while the heavy queue keeps the identity
   regression and then the payout campaign once registered.
 
+**Answer of 2026-11-26 (Owner Decision 15 — Bounded Demo-Only Rolling-OOS `G1_rolling_oos` & Rotating-Vintage `G6` Amendment).**
+Put with two options after Workstreams A (`809f696`) and B (`1775472`) landed, and answered verbatim by the owner: `"a"`
+(Option A: keep the live 3-book Demo cohort on `vultr` running uninterrupted toward MVT/SPRT validation, record an Owner
+Protocol Amendment admitting rolling-OOS `G1_rolling_oos` & rotating-vintage `G6`, and engineer the production-grade
+4th-book runtime with atomic executor vintage loading/revocation on `platt_coef <= 0` and Archive Downloader 1.7
+integration for Demo paper trading alongside the 3 live books). Binding terms:
+
+- **Bounded Demo-only scope (`lifecycle_status: "demo_rolling_refit_canary"`):** Applies strictly to
+  `USDJPY.sota_roll14d_m60_up.v1` (`[USDJPY·60m·UP]`, `CALL` `risefall`, 5-seed `500`-comp RBF Nyström + SGD
+  `nystroem-ens`, `core66` 1s-tick features, `cov = 0.04`, 14-day trailing-120-day causal rolling refit, registered
+  separately in `books/SOTA_ROLLING_INDEX.json` so `books/SOTA_INDEX.json` and all 15 `PHASE1_SOURCE_CLOSURE_FILES` stay
+  byte-identical). Static books remain governed by `G1_cpcv` (`scripts/certificate.py`) and single-`book_content_id` `G6`.
+  Live real-money (`CR*`/`MF*`) trading remains unconditionally prohibited (`live_real_money_eligible: false`).
+- **`G1_rolling_oos` DEV admission bar (`results/json/deriv_5gate_USDJPY_sota_roll14d_m60_up_v1_result.json`):** Strictly
+  DEV `< 2026-08-01` decision-time-causal evaluation across all 4 calendar boundary shifts (`+0d, +3d, +7d, +10d`, each
+  `n >= 100`, `wr >= 0.541`, `ev > 0`, `ev_ci95_lo > 0`), 15 overlapping `C(6,2)` chronological sub-block pair-paths
+  (`>= 12/15` clear `0.541`, `>= 80%`, `p10_wr >= 0.541`, recorded explicitly as `rolling_oos_p10_floors` — never
+  `refit_cpcv_p10_floors`), plus `G2_placebo`, `G3_entry_delay` (including `<= 2s` freshness), `G4_sign_null` (circular
+  week-shift donor-interval-purged receiver-time causal blocks, real rank #1 on WR & excess, `0` null joint passes), and
+  `G5_payout`. Runtime candidate selection applies `conf >= conf_thr` followed by live venue quote EV gating
+  (`p_cal * R_live - 1 >= 0.005`, `R_live >= 1.78` exact rational, `effective_floor > 1 / R_live`) and per-fill 60m
+  venue-clock + signal-gap cooldown (an intentional operational difference from DEV's fixed-`1.82` pre-settlement
+  candidate spacing).
+- **Operational live training data boundary (strictly separate from research holdout):** On Mexico VPS `vultr` ONLY,
+  operational live 14-day trailing-120-day refits consume freshly downloaded public Deriv ticks stored under
+  `<repo_root>/deriv_data/rolling_ticks_archive` (fetched exclusively from Mexico VPS via vendored Archive Downloader
+  1.7 `scripts/deriv_ticks_download_vps.py`, refusing `/mnt/data/deriv` and `/mnt/data/deriv-sota-lab`). Although live
+  trailing-120-day operational windows from `2026-11-26` overlap calendar dates `>= 2026-08-01`, `USDJPY.sota_roll14d_m60_up.v1`
+  is not a Look-1/Look-2 holdout finalist, zero research-host holdout files (`holdout/`, `cache/dataset_full_*`,
+  `/mnt/data/deriv/ticks/* >= 2026-08-01`) are ever opened, and live operational refits never produce or count as a
+  holdout evaluation or look.
+- **Decision 5 bounded Demo-only payout disposition:** Per-trade reconstructed 60m payout-aware path evidence is
+  `"unavailable"` (`G5_payout` is fixed-ratio `R = 1.82` DEV sensitivity only); bounded Demo canary execution enforces
+  live per-proposal exact rational `payout / ask >= 1.78` (`min_payout_ratio = 1.78`) and measures realized live 60m
+  payouts under Pillar 2 (`ratio_ci99_lo >= 1.78`).
+- **Atomic revocation & rotating-vintage `G6`:** Every 14-day refit commits to an append-only hash-chained journal
+  (`transitions.jsonl`, fsynced before atomic `state.json`) under per-book `.transition.flock`. Any completed refit
+  with block-purged validation Platt slope `<= 0` publishes `status: "abstained"` locked through the next scheduled
+  14-day boundary (`next_refit_epoch`); the executor checks `.transition.flock` around rolling sends and drops revoked,
+  expired, or replayed vintages immediately without affecting the 3 live static books. Rotating-vintage `G6` joins
+  `sota_contracts`, `sota_signals.payload_json`, `sota_risk_state` watermarks, and canonical `transitions.jsonl` to prove
+  every fill fell inside its vintage's effective live authorization interval `[eff_start, eff_end)`, reporting Demo-only
+  `demo_rolling_g6_passed` (keeping `promotion_eligible: false` for the rolling book).
+- **Separate VPS activation boundary:** Inactive code, policy manifests, and unit templates land on `main` first.
+  Enabling `vultr` tick-archive backfill and cutting the sole Demo buyer over from 3-book (`3/3/3`) to 4-book (`4/4/4`,
+  after sealing the original 3-book cohort cutoff in `sota_risk_state`) each require separate owner approval under
+  `deriv-runtime-ops`.
+
 ## Open owner decisions
 
 (Decision 1 is resolved above. Its background: strategy-eval §2 treats a moved up-rate outside [0.47, 0.53] as a

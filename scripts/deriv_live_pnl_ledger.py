@@ -33,6 +33,17 @@ import numpy as np
 from scipy.stats import beta as scipy_beta, t as scipy_t
 
 from deriv_runtime_core_v2 import SOTA_DERIV_SYMBOLS, contract_type_for, is_valid_demo_account_id
+from sota_rolling_runtime import (
+    DEFAULT_ROLLING_VINTAGE_DIR_REL,
+    ROLLING_BOOK_MODE,
+    RollingVintageError,
+    canonical_rolling_vintage_root,
+    compute_effective_vintage_intervals,
+    load_rolling_index,
+    load_rolling_policy,
+    load_verified_transitions,
+    rolling_watermark_key,
+)
 
 SETTLED_STATUSES = frozenset({"won", "lost", "sold", "expired", "cancelled"})
 G6_ELIGIBLE_SETTLED_STATUSES = frozenset({"won", "lost", "sold"})
@@ -107,11 +118,29 @@ _SAFE_MVT_REASON_CODES = frozenset({
     "ev_ci95_lo_not_positive",
     "cohort_not_yet_started",
     "invalid_prospective_anchor_order",
+    "anchor_vintage_policy_mismatch",
+    "rolling_journal_invalid_or_missing",
+    "rolling_journal_non_canonical",
+    "rolling_watermark_missing_or_mismatch",
+    "rolling_vintage_not_in_transition_log",
+    "rolling_vintage_provenance_mismatch",
+    "rolling_vintage_window_violation",
+    "rolling_watermark_sequence_not_covered",
+    "payout_below_min_floor",
+    "invalid_3book_cohort_cutoff",
+    "missing_or_invalid_3book_cohort_cutoff",
 })
+_KNOWN_ROLLING_BOOK_IDS = frozenset({"USDJPY.sota_roll14d_m60_up.v1"})
 DEFAULT_PHASE1_PORTFOLIO_BOOKS = (
     "USDJPY.sota_ens5_m30_up.v1",
     "USDJPY.sota_stack05_m30_up.v1",
     "USDJPY.sota_ens5_m15_up.v1",
+)
+DEFAULT_PHASE1_4BOOK_PORTFOLIO_BOOKS = (
+    "USDJPY.sota_ens5_m30_up.v1",
+    "USDJPY.sota_stack05_m30_up.v1",
+    "USDJPY.sota_ens5_m15_up.v1",
+    "USDJPY.sota_roll14d_m60_up.v1",
 )
 DEFAULT_MIN_PAYOUT_BY_HORIZON = {15: 1.76, 30: 1.78, 60: 1.78}
 _ALLOWED_LOG_EVENTS = frozenset({
@@ -141,6 +170,10 @@ _ALLOWED_LOG_EVENTS = frozenset({
     "reconcile_error",
     "reconcile_failed",
     "reconcile_settled",
+    "rolling_vintage_inactive",
+    "rolling_vintage_load_failed",
+    "rolling_vintage_loaded",
+    "rolling_vintage_revoked",
     "signal_blocked_risk",
     "signal_rejected_post_quote",
     "signal_rejected_pre_proposal",
@@ -181,26 +214,94 @@ def _parse_whole_second_epoch(val: str | None) -> int | None:
 def _load_registered_books(repo_root: Path | None) -> dict[str, dict[str, Any]]:
     if repo_root is None:
         return {}
+    out: dict[str, dict[str, Any]] = {}
     idx_path = repo_root / "books" / "SOTA_INDEX.json"
-    if not idx_path.is_file():
-        return {}
+    if idx_path.is_file():
+        try:
+            obj = json.loads(idx_path.read_text(encoding="utf-8"))
+            for b in obj.get("books") or []:
+                if isinstance(b, dict) and b.get("id") and b.get("content_id"):
+                    bid = str(b["id"])
+                    ent = dict(b)
+                    ent["_book_mode"] = "static"
+                    man_path = repo_root / "books" / bid / f"{bid}.manifest.json"
+                    strat_path = repo_root / "books" / bid / f"{bid}_strategy.json"
+                    if man_path.is_file():
+                        ent["_manifest"] = json.loads(man_path.read_text(encoding="utf-8"))
+                    if strat_path.is_file():
+                        ent["_strategy"] = json.loads(strat_path.read_text(encoding="utf-8"))
+                    out[bid] = ent
+        except Exception:
+            return {}
     try:
-        obj = json.loads(idx_path.read_text(encoding="utf-8"))
-        out: dict[str, dict[str, Any]] = {}
-        for b in obj.get("books") or []:
-            if isinstance(b, dict) and b.get("id") and b.get("content_id"):
-                bid = str(b["id"])
-                ent = dict(b)
-                man_path = repo_root / "books" / bid / f"{bid}.manifest.json"
-                strat_path = repo_root / "books" / bid / f"{bid}_strategy.json"
-                if man_path.is_file():
-                    ent["_manifest"] = json.loads(man_path.read_text(encoding="utf-8"))
-                if strat_path.is_file():
-                    ent["_strategy"] = json.loads(strat_path.read_text(encoding="utf-8"))
-                out[bid] = ent
-        return out
+        r_idx = load_rolling_index(repo_root=repo_root)
     except Exception:
-        return {}
+        r_idx = {}
+    for bid, b in r_idx.items():
+        if bid in out:
+            # Fail closed on ambiguous dual registration across static & rolling indexes
+            out.pop(bid, None)
+            continue
+        if isinstance(b, dict) and b.get("content_id"):
+            try:
+                pol = load_rolling_policy(bid, repo_root=repo_root, allow_demo_canary=True)
+            except Exception:
+                continue
+            ent = dict(b)
+            ent["_book_mode"] = ROLLING_BOOK_MODE
+            ent["_manifest"] = dict(pol.manifest)
+            ent["_policy"] = dict(pol.policy_dict)
+            ent["_strategy"] = dict(pol.policy_dict)
+            out[bid] = ent
+    return out
+
+
+def _is_known_rolling_book_id(bid: str, registered_books: dict[str, dict[str, Any]]) -> bool:
+    """Return True for any rolling-refit book, even when repo_root=None or registry metadata is unavailable."""
+    reg_ent = registered_books.get(bid)
+    if isinstance(reg_ent, dict) and reg_ent.get("_book_mode") == ROLLING_BOOK_MODE:
+        return True
+    if bid in _KNOWN_ROLLING_BOOK_IDS or "roll14d" in bid.lower() or "rolling" in bid.lower():
+        return True
+    try:
+        if bid in load_rolling_index(repo_root=REPO_ROOT):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def _validate_3book_cutoff_obj(
+    cut_obj: Any,
+    *,
+    expected_account_id: str,
+    now_epoch: int | None = None,
+) -> tuple[int, str] | None:
+    """Strictly validate typed phase1_3book_cohort_cutoff (schema, account_id, reason, cutoff_utc, cutoff <= sealed_utc <= now)."""
+    if not isinstance(cut_obj, dict):
+        return None
+    if cut_obj.get("schema") != "sota-3book-cohort-cutoff/v1":
+        return None
+    if not expected_account_id or cut_obj.get("account_id") != expected_account_id:
+        return None
+    reason = cut_obj.get("reason")
+    if type(reason) is not str or not reason.strip():
+        return None
+    cut_ep = _strict_int_or_none(cut_obj.get("cutoff_epoch"))
+    if cut_ep is None or cut_ep <= 0:
+        return None
+    if _parse_whole_second_epoch(cut_obj.get("cutoff_utc")) != cut_ep:
+        return None
+    sealed_dt = _parse_iso_utc(cut_obj.get("sealed_utc"))
+    if sealed_dt is None:
+        return None
+    sealed_ep = int(sealed_dt.timestamp())
+    if cut_ep > sealed_ep:
+        return None
+    ref_now = int(datetime.now(timezone.utc).timestamp()) if now_epoch is None else int(now_epoch)
+    if sealed_ep > ref_now + 60 or cut_ep > ref_now + 60:
+        return None
+    return cut_ep, datetime.fromtimestamp(cut_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _bootstrap_ci95_float(values: np.ndarray, n_boot: int = 5000, seed: int = 7) -> tuple[float, float]:
@@ -431,10 +532,11 @@ def _read_db_snapshot(db_path: Path, *, trusted_root: Path | None = None) -> dic
                     al = alias or name
                     return f"c.{name} AS {al}" if name in con_cols else f"NULL AS {al}"
 
+                sig_payload_col = "s.payload_json AS sig_payload_json" if "payload_json" in sig_cols else "NULL AS sig_payload_json"
                 sig_join_fields = (
-                    "s.book_id AS sig_book_id, s.pair AS sig_pair, s.horizon_minutes AS sig_horizon_minutes, s.side AS sig_side, s.signal_close_utc AS sig_signal_close_utc"
+                    f"s.book_id AS sig_book_id, s.pair AS sig_pair, s.horizon_minutes AS sig_horizon_minutes, s.side AS sig_side, s.signal_close_utc AS sig_signal_close_utc, {sig_payload_col}"
                     if {"book_id", "pair", "horizon_minutes", "side", "signal_close_utc"}.issubset(sig_cols)
-                    else "NULL AS sig_book_id, NULL AS sig_pair, NULL AS sig_horizon_minutes, NULL AS sig_side, NULL AS sig_signal_close_utc"
+                    else f"NULL AS sig_book_id, NULL AS sig_pair, NULL AS sig_horizon_minutes, NULL AS sig_side, NULL AS sig_signal_close_utc, {sig_payload_col}"
                 )
                 rows = conn.execute(
                     f"""
@@ -453,9 +555,10 @@ def _read_db_snapshot(db_path: Path, *, trusted_root: Path | None = None) -> dic
                     """
                 ).fetchall()
                 all_contracts = [dict(r) for r in rows]
+                sig_close_col = "signal_close_utc" if "signal_close_utc" in sig_cols else "NULL AS signal_close_utc"
                 sig_rows = conn.execute(
-                    """
-                    SELECT signal_id, book_id, status FROM sota_signals
+                    f"""
+                    SELECT signal_id, book_id, status, {sig_close_col} FROM sota_signals
                     WHERE status IN ('buy_intent', 'buy_unknown')
                     """
                 ).fetchall()
@@ -590,6 +693,8 @@ def summarize_settled_queue(
     eval_now_utc: str | None = None,
     canonical_db_path: Path | None = None,
     enforce_canonical_db: bool = False,
+    rolling_vintage_root: Path | None = None,
+    canonical_rolling_vintage_root_path: Path | None = None,
 ) -> dict[str, Any]:
     """Public per-book settled queue evaluator; always acquires its own verified read-only snapshot from db_path."""
     return _summarize_settled_queue_impl(
@@ -605,7 +710,10 @@ def summarize_settled_queue(
         eval_now_utc=eval_now_utc,
         canonical_db_path=canonical_db_path,
         enforce_canonical_db=enforce_canonical_db,
+        rolling_vintage_root=rolling_vintage_root,
+        canonical_rolling_vintage_root_path=canonical_rolling_vintage_root_path,
         _snapshot=None,
+        _include_validated_rows=False,
     )
 
 
@@ -623,7 +731,10 @@ def _summarize_settled_queue_impl(
     eval_now_utc: str | None = None,
     canonical_db_path: Path | None = None,
     enforce_canonical_db: bool = False,
+    rolling_vintage_root: Path | None = None,
+    canonical_rolling_vintage_root_path: Path | None = None,
     _snapshot: dict[str, Any] | None = None,
+    _include_validated_rows: bool = False,
 ) -> dict[str, Any]:
     """Evaluate per-book settled queue; enforces full prospective G6 contract when cohort_start_utc or v3 anchor mode is requested."""
     prospective_mode = bool(
@@ -780,9 +891,13 @@ def _summarize_settled_queue_impl(
 
         reg_ent = registered_books.get(book_id)
         reg_cid = registered_cids.get(book_id)
-        if require_registered_book and not reg_ent:
+        is_rolling_book = bool(
+            (reg_ent and reg_ent.get("_book_mode") == ROLLING_BOOK_MODE)
+            or _is_known_rolling_book_id(book_id, registered_books)
+        )
+        if (require_registered_book or is_rolling_book) and not reg_ent:
             blockers_top.append("unregistered_book_id")
-        want_cid = reg_cid or expected_content_id
+        want_cid = reg_cid if is_rolling_book else (reg_cid or expected_content_id)
         if reg_cid and expected_content_id and expected_content_id != reg_cid:
             blockers_top.append(f"expected_content_id_conflicts_with_index:{expected_content_id}!={reg_cid}")
         if not want_cid:
@@ -818,11 +933,16 @@ def _summarize_settled_queue_impl(
             if anchor.get("account_id") != acct_id or anchor.get("book_id") != book_id or anchor.get("book_content_id") != want_cid:
                 blockers_top.append("anchor_identity_mismatch")
 
-        # Expected manifest spec for contract-spec verification
+        # Expected manifest spec for contract-spec verification & rolling transition journal verification
         exp_pair = None
         exp_horizon = None
         exp_sides: set[str] | None = None
         exp_family = None
+        exp_min_payout_ratio: float | None = None
+        rolling_eff_intervals: dict[tuple[int, str], dict[str, Any]] = {}
+        rolling_transitions_loaded: list[dict[str, Any]] = []
+        rolling_wm_present = False
+        verified_wm_max_seq: int | None = None
         if reg_ent:
             man = reg_ent.get("_manifest") or reg_ent
             strat = reg_ent.get("_strategy") or {}
@@ -830,6 +950,9 @@ def _summarize_settled_queue_impl(
             exp_horizon = int(man["horizon_minutes"]) if man.get("horizon_minutes") is not None else None
             exp_sides = {str(s).upper() for s in (man.get("allowed_sides") or [])} or None
             exp_family = str(strat.get("contract_family", "risefall"))
+            raw_mpr = strat.get("min_payout_ratio")
+            if raw_mpr is not None and not isinstance(raw_mpr, bool):
+                exp_min_payout_ratio = float(raw_mpr)
             if isinstance(anchor, dict):
                 if (
                     str(anchor.get("pair") or "").upper() != exp_pair
@@ -838,9 +961,103 @@ def _summarize_settled_queue_impl(
                     or str(anchor.get("contract_family") or "") != exp_family
                 ):
                     blockers_top.append("anchor_spec_mismatch_vs_manifest")
+                if is_rolling_book:
+                    if anchor.get("vintage_policy") != "rotating_vintages" or anchor.get("policy_content_id") != want_cid:
+                        blockers_top.append("anchor_vintage_policy_mismatch")
+        if is_rolling_book and exp_min_payout_ratio is None:
+            exp_min_payout_ratio = float(DEFAULT_MIN_PAYOUT_BY_HORIZON.get(exp_horizon or 60, 1.78))
+
+        if is_rolling_book and want_cid:
+            pol_obj = (reg_ent or {}).get("_policy") or {}
+            max_age_d = int(pol_obj.get("max_vintage_age_days") or 14)
+            v_root = (
+                Path(rolling_vintage_root)
+                if rolling_vintage_root is not None
+                else canonical_rolling_vintage_root(repo_root=repo_root or REPO_ROOT)
+            )
+            # Canonical vintage root is ALWAYS pinned to repo_root's canonical runtime path (cannot be relaxed by caller!)
+            canon_v_root = canonical_rolling_vintage_root(repo_root=repo_root or REPO_ROOT)
+            book_v_dir = v_root / book_id
+            canon_book_v_dir = canon_v_root / book_id
+            # Open book_v_dir ONCE with O_NOFOLLOW, verify canonical identity AND read journal via the same dir_fd!
+            try:
+                vfd, vres = _open_dir_nofollow(book_v_dir, trusted_root=repo_root)
+            except (OSError, _SymlinkRefusedError, _MissingPathError):
+                blockers_top.append("rolling_journal_non_canonical")
+                blockers_top.append("rolling_journal_invalid_or_missing")
+            else:
+                try:
+                    vst = os.fstat(vfd)
+                    try:
+                        cfd, cres = _open_dir_nofollow(canon_book_v_dir, trusted_root=repo_root)
+                        try:
+                            cst = os.fstat(cfd)
+                            v_canon_ok = (vres == cres) and ((int(vst.st_dev), int(vst.st_ino)) == (int(cst.st_dev), int(cst.st_ino)))
+                        finally:
+                            os.close(cfd)
+                    except (OSError, _SymlinkRefusedError, _MissingPathError):
+                        v_canon_ok = False
+                    if not v_canon_ok:
+                        blockers_top.append("rolling_journal_non_canonical")
+
+                    try:
+                        rolling_transitions_loaded, r_state_obj = load_verified_transitions(
+                            book_v_dir,
+                            expected_book_id=book_id,
+                            expected_policy_cid=want_cid,
+                            max_vintage_age_days=max_age_d,
+                            trusted_root=repo_root,
+                            dir_fd=vfd,
+                        )
+                    except Exception:
+                        rolling_transitions_loaded = []
+                        r_state_obj = None
+                        blockers_top.append("rolling_journal_invalid_or_missing")
+                    else:
+                        if not rolling_transitions_loaded:
+                            blockers_top.append("rolling_journal_invalid_or_missing")
+                        else:
+                            # Reject ahead or divergent state.json mirror (e.g. intact revocation mirror after truncation)!
+                            if r_state_obj is not None:
+                                s_seq_r = _strict_int_or_none(r_state_obj.get("seq"))
+                                if (
+                                    s_seq_r is None
+                                    or s_seq_r < 1
+                                    or s_seq_r > len(rolling_transitions_loaded)
+                                    or r_state_obj != rolling_transitions_loaded[s_seq_r - 1]
+                                ):
+                                    blockers_top.append("rolling_journal_invalid_or_missing")
+                            rolling_eff_intervals = compute_effective_vintage_intervals(rolling_transitions_loaded)
+                            wm_key = rolling_watermark_key(book_id, want_cid)
+                            if wm_key in risk_state:
+                                rolling_wm_present = True
+                                wm_obj = risk_state.get(wm_key)
+                                wm_seq = _strict_int_or_none(wm_obj.get("max_seq")) if isinstance(wm_obj, dict) else None
+                                wm_sha = wm_obj.get("last_transition_sha256") if isinstance(wm_obj, dict) else None
+                                if (
+                                    not isinstance(wm_obj, dict)
+                                    or wm_obj.get("book_id") != book_id
+                                    or wm_obj.get("policy_content_id") != want_cid
+                                    or wm_seq is None
+                                    or wm_seq < 1
+                                    or wm_seq > len(rolling_transitions_loaded)
+                                    or rolling_transitions_loaded[wm_seq - 1].get("transition_sha256") != wm_sha
+                                ):
+                                    blockers_top.append("rolling_watermark_missing_or_mismatch")
+                                else:
+                                    verified_wm_max_seq = wm_seq
+                finally:
+                    os.close(vfd)
 
         b_contracts = [c for c in all_contracts if str(c["book_id"]) == book_id]
-        b_uncertain = [s for s in unresolved_sigs if str(s["book_id"]) == book_id]
+        b_uncertain: list[dict[str, Any]] = []
+        for s in unresolved_sigs:
+            if str(s["book_id"]) != book_id:
+                continue
+            s_dt = _parse_iso_utc(s.get("signal_close_utc"))
+            if eval_ep is not None and s_dt is not None and int(s_dt.timestamp()) > eval_ep:
+                continue
+            b_uncertain.append(s)
         if b_uncertain:
             blockers_top.append(f"unresolved_buy_signals:{len(b_uncertain)}")
 
@@ -873,7 +1090,7 @@ def _summarize_settled_queue_impl(
             v_end = c["venue_end_epoch"]
             closed_dt = _parse_iso_utc(c["closed_utc"])
 
-            # Validate clocks & joined signal identity/clocks BEFORE pre-anchor exclusion (BLOCKER #5)!
+            # Validate clocks & joined signal identity/clocks BEFORE pre-anchor / post-eval exclusion (BLOCKER #5)!
             if is_mig == 1 and v_start is None:
                 if closed_dt is None:
                     _add_anom(cid, "migrated_missing_closed_utc")
@@ -907,21 +1124,30 @@ def _summarize_settled_queue_impl(
                 excluded_pre_anchor += 1
                 continue
 
-            # Non-excluded contract in cohort window [cohort_start_epoch, ...)
-            if st not in G6_ELIGIBLE_SETTLED_STATUSES:
+            # Validate settled-row closed_utc consistency BEFORE post-eval exclusion so forged future
+            # venue_start/end with an older closed_utc always triggers closed_utc_precedes_venue_end!
+            if st in G6_ELIGIBLE_SETTLED_STATUSES:
+                if closed_dt is None:
+                    _add_anom(cid, "missing_or_invalid_closed_utc")
+                    continue
+                closed_ep = int(closed_dt.timestamp())
+                # Allow bounded <=60s NTP skew between VPS wall clock and Deriv venue_end_epoch,
+                # while catching forged/impossible closed_utc << venue_end_epoch!
+                if closed_ep < (v_end - MAX_CLOCK_SKEW_S):
+                    _add_anom(cid, "closed_utc_precedes_venue_end")
+                    continue
+                if eval_dt is not None and (closed_dt > eval_dt or (eval_ep is not None and v_end > eval_ep)):
+                    excluded_post_eval += 1
+                    continue
+            else:
+                # Exclude a live open contract started strictly AFTER a sealed cutoff (both signal_close & venue_start > eval_ep)
+                # so post-cutoff 4-book open fills never poison a historical sealed 3-book cohort!
+                if st == "open" and eval_ep is not None and v_start > eval_ep:
+                    sig_dt_open = _parse_iso_utc(c_sc_raw)
+                    if sig_dt_open is not None and int(sig_dt_open.timestamp()) > eval_ep:
+                        excluded_post_eval += 1
+                        continue
                 _add_anom(cid, "non_settled_or_ineligible_status", st)
-                continue
-            if closed_dt is None:
-                _add_anom(cid, "missing_or_invalid_closed_utc")
-                continue
-            closed_ep = int(closed_dt.timestamp())
-            # Allow bounded <=60s NTP skew between VPS wall clock and Deriv venue_end_epoch,
-            # while catching forged/impossible closed_utc << venue_end_epoch!
-            if closed_ep < (v_end - MAX_CLOCK_SKEW_S):
-                _add_anom(cid, "closed_utc_precedes_venue_end")
-                continue
-            if eval_dt is not None and (closed_dt > eval_dt or (eval_ep is not None and v_end > eval_ep)):
-                excluded_post_eval += 1
                 continue
 
             if is_mig != 0:
@@ -950,6 +1176,10 @@ def _summarize_settled_queue_impl(
             if bp != expected_stake_cents or sp_c is None or pf is None or (sp_c - bp != pf):
                 _add_anom(cid, "economics_mismatch")
                 continue
+            if is_rolling_book and exp_min_payout_ratio is not None:
+                if Fraction(po_c, bp) < Fraction(str(exp_min_payout_ratio)):
+                    _add_anom(cid, "payout_below_min_floor")
+                    continue
             st_low = st.lower()
             if st_low == "won":
                 if sp_c != po_c or sp_c <= bp or pf <= 0:
@@ -966,9 +1196,10 @@ def _summarize_settled_queue_impl(
             if c["account_id"] != acct_id or str(c["account_mode"] or "").lower() != "demo":
                 _add_anom(cid, "account_mismatch")
                 continue
-            if want_cid and c["book_content_id"] != want_cid:
-                _add_anom(cid, "book_content_id_mismatch")
-                continue
+            if not is_rolling_book:
+                if want_cid and c["book_content_id"] != want_cid:
+                    _add_anom(cid, "book_content_id_mismatch")
+                    continue
             if _strict_int_or_none(v_end) is None or v_end < v_start:
                 _add_anom(cid, "invalid_venue_end_epoch")
                 continue
@@ -1013,17 +1244,88 @@ def _summarize_settled_queue_impl(
             if sig_close_dt is None:
                 _add_anom(cid, "invalid_signal_close_utc")
                 continue
+            sig_close_ep = int(sig_close_dt.timestamp())
+
+            raw_spj_any = c.get("sig_payload_json")
+            try:
+                spj_any = json.loads(str(raw_spj_any)) if raw_spj_any is not None else None
+            except Exception:
+                spj_any = None
+            sig_portfolio_mode = (
+                str(spj_any["portfolio_mode"])
+                if isinstance(spj_any, dict) and type(spj_any.get("portfolio_mode")) is str
+                else None
+            )
+
+            if is_rolling_book:
+                spj = spj_any
+                t_seq = _strict_int_or_none(spj.get("transition_seq")) if isinstance(spj, dict) else None
+                t_sha = spj.get("transition_sha256") if isinstance(spj, dict) else None
+                sig_vid = spj.get("vintage_id") if isinstance(spj, dict) else None
+                sig_pol = spj.get("policy_content_id") if isinstance(spj, dict) else None
+                sig_vcid = spj.get("book_content_id") if isinstance(spj, dict) else None
+                sig_vf = _strict_int_or_none(spj.get("vintage_valid_from_epoch")) if isinstance(spj, dict) else None
+                sig_vu = _strict_int_or_none(spj.get("vintage_valid_until_epoch")) if isinstance(spj, dict) else None
+                if (
+                    not isinstance(spj, dict)
+                    or spj.get("book_id") != book_id
+                    or spj.get("book_mode") != ROLLING_BOOK_MODE
+                    or str(spj.get("pair") or "").upper() != c_pair
+                    or str(spj.get("side") or "").upper() != c_side
+                    or _strict_int_or_none(spj.get("horizon_minutes")) != hm
+                    or str(spj.get("contract_family") or "") != c_fam
+                    or spj.get("signal_close_utc") != str(c["signal_close_utc"])
+                    or sig_pol != want_cid
+                    or not sig_vid
+                    or not sig_vcid
+                    or c["book_content_id"] != sig_vcid
+                    or t_seq is None
+                    or not isinstance(t_sha, str)
+                    or sig_vf is None
+                    or sig_vu is None
+                ):
+                    _add_anom(cid, "rolling_vintage_provenance_mismatch")
+                    continue
+                if verified_wm_max_seq is None or t_seq > verified_wm_max_seq:
+                    _add_anom(cid, "rolling_watermark_sequence_not_covered")
+                    continue
+                iv = rolling_eff_intervals.get((t_seq, t_sha))
+                if iv is None:
+                    _add_anom(cid, "rolling_vintage_not_in_transition_log")
+                    continue
+                if (
+                    iv["vintage_id"] != sig_vid
+                    or iv["vintage_content_id"] != sig_vcid
+                    or int(iv["valid_from_epoch"]) != sig_vf
+                    or int(iv["valid_until_epoch"]) != sig_vu
+                ):
+                    _add_anom(cid, "rolling_vintage_provenance_mismatch")
+                    continue
+                eff_st = int(iv["eff_start_epoch"])
+                eff_en = int(iv["eff_end_epoch"])
+                if (
+                    v_start < sig_close_ep
+                    or not (eff_st <= sig_close_ep < eff_en)
+                    or not (eff_st <= v_start < eff_en)
+                ):
+                    _add_anom(cid, "rolling_vintage_window_violation")
+                    continue
 
             cohort_rows.append(
                 {
                     "contract_id": cid,
+                    "book_id": book_id,
+                    "horizon_minutes": hm,
+                    "status": st_low,
                     "v_start": v_start,
                     "v_end": v_end,
-                    "sig_close_ep": int(sig_close_dt.timestamp()),
+                    "sig_close_ep": sig_close_ep,
                     "horizon_s": hm * 60,
                     "buy_price_cents": bp,
                     "payout_cents": po_c,
                     "profit_cents": pf,
+                    "ratio": float(Fraction(po_c, bp)),
+                    "sig_portfolio_mode": sig_portfolio_mode,
                 }
             )
 
@@ -1038,6 +1340,9 @@ def _summarize_settled_queue_impl(
             if (b["sig_close_ep"] - a["sig_close_ep"]) < a["horizon_s"]:
                 anomaly_codes.append("signal_gap_below_horizon")
                 anomalies.append(f"signal_gap_below_horizon:{a['contract_id']}:{b['contract_id']}")
+
+        if is_rolling_book and len(cohort_rows) > 0 and not rolling_wm_present:
+            blockers_top.append("rolling_watermark_missing_or_mismatch")
 
         blockers = list(blockers_top)
         blockers.extend(anomalies)
@@ -1070,7 +1375,7 @@ def _summarize_settled_queue_impl(
 
         ok = len(blockers) == 0
         struct_codes = [_sanitize_mvt_reason_code(r) for r in blockers_top]
-        b_summary = {
+        b_summary: dict[str, Any] = {
             "n": n_coh,
             "wins": wins,
             "win_rate": round(wins / n_coh, 4) if n_coh > 0 else None,
@@ -1081,26 +1386,36 @@ def _summarize_settled_queue_impl(
             "realized_ev_per_stake": round(roi_f, 6) if roi_f is not None else None,
             "ev_ci95": [round(ci_lo_f, 6) if ci_lo_f is not None else None, round(ci_hi_f, 6) if ci_hi_f is not None else None],
             "ev_ci95_exact_fraction": [ci_lo_str, ci_hi_str],
-            "promotion_eligible": ok,
+            "promotion_eligible": False if is_rolling_book else ok,
             "reasons": blockers,
             "_structural_and_anomaly_codes": struct_codes + list(anomaly_codes),
             "_stat_codes": stat_codes,
         }
-        return {
+        if is_rolling_book:
+            b_summary["book_mode"] = ROLLING_BOOK_MODE
+            b_summary["demo_rolling_g6_passed"] = ok
+            b_summary["live_real_money_eligible"] = False
+        res_out: dict[str, Any] = {
             "schema": schema,
             "db_path": str(db_p),
             "book_id": book_id,
             "cohort_start_utc": cohort_start_utc,
             "eval_now_utc": eval_dt.isoformat() if eval_dt is not None else eval_now_utc,
-            "promotion_scope": "single_book_prospective_g6",
+            "promotion_scope": "single_book_demo_rolling_g6_only" if is_rolling_book else "single_book_prospective_g6",
             "settled_contracts": n_coh,
             "open_contracts": sum(1 for c in b_contracts if c["status"] == "open"),
             "unresolved_signals": len(b_uncertain),
             "by_book": {book_id: b_summary},
-            "promotion_eligible_books": [book_id] if ok else [],
-            "promotion_eligible": ok,
+            "promotion_eligible_books": [] if is_rolling_book else ([book_id] if ok else []),
+            "promotion_eligible": False if is_rolling_book else ok,
             "reasons": blockers,
         }
+        if is_rolling_book:
+            res_out["demo_rolling_g6_passed"] = ok
+            res_out["live_real_money_eligible"] = False
+        if _include_validated_rows:
+            res_out["_validated_cohort_rows"] = cohort_rows
+        return res_out
 
     # ------------------------------------------------------------------
     # Backwards-compatible v2 summary path
@@ -1120,8 +1435,11 @@ def _summarize_settled_queue_impl(
         b_open = [x for x in open_all if str(x["book_id"]) == bid]
         b_unknown_c = [x for x in all_contracts if str(x["book_id"]) == bid and x["status"] == "unknown"]
         b_uncertain_s = [x for x in unresolved_sigs if str(x["book_id"]) == bid]
+        is_roll_v2 = _is_known_rolling_book_id(bid, registered_books)
 
         blockers: list[str] = []
+        if is_roll_v2:
+            blockers.append("rolling_book_demo_only_never_live_eligible")
         if legacy_missing_tables:
             blockers.append("missing_required_queue_tables")
         if legacy_schema_errors:
@@ -1195,7 +1513,7 @@ def _summarize_settled_queue_impl(
             if fixed_pay_rows
             else None
         )
-        ok = len(blockers) == 0
+        ok = (not is_roll_v2) and len(blockers) == 0
         return {
             "n": len(b_settled),
             "wins": wins,
@@ -1208,7 +1526,7 @@ def _summarize_settled_queue_impl(
             "mean_payout_ratio": mean_pay,
             "realized_ev_per_stake": round(float(roi_exact), 4),
             "ev_ci95": [round(ci_lo, 4) if np.isfinite(ci_lo) else None, round(ci_hi, 4) if np.isfinite(ci_hi) else None],
-            "promotion_eligible": bool(ok),
+            "promotion_eligible": False if is_roll_v2 else bool(ok),
             "reasons": blockers,
         }
 
@@ -1564,6 +1882,8 @@ def evaluate_portfolio_mvt(
     repo_root: Path | None = REPO_ROOT,
     canonical_db_path: Path | None = None,
     canonical_log_dir: Path | None = None,
+    rolling_vintage_root: Path | None = None,
+    canonical_rolling_vintage_root_path: Path | None = None,
     extra_kill_check_dirs: tuple[Path, ...] = (),
     enforce_canonical_db: bool = True,
     eval_now_utc: str | None = None,
@@ -1744,6 +2064,46 @@ def evaluate_portfolio_mvt(
         hard_blockers.append("log_dir_symlink_refused")
     if kill_present:
         hard_blockers.append("kill_marker_present")
+
+    is_3book_canon = tuple(safe_book_ids) == DEFAULT_PHASE1_PORTFOLIO_BOOKS
+    is_4book_canon = tuple(safe_book_ids) == DEFAULT_PHASE1_4BOOK_PORTFOLIO_BOOKS
+    eval_ep = int(eval_dt.timestamp()) if eval_dt is not None else None
+    effective_eval_ep = eval_ep
+    effective_eval_iso = eval_iso
+    three_book_cutoff_iso: str | None = None
+    four_book_pool_start_ep: int | None = None
+    four_book_pool_start_iso: str | None = None
+
+    if is_3book_canon and "phase1_3book_cohort_cutoff" in risk_state_keys:
+        parsed_cut = _validate_3book_cutoff_obj(risk_state.get("phase1_3book_cohort_cutoff"), expected_account_id=acct_id)
+        if parsed_cut is None:
+            hard_blockers.append("invalid_3book_cohort_cutoff")
+        else:
+            cut_ep, three_book_cutoff_iso = parsed_cut
+            if effective_eval_ep is not None:
+                effective_eval_ep = min(effective_eval_ep, cut_ep)
+                effective_eval_iso = datetime.fromtimestamp(effective_eval_ep, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif is_4book_canon:
+        if "phase1_3book_cohort_cutoff" not in risk_state_keys:
+            hard_blockers.append("missing_or_invalid_3book_cohort_cutoff")
+        else:
+            parsed_cut = _validate_3book_cutoff_obj(risk_state.get("phase1_3book_cohort_cutoff"), expected_account_id=acct_id)
+            if parsed_cut is None:
+                hard_blockers.append("missing_or_invalid_3book_cohort_cutoff")
+            else:
+                four_book_pool_start_ep, four_book_pool_start_iso = parsed_cut
+                three_book_cutoff_iso = four_book_pool_start_iso
+
+    live_unresolved_total = unresolved_total
+    if is_3book_canon and three_book_cutoff_iso is not None and effective_eval_ep is not None:
+        cohort_unresolved_sigs = [
+            s for s in snap["unresolved_sigs"]
+            if (
+                _parse_iso_utc(s.get("signal_close_utc")) is None
+                or int(_parse_iso_utc(s.get("signal_close_utc")).timestamp()) <= effective_eval_ep  # type: ignore[union-attr]
+            )
+        ]
+        unresolved_total = len(cohort_unresolved_sigs)
     if unresolved_total > 0:
         hard_blockers.append("unresolved_buy_signals")
 
@@ -1752,7 +2112,7 @@ def evaluate_portfolio_mvt(
         diagnostic_only_reasons.append("diagnostic_non_canonical_or_unchecked_db")
     if log_dir is not None and isinstance(log_summary, dict) and log_summary.get("log_dir_present") is True and not log_dir_canonical:
         diagnostic_only_reasons.append("diagnostic_non_canonical_log_dir")
-    if tuple(safe_book_ids) != DEFAULT_PHASE1_PORTFOLIO_BOOKS:
+    if not (is_3book_canon or is_4book_canon):
         diagnostic_only_reasons.append("diagnostic_non_canonical_book_set")
     if (
         int(min_parity_fills) != MIN_PARITY_FILLS_FLOOR
@@ -1774,12 +2134,12 @@ def evaluate_portfolio_mvt(
     anomaly_count = 0
     missing_anchors: list[str] = []
     cohort_not_started_books: list[str] = []
-    eval_ep = int(eval_dt.timestamp()) if eval_dt is not None else None
 
     for bid in safe_book_ids:
         if bid in ("<invalid_book_id>", "<unregistered_book_id>"):
             continue
         reg_ent = registered[bid]
+        b_mode = str(reg_ent.get("_book_mode") or "static")
         cid_want = str(reg_ent["content_id"])
         hm = int(reg_ent["horizon_minutes"])
         strat = reg_ent.get("_strategy") or {}
@@ -1791,7 +2151,7 @@ def evaluate_portfolio_mvt(
         anc = risk_state.get(anc_key) if anc_key else None
         if not isinstance(anc, dict) or not anc.get("cohort_start_utc"):
             missing_anchors.append(bid)
-            per_book[bid] = {"anchor_registered": False, "g6_promotion_eligible": False, "n": 0, "reasons": ["missing_stored_cohort_anchor"]}
+            per_book[bid] = {"anchor_registered": False, "book_mode": b_mode, "g6_promotion_eligible": False, "n": 0, "reasons": ["missing_stored_cohort_anchor"]}
             continue
 
         coh_ep = _parse_whole_second_epoch(anc.get("cohort_start_utc"))
@@ -1806,6 +2166,7 @@ def evaluate_portfolio_mvt(
             anomaly_count += 1
             per_book[bid] = {
                 "anchor_registered": True,
+                "book_mode": b_mode,
                 "cohort_start_utc": coh_iso,
                 "g6_promotion_eligible": False,
                 "n": 0,
@@ -1813,10 +2174,11 @@ def evaluate_portfolio_mvt(
                 "g6_reasons": ["anchor_clock_ordering_invalid"],
             }
             continue
-        if eval_ep is not None and eval_ep < coh_ep:
+        if effective_eval_ep is not None and effective_eval_ep < coh_ep:
             cohort_not_started_books.append(bid)
             per_book[bid] = {
                 "anchor_registered": True,
+                "book_mode": b_mode,
                 "cohort_start_utc": coh_iso,
                 "horizon_minutes": hm,
                 "n": 0,
@@ -1838,10 +2200,13 @@ def evaluate_portfolio_mvt(
             cohort_start_utc=coh_iso,
             expected_account_id=acct_id,
             expected_stake_usd="1.00",
-            eval_now_utc=eval_iso,
+            eval_now_utc=effective_eval_iso,
             canonical_db_path=canonical_db_path,
             enforce_canonical_db=enforce_canonical_db,
+            rolling_vintage_root=rolling_vintage_root,
+            canonical_rolling_vintage_root_path=canonical_rolling_vintage_root_path,
             _snapshot=snap,
+            _include_validated_rows=True,
         )
         b_stat = (g6_rep.get("by_book") or {}).get(bid) or {}
         # Read structured anomaly & structural codes directly — immune to contract_id prefix spoofing!
@@ -1850,8 +2215,9 @@ def evaluate_portfolio_mvt(
         if safe_anomalies:
             anomaly_count += len(safe_anomalies)
 
-        per_book[bid] = {
+        pb_ent: dict[str, Any] = {
             "anchor_registered": True,
+            "book_mode": b_mode,
             "cohort_start_utc": coh_iso,
             "horizon_minutes": hm,
             "n": int(b_stat.get("n") or 0),
@@ -1863,51 +2229,25 @@ def evaluate_portfolio_mvt(
             "integrity_anomalies": safe_anomalies,
             "g6_reasons": safe_g6_reasons,
         }
+        if b_mode == ROLLING_BOOK_MODE:
+            pb_ent["demo_rolling_g6_passed"] = bool(b_stat.get("demo_rolling_g6_passed"))
+            pb_ent["live_real_money_eligible"] = False
+            pb_ent["g6_promotion_eligible"] = False
+        per_book[bid] = pb_ent
 
         if acct_demo_ok and not safe_anomalies and not missing_tables and not schema_errors and not eval_invalid:
-            for c in all_contracts:
-                if str(c.get("book_id")) != bid:
-                    continue
-                if str(c.get("status") or "") not in G6_ELIGIBLE_SETTLED_STATUSES:
-                    continue
-                raw_mig = c.get("is_migrated_legacy")
-                if raw_mig is not None and _strict_int_or_none(raw_mig) != 0:
-                    continue
-                v_st = _strict_int_or_none(c.get("venue_start_epoch"))
-                v_en = _strict_int_or_none(c.get("venue_end_epoch"))
-                if v_st is None or v_en is None or v_st < coh_ep or v_en < v_st:
-                    continue
-                closed_dt = _parse_iso_utc(c.get("closed_utc"))
-                if closed_dt is None:
-                    continue
-                closed_ep = int(closed_dt.timestamp())
-                if closed_ep < (v_en - MAX_CLOCK_SKEW_S):
-                    continue
-                if eval_dt is not None and (closed_dt > eval_dt or (eval_ep is not None and v_en > eval_ep)):
-                    continue
-                cid = str(c["contract_id"])
+            for row_rec in g6_rep.get("_validated_cohort_rows") or []:
+                if is_4book_canon:
+                    if four_book_pool_start_ep is None:
+                        continue
+                    if int(row_rec["v_start"]) < four_book_pool_start_ep:
+                        continue
+                    if row_rec.get("sig_portfolio_mode") != "4book":
+                        continue
+                cid = str(row_rec["contract_id"])
                 if cid in seen_cids:
                     continue
-                bp = _strict_int_or_none(c.get("buy_price_cents"))
-                po = _strict_int_or_none(c.get("payout_cents"))
-                pf = _strict_int_or_none(c.get("profit_cents"))
-                if bp is None or po is None or pf is None or bp <= 0 or po <= 0:
-                    continue
-                st_row = str(c.get("status") or "").lower()
                 seen_cids.add(cid)
-                ratio = float(Fraction(po, bp))
-                row_rec = {
-                    "contract_id": cid,
-                    "book_id": bid,
-                    "horizon_minutes": hm,
-                    "status": st_row,
-                    "v_start": v_st,
-                    "v_end": v_en,
-                    "buy_price_cents": bp,
-                    "payout_cents": po,
-                    "profit_cents": pf,
-                    "ratio": ratio,
-                }
                 horizon_rows[hm].append(row_rec)
                 pooled_rows.append(row_rec)
 
@@ -1961,6 +2301,7 @@ def evaluate_portfolio_mvt(
         "n_cross_book_overlaps_excluded_from_inference": n_overlap_excl,
         "n_early_sold_excluded_from_bernoulli": n_early_sold_excluded,
         "unresolved_signals": unresolved_total,
+        "live_unresolved_signals_total": live_unresolved_total,
         "integrity_anomalies": anomaly_count,
         "safety_latch_active": latch_set,
         "kill_present": kill_present,
@@ -2011,9 +2352,21 @@ def evaluate_portfolio_mvt(
         post_uninf = None
         post_cpcv = None
     all_books_g6 = (
-        tuple(safe_book_ids) == DEFAULT_PHASE1_PORTFOLIO_BOOKS
+        is_3book_canon
         and len(per_book) == len(DEFAULT_PHASE1_PORTFOLIO_BOOKS)
         and all(b.get("g6_promotion_eligible") is True for b in per_book.values())
+    )
+    all_books_demo_g6 = (
+        all_books_g6
+        if is_3book_canon
+        else (
+            is_4book_canon
+            and len(per_book) == len(DEFAULT_PHASE1_4BOOK_PORTFOLIO_BOOKS)
+            and all(
+                (b.get("demo_rolling_g6_passed") is True if b.get("book_mode") == ROLLING_BOOK_MODE else b.get("g6_promotion_eligible") is True)
+                for b in per_book.values()
+            )
+        )
     )
 
     pillar3 = {
@@ -2035,6 +2388,8 @@ def evaluate_portfolio_mvt(
         "sprt_broken_execution": sprt_broken,
         "sprt_positive_ev": sprt_ev,
         "all_books_strict_g6_eligible": all_books_g6,
+        "all_books_demo_g6_eligible": all_books_demo_g6,
+        "rolling_book_live_real_money_eligible": False,
     }
 
     reasons: list[str] = list(hard_blockers) + list(diagnostic_only_reasons)
@@ -2048,6 +2403,26 @@ def evaluate_portfolio_mvt(
         verdict = "HALT_INVESTIGATE"
     elif diagnostic_only_reasons:
         verdict = "DIAGNOSTIC_ONLY_NOT_PORTFOLIO_READY"
+    elif is_4book_canon:
+        if pillar1_passed and pillar2_passed and sprt_ev["status"] == "ACCEPT_H1" and all_books_demo_g6 and ev_pos:
+            verdict = "DEMO_4BOOK_FULL_G6_REVIEW_PENDING_OWNER"
+        elif pillar1_passed and pillar2_passed and sprt_ev["status"] == "ACCEPT_H1" and ev_pos:
+            verdict = "DEMO_4BOOK_MVT_EV_REVIEW_PENDING_OWNER"
+        elif pillar1_passed and pillar2_passed and sprt_broken["status"] == "ACCEPT_H1" and ev_pos:
+            verdict = "DEMO_4BOOK_MVT_MICRO_REVIEW_PENDING_OWNER"
+        else:
+            verdict = "HOLD_COLLECTING"
+            if cohort_not_started_books:
+                reasons.append("cohort_not_yet_started")
+            if not pillar1_passed:
+                if not log_dir_verified:
+                    reasons.append("runtime_log_dir_missing_or_unverified")
+                if n_indep < int(min_parity_fills):
+                    reasons.append("pillar1_insufficient_independent_fills")
+            if not pillar2_passed:
+                reasons.append("pillar2_horizon_payout_pending")
+            if sprt_broken["status"] != "ACCEPT_H1":
+                reasons.append("pillar3_sprt_broken_continue")
     elif pillar1_passed and pillar2_passed and sprt_ev["status"] == "ACCEPT_H1" and all_books_g6 and ev_pos:
         verdict = "READY_FOR_OWNER_FULL_LIVE_AND_G6_REVIEW"
     elif pillar1_passed and pillar2_passed and sprt_ev["status"] == "ACCEPT_H1" and ev_pos:
@@ -2068,7 +2443,7 @@ def evaluate_portfolio_mvt(
         if sprt_broken["status"] != "ACCEPT_H1":
             reasons.append("pillar3_sprt_broken_continue")
 
-    return {
+    out_mvt: dict[str, Any] = {
         "schema": "deriv-sota-portfolio-mvt-validator/v1",
         "live_trading_authorized": False,
         "advisory_note": "Read-only statistical readiness report; Live CR* execution always requires explicit owner authorization.",
@@ -2076,7 +2451,7 @@ def evaluate_portfolio_mvt(
         "log_dir_canonical": log_dir_canonical,
         "db_path_sha256": db_path_fp,
         "account_id_sha256": _redact_acct(acct_id) if acct_id else None,
-        "eval_now_utc": eval_iso,
+        "eval_now_utc": effective_eval_iso,
         "book_ids": safe_book_ids,
         "verdict": verdict,
         "reasons": reasons,
@@ -2085,6 +2460,11 @@ def evaluate_portfolio_mvt(
         "pillar3_portfolio_sequential_wr": pillar3,
         "by_book": per_book,
     }
+    if three_book_cutoff_iso is not None:
+        out_mvt["three_book_cohort_cutoff_utc"] = three_book_cutoff_iso
+    if four_book_pool_start_iso is not None:
+        out_mvt["four_book_cohort_start_utc"] = four_book_pool_start_iso
+    return out_mvt
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2093,6 +2473,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--portfolio-mvt-report", action="store_true", help="Emit read-only 3-pillar Portfolio Minimal-Viable-Trades SPRT readiness report")
     ap.add_argument("--book-ids", default=",".join(DEFAULT_PHASE1_PORTFOLIO_BOOKS), help="Comma-separated book IDs for --portfolio-mvt-report")
     ap.add_argument("--log-dir", default=os.environ.get("DERIV_SOTA_LOG_DIR", str(REPO_ROOT / "logs" / "sota_runtime")), help="Runtime log dir for KILL/event parity scan in --portfolio-mvt-report")
+    ap.add_argument("--rolling-vintage-dir", default=None, help="Rolling vintage runtime directory (defaults to canonical deriv_data/runtime/rolling_vintages)")
     ap.add_argument("--min-parity-fills", type=int, default=10)
     ap.add_argument("--min-horizon-fills", type=int, default=15)
     ap.add_argument("--book-id", default=None, help="Evaluate promotion gate for one specific SOTA book_id")
@@ -2103,6 +2484,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--min-trades", type=int, default=50)
     args = ap.parse_args(argv)
     canon_db = REPO_ROOT / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"
+    canon_vdir = canonical_rolling_vintage_root(repo_root=REPO_ROOT)
+    vdir_path = Path(args.rolling_vintage_dir) if args.rolling_vintage_dir else canon_vdir
+    if not vdir_path.is_absolute():
+        vdir_path = REPO_ROOT / vdir_path
     default_canon_log = REPO_ROOT / "logs" / "sota_runtime"
     env_log_raw = os.environ.get("DERIV_SOTA_LOG_DIR", "").strip()
     if env_log_raw:
@@ -2123,6 +2508,8 @@ def main(argv: list[str] | None = None) -> int:
             repo_root=REPO_ROOT,
             canonical_db_path=canon_db,
             canonical_log_dir=configured_canon_log,
+            rolling_vintage_root=vdir_path,
+            canonical_rolling_vintage_root_path=canon_vdir,
             extra_kill_check_dirs=extra_kill_dirs,
             enforce_canonical_db=True,
             eval_now_utc=args.eval_now_utc,
@@ -2145,6 +2532,8 @@ def main(argv: list[str] | None = None) -> int:
         eval_now_utc=args.eval_now_utc,
         canonical_db_path=canon_db,
         enforce_canonical_db=True,
+        rolling_vintage_root=vdir_path,
+        canonical_rolling_vintage_root_path=canon_vdir,
     )
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0

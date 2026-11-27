@@ -1,0 +1,16 @@
+[Unit]
+Description=binary-algo Deriv SOTA offline 14-day trailing-120d causal rolling refitter (zero network, zero credentials)
+After=local-fs.target
+
+[Service]
+Type=oneshot
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=JOBLIB_MULTIPROCESSING=0
+UnsetEnvironment=DERIV_PAT DERIV_ACCOUNT_ID DERIV_ALLOW_LIVE_REAL_MONEY PYTHONPATH PYTHONSTARTUP PYTHONHOME PYTHONUSERBASE PYTHONINSPECT PYTHONWARNINGS
+WorkingDirectory=%h/git/binary-algo
+# Strictly offline: reads local deriv_data/rolling_ticks_archive under shared .download.lock (exits 75 if download active),
+# commits atomically to transitions.jsonl + state.json under .transition.flock. --if-due enforces the 14-day UTC cadence.
+ExecStart=%h/binary-algo-venv/bin/python -B -E -s scripts/deriv_sota_rolling_refit.py --book-id USDJPY.sota_roll14d_m60_up.v1 --archive-dir deriv_data/rolling_ticks_archive --vintage-root deriv_data/runtime/rolling_vintages --if-due
+Nice=15
+MemoryHigh=1G
+MemoryMax=1536M

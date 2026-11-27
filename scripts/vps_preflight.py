@@ -21,6 +21,7 @@ import importlib
 import json
 import math
 import os
+import stat
 import sys
 import tempfile
 import time
@@ -44,6 +45,7 @@ from deriv_runtime_core_v2 import (
 from deriv_sota_executor import (
     SotaDerivAsyncClient,
     acquire_ordered_locks,
+    assert_4book_cutover_cutoff_sealed,
     check_exact_rational_quote_floor,
     connect_sota_queue,
     default_queue_db_path,
@@ -56,28 +58,114 @@ from deriv_sota_executor import (
     verify_v3_queue_binding,
 )
 from sota_book_runtime import REPO_ROOT, load_enabled_sota_books, load_sota_index, parse_book_ids_spec
+from sota_rolling_runtime import (
+    DEFAULT_ROLLING_VINTAGE_DIR_REL,
+    RollingSotaBookHandle,
+    canonical_vps_connection_paths,
+    load_enabled_sota_books_any,
+    load_rolling_index,
+)
 
 LOCAL_HOST_CONN_LOCK = Path("/mnt/data/deriv/.connection.lock")
 
 
-@contextmanager
-def maybe_host_connection_lock() -> Iterator[None]:
-    """Respect `/mnt/data/deriv/.connection.lock` when running on the research host."""
-    if not LOCAL_HOST_CONN_LOCK.exists():
-        yield
+def default_smoke_timeout_s(num_books: int, *, pace_s: float = 2.6) -> float:
+    """Budget shared --live-smoke deadline: 10.0s for <=3 books; >=20.0s (pacing + 12.0s network allowance) for >=4."""
+    if int(num_books) <= 3:
+        return 10.0
+    return max(20.0, float(pace_s) * max(0, int(num_books) - 1) + 12.0)
+
+
+def _check_vps_admission_cooldown(admission_path: Path) -> None:
+    """Refuse --live-smoke if durable host public-WS admission state records an active rate-limit cooldown."""
+    if admission_path.is_symlink():
+        raise RuntimeError(f"host connection admission symlink refused: {admission_path}")
+    if not admission_path.exists():
         return
-    fd = os.open(str(LOCAL_HOST_CONN_LOCK), os.O_RDWR)
+    fd = os.open(str(admission_path), os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     try:
-        try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as exc:
-            raise RuntimeError(f"host connection lock busy: {LOCAL_HOST_CONN_LOCK}") from exc
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise RuntimeError(f"host connection admission is not a regular file: {admission_path}")
+        raw = os.read(fd, 1 << 16)
+    finally:
+        os.close(fd)
+    try:
+        obj = json.loads(raw.decode("utf-8"))
+    except Exception as exc:
+        raise RuntimeError(f"corrupt host connection admission file: {admission_path}") from exc
+    if not isinstance(obj, dict):
+        raise RuntimeError(f"corrupt host connection admission object: {admission_path}")
+    now_wall = time.time()
+    cur_boot_id = Path("/proc/sys/kernel/random/boot_id").read_text(encoding="utf-8").strip()
+    cur_boot = time.clock_gettime(time.CLOCK_BOOTTIME)
+    if obj.get("boot_id") == cur_boot_id:
+        nb_boot = obj.get("not_before_boot")
+        if isinstance(nb_boot, (int, float)) and not isinstance(nb_boot, bool) and float(nb_boot) > cur_boot:
+            raise RuntimeError(f"host connection admission cooldown active ({float(nb_boot) - cur_boot:.1f}s remaining)")
+    nb_utc = obj.get("not_before_utc")
+    if isinstance(nb_utc, (int, float)) and not isinstance(nb_utc, bool) and float(nb_utc) > now_wall:
+        raise RuntimeError(f"host connection admission cooldown active ({float(nb_utc) - now_wall:.1f}s remaining)")
+
+
+@contextmanager
+def maybe_host_connection_lock(*, pw_home: Path | None = None) -> Iterator[None]:
+    """Acquire non-blocking LOCK_EX on VPS public connection lock (creating atomically with O_NOFOLLOW) and check admission cooldown."""
+    vps_lock, vps_admission = canonical_vps_connection_paths(pw_home=pw_home)
+    cand_items = sorted(
+        [(LOCAL_HOST_CONN_LOCK, False), (vps_lock, True)],
+        key=lambda item: str(item[0]),
+    )
+    # Deduplicate if equal (preserving create=True)
+    dedup: list[tuple[Path, bool]] = []
+    for lp, create_flag in cand_items:
+        if dedup and dedup[-1][0] == lp:
+            dedup[-1] = (lp, dedup[-1][1] or create_flag)
+        else:
+            dedup.append((lp, create_flag))
+    fds: list[tuple[Path, int]] = []
+    try:
+        for lp, create_if_missing in dedup:
+            if create_if_missing:
+                if lp.parent.is_symlink():
+                    raise RuntimeError(f"host connection lock parent symlink refused: {lp.parent}")
+                lp.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                if lp.parent.is_symlink():
+                    raise RuntimeError(f"host connection lock parent symlink refused: {lp.parent}")
+                open_flags = os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW
+            else:
+                if not lp.exists():
+                    continue
+                open_flags = os.O_RDWR | os.O_NOFOLLOW
+            if lp.is_symlink():
+                raise RuntimeError(f"host connection lock symlink refused: {lp}")
+            fd = os.open(str(lp), open_flags, 0o600)
+            try:
+                st_open = os.fstat(fd)
+                if not stat.S_ISREG(st_open.st_mode):
+                    raise RuntimeError(f"host connection lock is not a regular file: {lp}")
+                if create_if_missing:
+                    os.fchmod(fd, 0o600)
+                os.set_inheritable(fd, False)
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError as exc:
+                    raise RuntimeError(f"host connection lock busy: {lp}") from exc
+                st_live = os.lstat(str(lp))
+                if (int(st_open.st_dev), int(st_open.st_ino)) != (int(st_live.st_dev), int(st_live.st_ino)):
+                    raise RuntimeError(f"host connection lock inode replaced: {lp}")
+            except BaseException:
+                os.close(fd)
+                raise
+            fds.append((lp, fd))
+        _check_vps_admission_cooldown(vps_admission)
         yield
     finally:
-        try:
-            fcntl.flock(fd, fcntl.LOCK_UN)
-        finally:
-            os.close(fd)
+        for _lp, fd in reversed(fds):
+            try:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            finally:
+                os.close(fd)
 
 
 def check_no_legacy_buyers() -> None:
@@ -400,6 +488,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--phase1-policy", action="store_true")
     ap.add_argument("--require-explicit-book-ids", action="store_true")
     ap.add_argument("--enforce-3book-cutover", action="store_true")
+    ap.add_argument("--enforce-4book-cutover", action="store_true")
+    ap.add_argument("--strict-rolling-vintage-state", action="store_true")
     ap.add_argument("--account-mode", choices=("demo", "live"), default=os.environ.get("DERIV_ACCOUNT_MODE", "demo"))
     ap.add_argument("--book-ids", default=os.environ.get("DERIV_SOTA_BOOK_IDS", ""))
     ap.add_argument("--offline-only", action="store_true")
@@ -412,6 +502,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--log-dir", default=os.environ.get("DERIV_SOTA_LOG_DIR", "logs/sota_runtime"))
     ap.add_argument("--lock-root", default=os.environ.get("DERIV_RUNTIME_LOCK_ROOT", ""))
     ap.add_argument("--queue-db", default=os.environ.get("DERIV_SOTA_QUEUE_DB", ""))
+    ap.add_argument("--rolling-vintage-dir", default=os.environ.get("DERIV_SOTA_ROLLING_VINTAGE_DIR", str(DEFAULT_ROLLING_VINTAGE_DIR_REL)))
     ap.add_argument("--stake", default=os.environ.get("DERIV_SOTA_STAKE", "1.0"))
     ap.add_argument("--max-stake-usd", type=float, default=float(os.environ.get("DERIV_SOTA_MAX_STAKE_USD", "5.0")))
     ap.add_argument("--max-daily-loss-usd", type=float, default=float(os.environ.get("DERIV_SOTA_MAX_DAILY_LOSS_USD", "25.0")))
@@ -423,7 +514,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ev-margin", type=float, default=float(os.environ.get("DERIV_SOTA_EV_MARGIN", "0.005")))
     ap.add_argument("--max-buy-dispatch-delay-s", type=float, default=float(os.environ.get("DERIV_SOTA_MAX_BUY_DISPATCH_DELAY_S", "4.0")))
     ap.add_argument("--credential-isolation-receipt", default=os.environ.get("DERIV_SOTA_CREDENTIAL_ISOLATION_RECEIPT", ""))
-    ap.add_argument("--smoke-timeout-s", type=float, default=10.0)
+    ap.add_argument("--smoke-timeout-s", type=float, default=None)
     args = ap.parse_args(argv)
 
     # Mutually exclusive mode check (spec §3.6); require explicit --offline-only or --live-smoke
@@ -492,6 +583,8 @@ def main(argv: list[str] | None = None) -> int:
             log_dir_raw=args.log_dir,
             credential_isolation_receipt_raw=args.credential_isolation_receipt,
             enforce_3book_cutover=bool(args.enforce_3book_cutover),
+            enforce_4book_cutover=bool(args.enforce_4book_cutover),
+            rolling_vintage_dir_raw=args.rolling_vintage_dir,
             require_explicit_book_ids=True,
             fixture_home=Path(args.fixture_home) if using_fixture else None,
             fixture_repo_root=Path(args.fixture_repo_root) if using_fixture else None,
@@ -518,6 +611,8 @@ def main(argv: list[str] | None = None) -> int:
         try:
             if args.allow_unprovisioned_queue and using_fixture and not cfg.queue_db.exists():
                 record("sqlite_v3_queue", True, status="unprovisioned_fixture_allowed", db_path=str(cfg.queue_db))
+                if cfg.enforce_4book_cutover:
+                    record("three_book_cohort_cutoff_sealed", False, error="unprovisioned_queue_missing_3book_cohort_cutoff")
             else:
                 lock_seq = [(cfg.lock_paths["queue"], False, True), (cfg.lock_paths["handoff"], False, True)]
                 with acquire_ordered_locks(lock_seq):
@@ -530,29 +625,114 @@ def main(argv: list[str] | None = None) -> int:
                             if args.live_smoke:
                                 raise RuntimeError("live-smoke refused on latched or KILL queue")
                         record("sqlite_v3_queue", True, db_path=str(cfg.queue_db), bound_account_sha256=redact_account_id(binding["account_id"]), latched=latch is not None)
+                        if cfg.enforce_4book_cutover:
+                            try:
+                                cut_rec = assert_4book_cutover_cutoff_sealed(ro, expected_account_id=cfg.account_id)
+                                record("three_book_cohort_cutoff_sealed", True, cutoff_utc=cut_rec["cutoff_utc"])
+                            except Exception as cut_exc:
+                                record("three_book_cohort_cutoff_sealed", False, error=str(cut_exc))
                     finally:
                         ro.close()
         except Exception as exc:
             record("sqlite_v3_queue", False, error=str(exc))
 
         # Load & verify exact requested books AFTER config admission (B7!)
+        # Static-only restarts NEVER touch books/SOTA_ROLLING_INDEX.json!
         books: list[Any] = []
         try:
             idx = load_sota_index(repo_root=cfg.repo_root)
-            books = load_enabled_sota_books(repo_root=cfg.repo_root, account_mode="demo", book_ids=list(cfg.book_ids))
+            if cfg.enforce_4book_cutover:
+                r_idx = load_rolling_index(repo_root=cfg.repo_root)
+                books = load_enabled_sota_books_any(
+                    repo_root=cfg.repo_root,
+                    account_mode="demo",
+                    book_ids=list(cfg.book_ids),
+                    runtime_vintage_root=cfg.rolling_vintage_dir,
+                )
+                reg_total = len(idx) + len(r_idx)
+            else:
+                books = load_enabled_sota_books(
+                    repo_root=cfg.repo_root,
+                    account_mode="demo",
+                    book_ids=list(cfg.book_ids),
+                )
+                reg_total = len(idx)
             record(
                 "certified_sota_books",
                 len(books) == len(cfg.book_ids),
-                registered_total=len(idx),
+                registered_total=reg_total,
                 loaded_book_ids=[b.book_id for b in books],
             )
         except Exception as exc:
             record("certified_sota_books", False, error=str(exc))
 
+        # Inspect rolling vintage state read-only:
+        # - Default ExecStartPre restart mode reports status without blocking the 3 live static books.
+        # - --strict-rolling-vintage-state (cutover readiness) requires active valid vintage OR current-block abstention.
+        rolling_handles = [b for b in books if isinstance(b, RollingSotaBookHandle)]
+        if rolling_handles:
+            rolling_statuses: list[dict[str, Any]] = []
+            all_strict_ok = True
+            ro_wm = None
+            try:
+                if cfg.queue_db.is_file():
+                    ro_wm = open_sota_queue_readonly(cfg.queue_db)
+                now_ep = int(time.time())
+                for rh in rolling_handles:
+                    v_book, v_trans, v_reason = rh.resolve_active_vintage(now_ep, conn=ro_wm, persist_watermark=False)
+                    if v_book is not None and v_trans is not None:
+                        st_label = "active"
+                        strict_ok = True
+                    elif (
+                        v_reason
+                        and str(v_reason).startswith("rolling_vintage_abstained:")
+                        and isinstance(v_trans, dict)
+                        and v_trans.get("status") == "abstained"
+                        and type(v_trans.get("scheduled_refit_epoch")) is int
+                        and type(v_trans.get("published_epoch")) is int
+                        and type(v_trans.get("next_refit_epoch")) is int
+                        and int(v_trans["scheduled_refit_epoch"]) <= now_ep
+                        and int(v_trans["published_epoch"]) <= now_ep < int(v_trans["next_refit_epoch"])
+                    ):
+                        st_label = "abstained"
+                        strict_ok = True
+                    else:
+                        st_label = "inactive_or_invalid"
+                        strict_ok = False
+                    if not strict_ok:
+                        all_strict_ok = False
+                    rolling_statuses.append(
+                        {
+                            "book_id": rh.book_id,
+                            "policy_content_id": rh.content_id,
+                            "status": st_label,
+                            "vintage_id": v_trans.get("vintage_id") if isinstance(v_trans, dict) else None,
+                            "reason": v_reason,
+                        }
+                    )
+            except Exception as exc:
+                all_strict_ok = False
+                rolling_statuses.append({"error": str(exc)})
+            finally:
+                if ro_wm is not None:
+                    ro_wm.close()
+            record(
+                "rolling_vintage_state",
+                all_strict_ok if args.strict_rolling_vintage_state else True,
+                strict_mode=bool(args.strict_rolling_vintage_state),
+                strict_passed=all_strict_ok,
+                books=rolling_statuses,
+            )
+
         # Live smoke (never buys/sells; strict exact rational quote floor; holds LOCK_SH|LOCK_NB sota_queue!)
+        effective_smoke_timeout_s = (
+            float(args.smoke_timeout_s)
+            if args.smoke_timeout_s is not None
+            else default_smoke_timeout_s(len(books))
+        )
         if args.live_smoke and not failed:
             try:
-                with maybe_host_connection_lock(), acquire_ordered_locks([(cfg.lock_paths["queue"], False, True)]):
+                with maybe_host_connection_lock(pw_home=cfg.pw_home), acquire_ordered_locks([(cfg.lock_paths["queue"], False, True)]):
                     smoke = asyncio.run(
                         run_network_proposal_smoke(
                             "demo",
@@ -563,7 +743,7 @@ def main(argv: list[str] | None = None) -> int:
                             handoff_lock_path=cfg.lock_paths["handoff"],
                             queue_db_path=cfg.queue_db,
                             kill_path=cfg.log_dir / "KILL",
-                            smoke_timeout_s=args.smoke_timeout_s,
+                            smoke_timeout_s=effective_smoke_timeout_s,
                         )
                     )
                 all_ok = bool(smoke) and all(x.get("smoke_passed") is True for x in smoke)
