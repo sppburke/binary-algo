@@ -831,6 +831,8 @@ class SotaDerivAsyncClient(DerivAsyncClient):
         self._verified_generation: int | None = None
         self._verified_account_id: str | None = None
         self._bootstrap_balance_used_gen: int | None = None
+        self._background_error_code: str | None = None
+        self._sticky_non_closed_error: str | None = None
         self._send_lock = asyncio.Lock()
         self.outbound_log: list[tuple[str, dict[str, Any]]] = []
 
@@ -955,15 +957,33 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             if send_class == "trade_mutation":
                 raise ExecutorError("pre_send_client_closed")
             raise DerivAPIError("client closed")
+        req_timeout = float(timeout if timeout is not None else self.request_timeout)
+        req_deadline = time.monotonic() + req_timeout
         if expect_response:
+            rem_conn = req_deadline - time.monotonic()
+            if rem_conn <= 0.0:
+                if send_class == "trade_mutation":
+                    raise ExecutorError("pre_send_not_connected_within_timeout")
+                raise DerivAPIError("not connected within request timeout")
             try:
-                await asyncio.wait_for(self._connected.wait(), timeout or self.request_timeout)
+                await asyncio.wait_for(self._connected.wait(), rem_conn)
             except asyncio.TimeoutError:
                 if send_class == "trade_mutation":
                     raise ExecutorError("pre_send_not_connected_within_timeout") from None
                 raise DerivAPIError("not connected within request timeout") from None
 
-        async with self._send_lock:
+        rem_lock = req_deadline - time.monotonic()
+        if rem_lock <= 0.0:
+            if send_class == "trade_mutation":
+                raise ExecutorError("send_window_expired_before_ws_send")
+            raise DerivAPIError(f"timeout waiting for send lock class={send_class}")
+        try:
+            await asyncio.wait_for(self._send_lock.acquire(), timeout=rem_lock)
+        except asyncio.TimeoutError:
+            if send_class == "trade_mutation":
+                raise ExecutorError("send_window_expired_before_ws_send") from None
+            raise DerivAPIError(f"timeout waiting for send lock class={send_class}") from None
+        try:
             if self._dead:
                 if send_class == "trade_mutation":
                     raise ExecutorError(f"pre_send_client_dead: {self._dead}")
@@ -1005,6 +1025,12 @@ class SotaDerivAsyncClient(DerivAsyncClient):
                 ws_t = send_timeout_fn() if send_timeout_fn is not None else None
                 if ws_t is not None and ws_t <= 0.0:
                     raise ExecutorError("send_window_expired_before_ws_send")
+                rem_send = req_deadline - time.monotonic()
+                if rem_send <= 0.0:
+                    if send_class == "trade_mutation":
+                        raise ExecutorError("send_window_expired_before_ws_send")
+                    raise DerivAPIError(f"timeout before send for req_id={rid} class={send_class}")
+                ws_t = rem_send if ws_t is None else min(ws_t, rem_send)
                 self.outbound_log.append((send_class, dict(msg)))
                 ws_send_entered = True
                 if ws_t is not None:
@@ -1031,21 +1057,30 @@ class SotaDerivAsyncClient(DerivAsyncClient):
                         await _run_guarded_send()
                 else:
                     await _run_guarded_send()
-            except Exception as exc:
+            except BaseException as exc:
                 if expect_response:
                     self._pending.pop(rid, None)
                 if isinstance(exc, (ExecutorError, DerivAPIError)):
                     raise
+                if not isinstance(exc, Exception):
+                    raise
                 if not ws_send_entered:
                     raise ExecutorError(f"pre_send_guard_or_lock_failed: {exc}") from exc
+                if isinstance(exc, (websockets.exceptions.ConnectionClosed, OSError)):
+                    raise DerivAPIError(f"connection lost during send: {exc}") from exc
                 raise DerivAPIError(f"transport send failed: {exc}") from exc
+        finally:
+            self._send_lock.release()
 
         if not expect_response:
             return rid
 
         assert fut is not None
         try:
-            return await asyncio.wait_for(fut, timeout or self.request_timeout)
+            rem_resp = req_deadline - time.monotonic()
+            if rem_resp <= 0.0:
+                raise DerivAPIError(f"timeout waiting for req_id={rid} class={send_class}")
+            return await asyncio.wait_for(fut, rem_resp)
         except asyncio.TimeoutError:
             raise DerivAPIError(f"timeout waiting for req_id={rid} class={send_class}") from None
         except websockets.exceptions.ConnectionClosed as exc:
@@ -1211,20 +1246,46 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             self._invalidate_identity()
             raise
 
+    def _record_stream_error(self, sub: Subscription, err_obj: Any) -> str | None:
+        err_code = str(err_obj["code"]) if isinstance(err_obj, dict) and isinstance(err_obj.get("code"), str) else None
+        setattr(sub, "error_code", err_code)
+        if err_code != "MarketIsClosed":
+            err_txt = str(err_obj)
+            if getattr(sub, "non_closed_error", None) is None:
+                setattr(sub, "non_closed_error", err_txt)
+            if self._sticky_non_closed_error is None:
+                self._sticky_non_closed_error = err_txt
+        if not self._background_failed.is_set():
+            self._background_error_code = err_code
+        return err_code
+
+    def _register_sub_and_replay_presub(self, sub: Subscription, sub_id: str, initial_frame: dict[str, Any]) -> None:
+        """Register live subscription and replay any pre-registration buffered frames through error tracking."""
+        sub.sub_id = sub_id
+        self._subs[sub_id] = sub
+        self._offer(sub, initial_frame)
+        for frame in self._pre_sub.pop(sub_id, []):
+            if "error" in frame:
+                self.stats["error_frames"] += 1
+                sub.error = str(frame["error"])
+                self._record_stream_error(sub, frame["error"])
+                self._emit("stream_error", sub_id=sub_id, error=sub.error)
+                self._latch_background_failure("subscription", "StreamError", sub.error)
+            self._offer(sub, frame)
+
     async def subscribe(self, payload: dict[str, Any], queue_maxsize: int | None = None) -> Subscription:
         sub_payload = dict(payload)
         sub_payload["subscribe"] = 1
         sub = Subscription(sub_payload, queue_maxsize or self.queue_maxsize)
+        send_gen = self._generation
         resp = await self.request_public_read(sub_payload)
+        if self._generation != send_gen:
+            raise DerivAPIError("connection lost during subscribe: transport generation rotated before registration")
         sub_id = (resp.get("subscription") or {}).get("id")
         if not sub_id:
             raise DerivAPIError(f"no subscription id in response keys={sorted(resp)}")
-        sub.sub_id = sub_id
-        self._subs[sub_id] = sub
         self._registry.append(sub)
-        self._offer(sub, resp)
-        for frame in self._pre_sub.pop(sub_id, []):
-            self._offer(sub, frame)
+        self._register_sub_and_replay_presub(sub, sub_id, resp)
         return sub
 
     async def unsubscribe(self, sub: Subscription) -> None:
@@ -1234,6 +1295,21 @@ class SotaDerivAsyncClient(DerivAsyncClient):
         if sub.sub_id:
             self._subs.pop(sub.sub_id, None)
             await self.request_public_read({"forget": sub.sub_id})
+
+    def _dispatch(self, frame: dict[str, Any]) -> None:
+        """Preserve structured top-level Deriv wire error code and sticky non-closure errors on stream frames."""
+        rid = frame.get("req_id")
+        fut = self._pending.get(rid) if rid is not None else None
+        if (fut is None or fut.done()) and "error" in frame:
+            sub_id = (frame.get("subscription") or {}).get("id")
+            if sub_id is None:
+                body = frame.get(str(frame.get("msg_type")))
+                if isinstance(body, dict):
+                    sub_id = body.get("id")
+            sub = self._subs.get(sub_id) if sub_id else None
+            if sub is not None:
+                self._record_stream_error(sub, frame["error"])
+        super()._dispatch(frame)
 
     async def _read_loop(self) -> None:
         while not self._closing:
@@ -1283,18 +1359,22 @@ class SotaDerivAsyncClient(DerivAsyncClient):
             return False
         self._subs.clear()
         self._pre_sub.clear()
+        active_subs = [s for s in list(self._registry) if s.active]
+        resolved_ids: set[int] = set()
         pending_subs: dict[int, Subscription] = {}
+        sub_transport_err: str | None = None
         try:
-            for sub in list(self._registry):
-                if not sub.active:
-                    continue
-                rid = await self._exclusive_send_text("public_read", dict(sub.payload), expect_response=False)
+            for sub in active_subs:
+                rid = await self._exclusive_send_text(
+                    "public_read", dict(sub.payload), timeout=self.request_timeout, expect_response=False
+                )
                 assert isinstance(rid, int)
                 pending_subs[rid] = sub
             deadline = time.monotonic() + self.request_timeout
             while pending_subs:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
+                    sub_transport_err = f"resubscribe timeout after {self.request_timeout}s"
                     break
                 raw = await asyncio.wait_for(self._ws.recv(), timeout=remaining)
                 try:
@@ -1305,22 +1385,47 @@ class SotaDerivAsyncClient(DerivAsyncClient):
                 rid = frame.get("req_id")
                 if rid in pending_subs:
                     sub = pending_subs.pop(rid)
+                    resolved_ids.add(id(sub))
                     if "error" in frame:
-                        sub.error = f"resubscribe failed: {frame['error']}"
+                        err_obj = frame["error"]
+                        sub.error = f"resubscribe failed: {err_obj}"
+                        err_code = (
+                            str(err_obj["code"]) if isinstance(err_obj, dict) and isinstance(err_obj.get("code"), str) else None
+                        )
+                        setattr(sub, "error_code", err_code)
+                        if err_code != "MarketIsClosed":
+                            if getattr(sub, "non_closed_error", None) is None:
+                                setattr(sub, "non_closed_error", sub.error)
+                            if self._sticky_non_closed_error is None:
+                                self._sticky_non_closed_error = sub.error
                         continue
                     new_id = (frame.get("subscription") or {}).get("id")
                     if not new_id:
                         sub.error = "resubscribe returned no subscription id"
+                        setattr(sub, "error_code", None)
+                        if getattr(sub, "non_closed_error", None) is None:
+                            setattr(sub, "non_closed_error", sub.error)
+                        if self._sticky_non_closed_error is None:
+                            self._sticky_non_closed_error = sub.error
                         continue
-                    sub.sub_id = new_id
                     sub.resubscribes += 1
                     sub.error = None
-                    self._subs[new_id] = sub
-                    self._offer(sub, frame)
+                    setattr(sub, "error_code", None)
+                    self._register_sub_and_replay_presub(sub, new_id, frame)
                 else:
                     self._dispatch(frame)
-        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed) as sub_exc:
-            self._emit("resubscribe_transport_failure", error=str(sub_exc)[:200])
+        except (asyncio.TimeoutError, websockets.exceptions.ConnectionClosed, DerivAPIError) as sub_exc:
+            sub_transport_err = str(sub_exc)[:200] or type(sub_exc).__name__
+            self._emit("resubscribe_transport_failure", error=sub_transport_err)
+        for sub in active_subs:
+            if id(sub) not in resolved_ids:
+                inc_msg = f"resubscribe incomplete: {sub_transport_err or 'timeout'}"
+                sub.error = inc_msg
+                setattr(sub, "error_code", None)
+                if getattr(sub, "non_closed_error", None) is None:
+                    setattr(sub, "non_closed_error", inc_msg)
+                if self._sticky_non_closed_error is None:
+                    self._sticky_non_closed_error = inc_msg
         self._last_frame_at = time.monotonic()
         self._connected.set()
         self.stats["resubscribe_latency_s"].append(round(time.monotonic() - t0, 3))
@@ -4191,6 +4296,65 @@ def _check_no_legacy_buyers_proc() -> None:
                 raise ExecutorError(f"legacy buy-capable process running (pid={item.name}): {' '.join(parts)}")
 
 
+MARKET_CLOSED_FALLBACK_PROBE_S = 300.0
+MARKET_CLOSED_LONG_PROBE_S = 1800.0
+MARKET_CLOSED_REOPEN_RETRY_S = 30.0
+RECONCILE_POLL_INTERVAL_S = 5.0
+HISTORY_REQUEST_SPACING_S = 2.6
+LOOP_SLEEP_S = 0.15
+_MARKET_OPEN_AT_RE = re.compile(r"Market will open at (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})")
+
+
+def is_market_closed_error(err: BaseException | str | None) -> bool:
+    """Return True strictly when Deriv reports structured top-level wire code=='MarketIsClosed'."""
+    if err is None:
+        return False
+    if isinstance(err, DerivAPIError):
+        return err.code == "MarketIsClosed"
+    if isinstance(err, str):
+        return err == "MarketIsClosed"
+    return False
+
+
+def parse_market_open_epoch(err: BaseException | str | None) -> int | None:
+    """Parse advisory UTC epoch from Deriv's 'Market will open at YYYY-MM-DD HH:MM:SS' text."""
+    if err is None:
+        return None
+    m = _MARKET_OPEN_AT_RE.search(str(err))
+    if not m:
+        return None
+    try:
+        dt = datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        return int(dt.timestamp())
+    except ValueError:
+        return None
+
+
+def compute_market_closed_next_probe_epoch(
+    now_wall: float,
+    parsed_open_epoch: int | None,
+    *,
+    fallback_probe_s: float | None = None,
+    long_standby_probe_s: float | None = None,
+    reopen_retry_s: float | None = None,
+) -> float:
+    """Compute next public-WS market-open probe epoch without hammering Deriv during closed weekends."""
+    fb_s = float(MARKET_CLOSED_FALLBACK_PROBE_S if fallback_probe_s is None else fallback_probe_s)
+    long_s = float(MARKET_CLOSED_LONG_PROBE_S if long_standby_probe_s is None else long_standby_probe_s)
+    retry_s = float(MARKET_CLOSED_REOPEN_RETRY_S if reopen_retry_s is None else reopen_retry_s)
+    now_f = float(now_wall)
+    if parsed_open_epoch is not None:
+        open_f = float(parsed_open_epoch)
+        delta = open_f - now_f
+        if 120.0 < delta <= 7 * 86_400:
+            return min(now_f + long_s, open_f - 60.0)
+        if 0.0 < delta <= 120.0:
+            return open_f + 5.0
+        if -600.0 <= delta <= 0.0:
+            return now_f + retry_s
+    return now_f + fb_s
+
+
 async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
     env = DerivEnv.from_env()
     if getattr(args, "fixture_home", None) or getattr(args, "fixture_repo_root", None):
@@ -4269,272 +4433,694 @@ async def run_integrated_vps_loop(args: argparse.Namespace) -> int:
             if cfg.enforce_4book_cutover:
                 assert_4book_cutover_cutoff_sealed(conn, expected_account_id=env.account_id)
             ws_url, transport_kind = await asyncio.to_thread(request_authenticated_ws_url, env, args.account_mode)
-        except Exception:
-            conn.close()
-            raise
-        latched_recovery_only = is_safety_latch_set(conn) is not None or (log_dir / "KILL").exists()
-        executor = SotaTradeExecutor(
-            account_mode=args.account_mode,
-            stake_usd=stake_usd,
-            db_path=db_path,
-            log_dir=log_dir,
-            risk_cfg=risk_cfg,
-            absolute_breakeven_ceiling=cfg.absolute_breakeven_ceiling,
-            ev_margin=cfg.ev_margin,
-            dry_run_proposal_only=args.dry_run_proposal_only,
-            max_buy_dispatch_delay_s=cfg.max_buy_dispatch_delay_s,
-            env=env,
-            rolling_handles=rolling_handles,
-            portfolio_cohort_mode="4book" if cfg.enforce_4book_cutover else "3book",
-        )
-        executor.transport_kind = transport_kind
+            latched_recovery_only = is_safety_latch_set(conn) is not None or (log_dir / "KILL").exists()
+            executor = SotaTradeExecutor(
+                account_mode=args.account_mode,
+                stake_usd=stake_usd,
+                db_path=db_path,
+                log_dir=log_dir,
+                risk_cfg=risk_cfg,
+                absolute_breakeven_ceiling=cfg.absolute_breakeven_ceiling,
+                ev_margin=cfg.ev_margin,
+                dry_run_proposal_only=args.dry_run_proposal_only,
+                max_buy_dispatch_delay_s=cfg.max_buy_dispatch_delay_s,
+                env=env,
+                rolling_handles=rolling_handles,
+                portfolio_cohort_mode="4book" if cfg.enforce_4book_cutover else "3book",
+            )
+            executor.transport_kind = transport_kind
 
-        # BLOCKER #2: Wire live pre_send_guard_fn inside sota_handoff lock on production auth_client!
-        def _prod_handoff_guard(_primary: str, _payload: dict[str, Any]) -> None:
-            if is_safety_latch_set(conn) is not None or executor.kill_path.exists():
-                raise ExecutorError("production send refused under handoff lock: latch or KILL active")
+            # BLOCKER #2: Wire live pre_send_guard_fn inside sota_handoff lock on production auth_client!
+            def _prod_handoff_guard(_primary: str, _payload: dict[str, Any]) -> None:
+                if is_safety_latch_set(conn) is not None or executor.kill_path.exists():
+                    raise ExecutorError("production send refused under handoff lock: latch or KILL active")
 
-        async with AsyncExitStack() as stack:
-            pub_client: SotaDerivAsyncClient | None = None
-            tick_buf: LiveTickBuffer | None = None
-            if not latched_recovery_only:
-                tick_buf = LiveTickBuffer(pairs=pairs_needed, store_dir=tick_store_dir)
-                tick_buf.load_persisted()
-                if not external_ticks:
+            async with AsyncExitStack() as stack:
+                pub_client: SotaDerivAsyncClient | None = None
+                tick_buf: LiveTickBuffer | None = None
+                if not latched_recovery_only:
+                    tick_buf = LiveTickBuffer(pairs=pairs_needed, store_dir=tick_store_dir)
+                    tick_buf.load_persisted()
+                auth_client = await stack.enter_async_context(
+                    SotaDerivAsyncClient(
+                        ws_url,
+                        allow_buy=(not args.dry_run_proposal_only and not latched_recovery_only),
+                        expected_account_id=env.account_id,
+                        handoff_lock_path=lock_paths["handoff"],
+                        pre_send_guard_fn=_prod_handoff_guard,
+                        url_factory=_async_refresh_auth_url,
+                    )
+                )
+                executor.client = auth_client
+                await executor.ensure_authenticated()
+                await executor.reconcile_open_contracts(conn)
+
+                subs: dict[str, Subscription] = {}
+                live_pub_gen: int | None = None
+                probe_task: (
+                    asyncio.Task[
+                        tuple[
+                            SotaDerivAsyncClient | None,
+                            dict[str, Subscription],
+                            int | None,
+                            BaseException | str | None,
+                            list[str],
+                        ]
+                    ]
+                    | None
+                ) = None
+                closing_tasks: set[asyncio.Task[Any]] = set()
+                market_closed_standby = False
+                market_closed_next_probe_wall = 0.0
+
+                def _schedule_public_close(cli: SotaDerivAsyncClient) -> None:
+                    t_cls = asyncio.create_task(cli.close())
+                    closing_tasks.add(t_cls)
+                    t_cls.add_done_callback(closing_tasks.discard)
+
+                def _retire_probe_task_bg() -> None:
+                    nonlocal probe_task
+                    if probe_task is None:
+                        return
+                    old_t = probe_task
+                    probe_task = None
+                    if old_t.done():
+                        if not old_t.cancelled() and old_t.exception() is None:
+                            res_t = old_t.result()
+                            if isinstance(res_t, tuple) and len(res_t) >= 1 and res_t[0] is not None:
+                                _schedule_public_close(res_t[0])
+                        return
+                    old_t.cancel()
+
+                    async def _reap_cancelled(t_ref: asyncio.Task[Any]) -> None:
+                        try:
+                            res_r = await t_ref
+                            if isinstance(res_r, tuple) and len(res_r) >= 1 and res_r[0] is not None:
+                                _schedule_public_close(res_r[0])
+                        except asyncio.CancelledError:
+                            pass
+                        except Exception:
+                            pass
+
+                    reaper = asyncio.create_task(_reap_cancelled(old_t))
+                    closing_tasks.add(reaper)
+                    reaper.add_done_callback(closing_tasks.discard)
+
+                def _inspect_public_health(
+                    cli: SotaDerivAsyncClient, cur_subs: dict[str, Subscription]
+                ) -> tuple[str | None, list[str]]:
+                    """Inspect terminal client death, stopped worker tasks, sticky/sub errors & background state."""
+                    if cli._dead is not None:
+                        raise ExecutorError(f"public tick WS dead: {cli._dead}")
+                    if not cli._closing:
+                        if cli._reader_task is not None and cli._reader_task.done():
+                            raise ExecutorError("public tick WS reader task terminated unexpectedly")
+                        if cli._watchdog_task is not None and cli._watchdog_task.done():
+                            raise ExecutorError("public tick WS watchdog task terminated unexpectedly")
+                    if cli._sticky_non_closed_error is not None:
+                        raise ExecutorError(f"public tick stream non-closure error: {cli._sticky_non_closed_error}")
+                    closed_pairs_h: list[str] = []
+                    closed_reason_h: str | None = None
+                    for p_h, sub_h in cur_subs.items():
+                        if sub_h.overflow > 0:
+                            raise ExecutorError(f"public tick queue overflow on {p_h}: overflow={sub_h.overflow}")
+                        sticky_sub = getattr(sub_h, "non_closed_error", None)
+                        if sticky_sub is not None:
+                            raise ExecutorError(f"public tick subscription error on {p_h}: {sticky_sub}")
+                        if sub_h.error is not None:
+                            code_h = getattr(sub_h, "error_code", None)
+                            if is_market_closed_error(code_h):
+                                closed_pairs_h.append(p_h)
+                                if closed_reason_h is None:
+                                    closed_reason_h = str(sub_h.error)
+                            else:
+                                raise ExecutorError(f"public tick subscription error on {p_h}: {sub_h.error}")
+                    if cli._background_failed.is_set():
+                        if is_market_closed_error(cli._background_error_code):
+                            if closed_reason_h is None:
+                                closed_reason_h = str(cli._background_error)
+                        else:
+                            raise ExecutorError(f"public tick WS background failure: {cli._background_error}")
+                    return closed_reason_h, closed_pairs_h
+
+                def _drain_valid_sub_ticks(
+                    cur_subs: dict[str, Subscription],
+                    *,
+                    target_lists: tuple[dict[str, list[int]], dict[str, list[float]]] | None = None,
+                    use_sorted_merge: bool = False,
+                ) -> None:
+                    assert tick_buf is not None
+                    for p_d, sub_d in cur_subs.items():
+                        if sub_d.overflow > 0:
+                            raise ExecutorError(f"public tick queue overflow on {p_d}: overflow={sub_d.overflow}")
+                        es: list[int] = []
+                        ps: list[float] = []
+                        while not sub_d.queue.empty():
+                            fr = sub_d.queue.get_nowait()
+                            tk = fr.get("tick")
+                            if isinstance(tk, dict) and "epoch" in tk and "quote" in tk:
+                                es.append(int(tk["epoch"]))
+                                ps.append(float(tk["quote"]))
+                        if not es:
+                            continue
+                        if target_lists is not None:
+                            target_lists[0][p_d].extend(es)
+                            target_lists[1][p_d].extend(ps)
+                        elif use_sorted_merge:
+                            tick_buf.merge_sorted_ticks(p_d, es, ps)  # type: ignore[arg-type]
+                        else:
+                            tick_buf.ingest_ticks(p_d, es, ps)
+
+                def _is_confirmed_transport_disconnect(exc: DerivAPIError) -> bool:
+                    if exc.code is not None:
+                        return False
+                    txt = str(exc)
+                    if txt.startswith("Deriv error for req_id="):
+                        return False
+                    if isinstance(exc.__cause__, (websockets.exceptions.ConnectionClosed, OSError)):
+                        return True
+                    return (
+                        txt.startswith("connection lost")
+                        or txt.startswith("websocket closed")
+                    )
+
+                async def _open_public_tick_session() -> tuple[
+                    SotaDerivAsyncClient | None,
+                    dict[str, Subscription],
+                    int | None,
+                    BaseException | str | None,
+                    list[str],
+                ]:
+                    """Open a fresh single-generation public tick session and repair strictly from each pair's last committed tick."""
+                    assert tick_buf is not None
                     assert_non_us_deriv_host()
-                    pub_client = await stack.enter_async_context(
-                        SotaDerivAsyncClient(
+                    for attempt in range(2):
+                        cand = SotaDerivAsyncClient(
                             PUBLIC_WS_URL,
                             allow_buy=False,
                             silence_timeout_s=45.0,
                             url_factory=_async_public_ws_url,
                         )
-                    )
-            auth_client = await stack.enter_async_context(
-                SotaDerivAsyncClient(
-                    ws_url,
-                    allow_buy=(not args.dry_run_proposal_only and not latched_recovery_only),
-                    expected_account_id=env.account_id,
-                    handoff_lock_path=lock_paths["handoff"],
-                    pre_send_guard_fn=_prod_handoff_guard,
-                    url_factory=_async_refresh_auth_url,
-                )
-            )
-            executor.client = auth_client
-            await executor.ensure_authenticated()
-            await executor.reconcile_open_contracts(conn)
-
-            subs: dict[str, Subscription] = {}
-            if not latched_recovery_only and not external_ticks:
-                assert pub_client is not None and tick_buf is not None
-
-                async def _warmup_reconcile_bg() -> None:
-                    while True:
-                        await asyncio.sleep(5.0)
-                        await executor.reconcile_open_contracts(conn)
-
-                bg_rec = asyncio.create_task(_warmup_reconcile_bg())
-                try:
-                    await tick_buf.warmup_from_public_ws(
-                        pub_client,
-                        lookback_hours=36,
-                        min_bars=DEFAULT_WARMUP_MIN_BARS,
-                        history_request_fn=pub_client.request_public_read,
-                    )
-                finally:
-                    bg_rec.cancel()
-                    try:
-                        await bg_rec
-                    except asyncio.CancelledError:
-                        pass
-                subs = {
-                    p: await pub_client.subscribe({"ticks": SOTA_DERIV_SYMBOLS[p], "subscribe": 1})
-                    for p in tick_buf.pairs
-                }
-
-            last_scored_minute = int(time.time() // 60) * 60
-            last_reconcile = time.monotonic()
-            deadline = (time.monotonic() + args.duration_seconds) if args.duration_seconds else None
-            rolling_last_state: dict[str, tuple[str | None, str | None]] = {}
-
-            while deadline is None or time.monotonic() < deadline:
-                if auth_client._background_failed.is_set():
-                    raise ExecutorError(f"auth WS background failure: {auth_client._background_error}")
-                # Re-check latch/KILL dynamically: enter log/feed-independent recovery-only mode immediately
-                if is_safety_latch_set(conn) is not None or executor.kill_path.exists():
-                    auth_client.allow_buy = False
-                    latched_recovery_only = True
-
-                if not latched_recovery_only and not external_ticks and pub_client is not None and tick_buf is not None:
-                    if pub_client._background_failed.is_set():
-                        raise ExecutorError(f"public tick WS background failure: {pub_client._background_error}")
-                    for p, sub in subs.items():
-                        if sub.error is not None:
-                            raise ExecutorError(f"public tick subscription error on {p}: {sub.error}")
-                        while not sub.queue.empty():
-                            fr = sub.queue.get_nowait()
-                            tk = fr.get("tick")
-                            if isinstance(tk, dict) and "epoch" in tk and "quote" in tk:
-                                tick_buf.ingest_ticks(p, [int(tk["epoch"])], [float(tk["quote"])])
-
-                now_wall = time.time()
-                minute_close = (int(now_wall) // 60) * 60
-                if not latched_recovery_only and tick_buf is not None and minute_close > last_scored_minute and (now_wall - minute_close) >= 1.2:
-                    ready_to_score = True
-                    if external_ticks:
-                        wm = read_tick_store_watermark(tick_store_dir)
-                        wm_min = int(wm.get("minute_boundary_epoch") or 0)
-                        if wm_min < minute_close:
-                            if (now_wall - minute_close) < 4.5:
-                                ready_to_score = False
-                            else:
-                                last_scored_minute = minute_close
-                                ready_to_score = False
-                                executor._safe_log("external_watermark_lag_skip", minute_close=minute_close, watermark_minute=wm_min)
-                        else:
-                            tick_buf.load_persisted()
-
-                    if ready_to_score:
-                        last_scored_minute = minute_close
-                        await executor.reconcile_open_contracts(conn)
-                        last_reconcile = time.monotonic()
-                        snap = tick_buf.snapshot_ticks()
-                        # Cache ONE causal snapshot-or-error per (pair, minute_close) across books in priority order!
-                        pair_cache: dict[tuple[str, int], tuple[Any | None, Exception | None]] = {}
-                        for book in books:
-                            cache_key = (book.pair, minute_close)
-                            if cache_key not in pair_cache:
-                                union_cols = sorted({c for b in books if b.pair == book.pair for c in b.feature_cols})
+                        transferred = False
+                        retry_fresh_socket = False
+                        try:
+                            await cand.connect()
+                            sub_gen = cand.generation
+                            cand_subs: dict[str, Subscription] = {}
+                            closed_pairs: list[str] = []
+                            first_closed_exc: DerivAPIError | None = None
+                            for p in tick_buf.pairs:
                                 try:
-                                    frow_c = build_pair_decision_snapshot(
-                                        book.pair,
-                                        snap,
-                                        minute_close,
-                                        union_cols,
-                                        min_active_bars=DEFAULT_WARMUP_MIN_BARS,
-                                    )
-                                    pair_cache[cache_key] = (frow_c, None)
-                                except Exception as exc:
-                                    pair_cache[cache_key] = (None, exc)
-                            frow, f_err = pair_cache[cache_key]
-                            if f_err is not None or frow is None:
-                                executor._safe_log("feature_or_book_skip", book_id=book.book_id, pair=book.pair, reason=str(f_err))
+                                    cand_subs[p] = await cand.subscribe({"ticks": SOTA_DERIV_SYMBOLS[p], "subscribe": 1})
+                                except DerivAPIError as sub_exc:
+                                    if is_market_closed_error(sub_exc):
+                                        closed_pairs.append(p)
+                                        if first_closed_exc is None:
+                                            first_closed_exc = sub_exc
+                                    elif _is_confirmed_transport_disconnect(sub_exc) and attempt == 0:
+                                        retry_fresh_socket = True
+                                        break
+                                    else:
+                                        raise
+                            if retry_fresh_socket:
                                 continue
-                            try:
-                                active_transition: dict[str, Any] | None = None
-                                scoring_book: Any = book
-                                if isinstance(book, RollingSotaBookHandle):
-                                    v_book, v_trans, v_reason = book.resolve_active_vintage(
-                                        minute_close, conn=conn, persist_watermark=True
+                            if closed_pairs:
+                                # Never allow MarketIsClosed on one lane to mask a non-closure error on another lane!
+                                _inspect_public_health(cand, cand_subs)
+                                return None, {}, None, first_closed_exc, closed_pairs
+
+                            live_e: dict[str, list[int]] = {p: [] for p in tick_buf.pairs}
+                            live_p: dict[str, list[float]] = {p: [] for p in tick_buf.pairs}
+                            staged_hist_e: dict[str, list[int]] = {p: [] for p in tick_buf.pairs}
+                            staged_hist_p: dict[str, list[float]] = {p: [] for p in tick_buf.pairs}
+
+                            def _drain_and_check() -> tuple[str | None, list[str], bool]:
+                                c_reason, c_pairs = _inspect_public_health(cand, cand_subs)
+                                _drain_valid_sub_ticks(cand_subs, target_lists=(live_e, live_p))
+                                return c_reason, c_pairs, (cand.generation != sub_gen or not cand.is_connected())
+
+                            c_rsn, c_prs, rotated = _drain_and_check()
+                            if c_rsn is not None:
+                                return None, {}, None, c_rsn, c_prs
+                            if rotated:
+                                if attempt == 0:
+                                    continue
+                                raise ExecutorError("public tick transport rotated repeatedly during warmup")
+
+                            anchor_s = int(time.time())
+                            max_scan_floor = anchor_s - 5 * 86_400
+
+                            async def _fetch_page(
+                                sym_f: str, w_s: int, w_e: int
+                            ) -> tuple[list[int], list[float], DerivAPIError | None, bool]:
+                                try:
+                                    tw, pw = await tick_buf._request_history_paced(
+                                        cand,
+                                        sym_f,
+                                        w_s,
+                                        w_e,
+                                        request_spacing_s=HISTORY_REQUEST_SPACING_S,
+                                        history_request_fn=cand.request_public_read,
                                     )
-                                    cur_vid = str(v_trans["vintage_id"]) if (v_book is not None and v_trans is not None) else None
-                                    prev_vid, prev_rsn = rolling_last_state.get(book.book_id, (None, None))
-                                    if v_book is None or v_trans is None:
-                                        if prev_vid is not None:
-                                            executor._safe_log(
-                                                "rolling_vintage_revoked",
-                                                book_id=book.book_id,
-                                                policy_content_id=book.content_id,
-                                                previous_vintage_id=prev_vid,
-                                                reason=str(v_reason or "inactive")[:180],
-                                            )
-                                        elif prev_rsn != v_reason:
-                                            ev_name = (
-                                                "rolling_vintage_load_failed"
-                                                if str(v_reason or "").startswith(
-                                                    ("rolling_journal_or_watermark_error", "rolling_vintage_corrupt")
-                                                )
-                                                else "rolling_vintage_inactive"
-                                            )
-                                            executor._safe_log(
-                                                ev_name,
-                                                book_id=book.book_id,
-                                                policy_content_id=book.content_id,
-                                                reason=str(v_reason or "inactive")[:180],
-                                            )
-                                        rolling_last_state[book.book_id] = (None, v_reason)
-                                        continue
-                                    if prev_vid != cur_vid:
-                                        executor._safe_log(
-                                            "rolling_vintage_loaded",
-                                            book_id=book.book_id,
-                                            policy_content_id=book.content_id,
-                                            vintage_id=cur_vid,
-                                            vintage_content_id=v_book.content_id,
-                                            transition_seq=int(v_trans["seq"]),
-                                            valid_from_utc=v_trans["valid_from_utc"],
-                                            valid_until_utc=v_trans["valid_until_utc"],
-                                        )
-                                    rolling_last_state[book.book_id] = (cur_vid, None)
-                                    scoring_book = v_book
-                                    active_transition = v_trans
+                                    return tw, pw, None, False
+                                except DerivAPIError as hist_exc:
+                                    if is_market_closed_error(hist_exc):
+                                        _inspect_public_health(cand, cand_subs)
+                                        return [], [], hist_exc, False
+                                    if _is_confirmed_transport_disconnect(hist_exc) and cand._dead is None:
+                                        c_rsn_d, _ = _inspect_public_health(cand, cand_subs)
+                                        if c_rsn_d is not None:
+                                            return [], [], DerivAPIError(c_rsn_d, code="MarketIsClosed"), False
+                                        return [], [], None, True
+                                    raise
 
-                                sc = scoring_book.score_row(frow.row, minute_close)
-                                log_extra: dict[str, Any] = {}
-                                if active_transition is not None:
-                                    log_extra["vintage_id"] = str(active_transition["vintage_id"])
-                                    log_extra["policy_content_id"] = book.content_id
-                                executor._safe_log(
-                                    "book_scored",
-                                    book_id=book.book_id,
-                                    pair=book.pair,
-                                    horizon_minutes=book.horizon_minutes,
-                                    decision_utc=frow.decision_utc,
-                                    proba_up=round(sc.proba_up_raw, 6),
-                                    confidence=round(sc.confidence, 6),
-                                    direction=sc.direction,
-                                    calibrated_win_prob=sc.calibrated_win_prob,
-                                    gate_passed=sc.gate_passed,
-                                    gate_reasons=sc.gate_reasons,
-                                    **log_extra,
-                                )
-                                if sc.gate_passed:
-                                    sig: dict[str, Any] = {
-                                        "book_id": book.book_id,
-                                        "pair": book.pair,
-                                        "horizon_minutes": book.horizon_minutes,
-                                        "side": sc.direction,
-                                        "lane": "wall",
-                                        "offset_id": 0,
-                                        "signal_close_utc": frow.decision_utc,
-                                        "effective_floor": sc.effective_floor,
-                                        "calibrated_win_prob": sc.calibrated_win_prob,
-                                        "min_payout_ratio": scoring_book.min_payout_ratio,
-                                        "drop_ny_16h": scoring_book.drop_ny_16h,
-                                        "contract_family": scoring_book.contract_family,
-                                        "multiplier": scoring_book.multiplier,
-                                        "expected_ev": sc.expected_ev,
-                                        "certified_commission_frac": scoring_book.certified_commission_frac,
-                                        "max_commission_frac": scoring_book.max_commission_frac,
-                                        "min_stop_out_rel_dist": scoring_book.min_stop_out_rel_dist,
-                                        "barrier_contract_type": scoring_book.barrier_contract_type,
-                                        "barrier_rel_half_width": scoring_book.barrier_rel_half_width,
-                                        "spot_ref": frow.spot_ref,
-                                        "book_content_id": scoring_book.content_id,
-                                        "portfolio_mode": executor.portfolio_cohort_mode,
-                                    }
-                                    if active_transition is not None:
-                                        sig["book_mode"] = ROLLING_BOOK_MODE
-                                        sig["policy_content_id"] = book.content_id
-                                        sig["vintage_id"] = str(active_transition["vintage_id"])
-                                        sig["transition_seq"] = int(active_transition["seq"])
-                                        sig["transition_sha256"] = str(active_transition["transition_sha256"])
-                                        sig["vintage_valid_from_epoch"] = int(active_transition["valid_from_epoch"])
-                                        sig["vintage_valid_until_epoch"] = int(active_transition["valid_until_epoch"])
-                                    inserted, sid = enqueue_sota_signal(conn, sig)
-                                    if inserted:
-                                        await executor.process_one_signal(conn, sid, sig)
-                            except (SotaFeatureError, SotaBookError) as exc:
-                                executor._safe_log("feature_or_book_skip", book_id=book.book_id, pair=book.pair, reason=str(exc))
+                            for p in tick_buf.pairs:
+                                sym = SOTA_DERIV_SYMBOLS[p]
+                                ex_epochs = list(tick_buf._epochs[p])
+                                ex_max = int(ex_epochs[-1]) if ex_epochs else None
+                                ex_min = int(ex_epochs[0]) if ex_epochs else None
+                                seen_mins: set[int] = {e // 60 for e in ex_epochs}
+                                pair_end = max(anchor_s, max(live_e[p])) if live_e[p] else anchor_s
 
-                        if not external_ticks:
-                            tick_buf.persist_snapshot(minute_boundary_epoch=minute_close)
+                                # Single unified staged history repair strictly from each pair's last committed tick!
+                                forward_floor = (ex_max + 1) if ex_max is not None else max_scan_floor
+                                cursor = pair_end
+                                while cursor >= forward_floor:
+                                    if (
+                                        ex_max is None
+                                        and len(seen_mins) >= DEFAULT_WARMUP_MIN_BARS
+                                        and cursor <= (pair_end - 36 * 3600)
+                                    ):
+                                        break
+                                    w_start = max(forward_floor, cursor - 999)
+                                    t_w, px_w, h_closed, h_rot = await _fetch_page(sym, w_start, cursor)
+                                    if h_closed is not None:
+                                        return None, {}, None, h_closed, [p]
+                                    if h_rot:
+                                        retry_fresh_socket = True
+                                        break
+                                    if t_w:
+                                        staged_hist_e[p].extend(t_w)
+                                        staged_hist_p[p].extend(px_w)
+                                        seen_mins.update(t // 60 for t in t_w)
+                                    c_rsn, c_prs, rotated = _drain_and_check()
+                                    if c_rsn is not None:
+                                        return None, {}, None, c_rsn, c_prs
+                                    if rotated:
+                                        retry_fresh_socket = True
+                                        break
+                                    cursor = w_start - 1
 
-                if time.monotonic() - last_reconcile >= 5.0:
-                    await executor.reconcile_open_contracts(conn)
+                                if not retry_fresh_socket and len(seen_mins) < DEFAULT_WARMUP_MIN_BARS and ex_min is not None:
+                                    cursor_old = ex_min - 1
+                                    while cursor_old > max_scan_floor and len(seen_mins) < DEFAULT_WARMUP_MIN_BARS:
+                                        w_start = max(max_scan_floor, cursor_old - 999)
+                                        t_w, px_w, h_closed, h_rot = await _fetch_page(sym, w_start, cursor_old)
+                                        if h_closed is not None:
+                                            return None, {}, None, h_closed, [p]
+                                        if h_rot:
+                                            retry_fresh_socket = True
+                                            break
+                                        if t_w:
+                                            staged_hist_e[p].extend(t_w)
+                                            staged_hist_p[p].extend(px_w)
+                                            seen_mins.update(t // 60 for t in t_w)
+                                        c_rsn, c_prs, rotated = _drain_and_check()
+                                        if c_rsn is not None:
+                                            return None, {}, None, c_rsn, c_prs
+                                        if rotated:
+                                            retry_fresh_socket = True
+                                            break
+                                        cursor_old = w_start - 1
+
+                                if retry_fresh_socket:
+                                    break
+
+                            if retry_fresh_socket:
+                                if attempt == 0:
+                                    continue
+                                raise ExecutorError("public tick transport disconnected repeatedly during warmup")
+
+                            # Final pre-commit continuity & health check on unbroken generation `sub_gen`!
+                            c_rsn, c_prs, rotated = _drain_and_check()
+                            if c_rsn is not None:
+                                return None, {}, None, c_rsn, c_prs
+                            if rotated:
+                                if attempt == 0:
+                                    continue
+                                raise ExecutorError("public tick transport rotated before warmup commit")
+
+                            # Transactional commit: only now mutate tick_buf — history FIRST, live SECOND!
+                            for p in tick_buf.pairs:
+                                if staged_hist_e[p]:
+                                    tick_buf.merge_sorted_ticks(p, staged_hist_e[p], staged_hist_p[p])  # type: ignore[arg-type]
+                                if live_e[p]:
+                                    tick_buf.merge_sorted_ticks(p, live_e[p], live_p[p])  # type: ignore[arg-type]
+                                    live_e[p].clear()
+                                    live_p[p].clear()
+                            tick_buf.persist_snapshot(minute_boundary_epoch=(int(time.time()) // 60) * 60)
+                            transferred = True
+                            return cand, cand_subs, sub_gen, None, []
+                        finally:
+                            if not transferred:
+                                # Hand close to tracked teardown task so cancelling probe_task can NEVER cancel cand.close()!
+                                _schedule_public_close(cand)
+
+                    raise ExecutorError("public tick warmup failed to stabilize on a single transport generation")
+
+                def _enter_market_closed_standby(
+                    reason_err: BaseException | str,
+                    *,
+                    source: str,
+                    closed_pairs: list[str] | None = None,
+                    pair: str | None = None,
+                ) -> None:
+                    nonlocal pub_client, subs, live_pub_gen, market_closed_standby, market_closed_next_probe_wall
+                    if pub_client is not None:
+                        cli_old = pub_client
+                        pub_client = None
+                        subs = {}
+                        live_pub_gen = None
+                        _schedule_public_close(cli_old)
+                    now_f = time.time()
+                    parsed_open = parse_market_open_epoch(reason_err)
+                    next_probe = compute_market_closed_next_probe_epoch(now_f, parsed_open)
+                    market_closed_standby = True
+                    market_closed_next_probe_wall = next_probe
+                    executor._safe_log(
+                        "market_closed_standby",
+                        source=source,
+                        pair=pair,
+                        closed_pairs=sorted(set(closed_pairs)) if closed_pairs else ([pair] if pair else []),
+                        reason=str(reason_err)[:240],
+                        parsed_open_utc=(
+                            datetime.fromtimestamp(parsed_open, tz=timezone.utc).isoformat()
+                            if parsed_open is not None
+                            else None
+                        ),
+                        next_probe_utc=datetime.fromtimestamp(next_probe, tz=timezone.utc).isoformat(),
+                        probe_delay_s=round(max(0.0, next_probe - now_f), 1),
+                    )
+
+                try:
+                    if not latched_recovery_only and not external_ticks:
+                        probe_task = asyncio.create_task(_open_public_tick_session())
+
+                    last_scored_minute = int(time.time() // 60) * 60
                     last_reconcile = time.monotonic()
-                await asyncio.sleep(0.15)
-        conn.close()
+                    deadline = (time.monotonic() + args.duration_seconds) if args.duration_seconds else None
+                    rolling_last_state: dict[str, tuple[str | None, str | None]] = {}
+
+                    while deadline is None or time.monotonic() < deadline:
+                        if auth_client._background_failed.is_set():
+                            raise ExecutorError(f"auth WS background failure: {auth_client._background_error}")
+                        # Re-check latch/KILL dynamically: disable buys/scoring immediately, retire public WS off-loop!
+                        if is_safety_latch_set(conn) is not None or executor.kill_path.exists():
+                            auth_client.allow_buy = False
+                            latched_recovery_only = True
+                            market_closed_standby = False
+                            _retire_probe_task_bg()
+                            if pub_client is not None:
+                                cli_halt = pub_client
+                                pub_client = None
+                                subs = {}
+                                live_pub_gen = None
+                                _schedule_public_close(cli_halt)
+
+                        if not latched_recovery_only and not external_ticks and tick_buf is not None:
+                            if probe_task is not None and probe_task.done():
+                                done_t = probe_task
+                                probe_task = None
+                                new_pub, new_subs, verified_gen, closed_err, closed_prs = await done_t
+                                if closed_err is not None:
+                                    _enter_market_closed_standby(
+                                        closed_err,
+                                        source="standby_probe" if market_closed_standby else "startup_subscribe",
+                                        closed_pairs=closed_prs,
+                                    )
+                                else:
+                                    assert new_pub is not None and verified_gen is not None
+                                    # Reject candidate if transport rotated or failed BEFORE adoption!
+                                    try:
+                                        c_rsn_adopt, c_prs_adopt = _inspect_public_health(new_pub, new_subs)
+                                    except BaseException:
+                                        _schedule_public_close(new_pub)
+                                        raise
+                                    if c_rsn_adopt is not None:
+                                        _schedule_public_close(new_pub)
+                                        _enter_market_closed_standby(
+                                            c_rsn_adopt, source="adopt_closed", closed_pairs=c_prs_adopt
+                                        )
+                                    elif new_pub.generation != verified_gen or not new_pub.is_connected():
+                                        _schedule_public_close(new_pub)
+                                        probe_task = asyncio.create_task(_open_public_tick_session())
+                                    else:
+                                        was_standby = market_closed_standby
+                                        pub_client = new_pub
+                                        subs = new_subs
+                                        live_pub_gen = verified_gen
+                                        market_closed_standby = False
+                                        last_scored_minute = (int(time.time()) // 60) * 60
+                                        if was_standby:
+                                            executor._safe_log(
+                                                "market_reopened_resumed",
+                                                pairs=list(tick_buf.pairs),
+                                                distinct_minutes={p: tick_buf.distinct_minute_count(p) for p in tick_buf.pairs},
+                                            )
+                            elif market_closed_standby and probe_task is None:
+                                if time.time() >= market_closed_next_probe_wall:
+                                    probe_task = asyncio.create_task(_open_public_tick_session())
+                            elif pub_client is not None:
+                                closed_reason_live, closed_pairs_live = _inspect_public_health(pub_client, subs)
+                                rotated_live = live_pub_gen is not None and pub_client.generation != live_pub_gen
+                                if closed_reason_live is not None:
+                                    if not rotated_live:
+                                        # Verified single-generation closing tail -> preserve BEFORE off-loop teardown!
+                                        _drain_valid_sub_ticks(subs, use_sorted_merge=True)
+                                        tick_buf.persist_snapshot(minute_boundary_epoch=(int(time.time()) // 60) * 60)
+                                    _enter_market_closed_standby(
+                                        closed_reason_live,
+                                        source="public_tick_closed_rotated" if rotated_live else "public_tick_closed",
+                                        closed_pairs=closed_pairs_live,
+                                        pair=sorted(closed_pairs_live)[0] if closed_pairs_live else None,
+                                    )
+                                elif rotated_live or not pub_client.is_connected():
+                                    # Transport reconnected or dropped live -> DO NOT ingest post-reconnect ticks!
+                                    cli_rot = pub_client
+                                    pub_client = None
+                                    subs = {}
+                                    live_pub_gen = None
+                                    _schedule_public_close(cli_rot)
+                                    probe_task = asyncio.create_task(_open_public_tick_session())
+                                else:
+                                    _drain_valid_sub_ticks(subs, use_sorted_merge=False)
+
+                        now_wall = time.time()
+                        minute_close = (int(now_wall) // 60) * 60
+                        public_feed_ready = external_ticks or (
+                            pub_client is not None
+                            and live_pub_gen is not None
+                            and pub_client.is_connected()
+                            and pub_client.generation == live_pub_gen
+                            and probe_task is None
+                            and not market_closed_standby
+                        )
+                        if not public_feed_ready and minute_close > last_scored_minute:
+                            last_scored_minute = minute_close
+                        if (
+                            not latched_recovery_only
+                            and public_feed_ready
+                            and tick_buf is not None
+                            and minute_close > last_scored_minute
+                            and (now_wall - minute_close) >= 1.2
+                        ):
+                            ready_to_score = True
+                            if external_ticks:
+                                wm = read_tick_store_watermark(tick_store_dir)
+                                wm_min = int(wm.get("minute_boundary_epoch") or 0)
+                                if wm_min < minute_close:
+                                    if (now_wall - minute_close) < 4.5:
+                                        ready_to_score = False
+                                    else:
+                                        last_scored_minute = minute_close
+                                        ready_to_score = False
+                                        executor._safe_log("external_watermark_lag_skip", minute_close=minute_close, watermark_minute=wm_min)
+                                else:
+                                    tick_buf.load_persisted()
+
+                            if ready_to_score:
+                                last_scored_minute = minute_close
+                                await executor.reconcile_open_contracts(conn)
+                                last_reconcile = time.monotonic()
+                                # R3 Finding #2: re-check halt, public connection, generation, and health AFTER reconcile await!
+                                if is_safety_latch_set(conn) is not None or executor.kill_path.exists():
+                                    continue
+                                if not external_ticks:
+                                    if (
+                                        pub_client is None
+                                        or live_pub_gen is None
+                                        or not pub_client.is_connected()
+                                        or pub_client.generation != live_pub_gen
+                                    ):
+                                        continue
+                                    c_rsn_post, _ = _inspect_public_health(pub_client, subs)
+                                    if c_rsn_post is not None:
+                                        continue
+                                snap = tick_buf.snapshot_ticks()
+                                # Cache ONE causal snapshot-or-error per (pair, minute_close) across books in priority order!
+                                pair_cache: dict[tuple[str, int], tuple[Any | None, Exception | None]] = {}
+                                for book in books:
+                                    cache_key = (book.pair, minute_close)
+                                    if cache_key not in pair_cache:
+                                        union_cols = sorted({c for b in books if b.pair == book.pair for c in b.feature_cols})
+                                        try:
+                                            frow_c = build_pair_decision_snapshot(
+                                                book.pair,
+                                                snap,
+                                                minute_close,
+                                                union_cols,
+                                                min_active_bars=DEFAULT_WARMUP_MIN_BARS,
+                                            )
+                                            pair_cache[cache_key] = (frow_c, None)
+                                        except Exception as exc:
+                                            pair_cache[cache_key] = (None, exc)
+                                    frow, f_err = pair_cache[cache_key]
+                                    if f_err is not None or frow is None:
+                                        executor._safe_log("feature_or_book_skip", book_id=book.book_id, pair=book.pair, reason=str(f_err))
+                                        continue
+                                    try:
+                                        active_transition: dict[str, Any] | None = None
+                                        scoring_book: Any = book
+                                        if isinstance(book, RollingSotaBookHandle):
+                                            v_book, v_trans, v_reason = book.resolve_active_vintage(
+                                                minute_close, conn=conn, persist_watermark=True
+                                            )
+                                            cur_vid = str(v_trans["vintage_id"]) if (v_book is not None and v_trans is not None) else None
+                                            prev_vid, prev_rsn = rolling_last_state.get(book.book_id, (None, None))
+                                            if v_book is None or v_trans is None:
+                                                if prev_vid is not None:
+                                                    executor._safe_log(
+                                                        "rolling_vintage_revoked",
+                                                        book_id=book.book_id,
+                                                        policy_content_id=book.content_id,
+                                                        previous_vintage_id=prev_vid,
+                                                        reason=str(v_reason or "inactive")[:180],
+                                                    )
+                                                elif prev_rsn != v_reason:
+                                                    ev_name = (
+                                                        "rolling_vintage_load_failed"
+                                                        if str(v_reason or "").startswith(
+                                                            ("rolling_journal_or_watermark_error", "rolling_vintage_corrupt")
+                                                        )
+                                                        else "rolling_vintage_inactive"
+                                                    )
+                                                    executor._safe_log(
+                                                        ev_name,
+                                                        book_id=book.book_id,
+                                                        policy_content_id=book.content_id,
+                                                        reason=str(v_reason or "inactive")[:180],
+                                                    )
+                                                rolling_last_state[book.book_id] = (None, v_reason)
+                                                continue
+                                            if prev_vid != cur_vid:
+                                                executor._safe_log(
+                                                    "rolling_vintage_loaded",
+                                                    book_id=book.book_id,
+                                                    policy_content_id=book.content_id,
+                                                    vintage_id=cur_vid,
+                                                    vintage_content_id=v_book.content_id,
+                                                    transition_seq=int(v_trans["seq"]),
+                                                    valid_from_utc=v_trans["valid_from_utc"],
+                                                    valid_until_utc=v_trans["valid_until_utc"],
+                                                )
+                                            rolling_last_state[book.book_id] = (cur_vid, None)
+                                            scoring_book = v_book
+                                            active_transition = v_trans
+
+                                        sc = scoring_book.score_row(frow.row, minute_close)
+                                        log_extra: dict[str, Any] = {}
+                                        if active_transition is not None:
+                                            log_extra["vintage_id"] = str(active_transition["vintage_id"])
+                                            log_extra["policy_content_id"] = book.content_id
+                                        executor._safe_log(
+                                            "book_scored",
+                                            book_id=book.book_id,
+                                            pair=book.pair,
+                                            horizon_minutes=book.horizon_minutes,
+                                            decision_utc=frow.decision_utc,
+                                            proba_up=round(sc.proba_up_raw, 6),
+                                            confidence=round(sc.confidence, 6),
+                                            direction=sc.direction,
+                                            calibrated_win_prob=sc.calibrated_win_prob,
+                                            gate_passed=sc.gate_passed,
+                                            gate_reasons=sc.gate_reasons,
+                                            **log_extra,
+                                        )
+                                        if sc.gate_passed:
+                                            sig: dict[str, Any] = {
+                                                "book_id": book.book_id,
+                                                "pair": book.pair,
+                                                "horizon_minutes": book.horizon_minutes,
+                                                "side": sc.direction,
+                                                "lane": "wall",
+                                                "offset_id": 0,
+                                                "signal_close_utc": frow.decision_utc,
+                                                "effective_floor": sc.effective_floor,
+                                                "calibrated_win_prob": sc.calibrated_win_prob,
+                                                "min_payout_ratio": scoring_book.min_payout_ratio,
+                                                "drop_ny_16h": scoring_book.drop_ny_16h,
+                                                "contract_family": scoring_book.contract_family,
+                                                "multiplier": scoring_book.multiplier,
+                                                "expected_ev": sc.expected_ev,
+                                                "certified_commission_frac": scoring_book.certified_commission_frac,
+                                                "max_commission_frac": scoring_book.max_commission_frac,
+                                                "min_stop_out_rel_dist": scoring_book.min_stop_out_rel_dist,
+                                                "barrier_contract_type": scoring_book.barrier_contract_type,
+                                                "barrier_rel_half_width": scoring_book.barrier_rel_half_width,
+                                                "spot_ref": frow.spot_ref,
+                                                "book_content_id": scoring_book.content_id,
+                                                "portfolio_mode": executor.portfolio_cohort_mode,
+                                            }
+                                            if active_transition is not None:
+                                                sig["book_mode"] = ROLLING_BOOK_MODE
+                                                sig["policy_content_id"] = book.content_id
+                                                sig["vintage_id"] = str(active_transition["vintage_id"])
+                                                sig["transition_seq"] = int(active_transition["seq"])
+                                                sig["transition_sha256"] = str(active_transition["transition_sha256"])
+                                                sig["vintage_valid_from_epoch"] = int(active_transition["valid_from_epoch"])
+                                                sig["vintage_valid_until_epoch"] = int(active_transition["valid_until_epoch"])
+                                            inserted, sid = enqueue_sota_signal(conn, sig)
+                                            if inserted:
+                                                await executor.process_one_signal(conn, sid, sig)
+                                    except (SotaFeatureError, SotaBookError) as exc:
+                                        executor._safe_log("feature_or_book_skip", book_id=book.book_id, pair=book.pair, reason=str(exc))
+
+                                if not external_ticks:
+                                    tick_buf.persist_snapshot(minute_boundary_epoch=minute_close)
+
+                        if time.monotonic() - last_reconcile >= RECONCILE_POLL_INTERVAL_S:
+                            await executor.reconcile_open_contracts(conn)
+                            last_reconcile = time.monotonic()
+                        await asyncio.sleep(LOOP_SLEEP_S)
+                finally:
+                    _retire_probe_task_bg()
+                    if pub_client is not None:
+                        _schedule_public_close(pub_client)
+                        pub_client = None
+                    pending_cancel: asyncio.CancelledError | None = None
+                    while closing_tasks:
+                        batch_cls = list(closing_tasks)
+                        fut_cls = asyncio.gather(*batch_cls, return_exceptions=True)
+                        while not fut_cls.done():
+                            try:
+                                await asyncio.shield(fut_cls)
+                            except asyncio.CancelledError as c_exc:
+                                pending_cancel = c_exc
+                        closing_tasks.difference_update(batch_cls)
+                    if pending_cancel is not None:
+                        raise pending_cancel
+        finally:
+            conn.close()
     return 0
 
 

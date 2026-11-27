@@ -7279,6 +7279,1496 @@ def test_rolling_refitter_downloader_and_4book_g6_mvt_e2e() -> None:
         assert mvt3_capped["pillar1_execution_and_parity"]["live_unresolved_signals_total"] == 1
 
 
+def test_weekend_market_closed_standby_and_reopen() -> None:
+    """Comprehensive regression suite covering weekend MarketIsClosed standby, continuity repair, and adversarial failure modes."""
+    import os as _os_w
+    import shutil as _sh_w
+    import sqlite3 as _sq_w
+    import time as _tm_w
+    import websockets.exceptions as _ws_exc
+    import deriv_sota_executor as _ex_w
+    import deriv_sota_tick_stream as _ts_w
+    from deriv_client import DerivAPIError
+
+    repo_real = Path(__file__).resolve().parents[1]
+
+    # 1. Verify ops/deriv-sota-4book-cutover.conf carries 4-book memory headroom (measured 563.9 MiB > 512M base)
+    cutover_conf = (repo_real / "ops" / "deriv-sota-4book-cutover.conf").read_text(encoding="utf-8")
+    assert "\nMemoryHigh=1G\n" in cutover_conf
+    assert "\nMemoryMax=1536M" in cutover_conf
+
+    # 2. Structured classifier & weekend clock schedule boundary tests (Finding #1: NEVER spoofable via error prose!)
+    closed_msg = (
+        "Deriv error for req_id=8: {'code': 'MarketIsClosed', "
+        "'message': 'This market is presently closed. Market will open at 2026-11-30 00:00:00.', "
+        "'subscription': {'id': 'a1312eeb-24a4-41cc-aa5b-5101f327342c'}}"
+    )
+    assert _ex_w.is_market_closed_error(DerivAPIError("closed", code="MarketIsClosed")) is True
+    assert _ex_w.is_market_closed_error("MarketIsClosed") is True
+    assert _ex_w.is_market_closed_error(DerivAPIError("{'code': 'MarketIsClosed'}", code="RateLimit")) is False
+    assert _ex_w.is_market_closed_error(DerivAPIError("{'code': 'MarketIsClosed'}", code=None)) is False
+    assert _ex_w.is_market_closed_error("resubscribe failed: {'code': 'MarketIsClosed'}") is False
+    assert _ex_w.is_market_closed_error("resubscribe failed: {'code': 'InvalidSymbol', 'message': 'bad'}") is False
+    assert _ex_w.is_market_closed_error(None) is False
+
+    expected_open = int(datetime(2026, 11, 30, 0, 0, 0, tzinfo=timezone.utc).timestamp())
+    assert _ex_w.parse_market_open_epoch(closed_msg) == expected_open
+    assert _ex_w.parse_market_open_epoch("no hint here") is None
+
+    fri_close = datetime(2026, 11, 27, 20, 56, 0, tzinfo=timezone.utc).timestamp()
+    assert _ex_w.compute_market_closed_next_probe_epoch(fri_close, expected_open) == fri_close + 1800.0
+    sun_2345 = datetime(2026, 11, 29, 23, 45, 0, tzinfo=timezone.utc).timestamp()
+    assert _ex_w.compute_market_closed_next_probe_epoch(sun_2345, expected_open) == float(expected_open - 60)
+    sun_2359 = datetime(2026, 11, 29, 23, 59, 0, tzinfo=timezone.utc).timestamp()
+    assert _ex_w.compute_market_closed_next_probe_epoch(sun_2359, expected_open) == float(expected_open + 5)
+    mon_0010s = datetime(2026, 11, 30, 0, 0, 10, tzinfo=timezone.utc).timestamp()
+    assert _ex_w.compute_market_closed_next_probe_epoch(mon_0010s, expected_open) == mon_0010s + 30.0
+    assert _ex_w.compute_market_closed_next_probe_epoch(fri_close, None) == fri_close + 300.0
+    assert _ex_w.compute_market_closed_next_probe_epoch(fri_close, int(fri_close - 3600)) == fri_close + 300.0
+    assert _ex_w.compute_market_closed_next_probe_epoch(fri_close, int(fri_close + 10 * 86400)) == fri_close + 300.0
+
+    # 3. Transport hardening tests (Finding #4b blocked ws.send timeout & Finding #6 partial reconnect timeout)
+    async def _run_transport_hardening_tests() -> None:
+        class _BlockedSendWS:
+            def __init__(self) -> None:
+                self.inbox: asyncio.Queue[str] = asyncio.Queue()
+
+            async def send(self, _text: str) -> None:
+                await asyncio.sleep(5.0)
+
+            async def recv(self) -> str:
+                return await self.inbox.get()
+
+            async def close(self, *a: Any, **kw: Any) -> None:
+                return None
+
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL, allow_buy=False, ws_opener=lambda _u: _BlockedSendWS()
+        ) as cli_blk:
+            t0_b = _tm_w.monotonic()
+            try:
+                await cli_blk.request_public_read({"ticks_history": "frxAUDUSD"}, timeout=0.06)
+                raise AssertionError("blocked ws.send must fail within request timeout")
+            except DerivAPIError as exc:
+                assert "ws_send_timeout_uncertain" in str(exc)
+            assert (_tm_w.monotonic() - t0_b) < 0.40
+
+        # Finding #6: partial reconnect timeout (AUDUSD resubscribes, USDJPY times out -> USDJPY.error MUST be set!)
+        open_idx = 0
+
+        class _PartialResubWS:
+            def __init__(self, conn_num: int) -> None:
+                self.conn_num = conn_num
+                self.inbox: asyncio.Queue[str | BaseException] = asyncio.Queue()
+                self.sent: list[dict[str, Any]] = []
+
+            async def send(self, text: str) -> None:
+                req = json.loads(text)
+                self.sent.append(req)
+                rid = req["req_id"]
+                sym = req.get("ticks")
+                if self.conn_num == 1:
+                    await self.inbox.put(json.dumps({
+                        "req_id": rid,
+                        "subscription": {"id": f"c1-{sym}"},
+                        "tick": {"epoch": 1795812900, "quote": 150.0, "symbol": sym},
+                    }))
+                    if len(self.sent) == 2:
+                        asyncio.get_running_loop().call_later(
+                            0.02, self.inbox.put_nowait, _ws_exc.ConnectionClosed(None, None)
+                        )
+                else:
+                    # Only reply for AUDUSD; leave USDJPY hanging past request_timeout!
+                    if sym == "frxAUDUSD":
+                        await self.inbox.put(json.dumps({
+                            "req_id": rid,
+                            "subscription": {"id": f"c2-{sym}"},
+                            "tick": {"epoch": 1795812901, "quote": 0.65, "symbol": sym},
+                        }))
+
+            async def recv(self) -> str:
+                item = await self.inbox.get()
+                if isinstance(item, BaseException):
+                    raise item
+                return item
+
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+        def _open_partial(_u: str) -> _PartialResubWS:
+            nonlocal open_idx
+            open_idx += 1
+            return _PartialResubWS(open_idx)
+
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL,
+            allow_buy=False,
+            request_timeout=0.08,
+            reconnect_base_s=0.01,
+            reconnect_cap_s=0.02,
+            ws_opener=_open_partial,
+        ) as cli_pr:
+            sub_aud = await cli_pr.subscribe({"ticks": "frxAUDUSD", "subscribe": 1})
+            sub_jpy = await cli_pr.subscribe({"ticks": "frxUSDJPY", "subscribe": 1})
+            await asyncio.sleep(0.25)
+            assert sub_aud.error is None and sub_aud.resubscribes >= 1
+            assert sub_jpy.error is not None and "resubscribe incomplete" in sub_jpy.error
+            assert getattr(sub_jpy, "error_code", None) is None
+
+        # R2 Finding #5: _send_lock wait bounded by request deadline + CancelledError during ws.send pops _pending[rid]
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL, allow_buy=False, ws_opener=lambda _u: _BlockedSendWS()
+        ) as cli_lk:
+            await cli_lk._send_lock.acquire()
+            t0_lk = _tm_w.monotonic()
+            try:
+                await cli_lk.request_public_read({"ticks_history": "frxAUDUSD"}, timeout=0.04)
+                raise AssertionError("expected send-lock timeout")
+            except DerivAPIError as exc:
+                assert "send lock" in str(exc)
+            finally:
+                cli_lk._send_lock.release()
+            assert (_tm_w.monotonic() - t0_lk) < 0.20
+
+            send_task = asyncio.create_task(cli_lk.request_public_read({"ticks_history": "frxAUDUSD"}, timeout=5.0))
+            await asyncio.sleep(0.03)
+            send_task.cancel()
+            try:
+                await send_task
+            except asyncio.CancelledError:
+                pass
+            assert len(cli_lk._pending) == 0, f"cancelled ws.send leaked pending futures: {cli_lk._pending}"
+
+        # R2 Finding #3 & #4: pre-sub RateLimit replayed in subscribe(), same-lane MarketIsClosed->RateLimit->MarketIsClosed
+        # sticky non-closure error, AND unresolved reconnect clears stale MarketIsClosed code!
+        class _PreSubErrWS:
+            def __init__(self) -> None:
+                self.inbox: asyncio.Queue[str | BaseException] = asyncio.Queue()
+
+            async def send(self, text: str) -> None:
+                req = json.loads(text)
+                rid = req["req_id"]
+                await self.inbox.put(json.dumps({
+                    "req_id": rid,
+                    "subscription": {"id": "ps-1"},
+                    "tick": {"epoch": 1795812900, "quote": 0.65},
+                }))
+                # Immediately queue a pre-sub RateLimit frame before subscribe() resumes to register self._subs!
+                await self.inbox.put(json.dumps({
+                    "subscription": {"id": "ps-1"},
+                    "error": {"code": "RateLimit", "message": "too many requests"},
+                }))
+
+            async def recv(self) -> str:
+                item = await self.inbox.get()
+                if isinstance(item, BaseException):
+                    raise item
+                return item
+
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL, allow_buy=False, ws_opener=lambda _u: _PreSubErrWS()
+        ) as cli_ps:
+            sub_ps = await cli_ps.subscribe({"ticks": "frxAUDUSD", "subscribe": 1})
+            await asyncio.sleep(0.02)
+            assert sub_ps.error is not None and getattr(sub_ps, "non_closed_error", None) is not None
+            assert cli_ps._sticky_non_closed_error is not None and cli_ps._background_failed.is_set()
+            # Sending a subsequent MarketIsClosed on the SAME lane MUST NOT clear the sticky non-closed error!
+            cli_ps._dispatch({"subscription": {"id": "ps-1"}, "error": {"code": "MarketIsClosed", "message": "closed"}})
+            assert cli_ps._sticky_non_closed_error is not None
+            assert getattr(sub_ps, "non_closed_error", None) is not None
+
+        # R2 Finding #4: stale MarketIsClosed on sub MUST be overwritten with resubscribe incomplete + error_code=None on timeout!
+        stale_open_idx = 0
+
+        class _StaleClosedResubWS:
+            def __init__(self, cnum: int) -> None:
+                self.cnum = cnum
+                self.inbox: asyncio.Queue[str | BaseException] = asyncio.Queue()
+
+            async def send(self, text: str) -> None:
+                req = json.loads(text)
+                rid = req["req_id"]
+                if self.cnum == 1:
+                    await self.inbox.put(json.dumps({
+                        "req_id": rid,
+                        "subscription": {"id": "st-1"},
+                        "tick": {"epoch": 1795812900, "quote": 150.0},
+                    }))
+                    # First stamp MarketIsClosed via stream error, then drop socket so reconnect gets NO reply!
+                    loop = asyncio.get_running_loop()
+                    loop.call_later(
+                        0.02,
+                        self.inbox.put_nowait,
+                        json.dumps({"subscription": {"id": "st-1"}, "error": {"code": "MarketIsClosed", "message": "closed"}}),
+                    )
+                    loop.call_later(0.04, self.inbox.put_nowait, _ws_exc.ConnectionClosed(None, None))
+                # cnum >= 2: intentionally silent -> resubscribe timeout!
+
+            async def recv(self) -> str:
+                item = await self.inbox.get()
+                if isinstance(item, BaseException):
+                    raise item
+                return item
+
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+        def _open_stale(_u: str) -> _StaleClosedResubWS:
+            nonlocal stale_open_idx
+            stale_open_idx += 1
+            return _StaleClosedResubWS(stale_open_idx)
+
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL,
+            allow_buy=False,
+            request_timeout=0.07,
+            reconnect_base_s=0.01,
+            reconnect_cap_s=0.02,
+            ws_opener=_open_stale,
+        ) as cli_st:
+            sub_st = await cli_st.subscribe({"ticks": "frxUSDJPY", "subscribe": 1})
+            await asyncio.sleep(0.25)
+            assert sub_st.error is not None and "resubscribe incomplete" in sub_st.error
+            assert getattr(sub_st, "error_code", None) is None
+            assert cli_st._sticky_non_closed_error is not None
+
+        # R3 Finding #4a: pre-sub RateLimit buffered BEFORE resubscribe ack MUST be replayed & become sticky!
+        resub_pre_idx = 0
+
+        class _ResubPreSubErrWS:
+            def __init__(self, cnum: int) -> None:
+                self.cnum = cnum
+                self.inbox: asyncio.Queue[str | BaseException] = asyncio.Queue()
+
+            async def send(self, text: str) -> None:
+                req = json.loads(text)
+                rid = req["req_id"]
+                if self.cnum == 1:
+                    await self.inbox.put(json.dumps({
+                        "req_id": rid,
+                        "subscription": {"id": "rp-1"},
+                        "tick": {"epoch": 1795812900, "quote": 150.0},
+                    }))
+                    asyncio.get_running_loop().call_later(
+                        0.02, self.inbox.put_nowait, _ws_exc.ConnectionClosed(None, None)
+                    )
+                else:
+                    # Send stream error for new sub id rp-2 BEFORE the resubscribe ack arrives!
+                    await self.inbox.put(json.dumps({
+                        "subscription": {"id": "rp-2"},
+                        "error": {"code": "RateLimit", "message": "buffered before resub ack"},
+                    }))
+                    await self.inbox.put(json.dumps({
+                        "req_id": rid,
+                        "subscription": {"id": "rp-2"},
+                        "tick": {"epoch": 1795812905, "quote": 150.0},
+                    }))
+
+            async def recv(self) -> str:
+                item = await self.inbox.get()
+                if isinstance(item, BaseException):
+                    raise item
+                return item
+
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+        def _open_resub_pre(_u: str) -> _ResubPreSubErrWS:
+            nonlocal resub_pre_idx
+            resub_pre_idx += 1
+            return _ResubPreSubErrWS(resub_pre_idx)
+
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL,
+            allow_buy=False,
+            request_timeout=0.2,
+            reconnect_base_s=0.01,
+            reconnect_cap_s=0.02,
+            ws_opener=_open_resub_pre,
+        ) as cli_rp:
+            sub_rp = await cli_rp.subscribe({"ticks": "frxUSDJPY", "subscribe": 1})
+            await asyncio.sleep(0.15)
+            assert sub_rp.error is not None and getattr(sub_rp, "non_closed_error", None) is not None
+            assert cli_rp._sticky_non_closed_error is not None and cli_rp._background_failed.is_set()
+
+        # R4b Major #3: subscribe ack whose transport rotated before registration MUST be rejected (no stale sub_id!)
+        rot_sub_idx = 0
+
+        class _RotBeforeSubRegWS:
+            def __init__(self, cnum: int) -> None:
+                self.cnum = cnum
+                self.inbox: asyncio.Queue[str | BaseException] = asyncio.Queue()
+
+            async def send(self, text: str) -> None:
+                req = json.loads(text)
+                rid = req["req_id"]
+                if self.cnum == 1:
+                    await self.inbox.put(json.dumps({
+                        "req_id": rid,
+                        "subscription": {"id": "stale-gen1-id"},
+                        "tick": {"epoch": 1795812900, "quote": 150.0},
+                    }))
+                    # Disconnect immediately so _read_loop increments _generation before subscribe() registers!
+                    await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+            async def recv(self) -> str:
+                item = await self.inbox.get()
+                if isinstance(item, BaseException):
+                    raise item
+                return item
+
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+        def _open_rot_sub(_u: str) -> _RotBeforeSubRegWS:
+            nonlocal rot_sub_idx
+            rot_sub_idx += 1
+            return _RotBeforeSubRegWS(rot_sub_idx)
+
+        async with _ex_w.SotaDerivAsyncClient(
+            _ex_w.PUBLIC_WS_URL,
+            allow_buy=False,
+            request_timeout=0.2,
+            reconnect_base_s=0.0,
+            reconnect_cap_s=0.0,
+            ws_opener=_open_rot_sub,
+        ) as cli_rs:
+            try:
+                await cli_rs.subscribe({"ticks": "frxUSDJPY", "subscribe": 1})
+                # Only valid if rotation happened after registration; if rotation beat registration, DerivAPIError must fire!
+                assert cli_rs.generation == 1 or "stale-gen1-id" not in cli_rs._subs
+            except DerivAPIError as exc:
+                assert "generation rotated before registration" in str(exc)
+                assert "stale-gen1-id" not in cli_rs._subs and len(cli_rs._registry) == 0
+
+    asyncio.run(_run_transport_hardening_tests())
+
+    # 4. Controlled-clock end-to-end run_integrated_vps_loop() harness with REAL history reads (NO no-op warmup!)
+    class _ScriptedWS:
+        def __init__(self, handler: Any) -> None:
+            self.handler = handler
+            self.inbox: asyncio.Queue[str | BaseException] = asyncio.Queue()
+            self.closed = False
+            self.sent: list[dict[str, Any]] = []
+
+        async def send(self, text: str) -> None:
+            req = json.loads(text)
+            self.sent.append(req)
+            out = self.handler(self, req)
+            if asyncio.iscoroutine(out):
+                out = await out
+            if isinstance(out, list):
+                for item in out:
+                    await self.inbox.put(item if isinstance(item, (str, BaseException)) else json.dumps(item))
+            elif out is not None:
+                await self.inbox.put(out if isinstance(out, (str, BaseException)) else json.dumps(out))
+
+        async def recv(self) -> str:
+            item = await self.inbox.get()
+            if isinstance(item, BaseException):
+                raise item
+            return item
+
+        async def close(self, *a: Any, **kw: Any) -> None:
+            self.closed = True
+            await self.inbox.put(_ws_exc.ConnectionClosed(None, None))
+
+    def _build_loop_fixture(
+        root: Path,
+        *,
+        seed_end_epoch: int,
+        with_open_contract: bool = False,
+    ) -> tuple[Any, Path, Path, Path, Path, Path]:
+        f_home = root / "home"
+        f_home.mkdir()
+        f_repo = root / "repo"
+        _sh_w.copytree(repo_real / "books", f_repo / "books")
+        q_db = f_repo / "deriv_data" / "runtime" / "sota_trade_queue_demo.sqlite"
+        q_db.parent.mkdir(parents=True, exist_ok=True)
+        log_d = f_repo / "logs" / "sota_runtime"
+        log_d.mkdir(parents=True, exist_ok=True)
+        tick_d = f_repo / "deriv_data" / "sota_ticks_1s"
+        tick_d.mkdir(parents=True, exist_ok=True)
+        rcpt = f_home / "rcpt.json"
+        rcpt.write_text(
+            json.dumps({
+                "schema": "sota-credential-isolation-receipt/v1",
+                "account_id": "DMO55667788",
+                "account_mode": "demo",
+                "legacy_credentials_revoked": True,
+                "attested_by": "test",
+                "attested_utc": "2026-11-27T00:00:00Z",
+            }),
+            encoding="utf-8",
+        )
+        # Pre-seed 1,650 distinct minutes ending at exact seed_end_epoch
+        base_min = seed_end_epoch - 1649 * 60
+        seed_ep = np.arange(base_min, seed_end_epoch + 1, 60, dtype=np.int64)
+        seed_px = np.full(len(seed_ep), 150.0, dtype=np.float64)
+        tbuf = _ts_w.LiveTickBuffer(pairs=["USDJPY"], store_dir=tick_d)
+        for p in _ts_w.MAJORS:
+            tbuf.merge_sorted_ticks(p, seed_ep, seed_px)
+        tbuf.persist_snapshot(minute_boundary_epoch=(seed_end_epoch // 60) * 60)
+
+        conn = _create_bound_v3_test_db(q_db, "DMO55667788")
+        if with_open_contract:
+            sig_iso = datetime.fromtimestamp(seed_end_epoch - 600, tz=timezone.utc).isoformat()
+            exp_iso = datetime.fromtimestamp(seed_end_epoch - 60, tz=timezone.utc).isoformat()
+            conn.execute(
+                """
+                INSERT INTO sota_signals (
+                    signal_id, book_id, pair, horizon_minutes, side, lane, offset_id,
+                    signal_close_utc, effective_floor, calibrated_win_prob, payload_json,
+                    status, reason, contract_id, proposal_id, created_utc, updated_utc
+                ) VALUES ('sig-open-1', 'USDJPY.sota_ens5_m15_up.v1', 'USDJPY', 15, 'UP', 'wall', 0, ?, 0.56, 0.63, '{}',
+                          'bought', 'buy_confirmed', '99001122', 'p-open-1', ?, ?)
+                """,
+                (sig_iso, sig_iso, sig_iso),
+            )
+            conn.execute(
+                """
+                INSERT INTO sota_contracts (
+                    contract_id, signal_id, book_id, book_content_id, account_id, account_mode,
+                    pair, horizon_minutes, side, contract_family, is_migrated_legacy, cost_unknown,
+                    buy_price_cents, payout_cents, stake_authoritative,
+                    venue_start_epoch, venue_end_epoch, signal_close_utc, status,
+                    proposal_id, expected_expiry_utc, raw_hash, opened_utc, updated_utc
+                ) VALUES ('99001122', 'sig-open-1', 'USDJPY.sota_ens5_m15_up.v1', 'cid', 'DMO55667788', 'demo',
+                          'USDJPY', 15, 'UP', 'risefall', 0, 0, 100, 182, 1, ?, ?, ?, 'open', 'p-open-1', ?, 'rh', ?, ?)
+                """,
+                (seed_end_epoch - 598, seed_end_epoch - 60, sig_iso, exp_iso, sig_iso, sig_iso),
+            )
+            conn.commit()
+        conn.close()
+
+        args = _ex_w.build_parser().parse_args([
+            "--run",
+            "--phase1-policy",
+            "--require-explicit-book-ids",
+            "--enforce-3book-cutover",
+            "--account-mode", "demo",
+            "--book-ids", ",".join(_ex_w.PHASE1_ORDERED_BOOK_IDS),
+            "--tick-feed-mode", "integrated",
+            "--tick-store-dir", str(tick_d),
+            "--stake", "1.0",
+            "--queue-db", str(q_db),
+            "--log-dir", str(log_d),
+            "--credential-isolation-receipt", str(rcpt),
+            "--duration-seconds", "1.0",
+        ])
+        return args, f_home, f_repo, q_db, log_d, tick_d
+
+    def _run_patched_loop(
+        root: Path,
+        *,
+        seed_end_epoch: int,
+        wall_clock: list[float],
+        pub_opener: Any,
+        auth_handler: Any,
+        with_open_contract: bool = False,
+        duration_s: float = 0.8,
+        pub_queue_maxsize: int | None = None,
+        on_after_start: Any = None,
+        cancel_after_s: float | None = None,
+        probe_interval_s: float = 30.0,
+    ) -> dict[str, Any]:
+        args, f_home, f_repo, q_db, log_d, tick_d = _build_loop_fixture(
+            root, seed_end_epoch=seed_end_epoch, with_open_contract=with_open_contract
+        )
+        args.duration_seconds = duration_s
+        auth_url_calls = 0
+        pub_clients: list[Any] = []
+        auth_clients: list[Any] = []
+        conns_opened: list[Any] = []
+        orig_cls = _ex_w.SotaDerivAsyncClient
+        orig_conn_fn = _ex_w.connect_sota_queue_v3
+
+        class _InjectedSotaClient(orig_cls):
+            def __init__(self, url: str = _ex_w.PUBLIC_WS_URL, **kw: Any) -> None:
+                is_pub = (url == _ex_w.PUBLIC_WS_URL)
+                kw["ws_opener"] = pub_opener if is_pub else (lambda _u: _ScriptedWS(auth_handler))
+                if is_pub:
+                    kw["reconnect_base_s"] = 0.01
+                    kw["reconnect_cap_s"] = 0.02
+                    if pub_queue_maxsize is not None:
+                        kw["queue_maxsize"] = pub_queue_maxsize
+                super().__init__(url=url, **kw)
+                if is_pub:
+                    pub_clients.append(self)
+                else:
+                    auth_clients.append(self)
+
+        def _spy_conn(*a: Any, **kw: Any) -> Any:
+            c = orig_conn_fn(*a, **kw)
+            conns_opened.append(c)
+            return c
+
+        orig_time_fn = _tm_w.time
+        orig_attrs = {
+            "SotaDerivAsyncClient": _ex_w.SotaDerivAsyncClient,
+            "connect_sota_queue_v3": _ex_w.connect_sota_queue_v3,
+            "request_authenticated_ws_url": _ex_w.request_authenticated_ws_url,
+            "assert_non_us_deriv_host": _ex_w.assert_non_us_deriv_host,
+            "canonical_pw_home": _ex_w.canonical_pw_home,
+            "canonical_sota_queue_path": _ex_w.canonical_sota_queue_path,
+            "canonical_rolling_vintage_root": _ex_w.canonical_rolling_vintage_root,
+            "LEXICAL_REPO_ROOT": _ex_w.LEXICAL_REPO_ROOT,
+            "MARKET_CLOSED_FALLBACK_PROBE_S": _ex_w.MARKET_CLOSED_FALLBACK_PROBE_S,
+            "MARKET_CLOSED_LONG_PROBE_S": _ex_w.MARKET_CLOSED_LONG_PROBE_S,
+            "MARKET_CLOSED_REOPEN_RETRY_S": _ex_w.MARKET_CLOSED_REOPEN_RETRY_S,
+            "RECONCILE_POLL_INTERVAL_S": _ex_w.RECONCILE_POLL_INTERVAL_S,
+            "HISTORY_REQUEST_SPACING_S": _ex_w.HISTORY_REQUEST_SPACING_S,
+            "LOOP_SLEEP_S": _ex_w.LOOP_SLEEP_S,
+        }
+        orig_env = {k: _os_w.environ.get(k) for k in ("DERIV_ACCOUNT_ID", "DERIV_APP_ID", "DERIV_PAT")}
+
+        def _fake_auth_url(env_a: Any, mode_a: str, timeout: float = 10.0) -> tuple[str, str]:
+            nonlocal auth_url_calls
+            auth_url_calls += 1
+            return "wss://api.derivws.com/trading/v1/options/ws/demo?otp=test", "options_otp"
+
+        cancelled_caught = False
+        rc: int | None = None
+        try:
+            _os_w.environ["DERIV_ACCOUNT_ID"] = "DMO55667788"
+            _os_w.environ["DERIV_APP_ID"] = "1089"
+            _os_w.environ["DERIV_PAT"] = "dummy-pat"
+            _tm_w.time = lambda: float(wall_clock[0])  # type: ignore[assignment]
+            _ex_w.SotaDerivAsyncClient = _InjectedSotaClient  # type: ignore[misc]
+            _ex_w.connect_sota_queue_v3 = _spy_conn  # type: ignore[assignment]
+            _ex_w.request_authenticated_ws_url = _fake_auth_url  # type: ignore[assignment]
+            _ex_w.assert_non_us_deriv_host = lambda *a, **kw: None  # type: ignore[assignment]
+            _ex_w.canonical_pw_home = lambda: f_home  # type: ignore[assignment]
+            _ex_w.canonical_sota_queue_path = lambda _m, repo_root=None: q_db  # type: ignore[assignment]
+            _ex_w.canonical_rolling_vintage_root = lambda repo_root=None: f_repo / "deriv_data" / "runtime" / "rolling_vintages"  # type: ignore[assignment]
+            _ex_w.LEXICAL_REPO_ROOT = f_repo
+            _ex_w.MARKET_CLOSED_FALLBACK_PROBE_S = probe_interval_s
+            _ex_w.MARKET_CLOSED_LONG_PROBE_S = probe_interval_s
+            _ex_w.MARKET_CLOSED_REOPEN_RETRY_S = probe_interval_s
+            _ex_w.RECONCILE_POLL_INTERVAL_S = 0.03
+            _ex_w.HISTORY_REQUEST_SPACING_S = 0.0
+            _ex_w.LOOP_SLEEP_S = 0.015
+
+            async def _runner() -> int | None:
+                nonlocal cancelled_caught
+                task = asyncio.create_task(_ex_w.run_integrated_vps_loop(args))
+                if on_after_start is not None:
+                    await on_after_start(log_d, pub_clients, auth_clients, wall_clock)
+                if cancel_after_s is not None:
+                    if asyncio.iscoroutinefunction(cancel_after_s) or callable(cancel_after_s):
+                        await cancel_after_s()
+                    else:
+                        await asyncio.sleep(cancel_after_s)
+                    task.cancel()
+                    try:
+                        await task
+                    except asyncio.CancelledError:
+                        cancelled_caught = True
+                    return None
+                return await task
+
+            rc = asyncio.run(_runner())
+        finally:
+            _tm_w.time = orig_time_fn  # type: ignore[assignment]
+            for k_a, v_a in orig_attrs.items():
+                setattr(_ex_w, k_a, v_a)
+            for k_e, v_e in orig_env.items():
+                if v_e is None:
+                    _os_w.environ.pop(k_e, None)
+                else:
+                    _os_w.environ[k_e] = v_e
+
+        events: list[dict[str, Any]] = []
+        for lf in sorted(log_d.rglob("*.jsonl")):
+            for ln in lf.read_text(encoding="utf-8").splitlines():
+                if ln.strip():
+                    events.append(json.loads(ln))
+        return {
+            "rc": rc,
+            "cancelled": cancelled_caught,
+            "auth_url_calls": auth_url_calls,
+            "pub_clients": pub_clients,
+            "auth_clients": auth_clients,
+            "conns_opened": conns_opened,
+            "events": events,
+            "q_db": q_db,
+            "log_d": log_d,
+            "tick_d": tick_d,
+        }
+
+    def _std_auth_handler(settle_gate: dict[str, bool], venue_ep: int) -> Any:
+        def _h(_ws: Any, req: dict[str, Any]) -> dict[str, Any]:
+            rid = req["req_id"]
+            if "balance" in req:
+                return {"req_id": rid, "balance": {"loginid": "DMO55667788", "currency": "USD", "is_virtual": 1, "balance": 1000.0}}
+            if "time" in req:
+                return {"req_id": rid, "time": venue_ep}
+            if "proposal_open_contract" in req:
+                if settle_gate.get("ready"):
+                    return {
+                        "req_id": rid,
+                        "proposal_open_contract": {
+                            "contract_id": "99001122",
+                            "status": "won",
+                            "is_sold": 1,
+                            "buy_price": "1.00",
+                            "sell_price": "1.82",
+                            "profit": "0.82",
+                            "date_start": venue_ep - 598,
+                            "date_expiry": venue_ep - 60,
+                            "underlying": "frxUSDJPY",
+                            "contract_type": "CALL",
+                        },
+                    }
+                return {
+                    "req_id": rid,
+                    "proposal_open_contract": {
+                        "contract_id": "99001122",
+                        "status": "open",
+                        "is_sold": 0,
+                    },
+                }
+            return {"req_id": rid, "echo_req": req}
+        return _h
+
+    # Case 4a (Findings #2, #3, #5, #8): Live Friday close -> preserves closing-tail tick -> settles contract ONLY AFTER
+    #          standby starts -> partial-open race (AUDUSD open at 00:00:05, USDJPY closed) -> history MarketIsClosed
+    #          routes back to standby -> full reopen at 00:00:35 repairs opening interval + live beats history at overlap!
+    with tempfile.TemporaryDirectory() as td_a:
+        fri_end = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        mon_open = expected_open  # 2026-11-30 00:00:00 UTC
+        clock_a = [float(fri_end)]
+        settle_gate_a = {"ready": False}
+        pub_opens_a = 0
+        opened_ws_a: list[_ScriptedWS] = []
+        hist_reqs_a: list[dict[str, Any]] = []
+
+        # Full history store covering Friday tail + Monday opening interval [mon_open..mon_open+35]
+        hist_store: dict[str, tuple[list[int], list[float]]] = {}
+        for p in _ts_w.MAJORS:
+            sym = SOTA_DERIV_SYMBOLS[p]
+            # Opening ticks every 5s: 00:00:01, 00:00:03, 00:00:05, 00:00:15, 00:00:25, 00:00:35
+            ht = [mon_open + 1, mon_open + 3, mon_open + 5, mon_open + 15, mon_open + 25, mon_open + 35]
+            hp = [150.11, 150.13, 150.15, 150.25, 150.35, 150.45]
+            hist_store[sym] = (ht, hp)
+
+        def _pub_open_a(_u: str) -> _ScriptedWS:
+            nonlocal pub_opens_a
+            pub_opens_a += 1
+            conn_n = pub_opens_a
+
+            def _h(ws_self: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    if conn_n == 1:
+                        # Live Friday session: subscribe all 7, emit closing-tail tick at fri_end + 12s, then disconnect!
+                        if len(ws_self.sent) == len(_ts_w.MAJORS):
+                            asyncio.get_running_loop().call_later(
+                                0.03, ws_self.inbox.put_nowait, _ws_exc.ConnectionClosed(None, None)
+                            )
+                        return {
+                            "req_id": rid,
+                            "subscription": {"id": f"c1-{sym}"},
+                            "tick": {"epoch": fri_end + 12, "quote": 150.77, "symbol": sym},
+                        }
+                    if conn_n == 2:
+                        # Reconnect right after Friday close -> ALL 7 return MarketIsClosed!
+                        return {
+                            "req_id": rid,
+                            "error": {
+                                "code": "MarketIsClosed",
+                                "message": "This market is presently closed. Market will open at 2026-11-30 00:00:00.",
+                                "subscription": {"id": f"closed-{sym}"},
+                            },
+                        }
+                    if conn_n == 3:
+                        # Sunday 23:59:00 probe -> ALL 7 still closed!
+                        return {
+                            "req_id": rid,
+                            "error": {
+                                "code": "MarketIsClosed",
+                                "message": "This market is presently closed. Market will open at 2026-11-30 00:00:00.",
+                            },
+                        }
+                    if conn_n == 4:
+                        # Partial-open race at Mon 00:00:05: AUDUSD opens, USDJPY still closed!
+                        if sym == "frxUSDJPY":
+                            return {
+                                "req_id": rid,
+                                "error": {
+                                    "code": "MarketIsClosed",
+                                    "message": "This market is presently closed. Market will open at 2026-11-30 00:00:00.",
+                                },
+                            }
+                        return {
+                            "req_id": rid,
+                            "subscription": {"id": f"p4-{sym}"},
+                            "tick": {"epoch": mon_open + 5, "quote": 150.15, "symbol": sym},
+                        }
+                    if conn_n == 5:
+                        # Finding #5: all 7 subscribe, then first ticks_history returns MarketIsClosed!
+                        return {
+                            "req_id": rid,
+                            "subscription": {"id": f"p5-{sym}"},
+                            "tick": {"epoch": mon_open + 35, "quote": 150.45, "symbol": sym},
+                        }
+                    # conn_n >= 6: full reopen at Mon 00:00:35!
+                    # Emit live tick at mon_open+3 (earlier than history max +35!) AND live tick at mon_open+35 with 150.99!
+                    return [
+                        {
+                            "req_id": rid,
+                            "subscription": {"id": f"p6-{sym}"},
+                            "tick": {"epoch": mon_open + 3, "quote": 150.33, "symbol": sym},
+                        },
+                        {
+                            "subscription": {"id": f"p6-{sym}"},
+                            "tick": {"epoch": mon_open + 35, "quote": 150.99, "symbol": sym},
+                        },
+                    ]
+                if "ticks_history" in req:
+                    hist_reqs_a.append(req)
+                    if conn_n == 5:
+                        return {
+                            "req_id": rid,
+                            "error": {
+                                "code": "MarketIsClosed",
+                                "message": "This market is presently closed. Market will open at 2026-11-30 00:00:00.",
+                            },
+                        }
+                    sym = req["ticks_history"]
+                    s_ep, e_ep = int(req["start"]), int(req["end"])
+                    ht, hp = hist_store[sym]
+                    ot = [t for t in ht if s_ep <= t <= e_ep]
+                    op = [px for t, px in zip(ht, hp) if s_ep <= t <= e_ep]
+                    return {"req_id": rid, "history": {"times": ot, "prices": op}}
+                return {"req_id": rid, "echo_req": req}
+
+            ws_i = _ScriptedWS(_h)
+            opened_ws_a.append(ws_i)
+            return ws_i
+
+        async def _drive_weekend_clock(log_d: Path, _pubs: list[Any], _auths: list[Any], clk: list[float]) -> None:
+            def _read_ev() -> list[str]:
+                evs: list[str] = []
+                for lf in sorted(log_d.rglob("*.jsonl")):
+                    for ln in lf.read_text(encoding="utf-8").splitlines():
+                        if ln.strip():
+                            evs.append(json.loads(ln)["event"])
+                return evs
+
+            # Wait until live Friday close enters market_closed_standby (conn_n == 2)
+            for _ in range(80):
+                if "market_closed_standby" in _read_ev():
+                    break
+                await asyncio.sleep(0.02)
+            assert "market_closed_standby" in _read_ev()
+            assert "contract_settled" not in _read_ev(), "contract must NOT have settled before standby!"
+            # NOW allow contract to settle DURING standby!
+            settle_gate_a["ready"] = True
+            for _ in range(60):
+                if "contract_settled" in _read_ev():
+                    break
+                await asyncio.sleep(0.02)
+            assert "contract_settled" in _read_ev(), "open contract failed to settle during standby!"
+            # Advance to Sun 23:59:00 (conn_n == 3: all 7 closed)
+            clk[0] = float(mon_open - 60)
+            for _ in range(50):
+                if pub_opens_a >= 3:
+                    break
+                await asyncio.sleep(0.02)
+            # Advance to Mon 00:00:05 (conn_n == 4: AUDUSD open, USDJPY closed!)
+            await asyncio.sleep(0.04)
+            clk[0] = float(mon_open + 5)
+            for _ in range(50):
+                if pub_opens_a >= 4:
+                    break
+                await asyncio.sleep(0.02)
+            # Advance to Mon 00:00:35 (conn_n == 5 hits history MarketIsClosed -> standby; then conn_n == 6 succeeds!)
+            await asyncio.sleep(0.04)
+            clk[0] = float(mon_open + 35)
+            for _ in range(50):
+                if pub_opens_a >= 5:
+                    break
+                await asyncio.sleep(0.02)
+            await asyncio.sleep(0.04)
+            clk[0] = float(mon_open + 70)
+            for _ in range(80):
+                if "market_reopened_resumed" in _read_ev():
+                    break
+                await asyncio.sleep(0.02)
+            # R2 Row 8: push fresh minute-bar ticks across mon_open+120 and verify resumed book_scored runs!
+            if opened_ws_a:
+                live_ws = opened_ws_a[-1]
+                for p_s in _ts_w.MAJORS:
+                    sym_s = SOTA_DERIV_SYMBOLS[p_s]
+                    live_ws.inbox.put_nowait(json.dumps({
+                        "subscription": {"id": f"p6-{sym_s}"},
+                        "tick": {"epoch": mon_open + 95, "quote": 150.55, "symbol": sym_s},
+                    }))
+                    live_ws.inbox.put_nowait(json.dumps({
+                        "subscription": {"id": f"p6-{sym_s}"},
+                        "tick": {"epoch": mon_open + 121, "quote": 150.58, "symbol": sym_s},
+                    }))
+                await asyncio.sleep(0.04)
+                clk[0] = float(mon_open + 122)
+                for _ in range(60):
+                    if "book_scored" in _read_ev():
+                        break
+                    await asyncio.sleep(0.02)
+
+        res_a = _run_patched_loop(
+            Path(td_a),
+            seed_end_epoch=fri_end,
+            wall_clock=clock_a,
+            pub_opener=_pub_open_a,
+            auth_handler=_std_auth_handler(settle_gate_a, fri_end),
+            with_open_contract=True,
+            duration_s=2.0,
+            on_after_start=_drive_weekend_clock,
+            probe_interval_s=30.0,
+        )
+        assert res_a["rc"] == 0
+        assert res_a["auth_url_calls"] == 1
+        assert pub_opens_a >= 6
+        ev_names_a = [e["event"] for e in res_a["events"]]
+        assert ev_names_a.index("market_closed_standby") < ev_names_a.index("contract_settled")
+        assert "market_reopened_resumed" in ev_names_a
+        assert "book_scored" in ev_names_a and ev_names_a.index("market_reopened_resumed") < ev_names_a.index("book_scored")
+        assert "feature_or_book_skip" not in ev_names_a
+        # Verify closing-tail tick (fri_end + 12), opening interval ticks (+1, +3, +5, +15, +25, +35),
+        # AND overlap rule (live 150.33 at +3, live 150.99 beats history 150.45 at +35) persisted for AUDUSD & USDJPY!
+        for pair_chk in ("AUDUSD", "USDJPY"):
+            df_chk = pd.read_parquet(res_a["tick_d"] / f"{pair_chk}_ticks.parquet")
+            ep_map = dict(zip(df_chk["epoch"].tolist(), df_chk["price"].tolist()))
+            assert fri_end + 12 in ep_map and abs(ep_map[fri_end + 12] - 150.77) < 1e-9, f"{pair_chk} lost closing-tail tick!"
+            for off in (1, 3, 5, 15, 25, 35):
+                assert (mon_open + off) in ep_map, f"{pair_chk} missed opening tick +{off}s!"
+            assert abs(ep_map[mon_open + 3] - 150.33) < 1e-9, f"{pair_chk} lost live overlap tick at +3s!"
+            assert abs(ep_map[mon_open + 35] - 150.99) < 1e-9, f"{pair_chk} history overwrote live quote at +35s!"
+        # Verify all standby/rejected candidate sockets (conn 2..5; conn 1 was server-disconnected) were closed cleanly
+        assert all(w.closed for w in opened_ws_a[1:5])
+
+    # Case 4b (Finding #1): Stream MarketIsClosed on AUDUSD + RateLimit on EURUSD MUST raise ExecutorError (NEVER standby!)
+    with tempfile.TemporaryDirectory() as td_b:
+        t_b = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_b = [float(t_b)]
+
+        def _pub_mixed_err(_u: str) -> _ScriptedWS:
+            def _h(ws_self: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    sid_b = f"mix-{sym}"
+                    if len(ws_self.sent) == len(_ts_w.MAJORS):
+                        loop = asyncio.get_running_loop()
+                        loop.call_later(
+                            0.02,
+                            ws_self.inbox.put_nowait,
+                            json.dumps({
+                                "subscription": {"id": "mix-frxAUDUSD"},
+                                "error": {"code": "MarketIsClosed", "message": "closed"},
+                            }),
+                        )
+                        loop.call_later(
+                            0.02,
+                            ws_self.inbox.put_nowait,
+                            json.dumps({
+                                "subscription": {"id": "mix-frxEURUSD"},
+                                "error": {"code": "RateLimit", "message": "rate limit"},
+                            }),
+                        )
+                    return {"req_id": rid, "subscription": {"id": sid_b}, "tick": {"epoch": t_b, "quote": 150.0, "symbol": sym}}
+                if "ticks_history" in req:
+                    return {"req_id": rid, "history": {"times": [], "prices": []}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        _expect_raises(
+            ExecutorError,
+            _run_patched_loop,
+            Path(td_b),
+            seed_end_epoch=t_b,
+            wall_clock=clock_b,
+            pub_opener=_pub_mixed_err,
+            auth_handler=_std_auth_handler({"ready": False}, t_b),
+            duration_s=0.6,
+        )
+
+    # Case 4c (Finding #2): Queue overflow MUST fail closed with ExecutorError!
+    with tempfile.TemporaryDirectory() as td_c:
+        t_c = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_c = [float(t_c)]
+
+        def _pub_overflow(_u: str) -> _ScriptedWS:
+            def _h(_ws: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    sid_c = f"ovf-{sym}"
+                    frames = [{"req_id": rid, "subscription": {"id": sid_c}, "tick": {"epoch": t_c, "quote": 150.0, "symbol": sym}}]
+                    if sym == "frxAUDUSD":
+                        for k_i in range(1, 5):
+                            frames.append({"subscription": {"id": sid_c}, "tick": {"epoch": t_c + k_i, "quote": 150.0, "symbol": sym}})
+                    return frames
+                if "ticks_history" in req:
+                    return {"req_id": rid, "history": {"times": [], "prices": []}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        _expect_raises(
+            ExecutorError,
+            _run_patched_loop,
+            Path(td_c),
+            seed_end_epoch=t_c,
+            wall_clock=clock_c,
+            pub_opener=_pub_overflow,
+            auth_handler=_std_auth_handler({"ready": False}, t_c),
+            duration_s=0.6,
+            pub_queue_maxsize=2,
+        )
+
+    # Case 4d (Finding #4): Held subscribe reply + KILL touched mid-probe -> IMMEDIATELY sets allow_buy=False,
+    #          cancels probe task, closes candidate WS, AND keeps reconciling open contracts!
+    with tempfile.TemporaryDirectory() as td_d:
+        t_d = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_d = [float(t_d)]
+        settle_gate_d = {"ready": False}
+        held_ws_d: list[_ScriptedWS] = []
+
+        def _pub_held(_u: str) -> _ScriptedWS:
+            def _h(_ws: _ScriptedWS, _req: dict[str, Any]) -> Any:
+                return None  # Hold reply indefinitely!
+
+            w = _ScriptedWS(_h)
+            held_ws_d.append(w)
+            return w
+
+        async def _kill_during_held_probe(log_d: Path, _pubs: list[Any], auths: list[Any], _clk: list[float]) -> None:
+            for _ in range(40):
+                if held_ws_d:
+                    break
+                await asyncio.sleep(0.01)
+            assert held_ws_d, "probe did not start"
+            # While subscribe reply is held, open contract MUST still settle AND touching KILL must cancel probe!
+            settle_gate_d["ready"] = True
+            await asyncio.sleep(0.08)
+            (log_d / "KILL").write_text("operator_halt\n", encoding="utf-8")
+            await asyncio.sleep(0.08)
+            assert auths[0].allow_buy is False, "KILL did not immediately disable allow_buy while probe held!"
+            assert held_ws_d[0].closed is True, "KILL did not cancel and close held candidate WS!"
+
+        res_d = _run_patched_loop(
+            Path(td_d),
+            seed_end_epoch=t_d,
+            wall_clock=clock_d,
+            pub_opener=_pub_held,
+            auth_handler=_std_auth_handler(settle_gate_d, t_d),
+            with_open_contract=True,
+            duration_s=0.4,
+            on_after_start=_kill_during_held_probe,
+        )
+        assert res_d["rc"] == 0
+        assert res_d["auth_clients"][0].allow_buy is False
+        assert held_ws_d[0].closed is True
+        assert any(e["event"] == "contract_settled" for e in res_d["events"])
+
+    # Case 4e (Finding #7): CancelledError mid-warmup closes candidate WS AND closes SQLite conn cleanly!
+    with tempfile.TemporaryDirectory() as td_e:
+        t_e = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_e = [float(t_e)]
+        cand_ws_e: list[_ScriptedWS] = []
+        hist_hit_e: list[bool] = [False]
+
+        def _pub_slow_hist(_u: str) -> _ScriptedWS:
+            def _h(_ws: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    return {"req_id": rid, "subscription": {"id": f"e-{sym}"}, "tick": {"epoch": t_e + 10, "quote": 150.0, "symbol": sym}}
+                if "ticks_history" in req:
+                    hist_hit_e[0] = True
+                    return None  # Hang mid-history so task cancellation hits deterministically mid-warmup!
+                return {"req_id": rid, "echo_req": req}
+
+            w = _ScriptedWS(_h)
+            cand_ws_e.append(w)
+            return w
+
+        async def _wait_hist_started() -> None:
+            for _ in range(200):
+                if hist_hit_e[0]:
+                    return
+                await asyncio.sleep(0.01)
+            raise AssertionError("ticks_history never started before cancel timeout")
+
+        res_e = _run_patched_loop(
+            Path(td_e),
+            seed_end_epoch=t_e,
+            wall_clock=clock_e,
+            pub_opener=_pub_slow_hist,
+            auth_handler=_std_auth_handler({"ready": False}, t_e),
+            duration_s=2.0,
+            cancel_after_s=_wait_hist_started,  # type: ignore[arg-type]
+        )
+        assert res_e["cancelled"] is True
+        assert cand_ws_e and cand_ws_e[0].closed is True, "CancelledError leaked candidate public WS!"
+        assert len(res_e["conns_opened"]) == 1
+        try:
+            res_e["conns_opened"][0].execute("SELECT 1")
+            raise AssertionError("SQLite conn was NOT closed after CancelledError!")
+        except _sq_w.ProgrammingError:
+            pass
+
+    # Case 4f (R2 Finding #1): Transactional warmup staging — page 1 succeeds ([T-100..T]), page 2 hits MarketIsClosed ->
+    #          buffer MUST NOT advance past missing older tick at T-1500; retry MUST commit T-1500 cleanly!
+    with tempfile.TemporaryDirectory() as td_f:
+        t_seed_f = int(datetime(2026, 11, 27, 19, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_now_f = t_seed_f + 2000
+        clock_f = [float(t_now_f)]
+        pub_opens_f = 0
+
+        def _pub_stage_fail(_u: str) -> _ScriptedWS:
+            nonlocal pub_opens_f
+            pub_opens_f += 1
+            conn_n = pub_opens_f
+            hist_count = [0]
+
+            def _h(_ws: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    return {"req_id": rid, "subscription": {"id": f"f-{conn_n}-{sym}"}, "tick": {"epoch": t_now_f, "quote": 150.0, "symbol": sym}}
+                if "ticks_history" in req:
+                    hist_count[0] += 1
+                    s_ep, e_ep = int(req["start"]), int(req["end"])
+                    # On attempt 1, let page 1 ([t_now_f-999, t_now_f]) succeed, then fail page 2 with MarketIsClosed!
+                    if conn_n == 1 and hist_count[0] == 2:
+                        return {
+                            "req_id": rid,
+                            "error": {"code": "MarketIsClosed", "message": "This market is presently closed."},
+                        }
+                    all_t = [t_now_f - 1500, t_now_f - 100]
+                    all_p = [150.15, 150.90]
+                    ot = [x for x in all_t if s_ep <= x <= e_ep]
+                    op = [y for x, y in zip(all_t, all_p) if s_ep <= x <= e_ep]
+                    return {"req_id": rid, "history": {"times": ot, "prices": op}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        async def _advance_f(_log_d: Path, _pubs: list[Any], _auths: list[Any], clk: list[float]) -> None:
+            for _ in range(80):
+                if pub_opens_f >= 1:
+                    break
+                await asyncio.sleep(0.01)
+            await asyncio.sleep(0.06)
+            clk[0] = float(t_now_f + 40)
+
+        res_f = _run_patched_loop(
+            Path(td_f),
+            seed_end_epoch=t_seed_f,
+            wall_clock=clock_f,
+            pub_opener=_pub_stage_fail,
+            auth_handler=_std_auth_handler({"ready": False}, t_now_f),
+            duration_s=0.6,
+            on_after_start=_advance_f,
+            probe_interval_s=30.0,
+        )
+        assert res_f["rc"] == 0 and pub_opens_f >= 2
+        df_aud_f = pd.read_parquet(res_f["tick_d"] / "AUDUSD_ticks.parquet")
+        eps_f = set(df_aud_f["epoch"].tolist())
+        assert (t_now_f - 1500) in eps_f and (t_now_f - 100) in eps_f, "Failed warmup attempt skipped T-1500!"
+
+    # Case 4g (R2 Finding #2): Mid-warmup disconnect/reconnect AND live-loop reconnect BOTH repair gap [T+25] before T+50!
+    with tempfile.TemporaryDirectory() as td_g:
+        t_seed_g = int(datetime(2026, 11, 27, 20, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_now_g = t_seed_g + 10
+        clock_g = [float(t_now_g)]
+        open_g = [0]
+
+        def _pub_reconnect_mid_warmup(_u: str) -> _ScriptedWS:
+            open_g[0] += 1
+            c_n = open_g[0]
+            hist_calls = [0]
+
+            async def _h(ws_self: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    ep_live = (t_seed_g + 5) if c_n == 1 else (t_seed_g + 50)
+                    return {"req_id": rid, "subscription": {"id": f"g-{c_n}-{sym}"}, "tick": {"epoch": ep_live, "quote": 150.5, "symbol": sym}}
+                if "ticks_history" in req:
+                    hist_calls[0] += 1
+                    s_ep, e_ep = int(req["start"]), int(req["end"])
+                    if c_n == 1 and hist_calls[0] == 1:
+                        # Return pair 1 history up to T+10, then immediately drop socket before pair 2 finishes!
+                        resp1 = {"req_id": rid, "history": {"times": [], "prices": []}}
+                        return [resp1, _ws_exc.ConnectionClosed(None, None)]
+                    if c_n == 1 and hist_calls[0] >= 2:
+                        await asyncio.sleep(0.05)
+                    all_t = [t_seed_g + 25]
+                    all_p = [150.25]
+                    ot = [x for x in all_t if s_ep <= x <= e_ep]
+                    op = [y for x, y in zip(all_t, all_p) if s_ep <= x <= e_ep]
+                    return {"req_id": rid, "history": {"times": ot, "prices": op}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        res_g = _run_patched_loop(
+            Path(td_g),
+            seed_end_epoch=t_seed_g,
+            wall_clock=clock_g,
+            pub_opener=_pub_reconnect_mid_warmup,
+            auth_handler=_std_auth_handler({"ready": False}, t_now_g),
+            duration_s=0.6,
+        )
+        assert res_g["rc"] == 0 and open_g[0] >= 2
+        df_aud_g = pd.read_parquet(res_g["tick_d"] / "AUDUSD_ticks.parquet")
+        eps_g = set(df_aud_g["epoch"].tolist())
+        assert (t_seed_g + 25) in eps_g and (t_seed_g + 50) in eps_g, f"Mid-warmup reconnect dropped T+25! eps={sorted(eps_g)[-5:]}"
+
+    # Case 4g2 (R2 Finding #2 live-loop path): Live steady-state disconnect/reconnect MUST NOT ingest post-reconnect T+50
+    #           before repairing pre-drop gap T+25!
+    with tempfile.TemporaryDirectory() as td_g2:
+        t_seed_g2 = int(datetime(2026, 11, 27, 20, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_now_g2 = t_seed_g2 + 10
+        clock_g2 = [float(t_now_g2)]
+        open_g2 = [0]
+
+        def _pub_reconnect_live(_u: str) -> _ScriptedWS:
+            open_g2[0] += 1
+            c_n = open_g2[0]
+
+            def _h(ws_self: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    ep_live = (t_seed_g2 + 5) if c_n == 1 else (t_seed_g2 + 50)
+                    if c_n == 1 and len(ws_self.sent) == len(_ts_w.MAJORS):
+                        # Drop socket AFTER initial warmup completes (during steady-state streaming)!
+                        asyncio.get_running_loop().call_later(
+                            0.08, ws_self.inbox.put_nowait, _ws_exc.ConnectionClosed(None, None)
+                        )
+                    return {"req_id": rid, "subscription": {"id": f"g2-{c_n}-{sym}"}, "tick": {"epoch": ep_live, "quote": 150.5, "symbol": sym}}
+                if "ticks_history" in req:
+                    s_ep, e_ep = int(req["start"]), int(req["end"])
+                    all_t = [t_seed_g2 + 25] if c_n >= 2 else []
+                    all_p = [150.25] if c_n >= 2 else []
+                    ot = [x for x in all_t if s_ep <= x <= e_ep]
+                    op = [y for x, y in zip(all_t, all_p) if s_ep <= x <= e_ep]
+                    return {"req_id": rid, "history": {"times": ot, "prices": op}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        res_g2 = _run_patched_loop(
+            Path(td_g2),
+            seed_end_epoch=t_seed_g2,
+            wall_clock=clock_g2,
+            pub_opener=_pub_reconnect_live,
+            auth_handler=_std_auth_handler({"ready": False}, t_now_g2),
+            duration_s=0.6,
+        )
+        assert res_g2["rc"] == 0 and open_g2[0] >= 3
+        df_aud_g2 = pd.read_parquet(res_g2["tick_d"] / "AUDUSD_ticks.parquet")
+        eps_g2 = set(df_aud_g2["epoch"].tolist())
+        assert (t_seed_g2 + 25) in eps_g2 and (t_seed_g2 + 50) in eps_g2, f"Live reconnect dropped T+25! eps={sorted(eps_g2)[-5:]}"
+
+    # Case 4h (R2 Findings #6 & #7): Slow public WS close (150ms) during KILL does NOT stall reconciliation (>90ms gap)
+    #          AND closes a completed/unadopted candidate socket cleanly!
+    with tempfile.TemporaryDirectory() as td_h:
+        t_h = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_h = [float(t_h)]
+        slow_ws_h: list[Any] = []
+        recon_times: list[float] = []
+
+        class _SlowCloseWS(_ScriptedWS):
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await asyncio.sleep(0.15)
+                await super().close(*a, **kw)
+
+        def _pub_slow_close(_u: str) -> _SlowCloseWS:
+            def _h(_ws: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    return {"req_id": rid, "subscription": {"id": f"h-{sym}"}, "tick": {"epoch": t_h, "quote": 150.0, "symbol": sym}}
+                if "ticks_history" in req:
+                    return {"req_id": rid, "history": {"times": [], "prices": []}}
+                return {"req_id": rid, "echo_req": req}
+
+            w = _SlowCloseWS(_h)
+            slow_ws_h.append(w)
+            return w
+
+        def _auth_rec_spy(_ws: Any, req: dict[str, Any]) -> dict[str, Any]:
+            rid = req["req_id"]
+            if "balance" in req:
+                return {"req_id": rid, "balance": {"loginid": "DMO55667788", "currency": "USD", "is_virtual": 1}}
+            if "time" in req:
+                return {"req_id": rid, "time": t_h}
+            if "proposal_open_contract" in req:
+                recon_times.append(_tm_w.monotonic())
+                return {"req_id": rid, "proposal_open_contract": {"contract_id": "99001122", "status": "open", "is_sold": 0}}
+            return {"req_id": rid, "echo_req": req}
+
+        async def _kill_after_open(log_d: Path, _pubs: list[Any], _auths: list[Any], _clk: list[float]) -> None:
+            for _ in range(80):
+                if slow_ws_h and len(recon_times) >= 2:
+                    break
+                await asyncio.sleep(0.01)
+            (log_d / "KILL").write_text("halt_slow_close\n", encoding="utf-8")
+
+        res_h = _run_patched_loop(
+            Path(td_h),
+            seed_end_epoch=t_h,
+            wall_clock=clock_h,
+            pub_opener=_pub_slow_close,
+            auth_handler=_auth_rec_spy,
+            with_open_contract=True,
+            duration_s=0.65,
+            on_after_start=_kill_after_open,
+        )
+        assert res_h["rc"] == 0
+        assert slow_ws_h and slow_ws_h[0].closed is True, "Slow-close public socket was NOT closed cleanly!"
+        assert len(recon_times) >= 6, f"Expected continuous reconciliation during slow close, got {len(recon_times)}"
+        max_rec_gap = max(b - a for a, b in zip(recon_times, recon_times[1:]))
+        assert max_rec_gap < 0.11, f"Slow public close stalled reconciliation by {max_rec_gap:.3f}s!"
+
+    # Case 4i (R3 Finding #3): In-flight disconnect BEFORE first ticks_history reply routes into bounded repair retry!
+    with tempfile.TemporaryDirectory() as td_i:
+        t_seed_i = int(datetime(2026, 11, 27, 20, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_now_i = t_seed_i + 40
+        clock_i = [float(t_now_i)]
+        open_i = [0]
+
+        def _pub_drop_inflight_hist(_u: str) -> _ScriptedWS:
+            open_i[0] += 1
+            c_n = open_i[0]
+
+            def _h(_ws: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    ep_l = (t_seed_i + 10) if c_n == 1 else (t_seed_i + 40)
+                    return {"req_id": rid, "subscription": {"id": f"i-{c_n}-{sym}"}, "tick": {"epoch": ep_l, "quote": 150.4, "symbol": sym}}
+                if "ticks_history" in req:
+                    if c_n == 1:
+                        # Drop socket immediately BEFORE replying to the very first ticks_history request!
+                        return _ws_exc.ConnectionClosed(None, None)
+                    s_ep, e_ep = int(req["start"]), int(req["end"])
+                    all_t = [t_seed_i + 25]
+                    all_p = [150.25]
+                    ot = [x for x in all_t if s_ep <= x <= e_ep]
+                    op = [y for x, y in zip(all_t, all_p) if s_ep <= x <= e_ep]
+                    return {"req_id": rid, "history": {"times": ot, "prices": op}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        res_i = _run_patched_loop(
+            Path(td_i),
+            seed_end_epoch=t_seed_i,
+            wall_clock=clock_i,
+            pub_opener=_pub_drop_inflight_hist,
+            auth_handler=_std_auth_handler({"ready": False}, t_now_i),
+            duration_s=0.6,
+        )
+        assert res_i["rc"] == 0 and open_i[0] >= 2
+        df_aud_i = pd.read_parquet(res_i["tick_d"] / "AUDUSD_ticks.parquet")
+        eps_i = set(df_aud_i["epoch"].tolist())
+        assert (t_seed_i + 25) in eps_i and (t_seed_i + 40) in eps_i, "In-flight history disconnect failed to repair T+25!"
+
+    # Case 4j (R3 Finding #4b): MarketIsClosed followed by terminal reader death (JSON array) MUST raise ExecutorError!
+    with tempfile.TemporaryDirectory() as td_j:
+        t_j = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_j = [float(t_j)]
+
+        def _pub_closed_then_dead(_u: str) -> _ScriptedWS:
+            def _h(ws_self: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    sid_j = f"j-{sym}"
+                    if len(ws_self.sent) == len(_ts_w.MAJORS):
+                        loop = asyncio.get_running_loop()
+                        loop.call_later(
+                            0.02,
+                            ws_self.inbox.put_nowait,
+                            json.dumps({"subscription": {"id": sid_j}, "error": {"code": "MarketIsClosed", "message": "closed"}}),
+                        )
+                        # Valid JSON array crashes _dispatch (AttributeError on list.get) -> marks client _dead!
+                        loop.call_later(0.025, ws_self.inbox.put_nowait, "[]")
+                    return {"req_id": rid, "subscription": {"id": sid_j}, "tick": {"epoch": t_j, "quote": 150.0, "symbol": sym}}
+                if "ticks_history" in req:
+                    return {"req_id": rid, "history": {"times": [], "prices": []}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        _expect_raises(
+            ExecutorError,
+            _run_patched_loop,
+            Path(td_j),
+            seed_end_epoch=t_j,
+            wall_clock=clock_j,
+            pub_opener=_pub_closed_then_dead,
+            auth_handler=_std_auth_handler({"ready": False}, t_j),
+            duration_s=0.6,
+        )
+
+    # Case 4k (R3 Finding #1b): Live rotation followed by MarketIsClosed MUST NOT persist post-rotation 1050 before repairing 1025!
+    with tempfile.TemporaryDirectory() as td_k:
+        t_seed_k = int(datetime(2026, 11, 27, 20, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_now_k = t_seed_k + 10
+        clock_k = [float(t_now_k)]
+        open_k = [0]
+
+        def _pub_rot_then_close(_u: str) -> _ScriptedWS:
+            open_k[0] += 1
+            c_n = open_k[0]
+
+            def _h(ws_self: _ScriptedWS, req: dict[str, Any]) -> Any:
+                rid = req["req_id"]
+                if "ticks" in req:
+                    sym = req["ticks"]
+                    if c_n == 1:
+                        if len(ws_self.sent) == len(_ts_w.MAJORS):
+                            asyncio.get_running_loop().call_later(
+                                0.05, ws_self.inbox.put_nowait, _ws_exc.ConnectionClosed(None, None)
+                            )
+                        return {"req_id": rid, "subscription": {"id": f"k1-{sym}"}, "tick": {"epoch": t_seed_k + 5, "quote": 150.0, "symbol": sym}}
+                    if c_n == 2:
+                        # Reconnect succeeds with post-gap tick +50, then immediately sends MarketIsClosed stream error!
+                        sid_k = f"k2-{sym}"
+                        if sym == "frxUSDJPY":
+                            asyncio.get_running_loop().call_later(
+                                0.005,
+                                ws_self.inbox.put_nowait,
+                                json.dumps({"subscription": {"id": sid_k}, "error": {"code": "MarketIsClosed", "message": "closed"}}),
+                            )
+                        return {"req_id": rid, "subscription": {"id": sid_k}, "tick": {"epoch": t_seed_k + 50, "quote": 150.5, "symbol": sym}}
+                    return {"req_id": rid, "subscription": {"id": f"k3-{sym}"}, "tick": {"epoch": t_seed_k + 55, "quote": 150.6, "symbol": sym}}
+                if "ticks_history" in req:
+                    s_ep, e_ep = int(req["start"]), int(req["end"])
+                    all_t = [t_seed_k + 25, t_seed_k + 50] if c_n >= 3 else []
+                    all_p = [150.25, 150.50] if c_n >= 3 else []
+                    ot = [x for x in all_t if s_ep <= x <= e_ep]
+                    op = [y for x, y in zip(all_t, all_p) if s_ep <= x <= e_ep]
+                    return {"req_id": rid, "history": {"times": ot, "prices": op}}
+                return {"req_id": rid, "echo_req": req}
+
+            return _ScriptedWS(_h)
+
+        async def _advance_k(_log_d: Path, _pubs: list[Any], _auths: list[Any], clk: list[float]) -> None:
+            for _ in range(80):
+                if open_k[0] >= 2:
+                    break
+                await asyncio.sleep(0.01)
+            await asyncio.sleep(0.08)
+            clk[0] = float(t_now_k + 50)
+
+        res_k = _run_patched_loop(
+            Path(td_k),
+            seed_end_epoch=t_seed_k,
+            wall_clock=clock_k,
+            pub_opener=_pub_rot_then_close,
+            auth_handler=_std_auth_handler({"ready": False}, t_now_k),
+            duration_s=0.7,
+            on_after_start=_advance_k,
+            probe_interval_s=30.0,
+        )
+        assert res_k["rc"] == 0 and open_k[0] >= 3
+        df_aud_k = pd.read_parquet(res_k["tick_d"] / "AUDUSD_ticks.parquet")
+        eps_k = set(df_aud_k["epoch"].tolist())
+        assert (t_seed_k + 25) in eps_k and (t_seed_k + 55) in eps_k, "Rotation+closure dropped pre-gap T+25!"
+
+    # Case 4l (R3 Finding #5): KILL during rejected candidate's slow close MUST still complete candidate close handshake!
+    with tempfile.TemporaryDirectory() as td_l:
+        t_l = int(datetime(2026, 11, 27, 20, 55, 0, tzinfo=timezone.utc).timestamp())
+        clock_l = [float(t_l)]
+        slow_rej_ws: list[Any] = []
+
+        class _SlowCloseRejWS(_ScriptedWS):
+            async def close(self, *a: Any, **kw: Any) -> None:
+                await asyncio.sleep(0.12)
+                await super().close(*a, **kw)
+
+        def _pub_slow_rej(_u: str) -> _SlowCloseRejWS:
+            w = _SlowCloseRejWS(
+                lambda _ws, req: {
+                    "req_id": req["req_id"],
+                    "error": {"code": "MarketIsClosed", "message": "closed"},
+                }
+            )
+            slow_rej_ws.append(w)
+            return w
+
+        async def _kill_during_slow_rej(log_d: Path, _pubs: list[Any], _auths: list[Any], _clk: list[float]) -> None:
+            for _ in range(80):
+                if slow_rej_ws:
+                    break
+                await asyncio.sleep(0.01)
+            await asyncio.sleep(0.03)  # Right in the middle of candidate's 120ms close()!
+            (log_d / "KILL").write_text("kill_mid_close\n", encoding="utf-8")
+
+        res_l = _run_patched_loop(
+            Path(td_l),
+            seed_end_epoch=t_l,
+            wall_clock=clock_l,
+            pub_opener=_pub_slow_rej,
+            auth_handler=_std_auth_handler({"ready": False}, t_l),
+            duration_s=0.45,
+            on_after_start=_kill_during_slow_rej,
+        )
+        assert res_l["rc"] == 0
+        assert slow_rej_ws and slow_rej_ws[0].closed is True, "KILL cancelled rejected candidate's only close handshake!"
+
+    # Case 4m (R4b Major #1): Local ValueError during history ws.send MUST fail closed (NEVER misclassified as reconnect!)
+    with tempfile.TemporaryDirectory() as td_m:
+        t_seed_m = int(datetime(2026, 11, 27, 20, 0, 0, tzinfo=timezone.utc).timestamp())
+        t_now_m = t_seed_m + 20
+        clock_m = [float(t_now_m)]
+        open_m = [0]
+
+        def _pub_valerr_send(_u: str) -> _ScriptedWS:
+            open_m[0] += 1
+
+            class _ValErrWS(_ScriptedWS):
+                async def send(self, text: str) -> None:
+                    req = json.loads(text)
+                    if "ticks_history" in req:
+                        raise ValueError("local serialization bug")
+                    await super().send(text)
+
+            return _ValErrWS(
+                lambda _ws, req: {
+                    "req_id": req["req_id"],
+                    "subscription": {"id": f"m-{req.get('ticks')}"},
+                    "tick": {"epoch": t_now_m, "quote": 150.0},
+                }
+            )
+
+        _expect_raises(
+            DerivAPIError,
+            _run_patched_loop,
+            Path(td_m),
+            seed_end_epoch=t_seed_m,
+            wall_clock=clock_m,
+            pub_opener=_pub_valerr_send,
+            auth_handler=_std_auth_handler({"ready": False}, t_now_m),
+            duration_s=0.5,
+        )
+        assert open_m[0] == 1, f"Local ValueError should fail closed without retry, got opens={open_m[0]}"
+
+
 def main() -> int:
     tests = [
         test_quote_parser_and_dual_ev_gate,
@@ -7303,6 +8793,7 @@ def main() -> int:
         test_rolling_midflight_revocation_lock_and_send_timeout,
         test_rolling_4book_cutover_config_and_preflight,
         test_rolling_refitter_downloader_and_4book_g6_mvt_e2e,
+        test_weekend_market_closed_standby_and_reopen,
     ]
     for fn in tests:
         fn()
